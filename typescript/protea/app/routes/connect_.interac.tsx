@@ -1,18 +1,9 @@
+import type { Route } from './+types/connect_.interac'
 import { Code } from '@bufbuild/connect'
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { redirect } from '@remix-run/node'
-import {
-  Form,
-  useActionData,
-  useLoaderData,
-  useNavigation
-} from '@remix-run/react'
+import { redirect } from 'react-router';
+import { Form, useActionData, useLoaderData, useNavigation } from 'react-router';
 import { useEffect, useState } from 'react'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts, TextField } from '~/components'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
@@ -22,13 +13,13 @@ import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const balancesResponse = await grpc.getBalances(request, {})
   if (
     isConnectError(balancesResponse) ||
     balancesResponse.balances.filter((bal) => bal.currency == 'CAD').length == 0
   )
-    throw redirect(route('/'))
+    throw redirect(href('/'))
 
   return jsonWithCSRF(request, {})
 }
@@ -37,29 +28,29 @@ export const handle: ApplicationProps = {
   layout: Layouts.Focus,
   scaffold: {
     header: {
-      back: route('/accounts'),
+      back: href('/accounts'),
       title: 'Connect interac account'
     }
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Connect interac account'
   }
 ])
 
 export default function Page() {
-  const { csrfToken } = useLoaderData<typeof loader>()
+  const { csrfToken } = useLoaderData()
 
   const navigation = useNavigation()
-  const actionData = useActionData<typeof action>()
+  const actionData = useActionData()
   const [email, setEmail] = useState<string>('')
 
   const [setLoading] = useScaffoldStore((state) => [state.setLoading])
 
   useEffect(() => {
-    if (navigation.state == 'submitting' && navigation.formMethod === 'post') {
+    if (navigation.state == 'submitting' && navigation.formMethod === 'POST') {
       setLoading(true)
     } else if (navigation.state == 'loading' || navigation.state == 'idle') {
       setLoading(false)
@@ -72,7 +63,7 @@ export default function Page() {
     <>
       <Form
         id='connect-interac'
-        action={route('/connect/interac')}
+        action={href('/connect/interac')}
         method='post'
         className='hidden'
       />
@@ -114,7 +105,7 @@ export default function Page() {
   )
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const form = await request.formData()
   const email = String(form.get('email') || '')
 
@@ -135,7 +126,7 @@ export async function action({ request }: ActionFunctionArgs) {
     }
   }
 
-  return redirectWithSnackbar(request, route('/accounts'), {
+  return redirectWithSnackbar(request, href('/accounts'), {
     message: 'New interac account successfully saved.',
     icon: 'close'
   })

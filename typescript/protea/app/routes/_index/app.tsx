@@ -1,6 +1,6 @@
-import { useLoaderData } from '@remix-run/react'
+import { useLoaderData } from 'react-router';
 import clsx from 'clsx'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import {
   Alert,
   AlertBody,
@@ -13,7 +13,6 @@ import {
   CardTitle,
   Chip,
   ChipColor,
-  DiscordIcon,
   GridColumn,
   Icon,
   InterledgerIcon,
@@ -26,8 +25,8 @@ import {
 import { Label } from '~/components/Label'
 import { usePendingConfirmations } from '~/lib/cards/usePendingConfirmations'
 import { usePusher } from '~/lib/usePusher'
-import type { appLoader } from './route'
-import { KycStatus } from './route'
+import type { loader, AppLoaderData } from './route'
+import { KycStatus } from '~/lib/types'
 
 export function AppPage() {
   const {
@@ -37,7 +36,7 @@ export function AppPage() {
     kycStatus,
     pusherArgs,
     balances
-  } = useLoaderData<typeof appLoader>()
+  } = useLoaderData<typeof loader>() as AppLoaderData
 
   const { pendingConfirmations } = usePendingConfirmations()
 
@@ -50,10 +49,38 @@ export function AppPage() {
           <Alert>
             <Icon>south_west</Icon>
             <AlertBody>Receive only account</AlertBody>
-            <Router className='ml-auto text-primary' to={route('/pay')}>
+            <Router className='ml-auto text-primary' to={href('/pay')}>
               Find out why
             </Router>
           </Alert>
+        )}
+        {kycStatus == KycStatus.DocumentsRequired && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Wallet</CardTitle>
+              <Chip color={ChipColor.orange}>Reserved</Chip>
+            </CardHeader>
+            <CardContent>
+              <div className='flex items-start space-x-4'>
+                <CardIcon>
+                  <Icon>account_balance_wallet</Icon>
+                </CardIcon>
+                <div className='flex flex-col space-y-4'>
+                  <p className='text-sm text-medium'>
+                    Your KYC submission needs attention. <br />
+                    Please resubmit your documents to activate your wallet. <br />
+                    Your previous submission may have been incomplete, the photos may have been unclear, or your documents may have expired.
+                  </p>
+                  <Router
+                    className='text-sm font-medium text-primary'
+                    to={href('/personal-details')}
+                  >
+                    Reactivate wallet
+                  </Router>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         )}
         {kycStatus == KycStatus.Unknown && (
           <Card>
@@ -73,7 +100,7 @@ export function AppPage() {
                   </p>
                   <Router
                     className='text-sm font-medium text-primary'
-                    to={route('/personal-details')}
+                    to={href('/personal-details')}
                   >
                     Activate wallet
                   </Router>
@@ -84,18 +111,18 @@ export function AppPage() {
         )}
         {(kycStatus == KycStatus.Pending ||
           kycStatus == KycStatus.InReview) && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Activation</CardTitle>
-              <Chip color={ChipColor.orange}>Pending</Chip>
-            </CardHeader>
-            <CardContent>
-              <p className='text-sm text-medium'>
-                Just a moment, we are verifying your details.
-              </p>
-            </CardContent>
-          </Card>
-        )}
+            <Card>
+              <CardHeader>
+                <CardTitle>Activation</CardTitle>
+                <Chip color={ChipColor.orange}>Pending</Chip>
+              </CardHeader>
+              <CardContent>
+                <p className='text-sm text-medium'>
+                  Just a moment, we are verifying your details.
+                </p>
+              </CardContent>
+            </Card>
+          )}
         {kycStatus == KycStatus.Denied && (
           <Card>
             <CardHeader>
@@ -165,7 +192,7 @@ export function AppPage() {
                       Cards
                     </span>
                   </div>
-                  <Router className='flex max-h-fit' to={route('/cards')}>
+                  <Router className='flex max-h-fit' to={href('/cards')}>
                     <Icon className='text-medium'>read_more</Icon>
                   </Router>
                 </CardContent>
@@ -175,7 +202,7 @@ export function AppPage() {
             {/* PENDING CONFIRMATIONS */}
             {pendingConfirmations.length > 0 && (
               <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-                <Router className='flex max-h-fit' to={route('/confirmations')}>
+                <Router className='flex max-h-fit' to={href('/confirmations')}>
                   <CardHeader className='mb-2'>
                     <CardTitle className='flex'>
                       <Icon className='mr-2 mt-1 flex w-6 text-orange-500'>
@@ -193,7 +220,7 @@ export function AppPage() {
             <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
               <CardHeader>
                 <CardTitle>Latest payments</CardTitle>
-                <Router className='flex max-h-fit' to={route('/payments')}>
+                <Router className='flex max-h-fit' to={href('/payments')}>
                   <Icon className='text-medium'>read_more</Icon>
                 </Router>
               </CardHeader>
@@ -205,7 +232,7 @@ export function AppPage() {
                       transacting.
                     </span>
                     <Router
-                      to={route('/pay')}
+                      to={href('/pay')}
                       className='text-sm font-medium text-primary'
                     >
                       Send or receive payments now
@@ -216,7 +243,7 @@ export function AppPage() {
               {transactions.map((transaction, index) => (
                 <CardLink
                   key={transaction.id}
-                  to={route('/payments/:paymentId', {
+                  to={href('/payments/:paymentId', {
                     paymentId: transaction.id
                   })}
                   className='justify-between'
@@ -245,9 +272,6 @@ export function AppPage() {
                           )}
                           {transaction.destinationIdentityType == 'Twitter' && (
                             <TwitterIcon />
-                          )}
-                          {transaction.destinationIdentityType == 'Discord' && (
-                            <DiscordIcon />
                           )}
                           {transaction.destinationIdentityType == 'Slack' && (
                             <SlackIcon />
@@ -303,7 +327,7 @@ export function AppPage() {
 }
 
 function CTACards() {
-  const { features, walletInfo } = useLoaderData<typeof appLoader>()
+  const { features, walletInfo } = useLoaderData<typeof loader>() as AppLoaderData
 
   return (
     <>
@@ -324,7 +348,7 @@ function CTACards() {
                   </p>
                   <Router
                     className='text-sm font-medium text-primary'
-                    to={route('/accounts')}
+                    to={href('/accounts')}
                   >
                     Connect a bank or card
                   </Router>
@@ -348,7 +372,7 @@ function CTACards() {
                   </p>
                   <Router
                     className='text-sm font-medium text-primary'
-                    to={route('/connect/card')}
+                    to={href('/connect/card')}
                   >
                     Connect a card
                   </Router>
@@ -373,7 +397,7 @@ function CTACards() {
                   </p>
                   <Router
                     className='text-sm font-medium text-primary'
-                    to={route(
+                    to={href(
                       walletInfo.country === 'US'
                         ? '/connect/bank/us'
                         : '/connect/bank/za'
@@ -400,7 +424,7 @@ function CTACards() {
                 </p>
                 <Router
                   className='text-sm font-medium text-primary'
-                  to={route('/connect/interac')}
+                  to={href('/connect/interac')}
                 >
                   Connect an Interac account
                 </Router>

@@ -1,7 +1,8 @@
-import { useFetcher, useLoaderData } from '@remix-run/react'
+import { useFetcher, useLoaderData } from 'react-router';
+import type { loader } from './route'
 import type { ChangeEventHandler } from 'react'
 import { useCallback, useEffect, useReducer, useRef } from 'react'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import {
   Button,
   Card,
@@ -12,7 +13,7 @@ import {
 } from '~/components'
 import { PayStep, usePayStore } from '~/lib/usePayStore'
 
-import type { PlainMessage } from '@bufbuild/protobuf/dist/types/message'
+import type { PlainMessage } from '@bufbuild/protobuf'
 import type { FormattedLinkedAccount } from '~/data/accounts.server'
 import type {
   Payment,
@@ -22,7 +23,7 @@ import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { PayTextField } from '~/routes/pay_.$paymentId/PayTextField'
 import { PaySelect } from './PaySelect'
 import { PaymentDetailsCard } from './PaymentDetailsCard'
-import type { loader, updatePaymentAction } from './route'
+import { updatePaymentAction } from './action.server';
 
 const DEBOUNCE_WAIT = 150
 
@@ -236,7 +237,7 @@ export const Amount = () => {
     <>
       <updatePaymentFetcher.Form
         id='amount-form'
-        action={route('/pay/:paymentId', { paymentId: payment.id })}
+        action={href('/pay/:paymentId', { paymentId: payment.id })}
         method='post'
         className='hidden'
       />
@@ -280,7 +281,7 @@ export const Amount = () => {
           linkedAccountOptions={sendAccounts || []}
           onChangeLinkedAccount={_onChangeLinkedAccount}
           selectButton={
-            <SelectRouter to={route('/accounts')}>
+            <SelectRouter to={href('/accounts')}>
               <span>Connect new account</span> <Icon>add</Icon>
             </SelectRouter>
           }
@@ -373,7 +374,13 @@ export const Amount = () => {
         />
       </Card>
 
-      <Button type='submit' form='amount-form' name='intent' value='submit'>
+      <Button
+        type='submit'
+        form='amount-form'
+        name='intent'
+        value='submit'
+        data-testid='pay-amount-continue'
+      >
         Continue
       </Button>
     </>

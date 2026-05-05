@@ -2,10 +2,41 @@ package external
 
 import (
 	"encoding/json"
+	"fmt"
+	"strconv"
 	"time"
 
 	"gitlab.com/fynbos/backend/currency"
 )
+
+// FlexibleFloat handles JSON fields that can be either string or float64
+type FlexibleFloat float64
+
+func (f *FlexibleFloat) UnmarshalJSON(data []byte) error {
+	var v interface{}
+	if err := json.Unmarshal(data, &v); err != nil {
+		return err
+	}
+
+	switch value := v.(type) {
+	case float64:
+		*f = FlexibleFloat(value)
+	case string:
+		parsed, err := strconv.ParseFloat(value, 64)
+		if err != nil {
+			return fmt.Errorf("invalid float string: %w", err)
+		}
+		*f = FlexibleFloat(parsed)
+	default:
+		return fmt.Errorf("amount must be string or number, got %T", v)
+	}
+
+	return nil
+}
+
+func (f FlexibleFloat) Float64() float64 {
+	return float64(f)
+}
 
 type CreateWalletReq struct {
 	Name        string `json:"name"`
@@ -35,9 +66,10 @@ type Verification struct {
 }
 
 type TransferReq struct {
-	SenderSubAccount   string          `json:"subAccount"`
-	ReceiverSubAccount string          `json:"receiver"`
-	Amount             currency.Amount `json:"amountToSend"`
+	SenderSubAccount    string          `json:"subAccount"`
+	ReceiverSubAccount  string          `json:"receiver"`
+	Amount              currency.Amount `json:"amountToSend"`
+	TurnOffNotification bool            `json:"turnOffNotification,omitempty"`
 }
 
 type WithdrawalReq struct {
@@ -45,6 +77,23 @@ type WithdrawalReq struct {
 	DebitCurrency       string     `json:"debitCurrency,omitempty"`
 	SubAccount          string     `json:"subAccount,omitempty"`
 	TurnOffNotification bool       `json:"turnOffNotification,omitempty"`
+}
+
+type EstimateFeeReq struct {
+	Amount    string `json:"amount"`
+	Currency  string `json:"currency"`
+	Rail      string `json:"rail,omitempty"`
+	Direction string `json:"direction,omitempty"`
+}
+
+type EstimateFeeResp struct {
+	Amount    float64 `json:"amount,omitempty"`
+	Currency  string  `json:"currency,omitempty"`
+	Rail      string  `json:"rail,omitempty"`
+	Direction string  `json:"direction,omitempty"`
+	TotalFee  float64 `json:"totalFee,omitempty"`
+	NetAmount float64 `json:"netAmount,omitempty"`
+	Note      string  `json:"note,omitempty"`
 }
 
 type WithdrawResponse struct {
@@ -135,7 +184,7 @@ type Payment struct {
 	Issuer              string      `json:"issuer"`
 	TID                 int         `json:"t_id"`
 	ChiRef              string      `json:"chiRef"`
-	Meta                interface{} `json:"meta"`
+	Meta                PaymentMeta `json:"meta"`
 	Integration         Integration `json:"integration"`
 	Currency            string      `json:"currency"`
 	InteracFee          float64     `json:"interacFee"`
@@ -146,6 +195,20 @@ type Payment struct {
 	InitiatedBy         string      `json:"initiatedBy"`
 	RedirectURL         string      `json:"redirect_url"`
 	Status              string      `json:"status"`
+	PaymentType         string      `json:"paymentType,omitempty"`
+}
+
+type PaymentMeta struct {
+	Amount        FlexibleFloat         `json:"amount"`
+	ProcessingFee *PaymentProcessingFee `json:"processingFee,omitempty"`
+}
+
+type PaymentProcessingFee struct {
+	Amount      float64 `json:"amount"`
+	Currency    string  `json:"currency"`
+	GrossAmount float64 `json:"grossAmount"`
+	NetAmount   float64 `json:"netAmount"`
+	Provider    string  `json:"provider"`
 }
 
 type VerifyPaymentReq struct {

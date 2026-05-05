@@ -1,4 +1,4 @@
-import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
+import type { Route } from './+types/support'
 import type { ApplicationProps } from '~/components'
 import {
   AnchorRouter,
@@ -12,10 +12,10 @@ import {
   WalletGrid
 } from '~/components'
 import { jsonWithCSRF } from '~/lib/csrf.server'
-import { getUserSession } from '~/lib/kratos.server'
+import { getUserSession } from '~/lib/kratos/session.server'
 import { mergeMeta } from '~/lib/meta'
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   await getUserSession(request)
   return jsonWithCSRF(request, {})
 }
@@ -29,7 +29,7 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Support'
   }

@@ -1,6 +1,6 @@
-import { useFetcher, useLoaderData } from '@remix-run/react'
+import { useFetcher, useLoaderData } from 'react-router';
 import { useEffect, useState } from 'react'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import {
   Button,
   Card,
@@ -11,7 +11,8 @@ import {
 } from '~/components'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { useSignupStore } from '~/lib/useSignupStore'
-import type { loader, passwordAction } from './route'
+import type { loader } from './route'
+import type { passwordAction } from './route.server';
 
 export function Password() {
   const passwordFetcher = useFetcher<typeof passwordAction>()
@@ -57,7 +58,7 @@ export function Password() {
     <>
       <passwordFetcher.Form
         id='signup-password'
-        action={route('/signup')}
+        action={href('/signup')}
         method='post'
         className='hidden'
       />
@@ -129,6 +130,7 @@ export function Password() {
               ? 'password-error'
               : undefined
           }
+          data-testid='signup-password'
           required
           errorMessage={passwordFetcher.data?.errors?.password}
         />
@@ -139,6 +141,7 @@ export function Password() {
           form='signup-password'
           type='password'
           className='mt-2'
+          data-testid='signup-confirm-password'
           required
         />
       </Card>
@@ -159,6 +162,7 @@ export function Password() {
                 ? 'serviceAgreement-error'
                 : undefined
             }
+            data-testid='signup-terms-checkbox'
             errorMessage={passwordFetcher.data?.errors?.serviceAgreement}
           >
             I agree to the Interledger Wallet&nbsp;
@@ -167,7 +171,7 @@ export function Password() {
             </Router>
             ,&nbsp;
             <Router className='text-primary' to='/legal/terms-of-service'>
-              Terms of Use
+              Terms of Use&nbsp;
             </Router>
             and &nbsp;
             <Router className='text-primary' to='/legal/us/e-sign-agreement'>
@@ -182,6 +186,7 @@ export function Password() {
         form='signup-password'
         name='formName'
         value='password'
+        data-testid='signup-password-confirm'
         type='submit'
       >
         Confirm

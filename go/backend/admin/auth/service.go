@@ -129,6 +129,10 @@ func (s *service) MakeUnaryInterceptors() []grpc.ServerOption {
 			handler grpc.UnaryHandler,
 		) (interface{}, error) {
 
+			if strings.HasPrefix(info.FullMethod, "/grpc.health.v1.Health/") {
+				return handler(ctx, req)
+			}
+
 			newCtx := ctx
 			if !env.IsLocal() {
 				token, err := s.verifyToken(ctx)

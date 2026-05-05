@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/google/uuid"
@@ -102,7 +101,7 @@ func CreateGatehubDeposit(ctx workflow.Context, wh DepositWebhook) (string, erro
 	}
 
 	//get transaction and fee from it
-	var providerFeeValue uint64
+	var providerFeeValue int64
 	args := &FeeFromGhArgs{UserID: wh.UserID, TrxID: wh.Data.TrxID}
 	err = workflow.ExecuteActivity(ctx, a.GetFeeFromGatehubTrasaction, args).Get(ctx, &providerFeeValue)
 	if err != nil {
@@ -342,33 +341,29 @@ func BackfillAccountWorkflow(ctx workflow.Context, walletID string) error {
 
 	logger := workflow.GetLogger(ctx)
 	logger.Info("Backfill gatehub account.")
-	// do backfill only if this is set!
-	sendingUserID := os.Getenv("GATEHUB_SENDING_USER_ID")
-	if sendingUserID != "" {
-		var externalID string
-		err := workflow.ExecuteActivity(ctx, a.CheckIfBackfillWasDone, walletID).Get(ctx, &externalID)
+
+	// The activity will check if the config has SendingUserID set
+	var externalID string
+	err := workflow.ExecuteActivity(ctx, a.CheckIfBackfillWasDone, walletID).Get(ctx, &externalID)
+	if err != nil {
+		return err
+	}
+
+	if externalID != "" {
+		var balance gatehub.Balance
+		err = workflow.ExecuteActivity(ctx, a.BackfillPaywiserBalanceAfterKYC, walletID).Get(ctx, &balance)
 		if err != nil {
 			return err
 		}
 
-		if externalID != "" {
-			var balance gatehub.Balance
-			err = workflow.ExecuteActivity(ctx, a.BackfillPaywiserBalanceAfterKYC, walletID).Get(ctx, &balance)
-			if err != nil {
-				return err
-			}
-
-			err = workflow.ExecuteActivity(ctx, a.MarkBackfillUser, walletID, externalID, balance).Get(ctx, nil)
-			if err != nil {
-				// if this errors we need to go in manually and update the table will
-				return err
-			}
-
+		err = workflow.ExecuteActivity(ctx, a.MarkBackfillUser, walletID, externalID, balance).Get(ctx, nil)
+		if err != nil {
+			// if this errors we need to go in manually and update the table will
+			return err
 		}
-
 	}
 
-	err := workflow.ExecuteActivity(ctx, a.SetKYCApprovedForGatehub, walletID).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.SetKYCApprovedForGatehub, walletID).Get(ctx, nil)
 	if err != nil {
 		// if this  we need to go in manually and update the table will
 		return err

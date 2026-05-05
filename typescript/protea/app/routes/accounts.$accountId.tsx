@@ -1,9 +1,9 @@
-import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
-import { json } from '@remix-run/node'
-import type { UIMatch } from '@remix-run/react'
-import { Form, useFetcher, useLoaderData, useParams } from '@remix-run/react'
+import type { Route } from './+types/accounts.$accountId'
+import { data } from 'react-router';
+import type { UIMatch } from 'react-router';
+import { Form, useFetcher, useLoaderData, useParams } from 'react-router';
 import { useCallback, useState } from 'react'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   Alert,
@@ -33,7 +33,7 @@ import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { jsonWithSnackbar, redirectWithSnackbar } from '~/lib/snackbar.server'
 
-export async function loader(args: LoaderFunctionArgs) {
+export async function loader(args: Route.LoaderArgs) {
   const account = await getLinkedAccount(
     args.request,
     args.params.accountId as string
@@ -52,11 +52,11 @@ export async function loader(args: LoaderFunctionArgs) {
     return bankLoader(args, account)
   }
 
-  throw json({}, { status: 404 })
+  throw data({}, { status: 404 })
 }
 
 async function bankLoader(
-  { request, params }: LoaderFunctionArgs,
+  { request, params }: Route.LoaderArgs,
   account: FormattedLinkedAccount
 ) {
   return jsonWithCSRF(request, {
@@ -65,7 +65,7 @@ async function bankLoader(
 }
 
 async function cardLoader(
-  { request, params }: LoaderFunctionArgs,
+  { request, params }: Route.LoaderArgs,
   account: FormattedLinkedAccount
 ) {
   const card = await grpc.getCardDetails(request, {
@@ -83,12 +83,14 @@ export const handle: ApplicationProps = {
   layout: Layouts.Wallet,
   scaffold: {
     header: {
-      back: route('/accounts'),
-      actions: (match: UIMatch<typeof loader>) => {
-        const state = match.data.account.state
+      back: href('/accounts'),
+      actions: (match: UIMatch<Route.ComponentProps['loaderData']>) => {
+        if (!match.loaderData) return null
+        const { account } = match.loaderData
+        const state = account.state
         if (state == 'Verified') {
-          const canSend = match.data.account.canSend
-          const canReceive = match.data.account.canReceive
+          const canSend = account.canSend
+          const canReceive = account.canReceive
           if (canSend && canReceive) {
             return {
               key: 'send+receive',
@@ -130,7 +132,7 @@ export const handle: ApplicationProps = {
 }
 
 export default function Page() {
-  const { account } = useLoaderData<typeof loader>()
+  const { account } = useLoaderData()
 
   return (
     <>
@@ -142,7 +144,7 @@ export default function Page() {
 }
 
 function InteracDetailsPage() {
-  const { account } = useLoaderData<typeof bankLoader>()
+  const { account } = useLoaderData()
   const params = useParams()
   return (
     <>
@@ -161,7 +163,7 @@ function InteracDetailsPage() {
         <Label>Nickname</Label>
         <CardLink
           className='flex items-center justify-between'
-          to={route('/accounts/:accountId/name', {
+          to={href('/accounts/:accountId/name', {
             accountId: params.accountId as string
           })}
         >
@@ -193,7 +195,7 @@ function BankDetailsPage() {
         <Label>Bank nickname</Label>
         <CardLink
           className='flex items-center justify-between'
-          to={route('/accounts/:accountId/name', {
+          to={href('/accounts/:accountId/name', {
             accountId: params.accountId as string
           })}
         >
@@ -231,7 +233,7 @@ function CardDetailsPage() {
     <>
       <Form
         id='account'
-        action={route('/accounts/:accountId', {
+        action={href('/accounts/:accountId', {
           accountId: params.accountId as string
         })}
         method='post'
@@ -253,7 +255,7 @@ function CardDetailsPage() {
             <AlertBody>
               This card cannot process payments because of an address mismatch.
             </AlertBody>
-            <Router className='text-primary' to={route('/support')}>
+            <Router className='text-primary' to={href('/support')}>
               Contact support
             </Router>
           </AlertContent>
@@ -322,7 +324,7 @@ function CardDetailsPage() {
         <Label>Card nickname</Label>
         <CardLink
           className='flex items-center justify-between'
-          to={route('/accounts/:accountId/name', {
+          to={href('/accounts/:accountId/name', {
             accountId: params.accountId as string
           })}
         >
@@ -419,7 +421,7 @@ function CardDetailsPage() {
   )
 }
 
-export async function action({ request, params }: ActionFunctionArgs) {
+export async function action({ request, params }: Route.ActionArgs) {
   const form = await request.formData()
   const formName = form.get('formName') as string
   const accountId = params.accountId as string
@@ -462,12 +464,12 @@ export async function action({ request, params }: ActionFunctionArgs) {
     case 'delete':
       response = await grpc.deleteLinkedAccount(request, { id: accountId })
       if (isConnectError(response)) throw response.errorResponse
-      return redirectWithSnackbar(request, route('/accounts'), {
+      return redirectWithSnackbar(request, href('/accounts'), {
         message: 'Card deleted successfully.',
         icon: 'close'
       })
     default:
-      throw json(
+      throw data(
         { title: "Submitted a form that doesn't exist" },
         {
           status: 400

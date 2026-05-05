@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"math"
 	"time"
 
 	"gitlab.com/fynbos/env"
@@ -58,9 +59,9 @@ func CreateWallet(ctx context.Context, b Backends, walletID string) (chimoney.Aw
 	return await.Get, nil
 }
 
-func WatchForSuccessfulKYC(ctx context.Context, b Backends, walletID string) error {
+func ExecuteFinishDeposit(ctx context.Context, b Backends, issueID string, status string, chiWalletID string) error {
 	wo := client.StartWorkflowOptions{
-		ID:                    "chimoney_poll_wallet_kyc" + walletID,
+		ID:                    "finish_chimoney_deposit_" + status + "_" + issueID,
 		TaskQueue:             "backend",
 		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
 	}
@@ -82,13 +83,19 @@ func WatchForSuccessfulKYC(ctx context.Context, b Backends, walletID string) err
 
 	// return workflow if it's running
 	var executeErr error
-	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
-		// Do nothing
+	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING || workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_COMPLETED {
+		_ = b.Temporal().GetWorkflow(ctx, wo.ID, "")
 	} else {
-		_, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, ChimomeyWatchForSuccessfulKYC, walletID)
+		_, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, FinishChimoneyDepositWorkflow, DepositWorkflowArgs{
+			IssueID:     issueID,
+			ChiWalletID: chiWalletID,
+		})
+	}
+	if executeErr != nil {
+		return fmt.Errorf("%w %s", chimoney.ErrInternal, executeErr)
 	}
 
-	return executeErr
+	return nil
 }
 
 func SetInteracEmail(ctx context.Context, b Backends, walletID, email string) (*linkedaccounts.LinkedAccount, error) {
@@ -181,9 +188,77 @@ func CreateDepositLink(ctx context.Context, b Backends, ex external.Client, wall
 	return resp.PaymentLink, nil
 }
 
+func GetEstimatedFee(ctx context.Context, b Backends, ex external.Client, amount currency.Amount) (currency.Amount, error) {
+	resp, err := ex.GetEstimatedFee(ctx, external.EstimateFeeReq{
+		Amount:    amount.FormatAmount(),
+		Currency:  amount.Currency.String(),
+		Rail:      "interac",
+		Direction: "payout", // only support interac payout for now since that's the only CAD withdrawal method we have
+	})
+
+	var feeAmt currency.Amount
+	if err != nil {
+		// fallback solution here because this endpoint might not exist on production, yet
+		// this is NOT the final fee calculation, the fee amount will be updated in the ExecuteChimoneyFinishWithdrawalWorkflow based on the actual amount received from the webhook, this is just an estimation based on the fee structure we have for interac payout which is a fixed fee + percentage of the amount
+		// fee = fixed + (percent / 100) × amount
+		fixed := 1.00
+		percent := .5
+		feeAmount := fixed + ((percent / 100) * float64(amount.Value) / 100)
+		feeAmount = math.Round(feeAmount*100) / 100
+		feeAmt = currency.FromFloat64(feeAmount, amount.Currency)
+	} else {
+		feeAmt = currency.FromFloat64(resp.TotalFee, currency.ParseCurrency(resp.Currency))
+	}
+	return feeAmt, nil
+}
+
+func ExecuteFinishWithdraw(ctx context.Context, b Backends, ec external.Client, IssueID string, status string, chiWalletID string, amount currency.Amount) error {
+	wo := client.StartWorkflowOptions{
+		ID:                    "finish_chimoney_withdrawal_" + IssueID,
+		TaskQueue:             "backend",
+		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+	}
+
+	var workflowStatus enums.WorkflowExecutionStatus
+	wflow, err := b.Temporal().DescribeWorkflowExecution(ctx, wo.ID, "")
+	switch err.(type) {
+	case *serviceerror.Internal,
+		*serviceerror.Unavailable,
+		*serviceerror.InvalidArgument:
+		return fmt.Errorf("%w %s", chimoney.ErrInternal, err)
+	case *serviceerror.NotFound:
+		// do nothing
+	default:
+		if wflow != nil {
+			workflowStatus = wflow.GetWorkflowExecutionInfo().Status
+		}
+	}
+
+	// return workflow if it's running or already completed
+	var executeErr error
+	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING || workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_COMPLETED {
+		_ = b.Temporal().GetWorkflow(ctx, wo.ID, "")
+	} else {
+		//
+
+		//_, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, ExecuteChimoneyFinishWithdrawalWorkflow, IssueID, chiWalletID, status, amount)
+		_, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, ExecuteChimoneyFinishWithdrawalWorkflow, WithdrawWorkflowArgs{
+			IssueID:     IssueID,
+			ChiWalletID: chiWalletID,
+			Amount:      amount,
+			Status:      status,
+		})
+	}
+	if executeErr != nil {
+		return fmt.Errorf("%w %s", chimoney.ErrInternal, executeErr)
+	}
+
+	return nil
+}
+
 func ExecuteWithdraw(ctx context.Context, b Backends, walletID, transactionID string) error {
 	wo := client.StartWorkflowOptions{
-		ID:                    "chimoney_withdrawal_" + walletID + "_" + transactionID,
+		ID:                    "initiate_chimoney_withdrawal_" + walletID + "_" + transactionID,
 		TaskQueue:             "backend",
 		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
 	}
@@ -208,10 +283,14 @@ func ExecuteWithdraw(ctx context.Context, b Backends, walletID, transactionID st
 	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
 		_ = b.Temporal().GetWorkflow(ctx, wo.ID, "")
 	} else {
-		_, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, ExecuteChimoneyWithdrawalWorkflow, walletID, transactionID)
+
+		_, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, ExecuteChimoneyWithdrawalWorkflow, InitiateWithdrawalWorkflowArgs{
+			WalletID:      walletID,
+			TransactionID: transactionID,
+		})
 	}
 	if executeErr != nil {
-		return fmt.Errorf("%w %s", chimoney.ErrInternal, err)
+		return fmt.Errorf("%w %s", chimoney.ErrInternal, executeErr)
 	}
 
 	return nil
@@ -271,7 +350,7 @@ func GetWalletID(ctx context.Context, b Backends, chiWalletID string) (string, e
 	var walletID string
 	err := b.DB().GetContext(ctx, &walletID, "SELECT wallet_ID FROM chi_money_wallets WHERE external_id=$1;", chiWalletID)
 	if errors.Is(err, sql.ErrNoRows) {
-		return "", fmt.Errorf("%w no wallet found for chiWalletID", chimoney.ErrNotFound)
+		return "", fmt.Errorf("%w no wallet found for chiWalletID %s", chimoney.ErrNotFound, chiWalletID)
 	}
 	if err != nil {
 		return "", chimoney.ErrInternal
@@ -292,9 +371,10 @@ func Transfer(ctx context.Context, b Backends, ex external.Client, args chimoney
 	}
 
 	err = ex.Transfer(ctx, external.TransferReq{
-		SenderSubAccount:   sender,
-		ReceiverSubAccount: receiver,
-		Amount:             args.Amount,
+		SenderSubAccount:    sender,
+		ReceiverSubAccount:  receiver,
+		Amount:              args.Amount,
+		TurnOffNotification: true,
 	})
 	if err != nil {
 		return fmt.Errorf("%w %s", chimoney.ErrInternal, err)
@@ -323,8 +403,8 @@ func GetBalance(ctx context.Context, b Backends, linkedAccountID string) (*chimo
 	}
 
 	return &chimoney.Balance{
-		Total:     currency.FromUInt64(accs[0].CreditsPosted-accs[0].DebitsPosted, la.SendCurrency),
-		Available: currency.FromUInt64(accs[0].CreditsPosted-accs[0].DebitsPosted-accs[0].DebitsPending, la.SendCurrency),
+		Total:     currency.FromUInt64(int64(accs[0].CreditsPosted)-int64(accs[0].DebitsPosted), la.SendCurrency),
+		Available: currency.FromUInt64(int64(accs[0].CreditsPosted)-int64(accs[0].DebitsPosted)-int64(accs[0].DebitsPending), la.SendCurrency),
 	}, nil
 }
 
@@ -377,8 +457,8 @@ func ReserveBalance(ctx context.Context, b Backends, linkedAccountID, txID strin
 	}
 
 	return &chimoney.Balance{
-		Total:     currency.FromUInt64(accs[0].CreditsPosted-accs[0].DebitsPosted, la.SendCurrency),
-		Available: currency.FromUInt64(accs[0].CreditsPosted-accs[0].DebitsPosted-accs[0].DebitsPending, la.SendCurrency),
+		Total:     currency.FromUInt64(int64(accs[0].CreditsPosted)-int64(accs[0].DebitsPosted), la.SendCurrency),
+		Available: currency.FromUInt64(int64(accs[0].CreditsPosted)-int64(accs[0].DebitsPosted)-int64(accs[0].DebitsPending), la.SendCurrency),
 	}, nil
 }
 
@@ -454,8 +534,8 @@ func AssignBalance(ctx context.Context, b Backends, linkedAccountID, txID string
 	}
 
 	return &chimoney.Balance{
-		Total:     currency.FromUInt64(accs[0].CreditsPosted-accs[0].DebitsPosted, la.SendCurrency),
-		Available: currency.FromUInt64(accs[0].CreditsPosted-accs[0].DebitsPosted-accs[0].DebitsPending, la.SendCurrency),
+		Total:     currency.FromUInt64(int64(accs[0].CreditsPosted)-int64(accs[0].DebitsPosted), la.SendCurrency),
+		Available: currency.FromUInt64(int64(accs[0].CreditsPosted)-int64(accs[0].DebitsPosted)-int64(accs[0].DebitsPending), la.SendCurrency),
 	}, nil
 }
 
@@ -507,7 +587,7 @@ func GetKYCWidget(ctx context.Context, b Backends, walletID string) (string, err
 	return widgetURL, nil
 }
 
-func CreateDeposit(ctx context.Context, b Backends, ex external.Client, issueID string) (chimoney.Await, error) {
+func CreateDeposit(ctx context.Context, b Backends, ex external.Client, issueID string, chiWalletID string) (chimoney.Await, error) {
 	wo := client.StartWorkflowOptions{
 		ID:                    "chimoney_deposit_" + issueID,
 		TaskQueue:             "backend",
@@ -532,13 +612,16 @@ func CreateDeposit(ctx context.Context, b Backends, ex external.Client, issueID 
 	// return workflow if it's running
 	var await client.WorkflowRun
 	var executeErr error
-	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
+	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING || workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_COMPLETED {
 		await = b.Temporal().GetWorkflow(ctx, wo.ID, "")
 	} else {
-		await, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, CreateChimoneyDepositWorkflow, issueID)
+		await, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, CreateChimoneyDepositWorkflow, DepositWorkflowArgs{
+			IssueID:     issueID,
+			ChiWalletID: chiWalletID,
+		})
 	}
 	if executeErr != nil {
-		return nil, fmt.Errorf("%w %s", chimoney.ErrInternal, err)
+		return nil, fmt.Errorf("%w %s", chimoney.ErrInternal, executeErr)
 	}
 
 	return await.Get, nil

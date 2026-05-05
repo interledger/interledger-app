@@ -143,7 +143,7 @@ query GetWalletAddress ($id: String!) {
     walletAddress(id: $id) {
         id
         status
-        url
+        address
         asset {
             id
             code
@@ -160,5 +160,17 @@ query GetAssets () {
                 code
             }
         }
+    }
+}
+
+mutation CreateOutgoingPaymentWithdrawal($input: CreateOutgoingPaymentWithdrawalInput!) {
+    createOutgoingPaymentWithdrawal(input: $input) {
+        success
+    }
+}
+
+mutation CreateIncomingPaymentWithdrawal($input: CreateIncomingPaymentWithdrawalInput!) {
+    createIncomingPaymentWithdrawal(input: $input) {
+        success
     }
 }

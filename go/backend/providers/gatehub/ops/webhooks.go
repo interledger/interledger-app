@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"strings"
 
 	"gitlab.com/fynbos/backend/kyc"
@@ -124,16 +123,31 @@ type (
 		TransactionID string `json:"transactionId"`
 		CardID        string `json:"cardId"`
 	}
-)
 
-func NewWebhook(b Backends) http.HandlerFunc {
-	if os.Getenv("GATEHUB_WEBHOOK_SECRET") == "" {
-		log.Error("GATEHUB_WEBHOOK_SECRET is empty")
+	ActionRequiredWebhook struct {
+		ID          string                    `json:"id"`
+		UUID        string                    `json:"uuid"`
+		EventType   string                    `json:"event_type"`
+		Timestamp   string                    `json:"timestamp"`
+		UserID      string                    `json:"user_uuid"`
+		Environment string                    `json:"environment"`
+		Data        ActionRequiredWebhookData `json:"data"`
 	}
 
-	key, err := hex.DecodeString(os.Getenv("GATEHUB_WEBHOOK_SECRET"))
+	ActionRequiredWebhookData struct {
+		Gateway        string `json:"gateway"`
+		ExpirationDate string `json:"expiration_date,omitempty"`
+	}
+)
+
+func NewWebhook(b Backends, cfg gatehub.Config) http.HandlerFunc {
+	if cfg.WebhookSecret == "" {
+		log.Error("WebhookSecret is empty in Gatehub configuration")
+	}
+
+	key, err := hex.DecodeString(cfg.WebhookSecret)
 	if err != nil {
-		log.Fatal("Failed to decode GATEHUB_WEBHOOK_SECRET", zap.Error(err))
+		log.Fatal("Failed to decode WebhookSecret", zap.Error(err))
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -171,7 +185,7 @@ func NewWebhook(b Backends) http.HandlerFunc {
 				zap.Error(err),
 			)
 
-			if err := forwardWebhookToFallback(r.Context(), body, r.Header); err != nil {
+			if err := forwardWebhookToFallback(r.Context(), body, r.Header, cfg.FallbackWebhookURL); err != nil {
 				log.Error("failed to forward webhook to cards fallback",
 					zap.Error(err),
 					zap.String("external_user_uuid", wh.UserID),
@@ -252,7 +266,49 @@ func HandleCardCreatedWebhook(ctx context.Context, b Backends, raw json.RawMessa
 }
 
 func HandleActionRequiredWebhook(ctx context.Context, b Backends, raw json.RawMessage, w http.ResponseWriter) {
-	slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "wallet-info-bot", fmt.Sprintf("gatehub verification action required: %s", string(raw)))
+	var wh ActionRequiredWebhook
+	err := json.Unmarshal(raw, &wh)
+	if err != nil {
+		log.Error("gatehub webhook: Failed to unmarshal action required webhook", zap.Error(err))
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	if !strings.Contains(strings.ToLower(wh.Data.Gateway), "paywiser") {
+		log.Warn("received action required webhook for another gateway",
+			zap.String("webhook_id", wh.UUID),
+			zap.String("user_uuid", wh.UserID),
+			zap.String("gateway", wh.Data.Gateway),
+		)
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	walletID, err := getWalletID(ctx, b, wh.UserID)
+	if err != nil {
+		log.Error("Failed to find wallet for gatehub user", zap.String("external_user_uuid", wh.UserID), zap.Error(err))
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	status := kyc.StatusDocumentsRequired
+
+	log.Info("KYC resubmission required",
+		zap.String("wallet_id", walletID),
+		zap.String("event_type", wh.EventType),
+	)
+
+	err = b.KYC().SetKYCStatus(ctx, walletID, status)
+	if err != nil {
+		log.Error("Failed to update KYC status", zap.String("wallet_id", walletID), zap.Error(err))
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "wallet-info-bot",
+		fmt.Sprintf("KYC resubmission required - walletID: %s, event: %s", walletID, wh.EventType),
+	)
+
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -428,7 +484,7 @@ func Verify(ctx context.Context, r *http.Request, key []byte) ([]byte, error) {
 		log.Error("gatehub webhook: Failed to get request body.", zap.Error(err))
 		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
 	}
-	log.Info("Gatehub webhook: ", zap.String("body", string(payload)))
+	log.Debug("Gatehub webhook: ", zap.String("body", string(payload)))
 	hmac := hmac.New(sha256.New, key)
 	_, err = hmac.Write(payload)
 	if err != nil {
@@ -443,14 +499,13 @@ func Verify(ctx context.Context, r *http.Request, key []byte) ([]byte, error) {
 	return payload, nil
 }
 
-func forwardWebhookToFallback(ctx context.Context, body []byte, headers http.Header) error {
-	forwardURL := os.Getenv("GATEHUB_FALLBACK_WEBHOOK_URL")
-	if forwardURL == "" {
-		log.Error("GATEHUB_FALLBACK_WEBHOOK_URL is not set")
-		return fmt.Errorf("GATEHUB_FALLBACK_WEBHOOK_URL is not set")
+func forwardWebhookToFallback(ctx context.Context, body []byte, headers http.Header, fallbackURL string) error {
+	if fallbackURL == "" {
+		log.Error("FallbackWebhookURL is not set in Gatehub configuration")
+		return fmt.Errorf("FallbackWebhookURL is not set in configuration")
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, forwardURL, bytes.NewReader(body))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, fallbackURL, bytes.NewReader(body))
 	if err != nil {
 		return fmt.Errorf("creating forward request: %w", err)
 	}
@@ -467,9 +522,9 @@ func forwardWebhookToFallback(ctx context.Context, body []byte, headers http.Hea
 	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return fmt.Errorf("webhook forward failed with status %d to %s", resp.StatusCode, forwardURL)
+		return fmt.Errorf("webhook forward failed with status %d to %s", resp.StatusCode, fallbackURL)
 	}
 
-	log.Info("Webhook successfully forwarded", zap.String("url", forwardURL), zap.Int("status", resp.StatusCode))
+	log.Info("Webhook successfully forwarded", zap.String("url", fallbackURL), zap.Int("status", resp.StatusCode))
 	return nil
 }

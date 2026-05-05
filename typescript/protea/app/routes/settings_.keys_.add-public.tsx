@@ -1,12 +1,9 @@
+import type { Route } from './+types/settings_.keys_.add-public'
 import { Code } from '@bufbuild/connect'
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import { route } from 'routes-gen'
+import { Form, useActionData, useLoaderData } from 'react-router';
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
+import logger from '~/lib/logger.server'
 import {
   Button,
   Card,
@@ -25,25 +22,25 @@ export const handle: ApplicationProps = {
   layout: Layouts.Focus,
   scaffold: {
     header: {
-      back: route('/settings/keys'),
+      back: href('/settings/keys'),
       title: 'Add a public key'
     }
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Add a public key'
   }
 ])
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   return jsonWithCSRF(request, {})
 }
 
 export default function Page() {
-  const actionData = useActionData<typeof action>()
-  const { csrfToken } = useLoaderData<typeof loader>()
+  const actionData = useActionData()
+  const { csrfToken } = useLoaderData()
 
   return (
     <>
@@ -106,7 +103,7 @@ export default function Page() {
   )
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const form = await request.formData()
 
   await validateCSRFToken(request, form)
@@ -119,32 +116,17 @@ export async function action({ request }: ActionFunctionArgs) {
 
   const response = await grpc.createConnection(request, {
     applicationName: form.get('applicationName') as string,
-    publicKey: form.get('publicKey') as string,
-    dailyLimit: {
-      amount: 10000n,
-      asset: 'USD',
-      assetScale: 2
-    },
-    monthlyLimit: {
-      amount: 10000n,
-      asset: 'USD',
-      assetScale: 2
-    },
-    overallLimit: {
-      amount: 10000n,
-      asset: 'USD',
-      assetScale: 2
-    }
+    publicKey: form.get('publicKey') as string
   })
 
   if (isConnectError(response)) {
-    console.log(response)
+    logger.error({ response }, 'Failed to create connection')
     if (response.code == Code.InvalidArgument) {
       return response.error({ errors })
     } else return response.error({ errors }, {}, { action: 'Contact support' })
   }
 
-  return redirectWithSnackbar(request, route('/settings/keys'), {
+  return redirectWithSnackbar(request, href('/settings/keys'), {
     message: 'Public key added successfully.',
     icon: 'close'
   })

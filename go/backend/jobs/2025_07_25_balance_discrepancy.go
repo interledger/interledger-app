@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"os"
 	"time"
 
 	"go.uber.org/zap"
@@ -43,10 +42,19 @@ func BalanceDiscrepanciesJob(ctx workflow.Context) error {
 
 func (a *Activity) BalanceDiscrepancies(ctx context.Context) error {
 	gatehubExternal := gatehub_external.NewClient(
-		os.Getenv("GATEHUB_APP_ID"),
-		os.Getenv("GATEHUB_SECRET"),
-		os.Getenv("GATEHUB_CARD_APP_ID"),
-		os.Getenv("GATEHUB_GATEWAY_ID"),
+		a.gatehubConfig.AppID,
+		a.gatehubConfig.Secret,
+		a.gatehubConfig.CardAppID,
+		a.gatehubConfig.GatewayID,
+		a.gatehubConfig.CardAccountProductCode,
+		a.gatehubConfig.PaywiserEuroVaultID,
+		a.gatehubConfig.OnOffRampClientID,
+		a.gatehubConfig.OnboardingClientID,
+		a.gatehubConfig.ExchangeClientID,
+		a.gatehubConfig.APIBaseURL,
+		a.gatehubConfig.OnboardingBaseURL,
+		a.gatehubConfig.OnOffRampBaseURL,
+		a.gatehubConfig.OrganizationID,
 		&http.Client{
 			Transport: otelhttp.NewTransport(
 				httplogger.NewTransport(http.DefaultTransport, a.b, nil),
@@ -107,8 +115,8 @@ func (a *Activity) BalanceDiscrepancies(ctx context.Context) error {
 
 				//sum of fees and amount
 				type Totals struct {
-					Amount uint64 `db:"total_amount"`
-					Fees   uint64 `db:"total_fees"`
+					Amount int64 `db:"total_amount"`
+					Fees   int64 `db:"total_fees"`
 				}
 				var totals Totals
 				err = tx.GetContext(ctx, &totals, `
@@ -129,7 +137,7 @@ func (a *Activity) BalanceDiscrepancies(ctx context.Context) error {
 
 				// ignore users with 0 balance
 				if totals.Amount <= 0 || totals.Fees <= 0 {
-					log.Debug("No amount found for wallet:", zap.Uint64("fee", totals.Fees), zap.Uint64("amount", totals.Amount), zap.String("wallet", wallet.ID))
+					log.Debug("No amount found for wallet:", zap.Int64("fee", totals.Fees), zap.Int64("amount", totals.Amount), zap.String("wallet", wallet.ID))
 					continue
 				}
 
@@ -139,7 +147,7 @@ func (a *Activity) BalanceDiscrepancies(ctx context.Context) error {
 					continue
 				}
 
-				var externalBalance uint64
+				var externalBalance int64
 				if len(ebal) != 0 {
 					externalBalance, err = ops_gh.StringToScaledUInt(ebal[0].Available)
 					if err != nil {
@@ -148,7 +156,7 @@ func (a *Activity) BalanceDiscrepancies(ctx context.Context) error {
 				}
 
 				// sanity check
-				userBalance := uint64(totals.Amount - totals.Fees)
+				userBalance := int64(totals.Amount - totals.Fees)
 				if bal.Total.Value == userBalance {
 					_ = tx.Rollback()
 					continue
@@ -165,10 +173,10 @@ func (a *Activity) BalanceDiscrepancies(ctx context.Context) error {
 					timeout := time.Hour * 24 * 365
 					txID := uuid.NewString()
 					feeAmount := currency.Amount{
-						Value:    uint64(totals.Fees), // EUR scale = 2
+						Value:    totals.Fees, // EUR scale = 2
 						Currency: "EUR",
 					}
-					log.Info("adding fees", zap.String("wallet_id", wallet.ID), zap.String("linked_account", la.ID), zap.Uint64("fee_amount", feeAmount.Value))
+					log.Info("adding fees", zap.String("wallet_id", wallet.ID), zap.String("linked_account", la.ID), zap.Int64("fee_amount", feeAmount.Value))
 					_, err = a.b.Gatehub().ReserveBalance(ctx, la.ID, txID, feeAmount, timeout)
 					if err != nil {
 						return err
@@ -177,9 +185,9 @@ func (a *Activity) BalanceDiscrepancies(ctx context.Context) error {
 					if err != nil {
 						return err
 					}
-					log.Info("added fees", zap.String("wallet_id", wallet.ID), zap.String("linked_account", la.ID), zap.Uint64("fee_amount", feeAmount.Value))
+					log.Info("added fees", zap.String("wallet_id", wallet.ID), zap.String("linked_account", la.ID), zap.Int64("fee_amount", feeAmount.Value))
 				} else {
-					log.Error("balances do not match", zap.String("wallet", wallet.ID), zap.Uint64("external_balance", externalBalance), zap.Uint64("current_balance", userBalance))
+					log.Error("balances do not match", zap.String("wallet", wallet.ID), zap.Int64("external_balance", externalBalance), zap.Int64("current_balance", userBalance))
 					_ = tx.Rollback()
 				}
 

@@ -1,11 +1,13 @@
-import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import { route } from 'routes-gen'
+import { Form, useActionData, useLoaderData } from 'react-router';
+import { href } from 'react-router'
 import { Button, Card, CardContent, Checkbox } from '~/components'
 
 import { DateTime } from 'luxon'
 import { usePTISdk } from '~/lib/usePTISdk'
 import { PaymentDetailsCard } from './PaymentDetailsCard'
-import type { confirmPaymentAction, loader } from './route'
+import type { loader } from './route'
+import { confirmPaymentAction } from './action.server';
+
 
 export function Confirm() {
   const { payment, account, csrfToken, PTIClientId } =
@@ -18,7 +20,7 @@ export function Confirm() {
     <>
       <Form
         id='pay-confirm'
-        action={route('/pay/:paymentId', { paymentId: payment.id })}
+        action={href('/pay/:paymentId', { paymentId: payment.id })}
         method='post'
         className='hidden'
       />
@@ -74,6 +76,7 @@ export function Confirm() {
             id='service-agreement'
             name='serviceAgreement'
             form='pay-confirm'
+            data-testid='pay-confirm-agreement'
             className='flex'
             aria-invalid={
               Boolean(actionData?.errors?.serviceAgreement) || undefined
@@ -100,6 +103,7 @@ export function Confirm() {
         name='formName'
         value='confirmPayment'
         type='submit'
+        data-testid='pay-confirm-submit'
       >
         Confirm payment
       </Button>

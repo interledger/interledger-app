@@ -1,0 +1,198 @@
+name: E2E Tests (PR)
+
+on:
+  pull_request:
+    paths-ignore:
+      - 'documentation/**'
+
+permissions:
+  contents: read
+  packages: read
+  pull-requests: write
+
+jobs:
+  e2e:
+    runs-on: e2e-tester-dynamic
+    timeout-minutes: 90
+    environment: e2e-tester
+    env:
+      PROTEA_BUILD_TARGET: runner
+      BOTANIST_BUILD_TARGET: runner
+    concurrency:
+      # Each PR gets its own slot. New pushes to the same PR cancel the previous run.
+      group: e2e-${{ github.event.pull_request.number || github.sha }}
+      cancel-in-progress: true
+
+    steps:
+      - name: Fix workspace ownership
+        run: sudo chown -R "$(id -u):$(id -g)" "$GITHUB_WORKSPACE"
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          clean: true
+
+      - name: Clean workspace
+        run: |
+          sudo git clean -ffdx
+
+      - name: Login to GHCR (private images)
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.1'
+
+      - name: Configure local hosts and certs
+        working-directory: local
+        run: |
+          set -e
+
+          sudo apt-get update
+          sudo apt-get install -y netcat-openbsd libnss3-tools
+
+          sudo make hosts
+          make certs HEADLESS=1
+          rm -rf "$HOME/.pki/nssdb"
+          mkdir -p "$HOME/.pki/nssdb"
+          certutil -d sql:"$HOME/.pki/nssdb" -N --empty-password
+          sudo make trust-debian
+
+      - name: Install Playwright browsers
+        working-directory: e2e
+        run: |
+          go mod download
+          go run github.com/playwright-community/playwright-go/cmd/playwright install chromium
+
+      - name: Cleanup from previous runs
+        working-directory: local
+        run: make down && make reset
+
+      - name: Clean Docker build cache
+        run: docker builder prune -af --verbose
+
+      - name: Build containers in parallel
+        working-directory: local
+        run: docker compose --parallel 8 --profile="*" build
+        
+      - name: Build local-dev-tool
+        working-directory: local/scripts
+        run: make build
+
+      - name: Start infrastructure
+        working-directory: local
+        run: docker compose --profile="infrastructure" up -d
+
+      - name: Wait 10 seconds
+        run: sleep 10
+
+      - name: Start services
+        working-directory: local
+        run: docker compose --profile="services" up -d
+
+      - name: Start application
+        working-directory: local
+        run: make all-ci
+
+      - name: Seed Rafiki assets
+        working-directory: local/scripts
+        run: ./local-dev-tool rafiki --skip-ui --wait-for-ready 120
+
+      - name: Wait for application
+        run: sleep 10
+
+      - name: Run e2e tests
+        working-directory: e2e
+        run: go test -v -timeout 20m -args -concurrency=5 -debug=false -report=debug/report.md
+
+      - name: Show report
+        if: always()
+        continue-on-error: true
+        run: cat e2e/debug/report.md || true
+
+      - name: Dump docker logs if tests failed
+        if: failure()
+        working-directory: local
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/logs"
+          for container in $(docker compose ps -a --format "{{.Name}}"); do
+            docker logs "$container" > "$GITHUB_WORKSPACE/logs/$container.log" 2>&1 || true
+          done
+        continue-on-error: true
+
+      - name: Upload container logs if tests failed
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: e2e-container-logs
+          path: logs
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Clean up Docker containers and volumes
+        if: always()
+        run: |
+          docker container prune -f
+          docker volume prune -f
+
+      - name: Upload screenshots to artifacts always
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: e2e-screenshots
+          path: e2e/debug
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Upload markdown report
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: e2e-markdown-report
+          path: e2e/debug/report.md
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Comment report link on PR
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const marker = '<!-- e2e-report-comment -->';
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const body = [
+              marker,
+              '### E2E Test Report',
+              '',
+              'E2E markdown report is available as an artifact:',
+              `- Run artifacts: ${runUrl}`,
+              '- Artifact name: e2e-markdown-report'
+            ].join('\n');
+
+            const { owner, repo } = context.repo;
+            const issue_number = context.payload.pull_request.number;
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner,
+              repo,
+              issue_number,
+            });
+            const existing = comments.find(c => c.body.includes(marker));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number,
+                body,
+              });
+            }

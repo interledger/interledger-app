@@ -1,16 +1,10 @@
-import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
-import { json } from '@remix-run/node'
-import type { ShouldRevalidateFunction } from '@remix-run/react'
-import {
-  Outlet,
-  useFetcher,
-  useLoaderData,
-  useLocation,
-  useSearchParams
-} from '@remix-run/react'
+import type { Route } from './+types/payments'
+import { data } from 'react-router';
+import type { ShouldRevalidateFunction } from 'react-router';
+import { Outlet, useFetcher, useLoaderData, useLocation, useSearchParams } from 'react-router';
 import clsx from 'clsx'
 import { useCallback, useEffect, useState } from 'react'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   Card,
@@ -21,7 +15,6 @@ import {
   CardTitle,
   Chip,
   ChipColor,
-  DiscordIcon,
   Fab,
   GridColumn,
   Icon,
@@ -39,7 +32,7 @@ import { grpc } from '~/lib/grpc.server'
 
 import { isConnectError } from '~/lib/error.server'
 import { mergeMeta } from '~/lib/meta'
-import { KycStatus } from '~/routes/_index/route'
+import { KycStatus } from '~/lib/types'
 
 /**
  * Allows us to change the searchParams without revalidating the pages data
@@ -54,7 +47,7 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({
   return defaultShouldRevalidate
 }
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url)
   const pages = parseInt(url.searchParams.get('pages') || '1')
 
@@ -96,7 +89,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     }, Object.create(null))
   )
 
-  return json({
+  return data({
     kycStatus: kycStatus.kycStatus,
     transactions: dateGroupedTransactions,
     nextPageToken: pageInfo.pageToken
@@ -113,7 +106,7 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Payments'
   }
@@ -129,13 +122,13 @@ export default function Page() {
   )
   const [scrollPosition, setScrollPosition] = useState(0)
   const [clientHeight, setClientHeight] = useState(0)
-  const [height, setHeight] = useState(null)
+  const [height, setHeight] = useState<number | null>(null)
   const [shouldFetch, setShouldFetch] = useState(true)
 
   const isMobile = typeof document !== 'undefined' && window.innerWidth < 1024
 
   const divHeight = useCallback(
-    (node: any) => {
+    (node: HTMLDivElement | null) => {
       if (node !== null) {
         setHeight(node.getBoundingClientRect().height)
       }
@@ -225,7 +218,7 @@ export default function Page() {
   const pathSegments = location.pathname.split('/').filter(Boolean)
 
   return (
-    <WalletGrid ref={divHeight}>
+    (<WalletGrid ref={divHeight}>
       <GridColumn
         hideOnMobile={pathSegments[pathSegments.length - 1] !== 'payments'}
         className='col-span-full lg:col-span-6'
@@ -249,7 +242,7 @@ export default function Page() {
                   <Router
                     prefetch='render'
                     className='text-sm font-medium text-primary'
-                    to={route('/personal-details')}
+                    to={href('/personal-details')}
                   >
                     Activate wallet
                   </Router>
@@ -269,7 +262,7 @@ export default function Page() {
                     transacting.
                   </span>
                   <Router
-                    to={route('/pay')}
+                    to={href('/pay')}
                     className='text-sm font-medium text-primary'
                   >
                     Send or receive payments now
@@ -279,14 +272,14 @@ export default function Page() {
             </Card>
           )}
         {transactions &&
-          transactions.map((transactionGroup, index) => (
+          transactions.map((transactionGroup: import("~/generated/connect/backend/v1/backend_pb").Transaction[], index: number) => (
             <Card key={`group-${index}`}>
               <Label>{transactionGroup[0].formattedDate}</Label>
-              {transactionGroup.map((transaction) =>
+              {transactionGroup.map((transaction: import("~/generated/connect/backend/v1/backend_pb").Transaction) =>
                 transaction.type.includes('web_monetization_') &&
                 transaction.state == 'Pending' ? (
                   // Can't disable a link :/
-                  <div
+                  (<div
                     key={transaction.id + transaction.state}
                     className='my-1 flex justify-between space-x-4 rounded-xl p-3 first:mt-0 last-of-type:mb-0'
                   >
@@ -314,13 +307,13 @@ export default function Page() {
                       </span>
                       <div className='h-6 w-6' />
                     </div>
-                  </div>
+                  </div>)
                 ) : (
                   <CardLink
                     preventScrollReset={!isMobile}
                     prefetch='none'
                     key={transaction.id + transaction.state}
-                    to={route('/payments/:paymentId', {
+                    to={href('/payments/:paymentId', {
                       paymentId: transaction.id
                     })}
                     className='justify-between space-x-4'
@@ -350,8 +343,6 @@ export default function Page() {
                             )}
                             {transaction.destinationIdentityType ==
                               'Twitter' && <TwitterIcon />}
-                            {transaction.destinationIdentityType ==
-                              'Discord' && <DiscordIcon />}
                             {transaction.destinationIdentityType == 'Slack' && (
                               <SlackIcon />
                             )}
@@ -394,6 +385,6 @@ export default function Page() {
       <GridColumn sticky className='col-span-full lg:col-span-6 lg:col-start-7'>
         <Outlet />
       </GridColumn>
-    </WalletGrid>
-  )
+    </WalletGrid>)
+  );
 }

@@ -1,0 +1,8 @@
+services:
+  protea:
+    build:
+      context: ../typescript/protea
+      target: runner
+    volumes: !reset []
+      
+

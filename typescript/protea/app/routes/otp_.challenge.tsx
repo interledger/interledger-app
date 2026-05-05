@@ -1,12 +1,8 @@
+import type { Route } from './+types/otp_.challenge'
 import { Code } from '@bufbuild/connect'
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { redirect } from '@remix-run/node'
-import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import { route } from 'routes-gen'
+import { redirect } from 'react-router';
+import { Form, useActionData, useLoaderData } from 'react-router';
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   Button,
@@ -17,38 +13,40 @@ import {
   TextField
 } from '~/components'
 import { Label } from '~/components/Label'
+import logger from '~/lib/logger.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { ErrorDescriptions } from '~/lib/error.constants'
-import { TwillioError, TwillioErrorMapper } from '~/lib/error.mappers'
+import type { TwillioError } from '~/lib/error.mappers';
+import { TwillioErrorMapper } from '~/lib/error.mappers'
 import { isConnectError, isTwilioError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
-import { trimHeaders } from '~/lib/headers.server'
-import {
-  KRATOS_URL,
-  getUserSession,
-  handleFlowError
-} from '~/lib/kratos.server'
+import { kratosPublic } from '~/lib/kratos/kratos-client.server'
+import { getCookie, withCookie, buildHeadersWithCookies } from '~/lib/kratos/cookie.server'
+import { handleFlowError } from '~/lib/kratos/error.server'
+import { getUserSession, getSessionTraits } from '~/lib/kratos/session.server'
 import { mergeMeta } from '~/lib/meta'
+import { safeReturnTo } from '~/lib/url.server'
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const session = await getUserSession(request)
+  const { phone } = getSessionTraits(session)
 
-  const len = session.identity.traits.phone.length
-  const phoneMask = session.identity.traits.phone
+  const len = phone.length
+  const phoneMask = phone
     .substring(len - 4, len)
     .padStart(len, '*')
 
   let response = await grpc.sendPhoneVerification(request, {
-    to: session.identity.traits.phone
+    to: phone
   })
   if (isConnectError(response)) throw response.errorResponse
 
   const url = new URL(request.url)
-  const returnTo = url.searchParams.get('returnTo')
+  const returnTo = safeReturnTo(url.searchParams.get('returnTo'))
 
   return jsonWithCSRF(request, {
     phoneMask,
-    returnTo: returnTo ?? ''
+    returnTo
   })
 }
 
@@ -56,21 +54,21 @@ export const handle: ApplicationProps = {
   layout: Layouts.Focus,
   scaffold: {
     header: {
-      back: route('/'),
+      back: href('/'),
       title: 'Confirmation'
     }
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: "Confirm it's you"
   }
 ])
 
 export default function Page() {
-  const actionData = useActionData<typeof action>()
-  const { csrfToken, phoneMask, returnTo } = useLoaderData<typeof loader>()
+  const actionData = useActionData()
+  const { csrfToken, phoneMask, returnTo } = useLoaderData()
 
   return (
     <>
@@ -89,7 +87,7 @@ export default function Page() {
       <input
         form='otp-challenge'
         value={returnTo}
-        name='return_to'
+        name='returnTo'
         type='hidden'
       />
       <Card>
@@ -121,12 +119,13 @@ export default function Page() {
   )
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const form = await request.formData()
   const otp = form.get('otp') as string
-  const returnTo = form.get('return_to') as string
+  const returnTo = form.get('returnTo') as string
 
   const session = await getUserSession(request)
+  const { phone } = getSessionTraits(session)
 
   await validateCSRFToken(request, form)
 
@@ -135,7 +134,7 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   const response = await grpc.checkPhoneVerification(request, {
-    to: session.identity.traits.phone,
+    to: phone,
     otp
   })
 
@@ -166,18 +165,18 @@ export async function action({ request }: ActionFunctionArgs) {
     return redirect(returnTo)
   }
 
-  const cookie = String(request.headers.get('cookie'))
-  let flow
-  const flowRes = await fetch(`${KRATOS_URL}/self-service/settings/browser`, {
-    headers: { cookie: cookie, Accept: 'application/json' }
-  })
-  flow = await flowRes.json()
-
-  if (flowRes.status >= 400) {
-    handleFlowError(flow, 'otp/challenge')
+  const cookie = getCookie(request)
+  try {
+    const response = await kratosPublic.createBrowserSettingsFlow(
+      {},
+      withCookie(cookie)
+    )
+    return redirect(`/settings/phone?flow=${response.data.id}`, {
+      headers: buildHeadersWithCookies(response)
+    })
+  } catch (err: any) {
+    handleFlowError(err, 'otp/challenge')
+    logger.error({ error: err, route: 'otp.challenge' }, 'Failed to initialize OTP challenge flow')
+    throw new Error('Failed to initialize OTP challenge flow')
   }
-
-  return redirect(`/settings/phone?flow=${flow.id}`, {
-    headers: trimHeaders(flowRes.headers, ['set-cookie'])
-  })
 }

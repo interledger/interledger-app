@@ -1,14 +1,14 @@
+import type { Route } from './+types/api_.sendOtp'
 import { Code } from '@bufbuild/connect'
-import type { ActionFunctionArgs } from '@remix-run/node'
-import { json } from '@remix-run/node'
+import { data as rrData } from 'react-router';
 import type { CountryCode, ParseError } from 'libphonenumber-js'
 import { parsePhoneNumberWithError } from 'libphonenumber-js'
 import { validateCSRFToken } from '~/lib/csrf.server'
 import { error, isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
-import { getUserSession } from '~/lib/kratos.server'
+import { getUserSession, getSessionTraits } from '~/lib/kratos/session.server'
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const form = await request.formData()
   const country = form.get('country') as string
   const phone = form.get('phone') as string
@@ -57,7 +57,7 @@ export async function action({ request }: ActionFunctionArgs) {
     }
   } else {
     data.phone = await getUserSession(request).then(
-      (v) => v.identity.traits.phone
+      (session) => getSessionTraits(session).phone
     )
   }
 
@@ -72,5 +72,5 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   data.success = true
-  return json(data)
+  return rrData(data)
 }

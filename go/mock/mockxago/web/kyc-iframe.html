@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Persona KYC Verification</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 500px;
+            padding: 40px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #1a1a1a;
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #1a1a1a;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+            font-family: inherit;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .error {
+            color: #d32f2f;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        .success {
+            display: none;
+            text-align: center;
+        }
+
+        .success.show {
+            display: block;
+        }
+
+        .success-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .success h2 {
+            color: #4caf50;
+            margin-bottom: 8px;
+        }
+
+        .success p {
+            color: #666;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="form" class="form">
+            <div class="header">
+                <h1>Identity Verification</h1>
+                <p>Please provide your information to verify your identity</p>
+            </div>
+
+            <form id="kycForm" method="POST" action="/kyc/submit" enctype="multipart/form-data">
+                <input type="hidden" name="token" value="{{ .Token }}">
+                <input type="hidden" name="user_id" value="{{ .UserID }}">
+
+                <div class="form-group">
+                    <label for="first_name">First Name *</label>
+                    <input 
+                        type="text" 
+                        id="first_name" 
+                        name="first_name" 
+                        required
+                        placeholder="John"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="last_name">Last Name *</label>
+                    <input 
+                        type="text" 
+                        id="last_name" 
+                        name="last_name" 
+                        required
+                        placeholder="Doe"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="dob">Date of Birth *</label>
+                    <input 
+                        type="date" 
+                        id="dob" 
+                        name="dob" 
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="address">Address *</label>
+                    <input 
+                        type="text" 
+                        id="address" 
+                        name="address" 
+                        required
+                        value="123 Main Street"
+                        placeholder="123 Main Street"
+                    >
+                </div>
+
+                <button type="submit" id="submitBtn">Submit Verification</button>
+            </form>
+        </div>
+
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Processing your verification...</p>
+        </div>
+
+        <div id="success" class="success">
+            <div class="success-icon">✓</div>
+            <h2>Verification Submitted</h2>
+            <p>Thank you for submitting your information. Your identity verification has been received.</p>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('kycForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const formDiv = document.getElementById('form');
+        const loadingDiv = document.getElementById('loading');
+        const successDiv = document.getElementById('success');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Show loading state
+            formDiv.style.display = 'none';
+            loadingDiv.classList.add('show');
+            submitBtn.disabled = true;
+
+            // Send form as multipart
+            const formData = new FormData(form);
+
+            try {
+                const response = await fetch('/kyc/submit', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    // Show success message
+                    loadingDiv.classList.remove('show');
+                    successDiv.classList.add('show');
+
+                    // Send completion message to parent window
+                    const userID = document.getElementsByName('user_id')[0]?.value;
+                    window.parent.postMessage({
+                        type: 'OnboardingCompleted',
+                        value: JSON.stringify({
+                            applicantStatus: 'submitted',
+                            userId: userID
+                        })
+                    }, '*');
+
+                    // Soft page reload after 2s fallback
+                    setTimeout(() => {
+                        window.parent.location.reload();
+                    }, 2000);
+                } else {
+                    const errorData = await response.json();
+                    loadingDiv.classList.remove('show');
+                    formDiv.style.display = 'block';
+                    submitBtn.disabled = false;
+                    alert('Error: ' + (errorData.error || 'Failed to submit verification'));
+                }
+            } catch (error) {
+                console.error('Submission error:', error);
+                loadingDiv.classList.remove('show');
+                formDiv.style.display = 'block';
+                submitBtn.disabled = false;
+                
+                // Send error message to parent
+                window.parent.postMessage({
+                    type: 'OnboardingError',
+                    value: JSON.stringify({
+                        message: error.message || 'Failed to submit verification'
+                    })
+                }, '*');
+            }
+        });
+    </script>
+</body>
+</html>

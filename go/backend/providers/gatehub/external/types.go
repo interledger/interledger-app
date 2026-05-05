@@ -1,10 +1,14 @@
 package external
 
 import (
+	"fmt"
+	"strings"
 	"time"
 )
 
 type Product string
+
+type TwoFA string
 
 var (
 	OnOffRamp  Product = "OnOffRamp"
@@ -53,6 +57,11 @@ var (
 	CardTransactionTypePreauthorizationCompletion  int = 103
 	CardTransactionTypeTransferToAccount           int = 107
 	CardTransactionTypeTransferFromAccount         int = 108
+)
+
+const (
+	TwoFASms  TwoFA = "sms"
+	TwoFATotp TwoFA = "totp"
 )
 
 type (
@@ -304,7 +313,6 @@ type (
 		Status                     string  `json:"status"`
 		StatusReasonCode           *string `json:"statusReasonCode"`
 		LockLevel                  *string `json:"lockLevel"`
-		ExpiryDate                 string  `json:"expiryDate"`
 		RelationType               string  `json:"relationType"`
 		MembershipFeeEffectiveDate *string `json:"membershipFeeEffectiveDate"`
 		IsFirstTimeLock            bool    `json:"isFirstTimeLock"`
@@ -501,6 +509,19 @@ type (
 		SpendExchangeRate         *string               `json:"spendExchangeRate"`
 		SpendCurrency             *string               `json:"spendCurrency"`
 	}
+
+	UpdateOrganizationConfigurationArgs struct {
+		APIBaseURL string `json:"apiBaseUrl"`
+		TwoFAType  TwoFA  `json:"type2fa"`
+	}
+
+	UpdateOrganizationConfigurationResponse struct {
+		ID         string `json:"id"`
+		APIBaseURL string `json:"apiBaseUrl"`
+		TwoFAType  TwoFA  `json:"type2fa"`
+		CreatedAt  string `json:"createdAt"`
+		UpdatedAt  string `json:"updatedAt"`
+	}
 )
 
 func (ca *CardAccount) WithAccountProductCode(productCode string) {
@@ -509,4 +530,19 @@ func (ca *CardAccount) WithAccountProductCode(productCode string) {
 
 func (a *OrderCardArgs) WithAccountProductCode(productCode string) {
 	a.ProductCode = productCode
+}
+
+var stringToTwoFA = map[string]TwoFA{
+	"totp": TwoFATotp,
+	"sms":  TwoFASms,
+}
+
+func ParseTwoFA(v string) (TwoFA, error) {
+	val := strings.TrimSpace(strings.ToLower(v))
+
+	t, ok := stringToTwoFA[val]
+	if !ok {
+		return "", fmt.Errorf("invalid two FA type: %s", v)
+	}
+	return t, nil
 }

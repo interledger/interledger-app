@@ -1,21 +1,19 @@
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { json } from '@remix-run/node'
-import { useLoaderData, useSubmit } from '@remix-run/react'
+import { data } from 'react-router';
+import { useLoaderData, useSubmit } from 'react-router';
+import type { Route } from './+types/personal-details'
 import { useEffect, useRef, useState } from 'react'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import { Button, Card, CardContent, Dialog, Layouts, Shape } from '~/components'
 import { isConnectError } from '~/lib/error.server'
 import type { FiantSdkMessage } from '~/lib/fiant'
 import { exitFlow, flowType, requireFlow } from '~/lib/flows.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
+import { usePtiConfig } from '~/lib/pti-context'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { useScript } from '~/lib/useScript'
+import logger from '~/lib/logger.server'
 
 const KYCErrors: KYCErrorsType = {
   UnableToPars: 'KYC: unable to parse message data'
@@ -25,13 +23,23 @@ type KYCErrorsType = {
   UnableToPars: 'KYC: unable to parse message data'
 }
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const flow = await requireFlow(request, flowType.PersonalDetails)
   const response = await grpc.getKYCProviderWidget(request, {
-    idempotencyKey: flow.data.idempotencyKey
+    idempotencyKey: flow.data?.idempotencyKey as string
   })
 
   if (isConnectError(response)) throw response.errorResponse
+
+  logger.info({
+    provider: response.provider,
+    hasGatehubWidget: !!response.gatehubWidget,
+    gatehubWidgetUrl: response.gatehubWidget?.widgetUrl,
+    hasPersonaWidget: !!response.personaInquiry,
+    hasChimoneyWidget: !!response.chimoneyWidget,
+    hasPtiWidget: !!response.ptiWidget,
+    flow: 'kyc'
+  }, '[KYC] Personal details page loaded')
 
   // if (response.provider === 'local') {
   //   // wait 1s on local for the async processes to finish
@@ -39,12 +47,16 @@ export async function loader({ request }: LoaderFunctionArgs) {
   //   throw redirect('/')
   // }
 
-  return json({
+  return data({
     provider: response.provider,
     gatehubWidget: response.gatehubWidget,
     personaWidget: response.personaInquiry,
     chimoneyWidget: response.chimoneyWidget,
-    ptiWidget: response.ptiWidget
+    ptiWidget: response.ptiWidget,
+    personaSdkUrl:
+      process.env.PERSONA_SDK_URL ||
+      'https://cdn.withpersona.com/dist/persona-v4.8.0-alpha.js',
+    mockxagoEndpoint: process.env.MOCKXAGO_ENDPOINT || ''
   })
 }
 
@@ -53,12 +65,12 @@ export const handle = {
   scaffold: {
     header: {
       title: 'Activate wallet',
-      back: route('/')
+      back: href('/')
     }
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Activate wallet'
   }
@@ -66,7 +78,7 @@ export const meta: MetaFunction = mergeMeta(() => [
 
 function ChimoneyPage() {
   const submit = useSubmit()
-  const { chimoneyWidget } = useLoaderData<typeof loader>()
+  const { chimoneyWidget } = useLoaderData()
 
   useEffect(() => {
     const onKYCComplete = (e: MessageEvent) => {
@@ -101,10 +113,13 @@ function ChimoneyPage() {
 
 function PersonaPage() {
   const submit = useSubmit()
-  const { personaWidget } = useLoaderData<typeof loader>()
+  const { personaWidget, personaSdkUrl, mockxagoEndpoint } = useLoaderData<typeof loader>()
   const [ready, setReady] = useState(false)
-  const status = useScript(
-    'https://cdn.withpersona.com/dist/persona-v4.8.0-alpha.js'
+  const mockXagoIframeRef = useRef<HTMLIFrameElement | null>(null)
+  const scriptStatus = useScript(
+    mockxagoEndpoint
+      ? '' // Don't load Persona SDK when using MockXago
+      : personaSdkUrl
   )
   let personaRef = useRef<any>(null)
 
@@ -122,40 +137,123 @@ function PersonaPage() {
   }, [setLoading])
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && status == 'ready') {
-      personaRef.current = (window as any).Persona
-      personaRef.current = new (window as any).Persona.Client({
-        inquiryId: personaWidget?.id,
-        sessionToken: personaWidget?.sessionToken,
-        onReady: () => setReady(true),
-        onComplete: ({ inquiryId, status, fields }: any) => {
-          setReady(false)
-          submit(null, {
-            action: '/personal-details',
-            method: 'post'
-          })
-        },
-        onCancel: ({ inquiryId, sessionToken }: any) => console.log('onCancel'),
-        onError: (error: any) => console.log(error)
-      })
+    if (!mockxagoEndpoint || !personaWidget?.id) return
+
+    let expectedOrigin: string
+    try {
+      expectedOrigin = new URL(mockxagoEndpoint).origin
+    } catch {
+      console.error('[KYC] Invalid MockXago endpoint:', mockxagoEndpoint)
+      return
     }
-  }, [personaWidget, status, submit])
 
-  return <KycIntro onClick={() => personaRef.current.open()} ready={ready} />
-}
+    setReady(true)
 
-function GatehubPage() {
-  const { gatehubWidget } = useLoaderData<typeof loader>()
-  const [dialogOpen, setDialogOpen] = useState(false)
-  const submit = useSubmit()
-  useEffect(() => {
     const onKYCComplete = (e: MessageEvent) => {
+      if (e.origin !== expectedOrigin) {
+        console.warn('[KYC] Ignoring MockXago message from unexpected origin:', e.origin)
+        return
+      }
+
+      const iframeWindow = mockXagoIframeRef.current?.contentWindow
+      if (!iframeWindow || e.source !== iframeWindow) {
+        console.warn('[KYC] Ignoring MockXago message from unexpected source')
+        return
+      }
+
+      console.log('[KYC] MockXago iframe message received:', e.data)
       if (!e.data?.type || !e.data?.value) return
 
       let parsedValue
       try {
         parsedValue = JSON.parse(e.data.value)
       } catch {
+        return
+      }
+
+      if (
+        e.data.type === 'OnboardingCompleted' &&
+        parsedValue?.applicantStatus === 'submitted'
+      ) {
+        console.log('[KYC] MockXago KYC completed, submitting form')
+        submit(null, {
+          action: '/personal-details',
+          method: 'post'
+        })
+      }
+    }
+
+    window.addEventListener('message', onKYCComplete)
+    return () => window.removeEventListener('message', onKYCComplete)
+  }, [mockxagoEndpoint, personaWidget?.id, submit])
+
+  // Real Persona SDK mode
+  useEffect(() => {
+    if (mockxagoEndpoint) return
+    if (typeof window !== 'undefined' && scriptStatus == 'ready') {
+      personaRef.current = (window as any).Persona
+      personaRef.current = new (window as any).Persona.Client({
+        inquiryId: personaWidget?.id,
+        sessionToken: personaWidget?.sessionToken,
+        onReady: () => setReady(true),
+        onComplete: () => {
+          setReady(false)
+          submit(null, {
+            action: '/personal-details',
+            method: 'post'
+          })
+        },
+        onCancel: () => console.log('onCancel'),
+        onError: (error: unknown) => console.log(error)
+      })
+    }
+  }, [mockxagoEndpoint, personaWidget, scriptStatus, submit])
+
+  // MockXago: render iframe directly
+  if (mockxagoEndpoint && personaWidget?.id) {
+    const iframeSrc = `${mockxagoEndpoint}/v1/inquiries/${personaWidget.id}/iframe`
+    return (
+      <iframe
+        ref={mockXagoIframeRef}
+        title='Activate wallet'
+        src={iframeSrc}
+        sandbox='allow-top-navigation allow-forms allow-same-origin allow-popups allow-scripts'
+        scrolling='yes'
+        allow='camera;microphone'
+        className='h-[750px] sm:min-w-[400px] md:min-w-[400px]'
+      />
+    )
+  }
+
+  return <KycIntro onClick={() => personaRef.current.open()} ready={ready} />
+}
+
+function GatehubPage() {
+  const { gatehubWidget } = useLoaderData()
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const submit = useSubmit()
+  useEffect(() => {
+    const onKYCComplete = (e: MessageEvent) => {
+      console.log('[KYC] Received message from iframe:', {
+        origin: e.origin,
+        data: e.data,
+        hasType: !!e.data?.type,
+        hasValue: !!e.data?.value
+      })
+      if (!e.data?.type || !e.data?.value) {
+        console.warn('[KYC] Message missing type or value, ignoring')
+        return
+      }
+
+      let parsedValue
+      try {
+        parsedValue = JSON.parse(e.data.value)
+        console.log('[KYC] Parsed message value:', parsedValue)
+      } catch (parseError) {
+        console.error('[KYC] Failed to parse message value:', {
+          error: parseError,
+          rawValue: e.data.value
+        })
         throw new Error(KYCErrors.UnableToPars)
       }
 
@@ -163,9 +261,15 @@ function GatehubPage() {
         e.data.type === 'OnboardingCompleted' &&
         parsedValue?.applicantStatus === 'submitted'
       ) {
+        console.log('[KYC] Onboarding completed, submitting form to backend')
         submit(null, {
           action: '/personal-details',
           method: 'post'
+        })
+      } else {
+        console.log('[KYC] Message received but not OnboardingCompleted or wrong status:', {
+          type: e.data.type,
+          applicantStatus: parsedValue?.applicantStatus
         })
       }
     }
@@ -181,6 +285,9 @@ function GatehubPage() {
     <>
       <KycIntro
         onClick={() => {
+          console.log('[KYC] Opening gatehub KYC dialog', {
+            hasWidgetUrl: !!gatehubWidget?.widgetUrl
+          })
           setDialogOpen(true)
         }}
         ready
@@ -193,6 +300,8 @@ function GatehubPage() {
           scrolling='yes'
           allow='camera;microphone'
           className='h-[750px] sm:min-w-[400px] md:min-w-[400px]'
+          onLoad={() => console.log('[KYC] Gatehub iframe loaded successfully')}
+          onError={(e) => console.error('[KYC] Gatehub iframe load error:', e)}
         />
       </Dialog>
     </>
@@ -200,11 +309,12 @@ function GatehubPage() {
 }
 
 function PtiPage() {
-  const { ptiWidget } = useLoaderData<typeof loader>()
+  const { ptiWidget } = useLoaderData()
   const submit = useSubmit()
-  const scriptStatus = useScript(
-    ptiWidget?.sdkUrl || 'https://sdk.platform.fiant.io/0.0.23/index.js'
-  )
+  const ptiConfig = usePtiConfig()
+  const sdkUrl = ptiConfig?.sdkUrl || ptiWidget?.sdkUrl || ''
+  const formsUrl = ptiConfig?.formsUrl || ptiWidget?.formsUrl || ''
+  const scriptStatus = useScript(sdkUrl)
   const [setLoading] = useScaffoldStore((state) => [state.setLoading])
 
   // Unmount make sure the loading state is set to false
@@ -215,13 +325,13 @@ function PtiPage() {
   }, [setLoading])
 
   useEffect(() => {
-    if (scriptStatus == 'ready' && typeof (window as any).PTI !== 'undefined') {
-      ;(window as any).PTI.init({
+    if (scriptStatus == 'ready' && window.PTI !== undefined) {
+      window.PTI.init({
         clientId: ptiWidget?.clientId,
         generateTokenPath: ptiWidget?.generateTokenPath,
-        ptiFormsUrl: ptiWidget?.formsUrl || 'https://forms.platform.fiant.io'
+        ptiFormsUrl: formsUrl
       })
-      ;(window as any).PTI.form({
+      window.PTI.form({
         type: 'KYC',
         requestId: ptiWidget?.requestId,
         userId: ptiWidget?.userId,
@@ -245,7 +355,17 @@ function PtiPage() {
     return () => {
       window.removeEventListener('message', handleMessage)
     }
-  }, [scriptStatus, ptiWidget, setLoading, submit])
+  }, [scriptStatus, ptiWidget, formsUrl, setLoading, submit])
+
+  if (scriptStatus === 'error') {
+    return (
+      <Card>
+        <CardContent>
+          Could not load PTI SDK. Check PTI SDK URL and mockpti service health.
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
     <>
@@ -265,7 +385,7 @@ function KycIntro({ onClick, ready }: KycIntroProps) {
       <Card>
         <CardContent>
           <span>
-            Complete theses steps to confirm your identity and activate your
+            Complete these steps to confirm your identity and activate your
             wallet:
           </span>
           <div className='mt-6 flex items-start'>
@@ -298,7 +418,7 @@ function KycIntro({ onClick, ready }: KycIntroProps) {
 }
 
 export default function Page() {
-  const { provider } = useLoaderData<typeof loader>()
+  const { provider } = useLoaderData()
 
   if (provider == 'persona') {
     return <PersonaPage />
@@ -309,12 +429,20 @@ export default function Page() {
   } else return <GatehubPage />
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
+  logger.info({ flow: 'kyc' }, '[KYC] Personal details action called - marking KYC status as pending')
+  
   await exitFlow(request, flowType.PersonalDetails)
 
-  await grpc.setKYCStatusPending(request, {})
+  const setKycResponse = await grpc.setKYCStatusPending(request, {})
+  if (isConnectError(setKycResponse)) {
+    logger.error({ error: setKycResponse, flow: 'kyc' }, '[KYC] Failed to set KYC status as pending')
+    throw setKycResponse.errorResponse
+  }
+  
+  logger.info({ flow: 'kyc' }, '[KYC] KYC status set to pending successfully')
 
-  return redirectWithSnackbar(request, route('/'), {
+  return redirectWithSnackbar(request, href('/'), {
     message: 'Personal details captured.',
     icon: 'close'
   })

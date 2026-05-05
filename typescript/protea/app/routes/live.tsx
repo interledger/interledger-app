@@ -1,6 +1,6 @@
-import type { LoaderFunctionArgs } from '@remix-run/node'
+import type { Route } from './+types/live'
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
+export const loader = async ({ request }: Route.LoaderArgs) => {
   return new Response(JSON.stringify({ status: 'alive' }), {
     status: 200,
     headers: {

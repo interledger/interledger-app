@@ -107,7 +107,7 @@ func createTransaction(ctx context.Context, dbc sqlx.ExecerContext, b Backends, 
 
 	err = b.Notify().NotifyWallet(ctx, args.WalletID, notify.NotificationTypeTransaction)
 	if err != nil {
-		log.Error("notify error", zap.Error(err))
+		log.Warn("error sending notification", zap.Error(err))
 	}
 
 	fee := args.ProviderFee
@@ -240,8 +240,8 @@ type dbTransaction struct {
 	Source                  sql.NullString               `db:"source"`
 	Destination             sql.NullString               `db:"destination"`
 	Title                   sql.NullString               `db:"title"`
-	Amount                  uint64                       `db:"amount"`
-	ProviderFee             uint64                       `db:"provider_fee"`
+	Amount                  int64                        `db:"amount"`
+	ProviderFee             int64                        `db:"provider_fee"`
 	Scale                   int                          `db:"asset_scale"`
 	Asset                   string                       `db:"asset_code"`
 	Timestamp               time.Time                    `db:"updated_at"`
@@ -408,7 +408,7 @@ type dbTransfer struct {
 	LinkedAccountID sql.NullString            `db:"linked_acc_id"`
 	Type            transactions.TransferType `db:"type"`
 	State           transactions.State        `db:"state"`
-	Amount          uint64                    `db:"amount"`
+	Amount          int64                     `db:"amount"`
 	Scale           int                       `db:"asset_scale"`
 	Asset           string                    `db:"asset_code"`
 	Timestamp       time.Time                 `db:"updated_at"`
@@ -492,7 +492,7 @@ func SetTransactionForeignID(ctx context.Context, b Backends, ID string, foreign
 
 	err = b.Notify().NotifyWallet(ctx, walletID, notify.NotificationTypeTransaction)
 	if err != nil {
-		log.Error("error sending notification", zap.Error(err))
+		log.Warn("error sending notification", zap.Error(err))
 	}
 
 	return nil
@@ -523,7 +523,7 @@ func SetTransactionState(ctx context.Context, b Backends, ID string, state trans
 	var trxDetails struct {
 		ID       string                       `db:"id"`
 		WalletID string                       `db:"wallet_id"`
-		Amount   uint64                       `db:"amount"`
+		Amount   int64                        `db:"amount"`
 		Type     transactions.TransactionType `db:"type"`
 		Provider transactions.Provider        `db:"provider"`
 	}
@@ -535,7 +535,7 @@ func SetTransactionState(ctx context.Context, b Backends, ID string, state trans
 
 	err = b.Notify().NotifyWallet(ctx, trxDetails.WalletID, notify.NotificationTypeTransaction)
 	if err != nil {
-		log.Error("error sending notification", zap.Error(err))
+		log.Warn("error sending notification", zap.Error(err))
 	}
 
 	userID := getWalletUserID(ctx, b, trxDetails.WalletID)
@@ -560,7 +560,7 @@ func SetTransactionStateTx(ctx context.Context, b Backends, tx *sqlx.Tx, ID stri
 	var trxDetails struct {
 		ID       string                       `db:"id"`
 		WalletID string                       `db:"wallet_id"`
-		Amount   uint64                       `db:"amount"`
+		Amount   int64                        `db:"amount"`
 		Type     transactions.TransactionType `db:"type"`
 		Provider transactions.Provider        `db:"provider"`
 	}
@@ -572,7 +572,7 @@ func SetTransactionStateTx(ctx context.Context, b Backends, tx *sqlx.Tx, ID stri
 
 	err = b.Notify().NotifyWallet(ctx, trxDetails.WalletID, notify.NotificationTypeTransaction)
 	if err != nil {
-		log.Error("error sending notification", zap.Error(err))
+		log.Warn("error sending notification", zap.Error(err))
 	}
 
 	userID := getWalletUserID(ctx, b, trxDetails.WalletID)
@@ -613,7 +613,23 @@ func SetTransactionAmountTx(ctx context.Context, b Backends, tx *sqlx.Tx, ID str
 
 	err = b.Notify().NotifyWallet(ctx, walletID, notify.NotificationTypeTransaction)
 	if err != nil {
-		log.Error("error sending notification", zap.Error(err))
+		log.Warn("error sending notification", zap.Error(err))
+	}
+
+	return nil
+}
+
+func SetTransactionFeeAndStateCompleted(ctx context.Context, b Backends, ID string, fee currency.Amount, state transactions.State, walletID string) error {
+	_, err := b.DB().ExecContext(ctx,
+		"UPDATE transactions SET provider_fee=$1, state=$2, updated_at=now() WHERE id=$3",
+		fee.Value, state, ID)
+	if err != nil {
+		return fmt.Errorf("%w %s", transactions.ErrInternal, err)
+	}
+
+	err = b.Notify().NotifyWallet(ctx, walletID, notify.NotificationTypeTransaction)
+	if err != nil {
+		log.Warn("error sending notification", zap.Error(err))
 	}
 
 	return nil

@@ -91,7 +91,7 @@ func TestCreate(t *testing.T) {
 				IPAddress:       "193.9.4.6",
 			},
 			// actions: []payments.RequiredActionType{payments.RequiredActionTypeOTP},
-			err:     nil,
+			err: nil,
 		},
 		{
 			name: "success_no_accounts",
@@ -341,7 +341,7 @@ func TestUpdate(t *testing.T) {
 		Identifier: "https://ilp.link/charlie",
 	}))
 	assert.True(t, p.SenderAmount.IsEqual(currency.FromFloat64(51, currency.USD)))
-	assert.Equal(t, uint64(5100), p.ReceiverAmount.Value)
+	assert.Equal(t, int64(5100), p.ReceiverAmount.Value)
 	assert.Equal(t, senderAccount, p.SenderAccount)
 	assert.Equal(t, receiverAccount, p.ReceiverAccount)
 
@@ -358,8 +358,8 @@ func TestUpdate(t *testing.T) {
 		Identifier: "https://ilp.link/charlie",
 	}))
 
-	assert.Equal(t, uint64(5400), p.SenderAmount.Value)
-	assert.Equal(t, uint64(5400), p.ReceiverAmount.Value)
+	assert.Equal(t, int64(5400), p.SenderAmount.Value)
+	assert.Equal(t, int64(5400), p.ReceiverAmount.Value)
 	assert.Equal(t, newReceiverAccount, p.ReceiverAccount)
 	assert.Equal(t, newSenderAccount, p.SenderAccount)
 
@@ -370,14 +370,14 @@ func TestUpdate(t *testing.T) {
 		ReceiverAmount: currency.FromFloat64(51, currency.USD),
 	})
 	require.NoError(t, err)
-	assert.Equal(t, uint64(5100), p.SenderAmount.Value)
+	assert.Equal(t, int64(5100), p.SenderAmount.Value)
 
 	p, err = ops.Update(ctx, b, payments.UpdateArgs{
 		ID:           paymentID,
 		SenderAmount: currency.FromFloat64(55, currency.USD),
 	})
 	require.NoError(t, err)
-	assert.Equal(t, uint64(5500), p.SenderAmount.Value)
+	assert.Equal(t, int64(5500), p.SenderAmount.Value)
 }
 
 func TestSellerRisk(t *testing.T) {

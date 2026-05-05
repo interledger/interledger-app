@@ -37,12 +37,12 @@ type Activity struct {
 	b Backends
 }
 
-func NewActivity(ab ActivityBackends) *Activity {
+func NewActivity(ab ActivityBackends, cfg external.Config) *Activity {
 	ex := external.New(&http.Client{
 		Transport: otelhttp.NewTransport(
 			httplogger.NewTransport(http.DefaultTransport, ab, nil),
 		),
-	}, ab.DB())
+	}, ab.DB(), cfg)
 
 	return &Activity{b: &opsBackends{
 		ActivityBackends: ab,

@@ -1,12 +1,8 @@
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { redirect } from '@remix-run/node'
-import { Form, useLoaderData } from '@remix-run/react'
+import type { Route } from './+types/deposit_.$paymentId'
+import { redirect } from 'react-router';
+import { Form, useLoaderData } from 'react-router';
 import { DateTime } from 'luxon'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Icon, Layouts } from '~/components'
 import { Label } from '~/components/Label'
@@ -20,20 +16,19 @@ import { getClientIP } from '~/lib/ip.server'
 import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { usePTISdk } from '~/lib/usePTISdk'
-import { KycStatus } from '~/routes/_index/route'
-import { PaymentRequiredAction } from './pay_.$paymentId/route'
+import { KycStatus, PaymentRequiredAction } from '~/lib/types'
 
-export async function loader({ request, params }: LoaderFunctionArgs) {
+export async function loader({ request, params }: Route.LoaderArgs) {
   const { kycStatus } = await getKycStatus(request)
   if (kycStatus != KycStatus.Approved)
-    return redirect(route('/personal-details'))
+    return redirect(href('/personal-details'))
 
   const payment = await grpc.getPayment(request, { id: params.paymentId })
 
   if (isConnectError(payment)) throw payment.errorResponse
 
   // This payment is already confirmed
-  if (payment.state > 1) throw redirect(route('/deposit'))
+  if (payment.state > 1) throw redirect(href('/deposit'))
 
   const linkedAccountsResponse = await grpc.getLinkedAccounts(request, {})
   if (isConnectError(linkedAccountsResponse)) throw linkedAccountsResponse.error
@@ -46,8 +41,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       (account) => account.id == payment.senderAccount
     )?.title,
     payment,
-    requiresOTP: payment.requiredActions.includes(PaymentRequiredAction.OTP),
-    PTIClientId: process.env.PTI_CLIENT_ID || ''
+    requiresOTP: payment.requiredActions.includes(PaymentRequiredAction.OTP)
   })
 }
 
@@ -58,7 +52,7 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Confirm deposit'
   }
@@ -69,17 +63,16 @@ export default function Page() {
     payment,
     receiverAccountTitle,
     senderAccountTitle,
-    csrfToken,
-    PTIClientId
-  } = useLoaderData<typeof loader>()
+    csrfToken
+  } = useLoaderData()
 
-  usePTISdk(payment.id, PTIClientId)
+  usePTISdk(payment.id, payment.receiverAmount?.clientId ?? '')
 
   return (
     <>
       <Form
         id='deposit-confirm'
-        action={route('/deposit/:paymentId', {
+        action={href('/deposit/:paymentId', {
           paymentId: payment.id
         })}
         method='post'
@@ -148,7 +141,7 @@ export default function Page() {
   )
 }
 
-export async function action({ request, params }: ActionFunctionArgs) {
+export async function action({ request, params }: Route.ActionArgs) {
   const form = await request.formData()
 
   await validateCSRFToken(request, form)
@@ -167,7 +160,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     if (isConnectError(response)) {
       return response.error({ errors }, {}, { action: 'Contact support' })
     }
-    return redirectWithSnackbar(request, route('/'), {
+    return redirectWithSnackbar(request, href('/'), {
       message: 'Deposit created successfully.',
       icon: 'close'
     })
@@ -197,7 +190,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     }
   }
 
-    return redirectWithSnackbar(request, route('/'), {
+  return redirectWithSnackbar(request, href('/'), {
     message: 'Deposit created successfully.',
     icon: 'close'
   })

@@ -1,7 +1,12 @@
-import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
-import { Outlet, useLoaderData, useLocation } from '@remix-run/react'
-import { route } from 'routes-gen'
+import {
+  data,
+  href,
+  Outlet,
+  redirect,
+  useLoaderData,
+  useLocation,
+  useOutletContext
+} from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   Card,
@@ -14,19 +19,32 @@ import {
   WalletGrid
 } from '~/components'
 import { getKycStatus } from '~/data/wallet.server'
+import { isConnectError } from '~/lib/error.server'
+import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
-import { KycStatus } from '~/routes/_index/route'
+import { KycStatus } from '~/lib/types'
+import type { Route } from './+types/settings'
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url)
 
   const flowId = url.searchParams.get('flow')
-  if (flowId) return redirect(`${route('/recovery/password')}`)
+  if (flowId) return redirect(`${href('/recovery/password')}?flow=${flowId}`)
 
-  const { kycStatus } = await getKycStatus(request)
+  const [{ kycStatus }, linkedAccountsResponse] = await Promise.all([
+    getKycStatus(request),
+    grpc.getLinkedAccounts(request, {})
+  ])
 
-  return json({
-    kycStatus
+  const eurBalanceAccount = isConnectError(linkedAccountsResponse)
+    ? undefined
+    : linkedAccountsResponse.linkedAccounts.find(
+        (la) => la.type === 'balance' && la.receiveCurrencyCode === 'EUR'
+      )
+
+  return data({
+    kycStatus,
+    eurBalanceAccount
   })
 }
 
@@ -39,14 +57,22 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Settings'
   }
 ])
 
+type SettingsContext = {
+  eurBalanceAccountCreatedAt?: string
+}
+
+export function useSettingsContext() {
+  return useOutletContext<SettingsContext>()
+}
+
 export default function Page() {
-  const { kycStatus } = useLoaderData<typeof loader>()
+  const { kycStatus, eurBalanceAccount } = useLoaderData<typeof loader>()
   const location = useLocation()
   const pathSegments = location.pathname.split('/').filter(Boolean)
 
@@ -65,7 +91,7 @@ export default function Page() {
               end
               preventScrollReset
               prefetch='intent'
-              to={route('/settings/profile-personal')}
+              to={href('/settings/profile-personal')}
             >
               <div className='mr-auto flex space-x-3'>
                 <Icon>account_circle</Icon>
@@ -78,7 +104,7 @@ export default function Page() {
             end
             preventScrollReset
             prefetch='intent'
-            to={route('/settings/profile-public')}
+            to={href('/settings/profile-public')}
           >
             <div className='mr-auto flex space-x-3'>
               <Icon>contact_page</Icon>
@@ -90,7 +116,7 @@ export default function Page() {
             end
             preventScrollReset
             prefetch='intent'
-            to={route('/settings/profile-contact')}
+            to={href('/settings/profile-contact')}
           >
             <div className='mr-auto flex space-x-3'>
               <Icon>call</Icon>
@@ -107,7 +133,7 @@ export default function Page() {
             end
             preventScrollReset
             prefetch='intent'
-            to={route('/settings/grants')}
+            to={href('/settings/grants')}
           >
             <div className='mr-auto flex space-x-3'>
               <Icon>request_quote</Icon>
@@ -119,7 +145,7 @@ export default function Page() {
             end
             preventScrollReset
             prefetch='intent'
-            to={route('/settings/keys')}
+            to={href('/settings/keys')}
           >
             <div className='mr-auto flex space-x-3'>
               <Icon>key</Icon>
@@ -127,6 +153,20 @@ export default function Page() {
             </div>
             <Icon>navigate_next</Icon>
           </CardLink>
+          {eurBalanceAccount && (
+            <CardLink
+              end
+              preventScrollReset
+              prefetch='intent'
+              to={href('/settings/documents')}
+            >
+              <div className='mr-auto flex space-x-3'>
+                <Icon>description</Icon>
+                <span>Documents</span>
+              </div>
+              <Icon>navigate_next</Icon>
+            </CardLink>
+          )}
         </Card>
         <Card>
           <CardHeader>
@@ -136,7 +176,7 @@ export default function Page() {
             end
             preventScrollReset
             prefetch='intent'
-            to={route('/totp/two-factor-authentication')}
+            to={href('/totp/two-factor-authentication')}
           >
             <div className='mr-auto flex space-x-3'>
               <Icon>scan</Icon>
@@ -148,7 +188,7 @@ export default function Page() {
             end
             preventScrollReset
             prefetch='intent'
-            to={route('/login/challenge')}
+            to={href('/login/challenge')}
           >
             <div className='mr-auto flex space-x-3'>
               <Icon>password</Icon>
@@ -160,7 +200,7 @@ export default function Page() {
             end
             preventScrollReset
             prefetch='intent'
-            to={route('/logout')}
+            to={href('/logout')}
           >
             <div className='mr-auto flex space-x-3'>
               <Icon>logout</Icon>
@@ -171,7 +211,13 @@ export default function Page() {
         </Card>
       </GridColumn>
       <GridColumn className='col-span-full lg:col-span-6 lg:col-start-7'>
-        <Outlet />
+        <Outlet
+          context={
+            {
+              eurBalanceAccountCreatedAt: eurBalanceAccount?.createdAt
+            } satisfies SettingsContext
+          }
+        />
       </GridColumn>
     </WalletGrid>
   )

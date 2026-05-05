@@ -1,5 +1,4 @@
-import type { TypedResponse } from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
+import { data as rrData, redirect, UNSAFE_DataWithResponseInit as DataWithResponseInit } from 'react-router';
 import { v4 } from 'uuid'
 import type { SnackbarType } from '~/lib/useScaffoldStore'
 import { commitSession, getSession } from '~/session.server'
@@ -26,13 +25,15 @@ export async function flashSnackbar(
  * @param request Request
  * @returns Promise<SnackbarType>
  */
-export async function getSnackbar(request: Request): Promise<SnackbarType> {
+export async function getSnackbar(request: Request): Promise<{ snackbar: SnackbarType; headers: Headers }> {
   const session = await getSession(request.headers.get('Cookie'))
 
   const snackbar = session.get('snackbar')
-  await commitSession(session)
+  const cookie = await commitSession(session)
+  const headers = new Headers()
+  headers.append('Set-Cookie', cookie)
 
-  return snackbar
+  return { snackbar, headers }
 }
 
 /**
@@ -64,10 +65,10 @@ type JsonWithSnackbarFunction = <Data>(
   data: Data,
   snackbar: Partial<SnackbarType>,
   init?: number | ResponseInit
-) => Promise<TypedResponse<(Data & object) | (Data & null)>>
+) => Promise<DataWithResponseInit<(Data & object) | (Data & null)>>
 
 /**
- * This is an extension of the json function from Remix.
+ * This is an extension of the data function from Remix.
  * This function will add a error snackbar to the response.
  * @param request
  * @param data
@@ -87,7 +88,7 @@ export const jsonWithSnackbar: JsonWithSnackbarFunction = async (
   newHeaders.append('Set-Cookie', cookie)
 
   if (typeof data !== 'object') {
-    throw json(
+    throw rrData(
       {},
       {
         status: 400,
@@ -96,7 +97,7 @@ export const jsonWithSnackbar: JsonWithSnackbarFunction = async (
     )
   }
 
-  return json(
+  return rrData(
     { ...data },
     {
       ...responseInit,

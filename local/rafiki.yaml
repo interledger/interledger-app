@@ -1,7 +1,7 @@
 services:
   # 1. Rafiki Auth
   rafiki_auth:
-    image: ghcr.io/interledger/rafiki-auth:v1.2.0-beta
+    image: ghcr.io/interledger/rafiki-auth:v2.3.0-beta
     profiles:
       - services
     restart: always
@@ -22,6 +22,12 @@ services:
       - LOG_LEVEL=info
       - NODE_ENV=production
       - NODE_TLS_REJECT_UNAUTHORIZED=0
+
+      # Multi-tenancy
+      - OPERATOR_TENANT_ID=${BACKEND_OPERATOR_TENANT_ID:-6b1f9f73-3d4b-4f52-9f2a-9f6a8d0a7c5e}
+      - ADMIN_API_SECRET=${BACKEND_ADMIN_API_SECRET:-test-admin-api-key}
+      - SIGNATURE_VERSION=${BACKEND_SIGNATURE_VERSION:-1}
+
 
       # Database configuration
       - AUTH_DATABASE_URL=postgres://postgres:postgres@postgres:5432/rafiki_auth?sslmode=disable
@@ -62,7 +68,7 @@ services:
 
   # # 2. Rafiki Service
   rafiki_backend:
-    image: ghcr.io/interledger/rafiki-backend:v1.2.0-beta
+    image: ghcr.io/interledger/rafiki-backend:v2.3.0-beta
     profiles:
       - services
     restart: always
@@ -89,6 +95,10 @@ services:
       - NODE_ENV=production
       - NODE_TLS_REJECT_UNAUTHORIZED=0
 
+      # Multi-tenancy
+      - OPERATOR_TENANT_ID=${BACKEND_OPERATOR_TENANT_ID:-6b1f9f73-3d4b-4f52-9f2a-9f6a8d0a7c5e}
+      - ADMIN_API_SECRET=${BACKEND_ADMIN_API_SECRET:-test-admin-api-key}
+
       # Database configuration
       - DATABASE_URL=postgres://postgres:postgres@postgres:5432/rafiki_backend?sslmode=disable
 
@@ -98,7 +108,7 @@ services:
       - REDIS_TLS_CERT_FILE_PATH=
       - REDIS_TLS_KEY_FILE_PATH=
 
-      - SIGNATURE_SECRET=your_signature_secret
+      - SIGNATURE_SECRET=${BACKEND_ADMIN_API_SECRET:-test-admin-api-key}
       - STREAM_SECRET=BjPXtnd00G2mRQwP/8ZpwyZASOch5sUXT5o0iR5b5wU= # Example secret, replace with your own
 
       - ADMIN_PORT=3001
@@ -106,7 +116,8 @@ services:
 
       - AUTH_SERVER_GRANT_URL=https://auth.local.ilp.link
       - AUTH_SERVER_INTROSPECTION_URL=http://rafiki_auth:3007
-
+      - AUTH_SERVICE_API_URL=http://rafiki_auth:3011
+      - EXCHANGE_RATES_URL=http://backend:8080/rates
       - EXCHANGE_RATES_LIFETIME=15000
 
       - GRAPHQL_IDEMPOTENCY_KEY_TTL_MS=8.64e+07
@@ -135,7 +146,7 @@ services:
       - PUBLIC_HOST=https://local.ilp.link
       - QUOTE_LIFESPAN=300000
 
-      - SIGNATURE_VERSION=1
+      - SIGNATURE_VERSION=${BACKEND_SIGNATURE_VERSION:-1}
       - SLIPPAGE=0.01
       - TIGERBEETLE_CLUSTER_ID=none
       - TIGERBEETLE_REPLICA_ADDRESSES=none
@@ -149,7 +160,7 @@ services:
 
   # # 3. Rafiki Frontend
   rafiki_frontend:
-    image: ghcr.io/interledger/rafiki-frontend:v1.2.0-beta
+    image: ghcr.io/interledger/rafiki-frontend:v2.3.0-beta
     profiles:
       - services
     restart: always
@@ -166,6 +177,7 @@ services:
       - NODE_ENV=production
 
       - GRAPHQL_URL=http://rafiki_backend:3001/graphql
+      - SIGNATURE_VERSION=${BACKEND_SIGNATURE_VERSION:-1}
 
       - AUTH_ENABLED=false
       - OPEN_PAYMENTS_URL=https://local.ilp.link

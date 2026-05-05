@@ -1,6 +1,6 @@
-import { useFetcher, useLoaderData } from '@remix-run/react'
+import { useFetcher, useLoaderData } from 'react-router';
 import { useEffect, useState } from 'react'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import {
   Autocomplete,
   Button,
@@ -11,7 +11,8 @@ import {
   TextField
 } from '~/components'
 import { SignupStep, useSignupStore } from '~/lib/useSignupStore'
-import type { detailsAction, loader } from './route'
+import type { loader } from './route'
+import type { detailsAction } from './route.server';
 
 export function isEUCountry(countryCode: string) {
   const euCountryCodes = [
@@ -79,16 +80,13 @@ export function About() {
     else {
       setFilteredCountries(
         countries.filter((country) => {
-          return (
-            country.name
-              .toLowerCase()
-              .replace(/\s+/g, '')
-              .includes(query.toLowerCase().replace(/\s+/g, '')) ||
-            country.id
-              .toLowerCase()
-              .replace(/\s+/g, '')
-              .includes(query.toLowerCase().replace(/\s+/g, ''))
-          )
+          return (country.name
+            .toLowerCase()
+            .replace(/\s+/g, '')
+            .includes(query.toLowerCase().replace(/\s+/g, '')) || country.id
+            .toLowerCase()
+            .replace(/\s+/g, '')
+            .includes(query.toLowerCase().replace(/\s+/g, '')));
         })
       )
     }
@@ -110,7 +108,7 @@ export function About() {
     <>
       <details.Form
         id='signup-about-details'
-        action={route('/signup')}
+        action={href('/signup')}
         method='post'
         className='hidden'
       />
@@ -139,6 +137,7 @@ export function About() {
           aria-describedby={
             details.data?.errors?.firstName ? 'firstName-error' : undefined
           }
+          data-testid='signup-first-name'
           required
           errorMessage={details.data?.errors?.firstName}
         />
@@ -156,6 +155,7 @@ export function About() {
           aria-describedby={
             details.data?.errors?.lastName ? 'lastName-error' : undefined
           }
+          data-testid='signup-last-name'
           required
           errorMessage={details.data?.errors?.lastName}
         />
@@ -172,6 +172,7 @@ export function About() {
           aria-describedby={
             details.data?.errors?.email ? 'email-error' : undefined
           }
+          data-testid='signup-email'
           required
           errorMessage={details.data?.errors?.email}
         />
@@ -188,6 +189,7 @@ export function About() {
           aria-describedby={
             details.data?.errors?.country ? 'country-error' : undefined
           }
+          data-testid='signup-country'
           errorMessage={details.data?.errors?.country}
         />
         <input
@@ -222,6 +224,7 @@ export function About() {
         form='signup-about-details'
         name='formName'
         value='details'
+        data-testid='signup-about-continue'
         type='submit'
       >
         Continue
