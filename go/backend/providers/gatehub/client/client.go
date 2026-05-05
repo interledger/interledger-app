@@ -208,3 +208,7 @@ func (c Client) UpdateOrganizationConfiguration(ctx context.Context, apiBaseURL,
 func (c Client) GetAccountConfirmation(ctx context.Context, walletID string) (io.ReadCloser, error) {
 	return ops.GetAccountConfirmation(ctx, c.b, c.external, walletID)
 }
+
+func (c Client) GetAccountStatement(ctx context.Context, walletID string, year, month int) (io.ReadCloser, error) {
+	return ops.GetAccountStatement(ctx, c.b, c.external, walletID, year, month)
+}
