@@ -28,7 +28,7 @@ import {
   getLinkedAccountsForWithdraw,
   type FormattedLinkedAccount
 } from '~/data/accounts.server'
-import { getKycStatus } from '~/data/wallet.server'
+import { requireApprovedKyc } from '~/data/wallet.server'
 import type {
   Amount as RpcAmount
 } from '~/generated/connect/backend/v1/backend_pb';
@@ -43,7 +43,6 @@ import type { IframeMessage } from '~/lib/types'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { PaySelect } from '~/routes/pay_.$paymentId/PaySelect'
 import styles from '~/styles/flags.css?url'
-import { KycStatus } from '~/lib/types'
 import type { JsonValue } from '@bufbuild/protobuf'
 
 type WithdrawalLoaderData = {
@@ -59,9 +58,7 @@ export async function loader(args: Route.LoaderArgs) {
   const providerResponse = await grpc.getOnOffRampProvider(args.request, {})
   if (isConnectError(providerResponse)) throw providerResponse.error
 
-  const { kycStatus } = await getKycStatus(args.request)
-  if (kycStatus != KycStatus.Approved)
-    return redirect(href('/personal-details'))
+  await requireApprovedKyc(args.request)
 
   if (providerResponse.provider == 'gatehub') {
     return gatehubWithdrawalLoader(args)
