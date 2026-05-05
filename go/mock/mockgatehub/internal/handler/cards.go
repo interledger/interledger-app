@@ -2,10 +2,12 @@ package handler
 
 import (
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"math/big"
 	"net/http"
+	"strings"
 	"time"
 
 	"gitlab.com/fynbos/mock/mockgatehub/internal/consts"
@@ -74,8 +76,8 @@ func (h *Handler) CreateManagedCustomer(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// Validate currency
-	currency := req.Account.Currency
+	// Validate currency (real GateHub uses product-prefixed codes like "PW_EUR")
+	currency := strings.TrimPrefix(req.Account.Currency, "PW_")
 	if currency == "" {
 		currency = "EUR"
 	}
@@ -161,7 +163,6 @@ func (h *Handler) CreateManagedCustomer(w http.ResponseWriter, r *http.Request) 
 		PanToken:         fmt.Sprintf("pan_%s", cardID),
 		MaskedPan:        generateMaskedPan(),
 		Status:           consts.CardStatusActive,
-		ExpiryDate:       time.Now().AddDate(3, 0, 0).Format("2006-01-02"),
 		RelationType:     "PRIMARY",
 		IsFirstTimeLock:  false,
 		PlasticCreated:   false,
@@ -195,6 +196,20 @@ func (h *Handler) CreateManagedCustomer(w http.ResponseWriter, r *http.Request) 
 	}
 
 	h.sendJSON(w, http.StatusCreated, response)
+
+	// Fire cards.card.created webhook so the backend can store the customer/account IDs
+	go h.webhookManager.SendAsync(consts.WebhookEventCardCreated, userID, map[string]interface{}{
+		"cardId":           cardID,
+		"cardSourceId":     cardID,
+		"nameOnCard":       req.NameOnCard,
+		"productCode":      productCode,
+		"maskedPan":        card.MaskedPan,
+		"accountId":        accountID,
+		"accountSourceId":  accountID,
+		"lockLevel":        nil,
+		"customerId":       customerID,
+		"customerSourceId": userID,
+	}, 0)
 }
 
 // ListCards retrieves cards for a customer
@@ -529,7 +544,15 @@ func (h *Handler) UpdateCardLimits(w http.ResponseWriter, r *http.Request) {
 	h.sendJSON(w, http.StatusOK, limits)
 }
 
-// GetCardToken generates a token for retrieving card data
+// GetCardToken generates a token for retrieving card data.
+//
+// In the real GateHub API the response includes an absolute URL in
+// `links[0].href` that the browser fetches directly with the token as a
+// `Bearer` Authorization header. The mock therefore must:
+//   - generate a real JWT carrying the requested cardId and the caller's
+//     RSA public key (so the data endpoint can encrypt the response with
+//     a key only the browser can decrypt), and
+//   - return an absolute URL pointing back at this mockgatehub instance.
 func (h *Handler) GetCardToken(w http.ResponseWriter, r *http.Request) {
 	logger.Info("get card token called")
 
@@ -539,11 +562,43 @@ func (h *Handler) GetCardToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if req.CardID == "" {
+		h.sendError(w, http.StatusBadRequest, "cardId is required")
+		return
+	}
+
+	// publicKey is required: the data endpoint encrypts its response with
+	// this key, so a token issued without it would be unusable by callers.
+	// Reject up front to keep POST /token/card-data and GET /token/card-data/data
+	// behaviourally coherent.
+	if req.PublicKey == nil || strings.TrimSpace(*req.PublicKey) == "" {
+		h.sendError(w, http.StatusBadRequest, "publicKey is required")
+		return
+	}
+	publicKey := strings.TrimSpace(*req.PublicKey)
+
+	now := time.Now()
+	claims := CardDataClaims{
+		CardID:    req.CardID,
+		PublicKey: publicKey,
+		IssuedAt:  now.Unix(),
+		ExpiresAt: now.Add(cardDataTokenTTL).Unix(),
+	}
+
+	jwt, err := generateCardDataJWT(h.config.CardDataTokenSecret, claims)
+	if err != nil {
+		logger.Error("failed to sign card data token", zap.Error(err))
+		h.sendError(w, http.StatusInternalServerError, "failed to generate token")
+		return
+	}
+
+	href := h.config.PublicBaseURL + cardDataPath
+
 	response := models.CardTokenResponse{
-		Token: fmt.Sprintf("mock-card-data-%s", req.CardID),
+		Token: jwt,
 		Links: []models.CardTokenLink{
 			{
-				Href:   fmt.Sprintf("/cards/v1/token/card-data/data?token=mock-card-data-%s", req.CardID),
+				Href:   href,
 				Rel:    "data",
 				Method: "GET",
 			},
@@ -551,6 +606,74 @@ func (h *Handler) GetCardToken(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.sendJSON(w, http.StatusOK, response)
+}
+
+// GetCardData returns mock sensitive card data, encrypted with the RSA public
+// key the caller supplied when creating the card-data token. It is invoked
+// directly by the browser using the token as a `Bearer` Authorization header
+// and therefore is excluded from HMAC authentication.
+func (h *Handler) GetCardData(w http.ResponseWriter, r *http.Request) {
+	logger.Info("get card data called")
+
+	authz := r.Header.Get("Authorization")
+	if !strings.HasPrefix(authz, "Bearer ") {
+		h.sendError(w, http.StatusUnauthorized, "missing bearer token")
+		return
+	}
+	token := strings.TrimPrefix(authz, "Bearer ")
+
+	claims, err := parseCardDataJWT(h.config.CardDataTokenSecret, token)
+	if err != nil {
+		logger.Warn("invalid card data token", zap.Error(err))
+		h.sendError(w, http.StatusUnauthorized, "invalid or expired token")
+		return
+	}
+
+	if claims.PublicKey == "" {
+		h.sendError(w, http.StatusBadRequest, "token has no publicKey claim")
+		return
+	}
+
+	// Build mock sensitive payload. Field casing matches protea's
+	// CardProcessorSensitiveDataResponse type (Pan / ExpiryDate / Cvc2).
+	pan := generateUnmaskedPAN(claims.CardID)
+	payload := map[string]string{
+		"Pan":        pan,
+		"ExpiryDate": "12/2030",
+		"Cvc2":       randomDigits(3),
+	}
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		h.sendError(w, http.StatusInternalServerError, "failed to encode card data")
+		return
+	}
+
+	cypher, err := encryptWithBase64SPKI(claims.PublicKey, payloadBytes)
+	if err != nil {
+		logger.Warn("card data encryption failed", zap.Error(err))
+		h.sendError(w, http.StatusBadRequest, "failed to encrypt card data with provided publicKey")
+		return
+	}
+
+	h.sendJSON(w, http.StatusOK, map[string]string{"cypher": cypher})
+}
+
+// generateUnmaskedPAN returns a 16-digit PAN derived deterministically from
+// the cardID by hashing it with SHA-256 and mapping the resulting bytes to
+// decimal digits. This keeps repeated calls for the same card stable (so the
+// mock behaves like a real provider that always returns the same PAN for a
+// given card) without requiring any stored PAN. An empty cardID falls back to
+// random digits so the function is still safe for edge cases.
+func generateUnmaskedPAN(cardID string) string {
+	if cardID == "" {
+		return randomDigits(16)
+	}
+	sum := sha256.Sum256([]byte(cardID))
+	digits := make([]byte, 16)
+	for i := 0; i < 16; i++ {
+		digits[i] = '0' + (sum[i] % 10)
+	}
+	return string(digits)
 }
 
 // CreateCardTransaction creates a card transaction
@@ -766,9 +889,7 @@ func (h *Handler) GetCardApplicationProducts(w http.ResponseWriter, r *http.Requ
 		},
 	}
 
-	h.sendJSON(w, http.StatusOK, map[string]interface{}{
-		"data": products,
-	})
+	h.sendJSON(w, http.StatusOK, products)
 }
 
 // OrderPlasticCard orders a physical card

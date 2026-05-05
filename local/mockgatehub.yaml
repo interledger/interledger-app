@@ -25,6 +25,9 @@ services:
 
       # Auth configuration
       MOCKGATEHUB_VALID_CREDENTIALS: ${BACKEND_GATEHUB_APP_ID:-local-test-app-id}:${BACKEND_GATEHUB_SECRET:-local-test-app-secret}
+      # Publicly reachable base URL used to build absolute links (e.g. the
+      # card-data link followed directly by the browser).
+      MOCKGATEHUB_PUBLIC_BASE_URL: https://mockgatehub.interledger.test
     
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]

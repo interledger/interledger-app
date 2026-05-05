@@ -41,8 +41,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
       (account) => account.id == payment.senderAccount
     )?.title,
     payment,
-    requiresOTP: payment.requiredActions.includes(PaymentRequiredAction.OTP),
-    PTIClientId: process.env.PTI_CLIENT_ID || ''
+    requiresOTP: payment.requiredActions.includes(PaymentRequiredAction.OTP)
   })
 }
 
@@ -64,11 +63,10 @@ export default function Page() {
     payment,
     receiverAccountTitle,
     senderAccountTitle,
-    csrfToken,
-    PTIClientId
+    csrfToken
   } = useLoaderData()
 
-  usePTISdk(payment.id, PTIClientId)
+  usePTISdk(payment.id, payment.senderAmount?.clientId ?? '')
 
   return (
     <>

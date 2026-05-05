@@ -8,4 +8,5 @@ var (
 	ErrInvalidWebhook      = errors.New("gatehub: invalid webhook")
 	ErrInsufficientBalance = errors.New("gatehub: insufficient balance")
 	ErrTimedOut            = errors.New("gatehub: timed out")
+	ErrBadRequest          = errors.New("gatehub: bad request")
 )

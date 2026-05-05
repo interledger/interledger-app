@@ -14,14 +14,14 @@ Feature: Card management and lifecycle
     Then the response status is 201
     And the response contains a customer with id, sourceId, type "Citizen", and kycStatus "accepted"
     And the customer has one account with currency "EUR", status "ACTIVE", and type "DEBIT"
-    And the account has one card with status "Active", nameOnCard "John Doe", and expiryDate in the future
+    And the account has one card with status "Active" and nameOnCard "John Doe"
 
   Scenario: List cards for a customer
     Given a managed customer with a card exists
     When I GET /cards/v1/cards/{customerId}?pageSize=100 with managed user UUID header
     Then the response status is 200
     And the response has a data array with at least one card
-    And each card has id, accountId, customerId, nameOnCard, maskedPan, status, expiryDate, and productCode
+    And each card has id, accountId, customerId, nameOnCard, maskedPan, status, and productCode
     And the response includes pagination with pageNumber, pageSize, and totalPages
 
   Scenario: Get card details
@@ -51,10 +51,23 @@ Feature: Card management and lifecycle
 
   Scenario: Get card token for secure data access
     Given a managed customer with a card exists
-    When I POST /cards/v1/token/card-data with cardId and managed user UUID header
+    When I POST /cards/v1/token/card-data with cardId, RSA publicKey and managed user UUID header
     Then the response status is 200
-    And the response contains a token starting with "mock-card-data-"
+    And the response contains a JWT token carrying the cardId and publicKey
     And the response contains a links array with at least one entry
+    And the first link href is an absolute URL to "/cards/v1/token/card-data/data"
+
+  Scenario: Browser fetches encrypted card data using the token
+    Given a managed customer with a card exists
+    And a card-data token has been issued for the card with an RSA publicKey
+    When the browser GETs the card-data link with the token as a Bearer header (no HMAC headers)
+    Then the response status is 200
+    And the response contains a "cypher" field
+    And the cypher decrypts with the matching private key to a JSON object with Pan, ExpiryDate and Cvc2
+
+  Scenario: Card data endpoint rejects requests without a valid token
+    When the browser GETs /cards/v1/token/card-data/data with an invalid Bearer token (no HMAC headers)
+    Then the response status is 401
 
   Scenario: Get card limits
     Given a managed customer with a card exists

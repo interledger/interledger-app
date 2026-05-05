@@ -27,7 +27,7 @@ import { jsonWithCSRF } from '~/lib/csrf.server'
 import type { ConnectError } from '~/lib/error.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
-import { getUserSession } from '~/lib/kratos.server'
+import { getUserSession } from '~/lib/kratos/session.server'
 import { mergeMeta } from '~/lib/meta'
 import { PayStep, usePayStore } from '~/lib/usePayStore'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
@@ -37,6 +37,12 @@ import { Amount } from './Amount'
 import { Confirm } from './Confirm'
 import { confirmPaymentAction, updatePaymentAction } from './action.server';
 
+const IDENTITY_TYPE_TO_PLATFORM: Record<number, string> = {
+  [PaymentIdentityType.Twitter]: 'twitter',
+  [PaymentIdentityType.Slack]: 'slack',
+  [PaymentIdentityType.WalletID]: 'domain',
+  [PaymentIdentityType.WalletURL]: 'domain',
+}
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   let account: FormattedLinkedAccount
@@ -73,10 +79,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         {
           id: payment.receiverWalletUrl,
           wallet: '',
-          platform:
-            payment.receiverIdentityType == PaymentIdentityType.Slack
-              ? 'slack'
-              : 'discord',
+          platform: IDENTITY_TYPE_TO_PLATFORM[payment.receiverIdentityType] ?? '',
           identifier: payment.receiverIdentity,
           state: '',
           keyId: '',
@@ -107,8 +110,9 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   // Only load the phone mask if we require otp
   if (payment.requiredActions.includes(7)) {
     phoneMask = await getUserSession(request).then((v) => {
-      const len = v.identity.traits.phone.length
-      return v.identity.traits.phone.substring(len - 4, len).padStart(len, '*')
+      const phone: string = v?.identity?.traits?.phone ?? ''
+      const len = phone.length
+      return phone.substring(len - 4, len).padStart(len, '*')
     })
   }
 

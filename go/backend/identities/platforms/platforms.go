@@ -45,8 +45,6 @@ func Get(b Backends, platform identities.Platform) (Platform, error) {
 		return newTwitter(b, platform), nil
 	case identities.PlatformDomain:
 		return newDomainPlatform(b, platform), nil
-	case identities.PlatformDiscord:
-		return &discordPlatform{b, platform}, nil
 	case identities.PlatformSlack:
 		return &slackPlatform{b, platform}, nil
 	}

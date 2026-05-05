@@ -10,6 +10,7 @@
 - [Ledger System Architecture](ledger-system-guide.md) — How KYC completion affects balance/account provisioning
 - [Wallets vs Accounts](wallets-accounts-addresses-guide.md) — Wallet activation architecture
 - [Payment Troubleshooting](payment-troubleshooting-guide.md) — Debugging KYC-blocked transactions
+- [Environment Variables](env-variables.md) — Provider endpoints and KYC integration credentials by environment
 
 **Quick Navigation:**
 

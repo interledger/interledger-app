@@ -21,6 +21,7 @@ Users get a single wallet tied to one payment provider (GateHub, PTI, Xago, or C
 | [Core Concepts](terminology.md) | Terminology reference — maps provider vocabularies to Interledger App concepts |
 | [Signup Flow](signup-guide.md) | The complete registration process: profile, phone verification, TOTP, wallet address |
 | [KYC & Identity Verification](kyc-guide.md) | How identity verification gates wallet activation, per provider |
+| [KYC Resubmission Flow (Phase 1)](kyc-resubmission-flow.md) | How users can resubmit KYC documents in-app (Phase 1) |
 
 ### Architecture
 
@@ -54,6 +55,7 @@ Users get a single wallet tied to one payment provider (GateHub, PTI, Xago, or C
 | Document | Description |
 |----------|-------------|
 | [Logging Reference](logging-reference.md) | Log levels, formatting standards, and structured logging guidelines |
+| [Environment Variables](env-variables.md) | All environment variables for Protea, Botanist, and the Backend — secret classification, per-environment values, and local defaults |
 
 ---
 
