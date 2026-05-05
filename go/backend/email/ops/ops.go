@@ -545,7 +545,7 @@ func SendAgreementChangedEmail(ctx context.Context, b Backends, userID string, a
 	for _, a := range agreements {
 		tableRows = append(tableRows, map[string]interface{}{"label": a.DisplayName, "text": a.TermsURL})
 	}
-	closingParagraph := fmt.Sprintf("If you don't agree with these changes, you can close your Interledger Wallet account in-app at no charge until %s, but we'll be sad to see you go.", deadlineDate)
+	closingParagraph := fmt.Sprintf("If you don't agree with these changes, you can close your Interledger Wallet account at no charge until %s by contacting support using the details below, but we'll be sad to see you go.", deadlineDate)
 
 	data := []map[string]interface{}{
 		{"paragraph": greeting},
