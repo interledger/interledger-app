@@ -247,6 +247,7 @@ PRs are automatically labeled by `.github/workflows/labeler.yml` using the confi
 | `documentation` | `documentation/**` |
 | `e2e` | `e2e/**` |
 | `local` | `local/**` |
+| `helm` | `helm/**` |
 
 **When adding new providers, mock services, or frontend apps**: Update `.github/labeler.yml` with appropriate path globs and add the label mapping to this table.
 
@@ -258,6 +259,7 @@ PRs are automatically labeled by `.github/workflows/labeler.yml` using the confi
 - `.github/workflows/e2e-tests.yml` - Starts VM, runs E2E suite with concurrency=10 (skipped for docs-only changes)
 - `.github/workflows/linting.yml` - Runs golangci-lint on all Go code (skipped for docs/local-only changes)
 - `.github/workflows/build-and-publish.yml` - Builds Docker images, pushes to registry (skipped for docs/local-only changes on PRs)
+- `.github/workflows/helm-tests.yml` - Runs `helm unittest` + `kubeconform` on the chart at `helm/interledger-app` (only triggered when `helm/**` files change)
 
 ### Testing Locally Before Push
 

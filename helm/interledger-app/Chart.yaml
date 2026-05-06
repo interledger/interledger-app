@@ -1,0 +1,19 @@
+apiVersion: v2
+name: interledger-app
+description: Interledger App Wallet — combined admin (Botanist), backend, and frontend (Protea) services
+home: https://github.com/interledger/interledger-app
+
+type: application
+version: 1.0.0
+appVersion: v1.10.0
+
+dependencies:
+  - name: common
+    version: 0.9.0
+    repository: https://interledger.github.io/charts/interledger
+
+maintainers:
+  - name: Stephan Butler
+    email: stephan@interledger.foundation
+  - name: Radu Popa
+    email: radu@interledger.foundation
