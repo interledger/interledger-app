@@ -31,8 +31,8 @@ The signup process creates a complete user account with authentication, wallet i
 1. **Profile Details** — User provides legal name, email, country of residence, and phone number
 2. **Password Creation** — User sets a secure password via Ory Kratos
 3. **Account Verification** — Email confirmation triggers account activation
-4. **TOTP Registration** — Time-based one-time password setup for 2FA
-5. **Phone Verification** — SMS OTP confirms phone number ownership
+4. **Phone Verification** — SMS OTP confirms phone number ownership
+5. **TOTP Registration** — Time-based one-time password setup for 2FA
 6. **Wallet Address Creation** — Unique payment address (e.g., `https://ilp.link/alice`)
 
 ### Step 1 — Profile Details
@@ -92,33 +92,7 @@ sequenceDiagram
     end
 ```
 
-### Step 4 — TOTP Registration (2FA)
-
-```mermaid
-sequenceDiagram
-    participant U as 👤 User
-    participant FE as Frontend
-    participant K as Ory Kratos
-    participant DB as PostgreSQL
-
-    rect rgb(236, 72, 153)
-    U->>FE: Login with password
-    FE->>K: Submit login flow
-    K-->>FE: Redirect to TOTP setup
-    FE->>K: Request settings flow
-    K-->>FE: QR code + secret key
-    end
-
-    rect rgb(219, 39, 119)
-    U->>U: Scan QR in authenticator app
-    U->>FE: Enter 6-digit TOTP code
-    FE->>K: Submit TOTP code
-    K->>DB: Store TOTP credential
-    K-->>FE: TOTP enabled ✓
-    end
-```
-
-### Step 5 — Phone Verification
+### Step 4 — Phone Verification
 
 ```mermaid
 sequenceDiagram
@@ -146,6 +120,32 @@ sequenceDiagram
         TW-->>BE: valid = false
         BE-->>FE: ErrInvalidOTP
         FE-->>U: Show error, allow retry
+    end
+```
+
+### Step 5 — TOTP Registration (2FA)
+
+```mermaid
+sequenceDiagram
+    participant U as 👤 User
+    participant FE as Frontend
+    participant K as Ory Kratos
+    participant DB as PostgreSQL
+
+    rect rgb(236, 72, 153)
+    U->>FE: Login with password
+    FE->>K: Submit login flow
+    K-->>FE: Redirect to TOTP setup
+    FE->>K: Request settings flow
+    K-->>FE: QR code + secret key
+    end
+
+    rect rgb(219, 39, 119)
+    U->>U: Scan QR in authenticator app
+    U->>FE: Enter 6-digit TOTP code
+    FE->>K: Submit TOTP code
+    K->>DB: Store TOTP credential
+    K-->>FE: TOTP enabled ✓
     end
 ```
 
