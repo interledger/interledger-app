@@ -165,7 +165,7 @@
                 <p>Please provide your information to verify your identity</p>
             </div>
 
-            <form id="kycForm" method="POST" action="/kyc/submit" enctype="multipart/form-data">
+            <form id="kycForm" method="POST" action="{{ .SubmitPath }}" enctype="multipart/form-data">
                 <input type="hidden" name="token" value="{{ .Token }}">
                 <input type="hidden" name="user_id" value="{{ .UserID }}">
 
@@ -248,7 +248,7 @@
             const formData = new FormData(form);
 
             try {
-                const response = await fetch('/kyc/submit', {
+                const response = await fetch(form.action, {
                     method: 'POST',
                     body: formData
                 });

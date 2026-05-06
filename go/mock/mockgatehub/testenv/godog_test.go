@@ -196,6 +196,12 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^status is integer (\d+)$`, tc.statusIsInteger)
 	ctx.Step(`^the transaction can be retrieved via GET \/core\/v(\d+)\/transactions\/{id} with the same format$`, tc.transactionCanBeRetrievedFormatted)
 
+	// Hosted transfer debit/credit steps
+	ctx.Step(`^the user has a funded (\w+) wallet with balance (\d+)\.(\d+)$`, tc.userHasFundedWallet)
+	ctx.Step(`^I POST /core/v1/transactions with sending_address as "?([^",]*)"?, receiving_address as "?([^",]*)"?, amount (\d+)\.(\d+), currency "([^"]*)", type (\d+), deposit_type "([^"]*)"$`, tc.postHostedWithSendingAddress)
+	ctx.Step(`^I POST /core/v1/transactions with receiving_address as "?([^",]*)"?, sending_address as "?([^",]*)"?, amount (\d+)\.(\d+), currency "([^"]*)", type (\d+), deposit_type "([^"]*)"$`, tc.postHostedWithReceivingAddress)
+	ctx.Step(`^the user balance for (\w+) is (\d+)\.(\d+)$`, tc.userBalanceForCurrencyIs)
+
 	// Fee configuration steps
 	ctx.Step(`^deposit fee is configured to ([\d.]+)%$`, tc.depositFeeConfigured)
 	ctx.Step(`^withdrawal fee is configured to ([\d.]+)%$`, tc.withdrawalFeeConfigured)

@@ -1,20 +1,21 @@
 import { href } from 'react-router'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
-import type { Route } from './+types/api_.statements_.accountConfirmation'
+import type { Route } from './+types/api_.statements_.monthly.$year.$month'
 
 const BACKEND_HTTP_URL = process.env.BACKEND_HTTP_URL || 'http://backend:8080'
 
-export async function loader({ request }: Route.LoaderArgs) {
+export async function loader({ request, params }: Route.LoaderArgs) {
   const cookies = request.headers.get('cookie') || ''
+  const { year, month } = params
 
   const response = await fetch(
-    `${BACKEND_HTTP_URL}/api/core/v1/statements/account-confirmation`,
+    `${BACKEND_HTTP_URL}/api/core/v1/statements/monthly/${year}/${month}`,
     { headers: { cookie: cookies } }
   )
 
   if (!response.ok) {
     return redirectWithSnackbar(request, href('/settings/documents'), {
-      message: 'Failed to download account confirmation statement.',
+      message: 'Failed to download account statement.',
       icon: 'close'
     })
   }
@@ -25,7 +26,7 @@ export async function loader({ request }: Route.LoaderArgs) {
       'Cache-Control': 'private, max-age=0',
       'Content-Disposition':
         response.headers.get('Content-Disposition') ??
-        'inline; filename="account-confirmation.pdf"'
+        'inline; filename="account-statement.pdf"'
     }
   })
 }

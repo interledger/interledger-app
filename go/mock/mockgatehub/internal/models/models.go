@@ -63,6 +63,7 @@ type Transaction struct {
 	Fee              string    `json:"fee"`          // Fee amount
 	Currency         string    `json:"currency"`
 	VaultUUID        string    `json:"vault_uuid"`
+	SendingAddress   string    `json:"sending_address"`
 	ReceivingAddress string    `json:"receiving_address"`
 	Type             int       `json:"type"`         // 1=deposit, 2=hosted
 	DepositType      string    `json:"deposit_type"` // external/hosted
