@@ -139,13 +139,13 @@ func processWebhook(ctx context.Context, b Backends, hook webhook) int {
 		})
 
 	case "outgoing_payment.created":
-		isGatehub, err := isGatehubOutgoingWebhook(ctx, b, hook)
+		isGatehubToGatehub, err := isGatehubToGatehubOutgoingWebhook(ctx, b, hook)
 		if err != nil {
 			log.Error("failed to resolve provider for outgoing_payment.created", zap.Error(err))
 			return http.StatusBadRequest
 		}
 
-		if !isGatehub {
+		if !isGatehubToGatehub {
 			if err := outgoingPayment(ctx, b, hook); err != nil {
 				log.Error("failed to handle outgoing_payment.created for non-gatehub provider", zap.Error(err))
 				return http.StatusBadRequest
@@ -163,12 +163,12 @@ func processWebhook(ctx context.Context, b Backends, hook webhook) int {
 		})
 
 	case "outgoing_payment.completed":
-		isGatehub, err := isGatehubOutgoingWebhook(ctx, b, hook)
+		isGatehubToGatehub, err := isGatehubToGatehubOutgoingWebhook(ctx, b, hook)
 		if err != nil {
 			log.Error("failed to resolve provider for outgoing_payment.completed", zap.Error(err))
 			return http.StatusBadRequest
 		}
-		if !isGatehub {
+		if !isGatehubToGatehub {
 			log.Info("skipping outgoing_payment.completed for non-gatehub provider")
 			return http.StatusOK
 		}
@@ -183,12 +183,12 @@ func processWebhook(ctx context.Context, b Backends, hook webhook) int {
 		})
 
 	case "outgoing_payment.failed":
-		isGatehub, err := isGatehubOutgoingWebhook(ctx, b, hook)
+		isGatehubToGatehub, err := isGatehubToGatehubOutgoingWebhook(ctx, b, hook)
 		if err != nil {
 			log.Error("failed to resolve provider for outgoing_payment.failed", zap.Error(err))
 			return http.StatusBadRequest
 		}
-		if !isGatehub {
+		if !isGatehubToGatehub {
 			log.Info("skipping outgoing_payment.failed for non-gatehub provider")
 			return http.StatusOK
 		}
@@ -208,17 +208,17 @@ func processWebhook(ctx context.Context, b Backends, hook webhook) int {
 	}
 }
 
-func isGatehubOutgoingWebhook(ctx context.Context, b Backends, hook webhook) (bool, error) {
+func isGatehubToGatehubOutgoingWebhook(ctx context.Context, b Backends, hook webhook) (bool, error) {
 	var op outgoingPaymentData
 	if err := json.Unmarshal(hook.Data, &op); err != nil {
 		return false, err
 	}
 
-	acc, err := getLinkedAccountByWalletAddressAndAsset(ctx, b, op.WalletAddressID, op.DebitAmount.AssetCode, true)
+	senderAcc, receiverAcc, err := getAccounts(ctx, b, op)
 	if err != nil {
 		return false, err
 	}
-	return acc.Provider == gatehub.ProviderName, nil
+	return senderAcc.Provider == gatehub.ProviderName && receiverAcc.Provider == gatehub.ProviderName, nil
 }
 
 func isGatehubIncomingWebhook(ctx context.Context, b Backends, hook webhook) (bool, error) {
