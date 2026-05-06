@@ -444,14 +444,23 @@ func (sc *E2EContext) iSubmitThePayment() error {
 
 // confirmPaymentAgreementAndSubmit ticks the service-agreement checkbox and
 // clicks the Confirm payment button. After clicking, the protea action
-// redirects to '/' on success.
+// redirects to '/' on success. The agreement checkbox is required by the
+// backend, so any failure to tick it is treated as a hard error rather than
+// silently swallowed (which would let the subsequent submit appear to
+// succeed while the server rejects the request).
 func (sc *E2EContext) confirmPaymentAgreementAndSubmit(confirmButton playwright.Locator) error {
 	agreement := sc.page.Locator("[data-testid='pay-confirm-agreement']")
 	if aCount, _ := agreement.Count(); aCount > 0 {
+		if err := agreement.First().WaitFor(playwright.LocatorWaitForOptions{
+			State:   playwright.WaitForSelectorStateVisible,
+			Timeout: playwright.Float(5000),
+		}); err != nil {
+			return fmt.Errorf("pay-confirm-agreement checkbox not visible: %w", err)
+		}
 		checked, _ := agreement.First().IsChecked()
 		if !checked {
 			if err := agreement.First().Check(); err != nil {
-				debugPrintf("⚠ failed to check agreement: %v\n", err)
+				return fmt.Errorf("failed to check pay-confirm-agreement: %w", err)
 			}
 		}
 	}
@@ -516,21 +525,48 @@ func (sc *E2EContext) iWaitForThePaymentToComplete() error {
 		time.Sleep(time.Duration(checkInterval) * time.Second)
 
 		currentURL := sc.page.URL()
-		// On success, protea redirects away from /pay/:paymentId to '/'.
-		if !strings.Contains(currentURL, "/pay/") && !strings.HasSuffix(currentURL, "/pay") {
+
+		// Bail out early on auth-expiry or error redirects so the failure is
+		// reported here instead of masquerading as a missing balance update.
+		if strings.Contains(currentURL, "/login") || strings.Contains(currentURL, "/totp") {
+			return fmt.Errorf("redirected to auth page during payment confirmation: %s", currentURL)
+		}
+		if strings.Contains(currentURL, "error") {
+			return fmt.Errorf("redirected to error page during payment confirmation: %s", currentURL)
+		}
+
+		// On success, protea redirects from /pay/:paymentId to the dashboard
+		// at '/'. Match that explicitly rather than "anything not /pay".
+		if isDashboardURL(currentURL, sc.baseURL) {
 			debugPrintf("✓ Payment confirmed, redirected to %s\n", currentURL)
-			sc.page.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
+			if err := sc.page.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
 				State:   playwright.LoadStateNetworkidle,
 				Timeout: playwright.Float(5000),
-			})
+			}); err != nil {
+				debugPrintf("⚠ networkidle wait after payment redirect timed out: %v\n", err)
+			}
 			return nil
 		}
 
 		debugPrintf("   Waiting... (%d/%d seconds, url=%s)\n", i+checkInterval, maxWait, currentURL)
 	}
 
-	debugPrintln("⚠ Payment processing timeout reached without observing redirect")
-	return nil
+	return fmt.Errorf("payment did not redirect to dashboard within %d seconds", maxWait)
+}
+
+// isDashboardURL returns true when the given URL points at the wallet
+// dashboard (i.e. the post-payment success destination), tolerating
+// trailing slashes and query strings.
+func isDashboardURL(currentURL, baseURL string) bool {
+	trimmed := strings.TrimSuffix(currentURL, "/")
+	if trimmed == strings.TrimSuffix(baseURL, "/") {
+		return true
+	}
+	// Tolerate query strings on the dashboard (e.g. snackbar params).
+	if idx := strings.IndexAny(trimmed, "?#"); idx >= 0 {
+		trimmed = trimmed[:idx]
+	}
+	return trimmed == strings.TrimSuffix(baseURL, "/")
 }
 
 // iDepositViATheDepositIframeAsUser completes the deposit flow for a specific user
