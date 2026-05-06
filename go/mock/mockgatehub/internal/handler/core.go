@@ -14,6 +14,15 @@ import (
 	"go.uber.org/zap"
 )
 
+// resolveWalletParam returns the wallet ID from URL params, trying "walletID"
+// first and falling back to the legacy "address" parameter name.
+func resolveWalletParam(r *http.Request) string {
+	if id := chi.URLParam(r, "walletID"); id != "" {
+		return id
+	}
+	return chi.URLParam(r, "address")
+}
+
 func (h *Handler) CreateWallet(w http.ResponseWriter, r *http.Request) {
 	var req models.CreateWalletRequest
 	if err := h.decodeJSON(r, &req); err != nil {
@@ -134,11 +143,7 @@ func (h *Handler) GetUserWallets(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) GetWallet(w http.ResponseWriter, r *http.Request) {
-	walletID := chi.URLParam(r, "walletID")
-	if walletID == "" {
-		// Try legacy parameter name
-		walletID = chi.URLParam(r, "address")
-	}
+	walletID := resolveWalletParam(r)
 	if walletID == "" {
 		h.sendError(w, http.StatusBadRequest, "Wallet address is required")
 		return
@@ -156,14 +161,7 @@ func (h *Handler) GetWallet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) GetWalletBalance(w http.ResponseWriter, r *http.Request) {
-	walletID := chi.URLParam(r, "walletID")
-	logger.Debug("wallet id from path", zap.String("wallet_id", walletID))
-
-	if walletID == "" {
-		// Try legacy parameter name
-		walletID = chi.URLParam(r, "address")
-		logger.Debug("wallet id from address", zap.String("wallet_id", walletID))
-	}
+	walletID := resolveWalletParam(r)
 	if walletID == "" {
 		h.sendError(w, http.StatusBadRequest, "Wallet address is required")
 		return
@@ -181,9 +179,9 @@ func (h *Handler) GetWalletBalance(w http.ResponseWriter, r *http.Request) {
 	for _, currency := range consts.SandboxCurrencies {
 		balance, _ := h.store.GetBalance(wallet.UserID, currency)
 		balances = append(balances, models.WalletBalanceResponse{
-			Available: fmt.Sprintf("%.2f", balance),
+			Available: formatAmount(balance),
 			Pending:   "0.00",
-			Total:     fmt.Sprintf("%.2f", balance),
+			Total:     formatAmount(balance),
 			Vault: models.VaultSummary{
 				UUID:      consts.SandboxVaultIDs[currency],
 				Name:      fmt.Sprintf("Sandbox Vault %s", currency),
@@ -283,7 +281,7 @@ func (h *Handler) CreateTransaction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Format amounts as strings to match GateHub API
-	amountStr := fmt.Sprintf("%.2f", req.Amount)
+	amountStr := formatAmount(req.Amount)
 
 	// Calculate fee based on transaction type:
 	// - External deposits: use deposit fee percentage
@@ -293,16 +291,16 @@ func (h *Handler) CreateTransaction(w http.ResponseWriter, r *http.Request) {
 	switch req.DepositType {
 	case consts.DepositTypeExternal:
 		feePercent, _ = h.feeConfig.GetDepositFeeForUser(req.UserID)
-	case "withdrawal":
+	case consts.DepositTypeWithdrawal:
 		feePercent, _ = h.feeConfig.GetWithdrawalFeeForUser(req.UserID)
 	}
 	feeAmount := CalculateFee(req.Amount, feePercent)
-	feeStr := fmt.Sprintf("%.2f", feeAmount)
+	feeStr := formatAmount(feeAmount)
 	// For deposits: total_amount = amount (fee is charged separately by GateHub)
 	// For withdrawals: total_amount = amount + fee (total deducted)
 	totalAmountStr := amountStr
-	if req.DepositType == "withdrawal" {
-		totalAmountStr = fmt.Sprintf("%.2f", req.Amount+feeAmount)
+	if req.DepositType == consts.DepositTypeWithdrawal {
+		totalAmountStr = formatAmount(req.Amount + feeAmount)
 	}
 
 	tx := &models.Transaction{
@@ -313,6 +311,7 @@ func (h *Handler) CreateTransaction(w http.ResponseWriter, r *http.Request) {
 		Fee:              feeStr,
 		Currency:         req.Currency,
 		VaultUUID:        req.VaultUUID,
+		SendingAddress:   req.SendingAddress,
 		ReceivingAddress: req.ReceivingAddress,
 		Type:             req.Type,
 		DepositType:      req.DepositType,
@@ -338,8 +337,19 @@ func (h *Handler) CreateTransaction(w http.ResponseWriter, r *http.Request) {
 		amount := req.Amount
 		feeAmount := feeAmount // Capture fee amount from outer scope
 		depositType := req.DepositType
+		sendingAddr := req.SendingAddress
 		receivingAddr := req.ReceivingAddress
 		hasWebhook := h.webhookManager.HasURL()
+
+		// Determine balance direction for hosted transfers.
+		// If the sending_address is a known user wallet, money is leaving the user → debit.
+		// Otherwise, treat the transfer as a credit.
+		isDebit := false
+		if depositType == consts.DepositTypeHosted && sendingAddr != "" {
+			if wallet, err := h.store.GetWallet(sendingAddr); err == nil && wallet != nil && wallet.UserID == userID {
+				isDebit = true
+			}
+		}
 
 		pendingPayload := map[string]interface{}{
 			"transaction_id": txID,
@@ -360,26 +370,58 @@ func (h *Handler) CreateTransaction(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 
-			// For deposits, credit the net amount (amount - fee)
-			// For withdrawals, would debit total amount (amount + fee), but that's handled separately
-			netAmount := amount - feeAmount
-			if err := h.store.AddBalance(userID, currency, netAmount); err != nil {
-				logger.Error("failed to update balance for transaction", zap.String("transaction_id", txID), zap.Error(err))
-				return
+			markFailed := func() {
+				if statusErr := h.store.UpdateTransactionStatus(txID, consts.TransactionStatusFailed); statusErr != nil {
+					logger.Error("failed to mark transaction as failed", zap.String("transaction_id", txID), zap.Error(statusErr))
+				}
+				if hasWebhook {
+					failedPayload := map[string]interface{}{
+						"transaction_id": txID,
+						"tx_uuid":        txID,
+						"amount":         formatAmount(amount),
+						"currency":       currency,
+						"address":        receivingAddr,
+						"deposit_type":   depositType,
+						"status":         "failed",
+					}
+					h.webhookManager.SendAsync(consts.WebhookEventDepositCompleted, userID, failedPayload, 0)
+				}
 			}
 
-			logger.Info("transaction completed",
-				zap.String("transaction_id", txID),
-				zap.Float64("amount", amount),
-				zap.Float64("fee", feeAmount),
-				zap.Float64("net_amount", netAmount),
-				zap.String("currency", currency))
+			netAmount := amount - feeAmount
+			if isDebit {
+				// Hosted transfer where user is the sender → debit
+				if err := h.store.DeductBalance(userID, currency, netAmount); err != nil {
+					logger.Error("failed to deduct balance for transaction", zap.String("transaction_id", txID), zap.Error(err))
+					markFailed()
+					return
+				}
+				logger.Info("transaction completed (debit)",
+					zap.String("transaction_id", txID),
+					zap.Float64("amount", amount),
+					zap.Float64("fee", feeAmount),
+					zap.Float64("net_amount", netAmount),
+					zap.String("currency", currency))
+			} else {
+				// Deposit or hosted transfer where user is the receiver → credit
+				if err := h.store.AddBalance(userID, currency, netAmount); err != nil {
+					logger.Error("failed to update balance for transaction", zap.String("transaction_id", txID), zap.Error(err))
+					markFailed()
+					return
+				}
+				logger.Info("transaction completed (credit)",
+					zap.String("transaction_id", txID),
+					zap.Float64("amount", amount),
+					zap.Float64("fee", feeAmount),
+					zap.Float64("net_amount", netAmount),
+					zap.String("currency", currency))
+			}
 
 			if hasWebhook {
 				completedPayload := map[string]interface{}{
 					"transaction_id": txID,
 					"tx_uuid":        txID,
-					"amount":         fmt.Sprintf("%.2f", amount),
+					"amount":         formatAmount(amount),
 					"currency":       currency,
 					"address":        receivingAddr,
 					"deposit_type":   depositType,
