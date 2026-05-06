@@ -68,23 +68,26 @@ func (sc *E2EContext) iCompletedTheAccountVerificationWorkflow() error {
 func (sc *E2EContext) iFinishedTheTOTPRegistrationWorkflow() error {
 	debugPrintln("\n🔄 Running TOTP registration workflow...")
 
-	// Clear session and navigate to login
-	if err := sc.iClearTheBrowserSession(); err != nil {
-		return fmt.Errorf("failed to clear browser session: %w", err)
-	}
+	currentURL := sc.page.URL()
+	if !strings.Contains(currentURL, "/totp/two-factor-authentication") {
+		// Clear session and navigate to login
+		if err := sc.iClearTheBrowserSession(); err != nil {
+			return fmt.Errorf("failed to clear browser session: %w", err)
+		}
 
-	if err := sc.iNavigateToTheLoginPage(); err != nil {
-		return fmt.Errorf("failed to navigate to login page: %w", err)
-	}
+		if err := sc.iNavigateToTheLoginPage(); err != nil {
+			return fmt.Errorf("failed to navigate to login page: %w", err)
+		}
 
-	// Fill in login credentials
-	if err := sc.iFillInTheLoginFormWithMyDetails(); err != nil {
-		return fmt.Errorf("failed to fill login form: %w", err)
-	}
+		// Fill in login credentials
+		if err := sc.iFillInTheLoginFormWithMyDetails(); err != nil {
+			return fmt.Errorf("failed to fill login form: %w", err)
+		}
 
-	// Submit login
-	if err := sc.iSubmitTheLogin(); err != nil {
-		return fmt.Errorf("failed to submit login: %w", err)
+		// Submit login
+		if err := sc.iSubmitTheLogin(); err != nil {
+			return fmt.Errorf("failed to submit login: %w", err)
+		}
 	}
 
 	// Verify we're on TOTP page
@@ -102,25 +105,44 @@ func (sc *E2EContext) iFinishedTheTOTPRegistrationWorkflow() error {
 		return fmt.Errorf("failed to submit TOTP: %w", err)
 	}
 
-	currentURL := sc.page.URL()
-	if strings.Contains(currentURL, "/phone-confirmation") {
-		debugPrintln("   ✓ Reached phone confirmation page after TOTP")
+	currentURL = sc.page.URL()
+	if strings.Contains(currentURL, "/wallet-address") || strings.Contains(currentURL, "/dashboard") {
+		debugPrintln("   ✓ Reached wallet or dashboard after TOTP")
 	} else if err := sc.iShouldBeNavigatedToTheApplicationDashboard(); err != nil {
-		return fmt.Errorf("failed to navigate to phone confirmation or dashboard: %w", err)
+		return fmt.Errorf("failed to navigate to wallet-address or dashboard: %w", err)
 	}
 
 	debugPrintln("✓ TOTP registration workflow completed")
 	return nil
 }
 
-// iFinishedThePhoneConfirmationWorkflow completes the post-TOTP phone confirmation step.
+// iFinishedThePhoneConfirmationWorkflow completes the pre-TOTP phone confirmation step.
 // Usage: And I finished the phone confirmation workflow
 func (sc *E2EContext) iFinishedThePhoneConfirmationWorkflow() error {
 	debugPrintln("\n🔄 Running phone confirmation workflow...")
 
 	currentURL := sc.page.URL()
 	if !strings.Contains(currentURL, "/phone-confirmation") {
-		return fmt.Errorf("not on phone confirmation page, current URL: %s", currentURL)
+		if err := sc.iClearTheBrowserSession(); err != nil {
+			return fmt.Errorf("failed to clear browser session: %w", err)
+		}
+
+		if err := sc.iNavigateToTheLoginPage(); err != nil {
+			return fmt.Errorf("failed to navigate to login page: %w", err)
+		}
+
+		if err := sc.iFillInTheLoginFormWithMyDetails(); err != nil {
+			return fmt.Errorf("failed to fill login form: %w", err)
+		}
+
+		if err := sc.iSubmitTheLogin(); err != nil {
+			return fmt.Errorf("failed to submit login: %w", err)
+		}
+
+		currentURL = sc.page.URL()
+		if !strings.Contains(currentURL, "/phone-confirmation") {
+			return fmt.Errorf("not on phone confirmation page after login, current URL: %s", currentURL)
+		}
 	}
 
 	email, err := sc.getCurrentUserEmail()
@@ -140,8 +162,10 @@ func (sc *E2EContext) iFinishedThePhoneConfirmationWorkflow() error {
 	}
 
 	currentURL = sc.page.URL()
-	if !strings.Contains(currentURL, "/wallet-address") && !strings.Contains(currentURL, "/dashboard") {
-		return fmt.Errorf("expected redirect away from phone confirmation after verification, current URL: %s", currentURL)
+	if !strings.Contains(currentURL, "/totp/two-factor-authentication") &&
+		!strings.Contains(currentURL, "/wallet-address") &&
+		!strings.Contains(currentURL, "/dashboard") {
+		return fmt.Errorf("expected redirect to totp, wallet-address, or dashboard after verification, current URL: %s", currentURL)
 	}
 
 	debugPrintln("✓ Phone confirmation workflow completed")

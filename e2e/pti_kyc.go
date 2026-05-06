@@ -45,6 +45,13 @@ func (sc *E2EContext) iCompletedThePTIKYCFlowFor(email string) error {
 		return fmt.Errorf("submit login failed: %w", err)
 	}
 
+	currentURL := sc.page.URL()
+	if strings.Contains(currentURL, "/phone-confirmation") {
+		if err := sc.iFinishedThePhoneConfirmationWorkflow(); err != nil {
+			return fmt.Errorf("phone confirmation workflow failed: %w", err)
+		}
+	}
+
 	if err := sc.iShouldBeNavigatedToTheTOTPPage(); err != nil {
 		return fmt.Errorf("TOTP page navigation failed: %w", err)
 	}
@@ -55,15 +62,6 @@ func (sc *E2EContext) iCompletedThePTIKYCFlowFor(email string) error {
 
 	if err := sc.iSubmitTheTotpRegistration(); err != nil {
 		return fmt.Errorf("TOTP registration failed: %w", err)
-	}
-
-	currentURL := sc.page.URL()
-	if strings.Contains(currentURL, "/phone-confirmation") {
-		if err := sc.iFinishedThePhoneConfirmationWorkflow(); err != nil {
-			return fmt.Errorf("phone confirmation workflow failed: %w", err)
-		}
-	} else if err := sc.iShouldBeNavigatedToTheApplicationDashboard(); err != nil {
-		return fmt.Errorf("dashboard navigation failed: %w", err)
 	}
 
 	if err := sc.iFinishedTheWalletAddressCreationWorkflow(); err != nil {
