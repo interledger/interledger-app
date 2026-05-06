@@ -299,11 +299,7 @@ func (h *Handler) KYCIframeSubmit(w http.ResponseWriter, r *http.Request) {
 	// If user_id is not in form, try to extract from bearer token
 	if userID == "" {
 		token := r.FormValue("token")
-		tokenShort := token
-		if len(token) > 20 {
-			tokenShort = token[:20]
-		}
-		logger.Warn("user id missing from form, attempting to extract from token", zap.String("token_prefix", tokenShort))
+		logger.Warn("user id missing from form, attempting to extract from token", zap.String("token_prefix", tokenPrefix(token)))
 		// Try to look up user from token in our map
 		if uuid, ok := h.tokenToUser.Load(token); ok {
 			if u, ok := uuid.(string); ok {

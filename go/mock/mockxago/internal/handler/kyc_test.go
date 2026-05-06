@@ -31,9 +31,8 @@ func TestKYCIframe_Success(t *testing.T) {
 
 	h.KYCIframe(w, req)
 
-	// Handler will try to find template and return 500 if not found in test env
-	// This is expected behavior for unit tests without template files
-	assert.True(t, w.Code >= 200 && w.Code < 500 || w.Code >= 500)
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Contains(t, w.Body.String(), `action="/kyc/submit"`)
 }
 
 func TestKYCIframe_MissingToken(t *testing.T) {
