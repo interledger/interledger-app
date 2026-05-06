@@ -62,7 +62,8 @@ jobs:
           RUNNER_ADMIN_TOKEN: ${{ secrets.RUNNER_ADMIN_TOKEN }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MACHINE_IMAGE: e2e-tester-dynamic-20260310
-          MACHINE_TYPE: n2-standard-8
+          # Should have 16 cores and 64MB of RAM
+          MACHINE_TYPE: n2-standard-16
           MAX_SPOTS: "5"
           MIN_SPOTS: "1"
           SPOT_PREFIX: e2e-spot
