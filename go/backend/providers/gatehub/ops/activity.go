@@ -30,6 +30,15 @@ import (
 	"go.uber.org/zap"
 )
 
+type CardTransactionMeta struct {
+	WalletID      string
+	WalletAddress string
+	EURBalanceID  string
+	MerchantName  string
+	BillingAmount currency.Amount
+	FXApplied     bool
+}
+
 type Activity struct {
 	b        Backends
 	external external.Client
@@ -812,17 +821,95 @@ func (a *Activity) RollbackGatehubCardTransaction(ctx context.Context, cardTxID,
 	return nil
 }
 
+func (a *Activity) ComputeCardTransactionMeta(ctx context.Context, userID string, tx external.CardTransaction) (CardTransactionMeta, error) {
+	if tx.BillingCurrency == nil || tx.BillingAmount == nil {
+		return CardTransactionMeta{}, temporal.NewNonRetryableApplicationError("Invalid billing currency or amount", "ErrInternal", fmt.Errorf("%w invalid currency or amount", gatehub.ErrInternal))
+	}
+
+	if *tx.BillingCurrency != currency.EUR.String() {
+		return CardTransactionMeta{}, temporal.NewNonRetryableApplicationError("Invalid currency", "ErrInternal", fmt.Errorf("%w invalid currency", gatehub.ErrInternal))
+	}
+
+	walletID, err := getWalletID(ctx, a.b, userID)
+	if err != nil {
+		return CardTransactionMeta{}, err
+	}
+
+	wallet, err := a.b.Wallets().Get(ctx, walletID)
+	if errors.Is(err, gatehub.ErrNotFound) {
+		return CardTransactionMeta{}, temporal.NewNonRetryableApplicationError("Wallet not found", "ErrNotFound", fmt.Errorf("%w No wallet found for gatehub user", gatehub.ErrNotFound))
+	}
+	if err != nil {
+		return CardTransactionMeta{}, err
+	}
+
+	las, err := a.b.LinkedAccounts().ListBalances(ctx, walletID)
+	if err != nil {
+		return CardTransactionMeta{}, err
+	}
+
+	var eurBalance *linkedaccounts.LinkedAccount
+	for _, la := range las {
+		if la.Provider == gatehub.ProviderName && la.Type == gatehub.AccTypeBalance {
+			eurBalance = &la
+			break
+		}
+	}
+
+	if eurBalance == nil {
+		return CardTransactionMeta{}, temporal.NewNonRetryableApplicationError("Gatehub EUR balance account not found", "ErrInternal", fmt.Errorf("%w Gatehub EUR balance account not found", gatehub.ErrInternal))
+	}
+
+	val, err := StringToScaledUInt(*tx.BillingAmount)
+	if err != nil {
+		return CardTransactionMeta{}, temporal.NewNonRetryableApplicationError("Invalid billing amount", "ErrInternal", fmt.Errorf("%w invalid billing amount: %s", gatehub.ErrInternal, *tx.BillingAmount))
+	}
+
+	fxApplied := tx.TransactionCurrency != nil && *tx.TransactionCurrency != *tx.BillingCurrency
+
+	return CardTransactionMeta{
+		WalletID:      walletID,
+		WalletAddress: wallet.AddressString(),
+		EURBalanceID:  eurBalance.ID,
+		MerchantName:  getMerchantName(tx),
+		BillingAmount: currency.Amount{
+			Value:    val,
+			Currency: currency.EUR,
+			Scale:    2,
+		},
+		FXApplied: fxApplied,
+	}, nil
+}
+
 func getMerchantName(tx external.CardTransaction) string {
+	if tx.MerchantName != nil && *tx.MerchantName != "" {
+		return *tx.MerchantName
+	}
+
 	switch tx.Type {
+	case external.CardTransactionTypePurchase,
+		external.CardTransactionTypePreauthorization,
+		external.CardTransactionTypePreauthorizationIncremental,
+		external.CardTransactionTypePreauthorizationCompletion:
+		return "Purchase"
 	case external.CardTransactionTypeATMWithdrawal:
-		if tx.MerchantName != nil && *tx.MerchantName != "" {
-			return fmt.Sprintf("ATM Withdrawal (%s)", *tx.MerchantName)
-		}
 		return "ATM Withdrawal"
+	case external.CardTransactionTypeBalanceInquiryOnATM:
+		return "Balance Inquiry"
+	case external.CardTransactionTypeCashAdvance:
+		return "Cash Advance"
+	case external.CardTransactionTypeRefundCreditPayment:
+		return "Refund"
+	case external.CardTransactionTypeTransferToAccount,
+		external.CardTransactionTypeTransferFromAccount:
+		return "Transfer"
+	case external.CardTransactionTypeCardVerificationInquiry:
+		return "Card Verification"
+	case external.CardTransactionTypePINUnblock:
+		return "PIN Unblock"
+	case external.CardTransactionTypePINChange:
+		return "PIN Change"
 	default:
-		if tx.MerchantName != nil && *tx.MerchantName != "" {
-			return *tx.MerchantName
-		}
-		return "N/A"
+		return "Card Transaction"
 	}
 }

@@ -457,3 +457,66 @@ func CreateCardTransaction(ctx workflow.Context, wh CardTransactionEventWebhook)
 
 	return nil
 }
+
+func CreateCardTransactionV2(ctx workflow.Context, wh CardTransactionEventWebhook) error {
+	var a *Activity
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Second,
+	}
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	var ct external.CardTransaction
+	err := workflow.ExecuteActivity(ctx, a.GetCardTransaction, wh.UserID, wh.Data.TransactionID).Get(ctx, &ct)
+	if err != nil {
+		return err
+	}
+
+	var card external.Card
+	err = workflow.ExecuteActivity(ctx, a.GetCardDetails, wh.UserID, wh.Data.CardID).Get(ctx, &card)
+	if err != nil {
+		return err
+	}
+
+	// TODO discuss what else needs to be saved here
+	err = workflow.ExecuteActivity(ctx, a.SaveGatehubCardTransaction, wh.UserID, card.ID, card.MaskedPan, ct).Get(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	if ct.TxStatus != nil && (*ct.TxStatus == "TRXNS" || *ct.TxStatus == "SYSEX") {
+		slack.SendToChannel(context.Background(), slack.ChannelNotifyEvents, "wallet-info-bot", fmt.Sprintf("!!! Received card transaction with unsupported tx status:\nCard TX ID: %s\nCard ID: %s\nGateHub User ID: %s\nTx Status: %s", ct.TransactionID, card.ID, wh.UserID, *ct.TxStatus))
+		return temporal.NewNonRetryableApplicationError("unsupported tx status", "ErrUnsupportedTxStatus", nil)
+	}
+
+	var txID string
+	err = workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
+		return uuid.NewString()
+	}).Get(&txID)
+	if err != nil {
+		return nil
+	}
+
+	var ctMeta CardTransactionMeta
+	err = workflow.ExecuteActivity(ctx, a.ComputeCardTransactionMeta, wh.UserID, ct).Get(ctx, &ctMeta)
+	if err != nil {
+		return err
+	}
+
+	switch ct.Operation {
+	case external.CardTransactionOperationWithdraw:
+		// TODO see wal-865
+	case external.CardTransactionOperationDebit:
+		// TODO see wal-866
+	case external.CardTransactionOperationNone:
+		// TODO see wal-867
+	default:
+		// TODO: unexpected operation
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.Notify, ctMeta.WalletID, notify.NotificationTypeTransaction).Get(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

@@ -57,6 +57,10 @@ var (
 	CardTransactionTypePreauthorizationCompletion  int = 103
 	CardTransactionTypeTransferToAccount           int = 107
 	CardTransactionTypeTransferFromAccount         int = 108
+
+	CardTransactionOperationWithdraw int = 0
+	CardTransactionOperationDebit    int = 1
+	CardTransactionOperationNone     int = 2
 )
 
 const (
