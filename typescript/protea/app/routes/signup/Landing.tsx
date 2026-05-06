@@ -77,7 +77,7 @@ export function Landing() {
               </p>
             </div>
           </div>
-          <div className='mt-6 flex items-start'>
+          <div className='mt-10 flex items-start'>
             <Shape
               flex='flex-none'
               width='w-8'
@@ -91,9 +91,9 @@ export function Landing() {
               color='bg-indigo-400'
             />
             <div className='ml-5'>
-              <h3 className='mb-1 font-medium text-strong'>Set up Two-Factor Authentication</h3>
+              <h3 className='mb-1 font-medium text-strong'>Phone confirmation</h3>
               <p className='text-xs text-medium'>
-                Enhance your account security by setting up two-factor authentication on your Authenticator App.
+                Verify your phone number using the code sent by SMS.
               </p>
             </div>
           </div>
@@ -111,9 +111,9 @@ export function Landing() {
               color='bg-slate-300'
             />
             <div className='ml-5'>
-              <h3 className='mb-1 font-medium text-strong'>Phone Confirmation</h3>
+              <h3 className='mb-1 font-medium text-strong'>Set up Two-Factor Authentication</h3>
               <p className='text-xs text-medium'>
-                Verify your phone number.
+                Enhance your account security by setting up two-factor authentication on your Authenticator App.
               </p>
             </div>
           </div>

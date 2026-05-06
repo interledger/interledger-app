@@ -30,18 +30,21 @@ import { getSessionTraits, getUserSession } from '~/lib/kratos/session.server'
 import { mergeMeta } from '~/lib/meta'
 import { RateLimitKeys, getKey, rateLimit } from '~/lib/rateLimit.server'
 import { useCountdown } from '~/lib/useCountdown'
+import { safeReturnTo } from '~/lib/url.server'
 import styles from '~/styles/flags.css?url'
 import type { Route } from './+types/phone-confirmation'
 
 const RESEND_DELAY = 60 * 1000 // 1 minute
 
 export async function loader({ request }: Route.LoaderArgs) {
-  const session = await getUserSession(request)
+  const url = new URL(request.url)
+  const returnTo = safeReturnTo(url.searchParams.get('returnTo'))
+  const session = await getUserSession(request, true)
   const traits = getSessionTraits(session)
   const { phone, countryCode } = traits
 
   if (traits.phoneVerified) {
-    throw redirect('/wallet-address')
+    throw redirect(returnTo)
   }
 
   const countriesResponse = await grpc.getCountries(request, {})
@@ -50,6 +53,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   return jsonWithCSRF(request, {
     phone,
     countryCode,
+    returnTo,
     countries: countriesResponse.countries
   })
 }
@@ -76,7 +80,7 @@ export const meta = mergeMeta(() => [
 
 export default function Page() {
   const actionData = useActionData<typeof action>()
-  const { csrfToken, phone, countryCode, countries } =
+  const { csrfToken, phone, countryCode, countries, returnTo } =
     useLoaderData<typeof loader>()
   const resendFetcher = useFetcher()
   const updateFetcher = useFetcher()
@@ -109,12 +113,13 @@ export default function Page() {
 
   const isResendDisabled =
     (otpSent && isActive) || resendFetcher.state !== 'idle'
+  const actionPath = `/phone-confirmation?returnTo=${encodeURIComponent(returnTo)}`
 
   return (
     <>
       <Form
         id='phone-confirmation'
-        action='/phone-confirmation'
+        action={actionPath}
         method='post'
         className='hidden'
       />
@@ -156,7 +161,7 @@ export default function Page() {
             csrfToken={csrfToken}
             defaultCountry={countryCode}
             countries={countries as PhoneAutocompleteOptions[]}
-            action='/phone-confirmation'
+            action={actionPath}
             onCancel={() => setShowChangePhone(false)}
             className='mt-3'
           />
@@ -184,7 +189,7 @@ export default function Page() {
       {!showChangePhone && (
         <resendFetcher.Form
           method='post'
-          action='/phone-confirmation'
+          action={actionPath}
           className='mt-2'
         >
           <input type='hidden' name='intent' value='resend' />
@@ -205,11 +210,13 @@ export default function Page() {
 }
 
 export async function action({ request }: Route.ActionArgs) {
+  const url = new URL(request.url)
+  const returnTo = safeReturnTo(url.searchParams.get('returnTo'))
   const form = await request.formData()
   const intent = form.get('intent') as string
 
   await validateCSRFToken(request, form)
-  const session = await getUserSession(request)
+  const session = await getUserSession(request, true)
   const { phone } = getSessionTraits(session)
 
   if (intent === 'updatePhone') {
@@ -275,5 +282,5 @@ export async function action({ request }: Route.ActionArgs) {
     }
   }
 
-  throw redirect('/wallet-address')
+  throw redirect(returnTo)
 }

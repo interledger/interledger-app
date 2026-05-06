@@ -27,7 +27,7 @@ import {
 } from '~/components'
 import { Scaffold } from '~/components/Scaffold'
 import { TotpChallengeGlobal } from '~/components/TotpChallengeGlobal'
-import { hasUserSession } from '~/lib/kratos/session.server'
+import { getUserSession, hasUserSession } from '~/lib/kratos/session.server'
 import { getSnackbar } from '~/lib/snackbar.server'
 import styles from '~/styles/app.css?url'
 import { PendingConfirmationsLoader } from './components/PendingConfirmationsLoader'
@@ -155,8 +155,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   await recoveryLinkSessionInvalidationGuard(pathname, request)
   await emailVerificationGuard(pathname, request)
+  phoneConfirmationGuard(pathname, request, await getUserSession(request, true))
   await withAAL2Guard(pathname, request, async (session) => {
-    phoneConfirmationGuard(pathname, session)
     features = await getFeatures(request)
     if (
       features &&

@@ -26,7 +26,7 @@ export function ChangePhoneForm({
   countries,
   action,
   onCancel,
-  submitLabel = 'Save & send code',
+  submitLabel = 'Save phone & send code',
   className
 }: ChangePhoneFormProps) {
   return (

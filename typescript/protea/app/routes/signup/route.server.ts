@@ -250,6 +250,7 @@ export async function passwordAction({ request }: Route.ActionArgs) {
     {
       flowId: kratosFlowId,
       countryCode: kratosRequestPayload.traits.countryCode,
+      phone: kratosRequestPayload.traits.phone ? 'present' : 'not present',
       hasTraits: !!kratosRequestPayload.traits,
       hasPassword: !!password,
       hasCsrfToken: !!kratosCsrfToken,

@@ -6,11 +6,13 @@ import {
   kratosPublic
 } from './kratos/kratos-client.server'
 import { getUserSession } from './kratos/session.server'
+import { safeReturnTo } from './url.server'
 
 /**
  * Routes that can be accessed without a session with highest AAL
  */
 export const NON_FULL_SESSION_ROUTES = [
+  '/phone-confirmation',
   '/totp/two-factor-authentication',
   '/totp/challenge',
   '/login',
@@ -119,7 +121,6 @@ export async function withAAL2Guard(
 export const NON_PHONE_CONFIRMED_ROUTES = [
   '/phone-confirmation',
   '/settings/phone',
-  '/totp/two-factor-authentication',
   '/totp/challenge',
   '/login',
   '/logout',
@@ -133,6 +134,7 @@ export const NON_PHONE_CONFIRMED_ROUTES = [
 
 export function phoneConfirmationGuard(
   pathname: string,
+  request: Request,
   session: Session | null
 ) {
   if (NON_PHONE_CONFIRMED_ROUTES.includes(pathname)) return
@@ -145,7 +147,10 @@ export function phoneConfirmationGuard(
   // Read phoneVerified directly from Kratos session traits — no gRPC call needed
   const phoneVerified = (session.identity?.traits as any)?.phoneVerified
   if (!phoneVerified) {
-    throw redirect('/phone-confirmation')
+    const url = new URL(request.url)
+    const searchParams = new URLSearchParams()
+    searchParams.set('returnTo', safeReturnTo(url.pathname + url.search))
+    throw redirect(`/phone-confirmation?${searchParams.toString()}`)
   }
 }
 
