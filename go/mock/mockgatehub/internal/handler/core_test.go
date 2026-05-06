@@ -363,6 +363,113 @@ func TestCreateTransaction_HostedTransfer(t *testing.T) {
 	assert.Equal(t, "0.00", tx.Fee)
 }
 
+func TestCreateTransaction_HostedDebit(t *testing.T) {
+	h, store := newSeededHandler(t)
+	walletAddr := createWalletForUser(t, store, consts.TestUser1ID)
+
+	initialBalance, err := store.GetBalance(consts.TestUser1ID, "USD")
+	require.NoError(t, err)
+
+	body := map[string]interface{}{
+		"user_id":          consts.TestUser1ID,
+		"amount":           100.0,
+		"currency":         "USD",
+		"type":             consts.TransactionTypeHosted,
+		"deposit_type":     consts.DepositTypeHosted,
+		"sending_address":  walletAddr,
+		"receiving_address": "rExternal",
+	}
+	bodyBytes, _ := json.Marshal(body)
+	req := httptest.NewRequest(http.MethodPost, "/core/v1/transactions", bytes.NewReader(bodyBytes))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	h.CreateTransaction(w, req)
+
+	assert.Equal(t, http.StatusCreated, w.Code)
+	var tx models.Transaction
+	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &tx))
+	assert.Equal(t, consts.DepositTypeHosted, tx.DepositType)
+
+	newBalance, err := store.GetBalance(consts.TestUser1ID, "USD")
+	require.NoError(t, err)
+	assert.Equal(t, initialBalance-100.0, newBalance)
+}
+
+func TestCreateTransaction_HostedCredit(t *testing.T) {
+	h, store := newSeededHandler(t)
+	walletAddr := createWalletForUser(t, store, consts.TestUser1ID)
+
+	initialBalance, err := store.GetBalance(consts.TestUser1ID, "USD")
+	require.NoError(t, err)
+
+	body := map[string]interface{}{
+		"user_id":           consts.TestUser1ID,
+		"amount":            100.0,
+		"currency":          "USD",
+		"type":              consts.TransactionTypeHosted,
+		"deposit_type":      consts.DepositTypeHosted,
+		"sending_address":   "rExternal",
+		"receiving_address": walletAddr,
+	}
+	bodyBytes, _ := json.Marshal(body)
+	req := httptest.NewRequest(http.MethodPost, "/core/v1/transactions", bytes.NewReader(bodyBytes))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	h.CreateTransaction(w, req)
+
+	assert.Equal(t, http.StatusCreated, w.Code)
+	var tx models.Transaction
+	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &tx))
+	assert.Equal(t, consts.DepositTypeHosted, tx.DepositType)
+
+	newBalance, err := store.GetBalance(consts.TestUser1ID, "USD")
+	require.NoError(t, err)
+	assert.Equal(t, initialBalance+100.0, newBalance)
+}
+
+func TestCreateTransaction_HostedDebitInsufficientFunds(t *testing.T) {
+	h, store := newSeededHandler(t)
+	walletAddr := createWalletForUser(t, store, consts.TestUser1ID)
+
+	// Set balance well below the transaction amount
+	require.NoError(t, store.AddBalance(consts.TestUser1ID, "USD", -9990.0))
+	initialBalance, err := store.GetBalance(consts.TestUser1ID, "USD")
+	require.NoError(t, err)
+	require.Equal(t, 10.0, initialBalance)
+
+	body := map[string]interface{}{
+		"user_id":           consts.TestUser1ID,
+		"amount":            100.0,
+		"currency":          "USD",
+		"type":              consts.TransactionTypeHosted,
+		"deposit_type":      consts.DepositTypeHosted,
+		"sending_address":   walletAddr,
+		"receiving_address": "rExternal",
+	}
+	bodyBytes, _ := json.Marshal(body)
+	req := httptest.NewRequest(http.MethodPost, "/core/v1/transactions", bytes.NewReader(bodyBytes))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	h.CreateTransaction(w, req)
+
+	// Transaction is created (pending), but should be marked failed after balance deduction fails
+	assert.Equal(t, http.StatusCreated, w.Code)
+	var tx models.Transaction
+	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &tx))
+
+	storedTx, err := store.GetTransaction(tx.ID)
+	require.NoError(t, err)
+	assert.Equal(t, consts.TransactionStatusFailed, storedTx.Status)
+
+	// Balance should be unchanged
+	finalBalance, err := store.GetBalance(consts.TestUser1ID, "USD")
+	require.NoError(t, err)
+	assert.Equal(t, initialBalance, finalBalance)
+}
+
 // ---- GetTransaction ----
 
 func TestGetTransaction_SuccessCore(t *testing.T) {

@@ -872,6 +872,7 @@ message LinkedAccount {
   bool defaultSend = 13;
   bool defaultReceive = 14;
   string state = 15;
+  string createdAt = 16;
 }
 
 message GetSignupRequest {

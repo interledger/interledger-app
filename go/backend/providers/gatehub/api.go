@@ -39,6 +39,7 @@ type Client interface {
 	LinkUserToGatewayByExternalID(ctx context.Context, ExternalID string) error
 	UpdateOrganizationConfiguration(ctx context.Context, apiBaseURL, twoFAType string) (*external.UpdateOrganizationConfigurationResponse, error)
 	GetAccountConfirmation(ctx context.Context, walletID string) (io.ReadCloser, error)
+	GetAccountStatement(ctx context.Context, walletID string, year, month int) (io.ReadCloser, error)
 }
 
 type Await func(ctx context.Context, result interface{}) error

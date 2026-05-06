@@ -71,6 +71,7 @@ type CreateTransactionRequest struct {
 	Amount           float64 `json:"amount"`
 	Currency         string  `json:"currency"`
 	VaultUUID        string  `json:"vault_uuid"`
+	SendingAddress   string  `json:"sending_address"`
 	ReceivingAddress string  `json:"receiving_address"`
 	Type             int     `json:"type"`
 	DepositType      string  `json:"deposit_type"`

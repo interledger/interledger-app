@@ -215,6 +215,21 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I simulate a Xago test deposit of "([^"]*)" "([^"]*)"$`, func(amount, currency string) error {
 		return sc.iSimulateXagoTestDeposit(amount, currency)
 	})
+	ctx.Step(`^I initiate a deposit for my Xago linked account$`, func() error {
+		return sc.iInitiateDepositForXagoLinkedAccount()
+	})
+	ctx.Step(`^my Xago specific deposit instructions should be displayed to me$`, func() error {
+		return sc.myXagoSpecificDepositInstructionsShouldBeDisplayedToMe()
+	})
+	ctx.Step(`^I click the Test Deposit button$`, func() error {
+		return sc.iClickTheXagoTestDepositButton()
+	})
+	ctx.Step(`^I simulate a "([^"]*)" "ZAR" EFT payment to Xago$`, func(amount string) error {
+		return sc.iSimulateXagoTestDeposit(amount, "ZAR")
+	})
+	ctx.Step(`^I wait "([^"]*)" seconds for the webhook to be processed$`, func(seconds string) error {
+		return sc.iWaitSeconds(seconds)
+	})
 
 	// Withdrawal steps
 	ctx.Step(`^I navigate to the withdrawal page$`, func() error { return sc.iNavigateToTheWithdrawalPage() })
@@ -262,6 +277,55 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	})
 	ctx.Step(`^I should see the payment in my transaction history$`, func() error {
 		return sc.iShouldSeeThePaymentInMyTransactionHistory()
+	})
+	ctx.Step(`^I should see text "([^"]*)" on the page$`, func(text string) error {
+		return sc.iShouldSeeTextOnThePage(text)
+	})
+
+	// Bank account linking steps (Xago ZA)
+	ctx.Step(`^I navigate to the dashboard (\w+)$`, func(page string) error {
+		return sc.iNavigateToTheDashboardPage(page)
+	})
+	ctx.Step(`^I press on "([^"]*)"$`, func(text string) error {
+		return sc.iPressOn(text)
+	})
+	ctx.Step(`^I should see the "([^"]*)" form$`, func(formTitle string) error {
+		return sc.iShouldSeeTheForm(formTitle)
+	})
+	ctx.Step(`^I fill in "([^"]*)" with "([^"]*)"$`, func(fieldLabel, value string) error {
+		return sc.iFillInFieldWith(fieldLabel, value)
+	})
+	ctx.Step(`^select Bank option "([^"]*)"$`, func(bankName string) error {
+		return sc.selectBankOption(bankName)
+	})
+	ctx.Step(`^I should be navigated to dashboard "([^"]*)"$`, func(dashboardName string) error {
+		return sc.iShouldBeNavigatedToDashboard(dashboardName)
+	})
+	ctx.Step(`^the linked account should be shown as "([^"]*)"$`, func(displayText string) error {
+		return sc.theLinkedAccountShouldBeShownAs(displayText)
+	})
+	ctx.Step(`^the "([^"]*)" label should be shown for the account$`, func(label string) error {
+		return sc.theLabelShouldBeShownForTheAccount(label)
+	})
+	ctx.Step(`^I give the linked account the nickname "([^"]*)"$`, func(nickname string) error {
+		return sc.iGiveTheLinkedAccountTheNickname(nickname)
+	})
+
+	// Xago withdrawal steps
+	ctx.Step(`^I linked a SA bank account with "([^"]*)" and account number "([^"]*)"$`, func(bankName, accountNumber string) error {
+		return sc.iLinkedASABankAccount(bankName, accountNumber)
+	})
+	ctx.Step(`^I deposited "([^"]*)" "([^"]*)" into my xago backed wallet$`, func(amount, currency string) error {
+		return sc.iDepositedIntoMyXagoBackedWallet(amount, currency)
+	})
+	ctx.Step(`^I set the withdraw amount to "([^"]*)"$`, func(amount string) error {
+		return sc.iSetTheWithdrawAmountTo(amount)
+	})
+	ctx.Step(`^I select the first available linked account to withdraw to$`, func() error {
+		return sc.iSelectFirstAvailableLinkedAccountToWithdrawTo()
+	})
+	ctx.Step(`^I set the withdraw note to "([^"]*)"$`, func(note string) error {
+		return sc.iSetTheWithdrawNoteTo(note)
 	})
 
 	// Card ordering steps
