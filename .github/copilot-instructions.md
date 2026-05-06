@@ -247,6 +247,7 @@ PRs are automatically labeled by `.github/workflows/labeler.yml` using the confi
 | `documentation` | `documentation/**` |
 | `e2e` | `e2e/**` |
 | `local` | `local/**` |
+| `helm` | `helm/**` |
 
 **When adding new providers, mock services, or frontend apps**: Update `.github/labeler.yml` with appropriate path globs and add the label mapping to this table.
 
@@ -259,6 +260,7 @@ PRs are automatically labeled by `.github/workflows/labeler.yml` using the confi
 - `.github/workflows/linting.yml` - Runs golangci-lint on all Go code (skipped for docs/local-only changes)
 - `.github/workflows/build-and-publish.yml` - Builds Docker images on PRs (build only) and pushes to GCP Artifact Registry when triggered by a version tag or `workflow_dispatch`
 - `.github/workflows/release.yml` - Runs semantic-release on every push to `main`; creates a git tag, GitHub Release, and release notes from commit history (see Release Process below)
+- `.github/workflows/helm-tests.yml` - Runs `helm unittest` + `kubeconform` on the chart at `helm/interledger-app` (only triggered when `helm/**` files change)
 
 ### Release Process
 

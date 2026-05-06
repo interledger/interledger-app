@@ -1,0 +1,57 @@
+{{- define "interledger-app.backend.initialisation" -}}
+{{- $top := first . }}
+{{- $initialisation := $top.Values.backend.initialisation }}
+
+{{- $globalSelectedRepository := $top.Values.backend.imageOverride.repository }}
+{{- $globalSelectedName := $top.Values.backend.imageOverride.name }}
+{{- $globalSelectedVersion := $top.Values.backend.imageOverride.tag | default $top.Chart.AppVersion }}
+
+{{- if not $initialisation.image }}
+  {{- $initialisation = dict "image" (dict) | merge $initialisation }}
+{{- end }}
+
+{{- $initialisationSelectedRepository := $initialisation.image.repository | default $globalSelectedRepository }}
+{{- $initialisationSelectedName := $initialisation.image.name | default $globalSelectedName }}
+{{- $initialisationSelectedTag := $initialisation.image.tag | default $globalSelectedVersion }}
+
+{{- $migrationImageString := printf "%s/%s:%s" $initialisationSelectedRepository $initialisationSelectedName $initialisationSelectedTag }}
+
+# templates/initialisation.yaml
+# Job responsible for running backend database migrations before install/upgrade
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "common.fullname" $top }}-migration
+  namespace: {{ $top.Release.Namespace }}
+  {{- include "common.metadata" (list $top) | nindent 2 }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 10
+  template:
+    spec:
+      {{- if $initialisation.serviceAccountName }}
+      serviceAccountName: {{ $initialisation.serviceAccountName | quote }}
+      {{- end }}
+      restartPolicy: OnFailure
+      containers:
+        - name: migration
+          image: {{ $migrationImageString }}
+          imagePullPolicy: {{ $initialisation.imagePullPolicy }}
+          env:
+            - name: DB_URL_WITH_CERTS
+              valueFrom:
+                secretKeyRef:
+                  name: '{{ include "common.fullname" $top }}-backend'
+                  key: "{{ $top.Values.backend.initialisation.backend.urlSecretRef }}"
+            - name: PACIOLI_DB_URL_WITH_CERTS
+              valueFrom:
+                secretKeyRef:
+                  name: '{{ include "common.fullname" $top }}-backend'
+                  key: "{{ $top.Values.backend.initialisation.pacioli.urlSecretRef }}"
+            - name: LOG_OUTPUT_PATH
+              value: "stderr"
+          args: ["migrate"]
+{{- end }}
+{{- include "interledger-app.backend.initialisation" (list . ) | indent 2 }}
