@@ -2,17 +2,18 @@ package ops
 
 import (
 	"context"
+	"crypto/ed25519"
+	"crypto/x509"
+	"encoding/base64"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
-	"github.com/lestrrat-go/jwx/v2/jwa"
-	"github.com/lestrrat-go/jwx/v2/jwe"
-	"github.com/lestrrat-go/jwx/v2/jwk"
-	"github.com/lestrrat-go/jwx/v2/jws"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/slack"
@@ -24,37 +25,54 @@ import (
 	"go.uber.org/zap"
 )
 
-var ptiPublicKeyJwk = `
-{
-  "e": "AQAB",
-  "kid": "861debeb-98ad-4f9a-a144-351e18093ea9",
-  "kty": "RSA",
-  "n": "1SG6gvMXxVLH_tQn7N7C5eWnYge7fX9uDdoVQdwQgMwbdDY9XLvBsjHIUZVksEt_t6GY42TeNMfbip8okl44-I_6z6cUzS-5xbiBfE_LEJf4NJKb7zftEj30xsyaT5GXLqdM1FuBE5gq2YBxnKvPVxTvNSsN5I6H9TzlCSVbrG-MMPlVzsai-tW0amy1BlPHIoaExk9HYZQXU6bMqozzy9LXXKh1alo4TzIZKeAU7ID5Vscyvfe7z4MNVvAA1v5FEofNAZBasG5gw6Fiolm9vdcB6Y6kxRWLpsifielF-xs_TfAjh2Ff7rT_tAq6C-s2ETa0kj1WFNEevHPZ3-QfKApn1vULfztrat9Q0knstGq5mGJrNPwzF66E1mG-Nf7q5-IRqGvbtiqggZyPvG6VwIwVi-ZQUQ7wZ2sgIUE_-tLxlTuTP2iWn3fjOy9Oban_AnDydpA5mMPG4N1jxPcXsA9x19wWCgeHNe-AVDG87qW-qBSeh08e6y_6kjwOG-AKctzbpVvpWl9pfDOkZGlgK5QO5n72cKvQ53Dmo1CZkGxXWcUDsd8cwQNgOkbJKl73uzd9Wz3gN7_kZtZRgepSlDSeWAfbrUeg5pyKrXdydVaLOIckgmYQhnFksJNxV7RYNAd1iMXmBazygGpo9cK27b-EePoL6KXOOR36oEOjP1s"
-}`
+var ptiPublicKey = `
+-----BEGIN PUBLIC KEY-----
+MCowBQYDK2VwAyEAZl/a3UFyIBpRy8eMtegVjwtxZClcnCuT+pEbNekxOg4=
+-----END PUBLIC KEY-----
+`
 
-// var ptiPublicKeySource = "https://raw.githubusercontent.com/provenancetech/pti-docs/master/utils/pti-prod-public.jwk"
-
-func ParsePTIPublicKey() (jwk.Key, error) {
-	keyToParse := os.Getenv("PTI_PUBLIC_KEY_JWK")
-	if keyToParse == "" {
-		keyToParse = ptiPublicKeyJwk
+func loadEd25519PublicKey() (ed25519.PublicKey, error) {
+	keyStr := os.Getenv("PTI_PUBLIC_KEY_JWK")
+	if keyStr == "" {
+		keyStr = ptiPublicKey
 	}
-	return jwk.ParseKey([]byte(keyToParse), jwk.WithPEM(false))
+	block, _ := pem.Decode([]byte(keyStr))
+	if block == nil {
+		return nil, fmt.Errorf("pti: failed to decode public key PEM")
+	}
+	pub, err := x509.ParsePKIXPublicKey(block.Bytes)
+	if err != nil {
+		return nil, err
+	}
+	edKey, ok := pub.(ed25519.PublicKey)
+	if !ok {
+		return nil, fmt.Errorf("pti: public key is not Ed25519")
+	}
+	return edKey, nil
+}
+
+func verifyEd25519Signature(key ed25519.PublicKey, body []byte, header string) bool {
+	for _, p := range strings.Split(header, ",") {
+		p = strings.TrimSpace(p)
+		if !strings.HasPrefix(p, "v1=") {
+			continue
+		}
+		sig, err := base64.StdEncoding.DecodeString(strings.TrimPrefix(p, "v1="))
+		if err != nil {
+			continue
+		}
+		if ed25519.Verify(key, body, sig) {
+			return true
+		}
+	}
+	return false
 }
 
 func Webhook(b Backends) (http.HandlerFunc, error) {
 	clientID := os.Getenv("PTI_CLIENT_ID")
-	ptiPublicKey, err := ParsePTIPublicKey()
+	pubKey, err := loadEd25519PublicKey()
 	if err != nil {
 		return nil, err
-	}
-
-	var ptiPrivateKey jwk.Key
-	if os.Getenv("PTI_JWK") != "" {
-		ptiPrivateKey, err = jwk.ParseKey([]byte(os.Getenv("PTI_JWK")))
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -65,46 +83,15 @@ func Webhook(b Backends) (http.HandlerFunc, error) {
 			return
 		}
 
-		// hack: add header field if it's missing - otherwise jwe library will fail to parse the message
-		var result map[string]any
-		err = json.Unmarshal(body, &result)
-		if err != nil {
-			log.Error("pti webhook: Failed to unmarshal payload", zap.Error(err))
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			return
-		}
-
-		if result["headers"] == nil {
-			headers := map[string]string{}
-			headers["alg"] = "RSA-OAEP-256"
-			headers["enc"] = "A256CBC-HS512"
-			result["header"] = headers
-		}
-
-		payloadWithHeader, err := json.Marshal(result)
-		if err != nil {
-			log.Error("pti webhook: Failed to marshal payload with header", zap.Error(err))
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			return
-		}
-
-		d, err := jwe.Decrypt(payloadWithHeader, jwe.WithKey(jwa.RSA_OAEP_256, ptiPrivateKey))
-		if err != nil {
-			log.Error("pti webhook: Failed to decrypt", zap.Error(err))
+		if !verifyEd25519Signature(pubKey, body, r.Header.Get("X-Signature")) {
+			log.Error("pti webhook: signature verification failed")
 			http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 			return
 		}
 
-		v, err := jws.Verify(d, jws.WithKey(jwa.RS512, ptiPublicKey))
-		if err != nil {
-			log.Error("pti webhook: Failed to verify", zap.Error(err))
-			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
-			return
-		}
-
 		var data WebhookData
-		if err = json.Unmarshal(v, &data); err != nil {
-			log.Error("pti webhook: Failed to unmarshal json", zap.Error(err))
+		if err = json.Unmarshal(body, &data); err != nil {
+			log.Error("pti webhook: Failed to unmarshal payload", zap.Error(err))
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return
 		}
@@ -115,17 +102,17 @@ func Webhook(b Backends) (http.HandlerFunc, error) {
 			return
 		}
 
-		log.Info("pti webhook: received webhook", zap.String("payload", string(v)))
+		log.Info("pti webhook: received webhook", zap.String("payload", string(body)))
 
 		switch data.ResourceType {
 		case "USER":
-			err = HandleUserUpdate(r.Context(), b, v)
+			err = HandleUserUpdate(r.Context(), b, body)
 		case "USER_ASSESSMENT", "KYC":
-			err = HandleAssessmentUpdate(r.Context(), b, v)
+			err = HandleAssessmentUpdate(r.Context(), b, body)
 		case "TRANSACTION_STATUS":
-			err = HandleTransactionStatus(r.Context(), b, v, w)
+			err = HandleTransactionStatus(r.Context(), b, body, w)
 		case "TRANSACTION_ASSESSMENT":
-			err = HandleTransactionAssessmentUpdate(r.Context(), b, v)
+			err = HandleTransactionAssessmentUpdate(r.Context(), b, body)
 		default:
 			log.Error("Unknown pti webhook type", zap.String("externalUserId", data.UserId), zap.String("resourceType", data.ResourceType), zap.String("requestId", data.RequestID))
 			w.WriteHeader(http.StatusOK)
