@@ -18,13 +18,21 @@ type client struct {
 	b ops.Backends
 }
 
-func New(b Backends, sendgridAPIKey string) email.Client {
+func New(
+	b Backends,
+	emailEnabled bool,
+	sendgridAPIKey, sendgridFromName, sendgridFromEmail, sendgridOneTemplateID string,
+) email.Client {
+	if !emailEnabled {
+		return &noopClient{}
+	}
 
-	externalClient := sendgrid.NewClient(sendgridAPIKey)
+	externalClient := sendgrid.NewClient(sendgridAPIKey, sendgridFromName, sendgridFromEmail)
 
 	ob := &opsBackends{
-		Backends: b,
-		external: externalClient,
+		Backends:   b,
+		external:   externalClient,
+		templateID: sendgridOneTemplateID,
 	}
 
 	return &client{

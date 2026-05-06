@@ -39,11 +39,13 @@ Protea is a Remix application serving the user-facing wallet UI.
 | `RAFIKI_AUTH_ENDPOINT` | Internal URL for the Rafiki auth gRPC/GraphQL endpoint | No | Deployed: `http://rafiki-auth-service:3009`; Local: `http://rafiki_auth:3009` |
 | `PAYMENT_POINTER_BASE` | Domain used to build Open Payments payment pointer addresses | No | Prod: `ilp.link`; Sandbox: `sandbox.ilp.link`; Dev: `development.ilp.link`; Local: `local.ilp.link` |
 | `BACKEND_GRPC_URL` | Internal URL for the wallet backend gRPC server | No | Deployed: `http://wallet-backend-service-grpc:8443`; Local: `http://backend:8443` |
+| `BACKEND_HTTP_URL` | Internal URL for the wallet backend HTTP server | No | Deployed: `http://wallet-backend-service:8080`; Local: `http://backend:8080` |
 | `DEFAULT_RATE_LIMIT_REQUESTS` | Max requests allowed per time window before rate limiting kicks in | No | Local default: `4` (code default); deployed values TBD |
 | `DEFAULT_RATE_LIMIT_TIME` | Rate limit time window in seconds | No | Local default: `3600` (code default); deployed values TBD |
 | `PTI_CLIENT_ID` | PTI/Fiant payment provider client UUID, passed to the browser for payment widget initialisation | No | Local default: `''` (code default); deployed values TBD |
 | `PTI_SDK_URL` | URL to the Fiant Web SDK JavaScript bundle loaded by the PTI payment widget. Value pattern documented in [Fiant Front-End SDK usage](https://developers.platform.fiant.io/docs/front-end-sdk-usage) as `https://sdk.{env}.fiant.io/latest/index.js` | No | Prod: `https://sdk.platform.fiant.io/0.0.23/index.js`; Sandbox/Dev: `https://sdk.staging.fiant.io/latest/index.js`; Local: `https://mockpti.interledger.test/sdk/index.js` |
 | `PTI_FORMS_URL` | URL to the Fiant hosted forms (Elements) used for KYC, onboarding, and payment collection widgets. Derived from the `ptiDomain` init parameter documented in [Fiant Front-End SDK usage](https://developers.platform.fiant.io/docs/front-end-sdk-usage): `https://forms.{ptiDomain}` | No | Prod: `https://forms.platform.fiant.io`; Sandbox/Dev: `https://forms.staging.fiant.io`; Local: `https://mockpti.interledger.test/forms` |
+| `MOCKXAGO_ENDPOINT` | Base URL for the MockXago iframe used by the South Africa local KYC flow | No | Local default: `https://mockxago.interledger.test`; not set in deployed environments |
 | `SENTRY_RELEASE` | Identifies the deployed version in Sentry error reports | No | Not set by default; deployed values TBD |
 | `CHOKIDAR_USEPOLLING` | Enable filesystem polling for hot-reload in containers (dev only) | No | Local only: `true`; not applicable in deployed environments |
 | `COOKIE_SECRETS` | JSON array of strings used to sign session cookies. Rotate periodically. | Yes | Local default: `["localsecret"]` |
@@ -152,7 +154,11 @@ The Go backend is the core of the wallet, handling payments, provider integratio
 
 | Variable | Description | Secret | Notes |
 |---|---|---|---|
-| `SENDGRID_API_KEY` | SendGrid API key for sending emails | Yes | Local default: `test-sendgrid-api-key` |
+| `EMAIL_ENABLED` | Set to `false` to disable all outgoing emails. Defaults to enabled if unset. When disabled, SendGrid env vars are not required. | No | Local default: `false` |
+| `SENDGRID_API_KEY` | SendGrid API key for sending emails. Required when `EMAIL_ENABLED` is not `false`. | Yes | Local default: `test-sendgrid-api-key` |
+| `SENDGRID_FROM_NAME` | Display name for outgoing emails (e.g. "Interledger Wallet"). Required when `EMAIL_ENABLED` is not `false`. | No | Local default: `Interledger Wallet` |
+| `SENDGRID_FROM_EMAIL` | Sender email address for outgoing emails. Required when `EMAIL_ENABLED` is not `false`. | No | Local default: `support@interledger.app` |
+| `SENDGRID_ONE_TEMPLATE_ID` | SendGrid Dynamic Template ID used by backend transactional emails. Required when `EMAIL_ENABLED` is not `false`. | No | Local default: `d-12030774d225454ea91720034b9adb97` |
 | `ZENDESK_USER` | Zendesk account email (currently not actively used) | No | Deployed: `support@interledger-app.dev`; Local: `matt@fynbos.dev` |
 | `ZENDESK_TOKEN` | Zendesk API token | Yes | Local default: `test` |
 
@@ -166,8 +172,9 @@ The Go backend is the core of the wallet, handling payments, provider integratio
 
 | Variable | Description | Secret | Notes |
 |---|---|---|---|
-| `PERSONA_TOKEN` | Persona API token for identity verification | Yes | Not set locally |
-| `PERSONA_WEBHOOK_TOKEN` | Persona webhook verification token | Yes | Not set locally |
+| `PERSONA_TOKEN` | Persona API token for identity verification. Required at backend startup. | Yes | Prod/Sandbox/Dev: secret from 1Password; Local default: `test-persona-token` |
+| `PERSONA_WEBHOOK_TOKEN` | Persona webhook verification token. Required at backend startup. | Yes | Prod/Sandbox/Dev: secret from 1Password; Local default: `test-persona-webhook-token` |
+| `PERSONA_BASE_URL` | Persona API base URL override used by backend Persona client | No | Default when unset: `https://api.withpersona.com/api/v1/`; Local default in compose: `http://mockxago:8080/v1/` |
 
 ### Basis Theory (Card Tokenisation)
 

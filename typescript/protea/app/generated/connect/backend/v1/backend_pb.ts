@@ -5414,6 +5414,11 @@ export class LinkedAccount extends Message<LinkedAccount> {
    */
   state = "";
 
+  /**
+   * @generated from field: string createdAt = 16;
+   */
+  createdAt = "";
+
   constructor(data?: PartialMessage<LinkedAccount>) {
     super();
     proto3.util.initPartial(data, this);
@@ -5437,6 +5442,7 @@ export class LinkedAccount extends Message<LinkedAccount> {
     { no: 13, name: "defaultSend", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 14, name: "defaultReceive", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 15, name: "state", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 16, name: "createdAt", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): LinkedAccount {
@@ -7781,123 +7787,6 @@ export class TwitterCallbackResponse extends Message<TwitterCallbackResponse> {
 
   static equals(a: TwitterCallbackResponse | PlainMessage<TwitterCallbackResponse> | undefined, b: TwitterCallbackResponse | PlainMessage<TwitterCallbackResponse> | undefined): boolean {
     return proto3.util.equals(TwitterCallbackResponse, a, b);
-  }
-}
-
-/**
- * @generated from message backend.v1.DiscordCallbackRequest
- */
-export class DiscordCallbackRequest extends Message<DiscordCallbackRequest> {
-  /**
-   * @generated from field: string state = 1;
-   */
-  state = "";
-
-  /**
-   * @generated from field: string code = 2;
-   */
-  code = "";
-
-  constructor(data?: PartialMessage<DiscordCallbackRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "backend.v1.DiscordCallbackRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "state", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "code", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DiscordCallbackRequest {
-    return new DiscordCallbackRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DiscordCallbackRequest {
-    return new DiscordCallbackRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DiscordCallbackRequest {
-    return new DiscordCallbackRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: DiscordCallbackRequest | PlainMessage<DiscordCallbackRequest> | undefined, b: DiscordCallbackRequest | PlainMessage<DiscordCallbackRequest> | undefined): boolean {
-    return proto3.util.equals(DiscordCallbackRequest, a, b);
-  }
-}
-
-/**
- * @generated from message backend.v1.DiscordCallbackResponse
- */
-export class DiscordCallbackResponse extends Message<DiscordCallbackResponse> {
-  /**
-   * @generated from field: string id = 1;
-   */
-  id = "";
-
-  constructor(data?: PartialMessage<DiscordCallbackResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "backend.v1.DiscordCallbackResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DiscordCallbackResponse {
-    return new DiscordCallbackResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DiscordCallbackResponse {
-    return new DiscordCallbackResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DiscordCallbackResponse {
-    return new DiscordCallbackResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: DiscordCallbackResponse | PlainMessage<DiscordCallbackResponse> | undefined, b: DiscordCallbackResponse | PlainMessage<DiscordCallbackResponse> | undefined): boolean {
-    return proto3.util.equals(DiscordCallbackResponse, a, b);
-  }
-}
-
-/**
- * @generated from message backend.v1.CreateDiscordAuthURLResponse
- */
-export class CreateDiscordAuthURLResponse extends Message<CreateDiscordAuthURLResponse> {
-  /**
-   * @generated from field: string url = 1;
-   */
-  url = "";
-
-  constructor(data?: PartialMessage<CreateDiscordAuthURLResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "backend.v1.CreateDiscordAuthURLResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateDiscordAuthURLResponse {
-    return new CreateDiscordAuthURLResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CreateDiscordAuthURLResponse {
-    return new CreateDiscordAuthURLResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CreateDiscordAuthURLResponse {
-    return new CreateDiscordAuthURLResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: CreateDiscordAuthURLResponse | PlainMessage<CreateDiscordAuthURLResponse> | undefined, b: CreateDiscordAuthURLResponse | PlainMessage<CreateDiscordAuthURLResponse> | undefined): boolean {
-    return proto3.util.equals(CreateDiscordAuthURLResponse, a, b);
   }
 }
 

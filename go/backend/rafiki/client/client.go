@@ -53,8 +53,8 @@ type client struct {
 	b ops.Backends
 }
 
-func New(b Backends) rafiki.Client {
-	se := external.New()
+func New(b Backends, signingConfig external.AdminSigningConfig) rafiki.Client {
+	se := external.New(signingConfig)
 
 	return &client{b: &opsBackends{Backends: b, rafikiExt: se}}
 }

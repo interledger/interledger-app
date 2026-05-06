@@ -69,7 +69,11 @@ type StartArgs struct {
 	ZendeskToken                  string
 	AdminPolicyAud                string
 	AdminTeamDomain               string
+	EmailEnabled                  bool
 	SendgridAPIKey                string
+	SendgridFromName              string
+	SendgridFromEmail             string
+	SendgridOneTemplateID         string
 	SmartyAuthID                  string
 	SmartyAuthToken               string
 	PusherAddr                    string
@@ -78,9 +82,6 @@ type StartArgs struct {
 	TwitterClientSecret           string
 	TwitterRedirectURL            string
 	TwitterBearerToken            string
-	DiscordClientID               string
-	DiscordClientSecret           string
-	DiscordRedirectURL            string
 	GatehubAppID                  string
 	GatehubSecret                 string
 	GatehubCardAppID              string
@@ -114,9 +115,15 @@ type StartArgs struct {
 	PTISDKURL                     string
 	PTIFormsURL                   string
 	PTIPublicKeyJWK               string
+	PersonaBaseURL                string
+	PersonaToken                  string
+	PersonaWebhookToken           string
 	AppleAppID                    string
 	AndroidPackageName            string
 	AndroidSHA256                 string
+	OperatorTenantID              string
+	AdminAPISecret                string
+	SignatureVersion              string
 }
 
 func ParseStartArgs() (*StartArgs, error) {
@@ -196,14 +203,19 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, errors.New("ZENDESK_TOKEN is required")
 	}
 
+	personaBaseURL := os.Getenv("PERSONA_BASE_URL")
+	if personaBaseURL == "" {
+		personaBaseURL = "https://api.withpersona.com/api/v1/"
+	}
+
 	personaToken := os.Getenv("PERSONA_TOKEN")
-	if personaToken == "" && env.IsProd() {
-		return nil, errors.New("PERSONA_TOKEN is required in prod")
+	if personaToken == "" {
+		return nil, errors.New("PERSONA_TOKEN is required")
 	}
 
 	personaWebhook := os.Getenv("PERSONA_WEBHOOK_TOKEN")
-	if personaWebhook == "" && env.IsProd() {
-		return nil, errors.New("PERSONA_WEBHOOK_TOKEN is required in prod")
+	if personaWebhook == "" {
+		return nil, errors.New("PERSONA_WEBHOOK_TOKEN is required")
 	}
 
 	twitterClientId := os.Getenv("TWITTER_CLIENT_ID")
@@ -236,9 +248,36 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, errors.New("ADMIN_TEAM_DOMAIN is required")
 	}
 
-	sendgridAPIKey := os.Getenv("SENDGRID_API_KEY")
-	if sendgridAPIKey == "" {
-		return nil, errors.New("SENDGRID_API_KEY is required")
+	emailEnabled := true
+	if v := os.Getenv("EMAIL_ENABLED"); v != "" {
+		var err error
+		emailEnabled, err = strconv.ParseBool(v)
+		if err != nil {
+			return nil, errors.New("EMAIL_ENABLED must be a valid boolean (true/false/1/0)")
+		}
+	}
+
+	var sendgridAPIKey, sendgridFromName, sendgridFromEmail, sendgridOneTemplateID string
+	if emailEnabled {
+		sendgridAPIKey = os.Getenv("SENDGRID_API_KEY")
+		if sendgridAPIKey == "" {
+			return nil, errors.New("SENDGRID_API_KEY is required when EMAIL_ENABLED is true")
+		}
+
+		sendgridFromName = os.Getenv("SENDGRID_FROM_NAME")
+		if sendgridFromName == "" {
+			return nil, errors.New("SENDGRID_FROM_NAME is required when EMAIL_ENABLED is true")
+		}
+
+		sendgridFromEmail = os.Getenv("SENDGRID_FROM_EMAIL")
+		if sendgridFromEmail == "" {
+			return nil, errors.New("SENDGRID_FROM_EMAIL is required when EMAIL_ENABLED is true")
+		}
+
+		sendgridOneTemplateID = os.Getenv("SENDGRID_ONE_TEMPLATE_ID")
+		if sendgridOneTemplateID == "" {
+			return nil, errors.New("SENDGRID_ONE_TEMPLATE_ID is required when EMAIL_ENABLED is true")
+		}
 	}
 
 	smartyAuthID := os.Getenv("SMARTY_AUTH_ID")
@@ -436,6 +475,21 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, errors.New("ANDROID_SHA256 is required")
 	}
 
+	operatorTenantID := os.Getenv("OPERATOR_TENANT_ID")
+	if operatorTenantID == "" {
+		return nil, errors.New("OPERATOR_TENANT_ID is required")
+	}
+
+	adminAPISecret := os.Getenv("ADMIN_API_SECRET")
+	if adminAPISecret == "" {
+		return nil, errors.New("ADMIN_API_SECRET is required")
+	}
+
+	signatureVersion := os.Getenv("SIGNATURE_VERSION")
+	if signatureVersion == "" {
+		return nil, errors.New("SIGNATURE_VERSION is required")
+	}
+
 	return &StartArgs{
 		Port:                          port,
 		AuthorisationPort:             authorisationPort,
@@ -457,14 +511,15 @@ func ParseStartArgs() (*StartArgs, error) {
 		TwitterBearerToken:            twitterBearerToken,
 		AdminPolicyAud:                adminPolicyAud,
 		AdminTeamDomain:               adminTeamDomain,
+		EmailEnabled:                  emailEnabled,
 		SendgridAPIKey:                sendgridAPIKey,
+		SendgridFromName:              sendgridFromName,
+		SendgridFromEmail:             sendgridFromEmail,
+		SendgridOneTemplateID:         sendgridOneTemplateID,
 		SmartyAuthID:                  smartyAuthID,
 		SmartyAuthToken:               smartyAuthToken,
 		PusherAddr:                    pusherAddr,
 		SegmentKey:                    segmentKey,
-		DiscordClientID:               "",
-		DiscordClientSecret:           "",
-		DiscordRedirectURL:            "",
 		GatehubAppID:                  gatehubAppID,
 		GatehubSecret:                 gatehubSecret,
 		GatehubCardAppID:              gatehubCardAppID,
@@ -498,8 +553,14 @@ func ParseStartArgs() (*StartArgs, error) {
 		PTISDKURL:                     ptiSDKURL,
 		PTIFormsURL:                   ptiFormsURL,
 		PTIPublicKeyJWK:               ptiPublicKeyJWK,
+		PersonaBaseURL:                personaBaseURL,
+		PersonaToken:                  personaToken,
+		PersonaWebhookToken:           personaWebhook,
 		AppleAppID:                    appleAppID,
 		AndroidPackageName:            androidPackageName,
 		AndroidSHA256:                 androidSHA256,
+		OperatorTenantID:              operatorTenantID,
+		AdminAPISecret:                adminAPISecret,
+		SignatureVersion:              signatureVersion,
 	}, nil
 }

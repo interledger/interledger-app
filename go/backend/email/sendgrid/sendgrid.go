@@ -26,12 +26,12 @@ type client struct {
 	mailer *sendgrid.Client
 }
 
-func NewClient(apiKey string) Client {
+func NewClient(apiKey, fromName, fromEmail string) Client {
 	// Override the default API HTTP client. The lib doesn't seem to have a nice way to set this...
 	rest.DefaultClient.HTTPClient = otelhttp.DefaultClient
 
 	return &client{
-		from:   mail.NewEmail("Interledger Wallet", "support@interledger.app"),
+		from:   mail.NewEmail(fromName, fromEmail),
 		mailer: sendgrid.NewSendClient(apiKey),
 	}
 }
