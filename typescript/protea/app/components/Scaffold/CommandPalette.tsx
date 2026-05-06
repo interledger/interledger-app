@@ -1,5 +1,5 @@
 import { Dialog as HeadlessDialog, Transition } from '@headlessui/react'
-import { useNavigate } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
 import clsx from 'clsx'
 import type { FC, ReactNode } from 'react'
 import { Fragment, useEffect } from 'react'
@@ -15,9 +15,14 @@ export const CommandPalette: FC<CommandPaletteProps> = ({
   unmount = false
 }) => {
   const navigate = useNavigate()
+  const { pathname } = useLocation()
   const [commandPaletteOpen, setCommandPaletteOpen] = useScaffoldStore(
     (state) => [state.commandPalletOpen, state.setCommandPalletOpen]
   )
+
+  useEffect(() => {
+    setCommandPaletteOpen(false)
+  }, [pathname, setCommandPaletteOpen])
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {

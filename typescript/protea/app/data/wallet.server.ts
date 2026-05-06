@@ -32,7 +32,7 @@ export async function requireApprovedKyc(request: Request): Promise<void> {
   if (kycStatus === KycStatus.Pending || kycStatus === KycStatus.InReview) {
     throw await redirectWithSnackbar(request, href('/'), {
       message:
-        'KYC is being processed. This functionality will be available after you are approved.'
+        'Your identity is being verified.\nThis functionality will be available once approved.'
     })
   }
 
