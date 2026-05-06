@@ -7,6 +7,8 @@ import (
 	"github.com/cucumber/godog"
 )
 
+var _ = (*E2EContext).getCurrentUserPhone
+
 // UserDetails holds the details for a named user (e.g., 'kyc-user')
 // Maps field names to values for later reference
 type UserDetails struct {

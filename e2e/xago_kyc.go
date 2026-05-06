@@ -21,8 +21,11 @@ func (sc *E2EContext) iFillAndSubmitTheMockxagoiframe() error {
 	debugPrintf("   📍 Setting up message listener...\n")
 	_, err := sc.page.Evaluate(`() => {
 		window.kycCompleted = false;
+		window.kycCompletionError = '';
+		window.kycLastMessageType = '';
 		window.addEventListener('message', (e) => {
 			console.log('Parent received message:', e.data);
+			window.kycLastMessageType = e.data?.type || '';
 			if (e.data?.type === 'OnboardingCompleted') {
 				let parsed;
 				try { parsed = JSON.parse(e.data.value || '{}'); } catch(ex) { parsed = {}; }
@@ -30,6 +33,13 @@ func (sc *E2EContext) iFillAndSubmitTheMockxagoiframe() error {
 					window.kycCompleted = true;
 					console.log('MockXago KYC completed message received');
 				}
+			}
+
+			if (e.data?.type === 'OnboardingError') {
+				let parsed;
+				try { parsed = JSON.parse(e.data.value || '{}'); } catch(ex) { parsed = {}; }
+				window.kycCompletionError = parsed.message || 'Unknown OnboardingError from iframe';
+				console.log('MockXago KYC error message received:', window.kycCompletionError);
 			}
 		});
 	}`)
@@ -47,6 +57,9 @@ func (sc *E2EContext) iFillAndSubmitTheMockxagoiframe() error {
 	}
 
 	debugPrintf("   📍 Found iframe, searching for form elements\n")
+
+	formAction, _ := frameLocator.Locator("form").First().GetAttribute("action")
+	debugPrintf("   📍 Iframe form action: %s\n", formAction)
 
 	// Wait for iframe to be loaded and interactive
 	time.Sleep(1 * time.Second)
@@ -125,6 +138,31 @@ func (sc *E2EContext) iFillAndSubmitTheMockxagoiframe() error {
 	if !buttonClicked {
 		_ = sc.iTakeAScreenshot("mockxago-no-submit-button")
 		return fmt.Errorf("MockXago KYC iframe submit button not found (found %d buttons)", buttonCount)
+	}
+
+	// Wait briefly for completion/error message to arrive from iframe submission.
+	for i := 0; i < 20; i++ {
+		state, evalErr := sc.page.Evaluate(`() => ({
+			completed: window.kycCompleted === true,
+			error: window.kycCompletionError || '',
+			lastType: window.kycLastMessageType || ''
+		})`)
+		if evalErr == nil && state != nil {
+			if m, ok := state.(map[string]interface{}); ok {
+				if errMsg, ok := m["error"].(string); ok && errMsg != "" {
+					return fmt.Errorf("mockxago iframe submission emitted OnboardingError: %s (form action: %s)", errMsg, formAction)
+				}
+				if completed, ok := m["completed"].(bool); ok && completed {
+					debugPrintf("   ✓ MockXago completion postMessage observed in parent\n")
+					break
+				}
+				if i == 19 {
+					lastType, _ := m["lastType"].(string)
+					debugPrintf("   ⚠️  No completion message observed after submit (last message type: %s)\n", lastType)
+				}
+			}
+		}
+		time.Sleep(250 * time.Millisecond)
 	}
 
 	debugPrintf("   ✓ MockXago KYC iframe form submitted\n")
