@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
@@ -489,4 +490,232 @@ func TestPersonaSDK_ServesScript(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Equal(t, "application/javascript; charset=utf-8", w.Header().Get("Content-Type"))
 	assert.Greater(t, w.Body.Len(), 0)
+}
+
+// --- Tests for the fix: PersonaInquirySubmit must fire the Persona webhook chain ---
+//
+// Before the fix, POST /v1/inquiries/{id}/submit saved KYC form data but never fired
+// any webhooks. The backend's accountTagAddedWebhook (triggered by account.tag-added)
+// is what starts SetKYCStatusWorkflow → CreateBalanceAccountWorkflow → CreateSubAccount.
+// Without it, xago_sub_accounts was never populated and all deposit tests timed out.
+
+// submitInquiryForm is a test helper that calls PersonaInquirySubmit with the given data.
+func submitInquiryForm(t *testing.T, h *Handler, inquiryID, firstName, lastName, dob, address string) {
+	t.Helper()
+	form := url.Values{
+		"first_name": {firstName},
+		"last_name":  {lastName},
+		"dob":        {dob},
+		"address":    {address},
+	}
+	r := httptest.NewRequest(http.MethodPost, "/v1/inquiries/"+inquiryID+"/submit", strings.NewReader(form.Encode()))
+	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rctx := chi.NewRouteContext()
+	rctx.URLParams.Add("inquiryId", inquiryID)
+	r = r.WithContext(context.WithValue(r.Context(), chi.RouteCtxKey, rctx))
+	w := httptest.NewRecorder()
+	h.PersonaInquirySubmit(w, r)
+	require.Equal(t, http.StatusOK, w.Code)
+}
+
+// personaGetAccount is a test helper that calls PersonaGetAccount and returns the decoded body.
+func personaGetAccount(t *testing.T, h *Handler, accountID string) map[string]interface{} {
+	t.Helper()
+	r := httptest.NewRequest(http.MethodGet, "/v1/accounts/"+accountID, nil)
+	rctx := chi.NewRouteContext()
+	rctx.URLParams.Add("accountId", accountID)
+	r = r.WithContext(context.WithValue(r.Context(), chi.RouteCtxKey, rctx))
+	w := httptest.NewRecorder()
+	h.PersonaGetAccount(w, r)
+	require.Equal(t, http.StatusOK, w.Code)
+	var resp map[string]interface{}
+	require.NoError(t, json.NewDecoder(w.Body).Decode(&resp))
+	return resp
+}
+
+// TestPersonaInquirySubmit_FiresInquiryApprovedWebhook verifies that a successful
+// KYC form submission fires the inquiry.approved webhook to PERSONA_WEBHOOK_URL.
+// This is the first event in the chain that eventually creates the Xago sub-account.
+func TestPersonaInquirySubmit_FiresInquiryApprovedWebhook(t *testing.T) {
+	eventNames := make(chan string, 10)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var payload map[string]interface{}
+		json.NewDecoder(r.Body).Decode(&payload)
+		data, _ := payload["data"].(map[string]interface{})
+		attrs, _ := data["attributes"].(map[string]interface{})
+		if name, ok := attrs["name"].(string); ok {
+			eventNames <- name
+		}
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+	t.Setenv("PERSONA_WEBHOOK_URL", server.URL)
+
+	h := setupTestHandler(t)
+	submitInquiryForm(t, h, "wallet-inq-approved", "Thabo", "Mbeki", "1990-01-15", "42 Nelson Mandela Dr")
+
+	select {
+	case name := <-eventNames:
+		assert.Equal(t, "inquiry.approved", name)
+	case <-time.After(3 * time.Second):
+		t.Fatal("timed out waiting for inquiry.approved webhook")
+	}
+}
+
+// TestPersonaInquirySubmit_FiresFullWebhookChain verifies that both inquiry.approved
+// and account.tag-added are sent after a successful KYC form submission.
+// The backend needs both: inquiry.approved marks the inquiry as approved in the DB,
+// and account.tag-added triggers SetKYCStatusWorkflow which creates the Xago sub-account.
+func TestPersonaInquirySubmit_FiresFullWebhookChain(t *testing.T) {
+	eventNames := make(chan string, 10)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var payload map[string]interface{}
+		json.NewDecoder(r.Body).Decode(&payload)
+		data, _ := payload["data"].(map[string]interface{})
+		attrs, _ := data["attributes"].(map[string]interface{})
+		if name, ok := attrs["name"].(string); ok {
+			eventNames <- name
+		}
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+	t.Setenv("PERSONA_WEBHOOK_URL", server.URL)
+
+	h := setupTestHandler(t)
+	submitInquiryForm(t, h, "wallet-full-chain", "Thabo", "Mbeki", "1990-01-15", "42 Nelson Mandela Dr")
+
+	// Collect both events; account.tag-added is delayed 2s after inquiry.approved
+	var received []string
+	deadline := time.After(5 * time.Second)
+	for len(received) < 2 {
+		select {
+		case name := <-eventNames:
+			received = append(received, name)
+		case <-deadline:
+			t.Fatalf("timed out waiting for both webhooks; got so far: %v", received)
+		}
+	}
+
+	assert.Contains(t, received, "inquiry.approved")
+	assert.Contains(t, received, "account.tag-added")
+}
+
+// TestPersonaInquirySubmit_WebhookContainsWalletID verifies that account.tag-added
+// embeds the wallet ID in the payload so the backend can correlate it with the user.
+func TestPersonaInquirySubmit_WebhookContainsWalletID(t *testing.T) {
+	walletID := "wallet-webhook-id-check"
+	payloads := make(chan map[string]interface{}, 10)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var p map[string]interface{}
+		json.NewDecoder(r.Body).Decode(&p)
+		payloads <- p
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+	t.Setenv("PERSONA_WEBHOOK_URL", server.URL)
+
+	h := setupTestHandler(t)
+	submitInquiryForm(t, h, walletID, "Thabo", "Mbeki", "1990-01-15", "42 Nelson Mandela Dr")
+
+	// Wait for account.tag-added (second event, arrives ~2s after submit)
+	deadline := time.After(5 * time.Second)
+	for {
+		select {
+		case p := <-payloads:
+			data := p["data"].(map[string]interface{})
+			attrs := data["attributes"].(map[string]interface{})
+			if attrs["name"] != "account.tag-added" {
+				continue
+			}
+			eventPayload := attrs["payload"].(map[string]interface{})
+			accData := eventPayload["data"].(map[string]interface{})
+			assert.Equal(t, walletID, accData["id"])
+			accAttrs := accData["attributes"].(map[string]interface{})
+			assert.Equal(t, walletID, accAttrs["reference-id"])
+			return
+		case <-deadline:
+			t.Fatal("timed out waiting for account.tag-added webhook")
+		}
+	}
+}
+
+// --- Tests for PersonaGetAccount returning data required by the backend ---
+
+// TestPersonaGetAccount_LookupByWalletIDAfterInquirySubmit verifies that GetAccount
+// succeeds when called with the inquiry/wallet ID (not the sub-account's internal AccountID).
+// This is the exact lookup path used by GetZAIDNumber: it reads external_id from
+// kyc_persona_accounts (which equals walletID) and calls GetAccount with that value.
+func TestPersonaGetAccount_LookupByWalletIDAfterInquirySubmit(t *testing.T) {
+	h := setupTestHandler(t)
+	walletID := "wallet-lookup-by-wallet-id"
+
+	submitInquiryForm(t, h, walletID, "Thabo", "Mbeki", "1990-01-15", "42 Nelson Mandela Dr")
+
+	resp := personaGetAccount(t, h, walletID)
+	data := resp["data"].(map[string]interface{})
+	attrs := data["attributes"].(map[string]interface{})
+
+	assert.Equal(t, walletID, attrs["reference-id"])
+	assert.Equal(t, "Thabo", attrs["name-first"])
+	assert.Equal(t, "Mbeki", attrs["name-last"])
+	assert.Equal(t, "1990-01-15", attrs["birthdate"])
+	assert.Equal(t, "ZA", attrs["country-code"])
+}
+
+// TestPersonaGetAccount_ReturnsValidZAIDNumber verifies the account response includes
+// a valid 13-digit South African ID number. The backend's isValidZAID function checks
+// for exactly 13 numeric digits and a valid Luhn-style checksum. Without a valid ID,
+// GetPersonaZAIDNumber returns ErrNoKYCInfo and CreateSubAccount fails non-retryably.
+func TestPersonaGetAccount_ReturnsValidZAIDNumber(t *testing.T) {
+	h := setupTestHandler(t)
+	walletID := "wallet-za-id-valid"
+
+	submitInquiryForm(t, h, walletID, "Thabo", "Mbeki", "1990-01-15", "42 Nelson Mandela Dr")
+
+	resp := personaGetAccount(t, h, walletID)
+	data := resp["data"].(map[string]interface{})
+	attrs := data["attributes"].(map[string]interface{})
+	idNums, ok := attrs["identification-numbers"].(map[string]interface{})
+	require.True(t, ok, "identification-numbers must be present in account attributes")
+	require.NotEmpty(t, idNums)
+
+	var zaID string
+	for _, group := range idNums {
+		entries := group.([]interface{})
+		for _, entry := range entries {
+			e := entry.(map[string]interface{})
+			if e["issuing-country"] == "ZA" {
+				zaID, _ = e["identification-number"].(string)
+			}
+		}
+	}
+
+	require.NotEmpty(t, zaID, "must include a ZA identification-number")
+	assert.Len(t, zaID, 13, "ZA ID must be exactly 13 digits")
+	assert.Regexp(t, `^\d{13}$`, zaID, "ZA ID must consist only of digits")
+}
+
+// TestPersonaGetAccount_ReturnsDIRTYAndKYCLevel1Tags verifies both tags are present.
+// DIRTY drives the dirty-sync path in accountTagAddedWebhook (syncing individual details).
+// STATUS:KYC-LEVEL:1 is what SetKYCStatus reads to set the user's KYC level, which
+// triggers CreateBalanceAccountWorkflow for Xago users.
+func TestPersonaGetAccount_ReturnsDIRTYAndKYCLevel1Tags(t *testing.T) {
+	h := setupTestHandler(t)
+	walletID := "wallet-tags-check"
+
+	submitInquiryForm(t, h, walletID, "Thabo", "Mbeki", "1990-01-15", "42 Nelson Mandela Dr")
+
+	resp := personaGetAccount(t, h, walletID)
+	data := resp["data"].(map[string]interface{})
+	attrs := data["attributes"].(map[string]interface{})
+	rawTags, ok := attrs["tags"].([]interface{})
+	require.True(t, ok, "tags must be present in account attributes")
+
+	tags := make([]string, len(rawTags))
+	for i, tag := range rawTags {
+		tags[i] = tag.(string)
+	}
+
+	assert.Contains(t, tags, "DIRTY", "DIRTY tag required for dirty-sync path")
+	assert.Contains(t, tags, "STATUS:KYC-LEVEL:1", "KYC-LEVEL:1 tag required to set KYC status")
 }

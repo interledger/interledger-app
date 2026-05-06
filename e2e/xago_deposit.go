@@ -100,13 +100,8 @@ func getMockXagoAuthToken() (string, error) {
 // getXagoAccountIDByEmail retrieves the Xago sub-account account_id for a user by email.
 // It queries the xago_sub_accounts table via the user's wallet.
 func (sc *E2EContext) getXagoAccountIDByEmail(email string) (string, error) {
-	if sc.db == nil {
-		connStr := "host=localhost port=5432 user=postgres password=postgres dbname=backend sslmode=disable"
-		db, err := sql.Open("postgres", connStr)
-		if err != nil {
-			return "", fmt.Errorf("getXagoAccountIDByEmail: failed to open db: %w", err)
-		}
-		sc.db = db
+	if err := sc.ensureDB(); err != nil {
+		return "", fmt.Errorf("getXagoAccountIDByEmail: %w", err)
 	}
 
 	kratosID := sc.getKratosUserIDByEmail(email)
@@ -148,15 +143,17 @@ func (sc *E2EContext) iSimulateXagoTestDeposit(amount, currency string) error {
 		return fmt.Errorf("iSimulateXagoTestDeposit: failed to get current user email: %w", err)
 	}
 
-	// Poll for the Xago account ID (KYC flow may still be completing)
+	// Poll for the Xago account ID. The sub-account is created asynchronously
+	// via a Temporal workflow chain after KYC approval, which can take over a
+	// minute under concurrent load. Allow up to 3 minutes.
 	var accountID string
-	for attempt := 0; attempt < 20; attempt++ {
+	for attempt := 0; attempt < 60; attempt++ {
 		accountID, err = sc.getXagoAccountIDByEmail(email)
 		if err == nil {
 			break
 		}
-		debugPrintf("   ⏳ Waiting for Xago sub-account to be created (attempt %d/20)...\n", attempt+1)
-		time.Sleep(2 * time.Second)
+		debugPrintf("   ⏳ Waiting for Xago sub-account to be created (attempt %d/60)...\n", attempt+1)
+		time.Sleep(3 * time.Second)
 	}
 	if err != nil {
 		return fmt.Errorf("iSimulateXagoTestDeposit: Xago sub-account not found after waiting: %w", err)
@@ -217,4 +214,52 @@ func (sc *E2EContext) iSimulateXagoTestDeposit(amount, currency string) error {
 	debugPrintf("   ✓ Xago test deposit initiated: txn=%s status=%s\n", depositResp.TransactionID, depositResp.Status)
 	_ = sc.iTakeAScreenshot("xago-deposit-initiated")
 	return nil
+}
+
+// iInitiateDepositForXagoLinkedAccount navigates to the deposit page.
+// For ZA users with no linked bank account, the loader auto-populates EFT
+// deposit details so the instructions are shown directly on arrival.
+func (sc *E2EContext) iInitiateDepositForXagoLinkedAccount() error {
+	return sc.iNavigateToTheDepositPage()
+}
+
+// iClickTheXagoTestDepositButton clicks the "Test Deposit" button on the EFT
+// deposit instructions page. This exercises the frontend UI path through the
+// backend's DepositTestXago gRPC handler, which posts a hardcoded 200 ZAR
+// deposit to MockXago.
+func (sc *E2EContext) iClickTheXagoTestDepositButton() error {
+	debugPrintln("\n🖱️  Clicking Test Deposit button on deposit page...")
+
+	if err := sc.myXagoSpecificDepositInstructionsShouldBeDisplayedToMe(); err != nil {
+		return fmt.Errorf("iClickTheXagoTestDepositButton: EFT instructions not shown: %w", err)
+	}
+
+	btn := sc.page.Locator("button:has-text('Test Deposit')")
+	if err := btn.Click(); err != nil {
+		_ = sc.iTakeAScreenshot("xago-test-deposit-button-missing")
+		return fmt.Errorf("iClickTheXagoTestDepositButton: failed to click button: %w", err)
+	}
+
+	_ = sc.iTakeAScreenshot("xago-test-deposit-clicked")
+	debugPrintln("   ✓ Clicked Test Deposit button")
+	return nil
+}
+
+// myXagoSpecificDepositInstructionsShouldBeDisplayedToMe asserts that the EFT
+// deposit instructions card is visible on the page.
+func (sc *E2EContext) myXagoSpecificDepositInstructionsShouldBeDisplayedToMe() error {
+	debugPrintln("\n🏦 Verifying Xago EFT deposit instructions are displayed...")
+
+	for i := 0; i < 20; i++ {
+		content, _ := sc.page.Content()
+		if strings.Contains(content, "EFT details") && strings.Contains(content, "Account number") {
+			_ = sc.iTakeAScreenshot("xago-eft-instructions")
+			debugPrintln("   ✓ Xago EFT deposit instructions visible")
+			return nil
+		}
+		time.Sleep(500 * time.Millisecond)
+	}
+
+	_ = sc.iTakeAScreenshot("xago-eft-instructions-missing")
+	return fmt.Errorf("Xago EFT deposit instructions not visible after 10 seconds")
 }
