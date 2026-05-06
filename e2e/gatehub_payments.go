@@ -390,70 +390,86 @@ func (sc *E2EContext) iSelectThePaymentCurrency(currency string) error {
 	return fmt.Errorf("could not find currency selector")
 }
 
-// iSubmitThePayment submits the payment form
+// iSubmitThePayment submits the payment form. The protea Pay flow is a
+// two-step SPA: the Amount step (Continue button) transitions in-memory to the
+// Confirm step (agreement checkbox + Confirm payment button). Both must be
+// driven for a payment to actually be created on the backend.
 func (sc *E2EContext) iSubmitThePayment() error {
 	debugPrintln("\n📤 Submitting payment...")
 
 	confirmButton := sc.page.Locator("[data-testid='pay-confirm-submit']")
 	continueButton := sc.page.Locator("[data-testid='pay-amount-continue']")
 
-	if count, _ := confirmButton.Count(); count > 0 {
-		agreement := sc.page.Locator("[data-testid='pay-confirm-agreement']")
-		if aCount, _ := agreement.Count(); aCount > 0 {
-			checked, _ := agreement.First().IsChecked()
-			if !checked {
-				_ = agreement.First().Check()
-			}
-		}
-		if err := confirmButton.First().Click(); err == nil {
-			debugPrintln("✓ Submitted payment confirmation")
-			return nil
-		}
+	// If we're already on the Confirm step, just check agreement and submit.
+	if err := confirmButton.First().WaitFor(playwright.LocatorWaitForOptions{
+		State:   playwright.WaitForSelectorStateVisible,
+		Timeout: playwright.Float(500),
+	}); err == nil {
+		return sc.confirmPaymentAgreementAndSubmit(confirmButton)
 	}
 
-	if count, _ := continueButton.Count(); count > 0 {
-		if err := continueButton.First().Click(); err != nil {
-			return fmt.Errorf("failed to click continue: %w", err)
-		}
-		_ = confirmButton.First().WaitFor(playwright.LocatorWaitForOptions{
+	// Otherwise we expect to be on the Amount step. Wait for the Continue
+	// button to be ready (the amount field debounces a network request which
+	// can briefly destabilise the form), then click it to advance to Confirm.
+	if err := continueButton.First().WaitFor(playwright.LocatorWaitForOptions{
+		State:   playwright.WaitForSelectorStateVisible,
+		Timeout: playwright.Float(10000),
+	}); err != nil {
+		return fmt.Errorf("pay-amount-continue button not visible: %w", err)
+	}
+
+	// Allow any in-flight amount-update fetcher request to settle so the
+	// Continue submit carries the latest amount/currency.
+	if err := sc.page.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
+		State:   playwright.LoadStateNetworkidle,
+		Timeout: playwright.Float(5000),
+	}); err != nil {
+		debugPrintf("⚠ network idle wait timed out before Continue, proceeding anyway\n")
+	}
+
+	if err := continueButton.First().Click(); err != nil {
+		return fmt.Errorf("failed to click pay-amount-continue: %w", err)
+	}
+	debugPrintln("✓ Clicked Continue, waiting for Confirm step...")
+
+	if err := confirmButton.First().WaitFor(playwright.LocatorWaitForOptions{
+		State:   playwright.WaitForSelectorStateVisible,
+		Timeout: playwright.Float(15000),
+	}); err != nil {
+		return fmt.Errorf("pay-confirm-submit button did not appear: %w", err)
+	}
+
+	return sc.confirmPaymentAgreementAndSubmit(confirmButton)
+}
+
+// confirmPaymentAgreementAndSubmit ticks the service-agreement checkbox and
+// clicks the Confirm payment button. After clicking, the protea action
+// redirects to '/' on success. The agreement checkbox is required by the
+// backend, so any failure to tick it is treated as a hard error rather than
+// silently swallowed (which would let the subsequent submit appear to
+// succeed while the server rejects the request).
+func (sc *E2EContext) confirmPaymentAgreementAndSubmit(confirmButton playwright.Locator) error {
+	agreement := sc.page.Locator("[data-testid='pay-confirm-agreement']")
+	if aCount, _ := agreement.Count(); aCount > 0 {
+		if err := agreement.First().WaitFor(playwright.LocatorWaitForOptions{
 			State:   playwright.WaitForSelectorStateVisible,
 			Timeout: playwright.Float(5000),
-		})
-		agreement := sc.page.Locator("[data-testid='pay-confirm-agreement']")
-		if aCount, _ := agreement.Count(); aCount > 0 {
-			checked, _ := agreement.First().IsChecked()
-			if !checked {
-				_ = agreement.First().Check()
-			}
+		}); err != nil {
+			return fmt.Errorf("pay-confirm-agreement checkbox not visible: %w", err)
 		}
-		if count, _ := confirmButton.Count(); count > 0 {
-			if err := confirmButton.First().Click(); err == nil {
-				debugPrintln("✓ Submitted payment confirmation")
-				return nil
+		checked, _ := agreement.First().IsChecked()
+		if !checked {
+			if err := agreement.First().Check(); err != nil {
+				return fmt.Errorf("failed to check pay-confirm-agreement: %w", err)
 			}
 		}
 	}
 
-	// Fallback: attempt generic submit button
-	submitSelectors := []string{
-		"button:has-text('Confirm payment')",
-		"button:has-text('Continue')",
-		"button:has-text('Send'), button:has-text('Submit'), button[type='submit']",
-		"button:has-text('Pay'), button:has-text('Transfer')",
+	if err := confirmButton.First().Click(); err != nil {
+		return fmt.Errorf("failed to click pay-confirm-submit: %w", err)
 	}
-
-	for _, selector := range submitSelectors {
-		submitBtn := sc.page.Locator(selector)
-		count, _ := submitBtn.Count()
-		if count > 0 {
-			if err := submitBtn.First().Click(); err == nil {
-				debugPrintln("✓ Submitted payment form")
-				return nil
-			}
-		}
-	}
-
-	return fmt.Errorf("could not find or click submit button")
+	debugPrintln("✓ Submitted payment confirmation")
+	return nil
 }
 
 // iShouldSeeAPaymentConfirmation waits for payment confirmation
@@ -492,30 +508,65 @@ func (sc *E2EContext) iShouldSeeAPaymentConfirmation() error {
 	return fmt.Errorf("could not verify payment confirmation")
 }
 
-// iWaitForThePaymentToComplete waits for the payment to be processed
+// iWaitForThePaymentToComplete waits for the payment to be processed.
+// After a successful Confirm submit, protea redirects to '/' (dashboard).
+// We poll the URL for that redirect; if it never happens we fall back to a
+// fixed wait so balance-update assertions can still observe backend state.
+// IMPORTANT: do not call page.Reload() here — the Pay flow keeps the
+// AMOUNT/CONFIRM step in an in-memory zustand store, and reloading mid-flow
+// resets it, preventing the payment from being confirmed.
 func (sc *E2EContext) iWaitForThePaymentToComplete() error {
 	debugPrintln("\n⏳ Waiting for payment to complete...")
 
-	// Wait for Temporal workflow to process the payment
-	// This includes provider API calls, balance updates, webhooks, etc.
-	// We'll wait up to 30 seconds with periodic page reloads
 	maxWait := 30
-	checkInterval := 2
+	checkInterval := 1
 
 	for i := 0; i < maxWait; i += checkInterval {
 		time.Sleep(time.Duration(checkInterval) * time.Second)
 
-		// Reload to get latest state
-		_, _ = sc.page.Reload()
-		sc.page.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
-			State: playwright.LoadStateNetworkidle,
-		})
+		currentURL := sc.page.URL()
 
-		debugPrintf("   Waiting... (%d/%d seconds)\n", i+checkInterval, maxWait)
+		// Bail out early on auth-expiry or error redirects so the failure is
+		// reported here instead of masquerading as a missing balance update.
+		if strings.Contains(currentURL, "/login") || strings.Contains(currentURL, "/totp") {
+			return fmt.Errorf("redirected to auth page during payment confirmation: %s", currentURL)
+		}
+		if strings.Contains(currentURL, "error") {
+			return fmt.Errorf("redirected to error page during payment confirmation: %s", currentURL)
+		}
+
+		// On success, protea redirects from /pay/:paymentId to the dashboard
+		// at '/'. Match that explicitly rather than "anything not /pay".
+		if isDashboardURL(currentURL, sc.baseURL) {
+			debugPrintf("✓ Payment confirmed, redirected to %s\n", currentURL)
+			if err := sc.page.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
+				State:   playwright.LoadStateNetworkidle,
+				Timeout: playwright.Float(5000),
+			}); err != nil {
+				debugPrintf("⚠ networkidle wait after payment redirect timed out: %v\n", err)
+			}
+			return nil
+		}
+
+		debugPrintf("   Waiting... (%d/%d seconds, url=%s)\n", i+checkInterval, maxWait, currentURL)
 	}
 
-	debugPrintln("✓ Payment processing timeout reached (assumed complete)")
-	return nil
+	return fmt.Errorf("payment did not redirect to dashboard within %d seconds", maxWait)
+}
+
+// isDashboardURL returns true when the given URL points at the wallet
+// dashboard (i.e. the post-payment success destination), tolerating
+// trailing slashes and query strings.
+func isDashboardURL(currentURL, baseURL string) bool {
+	trimmed := strings.TrimSuffix(currentURL, "/")
+	if trimmed == strings.TrimSuffix(baseURL, "/") {
+		return true
+	}
+	// Tolerate query strings on the dashboard (e.g. snackbar params).
+	if idx := strings.IndexAny(trimmed, "?#"); idx >= 0 {
+		trimmed = trimmed[:idx]
+	}
+	return trimmed == strings.TrimSuffix(baseURL, "/")
 }
 
 // iDepositViATheDepositIframeAsUser completes the deposit flow for a specific user
