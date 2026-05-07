@@ -5,8 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gogo/googleapis/google/rpc"
-	"github.com/gogo/status"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -16,8 +14,9 @@ import (
 	user_mock "gitlab.com/fynbos/backend/user/client/mock"
 	"gitlab.com/fynbos/backend/wallets"
 	pb "gitlab.com/fynbos/proto/backend/v1"
+	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
-	gstatus "google.golang.org/grpc/status"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -130,11 +129,14 @@ func TestUpdateUserKYC(t *testing.T) {
 	grpcStatus, ok := status.FromError(err)
 	require.True(t, ok)
 	errorFields := []string{}
-	for _, detail := range grpcStatus.Details() {
-		for _, violation := range detail.(*rpc.BadRequest).FieldViolations {
-			errorFields = append(errorFields, violation.Field)
-		}
+
+	badRequest := statusFindDetail[*errdetails.BadRequest](grpcStatus)
+	require.NotNil(t, badRequest)
+
+	for _, violation := range badRequest.FieldViolations {
+		errorFields = append(errorFields, violation.Field)
 	}
+
 	assert.EqualValues(t, errorFields, []string{"IpAddress", "AddressCountryCode", "AddressState"})
 }
 
@@ -288,7 +290,7 @@ func TestGetKYCProviderWidget_BlockedForApprovedStatus(t *testing.T) {
 	_, err := client.GetKYCProviderWidget(user_mock.ActingAsContext(t, context.Background(), u), &pb.GetKYCProviderWidgetRequest{})
 	require.Error(t, err)
 
-	st, ok := gstatus.FromError(err)
+	st, ok := status.FromError(err)
 	require.True(t, ok)
 	require.Equal(t, codes.InvalidArgument, st.Code())
 }
