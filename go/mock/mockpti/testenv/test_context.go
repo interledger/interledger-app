@@ -31,8 +31,8 @@ type TestContext struct {
 	withdrawalRequestID      string
 	depositAmount            float64
 	lastUpdateID             string
-	lastWebhook         map[string]interface{}
-	lastWebhookSigned   bool
+	lastWebhook              map[string]interface{}
+	lastWebhookSigned        bool
 }
 
 // Reset initializes the test context to a clean state.
