@@ -3,6 +3,7 @@ package handler
 import (
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"gitlab.com/fynbos/mock/mockgatehub/internal/consts"
@@ -112,4 +113,120 @@ func TestUIUserDetail_ContentType(t *testing.T) {
 	rr := httptest.NewRecorder()
 	h.UIUserDetail(rr, req)
 	assert.Contains(t, rr.Header().Get("Content-Type"), "text/html")
+}
+
+// ── KYC Form ──────────────────────────────────────────────────────────────────
+
+func TestUIKYCForm_RendersUsers(t *testing.T) {
+	store := storage.NewMemoryStorage()
+	require.NoError(t, storage.SeedTestUsers(store))
+	h := newUIHandler(store)
+	req := httptest.NewRequest(http.MethodGet, "/ui/actions/kyc", nil)
+	rr := httptest.NewRecorder()
+	h.UIKYCForm(rr, req)
+	assert.Equal(t, http.StatusOK, rr.Code)
+	assert.Contains(t, rr.Body.String(), consts.TestUser1Email)
+}
+
+func TestUIKYCForm_PreSelectsUser(t *testing.T) {
+	store := storage.NewMemoryStorage()
+	require.NoError(t, storage.SeedTestUsers(store))
+	h := newUIHandler(store)
+	req := httptest.NewRequest(http.MethodGet, "/ui/actions/kyc?userID="+consts.TestUser1ID, nil)
+	rr := httptest.NewRecorder()
+	h.UIKYCForm(rr, req)
+	assert.Equal(t, http.StatusOK, rr.Code)
+	assert.Contains(t, rr.Body.String(), `selected`)
+}
+
+func TestUIKYCForm_ShowsFlash(t *testing.T) {
+	h := newUIHandler(storage.NewMemoryStorage())
+	req := httptest.NewRequest(http.MethodGet, "/ui/actions/kyc?flash=KYC+event+sent&ok=1", nil)
+	rr := httptest.NewRecorder()
+	h.UIKYCForm(rr, req)
+	assert.Equal(t, http.StatusOK, rr.Code)
+	assert.Contains(t, rr.Body.String(), "KYC event sent")
+}
+
+// ── KYC Action ────────────────────────────────────────────────────────────────
+
+func TestUIKYCAction_MissingUser(t *testing.T) {
+	h := newUIHandler(storage.NewMemoryStorage())
+	req := httptest.NewRequest(http.MethodPost, "/ui/actions/kyc",
+		strings.NewReader("gateway=paywiser-eu-sandbox&status=accepted"))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr := httptest.NewRecorder()
+	h.UIKYCAction(rr, req)
+	assert.Equal(t, http.StatusSeeOther, rr.Code)
+	assert.Contains(t, rr.Header().Get("Location"), "flash=User+is+required")
+}
+
+func TestUIKYCAction_UnknownUser(t *testing.T) {
+	h := newUIHandler(storage.NewMemoryStorage())
+	req := httptest.NewRequest(http.MethodPost, "/ui/actions/kyc",
+		strings.NewReader("userID=nonexistent&gateway=paywiser&status=accepted"))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr := httptest.NewRecorder()
+	h.UIKYCAction(rr, req)
+	assert.Equal(t, http.StatusSeeOther, rr.Code)
+	assert.Contains(t, rr.Header().Get("Location"), "flash=User+not+found")
+}
+
+func TestUIKYCAction_AcceptedUpdatesState(t *testing.T) {
+	store := storage.NewMemoryStorage()
+	require.NoError(t, storage.SeedTestUsers(store))
+	h := newUIHandler(store)
+	body := "userID=" + consts.TestUser1ID + "&gateway=paywiser-eu-sandbox&status=accepted"
+	req := httptest.NewRequest(http.MethodPost, "/ui/actions/kyc", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr := httptest.NewRecorder()
+	h.UIKYCAction(rr, req)
+	assert.Equal(t, http.StatusSeeOther, rr.Code)
+	assert.Contains(t, rr.Header().Get("Location"), "ok=1")
+	user, err := store.GetUser(consts.TestUser1ID)
+	require.NoError(t, err)
+	assert.Equal(t, consts.KYCStateAccepted, user.KYCState)
+}
+
+func TestUIKYCAction_RejectedUpdatesState(t *testing.T) {
+	store := storage.NewMemoryStorage()
+	require.NoError(t, storage.SeedTestUsers(store))
+	h := newUIHandler(store)
+	body := "userID=" + consts.TestUser1ID + "&gateway=paywiser&status=rejected"
+	req := httptest.NewRequest(http.MethodPost, "/ui/actions/kyc", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr := httptest.NewRecorder()
+	h.UIKYCAction(rr, req)
+	assert.Equal(t, http.StatusSeeOther, rr.Code)
+	user, err := store.GetUser(consts.TestUser1ID)
+	require.NoError(t, err)
+	assert.Equal(t, consts.KYCStateRejected, user.KYCState)
+}
+
+func TestUIKYCAction_PendingMapsToActionRequired(t *testing.T) {
+	store := storage.NewMemoryStorage()
+	require.NoError(t, storage.SeedTestUsers(store))
+	h := newUIHandler(store)
+	body := "userID=" + consts.TestUser1ID + "&gateway=paywiser&status=pending"
+	req := httptest.NewRequest(http.MethodPost, "/ui/actions/kyc", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr := httptest.NewRecorder()
+	h.UIKYCAction(rr, req)
+	assert.Equal(t, http.StatusSeeOther, rr.Code)
+	user, err := store.GetUser(consts.TestUser1ID)
+	require.NoError(t, err)
+	assert.Equal(t, consts.KYCStateActionRequired, user.KYCState)
+}
+
+func TestUIKYCAction_DefaultGatewayWhenEmpty(t *testing.T) {
+	store := storage.NewMemoryStorage()
+	require.NoError(t, storage.SeedTestUsers(store))
+	h := newUIHandler(store)
+	body := "userID=" + consts.TestUser1ID + "&status=accepted"
+	req := httptest.NewRequest(http.MethodPost, "/ui/actions/kyc", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr := httptest.NewRecorder()
+	h.UIKYCAction(rr, req)
+	assert.Equal(t, http.StatusSeeOther, rr.Code)
+	assert.Contains(t, rr.Header().Get("Location"), "ok=1")
 }

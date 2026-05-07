@@ -4,8 +4,10 @@ import (
 	"embed"
 	"html/template"
 	"net/http"
+	"net/url"
 
 	"github.com/go-chi/chi/v5"
+	"gitlab.com/fynbos/mock/mockgatehub/internal/consts"
 	"gitlab.com/fynbos/mock/mockgatehub/internal/logger"
 	"go.uber.org/zap"
 )
@@ -72,16 +74,100 @@ func (h *Handler) UIUserDetail(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// UIKYCForm serves the KYC trigger form (implemented in Phase 4).
 func (h *Handler) UIKYCForm(w http.ResponseWriter, r *http.Request) {
+	users, err := h.store.ListUsers()
+	if err != nil {
+		logger.Error("ui: failed to list users for kyc form", zap.Error(err))
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	q := r.URL.Query()
+	data := map[string]interface{}{
+		"Users":          users,
+		"SelectedUserID": q.Get("userID"),
+		"Gateway":        q.Get("gateway"),
+		"Status":         q.Get("status"),
+		"Flash":          q.Get("flash"),
+		"FlashOK":        q.Get("ok") == "1",
+	}
+	if data["Gateway"] == "" {
+		data["Gateway"] = "paywiser-eu-sandbox"
+	}
+	if data["Status"] == "" {
+		data["Status"] = "accepted"
+	}
+
+	tmpl, err := template.ParseFS(uiTemplateFS, "web/ui/kyc_action.html")
+	if err != nil {
+		logger.Error("ui: failed to parse kyc template", zap.Error(err))
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
+	if err := tmpl.Execute(w, data); err != nil {
+		logger.Error("ui: failed to render kyc form", zap.Error(err))
+	}
 }
 
-// UIKYCAction handles KYC trigger form POST (implemented in Phase 4).
 func (h *Handler) UIKYCAction(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
+	if err := r.ParseForm(); err != nil {
+		http.Redirect(w, r, "/ui/actions/kyc?flash=Invalid+form+data", http.StatusSeeOther)
+		return
+	}
+
+	userID := r.FormValue("userID")
+	gateway := r.FormValue("gateway")
+	status := r.FormValue("status")
+
+	if userID == "" {
+		http.Redirect(w, r, "/ui/actions/kyc?flash=User+is+required", http.StatusSeeOther)
+		return
+	}
+	if gateway == "" {
+		gateway = "paywiser-eu-sandbox"
+	}
+
+	user, err := h.store.GetUser(userID)
+	if err != nil || user == nil {
+		http.Redirect(w, r, "/ui/actions/kyc?flash=User+not+found&userID="+url.QueryEscape(userID), http.StatusSeeOther)
+		return
+	}
+
+	var kycState, eventType string
+	switch status {
+	case "accepted":
+		kycState = consts.KYCStateAccepted
+		eventType = consts.WebhookEventKYCAccepted
+	case "rejected":
+		kycState = consts.KYCStateRejected
+		eventType = consts.WebhookEventKYCRejected
+	default:
+		kycState = consts.KYCStateActionRequired
+		eventType = consts.WebhookEventKYCActionRequired
+	}
+
+	user.KYCState = kycState
+	if err := h.store.UpdateUser(user); err != nil {
+		logger.Error("ui: failed to update user kyc state", zap.String("user_id", userID), zap.Error(err))
+		http.Redirect(w, r, "/ui/actions/kyc?flash=Failed+to+update+user&userID="+url.QueryEscape(userID), http.StatusSeeOther)
+		return
+	}
+
+	h.webhookManager.SendAsync(eventType, userID, map[string]interface{}{
+		"gateway": gateway,
+	}, 0)
+
+	logger.Info("ui: kyc event triggered",
+		zap.String("user_id", userID),
+		zap.String("state", kycState),
+		zap.String("gateway", gateway),
+	)
+
+	redirectURL := "/ui/actions/kyc?ok=1&flash=KYC+event+sent&userID=" + url.QueryEscape(userID) +
+		"&status=" + url.QueryEscape(status) + "&gateway=" + url.QueryEscape(gateway)
+	http.Redirect(w, r, redirectURL, http.StatusSeeOther)
 }
 
 // UICardTxForm serves the card transaction form (implemented in Phase 5).
