@@ -38,7 +38,7 @@ func TestUIRoutes(t *testing.T) {
 		{"GET", "/ui/actions/kyc", http.StatusOK},
 		{"POST", "/ui/actions/kyc", http.StatusSeeOther},
 		{"GET", "/ui/actions/card-transaction", http.StatusOK},
-		{"POST", "/ui/actions/card-transaction", http.StatusOK},
+		{"POST", "/ui/actions/card-transaction", http.StatusBadRequest},
 		{"GET", "/ui/actions/card-transaction/cards", http.StatusOK},
 	}
 	for _, tt := range tests {

@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -229,4 +230,132 @@ func TestUIKYCAction_DefaultGatewayWhenEmpty(t *testing.T) {
 	h.UIKYCAction(rr, req)
 	assert.Equal(t, http.StatusSeeOther, rr.Code)
 	assert.Contains(t, rr.Header().Get("Location"), "ok=1")
+}
+
+// ── Card TX Cards (AJAX helper) ───────────────────────────────────────────────
+
+func seedCustomerAndCard(t *testing.T, store storage.Storage, userID, cardStatus string) (*models.Customer, *models.Card) {
+	t.Helper()
+	custID := "cust-" + userID
+	customer := &models.Customer{ID: &custID, SourceID: userID, Type: "managed"}
+	require.NoError(t, store.CreateCustomer(customer))
+	card := &models.Card{
+		ID:         "card-" + userID,
+		CustomerID: custID,
+		MaskedPan:  "512345******0001",
+		Status:     cardStatus,
+	}
+	require.NoError(t, store.CreateCard(card))
+	return customer, card
+}
+
+func TestUICardTxCards_NoCustomer(t *testing.T) {
+	store := storage.NewMemoryStorage()
+	require.NoError(t, storage.SeedTestUsers(store))
+	h := newUIHandler(store)
+	req := httptest.NewRequest(http.MethodGet, "/ui/actions/card-transaction/cards?userID="+consts.TestUser1ID, nil)
+	rr := httptest.NewRecorder()
+	h.UICardTxCards(rr, req)
+	assert.Equal(t, http.StatusOK, rr.Code)
+	var cards []interface{}
+	require.NoError(t, json.Unmarshal(rr.Body.Bytes(), &cards))
+	assert.Empty(t, cards)
+}
+
+func TestUICardTxCards_WithCards(t *testing.T) {
+	store := storage.NewMemoryStorage()
+	require.NoError(t, storage.SeedTestUsers(store))
+	seedCustomerAndCard(t, store, consts.TestUser1ID, consts.CardStatusActive)
+	h := newUIHandler(store)
+	req := httptest.NewRequest(http.MethodGet, "/ui/actions/card-transaction/cards?userID="+consts.TestUser1ID, nil)
+	rr := httptest.NewRecorder()
+	h.UICardTxCards(rr, req)
+	assert.Equal(t, http.StatusOK, rr.Code)
+	var cards []map[string]interface{}
+	require.NoError(t, json.Unmarshal(rr.Body.Bytes(), &cards))
+	assert.Len(t, cards, 1)
+}
+
+func TestUICardTxCards_FiltersInactive(t *testing.T) {
+	store := storage.NewMemoryStorage()
+	require.NoError(t, storage.SeedTestUsers(store))
+	seedCustomerAndCard(t, store, consts.TestUser1ID, consts.CardStatusBlocked)
+	h := newUIHandler(store)
+	req := httptest.NewRequest(http.MethodGet, "/ui/actions/card-transaction/cards?userID="+consts.TestUser1ID, nil)
+	rr := httptest.NewRecorder()
+	h.UICardTxCards(rr, req)
+	assert.Equal(t, http.StatusOK, rr.Code)
+	var cards []interface{}
+	require.NoError(t, json.Unmarshal(rr.Body.Bytes(), &cards))
+	assert.Empty(t, cards)
+}
+
+// ── Card TX Form ──────────────────────────────────────────────────────────────
+
+func TestUICardTxForm_Renders(t *testing.T) {
+	store := storage.NewMemoryStorage()
+	require.NoError(t, storage.SeedTestUsers(store))
+	h := newUIHandler(store)
+	req := httptest.NewRequest(http.MethodGet, "/ui/actions/card-transaction", nil)
+	rr := httptest.NewRecorder()
+	h.UICardTxForm(rr, req)
+	assert.Equal(t, http.StatusOK, rr.Code)
+	assert.Contains(t, rr.Body.String(), consts.TestUser1Email)
+}
+
+// ── Card TX Action ────────────────────────────────────────────────────────────
+
+func TestUICardTxAction_HappyPath(t *testing.T) {
+	store := storage.NewMemoryStorage()
+	require.NoError(t, storage.SeedTestUsers(store))
+	_, card := seedCustomerAndCard(t, store, consts.TestUser1ID, consts.CardStatusActive)
+	h := newUIHandler(store)
+	body := "userID=" + consts.TestUser1ID + "&cardID=" + card.ID + "&amount=50.00&currency=USD&txType=0&merchantName=Test+Shop"
+	req := httptest.NewRequest(http.MethodPost, "/ui/actions/card-transaction", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr := httptest.NewRecorder()
+	h.UICardTxAction(rr, req)
+	assert.Equal(t, http.StatusSeeOther, rr.Code)
+	assert.Contains(t, rr.Header().Get("Location"), "/ui/users/"+consts.TestUser1ID)
+	bal, err := store.GetBalance(consts.TestUser1ID, "USD")
+	require.NoError(t, err)
+	assert.Equal(t, 9950.0, bal)
+}
+
+func TestUICardTxAction_InsufficientFunds(t *testing.T) {
+	store := storage.NewMemoryStorage()
+	require.NoError(t, storage.SeedTestUsers(store))
+	_, card := seedCustomerAndCard(t, store, consts.TestUser1ID, consts.CardStatusActive)
+	h := newUIHandler(store)
+	body := "userID=" + consts.TestUser1ID + "&cardID=" + card.ID + "&amount=999999.00&currency=USD&txType=0"
+	req := httptest.NewRequest(http.MethodPost, "/ui/actions/card-transaction", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr := httptest.NewRecorder()
+	h.UICardTxAction(rr, req)
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+}
+
+func TestUICardTxAction_InactiveCard(t *testing.T) {
+	store := storage.NewMemoryStorage()
+	require.NoError(t, storage.SeedTestUsers(store))
+	_, card := seedCustomerAndCard(t, store, consts.TestUser1ID, consts.CardStatusBlocked)
+	h := newUIHandler(store)
+	body := "userID=" + consts.TestUser1ID + "&cardID=" + card.ID + "&amount=10.00&currency=USD&txType=0"
+	req := httptest.NewRequest(http.MethodPost, "/ui/actions/card-transaction", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr := httptest.NewRecorder()
+	h.UICardTxAction(rr, req)
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+}
+
+func TestUICardTxAction_UnknownCard(t *testing.T) {
+	store := storage.NewMemoryStorage()
+	require.NoError(t, storage.SeedTestUsers(store))
+	h := newUIHandler(store)
+	body := "userID=" + consts.TestUser1ID + "&cardID=nonexistent&amount=10.00&currency=USD&txType=0"
+	req := httptest.NewRequest(http.MethodPost, "/ui/actions/card-transaction", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr := httptest.NewRecorder()
+	h.UICardTxAction(rr, req)
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
 }
