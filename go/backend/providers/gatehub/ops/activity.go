@@ -28,15 +28,6 @@ import (
 	"go.uber.org/zap"
 )
 
-type CardTransactionMeta struct {
-	WalletID      string
-	WalletAddress string
-	EURBalanceID  string
-	MerchantName  string
-	BillingAmount currency.Amount
-	FXApplied     bool
-}
-
 type Activity struct {
 	b        Backends
 	external external.Client

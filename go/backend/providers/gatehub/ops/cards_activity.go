@@ -260,6 +260,15 @@ func (a *Activity) RollbackGatehubCardTransaction(ctx context.Context, cardTxID,
 	return nil
 }
 
+type CardTransactionMeta struct {
+	WalletID      string
+	WalletAddress string
+	EURBalanceID  string
+	MerchantName  string
+	BillingAmount currency.Amount
+	FXApplied     bool
+}
+
 func (a *Activity) ComputeCardTransactionMeta(ctx context.Context, userID string, tx external.CardTransaction) (CardTransactionMeta, error) {
 	if tx.BillingCurrency == nil || tx.BillingAmount == nil {
 		return CardTransactionMeta{}, temporal.NewNonRetryableApplicationError("Invalid billing currency or amount", "ErrInternal", fmt.Errorf("%w invalid currency or amount", gatehub.ErrInternal))
