@@ -36,7 +36,7 @@ func TestUIRoutes(t *testing.T) {
 		{"GET", "/ui/users/" + consts.TestUser1ID, http.StatusOK},
 		{"GET", "/ui/users/nonexistent-id", http.StatusNotFound},
 		{"GET", "/ui/actions/kyc", http.StatusOK},
-		{"POST", "/ui/actions/kyc", http.StatusOK},
+		{"POST", "/ui/actions/kyc", http.StatusSeeOther},
 		{"GET", "/ui/actions/card-transaction", http.StatusOK},
 		{"POST", "/ui/actions/card-transaction", http.StatusOK},
 		{"GET", "/ui/actions/card-transaction/cards", http.StatusOK},
