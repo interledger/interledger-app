@@ -21,7 +21,7 @@ a { color: #0070f3; }
 {{if .Flash}}<p class="{{if .FlashOK}}flash-ok{{else}}flash-err{{end}}">{{.Flash}}</p>{{end}}
 <form method="POST" action="/ui/actions/card-transaction">
   <label for="userID">User</label>
-  <select name="userID" id="userID" required onchange="this.form.submit()">
+  <select name="userID" id="userID" required onchange="loadCards(this.value)">
     <option value="">-- select user --</option>
     {{range .Users}}
     <option value="{{.ID}}" {{if eq $.SelectedUserID .ID}}selected{{end}}>{{.Email}} ({{.ID}})</option>
@@ -32,7 +32,7 @@ a { color: #0070f3; }
   <select name="cardID" id="cardID" required>
     <option value="">-- select card --</option>
     {{range .Cards}}
-    <option value="{{.ID}}" {{if eq $.SelectedCardID .ID}}selected{{end}}>{{.ID}} ({{.Status}})</option>
+    <option value="{{.ID}}" {{if eq $.SelectedCardID .ID}}selected{{end}}>{{.MaskedPan}} ({{.Status}})</option>
     {{end}}
   </select>
 
@@ -47,9 +47,31 @@ a { color: #0070f3; }
   <input type="text" name="amount" id="amount" value="{{.Amount}}" placeholder="10.00" required>
 
   <label for="currency">Currency</label>
-  <input type="text" name="currency" id="currency" value="{{.Currency}}" placeholder="USD" required>
+  <input type="text" name="currency" id="currency" value="{{.Currency}}" placeholder="EUR" required>
+
+  <label for="merchantName">Merchant Name (optional)</label>
+  <input type="text" name="merchantName" id="merchantName" value="{{.MerchantName}}" placeholder="Coffee Shop">
 
   <button type="submit">Simulate Transaction</button>
 </form>
+<script>
+function loadCards(userID) {
+  const sel = document.getElementById('cardID');
+  sel.innerHTML = '<option value="">-- loading --</option>';
+  if (!userID) {
+    sel.innerHTML = '<option value="">-- select card --</option>';
+    return;
+  }
+  fetch('/ui/actions/card-transaction/cards?userID=' + encodeURIComponent(userID))
+    .then(function(r){ return r.json(); })
+    .then(function(cards){
+      sel.innerHTML = '<option value="">-- select card --</option>' +
+        cards.map(function(c){
+          return '<option value="' + c.id + '">' + (c.maskedPan || c.id) + ' (' + c.status + ')</option>';
+        }).join('');
+    })
+    .catch(function(){ sel.innerHTML = '<option value="">-- error loading cards --</option>'; });
+}
+</script>
 </body>
 </html>
