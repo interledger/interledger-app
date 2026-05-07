@@ -175,6 +175,7 @@ The Go backend is the core of the wallet, handling payments, provider integratio
 | `PERSONA_TOKEN` | Persona API token for identity verification. Required at backend startup. | Yes | Prod/Sandbox/Dev: secret from 1Password; Local default: `test-persona-token` |
 | `PERSONA_WEBHOOK_TOKEN` | Persona webhook verification token. Required at backend startup. | Yes | Prod/Sandbox/Dev: secret from 1Password; Local default: `test-persona-webhook-token` |
 | `PERSONA_BASE_URL` | Persona API base URL override used by backend Persona client | No | Default when unset: `https://api.withpersona.com/api/v1/`; Local default in compose: `http://mockxago:8080/v1/` |
+| `KYC_FAKE_ZA_ID` | When `true`, generates a fake South African ID number instead of fetching one from Persona. Required in sandbox because Persona's sandbox API does not return ZA identification documents. | No | Default: `false`; Set to `true` in sandbox |
 
 ### Basis Theory (Card Tokenisation)
 
