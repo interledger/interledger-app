@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/fynbos/backend/api/apperrors"
+	"gitlab.com/fynbos/backend/errcodes"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
 )
@@ -28,17 +29,17 @@ func (h *handlers) getAccountStatement(w http.ResponseWriter, r *http.Request) {
 
 	year, err := strconv.Atoi(chi.URLParam(r, "year"))
 	if err != nil {
-		apperrors.WriteAppError(w, r, http.StatusBadRequest, apperrors.ErrCodeBadRequest, "year must be a valid number")
+		apperrors.WriteAppError(w, r, http.StatusBadRequest, errcodes.ErrCodeBadRequest, "year must be a valid number")
 		return
 	}
 
 	month, err := strconv.Atoi(chi.URLParam(r, "month"))
 	if err != nil {
-		apperrors.WriteAppError(w, r, http.StatusBadRequest, apperrors.ErrCodeBadRequest, "month must be a valid number")
+		apperrors.WriteAppError(w, r, http.StatusBadRequest, errcodes.ErrCodeBadRequest, "month must be a valid number")
 		return
 	}
 	if month < 1 || month > 12 {
-		apperrors.WriteAppError(w, r, http.StatusBadRequest, apperrors.ErrCodeBadRequest, "month must be between 1 and 12")
+		apperrors.WriteAppError(w, r, http.StatusBadRequest, errcodes.ErrCodeBadRequest, "month must be between 1 and 12")
 		return
 	}
 
