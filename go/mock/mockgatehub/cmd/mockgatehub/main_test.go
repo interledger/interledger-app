@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"gitlab.com/fynbos/mock/mockgatehub/internal/consts"
 	"gitlab.com/fynbos/mock/mockgatehub/internal/handler"
 	"gitlab.com/fynbos/mock/mockgatehub/internal/storage"
 	"gitlab.com/fynbos/mock/mockgatehub/internal/webhook"
@@ -16,6 +17,7 @@ import (
 
 func setupTestRouter() chi.Router {
 	store := storage.NewMemoryStorage()
+	_ = storage.SeedTestUsers(store)
 	webhookManager := webhook.NewManager("", "test-secret", nil, nil, "")
 	h := handler.NewHandler(store, webhookManager)
 	r := chi.NewRouter()
@@ -31,7 +33,8 @@ func TestUIRoutes(t *testing.T) {
 		code   int
 	}{
 		{"GET", "/ui/", http.StatusOK},
-		{"GET", "/ui/users/some-id", http.StatusOK},
+		{"GET", "/ui/users/" + consts.TestUser1ID, http.StatusOK},
+		{"GET", "/ui/users/nonexistent-id", http.StatusNotFound},
 		{"GET", "/ui/actions/kyc", http.StatusOK},
 		{"POST", "/ui/actions/kyc", http.StatusOK},
 		{"GET", "/ui/actions/card-transaction", http.StatusOK},
