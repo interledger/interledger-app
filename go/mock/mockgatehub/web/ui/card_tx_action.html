@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Card Transaction — MockGatehub Admin</title>
+<style>
+body { font-family: sans-serif; margin: 2rem; }
+label { display: block; margin: 0.75rem 0 0.25rem; font-weight: bold; }
+select, input { padding: 0.4rem; width: 24rem; }
+button { margin-top: 1rem; padding: 0.5rem 1.5rem; cursor: pointer; }
+.flash-ok  { color: green; font-weight: bold; }
+.flash-err { color: red;   font-weight: bold; }
+a { color: #0070f3; }
+</style>
+</head>
+<body>
+<h1>Simulate Card Transaction</h1>
+<nav><a href="/ui/">Dashboard</a> | <a href="/ui/actions/kyc">KYC Action</a> | <a href="/ui/actions/card-transaction">Card Transaction</a></nav>
+<hr>
+{{if .Flash}}<p class="{{if .FlashOK}}flash-ok{{else}}flash-err{{end}}">{{.Flash}}</p>{{end}}
+<form method="POST" action="/ui/actions/card-transaction">
+  <label for="userID">User</label>
+  <select name="userID" id="userID" required onchange="this.form.submit()">
+    <option value="">-- select user --</option>
+    {{range .Users}}
+    <option value="{{.ID}}" {{if eq $.SelectedUserID .ID}}selected{{end}}>{{.Email}} ({{.ID}})</option>
+    {{end}}
+  </select>
+
+  <label for="cardID">Card</label>
+  <select name="cardID" id="cardID" required>
+    <option value="">-- select card --</option>
+    {{range .Cards}}
+    <option value="{{.ID}}" {{if eq $.SelectedCardID .ID}}selected{{end}}>{{.ID}} ({{.Status}})</option>
+    {{end}}
+  </select>
+
+  <label for="txType">Transaction Type</label>
+  <select name="txType" id="txType">
+    <option value="0"  {{if eq .TxType "0"}} selected{{end}}>Purchase (0)</option>
+    <option value="1"  {{if eq .TxType "1"}} selected{{end}}>ATM Withdrawal (1)</option>
+    <option value="20" {{if eq .TxType "20"}}selected{{end}}>Refund (20)</option>
+  </select>
+
+  <label for="amount">Amount</label>
+  <input type="text" name="amount" id="amount" value="{{.Amount}}" placeholder="10.00" required>
+
+  <label for="currency">Currency</label>
+  <input type="text" name="currency" id="currency" value="{{.Currency}}" placeholder="USD" required>
+
+  <button type="submit">Simulate Transaction</button>
+</form>
+</body>
+</html>

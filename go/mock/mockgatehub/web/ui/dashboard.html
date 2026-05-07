@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MockGatehub Admin</title>
+<style>
+body { font-family: sans-serif; margin: 2rem; }
+table { border-collapse: collapse; width: 100%; }
+th, td { border: 1px solid #ccc; padding: 0.5rem 1rem; text-align: left; }
+th { background: #f0f0f0; }
+a { color: #0070f3; }
+</style>
+</head>
+<body>
+<h1>MockGatehub Admin</h1>
+<nav><a href="/ui/">Dashboard</a> | <a href="/ui/actions/kyc">KYC Action</a> | <a href="/ui/actions/card-transaction">Card Transaction</a></nav>
+<hr>
+<h2>Users</h2>
+<table>
+<thead><tr><th>ID</th><th>Email</th><th>KYC Status</th><th>Actions</th></tr></thead>
+<tbody>
+{{range .Users}}
+<tr>
+  <td>{{.ID}}</td>
+  <td>{{.Email}}</td>
+  <td>{{.KYCStatus}}</td>
+  <td><a href="/ui/users/{{.ID}}">Detail</a></td>
+</tr>
+{{else}}
+<tr><td colspan="4">No users found.</td></tr>
+{{end}}
+</tbody>
+</table>
+</body>
+</html>
