@@ -27,7 +27,7 @@ import (
 
 var ptiPublicKey = `
 -----BEGIN PUBLIC KEY-----
-MCowBQYDK2VwAyEAZl/a3UFyIBpRy8eMtegVjwtxZClcnCuT+pEbNekxOg4=
+MCowBQYDK2VwAyEAlXgzWngvg4t6oIvQ5/uFiaHT3bdPDyXtN5dK7nBLzA8=
 -----END PUBLIC KEY-----
 `
 
@@ -36,6 +36,7 @@ func loadEd25519PublicKey() (ed25519.PublicKey, error) {
 	if keyStr == "" {
 		keyStr = ptiPublicKey
 	}
+	keyStr = strings.ReplaceAll(keyStr, `\n`, "\n")
 	block, _ := pem.Decode([]byte(keyStr))
 	if block == nil {
 		return nil, fmt.Errorf("pti: failed to decode public key PEM")
