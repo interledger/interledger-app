@@ -4488,6 +4488,11 @@ export class Features extends Message<Features> {
    */
   accountEnabled = false;
 
+  /**
+   * @generated from field: bool accountsTabEnabled = 13;
+   */
+  accountsTabEnabled = false;
+
   constructor(data?: PartialMessage<Features>) {
     super();
     proto3.util.initPartial(data, this);
@@ -4508,6 +4513,7 @@ export class Features extends Message<Features> {
     { no: 10, name: "zarBalanceEnabled", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 11, name: "manageWalletCardsEnabled", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 12, name: "accountEnabled", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 13, name: "accountsTabEnabled", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Features {
@@ -5414,6 +5420,11 @@ export class LinkedAccount extends Message<LinkedAccount> {
    */
   state = "";
 
+  /**
+   * @generated from field: string createdAt = 16;
+   */
+  createdAt = "";
+
   constructor(data?: PartialMessage<LinkedAccount>) {
     super();
     proto3.util.initPartial(data, this);
@@ -5437,6 +5448,7 @@ export class LinkedAccount extends Message<LinkedAccount> {
     { no: 13, name: "defaultSend", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 14, name: "defaultReceive", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 15, name: "state", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 16, name: "createdAt", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): LinkedAccount {

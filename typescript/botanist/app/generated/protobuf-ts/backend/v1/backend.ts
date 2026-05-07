@@ -1548,6 +1548,10 @@ export interface Features {
      * @generated from protobuf field: bool accountEnabled = 12;
      */
     accountEnabled: boolean;
+    /**
+     * @generated from protobuf field: bool accountsTabEnabled = 13;
+     */
+    accountsTabEnabled: boolean;
 }
 /**
  * @generated from protobuf message backend.v1.CreateCardRequest
@@ -1895,6 +1899,10 @@ export interface LinkedAccount {
      * @generated from protobuf field: string state = 15;
      */
     state: string;
+    /**
+     * @generated from protobuf field: string createdAt = 16;
+     */
+    createdAt: string;
 }
 /**
  * @generated from protobuf message backend.v1.GetSignupRequest
@@ -7976,11 +7984,12 @@ class Features$Type extends MessageType<Features> {
             { no: 9, name: "interacEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 10, name: "zarBalanceEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 11, name: "manageWalletCardsEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 12, name: "accountEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+            { no: 12, name: "accountEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 13, name: "accountsTabEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
         ]);
     }
     create(value?: PartialMessage<Features>): Features {
-        const message = { sendEnabled: false, receiveEnabled: false, linkedAccountsEnabled: false, cardsEnabled: false, banksEnabled: false, identitiesEnabled: false, twitterEnabled: false, addCardsEnabled: false, interacEnabled: false, zarBalanceEnabled: false, manageWalletCardsEnabled: false, accountEnabled: false };
+        const message = { sendEnabled: false, receiveEnabled: false, linkedAccountsEnabled: false, cardsEnabled: false, banksEnabled: false, identitiesEnabled: false, twitterEnabled: false, addCardsEnabled: false, interacEnabled: false, zarBalanceEnabled: false, manageWalletCardsEnabled: false, accountEnabled: false, accountsTabEnabled: false };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Features>(this, message, value);
@@ -8026,6 +8035,9 @@ class Features$Type extends MessageType<Features> {
                     break;
                 case /* bool accountEnabled */ 12:
                     message.accountEnabled = reader.bool();
+                    break;
+                case /* bool accountsTabEnabled */ 13:
+                    message.accountsTabEnabled = reader.bool();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -8075,6 +8087,9 @@ class Features$Type extends MessageType<Features> {
         /* bool accountEnabled = 12; */
         if (message.accountEnabled !== false)
             writer.tag(12, WireType.Varint).bool(message.accountEnabled);
+        /* bool accountsTabEnabled = 13; */
+        if (message.accountsTabEnabled !== false)
+            writer.tag(13, WireType.Varint).bool(message.accountsTabEnabled);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -9079,11 +9094,12 @@ class LinkedAccount$Type extends MessageType<LinkedAccount> {
             { no: 12, name: "receiveCurrencyCountryCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 13, name: "defaultSend", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 14, name: "defaultReceive", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 15, name: "state", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 15, name: "state", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 16, name: "createdAt", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<LinkedAccount>): LinkedAccount {
-        const message = { id: "", type: "", name: "", mask: "", nickname: "", canSend: false, canReceive: false, title: "", sendCurrencyCode: "", sendCurrencyCountryCode: "", receiveCurrencyCode: "", receiveCurrencyCountryCode: "", defaultSend: false, defaultReceive: false, state: "" };
+        const message = { id: "", type: "", name: "", mask: "", nickname: "", canSend: false, canReceive: false, title: "", sendCurrencyCode: "", sendCurrencyCountryCode: "", receiveCurrencyCode: "", receiveCurrencyCountryCode: "", defaultSend: false, defaultReceive: false, state: "", createdAt: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<LinkedAccount>(this, message, value);
@@ -9138,6 +9154,9 @@ class LinkedAccount$Type extends MessageType<LinkedAccount> {
                     break;
                 case /* string state */ 15:
                     message.state = reader.string();
+                    break;
+                case /* string createdAt */ 16:
+                    message.createdAt = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -9196,6 +9215,9 @@ class LinkedAccount$Type extends MessageType<LinkedAccount> {
         /* string state = 15; */
         if (message.state !== "")
             writer.tag(15, WireType.LengthDelimited).string(message.state);
+        /* string createdAt = 16; */
+        if (message.createdAt !== "")
+            writer.tag(16, WireType.LengthDelimited).string(message.createdAt);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

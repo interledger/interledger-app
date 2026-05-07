@@ -57,6 +57,20 @@ func (h *Handler) sendErrorWithCORS(w http.ResponseWriter, status int, message s
 	h.sendError(w, status, message)
 }
 
+// formatAmount formats a float64 as a fixed 2-decimal-place string (e.g. "10.50").
+func formatAmount(amount float64) string {
+	return fmt.Sprintf("%.2f", amount)
+}
+
+// tokenPrefix returns the first 20 characters of a token, safe for logging.
+func tokenPrefix(token string) string {
+	const prefixLen = 20
+	if len(token) > prefixLen {
+		return token[:prefixLen]
+	}
+	return token
+}
+
 func (h *Handler) decodeJSON(r *http.Request, v interface{}) error {
 	// Read body for logging
 	body, err := io.ReadAll(r.Body)

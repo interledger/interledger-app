@@ -5449,6 +5449,7 @@ type Features struct {
 	ZarBalanceEnabled        bool                   `protobuf:"varint,10,opt,name=zarBalanceEnabled,proto3" json:"zarBalanceEnabled,omitempty"`
 	ManageWalletCardsEnabled bool                   `protobuf:"varint,11,opt,name=manageWalletCardsEnabled,proto3" json:"manageWalletCardsEnabled,omitempty"`
 	AccountEnabled           bool                   `protobuf:"varint,12,opt,name=accountEnabled,proto3" json:"accountEnabled,omitempty"`
+	AccountsTabEnabled       bool                   `protobuf:"varint,13,opt,name=accountsTabEnabled,proto3" json:"accountsTabEnabled,omitempty"`
 	unknownFields            protoimpl.UnknownFields
 	sizeCache                protoimpl.SizeCache
 }
@@ -5563,6 +5564,13 @@ func (x *Features) GetManageWalletCardsEnabled() bool {
 func (x *Features) GetAccountEnabled() bool {
 	if x != nil {
 		return x.AccountEnabled
+	}
+	return false
+}
+
+func (x *Features) GetAccountsTabEnabled() bool {
+	if x != nil {
+		return x.AccountsTabEnabled
 	}
 	return false
 }
@@ -6561,6 +6569,7 @@ type LinkedAccount struct {
 	DefaultSend                bool   `protobuf:"varint,13,opt,name=defaultSend,proto3" json:"defaultSend,omitempty"`
 	DefaultReceive             bool   `protobuf:"varint,14,opt,name=defaultReceive,proto3" json:"defaultReceive,omitempty"`
 	State                      string `protobuf:"bytes,15,opt,name=state,proto3" json:"state,omitempty"`
+	CreatedAt                  string `protobuf:"bytes,16,opt,name=createdAt,proto3" json:"createdAt,omitempty"`
 	unknownFields              protoimpl.UnknownFields
 	sizeCache                  protoimpl.SizeCache
 }
@@ -6696,6 +6705,13 @@ func (x *LinkedAccount) GetDefaultReceive() bool {
 func (x *LinkedAccount) GetState() string {
 	if x != nil {
 		return x.State
+	}
+	return ""
+}
+
+func (x *LinkedAccount) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
 	}
 	return ""
 }
@@ -10312,7 +10328,7 @@ const file_backend_v1_backend_proto_rawDesc = "" +
 	"\vhasBalances\x18\t \x01(\bR\vhasBalances\x12&\n" +
 	"\x0eexceededLimits\x18\n" +
 	" \x01(\bR\x0eexceededLimits\x12\x18\n" +
-	"\acountry\x18\v \x01(\tR\acountry\"\x8c\x04\n" +
+	"\acountry\x18\v \x01(\tR\acountry\"\xbc\x04\n" +
 	"\bFeatures\x12 \n" +
 	"\vsendEnabled\x18\x01 \x01(\bR\vsendEnabled\x12&\n" +
 	"\x0ereceiveEnabled\x18\x02 \x01(\bR\x0ereceiveEnabled\x124\n" +
@@ -10326,7 +10342,8 @@ const file_backend_v1_backend_proto_rawDesc = "" +
 	"\x11zarBalanceEnabled\x18\n" +
 	" \x01(\bR\x11zarBalanceEnabled\x12:\n" +
 	"\x18manageWalletCardsEnabled\x18\v \x01(\bR\x18manageWalletCardsEnabled\x12&\n" +
-	"\x0eaccountEnabled\x18\f \x01(\bR\x0eaccountEnabled\"-\n" +
+	"\x0eaccountEnabled\x18\f \x01(\bR\x0eaccountEnabled\x12.\n" +
+	"\x12accountsTabEnabled\x18\r \x01(\bR\x12accountsTabEnabled\"-\n" +
 	"\x11CreateCardRequest\x12\x18\n" +
 	"\atokenID\x18\x01 \x01(\tR\atokenID\"/\n" +
 	"\x13InitQuote3DSRequest\x12\x18\n" +
@@ -10421,7 +10438,7 @@ const file_backend_v1_backend_proto_rawDesc = "" +
 	"memberGuid\x18\x02 \x01(\tR\n" +
 	"memberGuid\"B\n" +
 	"\x16AddBankAccountResponse\x12(\n" +
-	"\x0ffundingsourceId\x18\x01 \x01(\tR\x0ffundingsourceId\"\xff\x03\n" +
+	"\x0ffundingsourceId\x18\x01 \x01(\tR\x0ffundingsourceId\"\x9d\x04\n" +
 	"\rLinkedAccount\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04type\x18\x02 \x01(\tR\x04type\x12\x12\n" +
@@ -10440,7 +10457,8 @@ const file_backend_v1_backend_proto_rawDesc = "" +
 	"\x1areceiveCurrencyCountryCode\x18\f \x01(\tR\x1areceiveCurrencyCountryCode\x12 \n" +
 	"\vdefaultSend\x18\r \x01(\bR\vdefaultSend\x12&\n" +
 	"\x0edefaultReceive\x18\x0e \x01(\bR\x0edefaultReceive\x12\x14\n" +
-	"\x05state\x18\x0f \x01(\tR\x05state\"\"\n" +
+	"\x05state\x18\x0f \x01(\tR\x05state\x12\x1c\n" +
+	"\tcreatedAt\x18\x10 \x01(\tR\tcreatedAt\"\"\n" +
 	"\x10GetSignupRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\xa8\x01\n" +
 	"\x18SetSignupUserDataRequest\x12\x13\n" +
