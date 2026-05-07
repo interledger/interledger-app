@@ -16,27 +16,27 @@ import (
 var _ kyc.Client = client{}
 
 type client struct {
-	b         ops.Backends
-	val       address.Validator
-	pc        persona.Client
-	fakeZAID  bool
+	b          ops.Backends
+	val        address.Validator
+	pc         persona.Client
+	personaCfg persona.Config
 }
 
 func New(b ops.Backends, smartyAuthID, smartyAuthToken string) (kyc.Client, error) {
-	return NewWithPersonaConfig(b, smartyAuthID, smartyAuthToken, persona.Config{}, false)
+	return NewWithPersonaConfig(b, smartyAuthID, smartyAuthToken, persona.Config{})
 }
 
-func NewWithPersonaConfig(b ops.Backends, smartyAuthID, smartyAuthToken string, personaCfg persona.Config, fakeZAID bool) (kyc.Client, error) {
+func NewWithPersonaConfig(b ops.Backends, smartyAuthID, smartyAuthToken string, personaCfg persona.Config) (kyc.Client, error) {
 	if (smartyAuthID == "" || smartyAuthToken == "") &&
 		(env.IsSandbox() || env.IsProd()) {
 		return nil, errors.New("no auth information for smarty address verification")
 	}
 
 	return &client{
-		b:        b,
-		val:      address.New(smartyAuthID, smartyAuthToken),
-		pc:       persona.New(personaCfg),
-		fakeZAID: fakeZAID,
+		b:          b,
+		val:        address.New(smartyAuthID, smartyAuthToken),
+		pc:         persona.New(personaCfg),
+		personaCfg: personaCfg,
 	}, nil
 }
 
@@ -69,7 +69,7 @@ func (c client) GetPersonaIDNumbers(ctx context.Context, walletID string) (*kyc.
 }
 
 func (c client) GetPersonaZAIDNumber(ctx context.Context, walletID string) (string, error) {
-	return ops.GetZAIDNumber(ctx, c.b, c.pc, walletID, c.fakeZAID)
+	return ops.GetZAIDNumber(ctx, c.b, c.pc, walletID, c.personaCfg.FakeZAID)
 }
 
 func (c client) GetApprovedPersonaInquiryURL(ctx context.Context, walletID string) (string, error) {

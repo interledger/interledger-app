@@ -36,6 +36,7 @@ type Config struct {
 	BaseURL       string
 	BearerToken   string
 	WebhookSecret string
+	FakeZAID      bool
 }
 
 func New(cfg Config) Client {
