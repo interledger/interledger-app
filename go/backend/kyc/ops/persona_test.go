@@ -3,7 +3,6 @@ package ops_test
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -127,19 +126,8 @@ func TestGetZAIDNumber(t *testing.T) {
 	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx), nil, uc, sc, nil, nil, wc)
 	pc := persona_mock.NewMockClient(ctrl)
 
-	zaIDPattern := regexp.MustCompile(`^\d{13}$`)
-
-	t.Run("fake mode returns a 13-digit ZA ID without calling Persona", func(t *testing.T) {
-		// pc has no EXPECT calls — any call would fail the test
-		for range 10 {
-			idNum, err := ops.GetZAIDNumber(ctx, b, pc, uuid.NewString(), true)
-			require.NoError(t, err)
-			assert.Regexp(t, zaIDPattern, idNum, "expected 13-digit ZA ID number")
-		}
-	})
-
 	t.Run("returns ErrNoKYCInfo when no persona account record exists", func(t *testing.T) {
-		_, err := ops.GetZAIDNumber(ctx, b, pc, uuid.NewString(), false)
+		_, err := ops.GetZAIDNumber(ctx, b, pc, uuid.NewString())
 		assert.ErrorIs(t, err, kyc.ErrNoKYCInfo)
 	})
 
@@ -155,7 +143,7 @@ func TestGetZAIDNumber(t *testing.T) {
 			},
 		}, nil)
 
-		idNum, err := ops.GetZAIDNumber(ctx, b, pc, walletID, false)
+		idNum, err := ops.GetZAIDNumber(ctx, b, pc, walletID)
 		require.NoError(t, err)
 		assert.Equal(t, "8406270000087", idNum)
 	})
@@ -172,7 +160,7 @@ func TestGetZAIDNumber(t *testing.T) {
 			},
 		}, nil)
 
-		_, err := ops.GetZAIDNumber(ctx, b, pc, walletID, false)
+		_, err := ops.GetZAIDNumber(ctx, b, pc, walletID)
 		assert.ErrorIs(t, err, kyc.ErrNoKYCInfo)
 	})
 }

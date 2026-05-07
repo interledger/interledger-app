@@ -748,7 +748,7 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 			BaseURL:       args.PersonaBaseURL,
 			BearerToken:   args.PersonaToken,
 			WebhookSecret: args.PersonaWebhookToken,
-			FakeZAID:      args.KYCFakeZAID,
+			FakeZAID:      args.PersonaSandboxFakeZAID,
 		},
 	)
 	if err != nil {

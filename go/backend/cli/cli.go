@@ -116,7 +116,7 @@ type StartArgs struct {
 	PersonaBaseURL                string
 	PersonaToken                  string
 	PersonaWebhookToken           string
-	KYCFakeZAID                   bool
+	PersonaSandboxFakeZAID         bool
 	AppleAppID                    string
 	AndroidPackageName            string
 	AndroidSHA256                 string
@@ -217,12 +217,16 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, errors.New("PERSONA_WEBHOOK_TOKEN is required")
 	}
 
-	kycFakeZAID := false
-	if v := os.Getenv("KYC_FAKE_ZA_ID"); v != "" {
+	// PERSONA_SANDBOX_ZA_FAKE_ZA_ID is a Persona sandbox workaround. Persona's sandbox environment
+	// always returns an American user profile, so the South African ID field is null.
+	// Setting this to true makes the backend generate a synthetic ZA ID instead,
+	// which is required for Xago subaccount creation. Has no effect in production.
+	personaSandboxFakeZAID := false
+	if v := os.Getenv("PERSONA_SANDBOX_ZA_FAKE_ZA_ID"); v != "" {
 		var err error
-		kycFakeZAID, err = strconv.ParseBool(v)
+		personaSandboxFakeZAID, err = strconv.ParseBool(v)
 		if err != nil {
-			return nil, errors.New("KYC_FAKE_ZA_ID must be a valid boolean (true/false/1/0)")
+			return nil, errors.New("PERSONA_SANDBOX_ZA_FAKE_ZA_ID must be a valid boolean (true/false/1/0)")
 		}
 	}
 
@@ -553,7 +557,7 @@ func ParseStartArgs() (*StartArgs, error) {
 		PersonaBaseURL:                personaBaseURL,
 		PersonaToken:                  personaToken,
 		PersonaWebhookToken:           personaWebhook,
-		KYCFakeZAID:                   kycFakeZAID,
+		PersonaSandboxFakeZAID:         personaSandboxFakeZAID,
 		AppleAppID:                    appleAppID,
 		AndroidPackageName:            androidPackageName,
 		AndroidSHA256:                 androidSHA256,
