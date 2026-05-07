@@ -685,3 +685,46 @@ func (s *MemoryStorage) UpdateOrganization(org *models.Organization) error {
 	s.organizations[org.ID] = &orgCopy
 	return nil
 }
+
+// ListUsers returns all users in storage.
+func (s *MemoryStorage) ListUsers() ([]*models.User, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	users := make([]*models.User, 0, len(s.users))
+	for _, u := range s.users {
+		cp := *u
+		users = append(users, &cp)
+	}
+	return users, nil
+}
+
+// ListTransactionsByUser returns all transactions belonging to the given user.
+func (s *MemoryStorage) ListTransactionsByUser(userID string) ([]*models.Transaction, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	var txns []*models.Transaction
+	for _, tx := range s.transactions {
+		if tx.UserID == userID {
+			cp := *tx
+			txns = append(txns, &cp)
+		}
+	}
+	return txns, nil
+}
+
+// GetAllBalances returns a map of currency → amount for all currencies that have
+// a stored balance entry for the given user. Zero-balance entries are included.
+func (s *MemoryStorage) GetAllBalances(userID string) (map[string]float64, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	result := make(map[string]float64)
+	if balances, ok := s.balances[userID]; ok {
+		for currency, amount := range balances {
+			result[currency] = amount
+		}
+	}
+	return result, nil
+}

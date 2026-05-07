@@ -67,4 +67,9 @@ type Storage interface {
 	GetOrganization(orgID string) (*models.Organization, error)
 	CreateOrganization(org *models.Organization) error
 	UpdateOrganization(org *models.Organization) error
+
+	// Admin UI enumeration
+	ListUsers() ([]*models.User, error)
+	ListTransactionsByUser(userID string) ([]*models.Transaction, error)
+	GetAllBalances(userID string) (map[string]float64, error)
 }
