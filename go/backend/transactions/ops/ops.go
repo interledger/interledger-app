@@ -75,6 +75,20 @@ func createTransaction(ctx context.Context, dbc sqlx.ExecerContext, b Backends, 
 	if args.ProviderFee != nil {
 		is.Value("provider_fee", args.ProviderFee.Value)
 	}
+	if args.ExchangeRateApplied != "" {
+		is.Value("exchange_rate_applied", args.ExchangeRateApplied)
+	}
+	if args.ExchangeRateReference != "" {
+		is.Value("exchange_rate_reference", args.ExchangeRateReference)
+	}
+	if args.ExchangeRateSurcharge != "" {
+		is.Value("exchange_rate_surcharge", args.ExchangeRateSurcharge)
+	}
+	if args.TargetAmount != nil {
+		is.Value("target_amount", args.TargetAmount.Value)
+		is.Value("target_asset", args.TargetAmount.Currency)
+		is.Value("target_scale", args.TargetAmount.Scale)
+	}
 	title := args.Title
 	if title == "" {
 		title = GenerateTransactionTitle(ctx, b.Wallets(), GenerateTransactionTitleArgs{

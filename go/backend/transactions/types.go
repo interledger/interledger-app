@@ -78,6 +78,10 @@ type CreateTransactionArgs struct {
 	DestinationIdentityType string `validate:"omitempty,oneof=Twitter Slack wallet WalletID WalletURL ExternalWalletURL"`
 	Reference               string
 	Title                   string
+	ExchangeRateApplied     string
+	ExchangeRateReference   string
+	ExchangeRateSurcharge   string
+	TargetAmount            *currency.Amount
 }
 
 type UpdateTransactionArgs struct {
