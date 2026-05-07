@@ -104,7 +104,7 @@ selfservice:
     totp:
       enabled: true
       config:
-        issuer: interledger.app
+        issuer: interledger.test
     lookup_secret:
       enabled: true
 serve:

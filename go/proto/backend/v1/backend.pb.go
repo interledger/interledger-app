@@ -5449,6 +5449,7 @@ type Features struct {
 	ZarBalanceEnabled        bool                   `protobuf:"varint,10,opt,name=zarBalanceEnabled,proto3" json:"zarBalanceEnabled,omitempty"`
 	ManageWalletCardsEnabled bool                   `protobuf:"varint,11,opt,name=manageWalletCardsEnabled,proto3" json:"manageWalletCardsEnabled,omitempty"`
 	AccountEnabled           bool                   `protobuf:"varint,12,opt,name=accountEnabled,proto3" json:"accountEnabled,omitempty"`
+	AccountsTabEnabled       bool                   `protobuf:"varint,13,opt,name=accountsTabEnabled,proto3" json:"accountsTabEnabled,omitempty"`
 	unknownFields            protoimpl.UnknownFields
 	sizeCache                protoimpl.SizeCache
 }
@@ -5563,6 +5564,13 @@ func (x *Features) GetManageWalletCardsEnabled() bool {
 func (x *Features) GetAccountEnabled() bool {
 	if x != nil {
 		return x.AccountEnabled
+	}
+	return false
+}
+
+func (x *Features) GetAccountsTabEnabled() bool {
+	if x != nil {
+		return x.AccountsTabEnabled
 	}
 	return false
 }
@@ -10440,7 +10448,7 @@ const file_backend_v1_backend_proto_rawDesc = "" +
 	"\vhasBalances\x18\t \x01(\bR\vhasBalances\x12&\n" +
 	"\x0eexceededLimits\x18\n" +
 	" \x01(\bR\x0eexceededLimits\x12\x18\n" +
-	"\acountry\x18\v \x01(\tR\acountry\"\x8c\x04\n" +
+	"\acountry\x18\v \x01(\tR\acountry\"\xbc\x04\n" +
 	"\bFeatures\x12 \n" +
 	"\vsendEnabled\x18\x01 \x01(\bR\vsendEnabled\x12&\n" +
 	"\x0ereceiveEnabled\x18\x02 \x01(\bR\x0ereceiveEnabled\x124\n" +
@@ -10454,7 +10462,8 @@ const file_backend_v1_backend_proto_rawDesc = "" +
 	"\x11zarBalanceEnabled\x18\n" +
 	" \x01(\bR\x11zarBalanceEnabled\x12:\n" +
 	"\x18manageWalletCardsEnabled\x18\v \x01(\bR\x18manageWalletCardsEnabled\x12&\n" +
-	"\x0eaccountEnabled\x18\f \x01(\bR\x0eaccountEnabled\"-\n" +
+	"\x0eaccountEnabled\x18\f \x01(\bR\x0eaccountEnabled\x12.\n" +
+	"\x12accountsTabEnabled\x18\r \x01(\bR\x12accountsTabEnabled\"-\n" +
 	"\x11CreateCardRequest\x12\x18\n" +
 	"\atokenID\x18\x01 \x01(\tR\atokenID\"/\n" +
 	"\x13InitQuote3DSRequest\x12\x18\n" +
