@@ -229,6 +229,15 @@ func setupRoutes(r chi.Router, h *handler.Handler) {
 		r.Get("/rates/current", h.GetCurrentRates)
 		r.Get("/liquidity_provider/vaults", h.GetVaults)
 	})
+	r.Route("/ui", func(r chi.Router) {
+		r.Get("/", h.UIDashboard)
+		r.Get("/users/{userID}", h.UIUserDetail)
+		r.Get("/actions/kyc", h.UIKYCForm)
+		r.Post("/actions/kyc", h.UIKYCAction)
+		r.Get("/actions/card-transaction", h.UICardTxForm)
+		r.Post("/actions/card-transaction", h.UICardTxAction)
+		r.Get("/actions/card-transaction/cards", h.UICardTxCards)
+	})
 	r.Route("/cards/v1", func(r chi.Router) {
 		logger.Info("========== REGISTERING /cards/v1 ROUTES ==========")
 		// Generic customer handler

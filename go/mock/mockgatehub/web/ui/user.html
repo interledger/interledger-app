@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User {{.User.ID}} — MockGatehub Admin</title>
+<style>
+body { font-family: sans-serif; margin: 2rem; }
+table { border-collapse: collapse; width: 100%; margin-bottom: 2rem; }
+th, td { border: 1px solid #ccc; padding: 0.5rem 1rem; text-align: left; }
+th { background: #f0f0f0; }
+a { color: #0070f3; }
+dl { display: grid; grid-template-columns: max-content auto; gap: 0.25rem 1rem; }
+dt { font-weight: bold; }
+</style>
+</head>
+<body>
+<h1>User Detail</h1>
+<nav><a href="/ui/">Dashboard</a> | <a href="/ui/actions/kyc">KYC Action</a> | <a href="/ui/actions/card-transaction">Card Transaction</a></nav>
+<hr>
+<h2>Profile</h2>
+<dl>
+  <dt>ID</dt><dd>{{.User.ID}}</dd>
+  <dt>Email</dt><dd>{{.User.Email}}</dd>
+  <dt>KYC Status</dt><dd>{{.User.KYCStatus}}</dd>
+</dl>
+
+<h2>Balances</h2>
+<table>
+<thead><tr><th>Currency</th><th>Amount</th></tr></thead>
+<tbody>
+{{range $currency, $amount := .Balances}}
+<tr><td>{{$currency}}</td><td>{{$amount}}</td></tr>
+{{else}}
+<tr><td colspan="2">No balances.</td></tr>
+{{end}}
+</tbody>
+</table>
+
+<h2>Transactions</h2>
+<table>
+<thead><tr><th>ID</th><th>Amount</th><th>Currency</th><th>Status</th><th>Created</th></tr></thead>
+<tbody>
+{{range .Transactions}}
+<tr>
+  <td>{{.ID}}</td>
+  <td>{{.Amount}}</td>
+  <td>{{.Currency}}</td>
+  <td>{{.Status}}</td>
+  <td>{{.CreatedAt}}</td>
+</tr>
+{{else}}
+<tr><td colspan="5">No transactions.</td></tr>
+{{end}}
+</tbody>
+</table>
+
+<p><a href="/ui/actions/kyc?userID={{.User.ID}}">Trigger KYC Event</a> | <a href="/ui/actions/card-transaction?userID={{.User.ID}}">Simulate Card Transaction</a></p>
+</body>
+</html>
