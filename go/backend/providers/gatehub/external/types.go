@@ -61,6 +61,9 @@ var (
 	CardTransactionOperationWithdraw int = 0
 	CardTransactionOperationDebit    int = 1
 	CardTransactionOperationNone     int = 2
+
+	CardTransactionClassificationAuthorization string = "Authorization"
+	CardTransactionClassificationReversal      string = "Reversal"
 )
 
 const (

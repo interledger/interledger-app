@@ -265,8 +265,8 @@ type CardTransactionMeta struct {
 	WalletAddress string
 	EURBalanceID  string
 	MerchantName  string
+	Note          string
 	BillingAmount currency.Amount
-	FXApplied     bool
 }
 
 func (a *Activity) ComputeCardTransactionMeta(ctx context.Context, userID string, tx external.CardTransaction) (CardTransactionMeta, error) {
@@ -313,20 +313,76 @@ func (a *Activity) ComputeCardTransactionMeta(ctx context.Context, userID string
 		return CardTransactionMeta{}, temporal.NewNonRetryableApplicationError("Invalid billing amount", "ErrInternal", fmt.Errorf("%w invalid billing amount: %s", gatehub.ErrInternal, *tx.BillingAmount))
 	}
 
-	fxApplied := tx.TransactionCurrency != nil && *tx.TransactionCurrency != *tx.BillingCurrency
+	classification := ""
+	if tx.TransactionClassification != nil {
+		classification = *tx.TransactionClassification
+	}
 
 	return CardTransactionMeta{
 		WalletID:      walletID,
 		WalletAddress: wallet.AddressString(),
 		EURBalanceID:  eurBalance.ID,
 		MerchantName:  getMerchantName(tx),
+		Note:          getNoteForCardTransaction(tx.Type, classification),
 		BillingAmount: currency.Amount{
 			Value:    val,
 			Currency: currency.EUR,
 			Scale:    2,
 		},
-		FXApplied: fxApplied,
 	}, nil
+}
+
+func getNoteForCardTransaction(txType int, classification string) string {
+	switch classification {
+	case external.CardTransactionClassificationAuthorization:
+		switch txType {
+		case external.CardTransactionTypeATMWithdrawal:
+			return "ATM cash withdrawal"
+		case external.CardTransactionTypeCashAdvance:
+			return "Cash advance"
+		case external.CardTransactionTypeTransferToAccount,
+			external.CardTransactionTypeTransferFromAccount:
+			return "Card transfer"
+		case external.CardTransactionTypePreauthorization:
+			return "Authorization hold — funds reserved until payment is completed"
+		case external.CardTransactionTypePreauthorizationIncremental:
+			return "Authorization hold updated"
+		case external.CardTransactionTypePreauthorizationCompletion:
+			return "Payment completed"
+		case external.CardTransactionTypeRefundCreditPayment:
+			return "Refund"
+		case external.CardTransactionTypeCardVerificationInquiry:
+			return "Card verification check"
+		case external.CardTransactionTypePINUnblock:
+			return "PIN unblock"
+		case external.CardTransactionTypePINChange:
+			return "PIN change"
+		default:
+			return ""
+		}
+	case external.CardTransactionClassificationReversal:
+		switch txType {
+		case external.CardTransactionTypePurchase:
+			return "Purchase reversed"
+		case external.CardTransactionTypeATMWithdrawal:
+			return "ATM withdrawal reversed"
+		case external.CardTransactionTypeCashAdvance:
+			return "Cash advance reversed"
+		case external.CardTransactionTypeTransferToAccount,
+			external.CardTransactionTypeTransferFromAccount:
+			return "Card transfer reversed"
+		case external.CardTransactionTypePreauthorization:
+			return "Authorization hold reversed"
+		case external.CardTransactionTypePreauthorizationIncremental:
+			return "Authorization hold update reversed"
+		case external.CardTransactionTypePreauthorizationCompletion:
+			return "Payment completion reversed"
+		default:
+			return ""
+		}
+	default:
+		return ""
+	}
 }
 
 func getMerchantName(tx external.CardTransaction) string {
