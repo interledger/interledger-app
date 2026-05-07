@@ -1,7 +1,7 @@
 services:
   # 1. Redis server
   redis:
-    image: redis:7-alpine
+    image: valkey/valkey:8-alpine
     profiles:
       - infrastructure
     ports:

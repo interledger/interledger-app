@@ -36,6 +36,7 @@ func AppSiteAssociationHandler(cfg Config) http.HandlerFunc {
 					{
 						AppIDs: []string{cfg.AppleAppID},
 						Components: []map[string]string{
+							{"/": "/self-service/verification*"},
 							{"/": "/transactions*"},
 						},
 					},
