@@ -116,6 +116,7 @@ type StartArgs struct {
 	PersonaBaseURL                string
 	PersonaToken                  string
 	PersonaWebhookToken           string
+	KYCFakeZAID                   bool
 	AppleAppID                    string
 	AndroidPackageName            string
 	AndroidSHA256                 string
@@ -214,6 +215,15 @@ func ParseStartArgs() (*StartArgs, error) {
 	personaWebhook := os.Getenv("PERSONA_WEBHOOK_TOKEN")
 	if personaWebhook == "" {
 		return nil, errors.New("PERSONA_WEBHOOK_TOKEN is required")
+	}
+
+	kycFakeZAID := false
+	if v := os.Getenv("KYC_FAKE_ZA_ID"); v != "" {
+		var err error
+		kycFakeZAID, err = strconv.ParseBool(v)
+		if err != nil {
+			return nil, errors.New("KYC_FAKE_ZA_ID must be a valid boolean (true/false/1/0)")
+		}
 	}
 
 	twitterClientId := os.Getenv("TWITTER_CLIENT_ID")
@@ -543,6 +553,7 @@ func ParseStartArgs() (*StartArgs, error) {
 		PersonaBaseURL:                personaBaseURL,
 		PersonaToken:                  personaToken,
 		PersonaWebhookToken:           personaWebhook,
+		KYCFakeZAID:                   kycFakeZAID,
 		AppleAppID:                    appleAppID,
 		AndroidPackageName:            androidPackageName,
 		AndroidSHA256:                 androidSHA256,

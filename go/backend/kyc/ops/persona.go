@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"math/rand"
 	"regexp"
 	"strconv"
 	"time"
@@ -154,7 +155,11 @@ func GetPersonaIDNumbers(ctx context.Context, b Backends, cl persona.Client, wal
 	return resp, nil
 }
 
-func GetZAIDNumber(ctx context.Context, b Backends, cl persona.Client, walletID string) (string, error) {
+func GetZAIDNumber(ctx context.Context, b Backends, cl persona.Client, walletID string, fakeZAID bool) (string, error) {
+	if fakeZAID {
+		return generateFakeZAIDNumber(), nil
+	}
+
 	var accID string
 	err := b.DB().GetContext(ctx, &accID, "SELECT external_id FROM kyc_persona_accounts WHERE wallet_id=$1", walletID)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -236,4 +241,14 @@ func calculateZAIDChecksum(idBody string) int {
 	}
 
 	return (10 - (sum % 10)) % 10
+}
+
+func generateFakeZAIDNumber() string {
+	currentYear := time.Now().Year()
+	year := rand.Intn(currentYear-18-(currentYear-40)+1) + (currentYear - 40)
+	month := rand.Intn(12) + 1
+	day := rand.Intn(28) + 1
+	sequence := rand.Intn(5000) + 5000 // male range
+	idBody := fmt.Sprintf("%02d%02d%02d%04d08", year%100, month, day, sequence)
+	return idBody + strconv.Itoa(calculateZAIDChecksum(idBody))
 }
