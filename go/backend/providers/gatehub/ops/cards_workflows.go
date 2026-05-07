@@ -267,9 +267,9 @@ func CreateCardTransactionV2(ctx workflow.Context, wh CardTransactionEventWebhoo
 		return err
 	}
 
-	if ct.TxStatus != nil && (*ct.TxStatus == "TRXNS" || *ct.TxStatus == "SYSEX") {
-		slack.SendToChannel(context.Background(), slack.ChannelNotifyEvents, "wallet-info-bot", fmt.Sprintf("!!! Received card transaction with unsupported tx status:\nCard TX ID: %s\nCard ID: %s\nGateHub User ID: %s\nTx Status: %s", ct.TransactionID, card.ID, wh.UserID, *ct.TxStatus))
-		return temporal.NewNonRetryableApplicationError("unsupported tx status", "ErrUnsupportedTxStatus", nil)
+	if ct.GHResponseCode == "TRXNS" || ct.GHResponseCode == "SYSEX" {
+		slack.SendToChannel(context.Background(), slack.ChannelNotifyEvents, "wallet-info-bot", fmt.Sprintf("!!! Received card transaction with unsupported GateHub response code:\nCard TX ID: %s\nCard ID: %s\nGateHub User ID: %s\nGH ResponseCode: %s", ct.TransactionID, card.ID, wh.UserID, ct.GHResponseCode))
+		return temporal.NewNonRetryableApplicationError("Unsupported GateHub response code", "ErrInternal", fmt.Errorf("%w unsupported GHResponseCode", gatehub.ErrInternal))
 	}
 
 	var txID string
@@ -294,7 +294,8 @@ func CreateCardTransactionV2(ctx workflow.Context, wh CardTransactionEventWebhoo
 	case external.CardTransactionOperationNone:
 		// TODO see wal-867
 	default:
-		// TODO: unexpected operation
+		slack.SendToChannel(context.Background(), slack.ChannelNotifyEvents, "wallet-info-bot", fmt.Sprintf("!!! Received card transaction with unsupported operation:\nCard TX ID: %s\nCard ID: %s\nGateHub User ID: %s\nOperation: %d", ct.TransactionID, card.ID, wh.UserID, ct.Operation))
+		return temporal.NewNonRetryableApplicationError("Unsupported operation", "ErrInternal", fmt.Errorf("%w unsupported Operation", gatehub.ErrInternal))
 	}
 
 	err = workflow.ExecuteActivity(ctx, a.Notify, ctMeta.WalletID, notify.NotificationTypeTransaction).Get(ctx, nil)
