@@ -13,7 +13,7 @@
 - `local/` - Docker Compose development environment
 - `proto/` - Protocol buffers definitions
 
-**Size**: ~50k+ LoC across Go and TypeScript, 38+ documentation files, 10 CI/CD workflows
+**Size**: ~50k+ LoC across Go and TypeScript, 38+ documentation files, 11 CI/CD workflows
 
 ## Build and Validation
 
@@ -222,7 +222,7 @@ typescript/
 Workflows skip unnecessary CI runs based on which files changed:
 - **Documentation-only changes** (`documentation/**`): All tests, builds, and linting are skipped.
 - **Local-only changes** (`local/**`): Unit tests, builds, and linting are skipped. E2E tests still run since they exercise the local environment.
-- These filters apply only to `pull_request` triggers — `push` to main, schedules, and manual dispatches always run.
+- These filters apply only to `pull_request` triggers — `push` to main and manual dispatches always run.
 
 ### PR Auto-Labeling
 
@@ -257,7 +257,28 @@ PRs are automatically labeled by `.github/workflows/labeler.yml` using the confi
 - `.github/workflows/go-tests.yml` - Runs `go-test-template.yml` for backend, pacioli (skipped for docs/local-only changes)
 - `.github/workflows/e2e-tests.yml` - Starts VM, runs E2E suite with concurrency=10 (skipped for docs-only changes)
 - `.github/workflows/linting.yml` - Runs golangci-lint on all Go code (skipped for docs/local-only changes)
-- `.github/workflows/build-and-publish.yml` - Builds Docker images, pushes to registry (skipped for docs/local-only changes on PRs)
+- `.github/workflows/build-and-publish.yml` - Builds Docker images on PRs (build only) and pushes to GCP Artifact Registry when triggered by a version tag or `workflow_dispatch`
+- `.github/workflows/release.yml` - Runs semantic-release on every push to `main`; creates a git tag, GitHub Release, and release notes from commit history (see Release Process below)
+
+### Release Process
+
+Releases are fully automated via **semantic-release** — do not create `release/v*` branches or manually push version tags.
+
+**How it works:**
+
+1. A PR is merged to `main`.
+2. `release.yml` runs semantic-release, which analyses all commits since the last tag.
+3. The version bump is determined from commit types:
+   - `feat:` → minor (`1.1.0`)
+   - `fix:`, `refactor:`, `perf:` → patch (`1.0.1`)
+   - `BREAKING CHANGE:` footer or `feat!:` / `fix!:` → major (`2.0.0`)
+   - `chore:`, `docs:`, `test:`, `ci:`, `build:`, `style:`, `local:` → **no release**
+4. If there is a releasable commit, semantic-release creates a `vX.Y.Z` git tag and a GitHub Release with auto-generated notes.
+5. The new tag triggers `build-and-publish.yml`, which builds all Docker images and pushes them to GCP Artifact Registry tagged with that version.
+
+**Config files**: `.releaserc.json` (release config), `package.json` + `pnpm-lock.yaml` at repo root (semantic-release dependencies).
+
+**If `main` is protected**: The `GITHUB_TOKEN` used by `release.yml` must have permission to push tags. Grant the token tag-creation rights in the branch protection settings, or store a PAT as `GH_TOKEN` if the default token is insufficient.
 
 ### Testing Locally Before Push
 

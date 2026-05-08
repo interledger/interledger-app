@@ -2,12 +2,7 @@ name: Build and Publish
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "0 21 * * *"
   push:
-    branches:
-      - main
-      - 'release/v*'
     tags:
       - 'v*'
   pull_request:
@@ -39,32 +34,45 @@ jobs:
             const { default: selectPackages } = await import('${{ github.workspace }}/tooling/github-scripts/select-packages.js')
             await selectPackages({ github, core, context })
 
-  version_generator:
+  determine_version:
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ steps.version_generator.outputs.NEW_VERSION }}
-      tagPushed: ${{ steps.version_generator.outputs.SHOULD_PUSH_TAG }}
-      dockerPush: ${{ steps.version_generator.outputs.PUSH_DOCKER_IMAGE }}
-      generateRelease: ${{ steps.version_generator.outputs.GENERATE_RELEASE }}
+      version: ${{ steps.version.outputs.version }}
+      dockerPush: ${{ steps.version.outputs.docker_push }}
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          fetch-tags: true
-      - name: Configure git
+      - name: Determine version
+        id: version
+        env:
+          EVENT: ${{ github.event_name }}
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-      - name: Generate version properties
-        id: version_generator
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const { default: versionGenerator } = await import('${{ github.workspace }}/tooling/github-scripts/version-generator.js')
-            await versionGenerator({ github, core, context })
+          # Semantic-release pushes a vX.Y.Z tag to main after every release.
+          # That tag push is the normal production path: use the tag as-is and push images.
+          if [[ "$EVENT" == "push" && "$REF_TYPE" == "tag" ]]; then
+            echo "version=${REF_NAME}" >> "$GITHUB_OUTPUT"
+            echo "docker_push=true" >> "$GITHUB_OUTPUT"
+
+          # Manual dispatch lets engineers build and push an image from any branch
+          # without going through a release (e.g. hotfix staging, one-off testing).
+          elif [[ "$EVENT" == "workflow_dispatch" ]]; then
+            VERSION="manual_${REF_NAME//[^a-zA-Z0-9_.-]/_}"
+            echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+            echo "docker_push=true" >> "$GITHUB_OUTPUT"
+
+          # Pull-request builds: verify the images compile but never push them.
+          # The sanitisation ensures the branch name is a valid Docker tag segment.
+          else
+            VERSION="${REF_NAME//[^a-zA-Z0-9_.-]/_}"
+            if [[ ! "$VERSION" =~ ^[a-zA-Z0-9] ]]; then
+              VERSION="ref_${VERSION}"
+            fi
+            echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+            echo "docker_push=false" >> "$GITHUB_OUTPUT"
+          fi
 
   builds:
-    needs: [select_packages, version_generator]
+    needs: [select_packages, determine_version]
     runs-on: ubuntu-latest
     strategy:
       matrix: ${{fromJson(needs.select_packages.outputs.builds)}}
@@ -81,7 +89,7 @@ jobs:
           platforms: ${{ matrix.platform.os }}/${{ matrix.platform.arch }}
           context: ${{ matrix.package.context }}
           file: ${{ matrix.package.file }}
-          tags: interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}:${{ needs.version_generator.outputs.version }}
+          tags: interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}:${{ needs.determine_version.outputs.version }}
           build-args: |
             GOLANG_VERSION=1.25.1
             BUILDARCH=${{ matrix.platform.arch }}
@@ -102,16 +110,16 @@ jobs:
           platforms: ${{ matrix.platform.os }}/${{ matrix.platform.arch }}
           context: ${{ matrix.package.context }}
           file: ${{ matrix.package.file }}
-          tags: interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}:${{ needs.version_generator.outputs.version }}
+          tags: interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}:${{ needs.determine_version.outputs.version }}
           build-args: |
-            IMAGE_HASH=${{ needs.version_generator.outputs.version }}
+            IMAGE_HASH=${{ needs.determine_version.outputs.version }}
             BUILDARCH=${{ matrix.platform.arch }}
             BUILDOS=${{ matrix.platform.os }}
-            UPLOAD_SOURCEMAPS=${{ needs.version_generator.outputs.dockerPush }}
+            UPLOAD_SOURCEMAPS=${{ needs.determine_version.outputs.dockerPush }}
             SENTRY_ORG=${{ secrets.SENTRY_ORG }}
             SENTRY_PROJECT=${{ matrix.package.sentry_project }}
             SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
-            SENTRY_RELEASE=${{ needs.version_generator.outputs.version }}
+            SENTRY_RELEASE=${{ needs.determine_version.outputs.version }}
             REMIX_PUBLIC_PATH=${{ matrix.package.cdn_public_path }}
             CDN_BUCKET_NAME=${{ matrix.package.cdn_bucket }}
           outputs: type=docker,dest=/tmp/${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}.tar
@@ -125,14 +133,14 @@ jobs:
 
   push-image-gcp-artifact-registry:
     name: Prod images push
-    needs: [builds, version_generator, select_packages]
+    needs: [builds, determine_version, select_packages]
     runs-on: ubuntu-latest
     env:
       # We use Artifact Repository, GCR references are legacy as GCR has been deprecated.
       GCR_PROJECT: ${{ secrets.GCR_PROJECT }}
       GSA_EMAIL: ${{ secrets.GSA_EMAIL }}
       GCR_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCR_WORKLOAD_IDENTITY_PROVIDER }}
-    if: needs.version_generator.outputs.dockerPush == 'true'
+    if: needs.determine_version.outputs.dockerPush == 'true'
     strategy:
       matrix: ${{fromJson(needs.select_packages.outputs.builds)}}
     steps:
@@ -145,11 +153,11 @@ jobs:
 
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Load Docker image
         run: |
           docker load -i /tmp/${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}.tar
-    
+
       - name: List Docker images
         run: docker images
 
@@ -157,9 +165,9 @@ jobs:
         run: |
           IMAGE_ID=$(docker images interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }} --format "{{.ID}}" | head -n 1)
           # Tag appropriately for our GCP project
-          PUSH_IMAGE=europe-west4-docker.pkg.dev/${{ env.GCR_PROJECT }}/interledger-app/${{ matrix.package.name }}:${{ needs.version_generator.outputs.version }}
+          PUSH_IMAGE=europe-west4-docker.pkg.dev/${{ env.GCR_PROJECT }}/interledger-app/${{ matrix.package.name }}:${{ needs.determine_version.outputs.version }}
           docker tag $IMAGE_ID $PUSH_IMAGE
-          echo "PUSH_IMAGE=$PUSH_IMAGE" >> $GITHUB_ENV 
+          echo "PUSH_IMAGE=$PUSH_IMAGE" >> $GITHUB_ENV
 
       - uses: 'google-github-actions/auth@v2'
         with:
@@ -185,13 +193,13 @@ jobs:
 
   push-dev-image-gcp-artifact-registry:
     name: DEV Images push
-    needs: [builds, version_generator, select_packages]
+    needs: [builds, determine_version, select_packages]
     runs-on: ubuntu-latest
     env:
       GCR_PROJECT: ${{ secrets.GCR_DEV_PROJECT }}
       GSA_EMAIL: ${{ secrets.GSA_DEV_EMAIL }}
       GCR_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCR_DEV_WORKLOAD_IDENTITY_PROVIDER }}
-    if: needs.version_generator.outputs.dockerPush == 'true'
+    if: needs.determine_version.outputs.dockerPush == 'true'
     strategy:
       matrix: ${{fromJson(needs.select_packages.outputs.builds)}}
     steps:
@@ -204,11 +212,11 @@ jobs:
 
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Load Docker image
         run: |
           docker load -i /tmp/${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}.tar
-    
+
       - name: List Docker images
         run: docker images
 
@@ -216,9 +224,9 @@ jobs:
         run: |
           IMAGE_ID=$(docker images interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }} --format "{{.ID}}" | head -n 1)
           # Tag appropriately for our GCP project
-          PUSH_IMAGE=europe-west4-docker.pkg.dev/${{ env.GCR_PROJECT }}/interledger-app/${{ matrix.package.name }}:${{ needs.version_generator.outputs.version }}
+          PUSH_IMAGE=europe-west4-docker.pkg.dev/${{ env.GCR_PROJECT }}/interledger-app/${{ matrix.package.name }}:${{ needs.determine_version.outputs.version }}
           docker tag $IMAGE_ID $PUSH_IMAGE
-          echo "PUSH_IMAGE=$PUSH_IMAGE" >> $GITHUB_ENV 
+          echo "PUSH_IMAGE=$PUSH_IMAGE" >> $GITHUB_ENV
 
       - uses: 'google-github-actions/auth@v2'
         with:

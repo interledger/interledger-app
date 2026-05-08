@@ -1,5 +1,14 @@
 ## GitHub scripts
 
+JavaScript modules used by GitHub Actions workflows via `actions/github-script`.
+
+### Scripts
+
+| Script | Used by | Purpose |
+| ------ | ------- | ------- |
+| `select-packages.js` | `build-and-publish.yml` | Outputs the build matrix (Go + TypeScript packages × platforms) |
+| `e2e-runner-scaler.js` | `e2e-runner-scaler.yml` | Scales GCP VM runners for E2E test jobs |
+
 ### Local development
 
 #### Prerequisites

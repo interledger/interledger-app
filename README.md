@@ -4,6 +4,21 @@
 
 Go to [local/README.md](local/README.md) for the local development setup.
 
+## Releases
+
+Releases are automated via [semantic-release](https://semantic-release.gitbook.io). Merging to `main` triggers the release workflow, which analyses commit messages and — if any releasable change is present — creates a git tag, a GitHub Release with generated notes, and kicks off a Docker image build.
+
+Version bumps follow [Conventional Commits](https://www.conventionalcommits.org):
+
+| Commit type | Version bump |
+|---|---|
+| `feat:` | minor |
+| `fix:`, `refactor:`, `perf:` | patch |
+| `BREAKING CHANGE:` / `feat!:` / `fix!:` | major |
+| `chore:`, `docs:`, `test:`, `ci:`, `build:`, `style:`, `local:` | none |
+
+Do not create `release/v*` branches or push version tags manually.
+
 ## Testing
 
 ### GoLang unittests
