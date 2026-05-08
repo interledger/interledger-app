@@ -20,9 +20,10 @@ var (
 	ZAROpsAccount       = "b0944908-16e6-4ef4-8677-192165e33c59"
 	ZARLiquidityAccount = "70374e87-9168-42bc-b33d-df956dfab985"
 
-	EUROpsAccount       = "293dd6bb-bb73-4504-b401-8dfb7002032a"
-	EURLiquidityAccount = "ae953d08-bbcb-4d1b-a7cf-319157f4b689"
-	EURPositionAccount  = "9d9f69eb-c6ea-4117-857c-c807c45df213"
+	EUROpsAccount             = "293dd6bb-bb73-4504-b401-8dfb7002032a"
+	EURLiquidityAccount       = "ae953d08-bbcb-4d1b-a7cf-319157f4b689"
+	EURPositionAccount        = "9d9f69eb-c6ea-4117-857c-c807c45df213"
+	EURPositionAccountGatehub = "aeb7dcf4-0a2b-45ae-ad8f-a47c1a566a39"
 )
 
 type Await func(ctx context.Context, result interface{}) error

@@ -474,6 +474,13 @@ func migrate(args *cli.MigrationArgs) {
 			CreditsMustNotExceedDebits: false,
 		},
 		{
+			ID:                         xago.EURPositionAccountGatehub,
+			LedgerID:                   xago.LedgerIDEUR,
+			Code:                       1,
+			DebitsMustNotExceedCredits: false,
+			CreditsMustNotExceedDebits: false,
+		},
+		{
 			ID:                         gatehub.EURLiquidityAccount,
 			LedgerID:                   gatehub.LedgerIDEUR,
 			Code:                       1,
@@ -482,6 +489,13 @@ func migrate(args *cli.MigrationArgs) {
 		},
 		{
 			ID:                         gatehub.EURPositionAccount,
+			LedgerID:                   gatehub.LedgerIDEUR,
+			Code:                       1,
+			DebitsMustNotExceedCredits: false,
+			CreditsMustNotExceedDebits: false,
+		},
+		{
+			ID:                         gatehub.EURPositionAccountXago,
 			LedgerID:                   gatehub.LedgerIDEUR,
 			Code:                       1,
 			DebitsMustNotExceedCredits: false,
