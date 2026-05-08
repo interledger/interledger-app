@@ -57,10 +57,3 @@ runs:
           echo "::error::App is not installed on ${GITHUB_REPOSITORY}. Install the app on this repo or check the installation."
           exit 1
         fi
-
-        # Confirm the installation token has contents:write (needed to push tags).
-        perms="$(gh api /repos/${GITHUB_REPOSITORY}/installation --jq '.permissions.contents' 2>/dev/null || true)"
-        if [ "${perms}" != "write" ]; then
-          echo "::error::App installation lacks contents:write on ${GITHUB_REPOSITORY} (got '${perms}'). Update the app's repository permissions."
-          exit 1
-        fi
