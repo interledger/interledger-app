@@ -36,9 +36,15 @@ type Config struct {
 	BaseURL       string
 	BearerToken   string
 	WebhookSecret string
+	// Deprecated: FakeZAID is ignored by the Persona client and should be
+	// configured at the KYC layer instead.
+	FakeZAID bool
 }
 
 func New(cfg Config) Client {
+	// FakeZAID is intentionally not applied at the Persona client layer.
+	// Keep the field for backward compatibility with existing config wiring.
+	_ = cfg.FakeZAID
 
 	return &client{
 		api:           otelhttp.DefaultClient,
