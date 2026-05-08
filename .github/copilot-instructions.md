@@ -222,7 +222,7 @@ typescript/
 Workflows skip unnecessary CI runs based on which files changed:
 - **Documentation-only changes** (`documentation/**`): All tests, builds, and linting are skipped.
 - **Local-only changes** (`local/**`): Unit tests, builds, and linting are skipped. E2E tests still run since they exercise the local environment.
-- These filters apply only to `pull_request` triggers — `push` to main and manual dispatches always run.
+- These path filters apply only to the `pull_request` trigger of each workflow. They do not affect `push`, tag, schedule, or `workflow_dispatch` triggers (which each workflow defines separately).
 
 ### PR Auto-Labeling
 
@@ -283,7 +283,7 @@ Releases are fully automated via **semantic-release** — do not create `release
 - `RELEASE_APP_ID` — the GitHub App's numeric ID
 - `RELEASE_APP_PRIVATE_KEY` — the App's PEM private key (not the OAuth client secret)
 
-The App must be installed on this repository with **Contents: write** permission. The installation ID is auto-discovered at runtime by `actions/create-github-app-token`. `release.yml` validates the token, app installation, and permissions before invoking semantic-release, so misconfiguration fails fast with an explicit error.
+The App must be installed on this repository with **Contents: Read & write** permission. The installation ID is auto-discovered at runtime by `actions/create-github-app-token`. `release.yml` validates that the App credentials authenticate and that the App is installed on this repository before invoking semantic-release. If the installation is missing the required permission, semantic-release itself fails with `Resource not accessible by integration`.
 
 **If `main` is protected**: ensure the App (its bot user, e.g. `your-app[bot]`) is listed as an allowed actor that can bypass branch protection for tag creation, or that the protection rules permit tag pushes from Apps.
 

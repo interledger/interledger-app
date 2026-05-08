@@ -6,7 +6,7 @@ Go to [local/README.md](local/README.md) for the local development setup.
 
 ## Releases
 
-Releases are automated via [semantic-release](https://semantic-release.gitbook.io). Merging to `main` triggers the release workflow, which analyses commit messages and — if any releasable change is present — creates a git tag, a GitHub Release with generated notes, and kicks off a Docker image build.
+Releases are automated via [semantic-release](https://semantic-release.gitbook.io). Merging non-doc-only changes to `main` triggers the release workflow, which analyses commit messages and — if any releasable change is present — creates a git tag, a GitHub Release with generated notes, and kicks off a Docker image build. Documentation-only merges (`documentation/**`) are excluded from the release trigger.
 
 Version bumps follow [Conventional Commits](https://www.conventionalcommits.org):
 

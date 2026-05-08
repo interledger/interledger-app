@@ -46,7 +46,7 @@ runs:
         echo "Installation id: ${INSTALLATION_ID}"
 
         # Confirm the token is accepted by the API.
-        if ! gh api /installation/repositories --jq '.repository_selection' >/dev/null 2>&1; then
+        if ! gh api /installation/repositories --silent >/dev/null 2>&1; then
           echo "::error::App token did not authenticate against /installation/repositories. Check RELEASE_APP_ID and RELEASE_APP_PRIVATE_KEY secrets."
           exit 1
         fi
