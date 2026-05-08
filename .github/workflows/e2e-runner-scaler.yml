@@ -9,11 +9,11 @@
 # Scale DOWN: if no queued/active e2e jobs → delete idle spot instances (keep MIN_SPOTS)
 # Cleanup:   remove offline GitHub runners matching our naming pattern
 #
-# Required secrets in the "e2e-tester" environment:
+# Required secrets in the "e2e-scaler-system" environment:
 #   GSA_E2E          – GCP service account JSON (compute.instances.create/delete/list)
 #   RUNNER_ADMIN_TOKEN – GitHub PAT with "Administration" repo permission (write)
 #
-# Required variables in the "e2e-tester" environment:
+# Required variables in the "e2e-scaler-system" environment:
 #   PROJECT_ID – GCP project ID
 #   ZONE       – GCP zone for spot instances
 #
@@ -34,7 +34,7 @@ permissions:
 jobs:
   scale:
     runs-on: ubuntu-latest
-    environment: e2e-tester
+    environment: e2e-scaler-system
     timeout-minutes: 10
     concurrency:
       group: e2e-runner-scaler
