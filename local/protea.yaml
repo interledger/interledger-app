@@ -71,5 +71,7 @@ services:
       - CF_TURNSTILE_SECRET_KEY=${PROTEA_CF_TURNSTILE_SECRET_KEY:-}
       - GATE_SIGNUP=${PROTEA_GATE_SIGNUP:-false}
 
+      - PUBLIC_OP_AUTH_HOST=${PROTEA_PUBLIC_OP_AUTH_HOST:-auth.local.ilp.link}
+
     depends_on:
       - backend

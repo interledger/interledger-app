@@ -2,8 +2,8 @@ import { data } from 'react-router';
 import { envValue } from '~/env.server';
 
 const RAFIKI_AUTH_ENDPOINT =
-  envValue("RAFIKI_AUTH_ENDPOINT") || 'http://rafiki-rafiki-auth.rafiki:3006'
-const RAFIKI_AUTH_SECRET = envValue("RAFIKI_AUTH_SECRET") || 'replace-me'
+  envValue("RAFIKI_AUTH_ENDPOINT")
+const RAFIKI_AUTH_SECRET = envValue("RAFIKI_AUTH_SECRET")
 
 export type GrantDetails = {
   access: Access[]

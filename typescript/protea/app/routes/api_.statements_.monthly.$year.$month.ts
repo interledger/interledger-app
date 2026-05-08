@@ -3,7 +3,7 @@ import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import type { Route } from './+types/api_.statements_.monthly.$year.$month'
 import { envValue } from '~/env.server'
 
-const BACKEND_HTTP_URL = envValue("BACKEND_HTTP_URL") || 'http://backend:8080'
+const BACKEND_HTTP_URL = envValue("BACKEND_HTTP_URL")
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const cookies = request.headers.get('cookie') || ''

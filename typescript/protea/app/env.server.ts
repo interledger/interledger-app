@@ -6,7 +6,10 @@ const knownEnvKeysRequired: string[] = [
     "NODE_ENV",
     "REDIS_URL",
     "KRATOS_URL",
-    "BACKEND_HTTP_URL"
+    "BACKEND_HTTP_URL",
+    "RAFIKI_AUTH_ENDPOINT",
+    "RAFIKI_AUTH_SECRET",
+    "PUBLIC_OP_AUTH_HOST"
 ]
 
 const knownEnvKeysOptional: string[] = [
@@ -19,8 +22,6 @@ const knownEnvKeysOptional: string[] = [
     "PAYMENT_POINTER_BASE",
     "PUSHER_APP_KEY",
     "PUSHER_APP_CLUSTER",
-    "RAFIKI_AUTH_ENDPOINT",
-    "RAFIKI_AUTH_SECRET",
     "DEFAULT_RATE_LIMIT_REQUESTS",
     "DEFAULT_RATE_LIMIT_TIME",
     "GOOGLE_MAPS_API_KEY",

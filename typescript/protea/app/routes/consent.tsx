@@ -206,12 +206,7 @@ export async function action({ request }: Route.ActionArgs) {
   await consent(interactId, nonce, userDecision)
 
   // TODO: Move to environment variables
-  let publicOpenPaymentsAuthHost = 'auth.ilp.link'
-  if (envValue("FYNBOS_ENV") == 'dev') {
-    publicOpenPaymentsAuthHost = 'auth.sandbox.ilp.link'
-  } else if (envValue("FYNBOS_ENV") == 'local') {
-    publicOpenPaymentsAuthHost = 'auth.local.ilp.link'
-  }
+  const publicOpenPaymentsAuthHost = envValue("PUBLIC_OP_AUTH_HOST")
 
   return redirect(
     `https://${publicOpenPaymentsAuthHost}/interact/${interactId}/${nonce}/finish`
