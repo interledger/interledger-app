@@ -72,6 +72,8 @@ services:
       - GATE_SIGNUP=${PROTEA_GATE_SIGNUP:-false}
 
       - PUBLIC_OP_AUTH_HOST=${PROTEA_PUBLIC_OP_AUTH_HOST:-auth.local.ilp.link}
+      - PTI_SDK_URL=${PROTEA_PTI_SDK_URL:-https://mockpti.interledger.test/sdk/index.js}
+      - PTI_FORMS_URL=${PROTEA_PTI_FORMS_URL:-https://mockpti.interledger.test/forms}
 
     depends_on:
       - backend

@@ -9,7 +9,9 @@ const knownEnvKeysRequired: string[] = [
     "BACKEND_HTTP_URL",
     "RAFIKI_AUTH_ENDPOINT",
     "RAFIKI_AUTH_SECRET",
-    "PUBLIC_OP_AUTH_HOST"
+    "PUBLIC_OP_AUTH_HOST",
+    "PTI_FORMS_URL",
+    "PTI_SDK_URL",
 ]
 
 const knownEnvKeysOptional: string[] = [
@@ -26,8 +28,6 @@ const knownEnvKeysOptional: string[] = [
     "DEFAULT_RATE_LIMIT_TIME",
     "GOOGLE_MAPS_API_KEY",
     "PTI_CLIENT_ID",
-    "PTI_FORMS_URL",
-    "PTI_SDK_URL",
     "PERSONA_SDK_URL",
     "MOCKXAGO_ENDPOINT"
 ]
