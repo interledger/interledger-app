@@ -12,6 +12,7 @@ import { data, href, redirect } from 'react-router';
 import type { LoaderFunctionArgs } from 'react-router';
 import { grpc } from '~/lib/grpc.server';
 import { isConnectError } from '~/lib/error.server';
+import { envValue } from '~/env.server';
 
 export async function searchLoader(
   { request }: LoaderFunctionArgs,
@@ -51,7 +52,7 @@ export async function payLoader({ request }: LoaderFunctionArgs) {
     address,
     phoneMask,
     publicWalletInfo,
-    fynbosEnv: process.env.FYNBOS_ENV,
+    fynbosEnv: envValue("FYNBOS_ENV"),
     payment
   })
 }

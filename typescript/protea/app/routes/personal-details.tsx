@@ -14,6 +14,7 @@ import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { useScript } from '~/lib/useScript'
 import logger from '~/lib/logger.server'
+import { envValue } from '~/env.server'
 
 const KYCErrors: KYCErrorsType = {
   UnableToPars: 'KYC: unable to parse message data'
@@ -54,9 +55,9 @@ export async function loader({ request }: Route.LoaderArgs) {
     chimoneyWidget: response.chimoneyWidget,
     ptiWidget: response.ptiWidget,
     personaSdkUrl:
-      process.env.PERSONA_SDK_URL ||
+      envValue("PERSONA_SDK_URL") ||
       'https://cdn.withpersona.com/dist/persona-v4.8.0-alpha.js',
-    mockxagoEndpoint: process.env.MOCKXAGO_ENDPOINT || ''
+    mockxagoEndpoint: envValue("MOCKXAGO_ENDPOINT") || ''
   })
 }
 

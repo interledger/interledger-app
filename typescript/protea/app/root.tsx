@@ -40,6 +40,7 @@ import { emailVerificationGuard, recoveryLinkSessionInvalidationGuard, withAAL2G
 import { usePusher } from './lib/usePusher'
 import { PtiConfigProvider } from './lib/pti-context'
 import { Route } from './+types/root';
+import { envValue } from './env.server';
 
 export const shouldRevalidate: ShouldRevalidateFunction = ({
   actionResult,
@@ -135,10 +136,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
   let isDisabled = false
   let walletAddress = ''
   const env = {
-    fynbosEnv: process.env.FYNBOS_ENV || '',
-    sentryDsn: process.env.SENTRY_DSN || '',
-    sentryRelease: process.env.SENTRY_RELEASE || '',
-    segmentApiKey: process.env.SEGMENT_API_KEY || ''
+    fynbosEnv: envValue("FYNBOS_ENV") || '',
+    sentryDsn: envValue("SENTRY_DSN") || '',
+    sentryRelease: envValue("SENTRY_RELEASE") || '',
+    segmentApiKey: envValue("SEGMENT_API_KEY") || ''
   }
 
   if (!isUser) {
