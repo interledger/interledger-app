@@ -231,3 +231,29 @@ type EstimateConvertCurrencyResponse struct {
 }
 
 type ConvertCurrencyResponse string
+
+type GetConvertCurrencyDetailsResponse struct {
+	ID                  string    `json:"_id"`
+	UUID                string    `json:"uuid"`
+	Timestamp           int64     `json:"timestamp"`
+	SendCurrencyCode    string    `json:"sendCurrencyCode"`
+	ReceiveCurrencyCode string    `json:"receiveCurrencyCode"`
+	ConvertID           string    `json:"convertId"`
+	BuyOrderID          string    `json:"buyOrderId"`
+	Status              string    `json:"status"`
+	SendAmount          int       `json:"sendAmount"`
+	Type                string    `json:"type"`
+	BuyStatus           string    `json:"buyStatus"`
+	CreatedAt           time.Time `json:"createdAt"`
+	UpdatedAt           time.Time `json:"updatedAt"`
+	V                   int       `json:"__v"`
+	BridgeAmount        float64   `json:"bridgeAmount"`
+	BridgeCurrency      string    `json:"bridgeCurrency"`
+	BuyPrice            float64   `json:"buyPrice"`
+	SendFee             float64   `json:"sendFee"`
+	SellOrderID         string    `json:"sellOrderId"`
+	SellStatus          string    `json:"sellStatus"`
+	Rate                float64   `json:"rate"`
+	ReceiveAmount       float64   `json:"receiveAmount"`
+	SellPrice           float64   `json:"sellPrice"`
+}
