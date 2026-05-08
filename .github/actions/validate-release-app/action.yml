@@ -1,9 +1,9 @@
 name: Validate Release App
 description: |
   Mints a GitHub App installation token from RELEASE_APP_ID and
-  RELEASE_APP_PRIVATE_KEY, then validates that the app is installed on the
-  current repository with the permissions semantic-release requires. Fails the
-  job with an explicit error if anything is misconfigured.
+  RELEASE_APP_PRIVATE_KEY, then validates that the token authenticates and
+  that the app is installed on the current repository. Fails the job with an
+  explicit error if anything is misconfigured.
 
 inputs:
   app-id:
