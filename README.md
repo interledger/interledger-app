@@ -13,9 +13,9 @@ Version bumps follow [Conventional Commits](https://www.conventionalcommits.org)
 | Commit type | Version bump |
 |---|---|
 | `feat:` | minor |
-| `fix:`, `refactor:`, `perf:` | patch |
+| `fix:`, `perf:` | patch |
 | `BREAKING CHANGE:` / `feat!:` / `fix!:` | major |
-| `chore:`, `docs:`, `test:`, `ci:`, `build:`, `style:`, `local:` | none |
+| `refactor:`, `chore:`, `docs:`, `test:`, `ci:`, `build:`, `style:`, `local:` | none |
 
 Do not create `release/v*` branches or push version tags manually.
 

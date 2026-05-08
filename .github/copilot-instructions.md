@@ -270,15 +270,22 @@ Releases are fully automated via **semantic-release** — do not create `release
 2. `release.yml` runs semantic-release, which analyses all commits since the last tag.
 3. The version bump is determined from commit types:
    - `feat:` → minor (`1.1.0`)
-   - `fix:`, `refactor:`, `perf:` → patch (`1.0.1`)
+   - `fix:`, `perf:` → patch (`1.0.1`)
    - `BREAKING CHANGE:` footer or `feat!:` / `fix!:` → major (`2.0.0`)
-   - `chore:`, `docs:`, `test:`, `ci:`, `build:`, `style:`, `local:` → **no release**
+   - `refactor:`, `chore:`, `docs:`, `test:`, `ci:`, `build:`, `style:`, `local:` → **no release**
 4. If there is a releasable commit, semantic-release creates a `vX.Y.Z` git tag and a GitHub Release with auto-generated notes.
 5. The new tag triggers `build-and-publish.yml`, which builds all Docker images and pushes them to GCP Artifact Registry tagged with that version.
 
 **Config files**: `.releaserc.json` (release config), `package.json` + `pnpm-lock.yaml` at repo root (semantic-release dependencies).
 
-**If `main` is protected**: The `GITHUB_TOKEN` used by `release.yml` must have permission to push tags. Grant the token tag-creation rights in the branch protection settings, or store a PAT as `GH_TOKEN` if the default token is insufficient.
+**Authentication**: `release.yml` authenticates as a GitHub App rather than using the default `GITHUB_TOKEN`. This is required because tag pushes made with `GITHUB_TOKEN` do **not** trigger downstream workflows, so `build-and-publish.yml` would never see the new tag. Required repo secrets:
+
+- `RELEASE_APP_ID` — the GitHub App's numeric ID
+- `RELEASE_APP_PRIVATE_KEY` — the App's PEM private key (not the OAuth client secret)
+
+The App must be installed on this repository with **Contents: write** permission. The installation ID is auto-discovered at runtime by `actions/create-github-app-token`. `release.yml` validates the token, app installation, and permissions before invoking semantic-release, so misconfiguration fails fast with an explicit error.
+
+**If `main` is protected**: ensure the App (its bot user, e.g. `your-app[bot]`) is listed as an allowed actor that can bypass branch protection for tag creation, or that the protection rules permit tag pushes from Apps.
 
 ### Testing Locally Before Push
 

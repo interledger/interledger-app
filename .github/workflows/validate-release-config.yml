@@ -1,30 +1,25 @@
-name: Release
+name: Validate Release Config
 
 on:
-  push:
+  pull_request:
     branches:
       - main
-    paths-ignore:
-      - 'documentation/**'
+  workflow_dispatch:
 
 permissions:
   contents: read
 
-# Serialise releases on main so two rapid merges can't both compute
-# the same next version and race to create the same tag.
-concurrency:
-  group: release-${{ github.ref }}
-  cancel-in-progress: false
-
 jobs:
-  release:
-    name: Semantic Release
+  validate:
+    name: Validate Release Config
     runs-on: ubuntu-latest
+    # PRs from forks cannot access secrets — skip rather than fail.
+    if: github.event.pull_request.head.repo.full_name == github.repository || github.event_name == 'workflow_dispatch'
     steps:
-      - name: Checkout (for composite action)
+      - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 1
+          fetch-depth: 0
           persist-credentials: false
 
       - name: Validate release app
@@ -33,13 +28,6 @@ jobs:
         with:
           app-id: ${{ secrets.RELEASE_APP_ID }}
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
-
-      - name: Checkout (full history with app token)
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          token: ${{ steps.app.outputs.token }}
-          persist-credentials: true
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -53,7 +41,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-workspace
 
-      - name: Release
-        run: pnpm exec semantic-release
+      - name: semantic-release dry run
+        run: pnpm exec semantic-release --dry-run --no-ci --branches main
         env:
           GITHUB_TOKEN: ${{ steps.app.outputs.token }}
