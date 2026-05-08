@@ -391,7 +391,7 @@ func ReserveBalance(ctx context.Context, b Backends, linkedAccountID, txID strin
 		if tx[0].Code == pacioli.TransferExceedsCredits || tx[0].Code == pacioli.TransferExceedsDebits || tx[0].Code == pacioli.TransferExceedsPendingTransferAmount {
 			return nil, fmt.Errorf("%w insufficiens balance cod (%s)", gatehub.ErrInsufficientBalance, tx[0].Code.String())
 		}
-		// TODO: TransferExists is skipped for idempotency — investigate implications for other callers of ReserveBalance
+		// TransferExists is skipped for idempotency
 		if tx[0].Code != 0 && tx[0].Code != pacioli.TransferExists {
 			return nil, fmt.Errorf("%w non success code (%s)", gatehub.ErrInternal, tx[0].Code.String())
 		}
@@ -490,7 +490,8 @@ func AssignBalance(ctx context.Context, b Backends, linkedAccountID, txID string
 		if tx[0].Code == pacioli.TransferExceedsCredits || tx[0].Code == pacioli.TransferExceedsDebits || tx[0].Code == pacioli.TransferExceedsPendingTransferAmount {
 			return nil, fmt.Errorf("%w insufficient balance cod (%s)", gatehub.ErrInsufficientBalance, tx[0].Code.String())
 		}
-		if tx[0].Code != 0 {
+		// TransferExists is skipped for idempotency
+		if tx[0].Code != 0 && tx[0].Code != pacioli.TransferExists {
 			return nil, fmt.Errorf("%w non success code (%s)", gatehub.ErrInternal, tx[0].Code.String())
 		}
 	}
@@ -901,9 +902,9 @@ func GetPendingCardTransactions(ctx context.Context, b Backends) ([]pendingTrans
 
 	err := b.DB().SelectContext(ctx, &txs,
 		sqlStmt,
-		external.CardTractionStatusInitial,
-		external.CardTractionStatusProcessing,
-		external.CardTractionStatusAcquired,
+		external.CardTransactionStatusInitial,
+		external.CardTransactionStatusProcessing,
+		external.CardTransactionStatusAcquired,
 		external.CardTransactionTypePurchase,
 		external.CardTransactionTypeATMWithdrawal,
 	)

@@ -10,6 +10,7 @@ import (
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	"gitlab.com/fynbos/backend/providers/gatehub/external"
 	"gitlab.com/fynbos/backend/slack"
+	"gitlab.com/fynbos/backend/transactions"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
@@ -155,94 +156,7 @@ func CreateGateHubCardWorkflow(ctx workflow.Context, args CreateCardWorkflowArgs
 	return nil
 }
 
-// CreateCardTransaction - TODO: This should be revisited as soon as possible. Card transactions can have
-// different types: purchase, ATM withdrawals, etc... We are trying to only handle
-// purchases and ATM withdrawals for now.
 func CreateCardTransaction(ctx workflow.Context, wh CardTransactionEventWebhook) error {
-	var a *Activity
-	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: 10 * time.Second,
-	}
-	ctx = workflow.WithActivityOptions(ctx, ao)
-
-	var ct external.CardTransaction
-	err := workflow.ExecuteActivity(ctx, a.GetCardTransaction, wh.UserID, wh.Data.TransactionID).Get(ctx, &ct)
-	if err != nil {
-		return err
-	}
-
-	// ONLY FAILED TX
-	var isCompletedTx bool
-
-	var card external.Card
-	err = workflow.ExecuteActivity(ctx, a.GetCardDetails, wh.UserID, wh.Data.CardID).Get(ctx, &card)
-	if err != nil {
-		return err
-	}
-
-	err = workflow.ExecuteActivity(ctx, a.SaveGatehubCardTransaction, wh.UserID, card.ID, card.MaskedPan, ct).Get(ctx, &card)
-	if err != nil {
-		return err
-	}
-
-	// radu: I do not like this..., but... such is life. We need to handle all TX types in the future
-	if ct.Type != external.CardTransactionTypePurchase && ct.Type != external.CardTransactionTypeATMWithdrawal {
-		slack.SendToChannel(context.Background(), slack.ChannelNotifyEvents, "wallet-info-bot", fmt.Sprintf("!!! Received card transaction with unsupported type (only handling 0 and 1 at the moment)  :\nCard TX ID: %s\nCard ID: %s\nCard TX Type: %d\nGateHub User ID: %s", ct.TransactionID, card.ID, ct.Type, wh.UserID))
-		return nil
-	}
-
-	if ct.GHResponseCode == "CRGUI" || ct.GHResponseCode == "SYSEX" || ct.GHResponseCode == "TRXNS" {
-		s := "FAILED"
-		isCompletedTx = true
-		ct.TxStatus = &s
-	}
-
-	if ct.TxStatus == nil {
-		// Notify GateHub as well if this happens.
-		slack.SendToChannel(context.Background(), slack.ChannelNotifyEvents, "wallet-info-bot", fmt.Sprintf("!!! Received card transaction with no tx status:\nCard TX ID: %s\nCard ID: %s\nGateHub User ID: %s", ct.TransactionID, card.ID, wh.UserID))
-	}
-
-	var txID string
-	err = workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
-		return uuid.NewString()
-	}).Get(&txID)
-	if err != nil {
-		return nil
-	}
-
-	err = workflow.ExecuteActivity(ctx, a.CreateGatehubCardTransaction, wh.UserID, txID, ct).Get(ctx, &txID)
-	if err != nil {
-		return err
-	}
-
-	var walletID string
-	err = workflow.ExecuteActivity(ctx, a.GetWalletFromGatehubUser, wh.UserID).Get(ctx, &walletID)
-	if err != nil {
-		return err
-	}
-
-	// This is a hack for now - only for instant failed card transactions
-	if isCompletedTx {
-		err = workflow.ExecuteActivity(ctx, a.RollbackGatehubCardTransaction, ct.TransactionID, txID).Get(ctx, nil)
-		if err != nil {
-			return err
-		}
-	} else {
-		err = workflow.ExecuteActivity(ctx, a.ReserveGatehubBalance, txID, walletID).Get(ctx, nil)
-		if err != nil {
-			return err
-		}
-	}
-
-	err = workflow.ExecuteActivity(ctx, a.Notify, walletID, notify.NotificationTypeTransaction).Get(ctx, nil)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func CreateCardTransactionV2(ctx workflow.Context, wh CardTransactionEventWebhook) error {
 	var a *Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 10 * time.Second,
@@ -266,7 +180,7 @@ func CreateCardTransactionV2(ctx workflow.Context, wh CardTransactionEventWebhoo
 		return err
 	}
 
-	if ct.GHResponseCode == "TRXNS" || ct.GHResponseCode == "SYSEX" {
+	if ct.GHResponseCode == external.CardTransactionGHResponseCodeTRXNS || ct.GHResponseCode == external.CardTransactionGHResponseCodeSYSEX {
 		slack.SendToChannel(context.Background(), slack.ChannelNotifyEvents, "wallet-info-bot", fmt.Sprintf("!!! Received card transaction with unsupported GateHub response code:\nCard TX ID: %s\nCard ID: %s\nGateHub User ID: %s\nGH ResponseCode: %s", ct.TransactionID, card.ID, wh.UserID, ct.GHResponseCode))
 		return temporal.NewNonRetryableApplicationError("Unsupported GateHub response code", "ErrInternal", fmt.Errorf("%w unsupported GHResponseCode", gatehub.ErrInternal))
 	}
@@ -285,6 +199,14 @@ func CreateCardTransactionV2(ctx workflow.Context, wh CardTransactionEventWebhoo
 		return err
 	}
 
+	var fx *RecordGatehubCardFXData
+	if ct.TransactionCurrency != nil && ctMeta.BillingAmount.Currency.String() != *ct.TransactionCurrency {
+		if fx, err = buildFX(ct.MastercardConversion, ct.TransactionAmount, *ct.TransactionCurrency); err != nil {
+			slack.SendToChannel(context.Background(), slack.ChannelNotifyEvents, "wallet-info-bot", fmt.Sprintf("!!! Missing or invalid Mastercard conversion data for card transaction with FX:\nCard TX ID: %s\nCard ID: %s\nGateHub User ID: %s\nError: %s", ct.TransactionID, card.ID, wh.UserID, err))
+			return temporal.NewNonRetryableApplicationError("Invalid FX data", "ErrInternal", fmt.Errorf("%w %s", gatehub.ErrInternal, err))
+		}
+	}
+
 	switch ct.Operation {
 	case external.CardTransactionOperationWithdraw:
 		var classification string
@@ -292,29 +214,20 @@ func CreateCardTransactionV2(ctx workflow.Context, wh CardTransactionEventWebhoo
 			classification = *ct.TransactionClassification
 		}
 
-		var fx *cardFX
-		if ct.BillingCurrency != nil && ct.TransactionCurrency != nil && *ct.BillingCurrency != *ct.TransactionCurrency {
-			if fx, err = buildFX(ct.MastercardConversion, ct.TransactionAmount, *ct.TransactionCurrency); err != nil {
-				slack.SendToChannel(context.Background(), slack.ChannelNotifyEvents, "wallet-info-bot", fmt.Sprintf("!!! Missing or invalid FX data for card transaction with differing billing and transaction currencies:\nCard TX ID: %s\nCard ID: %s\nGateHub User ID: %s\nError: %s", ct.TransactionID, card.ID, wh.UserID, err))
-				return temporal.NewNonRetryableApplicationError("Invalid FX data", "ErrInternal", fmt.Errorf("%w %s", gatehub.ErrInternal, err))
-			}
-		}
-
 		switch classification {
 		case external.CardTransactionClassificationAuthorization:
-			recordCardTxArgs := RecordGatehubCardAuthorizationArgs{
-				WalletID:      ctMeta.WalletID,
-				WalletAddress: ctMeta.WalletAddress,
-				EURBalanceID:  ctMeta.EURBalanceID,
-				MerchantName:  ctMeta.MerchantName,
-				Note:          ctMeta.Note,
-				BillingAmount: ctMeta.BillingAmount,
+			recordWithdrawalArgs := RecordGatehubCardWithdrawalArgs{
+				RecordGatehubCardTxData: RecordGatehubCardTxData{
+					WalletID:      ctMeta.WalletID,
+					WalletAddress: ctMeta.WalletAddress,
+					EURBalanceID:  ctMeta.EURBalanceID,
+					MerchantName:  ctMeta.MerchantName,
+					Note:          getNoteForWithdrawals(ct.Type),
+					BillingAmount: ctMeta.BillingAmount,
+				},
 			}
 			if fx != nil {
-				recordCardTxArgs.ExchangeRateApplied = fx.ExchangeRateApplied
-				recordCardTxArgs.ExchangeRateReference = fx.ExchangeRateReference
-				recordCardTxArgs.ExchangeRateSurcharge = fx.ExchangeRateSurcharge
-				recordCardTxArgs.TargetAmount = fx.TargetAmount
+				recordWithdrawalArgs.RecordGatehubCardFXData = *fx
 			}
 			switch ct.Type {
 			case external.CardTransactionTypePurchase,
@@ -322,22 +235,28 @@ func CreateCardTransactionV2(ctx workflow.Context, wh CardTransactionEventWebhoo
 				external.CardTransactionTypeCashAdvance,
 				external.CardTransactionTypeTransferFromAccount,
 				external.CardTransactionTypePreauthorization:
-				if err = workflow.ExecuteActivity(ctx, a.RecordGatehubCardAuthorization, txID, ct, recordCardTxArgs).Get(ctx, nil); err != nil {
+				if err = workflow.ExecuteActivity(ctx, a.RecordGatehubCardWithdrawal, txID, ct, recordWithdrawalArgs).Get(ctx, nil); err != nil {
 					return err
 				}
 			case external.CardTransactionTypePreauthorizationIncremental:
 				if ct.RefTransactionID != nil {
-					if err = workflow.ExecuteActivity(ctx, a.VoidPreviousGatehubCardAuthorization, ctMeta.WalletID, *ct.RefTransactionID).Get(ctx, nil); err != nil {
+					var prevInternalTxID string
+					if err = workflow.ExecuteActivity(ctx, a.GetInternalTransactionByForeignID, ctMeta.WalletID, *ct.RefTransactionID).Get(ctx, &prevInternalTxID); err != nil {
+						return err
+					}
+					if err = workflow.ExecuteActivity(ctx, a.RollbackGatehubCardTransaction, *ct.RefTransactionID, prevInternalTxID).Get(ctx, nil); err != nil {
 						return err
 					}
 				}
-				if err = workflow.ExecuteActivity(ctx, a.RecordGatehubCardAuthorization, txID, ct, recordCardTxArgs).Get(ctx, nil); err != nil {
+				if err = workflow.ExecuteActivity(ctx, a.RecordGatehubCardWithdrawal, txID, ct, recordWithdrawalArgs).Get(ctx, nil); err != nil {
 					return err
 				}
 			case external.CardTransactionTypePreauthorizationCompletion:
-				// TODO: see WAL-872
+				// Send slack notification for now, see issue wal-872
+				slack.SendToChannel(context.Background(), slack.ChannelNotifyEvents, "wallet-info-bot", fmt.Sprintf("!!! Received card transaction with unsupported type:\nCard TX ID: %s\nCard ID: %s\nGateHub User ID: %s\nOperation: %d\nClassification: %s\nType: %d", ct.TransactionID, card.ID, wh.UserID, ct.Operation, classification, ct.Type))
+				return temporal.NewNonRetryableApplicationError("Unsupported type", "ErrInternal", fmt.Errorf("%w unsupported Type", gatehub.ErrInternal))
 			default:
-				slack.SendToChannel(context.Background(), slack.ChannelNotifyEvents, "wallet-info-bot", fmt.Sprintf("!!! Received card transaction with unsupported type:\nCard TX ID: %s\nCard ID: %s\nGateHub User ID: %s\nType: %d", ct.TransactionID, card.ID, wh.UserID, ct.Type))
+				slack.SendToChannel(context.Background(), slack.ChannelNotifyEvents, "wallet-info-bot", fmt.Sprintf("!!! Received card transaction with unsupported type:\nCard TX ID: %s\nCard ID: %s\nGateHub User ID: %s\nOperation: %d\nClassification: %s\nType: %d", ct.TransactionID, card.ID, wh.UserID, ct.Operation, classification, ct.Type))
 				return temporal.NewNonRetryableApplicationError("Unsupported type", "ErrInternal", fmt.Errorf("%w unsupported Type", gatehub.ErrInternal))
 			}
 		case external.CardTransactionClassificationReversal:
@@ -351,10 +270,99 @@ func CreateCardTransactionV2(ctx workflow.Context, wh CardTransactionEventWebhoo
 		if fx != nil {
 			// TODO send email notifications
 		}
-	case external.CardTransactionOperationDebit:
-		// TODO see wal-866
+	case external.CardTransactionOperationDeposit:
+		var classification string
+		if ct.TransactionClassification != nil {
+			classification = *ct.TransactionClassification
+		}
+
+		recordDepositArgs := RecordGatehubCardDepositArgs{
+			RecordGatehubCardTxData: RecordGatehubCardTxData{
+				WalletID:      ctMeta.WalletID,
+				WalletAddress: ctMeta.WalletAddress,
+				EURBalanceID:  ctMeta.EURBalanceID,
+				MerchantName:  ctMeta.MerchantName,
+				Note:          getNoteForDeposits(ct.Type, classification),
+				BillingAmount: ctMeta.BillingAmount,
+			},
+		}
+		switch classification {
+		case external.CardTransactionClassificationAuthorization:
+			switch ct.Type {
+			case external.CardTransactionTypeTransferToAccount:
+				if err = workflow.ExecuteActivity(ctx, a.RecordGatehubCardDeposit, txID, ct, recordDepositArgs).Get(ctx, nil); err != nil {
+					return err
+				}
+			default:
+				slack.SendToChannel(context.Background(), slack.ChannelNotifyEvents, "wallet-info-bot", fmt.Sprintf("!!! Received card transaction with unsupported type:\nCard TX ID: %s\nCard ID: %s\nGateHub User ID: %s\nOperation: %d\nClassification: %s\nType: %d", ct.TransactionID, card.ID, wh.UserID, ct.Operation, classification, ct.Type))
+				return temporal.NewNonRetryableApplicationError("Unsupported type", "ErrInternal", fmt.Errorf("%w unsupported Type", gatehub.ErrInternal))
+			}
+		case external.CardTransactionClassificationReversal:
+			switch ct.Type {
+			case external.CardTransactionTypePurchase,
+				external.CardTransactionTypeATMWithdrawal,
+				external.CardTransactionTypeCashAdvance,
+				external.CardTransactionTypePreauthorization,
+				external.CardTransactionTypePreauthorizationIncremental,
+				external.CardTransactionTypePreauthorizationCompletion:
+				if ct.RefTransactionID != nil {
+					var prevInternalTxID string
+					if err = workflow.ExecuteActivity(ctx, a.GetInternalTransactionByForeignID, ctMeta.WalletID, *ct.RefTransactionID).Get(ctx, &prevInternalTxID); err != nil {
+						return err
+					}
+					if err = workflow.ExecuteActivity(ctx, a.RollbackGatehubCardTransaction, *ct.RefTransactionID, prevInternalTxID).Get(ctx, nil); err != nil {
+						return err
+					}
+				} else {
+					slack.SendToChannel(context.Background(), slack.ChannelNotifyEvents, "wallet-info-bot", fmt.Sprintf("!!! Received reversal for card transaction without a ref transaction id:\nCard TX ID: %s\nCard ID: %s\nGateHub User ID: %s\nType: %d", ct.TransactionID, card.ID, wh.UserID, ct.Type))
+				}
+				if err = workflow.ExecuteActivity(ctx, a.RecordGatehubCardDeposit, txID, ct, recordDepositArgs).Get(ctx, nil); err != nil {
+					return err
+				}
+			default:
+				slack.SendToChannel(context.Background(), slack.ChannelNotifyEvents, "wallet-info-bot", fmt.Sprintf("!!! Received card transaction with unsupported type:\nCard TX ID: %s\nCard ID: %s\nGateHub User ID: %s\nOperation: %d\nClassification: %s\nType: %d", ct.TransactionID, card.ID, wh.UserID, ct.Operation, classification, ct.Type))
+				return temporal.NewNonRetryableApplicationError("Unsupported type", "ErrInternal", fmt.Errorf("%w unsupported Type", gatehub.ErrInternal))
+			}
+		default:
+			slack.SendToChannel(context.Background(), slack.ChannelNotifyEvents, "wallet-info-bot", fmt.Sprintf("!!! Received card transaction with unsupported classification:\nCard TX ID: %s\nCard ID: %s\nGateHub User ID: %s\nOperation: %d\nTransaction Classification: %s", ct.TransactionID, card.ID, wh.UserID, ct.Operation, classification))
+			return temporal.NewNonRetryableApplicationError("Unsupported transaction classification", "ErrInternal", fmt.Errorf("%w unsupported TransactionClassification", gatehub.ErrInternal))
+		}
 	case external.CardTransactionOperationNone:
-		// TODO see wal-867
+		var responseCode string
+		if ct.ResponseCode != nil {
+			responseCode = *ct.ResponseCode
+		}
+
+		var state transactions.State
+		switch ct.GHResponseCode {
+		case external.CardTransactionGHResponseCodeCRGUI:
+			state = transactions.StateFailed
+		case external.CardTransactionGHResponseCodeOK:
+			if responseCode == external.CardTransactionResponseCodeOK {
+				state = transactions.StateCompleted
+			} else {
+				state = transactions.StateFailed
+			}
+		}
+
+		recordInformationalArgs := RecordGatehubCardInformationalArgs{
+			RecordGatehubCardTxData: RecordGatehubCardTxData{
+				WalletID:      ctMeta.WalletID,
+				WalletAddress: ctMeta.WalletAddress,
+				EURBalanceID:  ctMeta.EURBalanceID,
+				MerchantName:  ctMeta.MerchantName,
+				Note:          getNoteForInformationals(ct.Type, ct.GHResponseCode, responseCode),
+				BillingAmount: ctMeta.BillingAmount,
+			},
+			State: state,
+		}
+		if fx != nil {
+			recordInformationalArgs.RecordGatehubCardFXData = *fx
+		}
+
+		if err = workflow.ExecuteActivity(ctx, a.RecordGatehubCardInformational, txID, ct, recordInformationalArgs).Get(ctx, nil); err != nil {
+			return err
+		}
 	default:
 		slack.SendToChannel(context.Background(), slack.ChannelNotifyEvents, "wallet-info-bot", fmt.Sprintf("!!! Received card transaction with unsupported operation:\nCard TX ID: %s\nCard ID: %s\nGateHub User ID: %s\nOperation: %d", ct.TransactionID, card.ID, wh.UserID, ct.Operation))
 		return temporal.NewNonRetryableApplicationError("Unsupported operation", "ErrInternal", fmt.Errorf("%w unsupported Operation", gatehub.ErrInternal))

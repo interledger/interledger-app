@@ -38,11 +38,11 @@ var (
 	CardStatusAccountBlocked   string = "AccountBlocked"
 	CardStatusInCreation       string = "InCreation"
 
-	CardTractionStatusInitial    string = "INITIAL"
-	CardTractionStatusProcessing string = "PROCESSING"
-	CardTractionStatusAcquired   string = "ACQUIRED"
-	CardTractionStatusCompleted  string = "COMPLETED"
-	CardTractionStatusFailed     string = "FAILED"
+	CardTransactionStatusInitial    string = "INITIAL"
+	CardTransactionStatusProcessing string = "PROCESSING"
+	CardTransactionStatusAcquired   string = "ACQUIRED"
+	CardTransactionStatusCompleted  string = "COMPLETED"
+	CardTransactionStatusFailed     string = "FAILED"
 
 	CardTransactionTypePurchase                    int = 0
 	CardTransactionTypeATMWithdrawal               int = 1
@@ -59,11 +59,28 @@ var (
 	CardTransactionTypeTransferFromAccount         int = 108
 
 	CardTransactionOperationWithdraw int = 0
-	CardTransactionOperationDebit    int = 1
+	CardTransactionOperationDeposit  int = 1
 	CardTransactionOperationNone     int = 2
 
 	CardTransactionClassificationAuthorization string = "Authorization"
 	CardTransactionClassificationReversal      string = "Reversal"
+
+	CardTransactionGHResponseCodeOK    string = "OK"
+	CardTransactionGHResponseCodeCRGUI string = "CRGUI"
+	CardTransactionGHResponseCodeTRXNS string = "TRXNS"
+	CardTransactionGHResponseCodeSYSEX string = "SYSEX"
+
+	CardTransactionResponseCodeOK    string = "OK"
+	CardTransactionResponseCodeWCVV1 string = "WCVV1"
+	CardTransactionResponseCodeWCVV2 string = "WCVV2"
+	CardTransactionResponseCodeWPIN  string = "WPIN"
+	CardTransactionResponseCodeCAEDM string = "CAEDM"
+	CardTransactionResponseCodeCAEDI string = "CAEDI"
+	CardTransactionResponseCodeCAEXP string = "CAEXP"
+	CardTransactionResponseCodeCASUS string = "CASUS"
+	CardTransactionResponseCodeCALOS string = "CALOS"
+	CardTransactionResponseCodeCASTO string = "CASTO"
+	CardTransactionResponseCodeCAUSR string = "CAUSR"
 )
 
 const (

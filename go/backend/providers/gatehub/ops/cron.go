@@ -90,12 +90,12 @@ func (a *Activity) ProcessCardTransaction(ctx context.Context, tx pendingTransac
 	}
 
 	switch *cardTx.TxStatus {
-	case external.CardTractionStatusCompleted:
+	case external.CardTransactionStatusCompleted:
 		err = a.FinalizeGatehubCardTransaction(ctx, cardTx.TransactionID, internalTx.ID)
 		if err != nil {
 			return err
 		}
-	case external.CardTractionStatusFailed:
+	case external.CardTransactionStatusFailed:
 		err = a.RollbackGatehubCardTransaction(ctx, cardTx.TransactionID, internalTx.ID)
 		if err != nil {
 			return err

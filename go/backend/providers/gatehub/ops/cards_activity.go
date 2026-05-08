@@ -117,90 +117,6 @@ func (a *Activity) SaveGatehubCardTransaction(ctx context.Context, userID, cardI
 	return nil
 }
 
-func (a *Activity) CreateGatehubCardTransaction(ctx context.Context, userID, txID string, tx external.CardTransaction) error {
-	if tx.BillingCurrency == nil || tx.BillingAmount == nil {
-		return temporal.NewNonRetryableApplicationError("Invalid billing currency or amount", "ErrInternal", fmt.Errorf("%w invalid currency or amount", gatehub.ErrInternal))
-	}
-
-	if *tx.BillingCurrency != currency.EUR.String() {
-		return temporal.NewNonRetryableApplicationError("Invalid currency", "ErrInternal", fmt.Errorf("%w invalid currency", gatehub.ErrInternal))
-	}
-
-	merchantName := getMerchantName(tx)
-
-	walletID, err := getWalletID(ctx, a.b, userID)
-	if err != nil {
-		return err
-	}
-
-	wallet, err := a.b.Wallets().Get(ctx, walletID)
-	if errors.Is(err, gatehub.ErrNotFound) {
-		return temporal.NewNonRetryableApplicationError("Wallet not found", "ErrNotFound", fmt.Errorf("%w No wallet found for gatehub user", gatehub.ErrNotFound))
-	}
-	if err != nil {
-		return err
-	}
-
-	las, err := a.b.LinkedAccounts().ListBalances(ctx, walletID)
-	if err != nil {
-		return err
-	}
-
-	var eurBalance *linkedaccounts.LinkedAccount
-	for _, la := range las {
-		if la.Provider == gatehub.ProviderName && la.Type == gatehub.AccTypeBalance {
-			eurBalance = &la
-			break
-		}
-	}
-
-	if eurBalance == nil {
-		return temporal.NewNonRetryableApplicationError("Gatehub EUR balance account not found", "ErrInternal", fmt.Errorf("%w Gatehub EUR balance account not found", gatehub.ErrInternal))
-	}
-
-	transactionArgs := transactions.CreateTransactionArgs{
-		ID:                 txID,
-		WalletID:           walletID,
-		Provider:           gatehub.ProviderName,
-		State:              transactions.StatePending,
-		ForeignID:          tx.TransactionID,
-		ForeignType:        transactions.TransactionTypeCardTransaction,
-		Source:             wallet.AddressString(),
-		LinkedAccountTitle: "EUR Balance",
-		Title:              merchantName,
-		Destination:        merchantName,
-	}
-
-	val, err := StringToScaledUInt(*tx.BillingAmount)
-	if err != nil {
-		return temporal.NewNonRetryableApplicationError("Invalid billing amount", "ErrInternal", fmt.Errorf("%w invalid billing amount: %s", gatehub.ErrInternal, *tx.BillingAmount))
-	}
-
-	amount := currency.Amount{
-		Value:    val,
-		Currency: currency.EUR,
-		Scale:    2,
-	}
-
-	transactionArgs.Amount = amount
-	transactionArgs.Transfers = []transactions.TransferArgs{
-		{
-			LinkedAccountID: eurBalance.ID,
-			ForeignID:       tx.TransactionID,
-			Amount:          amount,
-			Type:            transactions.TransferTypeDebitCard,
-			State:           transactions.StatePending,
-		},
-	}
-
-	_, err = a.b.Transactions().CreateTransaction(ctx, transactionArgs)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (a *Activity) FinalizeGatehubCardTransaction(ctx context.Context, cardTxID, internalTxID string) error {
 	err := FinaliseReserve(ctx, a.b, internalTxID)
 	if err != nil {
@@ -223,7 +139,7 @@ func (a *Activity) FinalizeGatehubCardTransaction(ctx context.Context, cardTxID,
 		return err
 	}
 
-	err = updateCardTransactionStatus(ctx, a.b, cardTxID, external.CardTractionStatusCompleted)
+	err = updateCardTransactionStatus(ctx, a.b, cardTxID, external.CardTransactionStatusCompleted)
 	if err != nil {
 		return err
 	}
@@ -237,23 +153,12 @@ func (a *Activity) RollbackGatehubCardTransaction(ctx context.Context, cardTxID,
 		return err
 	}
 
-	transfers, err := a.b.Transactions().ListTransfers(ctx, internalTxID)
-	if err != nil {
-		return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
-	}
-	for _, t := range transfers {
-		err = a.b.Transactions().SetTransferState(ctx, t.ID, transactions.StateFailed)
-		if err != nil {
-			return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
-		}
-	}
-
 	err = a.b.Transactions().SetTransactionState(ctx, internalTxID, transactions.StateFailed)
 	if err != nil {
 		return err
 	}
 
-	err = updateCardTransactionStatus(ctx, a.b, cardTxID, external.CardTractionStatusFailed)
+	err = updateCardTransactionStatus(ctx, a.b, cardTxID, external.CardTransactionStatusFailed)
 	if err != nil {
 		return err
 	}
@@ -266,15 +171,19 @@ type CardTransactionMeta struct {
 	WalletAddress string
 	EURBalanceID  string
 	MerchantName  string
-	Note          string
 	BillingAmount currency.Amount
 }
 
 func (a *Activity) ComputeCardTransactionMeta(ctx context.Context, userID string, tx external.CardTransaction) (CardTransactionMeta, error) {
 	if tx.BillingCurrency == nil || tx.BillingAmount == nil {
-		return CardTransactionMeta{}, temporal.NewNonRetryableApplicationError("Invalid billing currency or amount", "ErrInternal", fmt.Errorf("%w invalid currency or amount", gatehub.ErrInternal))
+		// Replace with `new("EUR")` when moving to golang 1.26
+		c := "EUR"
+		amount := "0"
+		tx.BillingCurrency = &c
+		tx.BillingAmount = &amount
 	}
 
+	// Sanity check
 	if *tx.BillingCurrency != currency.EUR.String() {
 		return CardTransactionMeta{}, temporal.NewNonRetryableApplicationError("Invalid currency", "ErrInternal", fmt.Errorf("%w invalid currency", gatehub.ErrInternal))
 	}
@@ -306,7 +215,7 @@ func (a *Activity) ComputeCardTransactionMeta(ctx context.Context, userID string
 	}
 
 	if eurBalance == nil {
-		return CardTransactionMeta{}, temporal.NewNonRetryableApplicationError("Gatehub EUR balance account not found", "ErrInternal", fmt.Errorf("%w Gatehub EUR balance account not found", gatehub.ErrInternal))
+		return CardTransactionMeta{}, temporal.NewNonRetryableApplicationError("Gatehub EUR balance account not found", "ErrInternal", fmt.Errorf("%w Gatehub EUR balance account not found", gatehub.ErrNotFound))
 	}
 
 	val, err := StringToScaledUInt(*tx.BillingAmount)
@@ -314,17 +223,11 @@ func (a *Activity) ComputeCardTransactionMeta(ctx context.Context, userID string
 		return CardTransactionMeta{}, temporal.NewNonRetryableApplicationError("Invalid billing amount", "ErrInternal", fmt.Errorf("%w invalid billing amount: %s", gatehub.ErrInternal, *tx.BillingAmount))
 	}
 
-	classification := ""
-	if tx.TransactionClassification != nil {
-		classification = *tx.TransactionClassification
-	}
-
 	return CardTransactionMeta{
 		WalletID:      walletID,
 		WalletAddress: wallet.AddressString(),
 		EURBalanceID:  eurBalance.ID,
 		MerchantName:  getMerchantName(tx),
-		Note:          getNoteForCardTransaction(tx.Type, classification),
 		BillingAmount: currency.Amount{
 			Value:    val,
 			Currency: currency.EUR,
@@ -333,20 +236,27 @@ func (a *Activity) ComputeCardTransactionMeta(ctx context.Context, userID string
 	}, nil
 }
 
-type RecordGatehubCardAuthorizationArgs struct {
-	WalletID              string
-	WalletAddress         string
-	EURBalanceID          string
-	MerchantName          string
-	Note                  string
-	BillingAmount         currency.Amount
+type RecordGatehubCardTxData struct {
+	WalletID      string
+	WalletAddress string
+	EURBalanceID  string
+	MerchantName  string
+	BillingAmount currency.Amount
+	Note          string
+}
+type RecordGatehubCardFXData struct {
 	ExchangeRateApplied   string
 	ExchangeRateReference string
 	ExchangeRateSurcharge string
 	TargetAmount          *currency.Amount
 }
 
-func (a *Activity) RecordGatehubCardAuthorization(ctx context.Context, txID string, tx external.CardTransaction, args RecordGatehubCardAuthorizationArgs) error {
+type RecordGatehubCardWithdrawalArgs struct {
+	RecordGatehubCardTxData
+	RecordGatehubCardFXData
+}
+
+func (a *Activity) RecordGatehubCardWithdrawal(ctx context.Context, txID string, tx external.CardTransaction, args RecordGatehubCardWithdrawalArgs) error {
 	if args.BillingAmount.Value > 0 {
 		const cardAuthTimeout = 30 * 24 * time.Hour
 		if _, err := ReserveBalance(ctx, a.b, args.EURBalanceID, txID, args.BillingAmount, cardAuthTimeout); err != nil {
@@ -366,59 +276,103 @@ func (a *Activity) RecordGatehubCardAuthorization(ctx context.Context, txID stri
 		Title:                 args.MerchantName,
 		Destination:           args.MerchantName,
 		Note:                  args.Note,
+		Reference:             args.Note,
 		Amount:                args.BillingAmount,
 		ExchangeRateApplied:   args.ExchangeRateApplied,
 		ExchangeRateReference: args.ExchangeRateReference,
 		ExchangeRateSurcharge: args.ExchangeRateSurcharge,
 		TargetAmount:          args.TargetAmount,
-		Transfers: []transactions.TransferArgs{{
-			LinkedAccountID: args.EURBalanceID,
-			ForeignID:       tx.TransactionID,
-			Amount:          args.BillingAmount,
-			Type:            transactions.TransferTypeDebitCard,
-			State:           transactions.StatePending,
-		}},
 	}
 
 	_, err := a.b.Transactions().CreateTransaction(ctx, createArgs)
 	return err
 }
 
-func (a *Activity) VoidPreviousGatehubCardAuthorization(ctx context.Context, walletID, refTransactionID string) error {
-	prev, err := a.b.Transactions().GetTransactionByForeignID(ctx, walletID, refTransactionID)
-	if err != nil {
-		return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
-	}
+type RecordGatehubCardDepositArgs struct {
+	RecordGatehubCardTxData
+}
 
-	if err = RollbackReserve(ctx, a.b, prev.ID); err != nil {
-		return err
-	}
-
-	transfers, err := a.b.Transactions().ListTransfers(ctx, prev.ID)
-	if err != nil {
-		return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
-	}
-	for _, t := range transfers {
-		if err = a.b.Transactions().SetTransferState(ctx, t.ID, transactions.StateFailed); err != nil {
-			return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+func (a *Activity) RecordGatehubCardDeposit(ctx context.Context, txID string, tx external.CardTransaction, args RecordGatehubCardDepositArgs) error {
+	if args.BillingAmount.Value > 0 {
+		if _, err := AssignBalance(ctx, a.b, args.EURBalanceID, txID, args.BillingAmount); err != nil {
+			return err
 		}
 	}
 
-	if err = a.b.Transactions().SetTransactionState(ctx, prev.ID, transactions.StateFailed); err != nil {
+	createArgs := transactions.CreateTransactionArgs{
+		ID:                 txID,
+		WalletID:           args.WalletID,
+		Provider:           gatehub.ProviderName,
+		State:              transactions.StateCompleted, // This is temporary for now, until we get more information from the GateHub team - see Linear for more information
+		ForeignID:          tx.TransactionID,
+		ForeignType:        transactions.TransactionTypeCardTransaction,
+		Source:             args.WalletAddress,
+		LinkedAccountTitle: "EUR Balance",
+		Title:              args.MerchantName,
+		Destination:        args.MerchantName,
+		Note:               args.Note,
+		Reference:          args.Note,
+		Amount:             args.BillingAmount,
+	}
+
+	if _, err := a.b.Transactions().CreateTransaction(ctx, createArgs); err != nil {
 		return err
 	}
 
-	return updateCardTransactionStatus(ctx, a.b, refTransactionID, external.CardTractionStatusFailed)
+	// This might change based on how we are going to poll for reversal completions.
+	return updateCardTransactionStatus(ctx, a.b, tx.TransactionID, external.CardTransactionStatusCompleted)
 }
 
-type cardFX struct {
-	ExchangeRateApplied   string
-	ExchangeRateReference string
-	ExchangeRateSurcharge string
-	TargetAmount          *currency.Amount
+type RecordGatehubCardInformationalArgs struct {
+	RecordGatehubCardTxData
+	RecordGatehubCardFXData
+	State transactions.State
 }
 
-func buildFX(mcConversion *external.MastercardConversion, transactionAmount *string, transactionCurrency string) (*cardFX, error) {
+func (a *Activity) RecordGatehubCardInformational(ctx context.Context, txID string, tx external.CardTransaction, args RecordGatehubCardInformationalArgs) error {
+	createArgs := transactions.CreateTransactionArgs{
+		ID:                    txID,
+		WalletID:              args.WalletID,
+		Provider:              gatehub.ProviderName,
+		State:                 transactions.StatePending,
+		ForeignID:             tx.TransactionID,
+		ForeignType:           transactions.TransactionTypeCardTransaction,
+		Source:                args.WalletAddress,
+		LinkedAccountTitle:    "EUR Balance",
+		Title:                 args.MerchantName,
+		Destination:           args.MerchantName,
+		Note:                  args.Note,
+		Reference:             args.Note,
+		Amount:                args.BillingAmount,
+		ExchangeRateApplied:   args.ExchangeRateApplied,
+		ExchangeRateReference: args.ExchangeRateReference,
+		ExchangeRateSurcharge: args.ExchangeRateSurcharge,
+		TargetAmount:          args.TargetAmount,
+	}
+
+	if _, err := a.b.Transactions().CreateTransaction(ctx, createArgs); err != nil {
+		return err
+	}
+
+	switch args.State {
+	case transactions.StateCompleted:
+		return updateCardTransactionStatus(ctx, a.b, tx.TransactionID, external.CardTransactionStatusCompleted)
+	case transactions.StateFailed:
+		return updateCardTransactionStatus(ctx, a.b, tx.TransactionID, external.CardTransactionStatusFailed)
+	}
+
+	return nil
+}
+
+func (a *Activity) GetInternalTransactionByForeignID(ctx context.Context, walletID, foreignID string) (string, error) {
+	tx, err := a.b.Transactions().GetTransactionByForeignID(ctx, walletID, foreignID)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+	return tx.ID, nil
+}
+
+func buildFX(mcConversion *external.MastercardConversion, transactionAmount *string, transactionCurrency string) (*RecordGatehubCardFXData, error) {
 	if mcConversion == nil {
 		return nil, fmt.Errorf("missing Mastercard conversion data")
 	}
@@ -429,7 +383,7 @@ func buildFX(mcConversion *external.MastercardConversion, transactionAmount *str
 	if err != nil {
 		return nil, fmt.Errorf("invalid transaction amount: %s", *transactionAmount)
 	}
-	fx := &cardFX{
+	fx := &RecordGatehubCardFXData{
 		TargetAmount: &currency.Amount{
 			Value:    targetVal,
 			Currency: currency.ParseCurrency(transactionCurrency),
@@ -448,54 +402,67 @@ func buildFX(mcConversion *external.MastercardConversion, transactionAmount *str
 	return fx, nil
 }
 
-func getNoteForCardTransaction(txType int, classification string) string {
-	switch classification {
-	case external.CardTransactionClassificationReversal:
-		switch txType {
-		case external.CardTransactionTypePurchase:
-			return "Purchase reversed"
-		case external.CardTransactionTypeATMWithdrawal:
-			return "ATM withdrawal reversed"
-		case external.CardTransactionTypeCashAdvance:
-			return "Cash advance reversed"
-		case external.CardTransactionTypeTransferToAccount,
-			external.CardTransactionTypeTransferFromAccount:
-			return "Card transfer reversed"
-		case external.CardTransactionTypePreauthorization:
-			return "Authorization hold reversed"
-		case external.CardTransactionTypePreauthorizationIncremental:
-			return "Authorization hold update reversed"
-		case external.CardTransactionTypePreauthorizationCompletion:
-			return "Payment completion reversed"
-		default:
-			return ""
-		}
-	case external.CardTransactionClassificationAuthorization:
-		switch txType {
-		case external.CardTransactionTypeATMWithdrawal:
-			return "ATM cash withdrawal"
-		case external.CardTransactionTypeCashAdvance:
-			return "Cash advance"
-		case external.CardTransactionTypeTransferToAccount,
-			external.CardTransactionTypeTransferFromAccount:
-			return "Card transfer"
-		case external.CardTransactionTypePreauthorization:
-			return "Authorization hold — funds reserved until payment is completed"
-		case external.CardTransactionTypePreauthorizationIncremental:
-			return "Authorization hold updated"
-		case external.CardTransactionTypePreauthorizationCompletion:
-			return "Payment completed"
-		case external.CardTransactionTypeRefundCreditPayment:
-			return "Refund"
-		case external.CardTransactionTypeCardVerificationInquiry:
-			return "Card verification check"
-		case external.CardTransactionTypePINUnblock:
-			return "PIN unblock"
-		case external.CardTransactionTypePINChange:
-			return "PIN change"
-		default:
-			return ""
-		}
+func getNoteForWithdrawals(txType int) string {
+	switch txType {
+	case external.CardTransactionTypeATMWithdrawal:
+		return "ATM Withdrawal"
+	case external.CardTransactionTypeCashAdvance:
+		return "Cash Advance"
+	case external.CardTransactionTypeTransferFromAccount:
+		return "Mastercard Send"
+	case external.CardTransactionTypePreauthorization,
+		external.CardTransactionTypePreauthorizationIncremental,
+		external.CardTransactionTypePreauthorizationCompletion:
+		return "Preauthorization"
+	default:
+		return ""
+	}
+}
+
+func getNoteForDeposits(txType int, classification string) string {
+	if classification == external.CardTransactionClassificationReversal {
+		return "Refund"
+	}
+
+	switch txType {
+	case external.CardTransactionTypeTransferToAccount:
+		return "Mastercard Send"
+	default:
+		return ""
+	}
+}
+
+func getNoteForInformationals(txType int, ghResponseCode string, responseCode string) string {
+	if ghResponseCode == external.CardTransactionGHResponseCodeCRGUI {
+		return "Insufficient Balance"
+	}
+
+	if txType == external.CardTransactionTypeCardVerificationInquiry &&
+		ghResponseCode == external.CardTransactionGHResponseCodeOK &&
+		responseCode == external.CardTransactionResponseCodeOK {
+		return "Card Verification"
+	}
+
+	switch responseCode {
+	case external.CardTransactionResponseCodeWCVV1,
+		external.CardTransactionResponseCodeWCVV2:
+		return "Invalid CVV"
+	case external.CardTransactionResponseCodeWPIN:
+		return "Invalid PIN"
+	case external.CardTransactionResponseCodeCAEDM:
+		return "Wrong Expiration Date"
+	case external.CardTransactionResponseCodeCAEDI:
+		return "Invalid Card Expiration Date"
+	case external.CardTransactionResponseCodeCAEXP:
+		return "Card Expired"
+	case external.CardTransactionResponseCodeCASUS:
+		return "Frozen Card"
+	case external.CardTransactionResponseCodeCALOS:
+		return "Lost Card"
+	case external.CardTransactionResponseCodeCASTO:
+		return "Stolen Card"
+	case external.CardTransactionResponseCodeCAUSR:
+		return "Card Suspended by User Request"
 	default:
 		return ""
 	}
@@ -503,32 +470,31 @@ func getNoteForCardTransaction(txType int, classification string) string {
 
 func getMerchantName(tx external.CardTransaction) string {
 	if tx.MerchantName != nil && *tx.MerchantName != "" {
-		return *tx.MerchantName
+		merchant := *tx.MerchantName
+
+		if tx.MerchantCountry != nil && *tx.MerchantCountry != "" {
+			merchant = fmt.Sprintf("%s, %s", merchant, *tx.MerchantCountry)
+		}
+
+		return merchant
 	}
 
 	switch tx.Type {
-	case external.CardTransactionTypePurchase,
-		external.CardTransactionTypePreauthorization,
-		external.CardTransactionTypePreauthorizationIncremental,
-		external.CardTransactionTypePreauthorizationCompletion:
+	case external.CardTransactionTypePurchase:
 		return "Purchase"
 	case external.CardTransactionTypeATMWithdrawal:
 		return "ATM Withdrawal"
-	case external.CardTransactionTypeBalanceInquiryOnATM:
-		return "Balance Inquiry"
+	case external.CardTransactionTypePreauthorization,
+		external.CardTransactionTypePreauthorizationIncremental,
+		external.CardTransactionTypePreauthorizationCompletion:
+		return "Preauthorization"
 	case external.CardTransactionTypeCashAdvance:
 		return "Cash Advance"
-	case external.CardTransactionTypeRefundCreditPayment:
-		return "Refund"
 	case external.CardTransactionTypeTransferToAccount,
 		external.CardTransactionTypeTransferFromAccount:
-		return "Transfer"
+		return "Mastercard Send"
 	case external.CardTransactionTypeCardVerificationInquiry:
 		return "Card Verification"
-	case external.CardTransactionTypePINUnblock:
-		return "PIN Unblock"
-	case external.CardTransactionTypePINChange:
-		return "PIN Change"
 	default:
 		return "Card Transaction"
 	}
