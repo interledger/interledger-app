@@ -2,8 +2,16 @@ name: E2E Tests (PR)
 
 on:
   pull_request:
-    paths-ignore:
-      - 'documentation/**'
+    paths:
+      - 'go/**'
+      - 'typescript/**'
+      - 'e2e/**'
+      - 'local/**'
+      - 'proto/**'
+      - 'go.work'
+      - 'go.work.sum'
+      - '.github/workflows/e2e-tests.yml'
+      - '.github/workflows/e2e-runner-scaler.yml'
 
 permissions:
   contents: read

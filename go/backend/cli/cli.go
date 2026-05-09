@@ -116,6 +116,7 @@ type StartArgs struct {
 	PersonaBaseURL                string
 	PersonaToken                  string
 	PersonaWebhookToken           string
+	PersonaSandboxFakeZAID         bool
 	AppleAppID                    string
 	AndroidPackageName            string
 	AndroidSHA256                 string
@@ -214,6 +215,19 @@ func ParseStartArgs() (*StartArgs, error) {
 	personaWebhook := os.Getenv("PERSONA_WEBHOOK_TOKEN")
 	if personaWebhook == "" {
 		return nil, errors.New("PERSONA_WEBHOOK_TOKEN is required")
+	}
+
+	// PERSONA_SANDBOX_ZA_FAKE_ZA_ID is a Persona sandbox workaround. Persona's sandbox environment
+	// always returns an American user profile, so the South African ID field is null.
+	// Setting this to true makes the backend generate a synthetic ZA ID instead,
+	// which is required for Xago subaccount creation. Has no effect in production.
+	personaSandboxFakeZAID := false
+	if v := os.Getenv("PERSONA_SANDBOX_ZA_FAKE_ZA_ID"); v != "" {
+		var err error
+		personaSandboxFakeZAID, err = strconv.ParseBool(v)
+		if err != nil {
+			return nil, errors.New("PERSONA_SANDBOX_ZA_FAKE_ZA_ID must be a valid boolean (true/false/1/0)")
+		}
 	}
 
 	twitterClientId := os.Getenv("TWITTER_CLIENT_ID")
@@ -543,6 +557,7 @@ func ParseStartArgs() (*StartArgs, error) {
 		PersonaBaseURL:                personaBaseURL,
 		PersonaToken:                  personaToken,
 		PersonaWebhookToken:           personaWebhook,
+		PersonaSandboxFakeZAID:         personaSandboxFakeZAID,
 		AppleAppID:                    appleAppID,
 		AndroidPackageName:            androidPackageName,
 		AndroidSHA256:                 androidSHA256,
