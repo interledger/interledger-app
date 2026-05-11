@@ -1,5 +1,6 @@
 :root {
   --nav-height: 104px; /* Space below the 72px floating navbar + 16px offset + padding */
+  --nav-mobile-link-size: 1.25rem; /* 20px per Figma spec */
 }
 
 .nav {
@@ -72,7 +73,7 @@
 }
 
 .nav-link {
-  font-family: var(--font-family-body, 'Inter', sans-serif);
+  font-family: var(--font-body, 'Poppins', sans-serif);
   font-size: 0.8125rem;
   font-weight: 500;
   color: var(--nav-text);
@@ -147,6 +148,12 @@
   }
 }
 
+.nav-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 98;
+}
+
 .nav-overlay {
   position: fixed;
   top: 96px;
@@ -182,9 +189,9 @@
 }
 
 .nav-link--mobile {
-  font-size: 1.125rem;
+  font-size: var(--nav-mobile-link-size);
   font-weight: 500;
-  color: var(--nav-overlay-text);
+  color: var(--nav-mobile-link-color);
   padding: 8px 0;
   width: 100%;
 }

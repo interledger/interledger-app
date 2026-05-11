@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import logoImg from "../assets/interledger-wallet-logo.png"
 import logoDarkImg from "../assets/interledger-wallet-logo-dark.png"
@@ -12,7 +12,21 @@ interface NavProps {
  */
 export function Nav({ className }: NavProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const menuButtonRef = useRef<HTMLButtonElement>(null)
   const toggleMenu = useCallback(() => setIsOpen((prev) => !prev), [])
+  const closeMenu = useCallback(() => {
+    setIsOpen(false)
+    menuButtonRef.current?.focus()
+  }, [])
+
+  useEffect(() => {
+    if (!isOpen) return
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeMenu()
+    }
+    document.addEventListener("keydown", handleKeyDown)
+    return () => document.removeEventListener("keydown", handleKeyDown)
+  }, [isOpen, closeMenu])
 
   return (
     <>
@@ -43,10 +57,12 @@ export function Nav({ className }: NavProps) {
                 Get Started <span style={{ marginLeft: "4px" }}>&rarr;</span>
               </a>
               <button
+                ref={menuButtonRef}
                 type="button"
                 className="menu-button"
                 onClick={toggleMenu}
                 aria-expanded={isOpen}
+                aria-controls="mobile-nav"
                 aria-label={isOpen ? "Close menu" : "Open menu"}
               >
                 <span className="menu-button-icon" aria-hidden="true">
@@ -61,26 +77,31 @@ export function Nav({ className }: NavProps) {
       {/* Mobile overlay */}
       <AnimatePresence>
         {isOpen && (
-          <motion.div 
-            className="nav-overlay" 
-            role="dialog" 
-            aria-label="Navigation menu"
-            initial={{ opacity: 0, y: -8, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
-          >
-            <div className="nav-overlay-inner">
-              <ul className="nav-overlay-links">
-                <li><a href="#contact" className="nav-link nav-link--mobile" onClick={toggleMenu}>Contact</a></li>
-                <li><a href="#login" className="nav-link nav-link--mobile" onClick={toggleMenu}>Log in</a></li>
-                <li><a href="#app" className="nav-link nav-link--mobile" onClick={toggleMenu}>Use the app</a></li>
-              </ul>
-              <a href="/signup" className="nav-cta nav-cta--mobile">
-                Get Started <span style={{ marginLeft: "4px" }}>&rarr;</span>
-              </a>
-            </div>
-          </motion.div>
+          <>
+            <div className="nav-backdrop" onClick={closeMenu} aria-hidden="true" />
+            <motion.div
+              id="mobile-nav"
+              className="nav-overlay"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Navigation menu"
+              initial={{ opacity: 0, y: -8, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+            >
+              <div className="nav-overlay-inner">
+                <ul className="nav-overlay-links">
+                  <li><a href="#contact" className="nav-link nav-link--mobile" onClick={closeMenu}>Contact</a></li>
+                  <li><a href="#login" className="nav-link nav-link--mobile" onClick={closeMenu}>Log in</a></li>
+                  <li><a href="#app" className="nav-link nav-link--mobile" onClick={closeMenu}>Use the app</a></li>
+                </ul>
+                <a href="/signup" className="nav-cta nav-cta--mobile">
+                  Get Started <span style={{ marginLeft: "4px" }}>&rarr;</span>
+                </a>
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
     </>

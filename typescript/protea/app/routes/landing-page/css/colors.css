@@ -146,6 +146,7 @@
   --nav-overlay-bg: rgba(248, 248, 248, 0.97);   /* light overlay */
   --nav-overlay-text: var(--color-neutral-150);  /* dark text on light overlay */
   --nav-overlay-border: rgba(0, 0, 0, 0.08);
+  --nav-mobile-link-color: #c9c9c9;              /* fixed per Figma spec, same in light + dark */
 }
 
 /* ---- Layer 3: Dark Mode Overrides ---- */
