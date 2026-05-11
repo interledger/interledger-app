@@ -319,6 +319,7 @@ func (a *Activity) RecordGatehubCardWithdrawal(ctx context.Context, txID string,
 
 type RecordGatehubCardDepositArgs struct {
 	RecordGatehubCardTxData
+	State transactions.State
 }
 
 func (a *Activity) RecordGatehubCardDeposit(ctx context.Context, txID string, tx external.CardTransaction, args RecordGatehubCardDepositArgs) error {
@@ -329,13 +330,23 @@ func (a *Activity) RecordGatehubCardDeposit(ctx context.Context, txID string, tx
 				- checks that were already done inside the workflow
 				- returns balance we don't need
 		*/
+
+		var isPending bool
+		var timeout uint64
+		if args.State == transactions.StatePending {
+			isPending = true
+			const cardReversalTimeout = 30 * 24 * time.Hour
+			timeout = uint64(cardReversalTimeout)
+		}
+
 		transfers, err := a.b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
 			{
 				ID:              txID,
 				Amount:          args.BillingAmount.Value,
 				CreditAccountID: args.EURBalanceID,
 				DebitAccountID:  gatehub.EUROpsAccount,
-				Pending:         false,
+				Pending:         isPending,
+				Timeout:         timeout,
 				Code:            1,
 				Ledger:          gatehub.LedgerIDEUR,
 			},
@@ -359,7 +370,7 @@ func (a *Activity) RecordGatehubCardDeposit(ctx context.Context, txID string, tx
 		ID:                 txID,
 		WalletID:           args.WalletID,
 		Provider:           gatehub.ProviderName,
-		State:              transactions.StateCompleted, // This is temporary for now, until we get more information from the GateHub team - see Linear for more information
+		State:              args.State,
 		ForeignID:          tx.TransactionID,
 		ForeignType:        transactions.TransactionTypeCardTransaction,
 		Source:             args.WalletAddress,
@@ -375,8 +386,11 @@ func (a *Activity) RecordGatehubCardDeposit(ctx context.Context, txID string, tx
 		return err
 	}
 
-	// This might change based on how we are going to poll for reversal completions.
-	return updateCardTransactionStatus(ctx, a.b, tx.TransactionID, external.CardTransactionStatusCompleted)
+	if args.State == transactions.StateCompleted {
+		return updateCardTransactionStatus(ctx, a.b, tx.TransactionID, external.CardTransactionStatusCompleted)
+	}
+
+	return nil
 }
 
 type RecordGatehubCardInformationalArgs struct {
@@ -390,7 +404,7 @@ func (a *Activity) RecordGatehubCardInformational(ctx context.Context, txID stri
 		ID:                    txID,
 		WalletID:              args.WalletID,
 		Provider:              gatehub.ProviderName,
-		State:                 transactions.StatePending,
+		State:                 args.State,
 		ForeignID:             tx.TransactionID,
 		ForeignType:           transactions.TransactionTypeCardTransaction,
 		Source:                args.WalletAddress,

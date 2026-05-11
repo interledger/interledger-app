@@ -288,6 +288,7 @@ func CreateCardTransaction(ctx workflow.Context, wh CardTransactionEventWebhook)
 		}
 		switch classification {
 		case external.CardTransactionClassificationAuthorization:
+			recordDepositArgs.State = transactions.StateCompleted
 			switch ct.Type {
 			case external.CardTransactionTypeTransferToAccount:
 				if err = workflow.ExecuteActivity(ctx, a.RecordGatehubCardDeposit, txID, ct, recordDepositArgs).Get(ctx, nil); err != nil {
@@ -298,6 +299,7 @@ func CreateCardTransaction(ctx workflow.Context, wh CardTransactionEventWebhook)
 				return temporal.NewNonRetryableApplicationError("Unsupported type", "ErrInternal", fmt.Errorf("%w unsupported Type", gatehub.ErrInternal))
 			}
 		case external.CardTransactionClassificationReversal:
+			recordDepositArgs.State = transactions.StatePending
 			switch ct.Type {
 			case external.CardTransactionTypePurchase,
 				external.CardTransactionTypeATMWithdrawal,
