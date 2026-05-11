@@ -1,15 +1,16 @@
 /* --- Outer container ---------------------------------------------------- */
-/* Total height = sum of scroll-step children. */
+/* Hero is a single 100vh pinned viewport; gestures advance screens.        */
 .animated-hero {
   position: relative;
   overflow: clip;
   background: var(--section-bg-hero);
   transition: background-color 600ms ease;
+  height: 100vh;
   --glow-hero-color: rgba(34, 197, 94, 0.4); /* Green default */
 }
 
 /* --- Sticky viewport ---------------------------------------------------- */
-/* Pinned to screen while user scrolls through spacers.                     */
+/* Pinned to screen; document scroll is locked while hero is engaged.       */
 .sticky-viewport {
   position: sticky;
   top: 0;
@@ -194,19 +195,3 @@
   z-index: 1;
 }
 
-.scroll-step {
-  position: relative;
-  pointer-events: none;
-}
-
-.scroll-step--hero {
-  --step-content: 80vh;   /* time spent reading the hero */
-  --step-buffer: 20vh;    /* scroll buffer before feature 1 fires */
-  height: calc(var(--step-content) + var(--step-buffer));
-}
-
-.scroll-step--feature {
-  --step-content: 100vh;  /* time spent reading each feature */
-  --step-buffer: 50vh;    /* scroll buffer before next feature fires */
-  height: calc(var(--step-content) + var(--step-buffer));
-}

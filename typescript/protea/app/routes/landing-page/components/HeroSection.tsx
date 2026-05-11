@@ -1,12 +1,12 @@
 import { useRef } from "react"
-import { motion, useScroll, useTransform, useMotionValueEvent } from "framer-motion"
+import { motion } from "framer-motion"
 
 import { PhoneFrame } from "./PhoneFrame"
-import { ScrollStep } from "./ScrollStep"
 import { usePhoneCarousel } from "../context/PhoneCarouselContext"
 import type { CarouselScreen } from "../context/PhoneCarouselContext"
 import { FeatureSection } from "./FeatureSection"
 import { FeatureWidget } from "./FeatureWidget"
+import { useHeroSnap } from "../hooks/useHeroSnap"
 import orbitSvg from "../assets/orbit.svg"
 
 const FEATURES = [
@@ -52,52 +52,41 @@ const FEATURES = [
 ]
 
 /**
- * Animated Hero Section — scrollytelling container.
+ * Animated Hero Section — snap-per-event carousel.
  *
- * Structure:
- *   <section class="animated-hero">             ← full scroll height (sum of step heights)
- *     <div class="sticky-viewport">             ← pinned to viewport (100vh)
- *       <div class="hero-content">              ← headline, subhead, CTA
- *         <div class="hero-punch-scroll">       ← JS scroll-parallax wrapper
- *           <div class="hero-punch anim-enter"> ← CSS enter animation wrapper
- *       <div class="hero-phone-container">      ← PhoneFrame lives here
- *       <Glow />                                ← positioned absolutely
- *       <div class="feature-content-slot">      ← features animate in/out here
- *     </div>
- *     <div class="scroll-step scroll-step--hero">       ← hero scroll spacer
- *     <div class="scroll-step scroll-step--feature">    ← feature 1 spacer (task 07)
- *     <div class="scroll-step scroll-step--feature">    ← feature 2 spacer (task 08)
- *     ...
- *   </section>
+ * Hero is a single 100vh pinned viewport. Document scroll is locked while
+ * hero is engaged; each wheel/touch/key gesture advances `activeScreen` by
+ * exactly one (1..5). At edges (5 going down, 1 going up) the lock releases
+ * and native scroll resumes into the rest of the page.
  */
 export function HeroSection() {
   const sectionRef = useRef<HTMLElement>(null)
   const { activeScreen, setActiveScreen } = usePhoneCarousel()
 
-  // Scope scroll progress to the full animated-hero section
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start start", "end end"],
+  useHeroSnap({
+    sectionRef,
+    activeScreen,
+    setActiveScreen,
+    screenCount: 5,
   })
 
-  const thresholds = [0.14, 0.36, 0.57, 0.79]
-  useMotionValueEvent(scrollYProgress, "change", v => {
-    const next = (1 + thresholds.filter(t => v >= t).length) as CarouselScreen
-    if (next !== activeScreen) setActiveScreen(next)
-  })
-
-  const y = useTransform(scrollYProgress, [0, 0.2], [0, -40])
-  const opacity = useTransform(scrollYProgress, [0, 0.125], [1, 0])
+  const heroTextVisible = activeScreen === 1
 
   return (
-
     <div className="page-content">
       <section ref={sectionRef} className="animated-hero" data-screen={activeScreen}>
         <div className="sticky-viewport">
           <div className="sticky-viewport-content">
             {/* Hero text — headline, subhead, CTA */}
             <div className="hero-content">
-              <motion.div style={{ y, opacity }} className="hero-punch-scroll">
+              <motion.div
+                className="hero-punch-scroll"
+                animate={{
+                  y: heroTextVisible ? 0 : -40,
+                  opacity: heroTextVisible ? 1 : 0,
+                }}
+                transition={{ type: "spring", duration: 0.8, bounce: 0 }}
+              >
                 <div
                   className="hero-punch anim-enter"
                   data-anim="punch-text"
@@ -127,13 +116,6 @@ export function HeroSection() {
             </div>
           </div>
         </div>
-
-        {/* Scroll spacers */}
-        <ScrollStep screen={1} className="scroll-step scroll-step--hero" />
-        <ScrollStep screen={2} className="scroll-step scroll-step--feature" />
-        <ScrollStep screen={3} className="scroll-step scroll-step--feature" />
-        <ScrollStep screen={4} className="scroll-step scroll-step--feature" />
-        <ScrollStep screen={5} className="scroll-step scroll-step--feature" />
       </section>
     </div>
   )
