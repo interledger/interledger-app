@@ -2,6 +2,7 @@ import { HydratedRouter } from 'react-router/dom';
 import * as Sentry from '@sentry/react-router'
 import { StrictMode, startTransition } from 'react'
 import { hydrateRoot } from 'react-dom/client'
+import { envValue } from '~/env.server'
 
 if (
   typeof window.ENV !== 'undefined' &&
@@ -16,7 +17,7 @@ if (
       Sentry.replayIntegration()
     ],
     tracesSampleRate: 1.0,
-    tracePropagationTargets: ['https://interledger.app'],
+    tracePropagationTargets: [envValue("TARGET_HOST")],
     replaysSessionSampleRate: 0,
     replaysOnErrorSampleRate: 1.0
   })

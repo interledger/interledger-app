@@ -13,7 +13,8 @@ const knownEnvKeysRequired: string[] = [
     "PTI_FORMS_URL",
     "PTI_SDK_URL",
     "PERSONA_SDK_URL",
-    "MOCKXAGO_ENDPOINT"
+    "MOCKXAGO_ENDPOINT",
+    "TARGET_HOST"
 ]
 
 const knownEnvKeysOptional: string[] = [
