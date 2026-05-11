@@ -38,10 +38,9 @@ const (
 
 	LedgerIDEUR uint32 = 4482387 // Spells ghubeur on a Nokia 3320 keyboard
 
-	EUROpsAccount          = "1854f171-eafa-4e30-bf66-7dbfe167ccfa"
-	EURLiquidityAccount    = "3bc0e660-6d73-4fb8-8958-45e5e5ff101a"
-	EURPositionAccount     = "2c379644-0709-4451-b944-80f16daf582a"
-	EURPositionAccountXago = "b6f1a99a-9d14-47cc-b755-bf1d7f82ed4e"
+	EUROpsAccount       = "1854f171-eafa-4e30-bf66-7dbfe167ccfa"
+	EURLiquidityAccount = "3bc0e660-6d73-4fb8-8958-45e5e5ff101a"
+	EURClearingAccount  = "2c379644-0709-4451-b944-80f16daf582a"
 
 	DeliveryAddressPermanentResidence = "PermanentResidence"
 	DeliveryAddressTemporaryResidence = "TemporaryResidence"
