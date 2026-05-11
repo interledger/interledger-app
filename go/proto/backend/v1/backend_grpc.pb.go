@@ -124,6 +124,8 @@ const (
 	BackendService_BlockCard_FullMethodName                      = "/backend.v1.BackendService/BlockCard"
 	BackendService_GetPendingThreeDSConfirmations_FullMethodName = "/backend.v1.BackendService/GetPendingThreeDSConfirmations"
 	BackendService_ThreeDSPaymentConfirmation_FullMethodName     = "/backend.v1.BackendService/ThreeDSPaymentConfirmation"
+	BackendService_ConfirmUserPhone_FullMethodName               = "/backend.v1.BackendService/ConfirmUserPhone"
+	BackendService_UpdateUserPhone_FullMethodName                = "/backend.v1.BackendService/UpdateUserPhone"
 )
 
 // BackendServiceClient is the client API for BackendService service.
@@ -261,6 +263,9 @@ type BackendServiceClient interface {
 	BlockCard(ctx context.Context, in *BlockCardRequest, opts ...grpc.CallOption) (*Empty, error)
 	GetPendingThreeDSConfirmations(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetPendingThreeDSConfirmationsResponse, error)
 	ThreeDSPaymentConfirmation(ctx context.Context, in *ThreeDSPaymentConfirmationRequest, opts ...grpc.CallOption) (*Empty, error)
+	// Phone confirmation
+	ConfirmUserPhone(ctx context.Context, in *ConfirmUserPhoneRequest, opts ...grpc.CallOption) (*Empty, error)
+	UpdateUserPhone(ctx context.Context, in *UpdateUserPhoneRequest, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type backendServiceClient struct {
@@ -1216,6 +1221,24 @@ func (c *backendServiceClient) ThreeDSPaymentConfirmation(ctx context.Context, i
 	return out, nil
 }
 
+func (c *backendServiceClient) ConfirmUserPhone(ctx context.Context, in *ConfirmUserPhoneRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, BackendService_ConfirmUserPhone_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) UpdateUserPhone(ctx context.Context, in *UpdateUserPhoneRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, BackendService_UpdateUserPhone_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServiceServer is the server API for BackendService service.
 // All implementations should embed UnimplementedBackendServiceServer
 // for forward compatibility
@@ -1351,6 +1374,9 @@ type BackendServiceServer interface {
 	BlockCard(context.Context, *BlockCardRequest) (*Empty, error)
 	GetPendingThreeDSConfirmations(context.Context, *Empty) (*GetPendingThreeDSConfirmationsResponse, error)
 	ThreeDSPaymentConfirmation(context.Context, *ThreeDSPaymentConfirmationRequest) (*Empty, error)
+	// Phone confirmation
+	ConfirmUserPhone(context.Context, *ConfirmUserPhoneRequest) (*Empty, error)
+	UpdateUserPhone(context.Context, *UpdateUserPhoneRequest) (*Empty, error)
 }
 
 // UnimplementedBackendServiceServer should be embedded to have forward compatible implementations.
@@ -1671,6 +1697,12 @@ func (UnimplementedBackendServiceServer) GetPendingThreeDSConfirmations(context.
 }
 func (UnimplementedBackendServiceServer) ThreeDSPaymentConfirmation(context.Context, *ThreeDSPaymentConfirmationRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ThreeDSPaymentConfirmation not implemented")
+}
+func (UnimplementedBackendServiceServer) ConfirmUserPhone(context.Context, *ConfirmUserPhoneRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ConfirmUserPhone not implemented")
+}
+func (UnimplementedBackendServiceServer) UpdateUserPhone(context.Context, *UpdateUserPhoneRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateUserPhone not implemented")
 }
 
 // UnsafeBackendServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -3574,6 +3606,42 @@ func _BackendService_ThreeDSPaymentConfirmation_Handler(srv interface{}, ctx con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_ConfirmUserPhone_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ConfirmUserPhoneRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).ConfirmUserPhone(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_ConfirmUserPhone_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).ConfirmUserPhone(ctx, req.(*ConfirmUserPhoneRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_UpdateUserPhone_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateUserPhoneRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).UpdateUserPhone(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_UpdateUserPhone_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).UpdateUserPhone(ctx, req.(*UpdateUserPhoneRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BackendService_ServiceDesc is the grpc.ServiceDesc for BackendService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -4000,6 +4068,14 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ThreeDSPaymentConfirmation",
 			Handler:    _BackendService_ThreeDSPaymentConfirmation_Handler,
+		},
+		{
+			MethodName: "ConfirmUserPhone",
+			Handler:    _BackendService_ConfirmUserPhone_Handler,
+		},
+		{
+			MethodName: "UpdateUserPhone",
+			Handler:    _BackendService_UpdateUserPhone_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
