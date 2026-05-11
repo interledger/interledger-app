@@ -55,9 +55,8 @@ export async function loader({ request }: Route.LoaderArgs) {
     chimoneyWidget: response.chimoneyWidget,
     ptiWidget: response.ptiWidget,
     personaSdkUrl:
-      envValue("PERSONA_SDK_URL") ||
-      'https://cdn.withpersona.com/dist/persona-v4.8.0-alpha.js',
-    mockxagoEndpoint: envValue("MOCKXAGO_ENDPOINT") || ''
+      envValue("PERSONA_SDK_URL"),
+    mockxagoEndpoint: envValue("MOCKXAGO_ENDPOINT")
   })
 }
 

@@ -5,7 +5,7 @@ import { envValue } from './env.server';
 
 const EXPIRATION_DURATION_IN_SECONDS = 60 * 60 * 24 // a day
 const COOKIE_SECRETS = JSON.parse(
-  envValue("COOKIE_SECRETS") || '["TODO:secrets"]'
+  envValue("COOKIE_SECRETS")
 )
 
 const cookie = createCookie('user_settings', {

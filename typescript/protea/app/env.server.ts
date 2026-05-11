@@ -3,15 +3,17 @@ import logger from './lib/logger.server'
 const knownEnvKeysRequired: string[] = [
     "COOKIE_SECRETS",
     "BACKEND_GRPC_URL",
+    "BACKEND_HTTP_URL",
     "NODE_ENV",
     "REDIS_URL",
     "KRATOS_URL",
-    "BACKEND_HTTP_URL",
     "RAFIKI_AUTH_ENDPOINT",
     "RAFIKI_AUTH_SECRET",
     "PUBLIC_OP_AUTH_HOST",
     "PTI_FORMS_URL",
     "PTI_SDK_URL",
+    "PERSONA_SDK_URL",
+    "MOCKXAGO_ENDPOINT"
 ]
 
 const knownEnvKeysOptional: string[] = [
@@ -28,8 +30,7 @@ const knownEnvKeysOptional: string[] = [
     "DEFAULT_RATE_LIMIT_TIME",
     "GOOGLE_MAPS_API_KEY",
     "PTI_CLIENT_ID",
-    "PERSONA_SDK_URL",
-    "MOCKXAGO_ENDPOINT"
+
 ]
 
 const knownEnvKeysEnabled = {
