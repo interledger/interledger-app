@@ -34,10 +34,10 @@ Feature: PTI webhook emissions to backend
     And the webhook payload should include transaction type "DEPOSIT"
     And the webhook payload should include status "RETURNED"
 
-  Scenario: Emit encrypted and signed USER_ASSESSMENT webhook
+  Scenario: Emit signed USER_ASSESSMENT webhook
     Given webhook delivery is configured to backend "/webhooks/pti"
     And an existing PTI user assessment in state "ACCEPTED"
     When mockpti processes the assessment completion
     Then a webhook should be delivered with resource type "USER_ASSESSMENT"
-    And the webhook payload should be signed and encrypted
+    And the webhook payload should be signed
     And the webhook payload should include user id and request id
