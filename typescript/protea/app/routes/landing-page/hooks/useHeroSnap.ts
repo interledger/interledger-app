@@ -16,9 +16,13 @@ type KeyIntent = Direction | "first" | "last" | null
 const WHEEL_DEAD_ZONE = 4
 // Minimum vertical swipe distance to count as a gesture.
 const TOUCH_THRESHOLD_PX = 30
-// Wheel events closer in time than this are treated as one gesture
-// (handles trackpad inertia and long flicks: only the first event advances).
-const GESTURE_GAP_MS = 150
+// Key auto-repeat suppression window.
+const KEY_GAP_MS = 150
+// Trackpad inertia keeps firing wheel events at ~16ms cadence for up to ~2s
+// after the user lifts their fingers. We declare a wheel "gesture" ended only
+// after this much silence — long enough to outlast inertia, short enough that
+// quick repeat flicks still feel responsive.
+const WHEEL_END_SILENCE_MS = 220
 // After releasing at the bottom edge, ignore scroll-driven re-engage for this
 // window so the in-flight native scroll past the hero isn't intercepted.
 const REENGAGE_COOLDOWN_MS = 1000
@@ -57,7 +61,7 @@ export function useHeroSnap({
   activeScreen,
   setActiveScreen,
   screenCount = 5,
-  cooldownMs = 100,
+  cooldownMs = 600,
 }: UseHeroSnapArgs) {
   // All mutable per-effect state lives in one ref to avoid stale closures
   // and to keep the timing/locking concerns visible together.
@@ -76,15 +80,22 @@ export function useHeroSnap({
     // to prevent rapid-fire screen skipping.
     lastAdvanceAt: 0,
 
-    // performance.now() of the last wheel event that passed the dead-zone check.
-    // Used to compute isNewGesture = now - lastWheelAt > GESTURE_GAP_MS.
-    // Updated on every non-noise event, not just advances. This is the inertia
-    // filter: trackpads fire a burst of events; only the first in each gap window
-    // counts as a new gesture.
-    lastWheelAt: 0,
+    // True while a wheel gesture (real flick + its inertia tail) is in flight.
+    // Set on the first event of a gesture; cleared by the silence timer after
+    // WHEEL_END_SILENCE_MS of no events. Subsequent events while true are
+    // swallowed so one flick = one screen advance.
+    inWheelGesture: false,
 
-    // Same as lastWheelAt but for keyboard. Updated on every direction key event.
-    // Prevents OS auto-repeat from firing multiple advances while a key is held.
+    // Direction of the previous wheel event (1 down, -1 up, 0 none).
+    // Used to detect reversals — a reversed direction is always a new gesture.
+    lastWheelDir: 0 as Direction | 0,
+
+    // setTimeout handle that fires after WHEEL_END_SILENCE_MS of wheel silence
+    // and clears inWheelGesture. Re-armed on every wheel event.
+    wheelEndTimer: 0 as ReturnType<typeof setTimeout> | 0,
+
+    // performance.now() of the last keydown for a direction key. Used to swallow
+    // OS auto-repeat (held key) while still allowing intentional repeated taps.
     lastKeyAt: 0,
 
     // performance.now() of the last releasePastHero() call. The onScroll
@@ -167,16 +178,41 @@ export function useHeroSnap({
     }
 
     // ── Event handlers ────────────────────────────────────────────────
+    /**
+     * Wheel handling has to deal with macOS trackpad momentum: a single flick
+     * fires ~60 events over up to ~2s. Two signals distinguish gestures:
+     *   1. silence — `inWheelGesture` clears after WHEEL_END_SILENCE_MS quiet
+     *   2. direction reversal — opposite-sign deltaY is always a new gesture
+     * Cooldown (600ms) covers the full inertia lifetime so one flick = one advance.
+     */
     const onWheel = (e: WheelEvent) => {
       if (!state.locked) return
-      if (Math.abs(e.deltaY) < WHEEL_DEAD_ZONE) return
+      const dy = e.deltaY
+      const absDy = Math.abs(dy)
+      if (absDy < WHEEL_DEAD_ZONE) return
       e.preventDefault()
-      const now = performance.now()
-      const isNewGesture = now - state.lastWheelAt > GESTURE_GAP_MS
-      state.lastWheelAt = now
-      if (!isNewGesture) return
-      if (now - state.lastAdvanceAt < cooldownMs) return
-      navigate(e.deltaY > 0 ? 1 : -1)
+
+      const dir: Direction = dy > 0 ? 1 : -1
+      const reversed = state.lastWheelDir !== 0 && state.lastWheelDir !== dir
+      state.lastWheelDir = dir
+
+      // Re-arm silence timer: every event pushes the "gesture end" further out.
+      if (state.wheelEndTimer) clearTimeout(state.wheelEndTimer)
+      state.wheelEndTimer = setTimeout(() => {
+        state.inWheelGesture = false
+        state.lastWheelDir = 0
+        state.wheelEndTimer = 0
+      }, WHEEL_END_SILENCE_MS)
+
+      // Reversal always starts a new gesture.
+      if (reversed) state.inWheelGesture = false
+      // Cooldown elapsed: allow the next advance even during continuous scrolling.
+      if (performance.now() - state.lastAdvanceAt >= cooldownMs) state.inWheelGesture = false
+
+      if (state.inWheelGesture) return
+
+      state.inWheelGesture = true
+      navigate(dir)
     }
 
     const onTouchStart = (e: TouchEvent) => {
@@ -210,7 +246,7 @@ export function useHeroSnap({
       if (intent === "last") return goToScreen(screenCount as CarouselScreen)
       const now = performance.now()
       // Held key / OS auto-repeat: swallow.
-      if (e.repeat || now - state.lastKeyAt < GESTURE_GAP_MS) {
+      if (e.repeat || now - state.lastKeyAt < KEY_GAP_MS) {
         state.lastKeyAt = now
         return
       }
@@ -258,6 +294,7 @@ export function useHeroSnap({
       window.removeEventListener("touchend", onTouchEnd)
       window.removeEventListener("keydown", onKeyDown)
       window.removeEventListener("scroll", onScroll)
+      if (state.wheelEndTimer) clearTimeout(state.wheelEndTimer)
       unlockBody()
     }
     // sectionRef is a ref; setActiveScreen is stable from context.
