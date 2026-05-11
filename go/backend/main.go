@@ -204,7 +204,7 @@ func start(args *cli.StartArgs) {
 	router.Handle("/.well-known/assetlinks.json", aasa_assetlinks.AssetLinksHandler(b.aasaConfig))
 
 	if args.PTIEnabled {
-		ptiWebhook, err := pti_ops.Webhook(b)
+		ptiWebhook, err := pti_ops.Webhook(b, args.PTIClientID, args.PTIPublicKeyJWK)
 		if err != nil {
 			log.Fatalln(err)
 		}

@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
@@ -25,17 +24,7 @@ import (
 	"go.uber.org/zap"
 )
 
-var ptiPublicKey = `
------BEGIN PUBLIC KEY-----
-MCowBQYDK2VwAyEAlXgzWngvg4t6oIvQ5/uFiaHT3bdPDyXtN5dK7nBLzA8=
------END PUBLIC KEY-----
-`
-
-func loadEd25519PublicKey() (ed25519.PublicKey, error) {
-	keyStr := os.Getenv("PTI_PUBLIC_KEY_JWK")
-	if keyStr == "" {
-		keyStr = ptiPublicKey
-	}
+func loadEd25519PublicKey(keyStr string) (ed25519.PublicKey, error) {
 	keyStr = strings.ReplaceAll(keyStr, `\n`, "\n")
 	block, _ := pem.Decode([]byte(keyStr))
 	if block == nil {
@@ -69,9 +58,8 @@ func verifyEd25519Signature(key ed25519.PublicKey, body []byte, header string) b
 	return false
 }
 
-func Webhook(b Backends) (http.HandlerFunc, error) {
-	clientID := os.Getenv("PTI_CLIENT_ID")
-	pubKey, err := loadEd25519PublicKey()
+func Webhook(b Backends, clientID, publicKeyJWK string) (http.HandlerFunc, error) {
+	pubKey, err := loadEd25519PublicKey(publicKeyJWK)
 	if err != nil {
 		return nil, err
 	}
