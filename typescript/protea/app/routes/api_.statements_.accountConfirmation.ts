@@ -1,6 +1,6 @@
 import { href } from 'react-router'
-import type { Route } from './+types/api_.statements_.accountConfirmation'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
+import type { Route } from './+types/api_.statements_.accountConfirmation'
 
 const BACKEND_HTTP_URL = process.env.BACKEND_HTTP_URL || 'http://backend:8080'
 

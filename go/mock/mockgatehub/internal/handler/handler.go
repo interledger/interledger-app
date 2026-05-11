@@ -141,7 +141,7 @@ func (h *Handler) RootHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logger.Info("serving iframe", zap.String("payment_type", paymentType), zap.String("bearer_prefix", bearer[:min(20, len(bearer))]))
+	logger.Info("serving iframe", zap.String("payment_type", paymentType), zap.String("bearer_prefix", tokenPrefix(bearer)))
 
 	// If no paymentType is provided, treat this as onboarding and serve the KYC iframe
 	if paymentType == "" || paymentType == "onboarding" {
@@ -188,10 +188,7 @@ func (h *Handler) RootHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Otherwise, serve the payment iframe (deposit/withdrawal/exchange)
-	bearerShort := bearer
-	if len(bearer) > 20 {
-		bearerShort = bearer[:20] + "..."
-	}
+	bearerShort := tokenPrefix(bearer)
 
 	// Select the appropriate template based on payment type
 	var templateFile string
@@ -427,13 +424,18 @@ func (h *Handler) processDeposit(w http.ResponseWriter, bearer string, txReq *Tr
 	vaultUUID := consts.SandboxVaultIDs[txReq.Currency]
 
 	// Parse amount as float
-	amountFloat, _ := strconv.ParseFloat(txReq.Amount, 64)
-	amountStr := fmt.Sprintf("%.2f", amountFloat)
+	amountFloat, err := strconv.ParseFloat(txReq.Amount, 64)
+	if err != nil {
+		logger.Error("invalid amount format in deposit request", zap.String("amount", txReq.Amount), zap.Error(err))
+		h.sendErrorWithCORS(w, http.StatusBadRequest, "Invalid amount format")
+		return
+	}
+	amountStr := formatAmount(amountFloat)
 
 	// Calculate deposit fee
 	feePercent, _ := h.feeConfig.GetDepositFeeForUser(userUUID)
 	feeAmount := CalculateFee(amountFloat, feePercent)
-	feeStr := fmt.Sprintf("%.2f", feeAmount)
+	feeStr := formatAmount(feeAmount)
 	// For deposits, total_amount = amount (fee is charged separately by GateHub)
 	totalAmountStr := amountStr
 
@@ -525,17 +527,22 @@ func (h *Handler) processWithdrawal(w http.ResponseWriter, bearer string, txReq 
 	vaultUUID := consts.SandboxVaultIDs[txReq.Currency]
 
 	// Parse amount as float
-	amountFloat, _ := strconv.ParseFloat(txReq.Amount, 64)
-	amountStr := fmt.Sprintf("%.2f", amountFloat)
+	amountFloat, err := strconv.ParseFloat(txReq.Amount, 64)
+	if err != nil {
+		logger.Error("invalid amount format in withdrawal request", zap.String("amount", txReq.Amount), zap.Error(err))
+		h.sendErrorWithCORS(w, http.StatusBadRequest, "Invalid amount format")
+		return
+	}
+	amountStr := formatAmount(amountFloat)
 
 	// Calculate withdrawal fee
 	feePercent, _ := h.feeConfig.GetWithdrawalFeeForUser(userUUID)
 	feeAmount := CalculateFee(amountFloat, feePercent)
-	feeStr := fmt.Sprintf("%.2f", feeAmount)
+	feeStr := formatAmount(feeAmount)
 
 	// For withdrawals, the amount is deducted (total_amount includes the fee deducted)
 	totalAmount := amountFloat + feeAmount // Total deducted from user's balance
-	totalAmountStr := fmt.Sprintf("%.2f", totalAmount)
+	totalAmountStr := formatAmount(totalAmount)
 
 	// Check if user has sufficient balance
 	currentBalance, _ := h.store.GetBalance(userUUID, txReq.Currency)
@@ -605,7 +612,7 @@ func (h *Handler) extractUserFromBearer(bearer string) string {
 		}
 	}
 
-	logger.Debug("bearer token not found in mapping", zap.String("token_prefix", bearer[:min(30, len(bearer))]))
+	logger.Debug("bearer token not found in mapping", zap.String("token_prefix", tokenPrefix(bearer)))
 	return ""
 }
 

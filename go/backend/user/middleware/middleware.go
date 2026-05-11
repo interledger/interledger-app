@@ -5,7 +5,9 @@ import (
 	"errors"
 	"strings"
 
+	"gitlab.com/fynbos/backend/errcodes"
 	"gitlab.com/fynbos/backend/user"
+	pb "gitlab.com/fynbos/proto/backend/v1"
 
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc"
@@ -20,10 +22,13 @@ const (
 
 func aalErrorToStatus(err error) error {
 	var reason string
+	var appErrorCode errcodes.AppErrorCode
 	if errors.Is(err, user.ErrAAL1Required) {
 		reason = "aal1_required"
+		appErrorCode = errcodes.ErrCodeUserAAL1Required
 	} else if errors.Is(err, user.ErrAAL2Required) {
 		reason = "aal2_required"
+		appErrorCode = errcodes.ErrCodeUserAAL2Required
 	} else {
 		return nil
 	}
@@ -33,8 +38,13 @@ func aalErrorToStatus(err error) error {
 		Reason: reason,
 		Domain: "authentication",
 	}
-	
-	st, detailErr := st.WithDetails(metadata)
+
+	appError := &pb.AppError{
+		ErrorCode: appErrorCode,
+		Message:   reason,
+	}
+
+	st, detailErr := st.WithDetails(metadata, appError)
 	if detailErr != nil {
 		return status.Error(codes.Unauthenticated, "Unauthenticated")
 	}

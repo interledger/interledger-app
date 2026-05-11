@@ -4488,6 +4488,11 @@ export class Features extends Message<Features> {
    */
   accountEnabled = false;
 
+  /**
+   * @generated from field: bool accountsTabEnabled = 13;
+   */
+  accountsTabEnabled = false;
+
   constructor(data?: PartialMessage<Features>) {
     super();
     proto3.util.initPartial(data, this);
@@ -4508,6 +4513,7 @@ export class Features extends Message<Features> {
     { no: 10, name: "zarBalanceEnabled", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 11, name: "manageWalletCardsEnabled", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 12, name: "accountEnabled", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 13, name: "accountsTabEnabled", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Features {
@@ -5414,6 +5420,11 @@ export class LinkedAccount extends Message<LinkedAccount> {
    */
   state = "";
 
+  /**
+   * @generated from field: string createdAt = 16;
+   */
+  createdAt = "";
+
   constructor(data?: PartialMessage<LinkedAccount>) {
     super();
     proto3.util.initPartial(data, this);
@@ -5437,6 +5448,7 @@ export class LinkedAccount extends Message<LinkedAccount> {
     { no: 13, name: "defaultSend", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 14, name: "defaultReceive", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 15, name: "state", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 16, name: "createdAt", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): LinkedAccount {
@@ -8099,6 +8111,106 @@ export class VerifyIdentityRequest extends Message<VerifyIdentityRequest> {
 
   static equals(a: VerifyIdentityRequest | PlainMessage<VerifyIdentityRequest> | undefined, b: VerifyIdentityRequest | PlainMessage<VerifyIdentityRequest> | undefined): boolean {
     return proto3.util.equals(VerifyIdentityRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.AppError
+ */
+export class AppError extends Message<AppError> {
+  /**
+   * See errcodes.go for all possible values
+   *
+   * @generated from field: string errorCode = 1;
+   */
+  errorCode = "";
+
+  /**
+   * @generated from field: string message = 2;
+   */
+  message = "";
+
+  /**
+   * @generated from field: repeated backend.v1.AppErrorField fields = 3;
+   */
+  fields: AppErrorField[] = [];
+
+  /**
+   * @generated from field: string reqId = 4;
+   */
+  reqId = "";
+
+  constructor(data?: PartialMessage<AppError>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.AppError";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "errorCode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "message", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "fields", kind: "message", T: AppErrorField, repeated: true },
+    { no: 4, name: "reqId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AppError {
+    return new AppError().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): AppError {
+    return new AppError().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): AppError {
+    return new AppError().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: AppError | PlainMessage<AppError> | undefined, b: AppError | PlainMessage<AppError> | undefined): boolean {
+    return proto3.util.equals(AppError, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.AppErrorField
+ */
+export class AppErrorField extends Message<AppErrorField> {
+  /**
+   * @generated from field: string field = 1;
+   */
+  field = "";
+
+  /**
+   * @generated from field: string error = 2;
+   */
+  error = "";
+
+  constructor(data?: PartialMessage<AppErrorField>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.AppErrorField";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "field", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "error", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AppErrorField {
+    return new AppErrorField().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): AppErrorField {
+    return new AppErrorField().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): AppErrorField {
+    return new AppErrorField().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: AppErrorField | PlainMessage<AppErrorField> | undefined, b: AppErrorField | PlainMessage<AppErrorField> | undefined): boolean {
+    return proto3.util.equals(AppErrorField, a, b);
   }
 }
 

@@ -144,6 +144,18 @@ func (m *MemoryStorage) GetSubAccountByWalletID(ctx context.Context, walletID st
 	return account, nil
 }
 
+func (m *MemoryStorage) GetSubAccountByDepositReference(ctx context.Context, depositReference string) (*models.SubAccount, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	for _, account := range m.subAccounts {
+		if account.DepositReferenceZAR == depositReference || account.DepositReferenceUSD == depositReference {
+			return account, nil
+		}
+	}
+	return nil, ErrSubAccountNotFound
+}
+
 func (m *MemoryStorage) UpdateSubAccount(ctx context.Context, account *models.SubAccount) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()

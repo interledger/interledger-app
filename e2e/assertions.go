@@ -13,6 +13,8 @@ import (
 	"time"
 )
 
+var _ = (*E2EContext).getKratosIdentities
+
 // Assertion step implementations
 
 func (sc *E2EContext) theSignupShouldBeSubmitted() error {
@@ -85,6 +87,29 @@ func (sc *E2EContext) iShouldSeeValidationErrors() error {
 	}
 
 	return nil
+}
+
+func (sc *E2EContext) iShouldSeeTextOnThePage(text string) error {
+	if sc.page == nil {
+		return fmt.Errorf("no page available to verify text")
+	}
+
+	deadline := time.Now().Add(10 * time.Second)
+	for time.Now().Before(deadline) {
+		locator := sc.page.Locator(fmt.Sprintf("text=%s", text))
+		count, err := locator.Count()
+		if err == nil && count > 0 {
+			return nil
+		}
+		time.Sleep(500 * time.Millisecond)
+	}
+
+	content, _ := sc.page.Content()
+	if strings.Contains(content, text) {
+		return nil
+	}
+
+	return fmt.Errorf("expected text %q not found on page", text)
 }
 
 func (sc *E2EContext) aSignupRecordShouldExistInTheDatabase(email string) error {
@@ -191,13 +216,8 @@ func (sc *E2EContext) iShouldHaveALinkedBalanceAccountForProvider(provider strin
 		return fmt.Errorf("provider cannot be empty")
 	}
 
-	if sc.db == nil {
-		connStr := "host=localhost port=5432 user=postgres password=postgres dbname=backend sslmode=disable"
-		db, err := sql.Open("postgres", connStr)
-		if err != nil {
-			return fmt.Errorf("failed to open db: %w", err)
-		}
-		sc.db = db
+	if err := sc.ensureDB(); err != nil {
+		return fmt.Errorf("iShouldHaveALinkedBalanceAccountForProvider: %w", err)
 	}
 
 	email, err := sc.getCurrentUserEmail()
@@ -239,13 +259,8 @@ func (sc *E2EContext) iShouldUseOnOffRampProvider(provider string) error {
 		return fmt.Errorf("provider cannot be empty")
 	}
 
-	if sc.db == nil {
-		connStr := "host=localhost port=5432 user=postgres password=postgres dbname=backend sslmode=disable"
-		db, err := sql.Open("postgres", connStr)
-		if err != nil {
-			return fmt.Errorf("failed to open db: %w", err)
-		}
-		sc.db = db
+	if err := sc.ensureDB(); err != nil {
+		return fmt.Errorf("iShouldUseOnOffRampProvider: %w", err)
 	}
 
 	email, err := sc.getCurrentUserEmail()
@@ -287,11 +302,6 @@ func (sc *E2EContext) iTriggerUserVerificationFor(email string) error {
 	prefixedEmail := email
 	if sc.testIdentifier != "" && !strings.HasPrefix(email, sc.testIdentifier+"-") {
 		prefixedEmail = fmt.Sprintf("%s-%s", sc.testIdentifier, email)
-	}
-
-	kratosAdminURL := os.Getenv("KRATOS_ADMIN_URL")
-	if kratosAdminURL == "" {
-		kratosAdminURL = "http://localhost:4434"
 	}
 
 	// Step 1: Resolve Kratos identity by direct DB lookup first.
