@@ -103,12 +103,10 @@ admin:
         - key: KRATOS_ADMIN_URL
           valueRef: admin.config.kratos.adminUrl
 
-
 # =============================================================================
 # BACKEND — Go API server + Temporal worker
 # =============================================================================
 backend:
-
   # Override the container image used across ALL backend resources (server,
   # worker, and migration job). Per-resource overrides take precedence.
   imageOverride:
@@ -144,11 +142,6 @@ backend:
     environment: dev
     log_level: "info"
     port: "8080"
-    usd_ledger_id: "1"
-    noop_equity_account_id: "00000000-0000-0000-0000-000000000000"
-    google_oauth2_client_id: "google_oauth"
-    authorisation_port: "8082"
-    open_payments_port: "8081"
     apple_app_id: ""
     android_package_name: ""
     android_sha256: ""
@@ -156,13 +149,6 @@ backend:
     admin:
       policy_aud_ref: adminPortalCloudFlarePolicyAud
       team_domain_ref: adminPortalCloudflareTeamDomain
-
-    twitter:
-      client:
-        id: "not_used"
-        secret: "not_used"
-        bearer: "not_used"
-        redirect: "not_used"
 
     smarty:
       auth:
@@ -177,10 +163,6 @@ backend:
       account_sid_ref: twilioAccountSID
       service_sid_ref: twilioServiceSID
       account_token_ref: twilioAccountToken
-
-    zendesk:
-      user: "support@interledger-app.dev"
-      token_ref: "zendeskToken"
 
     kratos:
       url: "http://kratos.wallet:4433"
@@ -206,12 +188,6 @@ backend:
     vault:
       url: "http://vault:8200"
       transit_engine_path: "transit/prod/backend"
-
-    astra:
-      client_id_ref: "astraClientID"
-      client_secret_ref: "astraClientSecret"
-      webhook_bearer_token_ref: "astraWebhookBearerToken"
-      code_exchange_redirect: ""
 
     gatehub:
       # Toggle Gatehub-specific validation and runtime config requirements.
@@ -241,7 +217,7 @@ backend:
       token_ref: "chimoneyToken"
 
     email:
-        enabled: "false"
+      enabled: "false"
 
     sendgrid:
       api_key_ref: "sendgridApiKey"
@@ -260,10 +236,6 @@ backend:
       client_secret_ref: "slackClientSecret"
       signing_secret_ref: "slackSigningSecret"
       token_ref: "slackToken"
-
-    basis_theory:
-      api_key_ref: "basisTheoryApiKey"
-      token_ref: "basisTheoryToken"
 
     persona:
       base_url: "https://api.withpersona.com/api/v1/"
@@ -377,11 +349,6 @@ backend:
           secretKeyRef:
             name: '{{ include "common.fullname" . }}-backend'
             key: "{{ .Values.backend.config.twilio.service_sid_ref }}"
-      - name: ZENDESK_TOKEN
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.zendesk.token_ref }}"
       - name: SENDGRID_API_KEY
         valueFrom:
           secretKeyRef:
@@ -407,16 +374,7 @@ backend:
           secretKeyRef:
             name: '{{ include "common.fullname" . }}-backend'
             key: "{{ .Values.backend.config.persona.webhook_token_ref }}"
-      - name: BASIS_THEORY_API_KEY
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.basis_theory.api_key_ref }}"
-      - name: BT_TOKEN
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.basis_theory.token_ref }}"
+      # DEPRECATED
       - name: CDN_KEY
         valueFrom:
           secretKeyRef:
@@ -437,31 +395,6 @@ backend:
           secretKeyRef:
             name: '{{ include "common.fullname" . }}-backend'
             key: "{{ .Values.backend.config.xago.api_public_key_ref }}"
-      - name: ASTRA_WEBHOOK_BEARER_TOKEN
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.astra.webhook_bearer_token_ref }}"
-      - name: ASTRA_CLIENT_ID
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.astra.client_id_ref }}"
-      - name: ASTRA_CLIENT_SECRET
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.astra.client_secret_ref }}"
-      - name: SLACK_CLIENT_ID
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.slack.client_id_ref }}"
-      - name: SLACK_CLIENT_SECRET
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.slack.client_secret_ref }}"
       - name: SLACK_SIGNING_SECRET
         valueFrom:
           secretKeyRef:
@@ -690,11 +623,6 @@ backend:
           secretKeyRef:
             name: '{{ include "common.fullname" . }}-backend'
             key: "{{ .Values.backend.config.twilio.service_sid_ref }}"
-      - name: ZENDESK_TOKEN
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.zendesk.token_ref }}"
       - name: SENDGRID_API_KEY
         valueFrom:
           secretKeyRef:
@@ -720,16 +648,6 @@ backend:
           secretKeyRef:
             name: '{{ include "common.fullname" . }}-backend'
             key: "{{ .Values.backend.config.persona.webhook_token_ref }}"
-      - name: BASIS_THEORY_API_KEY
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.basis_theory.api_key_ref }}"
-      - name: BT_TOKEN
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.basis_theory.token_ref }}"
       - name: CDN_KEY
         valueFrom:
           secretKeyRef:
@@ -750,21 +668,6 @@ backend:
           secretKeyRef:
             name: '{{ include "common.fullname" . }}-backend'
             key: "{{ .Values.backend.config.xago.api_public_key_ref }}"
-      - name: ASTRA_WEBHOOK_BEARER_TOKEN
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.astra.webhook_bearer_token_ref }}"
-      - name: ASTRA_CLIENT_ID
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.astra.client_id_ref }}"
-      - name: ASTRA_CLIENT_SECRET
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.astra.client_secret_ref }}"
       - name: SLACK_CLIENT_ID
         valueFrom:
           secretKeyRef:
@@ -903,42 +806,20 @@ backend:
           valueRef: backend.config.kratos.admin_url
         - key: LOG_LEVEL
           valueRef: backend.config.log_level
-        - key: USD_LEDGER_ID
-          valueRef: backend.config.usd_ledger_id
-        - key: NOOP_EQUITY_ACCOUNT_ID
-          valueRef: backend.config.noop_equity_account_id
-        - key: GOOGLE_OAUTH2_CLIENT_ID
-          valueRef: backend.config.google_oauth2_client_id
         - key: TEMPORAL_URL
           valueRef: backend.config.temporal.url
-        - key: ZENDESK_USER
-          valueRef: backend.config.zendesk.user
         - key: OTEL_EXPORTER_OTLP_ENDPOINT
           valueRef: backend.config.otel.exporter_otlp_endpoint
         - key: OTEL_SERVICE_NAME
           valueRef: backend.config.otel.service_name
-        - key: AUTHORISATION_PORT
-          valueRef: backend.config.authorisation_port
-        - key: OPEN_PAYMENTS_PORT
-          valueRef: backend.config.open_payments_port
         - key: VAULT_ADDR
           valueRef: backend.config.vault.url
         - key: VAULT_TRANSIT_ENGINE_PATH
           valueRef: backend.config.vault.transit_engine_path
-        - key: ASTRA_CODE_EXCHANGE_REDIRECT
-          valueRef: backend.config.astra.code_exchange_redirect
         - key: RAFIKI_BACKEND_GRAPHQL_URL
           valueRef: backend.config.rafiki.graphql.backend_url
         - key: RAFIKI_AUTH_GRAPHQL_URL
           valueRef: backend.config.rafiki.graphql.auth_url
-        - key: TWITTER_CLIENT_ID
-          valueRef: backend.config.twitter.client.id
-        - key: TWITTER_CLIENT_SECRET
-          valueRef: backend.config.twitter.client.secret
-        - key: TWITTER_BEARER_TOKEN
-          valueRef: backend.config.twitter.client.bearer
-        - key: TWITTER_REDIRECT_URL
-          valueRef: backend.config.twitter.client.redirect
         - key: SMARTY_AUTH_ID
           valueRef: backend.config.smarty.auth.id
         - key: SMARTY_AUTH_TOKEN
@@ -1007,7 +888,6 @@ backend:
           valueRef: backend.config.persona.base_url
         - key: SIGNUP_AGREEMENT_IDS
           valueRef: backend.config.signup_agreement_ids
-
 
 # =============================================================================
 # FRONTEND — Protea user-facing wallet
@@ -1113,42 +993,42 @@ frontend:
         valueFrom:
           secretKeyRef:
             name: '{{ include "common.fullname" . }}-frontend'
-            key: '{{ .Values.frontend.config.cookie_secrets_ref }}'
+            key: "{{ .Values.frontend.config.cookie_secrets_ref }}"
       - name: PUSHER_APP_KEY
         valueFrom:
           secretKeyRef:
             name: '{{ include "common.fullname" . }}-frontend'
-            key: '{{ .Values.frontend.config.pusher.app_key_ref }}'
+            key: "{{ .Values.frontend.config.pusher.app_key_ref }}"
       - name: PUSHER_APP_CLUSTER
         valueFrom:
           secretKeyRef:
             name: '{{ include "common.fullname" . }}-frontend'
-            key: '{{ .Values.frontend.config.pusher.app_cluster_ref }}'
+            key: "{{ .Values.frontend.config.pusher.app_cluster_ref }}"
       - name: SENTRY_DSN
         valueFrom:
           secretKeyRef:
             name: '{{ include "common.fullname" . }}-frontend'
-            key: '{{ .Values.frontend.config.sentry_dsn_ref }}'
+            key: "{{ .Values.frontend.config.sentry_dsn_ref }}"
       - name: SEGMENT_API_KEY
         valueFrom:
           secretKeyRef:
             name: '{{ include "common.fullname" . }}-frontend'
-            key: '{{ .Values.frontend.config.segment_api_key_ref }}'
+            key: "{{ .Values.frontend.config.segment_api_key_ref }}"
       - name: RAFIKI_AUTH_SECRET
         valueFrom:
           secretKeyRef:
             name: '{{ include "common.fullname" . }}-frontend'
-            key: '{{ .Values.frontend.config.rafiki.auth.secret_ref }}'
+            key: "{{ .Values.frontend.config.rafiki.auth.secret_ref }}"
       - name: REDIS_URL
         valueFrom:
           secretKeyRef:
             name: '{{ include "common.fullname" . }}-frontend'
-            key: '{{ .Values.frontend.config.redis.url_ref }}'
+            key: "{{ .Values.frontend.config.redis.url_ref }}"
       - name: OTEL_EXPORTER_OTLP_HEADERS
         valueFrom:
           secretKeyRef:
             name: '{{ include "common.fullname" . }}-frontend'
-            key: '{{ .Values.frontend.config.otel.headers_ref }}'
+            key: "{{ .Values.frontend.config.otel.headers_ref }}"
     ports:
       - name: http
         containerPort: 3000

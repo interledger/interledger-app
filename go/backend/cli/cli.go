@@ -54,7 +54,6 @@ func ParseMigrationArgs() (*MigrationArgs, error) {
 
 type StartArgs struct {
 	Port                          string
-	AuthorisationPort             string
 	DbConnectionString            string
 	PacioliDBConString            string
 	KratosUrl                     string
@@ -65,8 +64,6 @@ type StartArgs struct {
 	TwilioSid                     string
 	TwilioSecret                  string
 	TwilioServiceSid              string
-	ZendeskUser                   string
-	ZendeskToken                  string
 	AdminPolicyAud                string
 	AdminTeamDomain               string
 	EmailEnabled                  bool
@@ -139,10 +136,6 @@ func ParseStartArgs() (*StartArgs, error) {
 		port = "8080"
 	}
 
-	authorisationPort := os.Getenv("AUTHORISATION_PORT")
-	if authorisationPort == "" {
-		authorisationPort = "8082"
-	}
 	dbUrl := os.Getenv("DB_URL")
 	if dbUrl == "" {
 		return nil, errors.New("DB_URL is required.")
@@ -191,16 +184,6 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, errors.New("TWILIO_SERVICE_SID is required.")
 	}
 
-	zendeskUser := os.Getenv("ZENDESK_USER")
-	if zendeskUser == "" {
-		return nil, errors.New("ZENDESK_USER is required, provide an email address")
-	}
-
-	zendeskToken := os.Getenv("ZENDESK_TOKEN")
-	if zendeskToken == "" {
-		return nil, errors.New("ZENDESK_TOKEN is required")
-	}
-
 	personaBaseURL := os.Getenv("PERSONA_BASE_URL")
 	if personaBaseURL == "" {
 		personaBaseURL = "https://api.withpersona.com/api/v1/"
@@ -216,25 +199,10 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, errors.New("PERSONA_WEBHOOK_TOKEN is required")
 	}
 
-	twitterClientId := os.Getenv("TWITTER_CLIENT_ID")
-	if twitterClientId == "" && env.IsProd() {
-		return nil, errors.New("TWITTER_CLIENT_ID is required")
-	}
-
-	twitterClientSecret := os.Getenv("TWITTER_CLIENT_SECRET")
-	if twitterClientSecret == "" && env.IsProd() {
-		return nil, errors.New("TWITTER_CLIENT_SECRET is required")
-	}
-
-	twitterBearerToken := os.Getenv("TWITTER_BEARER_TOKEN")
-	if twitterBearerToken == "" && env.IsProd() {
-		return nil, errors.New("TWITTER_BEARER_TOKEN is required")
-	}
-
-	twitterRedirectURL := os.Getenv("TWITTER_REDIRECT_URL")
-	if twitterClientSecret == "" && env.IsProd() {
-		return nil, errors.New("TWITTER_REDIRECT_URL is required")
-	}
+	twitterClientID := "DEPRECATED"
+	twitterClientSecret := "DEPRECATED"
+	twitterBearerToken := "DEPRECATED"
+	twitterRedirectURL := "DEPRECATED"
 
 	adminPolicyAud := os.Getenv("ADMIN_POLICY_AUD")
 	if adminPolicyAud == "" {
@@ -481,7 +449,6 @@ func ParseStartArgs() (*StartArgs, error) {
 
 	return &StartArgs{
 		Port:                          port,
-		AuthorisationPort:             authorisationPort,
 		DbConnectionString:            dbUrl,
 		PacioliDBConString:            pacDB,
 		KratosUrl:                     kratosUrl,
@@ -492,9 +459,7 @@ func ParseStartArgs() (*StartArgs, error) {
 		TwilioSid:                     TwilioSid,
 		TwilioSecret:                  TwilioSecret,
 		TwilioServiceSid:              twilioServiceSid,
-		ZendeskUser:                   zendeskUser,
-		ZendeskToken:                  zendeskToken,
-		TwitterClientID:               twitterClientId,
+		TwitterClientID:               twitterClientID,
 		TwitterClientSecret:           twitterClientSecret,
 		TwitterRedirectURL:            twitterRedirectURL,
 		TwitterBearerToken:            twitterBearerToken,
