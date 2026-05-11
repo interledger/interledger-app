@@ -391,8 +391,7 @@ func ReserveBalance(ctx context.Context, b Backends, linkedAccountID, txID strin
 		if tx[0].Code == pacioli.TransferExceedsCredits || tx[0].Code == pacioli.TransferExceedsDebits || tx[0].Code == pacioli.TransferExceedsPendingTransferAmount {
 			return nil, fmt.Errorf("%w insufficiens balance cod (%s)", gatehub.ErrInsufficientBalance, tx[0].Code.String())
 		}
-		// TransferExists is skipped for idempotency
-		if tx[0].Code != 0 && tx[0].Code != pacioli.TransferExists {
+		if tx[0].Code != 0 {
 			return nil, fmt.Errorf("%w non success code (%s)", gatehub.ErrInternal, tx[0].Code.String())
 		}
 	}
@@ -490,8 +489,7 @@ func AssignBalance(ctx context.Context, b Backends, linkedAccountID, txID string
 		if tx[0].Code == pacioli.TransferExceedsCredits || tx[0].Code == pacioli.TransferExceedsDebits || tx[0].Code == pacioli.TransferExceedsPendingTransferAmount {
 			return nil, fmt.Errorf("%w insufficient balance cod (%s)", gatehub.ErrInsufficientBalance, tx[0].Code.String())
 		}
-		// TransferExists is skipped for idempotency
-		if tx[0].Code != 0 && tx[0].Code != pacioli.TransferExists {
+		if tx[0].Code != 0 {
 			return nil, fmt.Errorf("%w non success code (%s)", gatehub.ErrInternal, tx[0].Code.String())
 		}
 	}

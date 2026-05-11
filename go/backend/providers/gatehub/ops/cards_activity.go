@@ -13,6 +13,7 @@ import (
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	"gitlab.com/fynbos/backend/providers/gatehub/external"
 	"gitlab.com/fynbos/backend/transactions"
+	"gitlab.com/fynbos/pacioli"
 	"go.temporal.io/sdk/temporal"
 )
 
@@ -259,8 +260,36 @@ type RecordGatehubCardWithdrawalArgs struct {
 func (a *Activity) RecordGatehubCardWithdrawal(ctx context.Context, txID string, tx external.CardTransaction, args RecordGatehubCardWithdrawalArgs) error {
 	if args.BillingAmount.Value > 0 {
 		const cardAuthTimeout = 30 * 24 * time.Hour
-		if _, err := ReserveBalance(ctx, a.b, args.EURBalanceID, txID, args.BillingAmount, cardAuthTimeout); err != nil {
-			return err
+		/*
+			direct pacioli call here instead of calling ReserveBalance from ops because:
+				- errors on TransferExists (breaks idempotency)
+				- runs checks that were already done inside the workflow
+				- returns balance we don't need
+		*/
+		transfers, err := a.b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
+			{
+				ID:              txID,
+				Amount:          args.BillingAmount.Value,
+				DebitAccountID:  args.EURBalanceID,
+				CreditAccountID: gatehub.EUROpsAccount,
+				Pending:         true,
+				Code:            1,
+				Timeout:         uint64(cardAuthTimeout),
+				Ledger:          gatehub.LedgerIDEUR,
+			},
+		})
+		if err != nil {
+			return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+		}
+		if len(transfers) > 0 && transfers[0].Code != 0 {
+			switch transfers[0].Code {
+			case pacioli.TransferExceedsCredits, pacioli.TransferExceedsDebits, pacioli.TransferExceedsPendingTransferAmount:
+				return fmt.Errorf("%w insufficient balance (%s)", gatehub.ErrInsufficientBalance, transfers[0].Code.String())
+			case pacioli.TransferExists:
+				// ignore for idempotency
+			default:
+				return fmt.Errorf("%w non success code (%s)", gatehub.ErrInternal, transfers[0].Code.String())
+			}
 		}
 	}
 
@@ -294,8 +323,35 @@ type RecordGatehubCardDepositArgs struct {
 
 func (a *Activity) RecordGatehubCardDeposit(ctx context.Context, txID string, tx external.CardTransaction, args RecordGatehubCardDepositArgs) error {
 	if args.BillingAmount.Value > 0 {
-		if _, err := AssignBalance(ctx, a.b, args.EURBalanceID, txID, args.BillingAmount); err != nil {
-			return err
+		/*
+			direct pacioli call here instead of calling AssignBalance from ops because:
+				- errors on TransferExists (breaks idempotency)
+				- checks that were already done inside the workflow
+				- returns balance we don't need
+		*/
+		transfers, err := a.b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
+			{
+				ID:              txID,
+				Amount:          args.BillingAmount.Value,
+				CreditAccountID: args.EURBalanceID,
+				DebitAccountID:  gatehub.EUROpsAccount,
+				Pending:         false,
+				Code:            1,
+				Ledger:          gatehub.LedgerIDEUR,
+			},
+		})
+		if err != nil {
+			return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+		}
+		if len(transfers) > 0 && transfers[0].Code != 0 {
+			switch transfers[0].Code {
+			case pacioli.TransferExceedsCredits, pacioli.TransferExceedsDebits, pacioli.TransferExceedsPendingTransferAmount:
+				return fmt.Errorf("%w insufficient balance (%s)", gatehub.ErrInsufficientBalance, transfers[0].Code.String())
+			case pacioli.TransferExists:
+				// ignore for idempotency
+			default:
+				return fmt.Errorf("%w non success code (%s)", gatehub.ErrInternal, transfers[0].Code.String())
+			}
 		}
 	}
 
