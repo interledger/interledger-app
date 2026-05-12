@@ -2,11 +2,11 @@ package handler
 
 import (
 	"embed"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"net/http"
 	"net/url"
-	"strconv"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -19,6 +19,22 @@ import (
 
 //go:embed web/ui/dashboard.html web/ui/user.html web/ui/kyc_action.html web/ui/card_tx_action.html
 var uiTemplateFS embed.FS
+
+type cardWithTransactions struct {
+	Card         *models.Card
+	Transactions []*models.CardTransaction
+}
+
+func defaultUICardTxObject() string {
+	return `{
+	"transactionAmount": "10.00",
+	"transactionCurrency": "EUR",
+	"billingAmount": "10.00",
+	"billingCurrency": "EUR",
+	"type": 0,
+	"merchantName": "Coffee Shop"
+}`
+}
 
 func (h *Handler) UIDashboard(w http.ResponseWriter, r *http.Request) {
 	users, err := h.store.ListUsers()
@@ -62,6 +78,31 @@ func (h *Handler) UIUserDetail(w http.ResponseWriter, r *http.Request) {
 		txns = nil
 	}
 
+	cardData := make([]cardWithTransactions, 0)
+	if customer, err := h.store.GetCustomerBySourceID(userID); err == nil && customer != nil && customer.ID != nil {
+		if cards, err := h.store.GetCardsByCustomer(*customer.ID); err == nil {
+			for _, card := range cards {
+				txIDs, err := h.store.GetCardTransactionIDs(card.ID)
+				if err != nil {
+					logger.Error("ui: failed to list card transaction ids", zap.String("card_id", card.ID), zap.Error(err))
+					txIDs = nil
+				}
+
+				cardTxs := make([]*models.CardTransaction, 0, len(txIDs))
+				for _, txID := range txIDs {
+					tx, err := h.store.GetCardTransaction(txID)
+					if err != nil {
+						logger.Error("ui: failed to load card transaction", zap.String("tx_id", txID), zap.Error(err))
+						continue
+					}
+					cardTxs = append(cardTxs, tx)
+				}
+
+				cardData = append(cardData, cardWithTransactions{Card: card, Transactions: cardTxs})
+			}
+		}
+	}
+
 	tmpl, err := template.ParseFS(uiTemplateFS, "web/ui/user.html")
 	if err != nil {
 		logger.Error("ui: failed to parse user template", zap.Error(err))
@@ -74,6 +115,7 @@ func (h *Handler) UIUserDetail(w http.ResponseWriter, r *http.Request) {
 		"User":         user,
 		"Balances":     balances,
 		"Transactions": txns,
+		"Cards":        cardData,
 	}); err != nil {
 		logger.Error("ui: failed to render user detail", zap.Error(err))
 	}
@@ -213,6 +255,18 @@ func (h *Handler) UICardTxForm(w http.ResponseWriter, r *http.Request) {
 
 	q := r.URL.Query()
 	selectedUserID := q.Get("userID")
+	title := q.Get("title")
+	body := q.Get("body")
+	cardTxObject := q.Get("cardTxObject")
+	if title == "" {
+		title = "Card Purchase"
+	}
+	if body == "" {
+		body = "EUR 10.00 at Coffee Shop"
+	}
+	if cardTxObject == "" {
+		cardTxObject = defaultUICardTxObject()
+	}
 
 	var cards []*models.Card
 	if selectedUserID != "" {
@@ -240,10 +294,9 @@ func (h *Handler) UICardTxForm(w http.ResponseWriter, r *http.Request) {
 		"Cards":          cards,
 		"SelectedUserID": selectedUserID,
 		"SelectedCardID": q.Get("cardID"),
-		"TxType":         q.Get("txType"),
-		"Amount":         q.Get("amount"),
-		"Currency":       q.Get("currency"),
-		"MerchantName":   q.Get("merchantName"),
+		"Title":          title,
+		"Body":           body,
+		"CardTxObject":   cardTxObject,
 		"Flash":          q.Get("flash"),
 		"FlashOK":        q.Get("ok") == "1",
 	}); err != nil {
@@ -259,13 +312,24 @@ func (h *Handler) UICardTxAction(w http.ResponseWriter, r *http.Request) {
 
 	userID := r.FormValue("userID")
 	cardID := r.FormValue("cardID")
-	amountStr := r.FormValue("amount")
-	currency := r.FormValue("currency")
-	txTypeStr := r.FormValue("txType")
-	merchantName := r.FormValue("merchantName")
+	title := r.FormValue("title")
+	body := r.FormValue("body")
+	rawTx := r.FormValue("cardTxObject")
 
 	if cardID == "" {
 		http.Error(w, "Card is required", http.StatusBadRequest)
+		return
+	}
+	if title == "" {
+		http.Error(w, "Title is required", http.StatusBadRequest)
+		return
+	}
+	if body == "" {
+		http.Error(w, "Body is required", http.StatusBadRequest)
+		return
+	}
+	if rawTx == "" {
+		http.Error(w, "Card transaction object is required", http.StatusBadRequest)
 		return
 	}
 
@@ -288,88 +352,66 @@ func (h *Handler) UICardTxAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	amountF, err := strconv.ParseFloat(amountStr, 64)
-	if err != nil || amountF <= 0 {
-		http.Error(w, "Invalid amount", http.StatusBadRequest)
+	var tx models.CardTransaction
+	if err := json.Unmarshal([]byte(rawTx), &tx); err != nil {
+		http.Error(w, "Invalid card transaction JSON object", http.StatusBadRequest)
 		return
 	}
 
-	if currency == "" {
-		http.Error(w, "Currency is required", http.StatusBadRequest)
-		return
+	txID := tx.TransactionID
+	if txID == "" {
+		txID = fmt.Sprintf("tx-%s", utils.GenerateUUID()[:8])
+		tx.TransactionID = txID
 	}
 
-	balance, _ := h.store.GetBalance(userID, currency)
-	if balance < amountF {
-		http.Error(w, fmt.Sprintf("Insufficient funds: have %.2f %s", balance, currency), http.StatusBadRequest)
-		return
-	}
-
-	txType, _ := strconv.Atoi(txTypeStr)
-	txID := fmt.Sprintf("tx-%s", utils.GenerateUUID()[:8])
 	now := time.Now().UTC().Format(time.RFC3339)
-	completed := "COMPLETED"
-	amountFormatted := fmt.Sprintf("%.2f", amountF)
-
-	var mName *string
-	if merchantName != "" {
-		mName = &merchantName
+	if tx.GHResponseCode == "" {
+		tx.GHResponseCode = "00"
+	}
+	if tx.GHResponseDescription == "" {
+		tx.GHResponseDescription = "Approved"
+	}
+	if tx.CreatedAt == "" {
+		tx.CreatedAt = now
+	}
+	if tx.TransactionDateTime == nil {
+		tx.TransactionDateTime = &now
+	}
+	if tx.ProcessDateTime == nil {
+		tx.ProcessDateTime = &now
+	}
+	if tx.TerminalID == "" {
+		tx.TerminalID = "TERM001"
+	}
+	if tx.CardScheme == 0 {
+		tx.CardScheme = 2
+	}
+	if tx.TxStatus == nil {
+		completed := "COMPLETED"
+		tx.TxStatus = &completed
 	}
 
-	tx := &models.CardTransaction{
-		TransactionID:         txID,
-		GHResponseCode:        "00",
-		GHResponseDescription: "Approved",
-		TransactionAmount:     &amountFormatted,
-		TransactionCurrency:   &currency,
-		BillingAmount:         &amountFormatted,
-		BillingCurrency:       &currency,
-		Type:                  txType,
-		CardScheme:            2,
-		TerminalID:            "TERM001",
-		CreatedAt:             now,
-		TxStatus:              &completed,
-		Operation:             0,
-		MerchantName:          mName,
-		TransactionDateTime:   &now,
-		ProcessDateTime:       &now,
-	}
-
-	if err := h.store.CreateCardTransaction(tx); err != nil {
+	if err := h.store.CreateCardTransaction(&tx); err != nil {
 		logger.Error("ui: failed to create card transaction", zap.Error(err))
 		http.Error(w, "Failed to create transaction", http.StatusInternalServerError)
 		return
 	}
 	_ = h.store.AddCardTransactionIndex(cardID, txID)
 
-	if err := h.store.DeductBalance(userID, currency, amountF); err != nil {
-		logger.Error("ui: failed to deduct balance", zap.String("user_id", userID), zap.Error(err))
-	}
-
-	title := "Card Purchase"
-	if txType == 1 {
-		title = "ATM Withdrawal"
-	} else if txType == 20 {
-		title = "Card Refund"
-	}
-	displayMerchant := merchantName
-	if displayMerchant == "" {
-		displayMerchant = "Merchant"
-	}
-
-	h.webhookManager.SendAsync(consts.WebhookEventCardTransaction, userID, map[string]interface{}{
+	webhookData := map[string]interface{}{
 		"title":         title,
-		"body":          fmt.Sprintf("%s %.2f at %s", currency, amountF, displayMerchant),
+		"body":          body,
 		"transactionId": txID,
 		"cardId":        cardID,
-	}, 0)
+	}
+
+	h.webhookManager.SendAsync(consts.WebhookEventCardTransaction, userID, webhookData, 0)
 
 	logger.Info("ui: card transaction simulated",
 		zap.String("user_id", userID),
 		zap.String("card_id", cardID),
 		zap.String("tx_id", txID),
-		zap.Float64("amount", amountF),
-		zap.String("currency", currency),
+		zap.String("title", title),
 	)
 
 	http.Redirect(w, r, "/ui/users/"+userID, http.StatusSeeOther)

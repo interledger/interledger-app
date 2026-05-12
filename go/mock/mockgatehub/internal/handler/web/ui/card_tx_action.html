@@ -36,21 +36,17 @@ a { color: #0070f3; }
     {{end}}
   </select>
 
-  <label for="txType">Transaction Type</label>
-  <select name="txType" id="txType">
-    <option value="0"  {{if eq .TxType "0"}} selected{{end}}>Purchase (0)</option>
-    <option value="1"  {{if eq .TxType "1"}} selected{{end}}>ATM Withdrawal (1)</option>
-    <option value="20" {{if eq .TxType "20"}}selected{{end}}>Refund (20)</option>
-  </select>
+  <label for="title">Webhook Title</label>
+  <input type="text" name="title" id="title" value="{{.Title}}" placeholder="Card Purchase" required>
 
-  <label for="amount">Amount</label>
-  <input type="text" name="amount" id="amount" value="{{.Amount}}" placeholder="10.00" required>
+  <label for="body">Webhook Body</label>
+  <input type="text" name="body" id="body" value="{{.Body}}" placeholder="EUR 10.00 at Coffee Shop" required>
 
-  <label for="currency">Currency</label>
-  <input type="text" name="currency" id="currency" value="{{.Currency}}" placeholder="EUR" required>
-
-  <label for="merchantName">Merchant Name (optional)</label>
-  <input type="text" name="merchantName" id="merchantName" value="{{.MerchantName}}" placeholder="Coffee Shop">
+  <label for="cardTxObject">Card Transaction Object (JSON)</label>
+  <textarea name="cardTxObject" id="cardTxObject" rows="14" style="width: 40rem; max-width: 100%; font-family: monospace;" required>{{.CardTxObject}}</textarea>
+  <p style="margin: 0.4rem 0 0; color: #666; max-width: 40rem;">
+    The JSON object maps to the GateHub card transaction payload. Optional numeric <strong>cardId</strong> is independent from selected card GUID.
+  </p>
 
   <button type="submit">Simulate Transaction</button>
 </form>

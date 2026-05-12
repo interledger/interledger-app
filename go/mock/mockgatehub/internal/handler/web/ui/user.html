@@ -55,6 +55,30 @@ dt { font-weight: bold; }
 </tbody>
 </table>
 
+<h2>Card Transactions</h2>
+{{range .Cards}}
+<h3>Card {{.Card.ID}} ({{.Card.MaskedPan}})</h3>
+<table>
+<thead><tr><th>Transaction ID</th><th>Numeric cardId</th><th>Amount</th><th>Currency</th><th>Status</th><th>Created</th></tr></thead>
+<tbody>
+{{range .Transactions}}
+<tr>
+  <td>{{.TransactionID}}</td>
+  <td>{{if .CardID}}{{.CardID}}{{else}}-{{end}}</td>
+  <td>{{if .TransactionAmount}}{{.TransactionAmount}}{{else}}-{{end}}</td>
+  <td>{{if .TransactionCurrency}}{{.TransactionCurrency}}{{else}}-{{end}}</td>
+  <td>{{if .TxStatus}}{{.TxStatus}}{{else}}-{{end}}</td>
+  <td>{{.CreatedAt}}</td>
+</tr>
+{{else}}
+<tr><td colspan="6">No card transactions for this card.</td></tr>
+{{end}}
+</tbody>
+</table>
+{{else}}
+<p>No cards or card transactions.</p>
+{{end}}
+
 <p><a href="/ui/actions/kyc?userID={{.User.ID}}">Trigger KYC Event</a> | <a href="/ui/actions/card-transaction?userID={{.User.ID}}">Simulate Card Transaction</a></p>
 </body>
 </html>
