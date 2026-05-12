@@ -271,6 +271,19 @@ For deployed environments the `PTI_JWK`, `PTI_PUBLIC_KEY_JWK`, and `PTI_BASE_URL
 | `PTI_PUBLIC_KEY_JWK` | PTI public RSA JWK used for webhook signature verification | Yes | Prod/Sandbox: secret (1Password); Local default: test RSA public key (see local compose) |
 | `FYNBOS_BACKEND_HOST` | Host used by the PTI mock webhook proxy (`/webhooks/pti`) when forwarding requests to the wallet backend | No | Not set in any environment |
 
+### Plaid (POC)
+
+Plaid integration is a proof-of-concept (see `documentation/poc/plaid/`). The feature is gated behind `PLAID_ENABLED`. When disabled (the default), no runtime validation is performed and the `/plaid/*` HTTP routes are not registered. The current POC only targets Plaid Sandbox.
+
+| Variable | Description | Secret | Notes |
+|---|---|---|---|
+| `PLAID_ENABLED` | Enables Plaid POC integration, runtime config validation, and `/plaid/*` HTTP routes | No | Default: `false`. Local POC: `true`; all deployed environments: `false` until POC promoted |
+| `PLAID_CLIENT_ID` | Plaid API client ID from the Plaid dashboard | Yes | Local POC: developer's sandbox client ID (1Password / personal); not set in deployed environments |
+| `PLAID_SECRET` | Plaid API secret matching the chosen `PLAID_ENV` | Yes | Local POC: developer's sandbox secret; not set in deployed environments |
+| `PLAID_ENV` | Plaid environment selector (`sandbox` or `production`) | No | Local POC: `sandbox`; deployed: unset |
+| `PLAID_PRODUCTS` | Comma-separated list of Plaid products requested at Link creation | No | POC: `auth,transactions,balance,identity` |
+| `PLAID_COUNTRY_CODES` | Comma-separated ISO-3166-1 alpha-2 country codes for Link institution filtering | No | POC: `US` (sandbox only supports US institutions out of the box) |
+
 ### Legacy Variables
 
 | Variable | Description | Secret | Notes |

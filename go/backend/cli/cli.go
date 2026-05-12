@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 
 	"gitlab.com/fynbos/env"
 
@@ -123,6 +124,27 @@ type StartArgs struct {
 	OperatorTenantID              string
 	AdminAPISecret                string
 	SignatureVersion              string
+	PlaidEnabled                  bool
+	PlaidClientID                 string
+	PlaidSecret                   string
+	PlaidEnv                      string
+	PlaidProducts                 []string
+	PlaidCountryCodes             []string
+}
+
+func splitAndTrim(s, sep string) []string {
+	if s == "" {
+		return nil
+	}
+	parts := strings.Split(s, sep)
+	out := make([]string, 0, len(parts))
+	for _, p := range parts {
+		p = strings.TrimSpace(p)
+		if p != "" {
+			out = append(out, p)
+		}
+	}
+	return out
 }
 
 func ParseStartArgs() (*StartArgs, error) {
@@ -493,6 +515,37 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, errors.New("SIGNATURE_VERSION is required")
 	}
 
+	plaidEnabled := os.Getenv("PLAID_ENABLED") == "true"
+	plaidClientID := os.Getenv("PLAID_CLIENT_ID")
+	plaidSecret := os.Getenv("PLAID_SECRET")
+	plaidEnv := os.Getenv("PLAID_ENV")
+	plaidProductsStr := os.Getenv("PLAID_PRODUCTS")
+	plaidCountryCodesStr := os.Getenv("PLAID_COUNTRY_CODES")
+
+	plaidProducts := splitAndTrim(plaidProductsStr, ",")
+	plaidCountryCodes := splitAndTrim(plaidCountryCodesStr, ",")
+
+	if plaidEnabled {
+		if plaidClientID == "" {
+			return nil, errors.New("PLAID_CLIENT_ID is required when PLAID_ENABLED=true")
+		}
+		if plaidSecret == "" {
+			return nil, errors.New("PLAID_SECRET is required when PLAID_ENABLED=true")
+		}
+		if plaidEnv == "" {
+			return nil, errors.New("PLAID_ENV is required when PLAID_ENABLED=true (sandbox|production)")
+		}
+		if plaidEnv != "sandbox" && plaidEnv != "production" {
+			return nil, errors.New("PLAID_ENV must be one of: sandbox, production")
+		}
+		if len(plaidProducts) == 0 {
+			return nil, errors.New("PLAID_PRODUCTS is required when PLAID_ENABLED=true (comma-separated)")
+		}
+		if len(plaidCountryCodes) == 0 {
+			return nil, errors.New("PLAID_COUNTRY_CODES is required when PLAID_ENABLED=true (comma-separated)")
+		}
+	}
+
 	return &StartArgs{
 		Port:                          port,
 		AuthorisationPort:             authorisationPort,
@@ -564,5 +617,11 @@ func ParseStartArgs() (*StartArgs, error) {
 		OperatorTenantID:              operatorTenantID,
 		AdminAPISecret:                adminAPISecret,
 		SignatureVersion:              signatureVersion,
+		PlaidEnabled:                  plaidEnabled,
+		PlaidClientID:                 plaidClientID,
+		PlaidSecret:                   plaidSecret,
+		PlaidEnv:                      plaidEnv,
+		PlaidProducts:                 plaidProducts,
+		PlaidCountryCodes:             plaidCountryCodes,
 	}, nil
 }
