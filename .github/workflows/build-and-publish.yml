@@ -226,3 +226,50 @@ jobs:
         run: |
           echo "Pushing $PUSH_IMAGE"
           docker push $PUSH_IMAGE
+
+
+  publish-helm-chart:
+    name: Publish Helm chart
+    needs: [determine_version, push-image-gcp-artifact-registry, push-dev-image-gcp-artifact-registry]
+    runs-on: ubuntu-latest
+    if: needs.determine_version.outputs.dockerPush == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+
+      - name: Update Helm dependencies
+        run: helm dependency update helm/interledger-app
+
+      - name: Package chart
+        run: helm package helm/interledger-app
+
+      - name: Authenticate to prod GCP
+        uses: google-github-actions/auth@v2
+        with:
+          service_account: ${{ secrets.GSA_EMAIL }}
+          workload_identity_provider: ${{ secrets.GCR_WORKLOAD_IDENTITY_PROVIDER }}
+          export_environment_variables: true
+
+      - name: Push chart to prod Artifact Registry
+        run: |
+          gcloud auth print-access-token \
+            | helm registry login europe-west4-docker.pkg.dev --username oauth2accesstoken --password-stdin
+          helm push interledger-app-*.tgz \
+            oci://europe-west4-docker.pkg.dev/${{ secrets.GCR_PROJECT }}/interledger-helm-charts
+
+      - name: Authenticate to dev GCP
+        uses: google-github-actions/auth@v2
+        with:
+          service_account: ${{ secrets.GSA_DEV_EMAIL }}
+          workload_identity_provider: ${{ secrets.GCR_DEV_WORKLOAD_IDENTITY_PROVIDER }}
+          export_environment_variables: true
+
+      - name: Push chart to dev Artifact Registry
+        run: |
+          gcloud auth print-access-token \
+            | helm registry login europe-west4-docker.pkg.dev --username oauth2accesstoken --password-stdin
+          helm push interledger-app-*.tgz \
+            oci://europe-west4-docker.pkg.dev/${{ secrets.GCR_DEV_PROJECT }}/interledger-helm-charts

@@ -30,6 +30,19 @@
         }
       }
     ],
+    [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "sed -i -e 's/^version:.*/version: ${nextRelease.version}/' -e 's/^appVersion:.*/appVersion: v${nextRelease.version}/' helm/interledger-app/Chart.yaml"
+      }
+    ],
+    [
+      "@semantic-release/git",
+      {
+        "assets": ["helm/interledger-app/Chart.yaml"],
+        "message": "chore(release): ${nextRelease.version} [skip ci]"
+      }
+    ],
     "@semantic-release/github"
   ]
 }

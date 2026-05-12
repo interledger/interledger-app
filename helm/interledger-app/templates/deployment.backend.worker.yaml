@@ -1,0 +1,13 @@
+{{- define "interledger-app.backend.worker.deployment" -}}
+{{- $top := first . }}
+{{- $cfgObj := include "common.configMapper" (list $top $top.Values.backend.configMaps.config) | fromYaml -}}
+{{- $dataHash := $cfgObj.data | toJson | sha256sum -}}
+spec:
+  template:
+    metadata:
+      annotations:
+        ilf-configmap-worker-sha256: {{ $dataHash | quote }}
+{{- end }}
+{{- if .Values.backend.worker.enabled }}
+{{- include "common.deployment" (list . .Values.backend.worker .Values.backend.worker.autoscaling .Values.backend.worker.serviceAccount "interledger-app.backend.worker.deployment") }}
+{{- end }}

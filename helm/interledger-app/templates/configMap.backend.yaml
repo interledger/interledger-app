@@ -1,0 +1,3 @@
+{{- define "interledger-app.backend.configMap" -}}
+{{- end }}
+{{- include "common.configMapper" (list . .Values.backend.configMaps.config "interledger-app.backend.configMap") }}
