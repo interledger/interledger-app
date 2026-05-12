@@ -356,7 +356,9 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 
 		for _, sendLA := range sendBalances {
 			for _, recvLA := range recvBalances {
-				if sendLA.CanPay(recvLA) {
+				crossProvider := isCrossProviderPair(sendLA.Provider, recvLA.Provider) &&
+					recvLA.CanReceive && recvLA.State == linkedaccounts.Verified
+				if sendLA.CanPay(recvLA) || crossProvider {
 					p.SenderAccount = sendLA.ID
 					p.ReceiverAccount = recvLA.ID
 					p.SenderAmount.Currency = sendLA.SendCurrency
