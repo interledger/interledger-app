@@ -200,10 +200,10 @@ func CreateCardTransaction(ctx workflow.Context, wh CardTransactionEventWebhook)
 	}
 
 	var fx *RecordGatehubCardFXData
-	if ct.TransactionCurrency != nil && ctMeta.BillingAmount.Currency.String() != *ct.TransactionCurrency {
-		if fx, err = buildFX(ct.MastercardConversion, ct.TransactionAmount, *ct.TransactionCurrency); err != nil {
+	if ct.IsTrxAmountConverted == true {
+		if fx, err = buildFX(ct.MastercardConversion, ct.TransactionAmount, ct.TransactionCurrency); err != nil {
+			// send slack notification but continue the flow
 			slack.SendToChannel(context.Background(), slack.ChannelNotifyEvents, "wallet-info-bot", fmt.Sprintf("!!! Missing or invalid Mastercard conversion data for card transaction with FX:\nCard TX ID: %s\nCard ID: %s\nGateHub User ID: %s\nError: %s", ct.TransactionID, card.ID, wh.UserID, err))
-			return temporal.NewNonRetryableApplicationError("Invalid FX data", "ErrInternal", fmt.Errorf("%w %s", gatehub.ErrInternal, err))
 		}
 	}
 
@@ -218,12 +218,12 @@ func CreateCardTransaction(ctx workflow.Context, wh CardTransactionEventWebhook)
 		case external.CardTransactionClassificationAuthorization:
 			recordWithdrawalArgs := RecordGatehubCardWithdrawalArgs{
 				RecordGatehubCardTxData: RecordGatehubCardTxData{
-					WalletID:      ctMeta.WalletID,
-					WalletAddress: ctMeta.WalletAddress,
-					EURBalanceID:  ctMeta.EURBalanceID,
-					MerchantName:  ctMeta.MerchantName,
-					Note:          getNoteForWithdrawals(ct.Type),
-					BillingAmount: ctMeta.BillingAmount,
+					WalletID:        ctMeta.WalletID,
+					WalletAddress:   ctMeta.WalletAddress,
+					LinkedAccountID: ctMeta.LinkedAccountID,
+					MerchantName:    ctMeta.MerchantName,
+					Note:            getNoteForWithdrawals(ct.Type),
+					BillingAmount:   ctMeta.BillingAmount,
 				},
 			}
 			if fx != nil {
@@ -233,8 +233,13 @@ func CreateCardTransaction(ctx workflow.Context, wh CardTransactionEventWebhook)
 			case external.CardTransactionTypePurchase,
 				external.CardTransactionTypeATMWithdrawal,
 				external.CardTransactionTypeCashAdvance,
-				external.CardTransactionTypeTransferFromAccount,
 				external.CardTransactionTypePreauthorization:
+				recordWithdrawalArgs.State = transactions.StatePending
+				if err = workflow.ExecuteActivity(ctx, a.RecordGatehubCardWithdrawal, txID, ct, recordWithdrawalArgs).Get(ctx, nil); err != nil {
+					return err
+				}
+			case external.CardTransactionTypeTransferFromAccount:
+				recordWithdrawalArgs.State = transactions.StateCompleted
 				if err = workflow.ExecuteActivity(ctx, a.RecordGatehubCardWithdrawal, txID, ct, recordWithdrawalArgs).Get(ctx, nil); err != nil {
 					return err
 				}
@@ -248,6 +253,7 @@ func CreateCardTransaction(ctx workflow.Context, wh CardTransactionEventWebhook)
 						return err
 					}
 				}
+				recordWithdrawalArgs.State = transactions.StatePending
 				if err = workflow.ExecuteActivity(ctx, a.RecordGatehubCardWithdrawal, txID, ct, recordWithdrawalArgs).Get(ctx, nil); err != nil {
 					return err
 				}
@@ -278,12 +284,12 @@ func CreateCardTransaction(ctx workflow.Context, wh CardTransactionEventWebhook)
 
 		recordDepositArgs := RecordGatehubCardDepositArgs{
 			RecordGatehubCardTxData: RecordGatehubCardTxData{
-				WalletID:      ctMeta.WalletID,
-				WalletAddress: ctMeta.WalletAddress,
-				EURBalanceID:  ctMeta.EURBalanceID,
-				MerchantName:  ctMeta.MerchantName,
-				Note:          getNoteForDeposits(ct.Type, classification),
-				BillingAmount: ctMeta.BillingAmount,
+				WalletID:        ctMeta.WalletID,
+				WalletAddress:   ctMeta.WalletAddress,
+				LinkedAccountID: ctMeta.LinkedAccountID,
+				MerchantName:    ctMeta.MerchantName,
+				Note:            getNoteForDeposits(ct.Type, classification),
+				BillingAmount:   ctMeta.BillingAmount,
 			},
 		}
 		switch classification {
@@ -349,12 +355,12 @@ func CreateCardTransaction(ctx workflow.Context, wh CardTransactionEventWebhook)
 
 		recordInformationalArgs := RecordGatehubCardInformationalArgs{
 			RecordGatehubCardTxData: RecordGatehubCardTxData{
-				WalletID:      ctMeta.WalletID,
-				WalletAddress: ctMeta.WalletAddress,
-				EURBalanceID:  ctMeta.EURBalanceID,
-				MerchantName:  ctMeta.MerchantName,
-				Note:          getNoteForInformationals(ct.Type, ct.GHResponseCode, responseCode),
-				BillingAmount: ctMeta.BillingAmount,
+				WalletID:        ctMeta.WalletID,
+				WalletAddress:   ctMeta.WalletAddress,
+				LinkedAccountID: ctMeta.LinkedAccountID,
+				MerchantName:    ctMeta.MerchantName,
+				Note:            getNoteForInformationals(ct.Type, ct.GHResponseCode, responseCode),
+				BillingAmount:   ctMeta.BillingAmount,
 			},
 			State: state,
 		}

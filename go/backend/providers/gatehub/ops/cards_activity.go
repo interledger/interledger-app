@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"time"
 
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -168,11 +167,11 @@ func (a *Activity) RollbackGatehubCardTransaction(ctx context.Context, cardTxID,
 }
 
 type CardTransactionMeta struct {
-	WalletID      string
-	WalletAddress string
-	EURBalanceID  string
-	MerchantName  string
-	BillingAmount currency.Amount
+	WalletID        string
+	WalletAddress   string
+	LinkedAccountID string
+	MerchantName    string
+	BillingAmount   currency.Amount
 }
 
 func (a *Activity) ComputeCardTransactionMeta(ctx context.Context, userID string, tx external.CardTransaction) (CardTransactionMeta, error) {
@@ -207,15 +206,15 @@ func (a *Activity) ComputeCardTransactionMeta(ctx context.Context, userID string
 		return CardTransactionMeta{}, err
 	}
 
-	var eurBalance *linkedaccounts.LinkedAccount
+	var linkedAccount *linkedaccounts.LinkedAccount
 	for _, la := range las {
 		if la.Provider == gatehub.ProviderName && la.Type == gatehub.AccTypeBalance {
-			eurBalance = &la
+			linkedAccount = &la
 			break
 		}
 	}
 
-	if eurBalance == nil {
+	if linkedAccount == nil {
 		return CardTransactionMeta{}, temporal.NewNonRetryableApplicationError("Gatehub EUR balance account not found", "ErrInternal", fmt.Errorf("%w Gatehub EUR balance account not found", gatehub.ErrNotFound))
 	}
 
@@ -225,10 +224,10 @@ func (a *Activity) ComputeCardTransactionMeta(ctx context.Context, userID string
 	}
 
 	return CardTransactionMeta{
-		WalletID:      walletID,
-		WalletAddress: wallet.AddressString(),
-		EURBalanceID:  eurBalance.ID,
-		MerchantName:  getMerchantName(tx),
+		WalletID:        walletID,
+		WalletAddress:   wallet.AddressString(),
+		LinkedAccountID: linkedAccount.ID,
+		MerchantName:    getMerchantName(tx),
 		BillingAmount: currency.Amount{
 			Value:    val,
 			Currency: currency.EUR,
@@ -238,12 +237,12 @@ func (a *Activity) ComputeCardTransactionMeta(ctx context.Context, userID string
 }
 
 type RecordGatehubCardTxData struct {
-	WalletID      string
-	WalletAddress string
-	EURBalanceID  string
-	MerchantName  string
-	BillingAmount currency.Amount
-	Note          string
+	WalletID        string
+	WalletAddress   string
+	LinkedAccountID string
+	MerchantName    string
+	BillingAmount   currency.Amount
+	Note            string
 }
 type RecordGatehubCardFXData struct {
 	ExchangeRateApplied   string
@@ -255,41 +254,19 @@ type RecordGatehubCardFXData struct {
 type RecordGatehubCardWithdrawalArgs struct {
 	RecordGatehubCardTxData
 	RecordGatehubCardFXData
+	State transactions.State
 }
 
 func (a *Activity) RecordGatehubCardWithdrawal(ctx context.Context, txID string, tx external.CardTransaction, args RecordGatehubCardWithdrawalArgs) error {
 	if args.BillingAmount.Value > 0 {
-		const cardAuthTimeout = 30 * 24 * time.Hour
-		/*
-			direct pacioli call here instead of calling ReserveBalance from ops because:
-				- errors on TransferExists (breaks idempotency)
-				- runs checks that were already done inside the workflow
-				- returns balance we don't need
-		*/
-		transfers, err := a.b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
-			{
-				ID:              txID,
-				Amount:          args.BillingAmount.Value,
-				DebitAccountID:  args.EURBalanceID,
-				CreditAccountID: gatehub.EUROpsAccount,
-				Pending:         true,
-				Code:            1,
-				Timeout:         uint64(cardAuthTimeout),
-				Ledger:          gatehub.LedgerIDEUR,
-			},
-		})
-		if err != nil {
-			return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
-		}
-		if len(transfers) > 0 && transfers[0].Code != 0 {
-			switch transfers[0].Code {
-			case pacioli.TransferExceedsCredits, pacioli.TransferExceedsDebits, pacioli.TransferExceedsPendingTransferAmount:
-				return fmt.Errorf("%w insufficient balance (%s)", gatehub.ErrInsufficientBalance, transfers[0].Code.String())
-			case pacioli.TransferExists:
-				// ignore for idempotency
-			default:
-				return fmt.Errorf("%w non success code (%s)", gatehub.ErrInternal, transfers[0].Code.String())
-			}
+		if err := createCardTransactionLedgerTransfer(ctx, a.b.Pacioli(), createCardTransactionLedgerTransferArgs{
+			txID:      txID,
+			amount:    args.BillingAmount,
+			debitID:   args.LinkedAccountID,
+			creditID:  gatehub.EUROpsAccount,
+			isPending: args.State == transactions.StatePending,
+		}); err != nil {
+			return err
 		}
 	}
 
@@ -297,13 +274,12 @@ func (a *Activity) RecordGatehubCardWithdrawal(ctx context.Context, txID string,
 		ID:                    txID,
 		WalletID:              args.WalletID,
 		Provider:              gatehub.ProviderName,
-		State:                 transactions.StatePending,
+		State:                 args.State,
 		ForeignID:             tx.TransactionID,
 		ForeignType:           transactions.TransactionTypeCardTransaction,
 		Source:                args.WalletAddress,
 		LinkedAccountTitle:    "EUR Balance",
 		Title:                 args.MerchantName,
-		Destination:           args.MerchantName,
 		Note:                  args.Note,
 		Reference:             args.Note,
 		Amount:                args.BillingAmount,
@@ -313,8 +289,15 @@ func (a *Activity) RecordGatehubCardWithdrawal(ctx context.Context, txID string,
 		TargetAmount:          args.TargetAmount,
 	}
 
-	_, err := a.b.Transactions().CreateTransaction(ctx, createArgs)
-	return err
+	if _, err := a.b.Transactions().CreateTransaction(ctx, createArgs); err != nil {
+		return err
+	}
+
+	if args.State == transactions.StateCompleted {
+		return updateCardTransactionStatus(ctx, a.b, tx.TransactionID, external.CardTransactionStatusCompleted)
+	}
+
+	return nil
 }
 
 type RecordGatehubCardDepositArgs struct {
@@ -324,45 +307,14 @@ type RecordGatehubCardDepositArgs struct {
 
 func (a *Activity) RecordGatehubCardDeposit(ctx context.Context, txID string, tx external.CardTransaction, args RecordGatehubCardDepositArgs) error {
 	if args.BillingAmount.Value > 0 {
-		/*
-			direct pacioli call here instead of calling AssignBalance from ops because:
-				- errors on TransferExists (breaks idempotency)
-				- checks that were already done inside the workflow
-				- returns balance we don't need
-		*/
-
-		var isPending bool
-		var timeout uint64
-		if args.State == transactions.StatePending {
-			isPending = true
-			const cardReversalTimeout = 30 * 24 * time.Hour
-			timeout = uint64(cardReversalTimeout)
-		}
-
-		transfers, err := a.b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
-			{
-				ID:              txID,
-				Amount:          args.BillingAmount.Value,
-				CreditAccountID: args.EURBalanceID,
-				DebitAccountID:  gatehub.EUROpsAccount,
-				Pending:         isPending,
-				Timeout:         timeout,
-				Code:            1,
-				Ledger:          gatehub.LedgerIDEUR,
-			},
-		})
-		if err != nil {
-			return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
-		}
-		if len(transfers) > 0 && transfers[0].Code != 0 {
-			switch transfers[0].Code {
-			case pacioli.TransferExceedsCredits, pacioli.TransferExceedsDebits, pacioli.TransferExceedsPendingTransferAmount:
-				return fmt.Errorf("%w insufficient balance (%s)", gatehub.ErrInsufficientBalance, transfers[0].Code.String())
-			case pacioli.TransferExists:
-				// ignore for idempotency
-			default:
-				return fmt.Errorf("%w non success code (%s)", gatehub.ErrInternal, transfers[0].Code.String())
-			}
+		if err := createCardTransactionLedgerTransfer(ctx, a.b.Pacioli(), createCardTransactionLedgerTransferArgs{
+			txID:      txID,
+			amount:    args.BillingAmount,
+			debitID:   gatehub.EUROpsAccount,
+			creditID:  args.LinkedAccountID,
+			isPending: args.State == transactions.StatePending,
+		}); err != nil {
+			return err
 		}
 	}
 
@@ -376,7 +328,6 @@ func (a *Activity) RecordGatehubCardDeposit(ctx context.Context, txID string, tx
 		Source:             args.WalletAddress,
 		LinkedAccountTitle: "EUR Balance",
 		Title:              args.MerchantName,
-		Destination:        args.MerchantName,
 		Note:               args.Note,
 		Reference:          args.Note,
 		Amount:             args.BillingAmount,
@@ -410,7 +361,6 @@ func (a *Activity) RecordGatehubCardInformational(ctx context.Context, txID stri
 		Source:                args.WalletAddress,
 		LinkedAccountTitle:    "EUR Balance",
 		Title:                 args.MerchantName,
-		Destination:           args.MerchantName,
 		Note:                  args.Note,
 		Reference:             args.Note,
 		Amount:                args.BillingAmount,
@@ -442,21 +392,57 @@ func (a *Activity) GetInternalTransactionByForeignID(ctx context.Context, wallet
 	return tx.ID, nil
 }
 
-func buildFX(mcConversion *external.MastercardConversion, transactionAmount *string, transactionCurrency string) (*RecordGatehubCardFXData, error) {
+type createCardTransactionLedgerTransferArgs struct {
+	txID      string
+	amount    currency.Amount
+	debitID   string
+	creditID  string
+	isPending bool
+}
+
+func createCardTransactionLedgerTransfer(ctx context.Context, client pacioli.Client, args createCardTransactionLedgerTransferArgs) error {
+	transfers, err := client.CreateTransfers(ctx, []pacioli.CreateTransferArgs{{
+		ID:              args.txID,
+		Amount:          args.amount.Value,
+		DebitAccountID:  args.debitID,
+		CreditAccountID: args.creditID,
+		Pending:         args.isPending,
+		Code:            1,
+		Ledger:          gatehub.LedgerIDEUR,
+	}})
+	if err != nil {
+		return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+	if len(transfers) > 0 && transfers[0].Code != 0 {
+		switch transfers[0].Code {
+		case pacioli.TransferExceedsCredits, pacioli.TransferExceedsDebits, pacioli.TransferExceedsPendingTransferAmount:
+			return fmt.Errorf("%w insufficient balance (%s)", gatehub.ErrInsufficientBalance, transfers[0].Code.String())
+		case pacioli.TransferExists:
+			// ignore for idempotency
+		default:
+			return fmt.Errorf("%w non success code (%s)", gatehub.ErrInternal, transfers[0].Code.String())
+		}
+	}
+	return nil
+}
+
+func buildFX(mcConversion *external.MastercardConversion, transactionCurrency *string, transactionAmount *string) (*RecordGatehubCardFXData, error) {
 	if mcConversion == nil {
 		return nil, fmt.Errorf("missing Mastercard conversion data")
 	}
-	if transactionAmount == nil {
-		return nil, fmt.Errorf("missing transaction amount")
+	if transactionCurrency == nil || transactionAmount == nil {
+		return nil, fmt.Errorf("missing transaction amount or currency")
 	}
+
 	targetVal, err := StringToScaledUInt(*transactionAmount)
 	if err != nil {
 		return nil, fmt.Errorf("invalid transaction amount: %s", *transactionAmount)
 	}
+
 	fx := &RecordGatehubCardFXData{
 		TargetAmount: &currency.Amount{
 			Value:    targetVal,
-			Currency: currency.ParseCurrency(transactionCurrency),
+			Currency: currency.ParseCurrency(*transactionCurrency),
 			Scale:    2,
 		},
 	}
@@ -469,6 +455,7 @@ func buildFX(mcConversion *external.MastercardConversion, transactionAmount *str
 	if mcConversion.RefConfRateDiff != nil {
 		fx.ExchangeRateSurcharge = *mcConversion.RefConfRateDiff
 	}
+
 	return fx, nil
 }
 
