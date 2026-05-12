@@ -143,6 +143,21 @@ func (mr *MockClientMockRecorder) GetDeposit(ctx, id interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDeposit", reflect.TypeOf((*MockClient)(nil).GetDeposit), ctx, id)
 }
 
+// GetConvertCurrencyDetails mocks base method.
+func (m *MockClient) GetConvertCurrencyDetails(ctx context.Context, convertID string) (*external.GetConvertCurrencyDetailsResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetConvertCurrencyDetails", ctx, convertID)
+	ret0, _ := ret[0].(*external.GetConvertCurrencyDetailsResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetConvertCurrencyDetails indicates an expected call of GetConvertCurrencyDetails.
+func (mr *MockClientMockRecorder) GetConvertCurrencyDetails(ctx, convertID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetConvertCurrencyDetails", reflect.TypeOf((*MockClient)(nil).GetConvertCurrencyDetails), ctx, convertID)
+}
+
 // GetWithdrawal mocks base method.
 func (m *MockClient) GetWithdrawal(ctx context.Context, id string) (*external.Withdrawal, error) {
 	m.ctrl.T.Helper()

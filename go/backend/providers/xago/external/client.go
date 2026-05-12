@@ -38,6 +38,7 @@ type Client interface {
 	GetDeposit(ctx context.Context, id string) (*Deposit, error)
 	EstimateConvertCurrency(ctx context.Context, currencyPair ConvertCurrencyPairEnum, amount float64) (*EstimateConvertCurrencyResponse, error)
 	ConvertCurrency(ctx context.Context, currencyPair ConvertCurrencyPairEnum, amount float64) (*ConvertCurrencyResponse, error)
+	GetConvertCurrencyDetails(ctx context.Context, convertID string) (*GetConvertCurrencyDetailsResponse, error)
 }
 
 // Config holds the configuration for the Xago external client.

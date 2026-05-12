@@ -14,8 +14,10 @@ import (
 	"time"
 
 	"gitlab.com/fynbos/backend/providers/chimoney"
+	"gitlab.com/fynbos/backend/providers/gatehub"
 	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/rafiki"
+	xago_external "gitlab.com/fynbos/backend/providers/xago/external"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
 
@@ -577,6 +579,11 @@ func validateWithdrawal(ctx context.Context, b Backends, typ payments.Type, send
 	return nil
 }
 
+func isCrossProviderPair(senderProvider, receiverProvider string) bool {
+	return (senderProvider == gatehub.ProviderName && receiverProvider == xago.ProviderName) ||
+		(senderProvider == xago.ProviderName && receiverProvider == gatehub.ProviderName)
+}
+
 func validateSenderReceiver(ctx context.Context, b Backends, typ payments.Type, senderAccID, receiverAccID string) error {
 	if typ != payments.TypePeer2Peer || senderAccID == "" || receiverAccID == "" {
 		return nil
@@ -593,7 +600,11 @@ func validateSenderReceiver(ctx context.Context, b Backends, typ payments.Type, 
 	}
 
 	if senderAcc.Provider != receiverAcc.Provider {
-		return payments.ErrIncompatibleAccounts
+		// Allow GateHub <-> Xago cross-provider transfers
+		if !isCrossProviderPair(senderAcc.Provider, receiverAcc.Provider) {
+			return payments.ErrIncompatibleAccounts
+		}
+		return nil
 	}
 
 	if senderAcc.Provider == xago.ProviderName && (senderAcc.Type != xago.AccTypeBalance || receiverAcc.Type != xago.AccTypeBalance) {
@@ -637,6 +648,27 @@ func applyFXCreate(ctx context.Context, b Backends, args payments.CreateArgs) (p
 			}
 		}
 		return args, 0, 0, nil
+	}
+
+	// Cross-provider GateHub <-> Xago FX
+	if isCrossProviderPair(senderAcc.Provider, receiverAcc.Provider) {
+		var pair xago_external.ConvertCurrencyPairEnum
+		var receiverCurrency currency.Currency
+		if senderAcc.Provider == gatehub.ProviderName {
+			pair = xago_external.EURtoZAR
+			receiverCurrency = currency.ZAR
+		} else {
+			pair = xago_external.ZARtoEUR
+			receiverCurrency = currency.EUR
+		}
+
+		estimate, err := b.Xago().EstimateConvertCurrency(ctx, pair, args.SenderAmount.Float64())
+		if err != nil {
+			return args, 0, 0, fmt.Errorf("%w failed to estimate FX rate: %s", payments.ErrInternal, err)
+		}
+
+		args.ReceiverAmount = currency.FromFloat64(estimate.ReceivedAmount, receiverCurrency)
+		return args, estimate.EstimatedRate, 0, nil
 	}
 
 	if senderAcc.SendCurrency != currency.USD || receiverAcc.ReceiveCurrency == currency.USD {
@@ -1142,6 +1174,31 @@ func applyFXUpdate(ctx context.Context, b Backends, existing *dbPayment, receive
 
 		existing.ReceiverAmount = existing.SenderAmount
 		existing.ReceiverCurrency = receiverAcc.ReceiveCurrency.String()
+		return existing, nil
+	}
+
+	// Cross-provider GateHub <-> Xago FX
+	if isCrossProviderPair(senderAcc.Provider, receiverAcc.Provider) {
+		var pair xago_external.ConvertCurrencyPairEnum
+		var receiverCurrency currency.Currency
+		if senderAcc.Provider == gatehub.ProviderName {
+			pair = xago_external.EURtoZAR
+			receiverCurrency = currency.ZAR
+		} else {
+			pair = xago_external.ZARtoEUR
+			receiverCurrency = currency.EUR
+		}
+
+		senderAmount := currency.FromUInt64(existing.SenderAmount, currency.ParseCurrency(existing.SenderCurrency))
+		estimate, err := b.Xago().EstimateConvertCurrency(ctx, pair, senderAmount.Float64())
+		if err != nil {
+			return existing, fmt.Errorf("%w failed to estimate FX rate: %s", payments.ErrInternal, err)
+		}
+
+		receiverAmt := currency.FromFloat64(estimate.ReceivedAmount, receiverCurrency)
+		existing.ReceiverAmount = receiverAmt.Value
+		existing.ReceiverCurrency = receiverCurrency.String()
+		existing.FXRate = sql.NullFloat64{Float64: estimate.EstimatedRate, Valid: true}
 		return existing, nil
 	}
 

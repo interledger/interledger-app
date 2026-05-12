@@ -130,3 +130,15 @@ func (c *client) UpdateInquiryLink(ctx context.Context, accountID string, wallet
 func (c *client) GetBankAccount(ctx context.Context) (*xago.DepositDetails, error) {
 	return ops.GetBankAccount(ctx, c.b)
 }
+
+func (c *client) EstimateConvertCurrency(ctx context.Context, pair external.ConvertCurrencyPairEnum, amount float64) (*external.EstimateConvertCurrencyResponse, error) {
+	return ops.EstimateConvertCurrency(ctx, c.b, pair, amount)
+}
+
+func (c *client) ConvertCurrency(ctx context.Context, pair external.ConvertCurrencyPairEnum, amount float64) (*external.ConvertCurrencyResponse, error) {
+	return ops.ConvertCurrency(ctx, c.b, pair, amount)
+}
+
+func (c *client) GetConvertCurrencyDetails(ctx context.Context, convertID string) (*external.GetConvertCurrencyDetailsResponse, error) {
+	return ops.GetConvertCurrencyDetails(ctx, c.b, convertID)
+}

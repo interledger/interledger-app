@@ -563,6 +563,53 @@ func CreateTransfer(ctx context.Context, b Backends, ec external.Client, args ga
 	return externalTx, nil
 }
 
+func TransferUserToOmnibus(ctx context.Context, b Backends, ec external.Client, linkedAccountID string, amount currency.Amount, sendingUserID, omnibusAddress, vaultID string) (*external.Transaction, error) {
+	la, err := b.LinkedAccounts().Get(ctx, linkedAccountID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	senderExternalUserID, err := getExternalUserID(ctx, b, la.WalletID)
+	if err != nil {
+		return nil, err
+	}
+
+	externalTx, err := ec.CreateTransaction(ctx, external.CreateTransactionRequest{
+		SendingUserID:    senderExternalUserID,
+		SendingAddress:   la.ProviderID,
+		ReceivingAddress: omnibusAddress,
+		Amount:           amount.Float64(),
+		Type:             external.TransactionTypeHosted,
+		VaultID:          vaultID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	return externalTx, nil
+}
+
+func TransferOmnibusToUser(ctx context.Context, b Backends, ec external.Client, linkedAccountID string, amount currency.Amount, sendingUserID, omnibusAddress, vaultID string) (*external.Transaction, error) {
+	la, err := b.LinkedAccounts().Get(ctx, linkedAccountID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	externalTx, err := ec.CreateTransaction(ctx, external.CreateTransactionRequest{
+		SendingUserID:    sendingUserID,
+		SendingAddress:   omnibusAddress,
+		ReceivingAddress: la.ProviderID,
+		Amount:           amount.Float64(),
+		Type:             external.TransactionTypeHosted,
+		VaultID:          vaultID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	return externalTx, nil
+}
+
 func GetTransaction(ctx context.Context, b Backends, ec external.Client, walletID, id string) (*external.Transaction, error) {
 	externalUser, err := getExternalUserID(ctx, b, walletID)
 	if err != nil {

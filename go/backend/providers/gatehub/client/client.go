@@ -212,3 +212,11 @@ func (c Client) GetAccountConfirmation(ctx context.Context, walletID string) (io
 func (c Client) GetAccountStatement(ctx context.Context, walletID string, year, month int) (io.ReadCloser, error) {
 	return ops.GetAccountStatement(ctx, c.b, c.external, walletID, year, month)
 }
+
+func (c Client) TransferUserToOmnibus(ctx context.Context, senderLinkedAccountID string, amount currency.Amount) (*external.Transaction, error) {
+	return ops.TransferUserToOmnibus(ctx, c.b, c.external, senderLinkedAccountID, amount, c.config.SendingUserID, c.config.SendingUserAddress, c.config.PaywiserEuroVaultID)
+}
+
+func (c Client) TransferOmnibusToUser(ctx context.Context, receiverLinkedAccountID string, amount currency.Amount) (*external.Transaction, error) {
+	return ops.TransferOmnibusToUser(ctx, c.b, c.external, receiverLinkedAccountID, amount, c.config.SendingUserID, c.config.SendingUserAddress, c.config.PaywiserEuroVaultID)
+}

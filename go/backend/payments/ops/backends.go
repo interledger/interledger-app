@@ -8,6 +8,7 @@ import (
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	"gitlab.com/fynbos/backend/providers/pti"
 	pti_mock "gitlab.com/fynbos/backend/providers/pti/client/mock"
+	"gitlab.com/fynbos/pacioli"
 
 	"gitlab.com/fynbos/backend/limits"
 
@@ -49,6 +50,7 @@ type Backends interface {
 	PTI() pti.Client
 	Gatehub() gatehub.Client
 	Chimoney() chimoney.Client
+	Pacioli() pacioli.Client
 }
 
 type TestBackends struct {
@@ -130,6 +132,10 @@ func (t TestBackends) Email() email.Client {
 
 func (t TestBackends) Wallets() wallets.Client {
 	return t.Wc
+}
+
+func (t TestBackends) Pacioli() pacioli.Client {
+	return nil
 }
 
 func NewTestBackends(_ *testing.T, opts ...func(*TestBackends)) Backends {

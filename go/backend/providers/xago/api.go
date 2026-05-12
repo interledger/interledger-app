@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"gitlab.com/fynbos/backend/currency"
+	"gitlab.com/fynbos/backend/providers/xago/external"
 )
 
 type Client interface {
@@ -23,4 +24,7 @@ type Client interface {
 	TestDeposit(ctx context.Context, sa SubAccount) error
 	UpdateInquiryLink(ctx context.Context, accountID string, walletID string) error
 	GetBankAccount(ctx context.Context) (*DepositDetails, error)
+	EstimateConvertCurrency(ctx context.Context, pair external.ConvertCurrencyPairEnum, amount float64) (*external.EstimateConvertCurrencyResponse, error)
+	ConvertCurrency(ctx context.Context, pair external.ConvertCurrencyPairEnum, amount float64) (*external.ConvertCurrencyResponse, error)
+	GetConvertCurrencyDetails(ctx context.Context, convertID string) (*external.GetConvertCurrencyDetailsResponse, error)
 }

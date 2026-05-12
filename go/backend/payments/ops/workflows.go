@@ -152,15 +152,29 @@ func PayinWorkflow(ctx workflow.Context, paymentID string) error {
 			return err
 		}
 
+		var cpType CrossProviderType
+		err = workflow.ExecuteActivity(accountsCtx, a.CheckCrossProviderType, paymentID).Get(ctx, &cpType)
+		if err != nil {
+			return err
+		}
+
 		var success bool
 		var txID string
 		switch la.Provider {
 		case xago.ProviderName:
-			txID, success, err = xagoPayIn(ctx, a, paymentID)
+			if cpType == CrossProviderXagoToGatehub {
+				txID, success, err = crossProviderXagoToGatehubPayIn(ctx, a, paymentID)
+			} else {
+				txID, success, err = xagoPayIn(ctx, a, paymentID)
+			}
 		case pti.ProviderName:
 			txID, success, err = ptiPayIn(ctx, a, ptiActivity, paymentID, la.WalletID)
 		case gatehub.ProviderName:
-			txID, success, err = gatehubPayIn(ctx, a, paymentID, la.WalletID)
+			if cpType == CrossProviderGatehubToXago {
+				txID, success, err = crossProviderGatehubToXagoPayIn(ctx, a, paymentID)
+			} else {
+				txID, success, err = gatehubPayIn(ctx, a, paymentID, la.WalletID)
+			}
 		case chimoney.ProviderName:
 			txID, success, err = chimoneyPayIn(ctx, a, paymentID, la.WalletID)
 		default:
@@ -663,15 +677,29 @@ func PayoutWorkflow(ctx workflow.Context, paymentID string) error {
 		return err
 	}
 
+	var cpType CrossProviderType
+	err = workflow.ExecuteActivity(accountsCtx, a.CheckCrossProviderType, paymentID).Get(ctx, &cpType)
+	if err != nil {
+		return err
+	}
+
 	var success bool
 	var externalTXID string
 	switch la.Provider {
 	case xago.ProviderName:
-		externalTXID, success, err = xagoPayOut(ctx, accountsCtx, a, paymentID, txID)
+		if cpType == CrossProviderGatehubToXago {
+			externalTXID, success, err = crossProviderGatehubToXagoPayOut(ctx, accountsCtx, a, paymentID, txID)
+		} else {
+			externalTXID, success, err = xagoPayOut(ctx, accountsCtx, a, paymentID, txID)
+		}
 	case pti.ProviderName:
 		externalTXID, success, err = ptiPayOut(ctx, accountsCtx, a, ptiActivity, paymentID, txID, la.WalletID)
 	case gatehub.ProviderName:
-		externalTXID, success, err = gatehubPayOut(ctx, a, paymentID, txID, la.WalletID)
+		if cpType == CrossProviderXagoToGatehub {
+			externalTXID, success, err = crossProviderXagoToGatehubPayOut(ctx, accountsCtx, a, paymentID, txID, la.ID)
+		} else {
+			externalTXID, success, err = gatehubPayOut(ctx, a, paymentID, txID, la.WalletID)
+		}
 	case chimoney.ProviderName:
 		externalTXID, success, err = chimoneyPayOut(ctx, a, paymentID, txID, la.WalletID)
 	default:
@@ -861,6 +889,22 @@ func RollbackPayInWorkflow(ctx workflow.Context, paymentID string) error {
 	if err != nil {
 		logger.Error("error rolling back balance reserve", "Error", err)
 		return err
+	}
+
+	// For cross-provider GateHub→Xago: if the GateHub API transfer already happened,
+	// move EUR from omnibus back to the sender.
+	var cpType CrossProviderType
+	err = workflow.ExecuteActivity(ctx, a.CheckCrossProviderType, paymentID).Get(ctx, &cpType)
+	if err != nil {
+		logger.Error("error checking cross provider type for rollback", "Error", err)
+		return err
+	}
+	if cpType == CrossProviderGatehubToXago {
+		err = workflow.ExecuteActivity(ctx, a.CrossProviderGatehubRollbackTransfer, paymentID).Get(ctx, nil)
+		if err != nil {
+			logger.Error("error rolling back GateHub cross-provider transfer", "Error", err)
+			return err
+		}
 	}
 
 	// Rollback PTI withdrawal
