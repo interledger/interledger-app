@@ -20,6 +20,8 @@ jobs:
   release:
     name: Semantic Release
     runs-on: ubuntu-latest
+    outputs:
+      release_tag: ${{ steps.tags_after.outputs.latest != steps.tags_before.outputs.latest && steps.tags_after.outputs.latest || '' }}
     steps:
       - name: Checkout (for composite action)
         uses: actions/checkout@v4
@@ -53,7 +55,23 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-workspace
 
+      - name: Capture latest tag before release
+        id: tags_before
+        run: echo "latest=$(git tag --sort=-v:refname | head -n 1)" >> "$GITHUB_OUTPUT"
+
       - name: Release
         run: pnpm exec semantic-release
         env:
           GITHUB_TOKEN: ${{ steps.app.outputs.token }}
+
+      - name: Capture latest tag after release
+        id: tags_after
+        run: echo "latest=$(git tag --sort=-v:refname | head -n 1)" >> "$GITHUB_OUTPUT"
+
+  publish_release_artifacts:
+    needs: release
+    if: needs.release.outputs.release_tag != ''
+    uses: ./.github/workflows/build-and-publish.yml
+    with:
+      release_tag: ${{ needs.release.outputs.release_tag }}
+    secrets: inherit

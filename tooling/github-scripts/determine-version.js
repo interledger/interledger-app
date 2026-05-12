@@ -2,15 +2,16 @@
  * Determines the Docker image version tag and whether to push it,
  * based on the GitHub Actions event that triggered the workflow.
  *
- * @param {string} eventName - github.event_name (e.g. "push", "release", "workflow_dispatch", "pull_request")
+ * @param {string} eventName - github.event_name (e.g. "push", "release", "workflow_call", "pull_request")
  * @param {string} ref - github.ref (e.g. "refs/tags/v1.2.3", "refs/heads/main", "refs/pull/42/merge")
- * @param {import('@actions/github-script').AsyncFunctionArguments['context']['payload']} [payload] - github.event payload
+ * @param {any} [payload] - github.event payload
  * @returns {{ version: string, dockerPush: boolean }}
  */
 export function determineVersion(eventName, ref, payload = {}) {
   const isTag = ref.startsWith("refs/tags/");
   const refName = ref.replace(/^refs\/(?:heads|tags|pull)\//, "");
   const releaseTagName = payload?.release?.tag_name;
+  const dispatchReleaseTag = payload?.inputs?.release_tag;
 
   // Semantic-release pushes a vX.Y.Z tag to main after every release.
   // That tag push is the normal production path: use the tag as-is and push images.
@@ -24,10 +25,12 @@ export function determineVersion(eventName, ref, payload = {}) {
     return { version: releaseTagName, dockerPush: true };
   }
 
-  // Manual dispatch lets engineers build and push an image from any branch
-  // without going through a release (e.g. hotfix staging, one-off testing).
-  if (eventName === "workflow_dispatch") {
-    return { version: `manual_${sanitize(refName)}`, dockerPush: true };
+  if (eventName === "workflow_call") {
+    if (typeof dispatchReleaseTag !== "string" || dispatchReleaseTag === "") {
+      throw new Error("workflow_call publish runs require inputs.release_tag");
+    }
+
+    return { version: dispatchReleaseTag, dockerPush: true };
   }
 
   // Pull-request and any other build: verify the images compile, never push.

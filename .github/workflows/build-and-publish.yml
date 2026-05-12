@@ -1,16 +1,11 @@
 name: Build and Publish
 
 on:
-  workflow_dispatch:
-  push:
-    tags:
-      - 'v*'
-  # semantic-release creates release commits with [skip ci], which can suppress
-  # tag-push workflow runs. Listening to release.published ensures chart/image
-  # publishing still happens for those releases.
-  release:
-    types:
-      - published
+  workflow_call:
+    inputs:
+      release_tag:
+        required: true
+        type: string
   pull_request:
     branches:
       - "**"
@@ -32,6 +27,8 @@ jobs:
       builds: ${{ steps.select_packages.outputs.builds }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.release_tag || github.ref }}
       - name: Select packages
         id: select_packages
         uses: actions/github-script@v9
@@ -47,6 +44,8 @@ jobs:
       dockerPush: ${{ steps.version.outputs.docker_push }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.release_tag || github.ref }}
       - name: Determine version
         id: version
         uses: actions/github-script@v9
@@ -65,6 +64,8 @@ jobs:
         uses: docker/setup-buildx-action@v4
       - name: Checkout code
         uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.release_tag || github.ref }}
       - name: Build Go Docker image
         if: matrix.package.type == 'go'
         uses: docker/build-push-action@v7
@@ -137,6 +138,8 @@ jobs:
 
       - name: Checkout code
         uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.release_tag || github.ref }}
 
       - name: Load Docker image
         run: |
@@ -196,6 +199,8 @@ jobs:
 
       - name: Checkout code
         uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.release_tag || github.ref }}
 
       - name: Load Docker image
         run: |
@@ -242,6 +247,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.release_tag || github.ref }}
 
       - name: Install Helm
         uses: azure/setup-helm@v5
