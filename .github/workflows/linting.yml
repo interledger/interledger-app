@@ -10,9 +10,8 @@ on:
   pull_request:
     branches:
       - "**"
-    paths-ignore:
-      - 'documentation/**'
-      - 'local/**'
+    paths:
+      - "go/**"
 
 jobs:
 
@@ -25,7 +24,7 @@ jobs:
       GOFLAGS: -buildvcs=false
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: golangci-lint
         run: |
           cd go
