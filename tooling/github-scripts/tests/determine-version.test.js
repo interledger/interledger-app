@@ -14,6 +14,17 @@ describe("determine-version/determineVersion", () => {
     assert.strictEqual(dockerPush, true);
   });
 
+  it("uses release tag_name and pushes images on release events", () => {
+    const { version, dockerPush } = determineVersion(
+      "release",
+      "refs/tags/v1.2.3",
+      { release: { tag_name: "v1.2.3" } },
+    );
+
+    assert.strictEqual(version, "v1.2.3");
+    assert.strictEqual(dockerPush, true);
+  });
+
   it("prefixes the branch with manual_ and pushes images on workflow_dispatch", () => {
     const { version, dockerPush } = determineVersion(
       "workflow_dispatch",

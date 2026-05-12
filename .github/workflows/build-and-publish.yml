@@ -5,6 +5,12 @@ on:
   push:
     tags:
       - 'v*'
+  # semantic-release creates release commits with [skip ci], which can suppress
+  # tag-push workflow runs. Listening to release.published ensures chart/image
+  # publishing still happens for those releases.
+  release:
+    types:
+      - published
   pull_request:
     branches:
       - "**"

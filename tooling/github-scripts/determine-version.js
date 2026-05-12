@@ -2,18 +2,26 @@
  * Determines the Docker image version tag and whether to push it,
  * based on the GitHub Actions event that triggered the workflow.
  *
- * @param {string} eventName - github.event_name (e.g. "push", "workflow_dispatch", "pull_request")
+ * @param {string} eventName - github.event_name (e.g. "push", "release", "workflow_dispatch", "pull_request")
  * @param {string} ref - github.ref (e.g. "refs/tags/v1.2.3", "refs/heads/main", "refs/pull/42/merge")
+ * @param {import('@actions/github-script').AsyncFunctionArguments['context']['payload']} [payload] - github.event payload
  * @returns {{ version: string, dockerPush: boolean }}
  */
-export function determineVersion(eventName, ref) {
+export function determineVersion(eventName, ref, payload = {}) {
   const isTag = ref.startsWith("refs/tags/");
   const refName = ref.replace(/^refs\/(?:heads|tags|pull)\//, "");
+  const releaseTagName = payload?.release?.tag_name;
 
   // Semantic-release pushes a vX.Y.Z tag to main after every release.
   // That tag push is the normal production path: use the tag as-is and push images.
   if (eventName === "push" && isTag) {
     return { version: refName, dockerPush: true };
+  }
+
+  // Release events are emitted when semantic-release publishes a release.
+  // This is resilient to [skip ci] release commits that can suppress tag push workflows.
+  if (eventName === "release" && typeof releaseTagName === "string") {
+    return { version: releaseTagName, dockerPush: true };
   }
 
   // Manual dispatch lets engineers build and push an image from any branch
@@ -44,6 +52,7 @@ export default async ({ core, context }) => {
   const { version, dockerPush } = determineVersion(
     context.eventName,
     context.ref,
+    context.payload,
   );
 
   console.log(`Version: ${version}`);
