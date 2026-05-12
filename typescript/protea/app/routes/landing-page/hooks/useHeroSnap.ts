@@ -26,6 +26,10 @@ const WHEEL_END_SILENCE_MS = 220
 // After releasing at the bottom edge, ignore scroll-driven re-engage for this
 // window so the in-flight native scroll past the hero isn't intercepted.
 const REENGAGE_COOLDOWN_MS = 1000
+// When re-entering the hero from below (virtual card section → screen 5),
+// inertia wheel events would immediately navigate away from screen 5 before
+// the user can see it. Block input for this window after re-engage from below.
+const REENGAGE_PAUSE_MS = 800
 
 const intentFromKey = (key: string): KeyIntent => {
   switch (key) {
@@ -103,6 +107,11 @@ export function useHeroSnap({
     // giving the in-flight native scroll past the hero time to complete before
     // the lock can re-engage.
     lastReleaseAt: 0,
+
+    // performance.now() deadline before which wheel/touch navigation is blocked
+    // after re-engaging from below. Prevents inertia from immediately skipping
+    // past screen 5 when scrolling up from the virtual card section.
+    reengageBlockUntil: 0,
 
     // clientY of the first touch point, recorded in onTouchStart.
     // Compared against onTouchEnd.clientY to compute swipe delta.
@@ -187,6 +196,10 @@ export function useHeroSnap({
      */
     const onWheel = (e: WheelEvent) => {
       if (!state.locked) return
+      if (performance.now() < state.reengageBlockUntil) {
+        e.preventDefault()
+        return
+      }
       const dy = e.deltaY
       const absDy = Math.abs(dy)
       if (absDy < WHEEL_DEAD_ZONE) return
@@ -226,6 +239,7 @@ export function useHeroSnap({
 
     const onTouchEnd = (e: TouchEvent) => {
       if (!state.locked) return
+      if (performance.now() < state.reengageBlockUntil) return
       const startY = state.touchStartY
       state.touchStartY = null
       if (startY == null) return
@@ -267,6 +281,7 @@ export function useHeroSnap({
       const entryScreen = (fromBelow ? screenCount : 1) as CarouselScreen
       state.screen = entryScreen
       setActiveScreen(entryScreen)
+      if (fromBelow) state.reengageBlockUntil = performance.now() + REENGAGE_PAUSE_MS
       lockBody()
       window.scrollTo({ top: window.scrollY + rect.top, behavior: "auto" })
     }
