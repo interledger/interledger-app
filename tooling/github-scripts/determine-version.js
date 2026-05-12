@@ -52,10 +52,17 @@ function sanitize(s) {
 
 /** @param {import('github-script').AsyncFunctionArguments} AsyncFunctionArguments */
 export default async ({ core, context }) => {
+  // GitHub propagates the calling workflow's event_name to reusable workflows,
+  // so github.event_name is never "workflow_call" at runtime. The release_tag
+  // input is passed via env to detect release builds unambiguously.
+  const releaseTagEnv = process.env.RELEASE_TAG || "";
+  const payload = releaseTagEnv
+    ? { inputs: { release_tag: releaseTagEnv } }
+    : context.payload;
   const { version, dockerPush } = determineVersion(
-    context.eventName,
+    releaseTagEnv ? "workflow_call" : context.eventName,
     context.ref,
-    context.payload,
+    payload,
   );
 
   console.log(`Version: ${version}`);
