@@ -66,6 +66,9 @@ import (
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	gatehub_client "gitlab.com/fynbos/backend/providers/gatehub/client"
 	gatehub_ops "gitlab.com/fynbos/backend/providers/gatehub/ops"
+	"gitlab.com/fynbos/backend/providers/plaid"
+	plaid_client "gitlab.com/fynbos/backend/providers/plaid/client"
+	plaid_store "gitlab.com/fynbos/backend/providers/plaid/store"
 	"gitlab.com/fynbos/backend/providers/pti"
 	pti_client "gitlab.com/fynbos/backend/providers/pti/client"
 	pti_ops "gitlab.com/fynbos/backend/providers/pti/ops"
@@ -528,6 +531,9 @@ type backends struct {
 	gatehub        gatehub.Client
 	gatehubConfig  gatehub.Config
 	chimoney       chimoney.Client
+	plaidConfig    plaid.Config
+	plaidClient    plaid.Client
+	plaidStore     plaid.TokenStore
 	aasaConfig     aasa_assetlinks.Config
 }
 
@@ -857,6 +863,31 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 
 	log.Debug("initialising Chimoney")
 	b.chimoney = chimoney_client.New(b)
+
+	if args.PlaidEnabled {
+		log.Debug("initialising Plaid")
+		b.plaidConfig = plaid.Config{
+			Enabled:      args.PlaidEnabled,
+			ClientID:     args.PlaidClientID,
+			Secret:       args.PlaidSecret,
+			Env:          args.PlaidEnv,
+			Products:     args.PlaidProducts,
+			CountryCodes: args.PlaidCountryCodes,
+		}
+		plaidC, err := plaid_client.New(b.plaidConfig)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		b.plaidClient = plaidC
+		b.plaidStore = plaid_store.NewMemory()
+		log.Info("plaid client initialized",
+			zap.String("env", args.PlaidEnv),
+			zap.Strings("products", args.PlaidProducts),
+			zap.Strings("country_codes", args.PlaidCountryCodes),
+		)
+	} else {
+		log.Debug("Plaid disabled (PLAID_ENABLED=false)")
+	}
 
 	b.aasaConfig = aasa_assetlinks.Config{
 		AppleAppID:         args.AppleAppID,
