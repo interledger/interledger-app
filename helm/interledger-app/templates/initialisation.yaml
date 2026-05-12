@@ -54,4 +54,4 @@ spec:
               value: "stderr"
           args: ["migrate"]
 {{- end }}
-{{- include "interledger-app.backend.initialisation" (list . ) | indent 2 }}
+{{- include "interledger-app.backend.initialisation" (list . ) | nindent 0 }}
