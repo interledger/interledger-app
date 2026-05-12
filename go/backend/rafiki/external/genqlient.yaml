@@ -10,3 +10,5 @@ bindings:
     type: string
   UInt8:
     type: uint8
+  JSONObject:
+    type: map[string]interface{}

@@ -83,6 +83,7 @@ const (
 	BackendService_GetPayment_FullMethodName                     = "/backend.v1.BackendService/GetPayment"
 	BackendService_ConfirmPayment_FullMethodName                 = "/backend.v1.BackendService/ConfirmPayment"
 	BackendService_GetLinkedAccountsForPayment_FullMethodName    = "/backend.v1.BackendService/GetLinkedAccountsForPayment"
+	BackendService_CreateIncomingPaymentRequest_FullMethodName   = "/backend.v1.BackendService/CreateIncomingPaymentRequest"
 	BackendService_GetBalances_FullMethodName                    = "/backend.v1.BackendService/GetBalances"
 	BackendService_GetLinkedAccountsForWithdraw_FullMethodName   = "/backend.v1.BackendService/GetLinkedAccountsForWithdraw"
 	BackendService_WithdrawBalance_FullMethodName                = "/backend.v1.BackendService/WithdrawBalance"
@@ -211,6 +212,7 @@ type BackendServiceClient interface {
 	GetPayment(ctx context.Context, in *GetPaymentRequest, opts ...grpc.CallOption) (*Payment, error)
 	ConfirmPayment(ctx context.Context, in *ConfirmPaymentRequest, opts ...grpc.CallOption) (*Payment, error)
 	GetLinkedAccountsForPayment(ctx context.Context, in *GetLinkedAccountsForPaymentRequest, opts ...grpc.CallOption) (*GetLinkedAccountsForPaymentResponse, error)
+	CreateIncomingPaymentRequest(ctx context.Context, in *CreateIncomingPaymentRequestInput, opts ...grpc.CallOption) (*IncomingPaymentRequest, error)
 	// Balances
 	GetBalances(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetBalancesResponse, error)
 	GetLinkedAccountsForWithdraw(ctx context.Context, in *GetLinkedAccountsForTransferRequest, opts ...grpc.CallOption) (*GetLinkedAccountsForPaymentResponse, error)
@@ -911,6 +913,16 @@ func (c *backendServiceClient) GetLinkedAccountsForPayment(ctx context.Context, 
 	return out, nil
 }
 
+func (c *backendServiceClient) CreateIncomingPaymentRequest(ctx context.Context, in *CreateIncomingPaymentRequestInput, opts ...grpc.CallOption) (*IncomingPaymentRequest, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(IncomingPaymentRequest)
+	err := c.cc.Invoke(ctx, BackendService_CreateIncomingPaymentRequest_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *backendServiceClient) GetBalances(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetBalancesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetBalancesResponse)
@@ -1406,6 +1418,7 @@ type BackendServiceServer interface {
 	GetPayment(context.Context, *GetPaymentRequest) (*Payment, error)
 	ConfirmPayment(context.Context, *ConfirmPaymentRequest) (*Payment, error)
 	GetLinkedAccountsForPayment(context.Context, *GetLinkedAccountsForPaymentRequest) (*GetLinkedAccountsForPaymentResponse, error)
+	CreateIncomingPaymentRequest(context.Context, *CreateIncomingPaymentRequestInput) (*IncomingPaymentRequest, error)
 	// Balances
 	GetBalances(context.Context, *Empty) (*GetBalancesResponse, error)
 	GetLinkedAccountsForWithdraw(context.Context, *GetLinkedAccountsForTransferRequest) (*GetLinkedAccountsForPaymentResponse, error)
@@ -1656,6 +1669,9 @@ func (UnimplementedBackendServiceServer) ConfirmPayment(context.Context, *Confir
 }
 func (UnimplementedBackendServiceServer) GetLinkedAccountsForPayment(context.Context, *GetLinkedAccountsForPaymentRequest) (*GetLinkedAccountsForPaymentResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetLinkedAccountsForPayment not implemented")
+}
+func (UnimplementedBackendServiceServer) CreateIncomingPaymentRequest(context.Context, *CreateIncomingPaymentRequestInput) (*IncomingPaymentRequest, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateIncomingPaymentRequest not implemented")
 }
 func (UnimplementedBackendServiceServer) GetBalances(context.Context, *Empty) (*GetBalancesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetBalances not implemented")
@@ -2952,6 +2968,24 @@ func _BackendService_GetLinkedAccountsForPayment_Handler(srv interface{}, ctx co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_CreateIncomingPaymentRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateIncomingPaymentRequestInput)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).CreateIncomingPaymentRequest(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_CreateIncomingPaymentRequest_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).CreateIncomingPaymentRequest(ctx, req.(*CreateIncomingPaymentRequestInput))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _BackendService_GetBalances_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Empty)
 	if err := dec(in); err != nil {
@@ -3952,6 +3986,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetLinkedAccountsForPayment",
 			Handler:    _BackendService_GetLinkedAccountsForPayment_Handler,
+		},
+		{
+			MethodName: "CreateIncomingPaymentRequest",
+			Handler:    _BackendService_CreateIncomingPaymentRequest_Handler,
 		},
 		{
 			MethodName: "GetBalances",

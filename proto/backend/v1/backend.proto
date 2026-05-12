@@ -112,6 +112,8 @@ service BackendService {
   rpc ConfirmPayment(ConfirmPaymentRequest) returns (Payment);
   rpc GetLinkedAccountsForPayment(GetLinkedAccountsForPaymentRequest) returns (GetLinkedAccountsForPaymentResponse);
 
+  rpc CreateIncomingPaymentRequest(CreateIncomingPaymentRequestInput) returns (IncomingPaymentRequest);
+
   // Balances
   rpc GetBalances(Empty) returns (GetBalancesResponse);
 
@@ -670,6 +672,22 @@ message CreatePaymentRequest {
   optional string receiverAccount = 6; // Linked Account ID
   optional string note = 7;
   optional string ipAddress = 8;
+}
+
+message CreateIncomingPaymentRequestInput {
+  uint64 value = 1; // minor units; asset code/scale come from the caller's wallet address
+  google.protobuf.Timestamp expiresAt = 2;
+  string description = 3;
+}
+
+message IncomingPaymentRequest {
+  string id = 1;
+  string url = 2; // <wallet-address-url>/incoming-payments/<id>
+  Amount incomingAmount = 3;
+  google.protobuf.Timestamp expiresAt = 4;
+  string description = 5;
+  string state = 6; // PENDING | PROCESSING | COMPLETED | EXPIRED
+  google.protobuf.Timestamp createdAt = 7;
 }
 
 message TransferBalanceRequest {

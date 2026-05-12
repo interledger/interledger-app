@@ -115,6 +115,10 @@ func (c *client) GetIncomingPayment(ctx context.Context, id string) (*rafiki.Inc
 	return ops.GetIncomingPayment(ctx, c.b, id)
 }
 
+func (c *client) CreateIncomingPayment(ctx context.Context, args rafiki.CreateIncomingPaymentArgs) (*rafiki.IncomingPayment, error) {
+	return ops.CreateIncomingPayment(ctx, c.b, args)
+}
+
 func (c *client) CancelOutgoingPayment(ctx context.Context, paymentPointerID, reason string) error {
 	return ops.CancelOutgoingPayment(ctx, c.b, paymentPointerID, reason)
 }

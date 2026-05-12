@@ -24,6 +24,7 @@ type Client interface {
 	ListPendingTransactions(ctx context.Context, walletID string) ([]transactions.Transaction, error)
 	UpdateWalletAddressStatus(ctx context.Context, walletId UpdateAddressStatus, isActive bool) error
 	GetIncomingPayment(ctx context.Context, id string) (*IncomingPayment, error)
+	CreateIncomingPayment(ctx context.Context, args CreateIncomingPaymentArgs) (*IncomingPayment, error)
 	CancelOutgoingPayment(ctx context.Context, paymentPointerID, reason string) error
 	WithdrawIncomingPaymentLiquidity(ctx context.Context, incomingPaymentID string) error
 	WithdrawOutgoingPaymentLiquidity(ctx context.Context, outgoingPaymentID string) error

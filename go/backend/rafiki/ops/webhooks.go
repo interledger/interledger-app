@@ -52,13 +52,28 @@ type amount struct {
 }
 
 type incomingPaymentData struct {
-	ID              string    `json:"id"`
-	WalletAddressID string    `json:"walletAddressId"`
-	CreatedAt       time.Time `json:"createdAt"`
-	ExpiresAt       time.Time `json:"expiresAt"`
-	IncomingAmount  *amount   `json:"incomingAmount,omitempty"`
-	ReceivedAmount  amount    `json:"receivedAmount"`
-	Completed       bool      `json:"completed"`
+	ID              string          `json:"id"`
+	WalletAddressID string          `json:"walletAddressId"`
+	CreatedAt       time.Time       `json:"createdAt"`
+	ExpiresAt       time.Time       `json:"expiresAt"`
+	IncomingAmount  *amount         `json:"incomingAmount,omitempty"`
+	ReceivedAmount  amount          `json:"receivedAmount"`
+	Completed       bool            `json:"completed"`
+	Metadata        json.RawMessage `json:"metadata,omitempty"`
+}
+
+// Unknown keys in Rafiki's metadata JSONObject are ignored on decode.
+type incomingPaymentMetadata struct {
+	Description string `json:"description,omitempty"`
+}
+
+func parseIncomingPaymentMetadata(raw json.RawMessage) incomingPaymentMetadata {
+	var m incomingPaymentMetadata
+	if len(raw) == 0 {
+		return m
+	}
+	_ = json.Unmarshal(raw, &m)
+	return m
 }
 
 func EventWebhook(b Backends) http.HandlerFunc {

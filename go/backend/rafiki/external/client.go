@@ -29,6 +29,7 @@ type Client interface {
 	GetGrant(ctx context.Context, grantID string) (*GetGrantGrant, error)
 	RevokeGrant(ctx context.Context, grantID string) error
 	GetIncomingPayment(ctx context.Context, id string) (*GetIncomingPaymentIncomingPayment, error)
+	CreateIncomingPayment(ctx context.Context, input CreateIncomingPaymentInput) (*CreateIncomingPaymentCreateIncomingPaymentIncomingPaymentResponsePaymentIncomingPayment, error)
 	UpdateWalletAddressStatus(ctx context.Context, walletID rafiki.UpdateAddressStatus, status bool) error
 	CancelOutgoingPayment(ctx context.Context, paymentPointerID, reason string) error
 	WithdrawOutgoingPaymentLiquidity(ctx context.Context, outgoingPaymentID string, timeoutSeconds uint64) error
@@ -209,6 +210,15 @@ func (c client) GetIncomingPayment(ctx context.Context, id string) (*GetIncoming
 	}
 
 	return &r.IncomingPayment, nil
+}
+
+func (c client) CreateIncomingPayment(ctx context.Context, input CreateIncomingPaymentInput) (*CreateIncomingPaymentCreateIncomingPaymentIncomingPaymentResponsePaymentIncomingPayment, error) {
+	r, err := CreateIncomingPayment(ctx, c.backendClient, input)
+	if err != nil {
+		return nil, err
+	}
+
+	return &r.CreateIncomingPayment.Payment, nil
 }
 
 func newSignedAdminHTTPClient(signingConfig AdminSigningConfig) *http.Client {

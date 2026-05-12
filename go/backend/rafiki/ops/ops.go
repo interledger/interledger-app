@@ -21,8 +21,10 @@ import (
 	"gitlab.com/fynbos/backend/db"
 
 	"gitlab.com/fynbos/backend/kyc"
+	"gitlab.com/fynbos/backend/linkedaccounts"
 
 	"gitlab.com/fynbos/backend/rafiki"
+	"gitlab.com/fynbos/backend/rafiki/external"
 	"gitlab.com/fynbos/backend/wallets"
 )
 
@@ -121,6 +123,25 @@ func LookupPaymentPointerID(ctx context.Context, b Backends, walletID string) (s
 	}
 
 	return ppID, nil
+}
+
+// Satisfied by both Backends and ActivityBackends.
+type linkedAccountsBackend interface {
+	LinkedAccounts() linkedaccounts.Client
+}
+
+func GetGatehubBalanceAccount(ctx context.Context, b linkedAccountsBackend, walletID string) (*linkedaccounts.LinkedAccount, error) {
+	accs, err := b.LinkedAccounts().ListBalances(ctx, walletID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+	}
+	for i := range accs {
+		la := accs[i]
+		if la.Provider == gatehub.ProviderName && la.Type == gatehub.AccTypeBalance {
+			return &la, nil
+		}
+	}
+	return nil, fmt.Errorf("%w no gatehub balance account for wallet %s", rafiki.ErrNotFound, walletID)
 }
 
 func FundOutgoingPayment(ctx context.Context, b Backends, paymentID string) error {
@@ -394,6 +415,43 @@ func GetIncomingPayment(ctx context.Context, b Backends, id string) (*rafiki.Inc
 		State:           rafiki.IncomingPaymentState(ip.State),
 		ExpiresAt:       ip.ExpiresAt,
 		CreatedAt:       ip.CreatedAt,
+	}, nil
+}
+
+func CreateIncomingPayment(ctx context.Context, b Backends, args rafiki.CreateIncomingPaymentArgs) (*rafiki.IncomingPayment, error) {
+	value := strconv.FormatInt(args.IncomingAmount.Value, 10)
+
+	input := external.CreateIncomingPaymentInput{
+		WalletAddressId: args.WalletAddressID,
+		ExpiresAt:       args.ExpiresAt.UTC().Format(time.RFC3339),
+		Metadata:        args.Metadata,
+		IncomingAmount: external.AmountInput{
+			Value:      value,
+			AssetCode:  args.IncomingAmount.Currency.String(),
+			AssetScale: uint8(args.IncomingAmount.Scale),
+		},
+		IdempotencyKey: args.IdempotencyKey,
+	}
+
+	ip, err := b.External().CreateIncomingPayment(ctx, input)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+	}
+
+	amt, err := strconv.ParseInt(ip.IncomingAmount.Value, 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("%w invalid incoming amount value: %s", rafiki.ErrInternal, err)
+	}
+	incomingAmount := currency.FromUInt64(amt, currency.ParseCurrency(ip.IncomingAmount.AssetCode))
+
+	return &rafiki.IncomingPayment{
+		ID:              ip.Id,
+		WalletAddressID: ip.WalletAddressId,
+		State:           rafiki.IncomingPaymentState(ip.State),
+		ExpiresAt:       ip.ExpiresAt,
+		CreatedAt:       ip.CreatedAt,
+		IncomingAmount:  &incomingAmount,
+		Metadata:        ip.Metadata,
 	}, nil
 }
 

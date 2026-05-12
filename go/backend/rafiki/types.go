@@ -1,6 +1,10 @@
 package rafiki
 
-import "gitlab.com/fynbos/backend/currency"
+import (
+	"time"
+
+	"gitlab.com/fynbos/backend/currency"
+)
 
 const (
 	Provider          = "rafiki"
@@ -57,4 +61,14 @@ type IncomingPayment struct {
 	State           IncomingPaymentState
 	ExpiresAt       string
 	CreatedAt       string
+	IncomingAmount  *currency.Amount
+	Metadata        map[string]interface{}
+}
+
+type CreateIncomingPaymentArgs struct {
+	WalletAddressID string
+	IncomingAmount  currency.Amount
+	ExpiresAt       time.Time
+	Metadata        map[string]interface{}
+	IdempotencyKey  string
 }

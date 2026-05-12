@@ -29,6 +29,23 @@ const (
 	AlgEddsa Alg = "EdDSA"
 )
 
+type AmountInput struct {
+	Value string `json:"value"`
+	// [ISO 4217 currency code](https://en.wikipedia.org/wiki/ISO_4217), e.g. `USD`
+	AssetCode string `json:"assetCode"`
+	// Difference in orders of magnitude between the standard unit of an asset and a corresponding fractional unit
+	AssetScale uint8 `json:"assetScale"`
+}
+
+// GetValue returns AmountInput.Value, and is useful for accessing the field via an interface.
+func (v *AmountInput) GetValue() string { return v.Value }
+
+// GetAssetCode returns AmountInput.AssetCode, and is useful for accessing the field via an interface.
+func (v *AmountInput) GetAssetCode() string { return v.AssetCode }
+
+// GetAssetScale returns AmountInput.AssetScale, and is useful for accessing the field via an interface.
+func (v *AmountInput) GetAssetScale() uint8 { return v.AssetScale }
+
 // CancelOutgoingPaymentCancelOutgoingPaymentOutgoingPaymentResponse includes the requested fields of the GraphQL type OutgoingPaymentResponse.
 type CancelOutgoingPaymentCancelOutgoingPaymentOutgoingPaymentResponse struct {
 	Payment CancelOutgoingPaymentCancelOutgoingPaymentOutgoingPaymentResponsePaymentOutgoingPayment `json:"payment"`
@@ -72,6 +89,163 @@ type CancelOutgoingPaymentResponse struct {
 // GetCancelOutgoingPayment returns CancelOutgoingPaymentResponse.CancelOutgoingPayment, and is useful for accessing the field via an interface.
 func (v *CancelOutgoingPaymentResponse) GetCancelOutgoingPayment() CancelOutgoingPaymentCancelOutgoingPaymentOutgoingPaymentResponse {
 	return v.CancelOutgoingPayment
+}
+
+// CreateIncomingPaymentCreateIncomingPaymentIncomingPaymentResponse includes the requested fields of the GraphQL type IncomingPaymentResponse.
+type CreateIncomingPaymentCreateIncomingPaymentIncomingPaymentResponse struct {
+	Payment CreateIncomingPaymentCreateIncomingPaymentIncomingPaymentResponsePaymentIncomingPayment `json:"payment"`
+}
+
+// GetPayment returns CreateIncomingPaymentCreateIncomingPaymentIncomingPaymentResponse.Payment, and is useful for accessing the field via an interface.
+func (v *CreateIncomingPaymentCreateIncomingPaymentIncomingPaymentResponse) GetPayment() CreateIncomingPaymentCreateIncomingPaymentIncomingPaymentResponsePaymentIncomingPayment {
+	return v.Payment
+}
+
+// CreateIncomingPaymentCreateIncomingPaymentIncomingPaymentResponsePaymentIncomingPayment includes the requested fields of the GraphQL type IncomingPayment.
+type CreateIncomingPaymentCreateIncomingPaymentIncomingPaymentResponsePaymentIncomingPayment struct {
+	// Incoming Payment id
+	Id string `json:"id"`
+	// Id of the wallet address under which this incoming payment was created.
+	WalletAddressId string `json:"walletAddressId"`
+	// Incoming payment state
+	State IncomingPaymentState `json:"state"`
+	// Date-time of expiry. After this time, the incoming payment will not accept further payments made to it.
+	ExpiresAt string `json:"expiresAt"`
+	// The maximum amount that should be paid into the wallet address under this incoming payment.
+	IncomingAmount CreateIncomingPaymentCreateIncomingPaymentIncomingPaymentResponsePaymentIncomingPaymentIncomingAmount `json:"incomingAmount"`
+	// The total amount that has been paid into the wallet address under this incoming payment.
+	ReceivedAmount CreateIncomingPaymentCreateIncomingPaymentIncomingPaymentResponsePaymentIncomingPaymentReceivedAmount `json:"receivedAmount"`
+	// Additional metadata associated with the incoming payment.
+	Metadata map[string]interface{} `json:"metadata"`
+	// Date-time of creation
+	CreatedAt string `json:"createdAt"`
+}
+
+// GetId returns CreateIncomingPaymentCreateIncomingPaymentIncomingPaymentResponsePaymentIncomingPayment.Id, and is useful for accessing the field via an interface.
+func (v *CreateIncomingPaymentCreateIncomingPaymentIncomingPaymentResponsePaymentIncomingPayment) GetId() string {
+	return v.Id
+}
+
+// GetWalletAddressId returns CreateIncomingPaymentCreateIncomingPaymentIncomingPaymentResponsePaymentIncomingPayment.WalletAddressId, and is useful for accessing the field via an interface.
+func (v *CreateIncomingPaymentCreateIncomingPaymentIncomingPaymentResponsePaymentIncomingPayment) GetWalletAddressId() string {
+	return v.WalletAddressId
+}
+
+// GetState returns CreateIncomingPaymentCreateIncomingPaymentIncomingPaymentResponsePaymentIncomingPayment.State, and is useful for accessing the field via an interface.
+func (v *CreateIncomingPaymentCreateIncomingPaymentIncomingPaymentResponsePaymentIncomingPayment) GetState() IncomingPaymentState {
+	return v.State
+}
+
+// GetExpiresAt returns CreateIncomingPaymentCreateIncomingPaymentIncomingPaymentResponsePaymentIncomingPayment.ExpiresAt, and is useful for accessing the field via an interface.
+func (v *CreateIncomingPaymentCreateIncomingPaymentIncomingPaymentResponsePaymentIncomingPayment) GetExpiresAt() string {
+	return v.ExpiresAt
+}
+
+// GetIncomingAmount returns CreateIncomingPaymentCreateIncomingPaymentIncomingPaymentResponsePaymentIncomingPayment.IncomingAmount, and is useful for accessing the field via an interface.
+func (v *CreateIncomingPaymentCreateIncomingPaymentIncomingPaymentResponsePaymentIncomingPayment) GetIncomingAmount() CreateIncomingPaymentCreateIncomingPaymentIncomingPaymentResponsePaymentIncomingPaymentIncomingAmount {
+	return v.IncomingAmount
+}
+
+// GetReceivedAmount returns CreateIncomingPaymentCreateIncomingPaymentIncomingPaymentResponsePaymentIncomingPayment.ReceivedAmount, and is useful for accessing the field via an interface.
+func (v *CreateIncomingPaymentCreateIncomingPaymentIncomingPaymentResponsePaymentIncomingPayment) GetReceivedAmount() CreateIncomingPaymentCreateIncomingPaymentIncomingPaymentResponsePaymentIncomingPaymentReceivedAmount {
+	return v.ReceivedAmount
+}
+
+// GetMetadata returns CreateIncomingPaymentCreateIncomingPaymentIncomingPaymentResponsePaymentIncomingPayment.Metadata, and is useful for accessing the field via an interface.
+func (v *CreateIncomingPaymentCreateIncomingPaymentIncomingPaymentResponsePaymentIncomingPayment) GetMetadata() map[string]interface{} {
+	return v.Metadata
+}
+
+// GetCreatedAt returns CreateIncomingPaymentCreateIncomingPaymentIncomingPaymentResponsePaymentIncomingPayment.CreatedAt, and is useful for accessing the field via an interface.
+func (v *CreateIncomingPaymentCreateIncomingPaymentIncomingPaymentResponsePaymentIncomingPayment) GetCreatedAt() string {
+	return v.CreatedAt
+}
+
+// CreateIncomingPaymentCreateIncomingPaymentIncomingPaymentResponsePaymentIncomingPaymentIncomingAmount includes the requested fields of the GraphQL type Amount.
+type CreateIncomingPaymentCreateIncomingPaymentIncomingPaymentResponsePaymentIncomingPaymentIncomingAmount struct {
+	Value string `json:"value"`
+	// [ISO 4217 currency code](https://en.wikipedia.org/wiki/ISO_4217), e.g. `USD`
+	AssetCode string `json:"assetCode"`
+	// Difference in orders of magnitude between the standard unit of an asset and a corresponding fractional unit
+	AssetScale uint8 `json:"assetScale"`
+}
+
+// GetValue returns CreateIncomingPaymentCreateIncomingPaymentIncomingPaymentResponsePaymentIncomingPaymentIncomingAmount.Value, and is useful for accessing the field via an interface.
+func (v *CreateIncomingPaymentCreateIncomingPaymentIncomingPaymentResponsePaymentIncomingPaymentIncomingAmount) GetValue() string {
+	return v.Value
+}
+
+// GetAssetCode returns CreateIncomingPaymentCreateIncomingPaymentIncomingPaymentResponsePaymentIncomingPaymentIncomingAmount.AssetCode, and is useful for accessing the field via an interface.
+func (v *CreateIncomingPaymentCreateIncomingPaymentIncomingPaymentResponsePaymentIncomingPaymentIncomingAmount) GetAssetCode() string {
+	return v.AssetCode
+}
+
+// GetAssetScale returns CreateIncomingPaymentCreateIncomingPaymentIncomingPaymentResponsePaymentIncomingPaymentIncomingAmount.AssetScale, and is useful for accessing the field via an interface.
+func (v *CreateIncomingPaymentCreateIncomingPaymentIncomingPaymentResponsePaymentIncomingPaymentIncomingAmount) GetAssetScale() uint8 {
+	return v.AssetScale
+}
+
+// CreateIncomingPaymentCreateIncomingPaymentIncomingPaymentResponsePaymentIncomingPaymentReceivedAmount includes the requested fields of the GraphQL type Amount.
+type CreateIncomingPaymentCreateIncomingPaymentIncomingPaymentResponsePaymentIncomingPaymentReceivedAmount struct {
+	Value string `json:"value"`
+	// [ISO 4217 currency code](https://en.wikipedia.org/wiki/ISO_4217), e.g. `USD`
+	AssetCode string `json:"assetCode"`
+	// Difference in orders of magnitude between the standard unit of an asset and a corresponding fractional unit
+	AssetScale uint8 `json:"assetScale"`
+}
+
+// GetValue returns CreateIncomingPaymentCreateIncomingPaymentIncomingPaymentResponsePaymentIncomingPaymentReceivedAmount.Value, and is useful for accessing the field via an interface.
+func (v *CreateIncomingPaymentCreateIncomingPaymentIncomingPaymentResponsePaymentIncomingPaymentReceivedAmount) GetValue() string {
+	return v.Value
+}
+
+// GetAssetCode returns CreateIncomingPaymentCreateIncomingPaymentIncomingPaymentResponsePaymentIncomingPaymentReceivedAmount.AssetCode, and is useful for accessing the field via an interface.
+func (v *CreateIncomingPaymentCreateIncomingPaymentIncomingPaymentResponsePaymentIncomingPaymentReceivedAmount) GetAssetCode() string {
+	return v.AssetCode
+}
+
+// GetAssetScale returns CreateIncomingPaymentCreateIncomingPaymentIncomingPaymentResponsePaymentIncomingPaymentReceivedAmount.AssetScale, and is useful for accessing the field via an interface.
+func (v *CreateIncomingPaymentCreateIncomingPaymentIncomingPaymentResponsePaymentIncomingPaymentReceivedAmount) GetAssetScale() uint8 {
+	return v.AssetScale
+}
+
+type CreateIncomingPaymentInput struct {
+	// Id of the wallet address under which the incoming payment will be created
+	WalletAddressId string `json:"walletAddressId"`
+	// Expiration date-time
+	ExpiresAt string `json:"expiresAt"`
+	// Additional metadata associated with the incoming payment.
+	Metadata map[string]interface{} `json:"metadata"`
+	// Maximum amount to be received
+	IncomingAmount AmountInput `json:"incomingAmount"`
+	// Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)
+	IdempotencyKey string `json:"idempotencyKey"`
+}
+
+// GetWalletAddressId returns CreateIncomingPaymentInput.WalletAddressId, and is useful for accessing the field via an interface.
+func (v *CreateIncomingPaymentInput) GetWalletAddressId() string { return v.WalletAddressId }
+
+// GetExpiresAt returns CreateIncomingPaymentInput.ExpiresAt, and is useful for accessing the field via an interface.
+func (v *CreateIncomingPaymentInput) GetExpiresAt() string { return v.ExpiresAt }
+
+// GetMetadata returns CreateIncomingPaymentInput.Metadata, and is useful for accessing the field via an interface.
+func (v *CreateIncomingPaymentInput) GetMetadata() map[string]interface{} { return v.Metadata }
+
+// GetIncomingAmount returns CreateIncomingPaymentInput.IncomingAmount, and is useful for accessing the field via an interface.
+func (v *CreateIncomingPaymentInput) GetIncomingAmount() AmountInput { return v.IncomingAmount }
+
+// GetIdempotencyKey returns CreateIncomingPaymentInput.IdempotencyKey, and is useful for accessing the field via an interface.
+func (v *CreateIncomingPaymentInput) GetIdempotencyKey() string { return v.IdempotencyKey }
+
+// CreateIncomingPaymentResponse is returned by CreateIncomingPayment on success.
+type CreateIncomingPaymentResponse struct {
+	// Create an internal Open Payments Incoming Payment. The receiver has a wallet address on this Rafiki instance.
+	CreateIncomingPayment CreateIncomingPaymentCreateIncomingPaymentIncomingPaymentResponse `json:"createIncomingPayment"`
+}
+
+// GetCreateIncomingPayment returns CreateIncomingPaymentResponse.CreateIncomingPayment, and is useful for accessing the field via an interface.
+func (v *CreateIncomingPaymentResponse) GetCreateIncomingPayment() CreateIncomingPaymentCreateIncomingPaymentIncomingPaymentResponse {
+	return v.CreateIncomingPayment
 }
 
 // CreateIncomingPaymentWithdrawalCreateIncomingPaymentWithdrawalLiquidityMutationResponse includes the requested fields of the GraphQL type LiquidityMutationResponse.
@@ -1141,6 +1315,14 @@ type __CancelOutgoingPaymentInput struct {
 // GetInput returns __CancelOutgoingPaymentInput.Input, and is useful for accessing the field via an interface.
 func (v *__CancelOutgoingPaymentInput) GetInput() CancelOutgoingPaymentInput { return v.Input }
 
+// __CreateIncomingPaymentInput is used internally by genqlient
+type __CreateIncomingPaymentInput struct {
+	Input CreateIncomingPaymentInput `json:"input"`
+}
+
+// GetInput returns __CreateIncomingPaymentInput.Input, and is useful for accessing the field via an interface.
+func (v *__CreateIncomingPaymentInput) GetInput() CreateIncomingPaymentInput { return v.Input }
+
 // __CreateIncomingPaymentWithdrawalInput is used internally by genqlient
 type __CreateIncomingPaymentWithdrawalInput struct {
 	Input CreateIncomingPaymentWithdrawalInput `json:"input"`
@@ -1269,6 +1451,58 @@ func CancelOutgoingPayment(
 	var err error
 
 	var data CancelOutgoingPaymentResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by CreateIncomingPayment.
+const CreateIncomingPayment_Operation = `
+mutation CreateIncomingPayment ($input: CreateIncomingPaymentInput!) {
+	createIncomingPayment(input: $input) {
+		payment {
+			id
+			walletAddressId
+			state
+			expiresAt
+			incomingAmount {
+				value
+				assetCode
+				assetScale
+			}
+			receivedAmount {
+				value
+				assetCode
+				assetScale
+			}
+			metadata
+			createdAt
+		}
+	}
+}
+`
+
+func CreateIncomingPayment(
+	ctx context.Context,
+	client graphql.Client,
+	input CreateIncomingPaymentInput,
+) (*CreateIncomingPaymentResponse, error) {
+	req := &graphql.Request{
+		OpName: "CreateIncomingPayment",
+		Query:  CreateIncomingPayment_Operation,
+		Variables: &__CreateIncomingPaymentInput{
+			Input: input,
+		},
+	}
+	var err error
+
+	var data CreateIncomingPaymentResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(

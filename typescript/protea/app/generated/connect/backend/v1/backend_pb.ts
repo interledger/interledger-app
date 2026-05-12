@@ -3899,6 +3899,134 @@ export class CreatePaymentRequest extends Message<CreatePaymentRequest> {
 }
 
 /**
+ * @generated from message backend.v1.CreateIncomingPaymentRequestInput
+ */
+export class CreateIncomingPaymentRequestInput extends Message<CreateIncomingPaymentRequestInput> {
+  /**
+   * minor units; asset code/scale come from the caller's wallet address
+   *
+   * @generated from field: uint64 value = 1;
+   */
+  value = protoInt64.zero;
+
+  /**
+   * @generated from field: google.protobuf.Timestamp expiresAt = 2;
+   */
+  expiresAt?: Timestamp;
+
+  /**
+   * @generated from field: string description = 3;
+   */
+  description = "";
+
+  constructor(data?: PartialMessage<CreateIncomingPaymentRequestInput>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.CreateIncomingPaymentRequestInput";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "value", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 2, name: "expiresAt", kind: "message", T: Timestamp },
+    { no: 3, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateIncomingPaymentRequestInput {
+    return new CreateIncomingPaymentRequestInput().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CreateIncomingPaymentRequestInput {
+    return new CreateIncomingPaymentRequestInput().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CreateIncomingPaymentRequestInput {
+    return new CreateIncomingPaymentRequestInput().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CreateIncomingPaymentRequestInput | PlainMessage<CreateIncomingPaymentRequestInput> | undefined, b: CreateIncomingPaymentRequestInput | PlainMessage<CreateIncomingPaymentRequestInput> | undefined): boolean {
+    return proto3.util.equals(CreateIncomingPaymentRequestInput, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.IncomingPaymentRequest
+ */
+export class IncomingPaymentRequest extends Message<IncomingPaymentRequest> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  /**
+   * <wallet-address-url>/incoming-payments/<id>
+   *
+   * @generated from field: string url = 2;
+   */
+  url = "";
+
+  /**
+   * @generated from field: backend.v1.Amount incomingAmount = 3;
+   */
+  incomingAmount?: Amount;
+
+  /**
+   * @generated from field: google.protobuf.Timestamp expiresAt = 4;
+   */
+  expiresAt?: Timestamp;
+
+  /**
+   * @generated from field: string description = 5;
+   */
+  description = "";
+
+  /**
+   * PENDING | PROCESSING | COMPLETED | EXPIRED
+   *
+   * @generated from field: string state = 6;
+   */
+  state = "";
+
+  /**
+   * @generated from field: google.protobuf.Timestamp createdAt = 7;
+   */
+  createdAt?: Timestamp;
+
+  constructor(data?: PartialMessage<IncomingPaymentRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.IncomingPaymentRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "incomingAmount", kind: "message", T: Amount },
+    { no: 4, name: "expiresAt", kind: "message", T: Timestamp },
+    { no: 5, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "state", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 7, name: "createdAt", kind: "message", T: Timestamp },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): IncomingPaymentRequest {
+    return new IncomingPaymentRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): IncomingPaymentRequest {
+    return new IncomingPaymentRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): IncomingPaymentRequest {
+    return new IncomingPaymentRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: IncomingPaymentRequest | PlainMessage<IncomingPaymentRequest> | undefined, b: IncomingPaymentRequest | PlainMessage<IncomingPaymentRequest> | undefined): boolean {
+    return proto3.util.equals(IncomingPaymentRequest, a, b);
+  }
+}
+
+/**
  * @generated from message backend.v1.TransferBalanceRequest
  */
 export class TransferBalanceRequest extends Message<TransferBalanceRequest> {

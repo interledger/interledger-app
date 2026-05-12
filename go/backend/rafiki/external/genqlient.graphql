@@ -174,3 +174,26 @@ mutation CreateIncomingPaymentWithdrawal($input: CreateIncomingPaymentWithdrawal
         success
     }
 }
+
+mutation CreateIncomingPayment($input: CreateIncomingPaymentInput!) {
+    createIncomingPayment(input: $input) {
+        payment {
+            id
+            walletAddressId
+            state
+            expiresAt
+            incomingAmount {
+                value
+                assetCode
+                assetScale
+            }
+            receivedAmount {
+                value
+                assetCode
+                assetScale
+            }
+            metadata
+            createdAt
+        }
+    }
+}

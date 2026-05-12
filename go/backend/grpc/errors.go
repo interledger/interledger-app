@@ -294,6 +294,10 @@ func NotFoundError(message string) error {
 	return status.Error(codes.NotFound, "Not found: "+message)
 }
 
+func InvalidArgumentError(message string) error {
+	return status.Error(codes.InvalidArgument, "Invalid argument: "+message)
+}
+
 func AlreadyExistsError(message string) error {
 	return status.Error(codes.AlreadyExists, "Already exists: "+message)
 }

@@ -167,18 +167,11 @@ func (a *Activity) getGatehubLinkedAccount(ctx context.Context, walletAddressID 
 		return nil, "", err
 	}
 
-	accs, err := a.b.LinkedAccounts().ListBalances(ctx, walletID)
+	la, err := GetGatehubBalanceAccount(ctx, a.b, walletID)
 	if err != nil {
-		return nil, walletID, fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+		return nil, walletID, err
 	}
-
-	for _, la := range accs {
-		if la.Provider == gatehub.ProviderName && la.Type == gatehub.AccTypeBalance {
-			return &la, walletID, nil
-		}
-	}
-
-	return nil, walletID, fmt.Errorf("%w no gatehub balance account found for wallet %s", rafiki.ErrNotFound, walletID)
+	return la, walletID, nil
 }
 
 func (a *Activity) GetGatehubLinkedAccountInfo(ctx context.Context, walletAddressID string) (*GatehubLinkedAccountInfo, error) {
@@ -395,6 +388,11 @@ func (a *Activity) CreateIncomingPaymentTransaction(ctx context.Context, ip inco
 		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
 	}
 
+	title := "Incoming Payment"
+	if meta := parseIncomingPaymentMetadata(ip.Metadata); meta.Description != "" {
+		title = meta.Description
+	}
+
 	_, err = a.b.Transactions().CreateTransaction(ctx, transactions.CreateTransactionArgs{
 		WalletID:                walletID,
 		ForeignID:               ip.ID,
@@ -403,7 +401,7 @@ func (a *Activity) CreateIncomingPaymentTransaction(ctx context.Context, ip inco
 		State:                   transactions.StateCompleted,
 		Source:                  wallet.AddressString(),
 		Destination:             wallet.AddressString(),
-		Title:                   "Incoming Payment",
+		Title:                   title,
 		DestinationIdentity:     walletID,
 		DestinationIdentityType: payments.IdentityTypeWalletID.String(),
 		Amount:                  amt,
