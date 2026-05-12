@@ -6,7 +6,7 @@ spec:
   template:
     metadata:
       annotations:
-        ilf-configmap-worker-sha256: {{ $dataHash | quote }}
+        ilf-configmap-server-sha256: {{ $dataHash | quote }}
 {{- end }}
 {{- if .Values.backend.server.enabled }}
 {{- include "common.deployment" (list . .Values.backend.server .Values.backend.server.autoscaling .Values.backend.server.serviceAccount "interledger-app.backend.server.deployment") }}
