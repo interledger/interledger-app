@@ -74,6 +74,10 @@ jobs:
   publish_release_artifacts:
     needs: release
     if: needs.release.outputs.release_tag != ''
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
     uses: ./.github/workflows/build-and-publish.yml
     with:
       release_tag: ${{ needs.release.outputs.release_tag }}
