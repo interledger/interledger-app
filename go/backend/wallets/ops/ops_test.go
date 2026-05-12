@@ -22,7 +22,7 @@ import (
 func ensureTestDBURL(t *testing.T) {
 	// Default to the local docker-compose credentials when DB_URL is unset.
 	if os.Getenv("DB_URL") == "" {
-		t.Setenv("DB_URL", "postgres://postgres:password@0.0.0.0:5432/%s?sslmode=disable")
+		t.Setenv("DB_URL", "postgres://postgres:password@127.0.0.1:55432/%s?sslmode=disable")
 	}
 }
 

@@ -48,6 +48,8 @@ application|app         Wallet application, backends + frontends (requires infra
 backend|back            Just backends services
 frontend|front          Just frontends services
 all                     All services (infra, svc, app)
+unit-test-db-up         Start isolated Postgres for Go unit tests (localhost:55432)
+unit-test-db-down       Stop isolated Postgres for Go unit tests
 
 build                   Build all images
 pull                    Pull all images
@@ -124,6 +126,30 @@ make build
 To pull all images without starting any services:
 ```sh
 make pull
+```
+
+### Dedicated Unit-Test Postgres
+
+To avoid mutating your normal local environment databases (`backend`, `pacioli`, `kratos`, etc.), use the dedicated unit-test Postgres service:
+
+```sh
+make unit-test-db-up
+```
+
+This starts an isolated Postgres instance on `localhost:55432` with credentials `postgres/password`.
+The database directory is mounted as Docker `tmpfs` (RAM-backed, ephemeral) to speed up tests and avoid persisting unit-test data to disk.
+
+Recommended test environment variables:
+
+```sh
+export DB_URL=postgres://postgres:password@127.0.0.1:55432/%s?sslmode=disable
+export ATLAS_DEV_URL=postgres://postgres:password@127.0.0.1:55432/atlas_dev_tmp?sslmode=disable
+```
+
+When done:
+
+```sh
+make unit-test-db-down
 ```
 
 ### Docker compose interface

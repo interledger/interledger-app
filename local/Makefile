@@ -15,6 +15,8 @@ help:
 	@echo "backend|back            Just backends services"
 	@echo "frontend|front          Just frontends services"
 	@echo "all                     All services (infra, svc, app)"
+	@echo "unit-test-db-up         Start isolated Postgres for Go unit tests (localhost:55432)"
+	@echo "unit-test-db-down       Stop isolated Postgres for Go unit tests"
 	@echo ""
 	@echo "build                   Build backend images"
 	@echo "pull                    Pull all images"
@@ -52,6 +54,8 @@ help:
 	backend back \
 	frontend front \
 	all \
+	unit-test-db-up \
+	unit-test-db-down \
 	build \
 	pull \
 	down \
@@ -99,6 +103,13 @@ all-nowatch:
 
 all-ci:
 	$(COMPOSE) -f docker-compose.yaml -f protea.runner.mounts.yaml --profile infrastructure --profile services --profile application --profile backend --profile frontend up -d
+
+unit-test-db-up:
+	$(COMPOSE) --profile unit-tests up -d postgres-unit-tests
+
+unit-test-db-down:
+	$(COMPOSE) stop postgres-unit-tests
+	$(COMPOSE) rm -f postgres-unit-tests
 
 build:
 	$(COMPOSE) --profile "*" build
