@@ -11,6 +11,7 @@ on:
     branches:
       - "**"
     paths:
+      - ".github/workflows/linting.yml"
       - "go/**/*.go"
 
 jobs:
