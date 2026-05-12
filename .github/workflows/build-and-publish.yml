@@ -25,10 +25,10 @@ jobs:
     outputs:
       builds: ${{ steps.select_packages.outputs.builds }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Select packages
         id: select_packages
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const { default: selectPackages } = await import('${{ github.workspace }}/tooling/github-scripts/select-packages.js')
@@ -40,10 +40,10 @@ jobs:
       version: ${{ steps.version.outputs.version }}
       dockerPush: ${{ steps.version.outputs.docker_push }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Determine version
         id: version
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const { default: determineVersion } = await import('${{ github.workspace }}/tooling/github-scripts/determine-version.js')
@@ -56,12 +56,12 @@ jobs:
       matrix: ${{fromJson(needs.select_packages.outputs.builds)}}
     steps:
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Build Go Docker image
         if: matrix.package.type == 'go'
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           push: false
           platforms: ${{ matrix.platform.os }}/${{ matrix.platform.arch }}
@@ -82,7 +82,7 @@ jobs:
           sha256sum ./gsa-key.json
       - name: Build TypeScript Docker image
         if: matrix.package.type == 'ts'
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           push: false
           platforms: ${{ matrix.platform.os }}/${{ matrix.platform.arch }}
@@ -104,7 +104,7 @@ jobs:
       - name: List Docker images
         run: docker images
       - name: Save docker image to cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: /tmp/${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}.tar
           key: ${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}
@@ -123,14 +123,14 @@ jobs:
       matrix: ${{fromJson(needs.select_packages.outputs.builds)}}
     steps:
       - name: Load cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: /tmp/${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}.tar
           key: ${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}
           fail-on-cache-miss: true
 
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Load Docker image
         run: |
@@ -147,7 +147,7 @@ jobs:
           docker tag $IMAGE_ID $PUSH_IMAGE
           echo "PUSH_IMAGE=$PUSH_IMAGE" >> $GITHUB_ENV
 
-      - uses: 'google-github-actions/auth@v2'
+      - uses: 'google-github-actions/auth@v3'
         with:
             service_account: ${{ env.GSA_EMAIL }}
             workload_identity_provider: ${{ env.GCR_WORKLOAD_IDENTITY_PROVIDER}}
@@ -182,14 +182,14 @@ jobs:
       matrix: ${{fromJson(needs.select_packages.outputs.builds)}}
     steps:
       - name: Load cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: /tmp/${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}.tar
           key: ${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}
           fail-on-cache-miss: true
 
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Load Docker image
         run: |
@@ -206,7 +206,7 @@ jobs:
           docker tag $IMAGE_ID $PUSH_IMAGE
           echo "PUSH_IMAGE=$PUSH_IMAGE" >> $GITHUB_ENV
 
-      - uses: 'google-github-actions/auth@v2'
+      - uses: 'google-github-actions/auth@v3'
         with:
             service_account: ${{ env.GSA_EMAIL }}
             workload_identity_provider: ${{ env.GCR_WORKLOAD_IDENTITY_PROVIDER}}
@@ -235,10 +235,10 @@ jobs:
     if: needs.determine_version.outputs.dockerPush == 'true'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install Helm
-        uses: azure/setup-helm@v4
+        uses: azure/setup-helm@v5
 
       - name: Update Helm dependencies
         run: helm dependency update helm/interledger-app
@@ -247,7 +247,7 @@ jobs:
         run: helm package helm/interledger-app
 
       - name: Authenticate to prod GCP
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@v3
         with:
           service_account: ${{ secrets.GSA_EMAIL }}
           workload_identity_provider: ${{ secrets.GCR_WORKLOAD_IDENTITY_PROVIDER }}
@@ -261,7 +261,7 @@ jobs:
             oci://europe-west4-docker.pkg.dev/${{ secrets.GCR_PROJECT }}/interledger-helm-charts
 
       - name: Authenticate to dev GCP
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@v3
         with:
           service_account: ${{ secrets.GSA_DEV_EMAIL }}
           workload_identity_provider: ${{ secrets.GCR_DEV_WORKLOAD_IDENTITY_PROVIDER }}
