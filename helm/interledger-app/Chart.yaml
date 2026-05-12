@@ -4,8 +4,9 @@ description: Interledger App Wallet — combined admin (Botanist), backend, and 
 home: https://github.com/interledger/interledger-app
 
 type: application
-version: 1.0.0
-appVersion: v1.10.0
+# version and appVersion is linked because we are doing this in the same repo
+version: 0.0.1
+appVersion: v0.0.1
 
 dependencies:
   - name: common
