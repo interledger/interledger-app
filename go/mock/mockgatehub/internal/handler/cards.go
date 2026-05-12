@@ -689,6 +689,7 @@ func (h *Handler) CreateCardTransaction(w http.ResponseWriter, r *http.Request) 
 
 	tx := &models.CardTransaction{
 		TransactionID:         txID,
+		CardID:                req.CardID,
 		GHResponseCode:        "00",
 		GHResponseDescription: "Approved",
 		TransactionAmount:     &req.Amount,
@@ -714,8 +715,8 @@ func (h *Handler) CreateCardTransaction(w http.ResponseWriter, r *http.Request) 
 	}
 
 	// Index by card
-	if req.CardID != "" {
-		_ = h.store.AddCardTransactionIndex(req.CardID, txID)
+	if req.CardGUID != "" {
+		_ = h.store.AddCardTransactionIndex(req.CardGUID, txID)
 	}
 
 	h.sendJSON(w, http.StatusCreated, tx)
