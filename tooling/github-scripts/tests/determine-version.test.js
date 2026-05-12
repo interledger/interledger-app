@@ -25,24 +25,22 @@ describe("determine-version/determineVersion", () => {
     assert.strictEqual(dockerPush, true);
   });
 
-  it("prefixes the branch with manual_ and pushes images on workflow_dispatch", () => {
+  it("uses workflow_call release_tag input when provided", () => {
     const { version, dockerPush } = determineVersion(
-      "workflow_dispatch",
+      "workflow_call",
       "refs/heads/main",
+      { inputs: { release_tag: "v1.2.3" } },
     );
 
-    assert.strictEqual(version, "manual_main");
+    assert.strictEqual(version, "v1.2.3");
     assert.strictEqual(dockerPush, true);
   });
 
-  it("sanitises invalid characters in workflow_dispatch branch names", () => {
-    const { version, dockerPush } = determineVersion(
-      "workflow_dispatch",
-      "refs/heads/feature/my-thing",
+  it("requires release_tag input on workflow_call", () => {
+    assert.throws(
+      () => determineVersion("workflow_call", "refs/heads/main"),
+      /workflow_call publish runs require inputs\.release_tag/,
     );
-
-    assert.strictEqual(version, "manual_feature_my-thing");
-    assert.strictEqual(dockerPush, true);
   });
 
   it("does not push and uses the sanitised PR ref on pull_request", () => {
