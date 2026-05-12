@@ -28,7 +28,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.release_tag || github.ref }}
+          ref: ${{ github.event_name == 'workflow_call' && inputs.release_tag || github.ref }}
       - name: Select packages
         id: select_packages
         uses: actions/github-script@v9
@@ -45,7 +45,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.release_tag || github.ref }}
+          ref: ${{ github.event_name == 'workflow_call' && inputs.release_tag || github.ref }}
       - name: Determine version
         id: version
         uses: actions/github-script@v9
@@ -65,7 +65,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.release_tag || github.ref }}
+          ref: ${{ github.event_name == 'workflow_call' && inputs.release_tag || github.ref }}
       - name: Build Go Docker image
         if: matrix.package.type == 'go'
         uses: docker/build-push-action@v7
@@ -139,7 +139,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.release_tag || github.ref }}
+          ref: ${{ github.event_name == 'workflow_call' && inputs.release_tag || github.ref }}
 
       - name: Load Docker image
         run: |
@@ -200,7 +200,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.release_tag || github.ref }}
+          ref: ${{ github.event_name == 'workflow_call' && inputs.release_tag || github.ref }}
 
       - name: Load Docker image
         run: |
@@ -248,7 +248,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.release_tag || github.ref }}
+          ref: ${{ github.event_name == 'workflow_call' && inputs.release_tag || github.ref }}
 
       - name: Install Helm
         uses: azure/setup-helm@v5

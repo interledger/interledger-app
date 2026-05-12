@@ -43,6 +43,9 @@ jobs:
           token: ${{ steps.app.outputs.token }}
           persist-credentials: true
 
+      - name: Fetch tags
+        run: git fetch --force --tags origin
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
 
