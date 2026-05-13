@@ -14,6 +14,7 @@
 // capture, 401 → /login). Kept simple for the POC.
 
 const BACKEND_HTTP_URL = process.env.BACKEND_HTTP_URL || 'http://backend:8080'
+const PLAID_API_PATH = '/api/plaid'
 
 /**
  * PlaidError is the shape returned to callers on a non-2xx backend response.
@@ -131,11 +132,11 @@ async function plaidFetch<T>(
 /* ─── typed wrappers ─────────────────────────────────────────────────── */
 
 function getState(request: Request): Promise<PlaidState> {
-  return plaidFetch<PlaidState>(request, '/plaid/state')
+  return plaidFetch<PlaidState>(request, `${PLAID_API_PATH}/state`)
 }
 
 function createLinkToken(request: Request): Promise<PlaidLinkToken> {
-  return plaidFetch<PlaidLinkToken>(request, '/plaid/link-token', {
+  return plaidFetch<PlaidLinkToken>(request, `${PLAID_API_PATH}/link-token`, {
     method: 'POST'
   })
 }
@@ -144,38 +145,38 @@ function exchangePublicToken(
   request: Request,
   publicToken: string
 ): Promise<PlaidExchangeResult> {
-  return plaidFetch<PlaidExchangeResult>(request, '/plaid/exchange', {
+  return plaidFetch<PlaidExchangeResult>(request, `${PLAID_API_PATH}/exchange`, {
     method: 'POST',
     body: JSON.stringify({ public_token: publicToken })
   })
 }
 
 function getAccounts(request: Request): Promise<PlaidProductResponse> {
-  return plaidFetch<PlaidProductResponse>(request, '/plaid/accounts')
+  return plaidFetch<PlaidProductResponse>(request, `${PLAID_API_PATH}/accounts`)
 }
 
 function getAuth(request: Request): Promise<PlaidProductResponse> {
-  return plaidFetch<PlaidProductResponse>(request, '/plaid/auth')
+  return plaidFetch<PlaidProductResponse>(request, `${PLAID_API_PATH}/auth`)
 }
 
 function getBalance(request: Request): Promise<PlaidProductResponse> {
-  return plaidFetch<PlaidProductResponse>(request, '/plaid/balance')
+  return plaidFetch<PlaidProductResponse>(request, `${PLAID_API_PATH}/balance`)
 }
 
 function getIdentity(request: Request): Promise<PlaidProductResponse> {
-  return plaidFetch<PlaidProductResponse>(request, '/plaid/identity')
+  return plaidFetch<PlaidProductResponse>(request, `${PLAID_API_PATH}/identity`)
 }
 
 function getTransactions(
   request: Request
 ): Promise<PlaidTransactionsResult> {
-  return plaidFetch<PlaidTransactionsResult>(request, '/plaid/transactions')
+  return plaidFetch<PlaidTransactionsResult>(request, `${PLAID_API_PATH}/transactions`)
 }
 
 function disconnect(
   request: Request
 ): Promise<PlaidDisconnectResult> {
-  return plaidFetch<PlaidDisconnectResult>(request, '/plaid/disconnect', {
+  return plaidFetch<PlaidDisconnectResult>(request, `${PLAID_API_PATH}/disconnect`, {
     method: 'DELETE'
   })
 }

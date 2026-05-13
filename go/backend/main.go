@@ -219,7 +219,7 @@ func start(args *cli.StartArgs) {
 	router.Handle("/{wallet_id}/identities/{identity_sig_hash}", wallet_handler.GetIdentityHandler(b))
 
 	if b.plaidClient != nil {
-		router.Mount("/plaid", plaid_ops.NewRouter(b.plaidClient, b.plaidStore, b.Users()))
+		router.Mount("/api/plaid", plaid_ops.NewRouter(b.plaidClient, b.plaidStore, b.Users()))
 	}
 
 	router.NotFound(wallet_handler.WalletRedirectHandler(b))

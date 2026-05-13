@@ -50,7 +50,7 @@ services:
       - "traefik.enable=true"
 
       - "traefik.http.routers.backend.service=backend"
-      - "traefik.http.routers.backend.rule=Host(`interledger.test`) && (PathPrefix(`/webhooks`) || PathPrefix(`/.well-known`) || PathPrefix(`/plaid`))"
+      - "traefik.http.routers.backend.rule=Host(`interledger.test`) && (PathPrefix(`/webhooks`) || PathPrefix(`/.well-known`) || PathPrefix(`/api/plaid`))"
       - "traefik.http.services.backend.loadbalancer.server.port=8080"
 
       - "traefik.tcp.routers.delve.service=delve"
