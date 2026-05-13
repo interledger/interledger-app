@@ -326,15 +326,17 @@ jobs:
     # publish-helm-chart transitively depends on both image-push jobs, so a
     # successful run here guarantees images + chart are both published.
     needs: [determine_version, publish-helm-chart]
-    # Gate explicitly on the calling context rather than just `inputs.release_tag`.
-    # `inputs` is only populated for `workflow_call`, but checking the event
-    # name as well makes the intent unambiguous and future-proofs the job in
-    # case `publish-helm-chart` is ever allowed to run from other triggers.
-    # `dockerPush` is the same signal `publish-helm-chart` uses to decide
-    # whether real release artifacts were produced.
+    # Gate on signals that are unambiguous inside a reusable workflow:
+    #   - `inputs.release_tag` is only set when this workflow is invoked via
+    #     `workflow_call` from release.yml with a real tag.
+    #   - `dockerPush` is the same signal publish-helm-chart and the image
+    #     push jobs use to confirm a real release artifact was produced.
+    # NOTE: do NOT gate on `github.event_name == 'workflow_call'` — for
+    # reusable workflows, GitHub propagates the *caller's* event name (e.g.
+    # `push`), so that check would always be false. See the comment in
+    # tooling/github-scripts/determine-version.js for the same gotcha.
     if: >-
-      github.event_name == 'workflow_call'
-      && inputs.release_tag != ''
+      inputs.release_tag != ''
       && needs.determine_version.outputs.dockerPush == 'true'
     runs-on: ubuntu-latest
     # No write access needed on THIS repo — all writes go through the App
