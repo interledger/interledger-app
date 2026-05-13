@@ -288,3 +288,200 @@ jobs:
             | helm registry login europe-west4-docker.pkg.dev --username oauth2accesstoken --password-stdin
           helm push interledger-app-*.tgz \
             oci://europe-west4-docker.pkg.dev/${{ secrets.GCR_DEV_PROJECT }}/interledger-helm-charts
+
+
+  # --------------------------------------------------------------------------
+  # bump-deploy-dev
+  #
+  # After a successful release (semantic-release tag -> images pushed -> OCI
+  # chart published), this job opens an auto-merge PR in
+  # interledger/interledger-app-deploy that updates the `chartVersion` for the
+  # `interledger-app` entry in env/development/appsets/wallet-appset.yaml.
+  #
+  # Why this job exists:
+  #   - The deploy repo's ArgoCD ApplicationSet pins a specific chartVersion
+  #     per environment. Without this automation, every release requires a
+  #     manual PR in the deploy repo before ArgoCD picks up the new chart.
+  #   - Only `development` is bumped automatically. `sandbox` and `production`
+  #     remain manual / promotion-based (intentional gate).
+  #
+  # Why it runs after publish-helm-chart:
+  #   - publish-helm-chart already `needs` both image-push jobs, so by the
+  #     time we get here all release artifacts (images + chart) are live in
+  #     GCP Artifact Registry. Bumping any earlier would race ArgoCD against
+  #     a chart version that doesn't exist yet.
+  #
+  # Authentication model:
+  #   - Uses the same GitHub App as release.yml (RELEASE_APP_ID /
+  #     RELEASE_APP_PRIVATE_KEY) but mints a NEW token scoped only to the
+  #     deploy repo via `owner` + `repositories` inputs. This means the App
+  #     must be installed on BOTH interledger-app AND interledger-app-deploy
+  #     with Contents:write + Pull requests:write on the deploy side.
+  #   - If the App is not installed on the deploy repo, the verification
+  #     step below fails the job loudly (by design — silent skips would
+  #     leave the deploy repo drifting from releases).
+  # --------------------------------------------------------------------------
+  bump-deploy-dev:
+    name: Bump interledger-app-deploy (development)
+    # publish-helm-chart transitively depends on both image-push jobs, so a
+    # successful run here guarantees images + chart are both published.
+    needs: [determine_version, publish-helm-chart]
+    # Only run on real releases. PR builds set release_tag to "" and must
+    # never open PRs in the deploy repo.
+    if: inputs.release_tag != ''
+    runs-on: ubuntu-latest
+    # No write access needed on THIS repo — all writes go through the App
+    # token against the deploy repo.
+    permissions:
+      contents: read
+    env:
+      DEPLOY_REPO: interledger/interledger-app-deploy
+      APPSET_FILE: env/development/appsets/wallet-appset.yaml
+      CHART_NAME: interledger-app
+      RELEASE_TAG: ${{ inputs.release_tag }}
+      # determine_version returns the tag verbatim (e.g. "v1.11.4"). The
+      # appset and Chart.yaml use the version WITHOUT the leading "v", so
+      # we strip it later before writing.
+      VERSION: ${{ needs.determine_version.outputs.version }}
+    steps:
+      # Mint an installation token scoped narrowly to the deploy repo only.
+      # `owner` + `repositories` ensures the token cannot accidentally modify
+      # this repo or any other repo the App happens to be installed on.
+      - name: Generate GitHub App token for interledger-app-deploy
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          owner: interledger
+          repositories: interledger-app-deploy
+
+      # Fail fast with a clear message if the App is not installed on the
+      # deploy repo yet. Without this, a missing installation surfaces as a
+      # cryptic 404 deep inside `gh pr create`.
+      - name: Verify App is installed on deploy repo
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          set -euo pipefail
+          if ! gh api "repos/${DEPLOY_REPO}" --silent >/dev/null 2>&1; then
+            echo "::error::App token cannot access ${DEPLOY_REPO}. Install the App on that repo with Contents:write and Pull requests:write."
+            exit 1
+          fi
+
+      # Clone the deploy repo into a subdirectory so the workspace root
+      # remains the source repo (avoids confusing relative paths if more
+      # steps are added later).
+      - name: Checkout interledger-app-deploy
+        uses: actions/checkout@v6
+        with:
+          repository: ${{ env.DEPLOY_REPO }}
+          token: ${{ steps.app-token.outputs.token }}
+          path: deploy
+          fetch-depth: 1
+
+      # Pin a known-good yq build rather than relying on whatever the runner
+      # image happens to ship. The select()-based update below depends on
+      # mikefarah/yq v4 syntax (not python-yq / jq-style).
+      - name: Install yq
+        run: |
+          set -euo pipefail
+          sudo curl -fsSL -o /usr/local/bin/yq \
+            https://github.com/mikefarah/yq/releases/download/v4.44.3/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+          yq --version
+
+      # Surgically update ONLY the `interledger-app` element of the
+      # ApplicationSet list. A naive find/replace would risk colliding with
+      # other entries (e.g. if the same version string appeared elsewhere).
+      # If the file is already at the target version, set skip=true and let
+      # the next step short-circuit — this makes manual reruns idempotent.
+      - name: Update chartVersion in development appset
+        working-directory: deploy
+        env:
+          CHART: ${{ env.CHART_NAME }}
+          FILE: ${{ env.APPSET_FILE }}
+        run: |
+          set -euo pipefail
+          # Chart.yaml versions and the appset chartVersion are stored without a
+          # leading "v"; the release tag (and determine_version output) has one.
+          NEW_VERSION="${VERSION#v}"
+          # Export for the next step (which reads $chart_version from env).
+          echo "chart_version=${NEW_VERSION}" >> "$GITHUB_ENV"
+
+          CURRENT=$(yq -r \
+            ".spec.generators[].list.elements[] | select(.name == \"${CHART}\") | .chartVersion" \
+            "${FILE}")
+          echo "Current chartVersion: ${CURRENT}"
+          echo "New chartVersion:     ${NEW_VERSION}"
+          # Idempotency guard: someone may have already bumped the deploy
+          # repo manually (e.g. during incident response or a re-release).
+          if [[ "${CURRENT}" == "${NEW_VERSION}" ]]; then
+            echo "Already at ${NEW_VERSION}; nothing to do."
+            echo "skip=true" >> "$GITHUB_ENV"
+            exit 0
+          fi
+          # In-place update of just the matching element.
+          yq -i \
+            "(.spec.generators[].list.elements[] | select(.name == \"${CHART}\")).chartVersion = \"${NEW_VERSION}\"" \
+            "${FILE}"
+          # Print the resulting diff for easy debugging from the Actions log.
+          git --no-pager diff -- "${FILE}"
+
+      # Branch -> commit -> push -> open PR -> enable auto-merge.
+      # Auto-merge causes GitHub to merge as soon as the deploy repo's
+      # required checks (conform.yaml: helm_kubeconform + manifest_kubeconform)
+      # pass. If checks fail, the PR stays open for a human to investigate.
+      - name: Open auto-merge PR
+        if: env.skip != 'true'
+        working-directory: deploy
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          # Branch name includes the release tag so reruns produce distinct
+          # branches and never clobber an in-flight PR.
+          BRANCH: chore/bump-interledger-app-${{ env.RELEASE_TAG }}
+        run: |
+          set -euo pipefail
+          # $chart_version was exported by the previous step.
+          CHART_VERSION="${chart_version}"
+
+          # Commit as the App's bot user so the audit trail is clear and
+          # branch protection rules can target the bot actor specifically.
+          git config user.name  "${{ steps.app-token.outputs.app-slug }}[bot]"
+          git config user.email "${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com"
+
+          git checkout -b "${BRANCH}"
+          git add "${APPSET_FILE}"
+          git commit \
+            -m "chore: bump interledger-app chart to ${CHART_VERSION} in development" \
+            -m "Triggered by release ${RELEASE_TAG} of interledger/interledger-app."
+          git push --set-upstream origin "${BRANCH}"
+
+          # PR body is written via heredoc to a file (rather than --body
+          # inline) to dodge shell-quoting headaches with backticks and
+          # multi-line markdown. The heredoc preserves YAML indentation
+          # which we strip out afterwards.
+          cat > /tmp/pr-body.md <<EOF
+          Automated bump triggered by [interledger-app ${RELEASE_TAG}](https://github.com/${GITHUB_REPOSITORY}/releases/tag/${RELEASE_TAG}).
+
+          Updates \`${APPSET_FILE}\` chartVersion for \`${CHART_NAME}\` to \`${CHART_VERSION}\`.
+
+          Auto-merge is enabled; will merge once \`conform.yaml\` checks pass.
+          EOF
+          # Strip the leading indentation introduced by the YAML block.
+          sed -i 's/^          //' /tmp/pr-body.md
+
+          PR_URL=$(gh pr create \
+            --repo "${DEPLOY_REPO}" \
+            --base main \
+            --head "${BRANCH}" \
+            --title "chore: bump interledger-app chart to ${CHART_VERSION} in development" \
+            --body-file /tmp/pr-body.md \
+            --label automated \
+            --label chart-bump)
+          echo "Opened ${PR_URL}"
+
+          # --auto requires auto-merge to be enabled in the deploy repo
+          # settings AND a passing required-status-checks config; otherwise
+          # `gh pr merge --auto` returns a non-zero exit and fails this job.
+          gh pr merge "${PR_URL}" --repo "${DEPLOY_REPO}" --squash --auto
