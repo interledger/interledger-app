@@ -23,6 +23,8 @@ import {
   useNavigation
 } from 'react-router'
 
+import { jsonWithSnackbar, redirectWithSnackbar } from '~/lib/snackbar.server'
+
 import {
   Card,
   CardContent,
@@ -148,13 +150,13 @@ export async function action({ request }: Route.ActionArgs): Promise<ActionData 
       case 'exchange': {
         const publicToken = String(form.get('public_token') || '')
         if (!publicToken) {
-          return {
+          return jsonWithSnackbar(request, {
             ok: false,
             intent,
             message: 'public_token is required',
             status: 400,
             errorCode: 'BAD_REQUEST'
-          }
+          }, { message: 'public_token is required' }, 400)
         }
         const { item_id, institution_name } = await plaid.exchangePublicToken(
           request,
@@ -171,13 +173,13 @@ export async function action({ request }: Route.ActionArgs): Promise<ActionData 
       case 'fetch_product': {
         const product = String(form.get('product') || '')
         if (!isPlaidProduct(product)) {
-          return {
+          return jsonWithSnackbar(request, {
             ok: false,
             intent,
             message: `unknown product: ${product}`,
             status: 400,
             errorCode: 'BAD_REQUEST'
-          }
+          }, { message: `unknown product: ${product}` }, 400)
         }
         let response: unknown
         switch (product) {
@@ -208,27 +210,27 @@ export async function action({ request }: Route.ActionArgs): Promise<ActionData 
       case 'disconnect': {
         await plaid.disconnect(request)
         // Force a fresh load so the loader observes the unlinked state.
-        return redirect(href('/plaid'))
+        return redirectWithSnackbar(request, href('/plaid'), { message: 'Bank disconnected' })
       }
 
       default:
-        return {
+        return jsonWithSnackbar(request, {
           ok: false,
           intent,
           message: `unknown intent: ${intent}`,
           status: 400,
           errorCode: 'BAD_REQUEST'
-        }
+        }, { message: `unknown intent: ${intent}` }, 400)
     }
   } catch (err) {
     if (err instanceof PlaidError) {
-      return {
+      return jsonWithSnackbar(request, {
         ok: false,
         intent,
         message: err.message,
         status: err.status,
         errorCode: err.errorCode
-      }
+      }, { message: err.message }, err.status)
     }
     throw err
   }

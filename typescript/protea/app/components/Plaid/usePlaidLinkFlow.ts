@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useFetcher } from 'react-router'
 import { usePlaidLink } from 'react-plaid-link'
+import { v4 } from 'uuid'
 
+import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { usePlaidStore } from '~/lib/usePlaidStore'
 
 import type { ActionData } from '~/routes/plaid'
@@ -32,6 +34,7 @@ export function usePlaidLinkFlow() {
   const setLinkToken = usePlaidStore((s) => s.setLinkToken)
   const setIsLinking = usePlaidStore((s) => s.setIsLinking)
   const setLastError = usePlaidStore((s) => s.setLastError)
+  const pushSnackbar = useScaffoldStore((s) => s.pushSnackbar)
 
   // Tracks the user's intent to open Link after the token round-trips. We
   // can't open() synchronously inside the click handler because the token is
@@ -79,7 +82,9 @@ export function usePlaidLinkFlow() {
       // click mints a fresh one (link_tokens are single-flow).
       setLinkToken(null)
       if (err) {
-        setLastError(err.display_message || err.error_message || 'Plaid Link exited with error')
+        const msg = err.display_message || err.error_message || 'Plaid Link exited with error'
+        setLastError(msg)
+        pushSnackbar({ id: v4(), message: msg })
       }
     }
   })
@@ -118,11 +123,13 @@ export function usePlaidLinkFlow() {
   // …) — see plaid-link-explained.md §10.
   useEffect(() => {
     if (scriptError) {
-      setLastError(`Plaid SDK failed to load: ${scriptError.message ?? 'unknown error'}`)
+      const msg = `Plaid SDK failed to load: ${scriptError.message ?? 'unknown error'}`
+      setLastError(msg)
       setIsLinking(false)
       pendingOpenRef.current = false
+      pushSnackbar({ id: v4(), message: msg })
     }
-  }, [scriptError, setLastError, setIsLinking])
+  }, [scriptError, setLastError, setIsLinking, pushSnackbar])
 
   const connect = useCallback(() => {
     setPlaidInstanceReady(false)
