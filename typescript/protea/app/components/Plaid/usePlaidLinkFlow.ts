@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useFetcher } from 'react-router'
 import { usePlaidLink } from 'react-plaid-link'
 
@@ -38,6 +38,11 @@ export function usePlaidLinkFlow() {
   // minted on the server first.
   const pendingOpenRef = useRef(false)
 
+  // True only after the Plaid iframe for the *current* token has fired onLoad.
+  // Resets to false on every connect() and onExit so a stale factory can never
+  // satisfy the trigger effect (fixes second-click no-op: see bug analysis).
+  const [plaidInstanceReady, setPlaidInstanceReady] = useState(false)
+
   // (1) create_link_token result → store the token (or surface the error).
   useEffect(() => {
     const data = linkFetcher.data
@@ -56,6 +61,7 @@ export function usePlaidLinkFlow() {
   // Plaid Link binding (see plaid-link-explained.md).
   const { open, ready, error: scriptError } = usePlaidLink({
     token: linkToken,
+    onLoad: () => setPlaidInstanceReady(true),
     onSuccess: (publicToken, metadata) => {
       console.log('Plaid Link onSuccess', publicToken, metadata)
       const accountId = metadata.accounts[0]?.id ?? ''
@@ -66,6 +72,7 @@ export function usePlaidLinkFlow() {
       exchangeFetcher.submit(fd, { method: 'POST', action: PLAID_ACTION_PATH })
     },
     onExit: (err) => {
+      setPlaidInstanceReady(false)
       setIsLinking(false)
       pendingOpenRef.current = false
       // User cancelled (err === null) — clear the staged token so the next
@@ -77,15 +84,19 @@ export function usePlaidLinkFlow() {
     }
   })
 
-  // (3) When we have a token AND the SDK iframe is ready AND the user has
-  //     opted to open (click), launch the modal exactly once per pending flag.
+  // (3) When we have a token AND this factory's iframe has loaded AND the user
+  //     has opted to open (click), launch the modal exactly once per pending flag.
+  //     Uses plaidInstanceReady (set via onLoad) rather than usePlaidLink's `ready`
+  //     because `ready` never resets between sessions — onLoad fires per-factory
+  //     and only after setPlaid(next) is committed, so `open` is always the live
+  //     factory's function by the time this effect can proceed.
   useEffect(() => {
     if (!pendingOpenRef.current) return
     if (!linkToken) return
-    if (!ready) return
+    if (!plaidInstanceReady) return
     pendingOpenRef.current = false
     open()
-  }, [linkToken, ready, open])
+  }, [linkToken, plaidInstanceReady, open])
 
   // (5) exchange result → React Router will revalidate the loader on its own,
   //     which kicks the /plaid useEffect → setLinked. Here we just clean up.
@@ -114,6 +125,7 @@ export function usePlaidLinkFlow() {
   }, [scriptError, setLastError, setIsLinking])
 
   const connect = useCallback(() => {
+    setPlaidInstanceReady(false)
     setIsLinking(true)
     setLastError(null)
     pendingOpenRef.current = true
