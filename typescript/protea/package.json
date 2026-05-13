@@ -47,6 +47,7 @@
     "react-datocms": "^4.0.15",
     "react-dom": "18.2.0",
     "react-hook-form": "^7.62.0",
+    "react-plaid-link": "^4.1.1",
     "react-router": "^7.13.1",
     "shiki": "^0.14.3",
     "uuid": "^9.0.0",
