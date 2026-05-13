@@ -561,6 +561,46 @@ func (s *RedisStorage) GetCardTransactionIDs(cardID string) ([]string, error) {
 	return ids, nil
 }
 
+func (s *RedisStorage) StoreRawCardTransaction(txID string, data json.RawMessage) error {
+	if txID == "" {
+		return errors.New("txID is required")
+	}
+	if err := s.client.Set(s.ctx, s.cardTransactionRawKey(txID), []byte(data), 0).Err(); err != nil {
+		return fmt.Errorf("failed to store raw card transaction: %w", err)
+	}
+	return nil
+}
+
+func (s *RedisStorage) GetRawCardTransaction(txID string) (json.RawMessage, error) {
+	data, err := s.client.Get(s.ctx, s.cardTransactionRawKey(txID)).Bytes()
+	if err == redis.Nil {
+		return nil, errors.New("raw card transaction not found")
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed to get raw card transaction: %w", err)
+	}
+	return json.RawMessage(data), nil
+}
+
+func (s *RedisStorage) NextCardTransactionSeqID() (int, error) {
+	n, err := s.client.Incr(s.ctx, "card_tx_seq").Result()
+	if err != nil {
+		return 0, fmt.Errorf("failed to increment card transaction seq: %w", err)
+	}
+	return int(n), nil
+}
+
+func (s *RedisStorage) PeekCardTransactionSeqID() (int, error) {
+	val, err := s.client.Get(s.ctx, "card_tx_seq").Int64()
+	if err == redis.Nil {
+		return 1, nil // next would be 1
+	}
+	if err != nil {
+		return 0, fmt.Errorf("failed to peek card transaction seq: %w", err)
+	}
+	return int(val) + 1, nil // return what the next call to Next would return
+}
+
 // Wallet operations
 
 func (s *RedisStorage) CreateWallet(wallet *models.Wallet) error {
@@ -953,6 +993,10 @@ func (s *RedisStorage) cardTransactionKey(id string) string {
 
 func (s *RedisStorage) cardTransactionsKey(cardID string) string {
 	return fmt.Sprintf("card:%s:transactions", cardID)
+}
+
+func (s *RedisStorage) cardTransactionRawKey(id string) string {
+	return fmt.Sprintf("cardtx_raw:%s", id)
 }
 
 func (s *RedisStorage) walletKey(address string) string {
