@@ -29,21 +29,6 @@ func New(client plaid.Client, store plaid.TokenStore) *Handlers {
 	return &Handlers{client: client, store: store}
 }
 
-// notImplemented is used by every endpoint until its B5* task fills it in.
-// Logs a debug line so we can see the call without leaking tokens.
-func (h *Handlers) notImplemented(w http.ResponseWriter, r *http.Request, endpoint string) {
-	u, err := ops.UserForContext(r.Context())
-	if err != nil {
-		apperrors.WriteAppError(w, r, http.StatusUnauthorized, errcodes.ErrCodeUnauthorized, "unauthenticated")
-		return
-	}
-	log.Debug("plaid endpoint stub hit",
-		zap.String("endpoint", endpoint),
-		zap.String("user_id", u.ID),
-	)
-	apperrors.WriteAppError(w, r, http.StatusNotImplemented, errcodes.ErrCodeInternal, "plaid endpoint not yet implemented")
-}
-
 // CreateLinkToken — POST /plaid/link-token. Calls Plaid /link/token/create
 // using the current Kratos user as client_user_id and returns the link token
 // the frontend hands to react-plaid-link.
@@ -290,7 +275,53 @@ func (h *Handlers) GetTransactions(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, res)
 }
 
-// Disconnect — filled by B5f.
+// Disconnect — DELETE /plaid/disconnect. Removes the Item on Plaid's side
+// (best-effort) and always deletes the local TokenStore entry. Returns
+// `{"disconnected": true}` once the store is clean even if Plaid returned an
+// error, so a partial failure can never leave a user permanently stuck.
 func (h *Handlers) Disconnect(w http.ResponseWriter, r *http.Request) {
-	h.notImplemented(w, r, "DELETE /plaid/disconnect")
+	u, err := ops.UserForContext(r.Context())
+	if err != nil {
+		apperrors.WriteAppError(w, r, http.StatusUnauthorized, errcodes.ErrCodeUnauthorized, "unauthenticated")
+		return
+	}
+
+	t, found, err := h.store.Get(r.Context(), u.ID)
+	if err != nil {
+		log.Error("plaid: TokenStore.Get failed",
+			zap.String("user_id", u.ID),
+			zap.Error(err),
+		)
+		apperrors.WriteAppError(w, r, http.StatusInternalServerError, errcodes.ErrCodeInternal, "failed to read plaid state")
+		return
+	}
+
+	if found {
+		if err := h.client.RemoveItem(r.Context(), t.AccessToken); err != nil {
+			// Soft-fail: token may already be invalid on Plaid's side; we still
+			// want to drop our local record so the user can re-link.
+			log.Warn("plaid: ItemRemove failed (continuing with local delete)",
+				zap.String("user_id", u.ID),
+				zap.String("item_id", t.ItemID),
+				zap.Error(err),
+			)
+		}
+	}
+
+	if err := h.store.Delete(r.Context(), u.ID); err != nil {
+		log.Error("plaid: TokenStore.Delete failed",
+			zap.String("user_id", u.ID),
+			zap.Error(err),
+		)
+		apperrors.WriteAppError(w, r, http.StatusInternalServerError, errcodes.ErrCodeInternal, "failed to clear plaid link")
+		return
+	}
+
+	log.Info("plaid item disconnected",
+		zap.String("user_id", u.ID),
+		zap.String("item_id", t.ItemID),
+	)
+	writeJSON(w, http.StatusOK, struct {
+		Disconnected bool `json:"disconnected"`
+	}{Disconnected: true})
 }

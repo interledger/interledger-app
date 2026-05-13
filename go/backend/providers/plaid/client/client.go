@@ -201,7 +201,15 @@ func (c *Client) SyncTransactions(ctx context.Context, accessToken string) (*pla
 	return nil, fmt.Errorf("plaid: TransactionsSync exceeded %d pages", maxPages)
 }
 
-// RemoveItem is implemented in B5f.
-func (c *Client) RemoveItem(_ context.Context, _ string) error {
-	return plaid.ErrNotImplemented
+// RemoveItem invalidates an Item on Plaid via `/item/remove`. After this call
+// the access_token can no longer be used. Local TokenStore deletion is the
+// caller's responsibility (see ops.Handlers.Disconnect).
+func (c *Client) RemoveItem(ctx context.Context, accessToken string) error {
+	_, _, err := c.sdk.PlaidApi.ItemRemove(ctx).
+		ItemRemoveRequest(*plaidsdk.NewItemRemoveRequest(accessToken)).
+		Execute()
+	if err != nil {
+		return fmt.Errorf("plaid: ItemRemove: %w", wrapPlaidError(err))
+	}
+	return nil
 }
