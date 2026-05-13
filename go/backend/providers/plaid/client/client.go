@@ -84,14 +84,36 @@ func wrapPlaidError(err error) error {
 	return fmt.Errorf("%s: %s", err.Error(), string(body))
 }
 
-// ExchangePublicToken is implemented in B5b.
-func (c *Client) ExchangePublicToken(_ context.Context, _ string) (string, string, error) {
-	return "", "", plaid.ErrNotImplemented
+// ExchangePublicToken trades the short-lived public_token from Plaid Link for
+// a long-lived access_token + item_id.
+func (c *Client) ExchangePublicToken(ctx context.Context, publicToken string) (string, string, error) {
+	req := plaidsdk.NewItemPublicTokenExchangeRequest(publicToken)
+	resp, _, err := c.sdk.PlaidApi.ItemPublicTokenExchange(ctx).ItemPublicTokenExchangeRequest(*req).Execute()
+	if err != nil {
+		return "", "", fmt.Errorf("plaid: ItemPublicTokenExchange: %w", wrapPlaidError(err))
+	}
+	return resp.AccessToken, resp.ItemId, nil
 }
 
-// GetInstitutionForItem is implemented in B5b.
-func (c *Client) GetInstitutionForItem(_ context.Context, _ string) (string, string, error) {
-	return "", "", plaid.ErrNotImplemented
+// GetInstitutionForItem resolves the institution name attached to an Item.
+// Returns empty strings (no error) for Items created without an institution
+// link (e.g. Same Day Micro-deposits).
+func (c *Client) GetInstitutionForItem(ctx context.Context, accessToken string) (string, string, error) {
+	itemResp, _, err := c.sdk.PlaidApi.ItemGet(ctx).ItemGetRequest(*plaidsdk.NewItemGetRequest(accessToken)).Execute()
+	if err != nil {
+		return "", "", fmt.Errorf("plaid: ItemGet: %w", wrapPlaidError(err))
+	}
+	institutionID := itemResp.Item.GetInstitutionId()
+	if institutionID == "" {
+		return "", "", nil
+	}
+	instResp, _, err := c.sdk.PlaidApi.InstitutionsGetById(ctx).
+		InstitutionsGetByIdRequest(*plaidsdk.NewInstitutionsGetByIdRequest(institutionID, c.countryCodes)).
+		Execute()
+	if err != nil {
+		return institutionID, "", fmt.Errorf("plaid: InstitutionsGetById: %w", wrapPlaidError(err))
+	}
+	return institutionID, instResp.Institution.Name, nil
 }
 
 // GetAccounts is implemented in B5d.

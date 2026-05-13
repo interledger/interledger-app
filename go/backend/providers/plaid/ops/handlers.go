@@ -82,14 +82,85 @@ func writeJSON(w http.ResponseWriter, status int, body any) {
 	}
 }
 
-// ExchangePublicToken — filled by B5b.
+// ExchangePublicToken — POST /plaid/exchange. Body: {"public_token": "..."}.
+// Exchanges with Plaid, fetches institution metadata, stores TokenSet keyed by
+// the current Kratos user. Never leaks tokens to logs.
 func (h *Handlers) ExchangePublicToken(w http.ResponseWriter, r *http.Request) {
-	h.notImplemented(w, r, "POST /plaid/exchange")
+	u, err := ops.UserForContext(r.Context())
+	if err != nil {
+		apperrors.WriteAppError(w, r, http.StatusUnauthorized, errcodes.ErrCodeUnauthorized, "unauthenticated")
+		return
+	}
+
+	var body struct {
+		PublicToken string `json:"public_token"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.PublicToken == "" {
+		apperrors.WriteAppError(w, r, http.StatusBadRequest, errcodes.ErrCodeBadRequest, "public_token is required")
+		return
+	}
+
+	accessToken, itemID, err := h.client.ExchangePublicToken(r.Context(), body.PublicToken)
+	if err != nil {
+		log.Error("plaid: ExchangePublicToken failed",
+			zap.String("user_id", u.ID),
+			zap.Error(err),
+		)
+		apperrors.WriteAppError(w, r, http.StatusBadGateway, errcodes.ErrCodeInternal, "plaid public-token exchange failed")
+		return
+	}
+
+	institutionID, institutionName, err := h.client.GetInstitutionForItem(r.Context(), accessToken)
+	if err != nil {
+		// Soft-fail: token exchange succeeded; institution lookup is decoration.
+		log.Warn("plaid: GetInstitutionForItem failed (continuing)",
+			zap.String("user_id", u.ID),
+			zap.String("item_id", itemID),
+			zap.Error(err),
+		)
+	}
+
+	h.store.Put(u.ID, plaid.TokenSet{
+		AccessToken:     accessToken,
+		ItemID:          itemID,
+		InstitutionID:   institutionID,
+		InstitutionName: institutionName,
+		LinkedAt:        time.Now().UTC(),
+	})
+
+	log.Info("plaid item linked",
+		zap.String("user_id", u.ID),
+		zap.String("item_id", itemID),
+		zap.String("institution_id", institutionID),
+		zap.String("institution_name", institutionName),
+	)
+	writeJSON(w, http.StatusOK, struct {
+		ItemID          string `json:"item_id"`
+		InstitutionName string `json:"institution_name"`
+	}{ItemID: itemID, InstitutionName: institutionName})
 }
 
-// GetState — filled by B5c.
+// GetState — GET /plaid/state. Returns a non-sensitive view of the current
+// user's Plaid link: linked? what institution? when? Never includes tokens.
 func (h *Handlers) GetState(w http.ResponseWriter, r *http.Request) {
-	h.notImplemented(w, r, "GET /plaid/state")
+	u, err := ops.UserForContext(r.Context())
+	if err != nil {
+		apperrors.WriteAppError(w, r, http.StatusUnauthorized, errcodes.ErrCodeUnauthorized, "unauthenticated")
+		return
+	}
+
+	t, ok := h.store.Get(u.ID)
+	if !ok {
+		writeJSON(w, http.StatusOK, plaid.State{Linked: false})
+		return
+	}
+	linkedAt := t.LinkedAt
+	writeJSON(w, http.StatusOK, plaid.State{
+		Linked:          true,
+		ItemID:          t.ItemID,
+		InstitutionName: t.InstitutionName,
+		LinkedAt:        &linkedAt,
+	})
 }
 
 // GetAccounts — filled by B5d.
