@@ -68,6 +68,7 @@ import (
 	gatehub_ops "gitlab.com/fynbos/backend/providers/gatehub/ops"
 	"gitlab.com/fynbos/backend/providers/plaid"
 	plaid_client "gitlab.com/fynbos/backend/providers/plaid/client"
+	plaid_ops "gitlab.com/fynbos/backend/providers/plaid/ops"
 	plaid_store "gitlab.com/fynbos/backend/providers/plaid/store"
 	"gitlab.com/fynbos/backend/providers/pti"
 	pti_client "gitlab.com/fynbos/backend/providers/pti/client"
@@ -216,6 +217,11 @@ func start(args *cli.StartArgs) {
 	router.Handle("/webhooks/gatehub", gatehub_ops.NewWebhook(b, b.gatehubConfig))
 	router.Handle("/webhooks/gatehub/v1/users/managed/{userId}/2fa", gatehub_ops.NewSCAHandler(b, b.gatehubConfig))
 	router.Handle("/{wallet_id}/identities/{identity_sig_hash}", wallet_handler.GetIdentityHandler(b))
+
+	if b.plaidClient != nil {
+		router.Mount("/plaid", plaid_ops.NewRouter(b.plaidClient, b.plaidStore, b.Users()))
+	}
+
 	router.NotFound(wallet_handler.WalletRedirectHandler(b))
 
 	// fiant sandbox actions (only when PTI is enabled)
