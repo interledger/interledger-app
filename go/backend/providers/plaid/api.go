@@ -59,13 +59,14 @@ type Client interface {
 	RemoveItem(ctx context.Context, accessToken string) error
 }
 
-// TokenStore persists TokenSets keyed by user ID. POC uses an in-memory
-// implementation; post-POC switches to Postgres with column-level encryption
-// (see documentation/poc/plaid/architecture.md §7).
+// TokenStore persists TokenSets keyed by user ID. POC uses Redis (see
+// providers/plaid/store/redis.go); an in-memory implementation is kept for
+// tests. Production path is encrypted Postgres — see
+// documentation/poc/plaid/architecture.md §7.
 type TokenStore interface {
-	Get(userID string) (TokenSet, bool)
-	Put(userID string, t TokenSet)
-	Delete(userID string)
+	Get(ctx context.Context, userID string) (TokenSet, bool, error)
+	Put(ctx context.Context, userID string, t TokenSet) error
+	Delete(ctx context.Context, userID string) error
 }
 
 // ErrNotImplemented is returned by scaffolded methods until their owning

@@ -885,11 +885,16 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 			log.Fatalln(err)
 		}
 		b.plaidClient = plaidC
-		b.plaidStore = plaid_store.NewMemory()
+		plaidStore, err := plaid_store.NewRedis(args.RedisURL)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		b.plaidStore = plaidStore
 		log.Info("plaid client initialized",
 			zap.String("env", args.PlaidEnv),
 			zap.Strings("products", args.PlaidProducts),
 			zap.Strings("country_codes", args.PlaidCountryCodes),
+			zap.String("store", "redis"),
 		)
 	} else {
 		log.Debug("Plaid disabled (PLAID_ENABLED=false)")

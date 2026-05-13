@@ -130,6 +130,7 @@ type StartArgs struct {
 	PlaidEnv                      string
 	PlaidProducts                 []string
 	PlaidCountryCodes             []string
+	RedisURL                      string
 }
 
 func splitAndTrim(s, sep string) []string {
@@ -515,6 +516,11 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, errors.New("SIGNATURE_VERSION is required")
 	}
 
+	redisURL := os.Getenv("REDIS_URL")
+	if redisURL == "" {
+		redisURL = "redis://redis:6379/0"
+	}
+
 	plaidEnabled := os.Getenv("PLAID_ENABLED") == "true"
 	plaidClientID := os.Getenv("PLAID_CLIENT_ID")
 	plaidSecret := os.Getenv("PLAID_SECRET")
@@ -623,5 +629,6 @@ func ParseStartArgs() (*StartArgs, error) {
 		PlaidEnv:                      plaidEnv,
 		PlaidProducts:                 plaidProducts,
 		PlaidCountryCodes:             plaidCountryCodes,
+		RedisURL:                      redisURL,
 	}, nil
 }

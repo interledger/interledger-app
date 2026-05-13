@@ -1,6 +1,7 @@
 package store_test
 
 import (
+	"context"
 	"sync"
 	"testing"
 	"time"
@@ -11,9 +12,10 @@ import (
 
 func TestMemory_PutGetDelete(t *testing.T) {
 	s := store.NewMemory()
+	ctx := context.Background()
 
-	if _, ok := s.Get("user-a"); ok {
-		t.Fatalf("expected empty store to return ok=false")
+	if _, ok, err := s.Get(ctx, "user-a"); err != nil || ok {
+		t.Fatalf("expected empty store to return ok=false, err=nil; got ok=%v err=%v", ok, err)
 	}
 
 	ts := plaid.TokenSet{
@@ -23,9 +25,14 @@ func TestMemory_PutGetDelete(t *testing.T) {
 		InstitutionName: "First Platypus Bank",
 		LinkedAt:        time.Now(),
 	}
-	s.Put("user-a", ts)
+	if err := s.Put(ctx, "user-a", ts); err != nil {
+		t.Fatalf("Put: %v", err)
+	}
 
-	got, ok := s.Get("user-a")
+	got, ok, err := s.Get(ctx, "user-a")
+	if err != nil {
+		t.Fatalf("Get: %v", err)
+	}
 	if !ok {
 		t.Fatalf("expected ok=true after Put")
 	}
@@ -33,16 +40,17 @@ func TestMemory_PutGetDelete(t *testing.T) {
 		t.Fatalf("Get returned mismatched TokenSet: %+v", got)
 	}
 
-	s.Delete("user-a")
-	if _, ok := s.Get("user-a"); ok {
+	if err := s.Delete(ctx, "user-a"); err != nil {
+		t.Fatalf("Delete: %v", err)
+	}
+	if _, ok, _ := s.Get(ctx, "user-a"); ok {
 		t.Fatalf("expected ok=false after Delete")
 	}
 }
 
-// TestMemory_Race exercises concurrent Put/Get/Delete to catch races under
-// `go test -race`.
 func TestMemory_Race(t *testing.T) {
 	s := store.NewMemory()
+	ctx := context.Background()
 	users := []string{"u1", "u2", "u3", "u4"}
 
 	var wg sync.WaitGroup
@@ -51,19 +59,19 @@ func TestMemory_Race(t *testing.T) {
 		go func(u string) {
 			defer wg.Done()
 			for range 1000 {
-				s.Put(u, plaid.TokenSet{AccessToken: u, ItemID: u})
+				_ = s.Put(ctx, u, plaid.TokenSet{AccessToken: u, ItemID: u})
 			}
 		}(u)
 		go func(u string) {
 			defer wg.Done()
 			for range 1000 {
-				_, _ = s.Get(u)
+				_, _, _ = s.Get(ctx, u)
 			}
 		}(u)
 		go func(u string) {
 			defer wg.Done()
 			for range 1000 {
-				s.Delete(u)
+				_ = s.Delete(ctx, u)
 			}
 		}(u)
 	}

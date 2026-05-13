@@ -120,13 +120,21 @@ func (h *Handlers) ExchangePublicToken(w http.ResponseWriter, r *http.Request) {
 		)
 	}
 
-	h.store.Put(u.ID, plaid.TokenSet{
+	if err := h.store.Put(r.Context(), u.ID, plaid.TokenSet{
 		AccessToken:     accessToken,
 		ItemID:          itemID,
 		InstitutionID:   institutionID,
 		InstitutionName: institutionName,
 		LinkedAt:        time.Now().UTC(),
-	})
+	}); err != nil {
+		log.Error("plaid: TokenStore.Put failed",
+			zap.String("user_id", u.ID),
+			zap.String("item_id", itemID),
+			zap.Error(err),
+		)
+		apperrors.WriteAppError(w, r, http.StatusInternalServerError, errcodes.ErrCodeInternal, "failed to persist plaid link")
+		return
+	}
 
 	log.Info("plaid item linked",
 		zap.String("user_id", u.ID),
@@ -149,7 +157,15 @@ func (h *Handlers) GetState(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	t, ok := h.store.Get(u.ID)
+	t, ok, err := h.store.Get(r.Context(), u.ID)
+	if err != nil {
+		log.Error("plaid: TokenStore.Get failed",
+			zap.String("user_id", u.ID),
+			zap.Error(err),
+		)
+		apperrors.WriteAppError(w, r, http.StatusInternalServerError, errcodes.ErrCodeInternal, "failed to read plaid state")
+		return
+	}
 	if !ok {
 		writeJSON(w, http.StatusOK, plaid.State{Linked: false})
 		return
