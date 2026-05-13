@@ -40,7 +40,7 @@ import { emailVerificationGuard, recoveryLinkSessionInvalidationGuard, withAAL2G
 import { usePusher } from './lib/usePusher'
 import { PtiConfigProvider } from './lib/pti-context'
 import { Route } from './+types/root';
-import { envValue } from './env.server';
+import { envValue } from './env.server'
 
 export const shouldRevalidate: ShouldRevalidateFunction = ({
   actionResult,
@@ -139,7 +139,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
     fynbosEnv: envValue("FYNBOS_ENV"),
     sentryDsn: envValue("SENTRY_DSN"),
     sentryRelease: envValue("SENTRY_RELEASE"),
-    targetHost: envValue("TARGET_HOST")
+    targetHost: envValue("TARGET_HOST"),
+    supportEmail: envValue("SUPPORT_EMAIL")
   }
 
   if (!isUser) {

@@ -77,7 +77,7 @@ services:
       - BACKEND_GRPC_URL=${PROTEA_BACKEND_GRPC_URL:-http://0.0.0.0:8443}
       - BACKEND_HTTP_URL=${PROTEA_BACKEND_HTTP_URL:-http://backend:8080}
       - TARGET_HOST=${PROTEA_TARGET_HOST:-https://interledger.app}
-      - SUPPORT_EMAIL
+      - SUPPORT_EMAIL=${PROTEA_SUPPORT_EMAIL:-support@interledger.app}
 
     depends_on:
       - backend
