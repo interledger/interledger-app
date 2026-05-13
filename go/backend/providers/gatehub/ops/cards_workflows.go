@@ -274,7 +274,21 @@ func CreateCardTransaction(ctx workflow.Context, wh CardTransactionEventWebhook)
 		}
 
 		if fx != nil {
-			// TODO send email notifications
+			date := ct.CreatedAt
+			if ct.TransactionDateTime != nil {
+				date = *ct.TransactionDateTime
+			}
+			if err = workflow.ExecuteActivity(ctx, a.SendCardTransactionFXEmail, SendCardTransactionFXEmailArgs{
+				WalletID:          ctMeta.WalletID,
+				MaskedPAN:         card.MaskedPan,
+				MerchantName:      ctMeta.MerchantName,
+				Date:              date,
+				Surcharge:         fx.ExchangeRateSurcharge,
+				TransactionAmount: *fx.TargetAmount,
+				BillingAmount:     ctMeta.BillingAmount,
+			}).Get(ctx, nil); err != nil {
+				return err
+			}
 		}
 	case external.CardTransactionOperationDeposit:
 		var classification string
@@ -370,6 +384,24 @@ func CreateCardTransaction(ctx workflow.Context, wh CardTransactionEventWebhook)
 
 		if err = workflow.ExecuteActivity(ctx, a.RecordGatehubCardInformational, txID, ct, recordInformationalArgs).Get(ctx, nil); err != nil {
 			return err
+		}
+
+		if fx != nil {
+			date := ct.CreatedAt
+			if ct.TransactionDateTime != nil {
+				date = *ct.TransactionDateTime
+			}
+			if err = workflow.ExecuteActivity(ctx, a.SendCardTransactionFXEmail, SendCardTransactionFXEmailArgs{
+				WalletID:          ctMeta.WalletID,
+				MaskedPAN:         card.MaskedPan,
+				MerchantName:      ctMeta.MerchantName,
+				Date:              date,
+				Surcharge:         fx.ExchangeRateSurcharge,
+				TransactionAmount: *fx.TargetAmount,
+				BillingAmount:     ctMeta.BillingAmount,
+			}).Get(ctx, nil); err != nil {
+				return err
+			}
 		}
 	default:
 		slack.SendToChannel(context.Background(), slack.ChannelNotifyEvents, "wallet-info-bot", fmt.Sprintf("!!! Received card transaction with unsupported operation:\nCard TX ID: %s\nCard ID: %s\nGateHub User ID: %s\nOperation: %d", ct.TransactionID, card.ID, wh.UserID, ct.Operation))

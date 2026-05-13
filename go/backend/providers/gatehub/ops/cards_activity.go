@@ -393,6 +393,21 @@ func (a *Activity) GetInternalTransactionByForeignID(ctx context.Context, wallet
 	return tx.ID, nil
 }
 
+type SendCardTransactionFXEmailArgs struct {
+	WalletID          string
+	MaskedPAN         string
+	MerchantName      string
+	Date              string
+	TransactionAmount currency.Amount
+	BillingAmount     currency.Amount
+	Surcharge         string
+}
+
+func (a *Activity) SendCardTransactionFXEmail(ctx context.Context, args SendCardTransactionFXEmailArgs) error {
+	a.b.Email().SendCardTransactionFXEmail(ctx, args.WalletID, args.MaskedPAN, args.MerchantName, args.Date, args.Surcharge, args.TransactionAmount.Format(), args.BillingAmount.Format())
+	return nil
+}
+
 type createCardTransactionLedgerTransferArgs struct {
 	txID      string
 	amount    currency.Amount
