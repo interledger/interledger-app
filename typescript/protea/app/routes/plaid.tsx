@@ -31,8 +31,8 @@ import {
   Layouts,
   WalletGrid,
   GridColumn,
-  Button,
-  OutlineButton
+  OutlineButton,
+  PlaidLinkButton
 } from '~/components'
 import type { ApplicationProps } from '~/components'
 import { getUserSession } from '~/lib/kratos/session.server'
@@ -288,12 +288,7 @@ export default function PlaidRoute() {
             ) : (
               <div className='flex flex-col gap-3'>
                 <p>No bank linked yet.</p>
-                <Form method='post'>
-                  <input type='hidden' name='intent' value='create_link_token' />
-                  <Button type='submit' disabled={isSubmitting}>
-                    Connect a bank (placeholder — F5a wires Plaid Link)
-                  </Button>
-                </Form>
+                <PlaidLinkButton />
               </div>
             )}
           </CardContent>
