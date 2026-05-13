@@ -1,6 +1,6 @@
 import { Code } from '@bufbuild/connect'
 import { Timestamp } from '@bufbuild/protobuf'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Form, href, useActionData, useLoaderData } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
@@ -72,11 +72,11 @@ export async function action({ request }: Route.ActionArgs) {
   if (!amount || !(parseFloat(amount) > 0)) {
     errors.amount = 'Enter an amount greater than zero.'
   }
-  const expiresAtDate = new Date(expiresAt)
+  const expiresAtDate = parseLocalEndOfDay(expiresAt)
   if (!expiresAt || Number.isNaN(expiresAtDate.getTime())) {
-    errors.expiresAt = 'Choose a valid expiration date and time.'
+    errors.expiresAt = 'Choose a valid expiration date.'
   } else if (expiresAtDate.getTime() < Date.now() + 30_000) {
-    errors.expiresAt = 'Expiration must be at least 30 seconds from now.'
+    errors.expiresAt = 'Expiration date must be in the future.'
   }
   if (Object.keys(errors).length > 0) {
     return { errors }
@@ -156,6 +156,14 @@ function RequestForm({
   walletUrl: string
   errors: RequestErrors
 }) {
+  // Compute `min` on the client only — server-rendered `min` could disagree
+  // with the user's local "today" across timezones and cause a hydration
+  // mismatch. Server-side validation still rejects past dates.
+  const [minDate, setMinDate] = useState<string | undefined>(undefined)
+  useEffect(() => {
+    setMinDate(todayLocal())
+  }, [])
+
   return (
     <Form
       method='post'
@@ -204,8 +212,8 @@ function RequestForm({
             name='expiresAt'
             label='Expiration date'
             labelSuffix='*'
-            type='datetime-local'
-            defaultValue={defaultExpiresAtLocal()}
+            type='date'
+            min={minDate}
             required
             aria-invalid={Boolean(errors.expiresAt) || undefined}
             errorMessage={errors.expiresAt}
@@ -263,7 +271,7 @@ function RequestResult({ success }: { success: RequestSuccess }) {
             {success.url}
           </p>
           <p className='text-xs text-weak'>
-            Expires {new Date(success.expiresAt).toLocaleString()}
+            Valid through {new Date(success.expiresAt).toLocaleDateString()}
           </p>
         </CardContent>
       </Card>
@@ -277,11 +285,24 @@ function RequestResult({ success }: { success: RequestSuccess }) {
   )
 }
 
-function defaultExpiresAtLocal(): string {
-  const d = new Date()
-  d.setDate(d.getDate() + 7)
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(
-    d.getHours()
-  )}:${pad(d.getMinutes())}`
+function pad(n: number): string {
+  return String(n).padStart(2, '0')
+}
+
+function formatLocalDate(d: Date): string {
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+}
+
+function todayLocal(): string {
+  return formatLocalDate(new Date())
+}
+
+// Parse a "YYYY-MM-DD" value from <input type="date"> as the end of that
+// day in local wall-clock time. new Date('YYYY-MM-DD') is spec'd as UTC
+// midnight, which would skew across timezones — parse explicitly.
+function parseLocalEndOfDay(value: string): Date {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
+  if (!match) return new Date(NaN)
+  const [, y, mo, d] = match
+  return new Date(Number(y), Number(mo) - 1, Number(d), 23, 59, 59, 999)
 }
