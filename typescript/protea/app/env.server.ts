@@ -21,7 +21,6 @@ const knownEnvKeysOptional: string[] = [
     "SENTRY_DSN",
     "SENTRY_RELEASE",
     "FYNBOS_ENV",
-    "SEGMENT_API_KEY",
     "LOG_LEVEL",
     "LOG_PRETTY",
     "PAYMENT_POINTER_BASE",
