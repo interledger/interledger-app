@@ -36,7 +36,7 @@ export function DebugPanel({ userId, state, actionData }: DebugPanelProps) {
         </Card>
       )}
 
-      {actionData && (
+      {actionData != null && (
         <Card>
           <CardHeader>
             <CardTitle>Debug — last action result</CardTitle>

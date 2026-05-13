@@ -4,33 +4,71 @@
 // existing fetch-based routes (e.g. api_.statements_.*) — loaders/actions
 // pass the inbound Request so we can lift the Kratos session cookie onto the
 // backend call.
-//
-// All endpoints are documented in
-// /Users/antoniuneacsu/dev/interledger/interledger-app/documentation/poc/plaid/architecture.md#4-api-contract-phase-1.
-//
-// NOTE: this client currently throws PlaidError on non-2xx responses. A
-// follow-up task (`FX` in tasks.md) aligns it with the BFF error pattern used
-// by `grpc.server.ts` / `error.server.ts` (returns `T | PlaidError`, Sentry
-// capture, 401 → /login). Kept simple for the POC.
+
+import { redirect } from 'react-router'
+import { href } from 'react-router'
+import { captureMessage } from '@sentry/react-router'
+import { CLEAR_SESSION_COOKIE_HEADER } from './kratos/kratos-client.server'
 
 const BACKEND_HTTP_URL = process.env.BACKEND_HTTP_URL || 'http://backend:8080'
 const PLAID_API_PATH = '/api/plaid'
 
 /**
  * PlaidError is the shape returned to callers on a non-2xx backend response.
- * It mirrors the apperrors.WriteAppError JSON envelope so existing snackbar
- * helpers can render a useful message.
+ * It mirrors the BFF ConnectError pattern.
  */
-export class PlaidError extends Error {
+export class PlaidError {
+  public readonly _request: Request
+  public readonly status: number
+  public readonly errorCode: string
+  public readonly message: string
+  public readonly reqId?: string
+
   constructor(
-    public readonly status: number,
-    public readonly errorCode: string,
+    request: Request,
+    status: number,
+    errorCode: string,
     message: string,
-    public readonly reqId?: string
+    reqId?: string
   ) {
-    super(message)
-    this.name = 'PlaidError'
+    this._request = request
+    this.status = status
+    this.errorCode = errorCode
+    this.message = message
+    this.reqId = reqId
+
+    const url = new URL(request.url)
+
+    captureMessage('Error received in Plaid API', {
+      extra: {
+        url: url.pathname,
+        status,
+        errorCode,
+        message,
+        reqId
+      }
+    })
+
+    if (status === 401) {
+      url.searchParams.set('returnTo', url.pathname + url.search)
+      throw redirect(href('/login') + url.search, {
+        headers: {
+          'Set-Cookie': CLEAR_SESSION_COOKIE_HEADER
+        }
+      })
+    }
   }
+}
+
+/** Type guard for PlaidError */
+export function isPlaidError(response: unknown): response is PlaidError {
+  return (
+    response !== null &&
+    typeof response === 'object' &&
+    '_request' in response &&
+    'errorCode' in response &&
+    'status' in response
+  )
 }
 
 /** Shape returned by GET /plaid/state. */
@@ -87,7 +125,7 @@ async function plaidFetch<T>(
   request: Request,
   path: string,
   init: RequestInit = {}
-): Promise<T> {
+): Promise<T | PlaidError> {
   const cookie = request.headers.get('cookie') || ''
   const headers = new Headers(init.headers)
   if (cookie) headers.set('cookie', cookie)
@@ -108,7 +146,7 @@ async function plaidFetch<T>(
     } catch {
       // Surface as a PlaidError so callers don't have to special-case non-JSON
       // 5xx pages.
-      throw new PlaidError(res.status, 'INTERNAL', text || res.statusText)
+      return new PlaidError(request, res.status, 'INTERNAL', text || res.statusText)
     }
   }
 
@@ -118,7 +156,8 @@ async function plaidFetch<T>(
       message?: string
       req_id?: string
     }
-    throw new PlaidError(
+    return new PlaidError(
+      request,
       res.status,
       errBody.error_code || 'INTERNAL',
       errBody.message || res.statusText,
@@ -131,11 +170,11 @@ async function plaidFetch<T>(
 
 /* ─── typed wrappers ─────────────────────────────────────────────────── */
 
-function getState(request: Request): Promise<PlaidState> {
+function getState(request: Request): Promise<PlaidState | PlaidError> {
   return plaidFetch<PlaidState>(request, `${PLAID_API_PATH}/state`)
 }
 
-function createLinkToken(request: Request): Promise<PlaidLinkToken> {
+function createLinkToken(request: Request): Promise<PlaidLinkToken | PlaidError> {
   return plaidFetch<PlaidLinkToken>(request, `${PLAID_API_PATH}/link-token`, {
     method: 'POST'
   })
@@ -144,38 +183,38 @@ function createLinkToken(request: Request): Promise<PlaidLinkToken> {
 function exchangePublicToken(
   request: Request,
   publicToken: string
-): Promise<PlaidExchangeResult> {
+): Promise<PlaidExchangeResult | PlaidError> {
   return plaidFetch<PlaidExchangeResult>(request, `${PLAID_API_PATH}/exchange`, {
     method: 'POST',
     body: JSON.stringify({ public_token: publicToken })
   })
 }
 
-function getAccounts(request: Request): Promise<PlaidProductResponse> {
+function getAccounts(request: Request): Promise<PlaidProductResponse | PlaidError> {
   return plaidFetch<PlaidProductResponse>(request, `${PLAID_API_PATH}/accounts`)
 }
 
-function getAuth(request: Request): Promise<PlaidProductResponse> {
+function getAuth(request: Request): Promise<PlaidProductResponse | PlaidError> {
   return plaidFetch<PlaidProductResponse>(request, `${PLAID_API_PATH}/auth`)
 }
 
-function getBalance(request: Request): Promise<PlaidProductResponse> {
+function getBalance(request: Request): Promise<PlaidProductResponse | PlaidError> {
   return plaidFetch<PlaidProductResponse>(request, `${PLAID_API_PATH}/balance`)
 }
 
-function getIdentity(request: Request): Promise<PlaidProductResponse> {
+function getIdentity(request: Request): Promise<PlaidProductResponse | PlaidError> {
   return plaidFetch<PlaidProductResponse>(request, `${PLAID_API_PATH}/identity`)
 }
 
 function getTransactions(
   request: Request
-): Promise<PlaidTransactionsResult> {
+): Promise<PlaidTransactionsResult | PlaidError> {
   return plaidFetch<PlaidTransactionsResult>(request, `${PLAID_API_PATH}/transactions`)
 }
 
 function disconnect(
   request: Request
-): Promise<PlaidDisconnectResult> {
+): Promise<PlaidDisconnectResult | PlaidError> {
   return plaidFetch<PlaidDisconnectResult>(request, `${PLAID_API_PATH}/disconnect`, {
     method: 'DELETE'
   })

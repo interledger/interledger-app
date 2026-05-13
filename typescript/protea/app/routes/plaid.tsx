@@ -24,6 +24,8 @@ import {
 } from 'react-router'
 
 import { jsonWithSnackbar, redirectWithSnackbar } from '~/lib/snackbar.server'
+import { ErrorHandler, ErrorMapper, UserFacingError } from '~/lib/error-handling/bff-error'
+import type { ServerResponse } from '~/lib/error-handling/types'
 
 import {
   Card,
@@ -42,7 +44,7 @@ import {
 import type { ApplicationProps } from '~/components'
 import { getUserSession } from '~/lib/kratos/session.server'
 import { mergeMeta } from '~/lib/meta'
-import plaid, { PlaidError, type PlaidState } from '~/lib/plaid.server'
+import plaid, { isPlaidError, type PlaidError, type PlaidState } from '~/lib/plaid.server'
 import { usePlaidStore, type PlaidProduct } from '~/lib/usePlaidStore'
 
 import type { Route } from './+types/plaid'
@@ -68,11 +70,20 @@ interface LoaderData {
   error?: { message: string; status: number; errorCode: string }
 }
 
-export async function loader({ request }: Route.LoaderArgs): Promise<LoaderData> {
+export async function loader({ request }: Route.LoaderArgs): Promise<ServerResponse<LoaderData>> {
   const session = await getUserSession(request)
   const userId = session?.identity?.id ?? ''
   const state = await plaid.getState(request)
-  return { state, userId }
+  if (isPlaidError(state)) {
+    const userFacingError = ErrorMapper.plaid.toUserFacingError(state)
+    return ErrorHandler(request, userFacingError, {
+      cb: () => ({
+        success: false as const,
+        error: UserFacingError('Plaid state not available, please try again or contact support if the issue persists.')
+      })
+    }) as any
+  }
+  return { success: true, data: { state, userId } }
 }
 
 /* ─── action ─────────────────────────────────────────────────────────── */
@@ -123,63 +134,63 @@ interface ActionError {
   errorCode: string
 }
 
-export type ActionData =
+export type ActionDataPayload =
   | ActionLinkTokenResult
   | ActionExchangeResult
   | ActionProductResult
   | ActionDisconnectResult
-  | ActionError
+
+export type ActionData = ServerResponse<ActionDataPayload>
 
 export async function action({ request }: Route.ActionArgs): Promise<ActionData | Response> {
   await getUserSession(request)
   const form = await request.formData()
   const intent = String(form.get('intent') || '')
 
-  try {
-    switch (intent) {
-      case 'create_link_token': {
-        const { link_token, expiration } = await plaid.createLinkToken(request)
-        return {
+  switch (intent) {
+    case 'create_link_token': {
+      const result = await plaid.createLinkToken(request)
+      if (isPlaidError(result)) {
+        return ErrorHandler(request, ErrorMapper.plaid.toUserFacingError(result)) as any
+      }
+      return {
+        success: true,
+        data: {
           intent: 'create_link_token',
           ok: true,
-          linkToken: link_token,
-          expiration
+          linkToken: result.link_token,
+          expiration: result.expiration
         }
       }
+    }
 
       case 'exchange': {
         const publicToken = String(form.get('public_token') || '')
         if (!publicToken) {
-          return jsonWithSnackbar(request, {
-            ok: false,
-            intent,
-            message: 'public_token is required',
-            status: 400,
-            errorCode: 'BAD_REQUEST'
-          }, { message: 'public_token is required' }, 400)
+          return ErrorHandler(request, UserFacingError('public_token is required', 400)) as any
         }
-        const { item_id, institution_name } = await plaid.exchangePublicToken(
-          request,
-          publicToken
-        )
-        return {
+      const result = await plaid.exchangePublicToken(
+        request,
+        publicToken
+      )
+      if (isPlaidError(result)) {
+        return ErrorHandler(request, ErrorMapper.plaid.toUserFacingError(result)) as any
+      }
+      return {
+        success: true,
+        data: {
           intent: 'exchange',
           ok: true,
-          itemId: item_id,
-          institutionName: institution_name
+          itemId: result.item_id,
+          institutionName: result.institution_name
         }
       }
+    }
 
       case 'fetch_product': {
         const product = String(form.get('product') || '')
         if (!isPlaidProduct(product)) {
-          return jsonWithSnackbar(request, {
-            ok: false,
-            intent,
-            message: `unknown product: ${product}`,
-            status: 400,
-            errorCode: 'BAD_REQUEST'
-          }, { message: `unknown product: ${product}` }, 400)
+          return ErrorHandler(request, UserFacingError(`unknown product: ${product}`, 400)) as any
         }
         let response: unknown
         switch (product) {
@@ -199,50 +210,59 @@ export async function action({ request }: Route.ActionArgs): Promise<ActionData 
             response = await plaid.getTransactions(request)
             break
         }
+        
+        if (isPlaidError(response)) {
+          return ErrorHandler(request, ErrorMapper.plaid.toUserFacingError(response)) as any
+        }
+
         return {
-          intent: 'fetch_product',
-          ok: true,
-          product,
-          response
+          success: true,
+          data: {
+            intent: 'fetch_product',
+            ok: true,
+            product,
+            response
+          }
         }
       }
 
       case 'disconnect': {
-        await plaid.disconnect(request)
-        // Force a fresh load so the loader observes the unlinked state.
-        return redirectWithSnackbar(request, href('/plaid'), { message: 'Bank disconnected' })
+      const result = await plaid.disconnect(request)
+      if (isPlaidError(result)) {
+        return ErrorHandler(request, ErrorMapper.plaid.toUserFacingError(result)) as any
       }
+      // Force a fresh load so the loader observes the unlinked state.
+      return redirectWithSnackbar(request, href('/plaid'), { message: 'Bank disconnected' })
+    }
 
-      default:
-        return jsonWithSnackbar(request, {
-          ok: false,
-          intent,
-          message: `unknown intent: ${intent}`,
-          status: 400,
-          errorCode: 'BAD_REQUEST'
-        }, { message: `unknown intent: ${intent}` }, 400)
-    }
-  } catch (err) {
-    if (err instanceof PlaidError) {
-      return jsonWithSnackbar(request, {
-        ok: false,
-        intent,
-        message: err.message,
-        status: err.status,
-        errorCode: err.errorCode
-      }, { message: err.message }, err.status)
-    }
-    throw err
+    default:
+      return ErrorHandler(request, UserFacingError(`unknown intent: ${intent}`, 400)) as any
   }
 }
 
 /* ─── component ──────────────────────────────────────────────────────── */
 
 export default function PlaidRoute() {
-  const { state, userId } = useLoaderData<typeof loader>()
-  const actionData = useActionData<typeof action>()
+  const loaderData = useLoaderData<typeof loader>()
+  const actionResponse = useActionData<typeof action>()
+  const actionData = actionResponse?.success ? actionResponse.data : undefined
   const navigation = useNavigation()
   const isSubmitting = navigation.state === 'submitting'
+
+  if (loaderData.success === false) {
+    return (
+      <WalletGrid>
+        <GridColumn className='col-span-full'>
+          <Card>
+            <CardHeader><CardTitle>Status</CardTitle></CardHeader>
+            <CardContent>{loaderData.error?.message}</CardContent>
+          </Card>
+        </GridColumn>
+      </WalletGrid>
+    )
+  }
+
+  const { state, userId } = loaderData.data
 
   const {
     itemId,

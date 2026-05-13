@@ -8,6 +8,8 @@ import { usePlaidStore } from '~/lib/usePlaidStore'
 
 import type { ActionData } from '~/routes/plaid'
 
+type SerializedActionData = Exclude<ActionData, Promise<Response>>
+
 const PLAID_ACTION_PATH = '/plaid'
 
 // usePlaidLinkFlow orchestrates the Plaid Link round-trip:
@@ -26,8 +28,8 @@ const PLAID_ACTION_PATH = '/plaid'
 // See documentation/poc/plaid/plaid-link-explained.md for the full SDK
 // architecture (iframe, postMessage, CSP).
 export function usePlaidLinkFlow() {
-  const linkFetcher = useFetcher<ActionData>()
-  const exchangeFetcher = useFetcher<ActionData>()
+  const linkFetcher = useFetcher<SerializedActionData>()
+  const exchangeFetcher = useFetcher<SerializedActionData>()
 
   const linkToken = usePlaidStore((s) => s.linkToken)
   const isLinking = usePlaidStore((s) => s.isLinking)
@@ -50,16 +52,17 @@ export function usePlaidLinkFlow() {
   useEffect(() => {
     const data = linkFetcher.data
     if (!data) return
-    if (data.ok && data.intent === 'create_link_token') {
-      setLinkToken(data.linkToken)
+    if (data.success && data.data.intent === 'create_link_token') {
+      setLinkToken(data.data.linkToken)
       return
     }
-    if (!data.ok) {
-      setLastError(data.message)
+    if (!data.success) {
+      setLastError(data.error.message)
       setIsLinking(false)
       pendingOpenRef.current = false
+      pushSnackbar({ id: v4(), message: data.error.message })
     }
-  }, [linkFetcher.data, setLinkToken, setLastError, setIsLinking])
+  }, [linkFetcher.data, setLinkToken, setLastError, setIsLinking, pushSnackbar])
 
   // Plaid Link binding (see plaid-link-explained.md).
   const { open, ready, error: scriptError } = usePlaidLink({
@@ -108,16 +111,17 @@ export function usePlaidLinkFlow() {
   useEffect(() => {
     const data = exchangeFetcher.data
     if (!data) return
-    if (data.ok && data.intent === 'exchange') {
+    if (data.success && data.data.intent === 'exchange') {
       setLinkToken(null)
       setIsLinking(false)
       return
     }
-    if (!data.ok) {
-      setLastError(data.message)
+    if (!data.success) {
+      setLastError(data.error.message)
       setIsLinking(false)
+      pushSnackbar({ id: v4(), message: data.error.message })
     }
-  }, [exchangeFetcher.data, setLinkToken, setIsLinking, setLastError])
+  }, [exchangeFetcher.data, setLinkToken, setIsLinking, setLastError, pushSnackbar])
 
   // Surface SDK-level load failures (CDN unreachable, blocked by extension,
   // …) — see plaid-link-explained.md §10.
