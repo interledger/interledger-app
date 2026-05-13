@@ -179,24 +179,98 @@ func (h *Handlers) GetState(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// GetAccounts — filled by B5d.
+// requireLinkedUser resolves the Kratos user and their stored TokenSet.
+// Writes the appropriate HTTP error and returns ok=false if either is missing
+// or the store call failed; caller short-circuits on ok=false.
+func (h *Handlers) requireLinkedUser(w http.ResponseWriter, r *http.Request) (userID, accessToken string, ok bool) {
+	u, err := ops.UserForContext(r.Context())
+	if err != nil {
+		apperrors.WriteAppError(w, r, http.StatusUnauthorized, errcodes.ErrCodeUnauthorized, "unauthenticated")
+		return "", "", false
+	}
+	t, found, err := h.store.Get(r.Context(), u.ID)
+	if err != nil {
+		log.Error("plaid: TokenStore.Get failed",
+			zap.String("user_id", u.ID),
+			zap.Error(err),
+		)
+		apperrors.WriteAppError(w, r, http.StatusInternalServerError, errcodes.ErrCodeInternal, "failed to read plaid state")
+		return "", "", false
+	}
+	if !found {
+		apperrors.WriteAppError(w, r, http.StatusNotFound, errcodes.ErrCodeNotFound, "no plaid item linked for this user")
+		return "", "", false
+	}
+	return u.ID, t.AccessToken, true
+}
+
+// onPlaidErr logs and writes a 502 with no token detail.
+func (h *Handlers) onPlaidErr(w http.ResponseWriter, r *http.Request, endpoint, userID string, err error) {
+	log.Error("plaid: SDK call failed",
+		zap.String("endpoint", endpoint),
+		zap.String("user_id", userID),
+		zap.Error(err),
+	)
+	apperrors.WriteAppError(w, r, http.StatusBadGateway, errcodes.ErrCodeInternal, "plaid request failed")
+}
+
+// GetAccounts — GET /plaid/accounts. Returns Plaid `/accounts/get` verbatim.
 func (h *Handlers) GetAccounts(w http.ResponseWriter, r *http.Request) {
-	h.notImplemented(w, r, "GET /plaid/accounts")
+	userID, accessToken, ok := h.requireLinkedUser(w, r)
+	if !ok {
+		return
+	}
+	resp, err := h.client.GetAccounts(r.Context(), accessToken)
+	if err != nil {
+		h.onPlaidErr(w, r, "AccountsGet", userID, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, resp)
 }
 
-// GetAuth — filled by B5d.
+// GetAuth — GET /plaid/auth. Returns Plaid `/auth/get` verbatim. Includes ACH
+// routing + account numbers — sensitive but Plaid's own surface, so we don't
+// add extra masking.
 func (h *Handlers) GetAuth(w http.ResponseWriter, r *http.Request) {
-	h.notImplemented(w, r, "GET /plaid/auth")
+	userID, accessToken, ok := h.requireLinkedUser(w, r)
+	if !ok {
+		return
+	}
+	resp, err := h.client.GetAuth(r.Context(), accessToken)
+	if err != nil {
+		h.onPlaidErr(w, r, "AuthGet", userID, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, resp)
 }
 
-// GetBalance — filled by B5d.
+// GetBalance — GET /plaid/balance. Returns Plaid `/accounts/balance/get`
+// verbatim (forces a fresh balance refresh).
 func (h *Handlers) GetBalance(w http.ResponseWriter, r *http.Request) {
-	h.notImplemented(w, r, "GET /plaid/balance")
+	userID, accessToken, ok := h.requireLinkedUser(w, r)
+	if !ok {
+		return
+	}
+	resp, err := h.client.GetBalance(r.Context(), accessToken)
+	if err != nil {
+		h.onPlaidErr(w, r, "AccountsBalanceGet", userID, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, resp)
 }
 
-// GetIdentity — filled by B5d.
+// GetIdentity — GET /plaid/identity. Returns Plaid `/identity/get` verbatim.
 func (h *Handlers) GetIdentity(w http.ResponseWriter, r *http.Request) {
-	h.notImplemented(w, r, "GET /plaid/identity")
+	userID, accessToken, ok := h.requireLinkedUser(w, r)
+	if !ok {
+		return
+	}
+	resp, err := h.client.GetIdentity(r.Context(), accessToken)
+	if err != nil {
+		h.onPlaidErr(w, r, "IdentityGet", userID, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, resp)
 }
 
 // GetTransactions — filled by B5e.

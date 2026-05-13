@@ -116,24 +116,51 @@ func (c *Client) GetInstitutionForItem(ctx context.Context, accessToken string) 
 	return institutionID, instResp.Institution.Name, nil
 }
 
-// GetAccounts is implemented in B5d.
-func (c *Client) GetAccounts(_ context.Context, _ string) (*plaidsdk.AccountsGetResponse, error) {
-	return nil, plaid.ErrNotImplemented
+// GetAccounts calls Plaid `/accounts/get` and returns the full SDK response so
+// the handler can serialize it verbatim.
+func (c *Client) GetAccounts(ctx context.Context, accessToken string) (*plaidsdk.AccountsGetResponse, error) {
+	resp, _, err := c.sdk.PlaidApi.AccountsGet(ctx).
+		AccountsGetRequest(*plaidsdk.NewAccountsGetRequest(accessToken)).
+		Execute()
+	if err != nil {
+		return nil, fmt.Errorf("plaid: AccountsGet: %w", wrapPlaidError(err))
+	}
+	return &resp, nil
 }
 
-// GetAuth is implemented in B5d.
-func (c *Client) GetAuth(_ context.Context, _ string) (*plaidsdk.AuthGetResponse, error) {
-	return nil, plaid.ErrNotImplemented
+// GetAuth calls Plaid `/auth/get` to return ACH routing + account numbers.
+func (c *Client) GetAuth(ctx context.Context, accessToken string) (*plaidsdk.AuthGetResponse, error) {
+	resp, _, err := c.sdk.PlaidApi.AuthGet(ctx).
+		AuthGetRequest(*plaidsdk.NewAuthGetRequest(accessToken)).
+		Execute()
+	if err != nil {
+		return nil, fmt.Errorf("plaid: AuthGet: %w", wrapPlaidError(err))
+	}
+	return &resp, nil
 }
 
-// GetBalance is implemented in B5d.
-func (c *Client) GetBalance(_ context.Context, _ string) (*plaidsdk.AccountsGetResponse, error) {
-	return nil, plaid.ErrNotImplemented
+// GetBalance calls Plaid `/accounts/balance/get` (real-time balance refresh,
+// distinct from cached values returned by /accounts/get).
+func (c *Client) GetBalance(ctx context.Context, accessToken string) (*plaidsdk.AccountsGetResponse, error) {
+	resp, _, err := c.sdk.PlaidApi.AccountsBalanceGet(ctx).
+		AccountsBalanceGetRequest(*plaidsdk.NewAccountsBalanceGetRequest(accessToken)).
+		Execute()
+	if err != nil {
+		return nil, fmt.Errorf("plaid: AccountsBalanceGet: %w", wrapPlaidError(err))
+	}
+	return &resp, nil
 }
 
-// GetIdentity is implemented in B5d.
-func (c *Client) GetIdentity(_ context.Context, _ string) (*plaidsdk.IdentityGetResponse, error) {
-	return nil, plaid.ErrNotImplemented
+// GetIdentity calls Plaid `/identity/get` for account-holder names, addresses,
+// emails, phones.
+func (c *Client) GetIdentity(ctx context.Context, accessToken string) (*plaidsdk.IdentityGetResponse, error) {
+	resp, _, err := c.sdk.PlaidApi.IdentityGet(ctx).
+		IdentityGetRequest(*plaidsdk.NewIdentityGetRequest(accessToken)).
+		Execute()
+	if err != nil {
+		return nil, fmt.Errorf("plaid: IdentityGet: %w", wrapPlaidError(err))
+	}
+	return &resp, nil
 }
 
 // SyncTransactions is implemented in B5e.
