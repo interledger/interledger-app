@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -401,7 +402,7 @@ type createCardTransactionLedgerTransferArgs struct {
 }
 
 func createCardTransactionLedgerTransfer(ctx context.Context, client pacioli.Client, args createCardTransactionLedgerTransferArgs) error {
-	transfers, err := client.CreateTransfers(ctx, []pacioli.CreateTransferArgs{{
+	createArgs := []pacioli.CreateTransferArgs{{
 		ID:              args.txID,
 		Amount:          args.amount.Value,
 		DebitAccountID:  args.debitID,
@@ -409,7 +410,12 @@ func createCardTransactionLedgerTransfer(ctx context.Context, client pacioli.Cli
 		Pending:         args.isPending,
 		Code:            1,
 		Ledger:          gatehub.LedgerIDEUR,
-	}})
+	}}
+	if args.isPending {
+		createArgs[0].Timeout = uint64(time.Hour * 24 * 365)
+	}
+
+	transfers, err := client.CreateTransfers(ctx, createArgs)
 	if err != nil {
 		return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
 	}
