@@ -2,6 +2,7 @@ import { Code } from '@bufbuild/connect'
 import type { ActionFunctionArgs } from 'react-router';
 import { data } from 'react-router';
 import { href } from 'react-router'
+import { stringToBigInt } from '~/lib/amount'
 import {  validateCSRFToken } from '~/lib/csrf.server'
 import { error, isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
@@ -50,16 +51,6 @@ export async function confirmPaymentAction({
     message: 'Payment created successfully.',
     icon: 'close'
   })
-}
-
-function stringToBigInt(amount: string) {
-  if (amount == '') return BigInt(0)
-  const dotIndex = amount.lastIndexOf('.')
-  if (dotIndex > -1) {
-    const amounts = amount.split('.')
-    return BigInt(amounts[0] + amounts[1].slice(0, 2).padEnd(2, '0'))
-  }
-  return BigInt(parseFloat(amount) * 100)
 }
 
 export async function updatePaymentAction({

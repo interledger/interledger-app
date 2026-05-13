@@ -36,7 +36,15 @@ func (s *rpcService) CreateIncomingPaymentRequest(
 		return nil, InvalidArgumentError("expiresAt must be in the future")
 	}
 
-	// GetWalletAddress also runs the KYC gate.
+	// Safety net: ensure the wallet has a Rafiki payment pointer before
+	// GetWalletAddress tries to look one up. CreatePaymentPointer is
+	// idempotent (no-op when rafiki_payment_pointers already has a row),
+	// so this only does work for wallets that somehow lack a pp. The
+	// KYC gate still runs inside GetWalletAddress below.
+	if _, err := s.b.Rafiki().CreatePaymentPointer(ctx, *wallet); err != nil {
+		return nil, toGRPCError(err)
+	}
+
 	walletAddr, err := s.b.Rafiki().GetWalletAddress(ctx, wallet.ID)
 	if err != nil {
 		return nil, toGRPCError(err)

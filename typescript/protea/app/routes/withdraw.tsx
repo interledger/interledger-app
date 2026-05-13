@@ -35,6 +35,7 @@ import type {
 import {
   Balance
 } from '~/generated/connect/backend/v1/backend_pb'
+import { stringToBigInt } from '~/lib/amount'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
@@ -397,16 +398,6 @@ const Amount = ({ data }: { data: WithdrawalLoaderData }) => {
       </Button>
     </>
   )
-}
-
-function stringToBigInt(amount: string) {
-  if (amount == '') return BigInt(0)
-  const dotIndex = amount.lastIndexOf('.')
-  if (dotIndex > -1) {
-    const amounts = amount.split('.')
-    return BigInt(amounts[0] + amounts[1].slice(0, 2).padEnd(2, '0'))
-  }
-  return BigInt(parseFloat(amount) * 100)
 }
 
 export async function action({ request }: Route.ActionArgs) {

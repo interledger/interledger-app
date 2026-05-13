@@ -4,21 +4,12 @@ import {
     type ActionFunctionArgs,
 } from 'react-router';
 import { Code } from '@bufbuild/connect'
+import { stringToBigInt } from '~/lib/amount'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { href } from 'react-router'
 import { validateCSRFToken } from '~/lib/csrf.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
-
-function stringToBigInt(amount: string) {
-    if (amount == '') return BigInt(0)
-    const dotIndex = amount.lastIndexOf('.')
-    if (dotIndex > -1) {
-        const amounts = amount.split('.')
-        return BigInt(amounts[0] + amounts[1].slice(0, 2).padEnd(2, '0'))
-    }
-    return BigInt(parseFloat(amount) * 100)
-}
 
 
 export async function chimoneyAmountAction({ request }: ActionFunctionArgs) {

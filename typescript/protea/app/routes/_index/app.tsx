@@ -161,6 +161,15 @@ export function AppPage() {
             >
               {walletInfo.formattedURL}
             </CardCopy>
+            {features.receiveEnabled && (
+              <Router
+                to={href('/request-money')}
+                className='mt-3 inline-flex items-center gap-1 text-sm font-medium text-primary'
+              >
+                <Icon className='text-base'>request_page</Icon>
+                Request money
+              </Router>
+            )}
           </Card>
         )}
         {kycStatus == KycStatus.Approved && (

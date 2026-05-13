@@ -262,13 +262,3 @@ export function DepositDetails() {
   )
 }
 
-export function stringToBigInt(amount: string) {
-  if (amount == '') return BigInt(0)
-  const dotIndex = amount.lastIndexOf('.')
-  if (dotIndex > -1) {
-    const amounts = amount.split('.')
-    return BigInt(amounts[0] + amounts[1].slice(0, 2).padEnd(2, '0'))
-  }
-  return BigInt(parseFloat(amount) * 100)
-}
-
