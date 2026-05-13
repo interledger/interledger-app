@@ -353,7 +353,7 @@ func TestUICardTxAction_HappyPath(t *testing.T) {
 	values.Set("cardID", card.ID)
 	values.Set("title", "Card Purchase")
 	values.Set("body", "EUR 50.00 at Test Shop")
-	values.Set("cardTxObject", `{"cardId":987654,"transactionAmount":"50.00","transactionCurrency":"USD","billingAmount":"50.00","billingCurrency":"USD","type":0,"merchantName":"Test Shop"}`)
+	values.Set("cardTxObject", `{"id":999,"transactionId":"user-provided-tx-id","createdAt":"2001-01-01T00:00:00.000Z","cardId":987654,"transactionAmount":"50.00","transactionCurrency":"USD","billingAmount":"50.00","billingCurrency":"USD","type":0,"merchantName":"Test Shop","customField":"keep-me"}`)
 
 	req := httptest.NewRequest(http.MethodPost, "/ui/actions/card-transaction", strings.NewReader(values.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
@@ -370,10 +370,59 @@ func TestUICardTxAction_HappyPath(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, created.CardID)
 	assert.Equal(t, 987654, *created.CardID)
+	assert.Equal(t, ids[0], created.TransactionID)
+	assert.Equal(t, uiCardTxCreatedAt, created.CreatedAt)
+
+	raw, err := store.GetRawCardTransaction(ids[0])
+	require.NoError(t, err)
+	var rawMap map[string]interface{}
+	require.NoError(t, json.Unmarshal(raw, &rawMap))
+	assert.Equal(t, "keep-me", rawMap["customField"])
+	assert.Equal(t, uiCardTxCreatedAt, rawMap["createdAt"])
+	assert.NotEqual(t, "user-provided-tx-id", rawMap["transactionId"])
+	require.Contains(t, rawMap, "id")
+	assert.Equal(t, float64(1), rawMap["id"])
 
 	bal, err := store.GetBalance(consts.TestUser1ID, "USD")
 	require.NoError(t, err)
 	assert.Equal(t, 10000.0, bal)
+}
+
+func TestUICardTxPreview_ShowsNormalizedCallbackAndTransaction(t *testing.T) {
+	store := storage.NewMemoryStorage()
+	require.NoError(t, storage.SeedTestUsers(store))
+	_, card := seedCustomerAndCard(t, store, consts.TestUser1ID, consts.CardStatusActive)
+	h := newUIHandler(store)
+
+	values := url.Values{}
+	values.Set("userID", consts.TestUser1ID)
+	values.Set("cardID", card.ID)
+	values.Set("title", "Card Purchase")
+	values.Set("body", "EUR 50.00 at Test Shop")
+	values.Set("cardTxObject", `{"id":888,"transactionId":"tx-from-user","createdAt":"2000-01-01T00:00:00.000Z","transactionAmount":"50.00","transactionCurrency":"USD","customField":"keep-me"}`)
+
+	req := httptest.NewRequest(http.MethodPost, "/ui/actions/card-transaction/preview", strings.NewReader(values.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr := httptest.NewRecorder()
+	h.UICardTxPreview(rr, req)
+
+	assert.Equal(t, http.StatusOK, rr.Code)
+
+	var preview map[string]interface{}
+	require.NoError(t, json.Unmarshal(rr.Body.Bytes(), &preview))
+	assert.Equal(t, float64(1), preview["nextTransactionId"])
+
+	webhook, ok := preview["webhook"].(map[string]interface{})
+	require.True(t, ok)
+	assert.Equal(t, consts.WebhookEventCardTransaction, webhook["event_type"])
+	assert.Equal(t, consts.TestUser1ID, webhook["user_uuid"])
+
+	transaction, ok := preview["transaction"].(map[string]interface{})
+	require.True(t, ok)
+	assert.Equal(t, uiCardTxCreatedAt, transaction["createdAt"])
+	assert.NotEqual(t, "tx-from-user", transaction["transactionId"])
+	assert.Equal(t, float64(1), transaction["id"])
+	assert.Equal(t, "keep-me", transaction["customField"])
 }
 
 func TestUICardTxAction_InvalidCardTransactionObject(t *testing.T) {

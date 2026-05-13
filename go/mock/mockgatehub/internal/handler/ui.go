@@ -3,10 +3,10 @@ package handler
 import (
 	"embed"
 	"encoding/json"
-	"fmt"
 	"html/template"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -25,6 +25,8 @@ type cardWithTransactions struct {
 	Transactions []*models.CardTransaction
 }
 
+const uiCardTxCreatedAt = "2024-02-01T00:00:00.000Z"
+
 func defaultUICardTxObject() string {
 	return `{
 	"transactionAmount": "10.00",
@@ -34,6 +36,46 @@ func defaultUICardTxObject() string {
 	"type": 0,
 	"merchantName": "Coffee Shop"
 }`
+}
+
+func buildUICardTransaction(rawTx string, seqID int) (*models.CardTransaction, json.RawMessage, string, error) {
+	var txMap map[string]interface{}
+	if err := json.Unmarshal([]byte(rawTx), &txMap); err != nil {
+		return nil, nil, "", err
+	}
+
+	txID := utils.GenerateUUID()
+	txMap["transactionId"] = txID
+	txMap["createdAt"] = uiCardTxCreatedAt
+	txMap["id"] = seqID
+
+	normalizedRaw, err := json.Marshal(txMap)
+	if err != nil {
+		return nil, nil, "", err
+	}
+
+	var tx models.CardTransaction
+	if err := json.Unmarshal(normalizedRaw, &tx); err != nil {
+		return nil, nil, "", err
+	}
+
+	return &tx, normalizedRaw, txID, nil
+}
+
+func buildUICardTxWebhookPreview(userID, title, body, txID, cardID string) map[string]interface{} {
+	return map[string]interface{}{
+		"uuid":        utils.GenerateUUID(),
+		"timestamp":   strconv.FormatInt(time.Now().UTC().UnixMilli(), 10),
+		"event_type":  consts.WebhookEventCardTransaction,
+		"user_uuid":   userID,
+		"environment": "sandbox",
+		"data": map[string]interface{}{
+			"title":         title,
+			"body":          body,
+			"transactionId": txID,
+			"cardId":        cardID,
+		},
+	}
 }
 
 func (h *Handler) UIDashboard(w http.ResponseWriter, r *http.Request) {
@@ -352,47 +394,26 @@ func (h *Handler) UICardTxAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var tx models.CardTransaction
-	if err := json.Unmarshal([]byte(rawTx), &tx); err != nil {
+	seqID, err := h.store.NextCardTransactionSeqID()
+	if err != nil {
+		logger.Error("ui: failed to get next card transaction sequence id", zap.Error(err))
+		http.Error(w, "Failed to create transaction", http.StatusInternalServerError)
+		return
+	}
+
+	tx, normalizedRaw, txID, err := buildUICardTransaction(rawTx, seqID)
+	if err != nil {
 		http.Error(w, "Invalid card transaction JSON object", http.StatusBadRequest)
 		return
 	}
 
-	txID := tx.TransactionID
-	if txID == "" {
-		txID = fmt.Sprintf("tx-%s", utils.GenerateUUID()[:8])
-		tx.TransactionID = txID
-	}
-
-	now := time.Now().UTC().Format(time.RFC3339)
-	if tx.GHResponseCode == "" {
-		tx.GHResponseCode = "00"
-	}
-	if tx.GHResponseDescription == "" {
-		tx.GHResponseDescription = "Approved"
-	}
-	if tx.CreatedAt == "" {
-		tx.CreatedAt = now
-	}
-	if tx.TransactionDateTime == nil {
-		tx.TransactionDateTime = &now
-	}
-	if tx.ProcessDateTime == nil {
-		tx.ProcessDateTime = &now
-	}
-	if tx.TerminalID == "" {
-		tx.TerminalID = "TERM001"
-	}
-	if tx.CardScheme == 0 {
-		tx.CardScheme = 2
-	}
-	if tx.TxStatus == nil {
-		completed := "COMPLETED"
-		tx.TxStatus = &completed
-	}
-
-	if err := h.store.CreateCardTransaction(&tx); err != nil {
+	if err := h.store.CreateCardTransaction(tx); err != nil {
 		logger.Error("ui: failed to create card transaction", zap.Error(err))
+		http.Error(w, "Failed to create transaction", http.StatusInternalServerError)
+		return
+	}
+	if err := h.store.StoreRawCardTransaction(txID, normalizedRaw); err != nil {
+		logger.Error("ui: failed to store raw card transaction payload", zap.Error(err))
 		http.Error(w, "Failed to create transaction", http.StatusInternalServerError)
 		return
 	}
@@ -411,8 +432,45 @@ func (h *Handler) UICardTxAction(w http.ResponseWriter, r *http.Request) {
 		zap.String("user_id", userID),
 		zap.String("card_id", cardID),
 		zap.String("tx_id", txID),
+		zap.Int("tx_seq_id", seqID),
 		zap.String("title", title),
 	)
 
 	http.Redirect(w, r, "/ui/users/"+userID, http.StatusSeeOther)
+}
+
+func (h *Handler) UICardTxPreview(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		h.sendJSON(w, http.StatusBadRequest, map[string]interface{}{"error": "Invalid form data"})
+		return
+	}
+
+	userID := r.FormValue("userID")
+	cardID := r.FormValue("cardID")
+	title := r.FormValue("title")
+	body := r.FormValue("body")
+	rawTx := r.FormValue("cardTxObject")
+
+	if cardID == "" || userID == "" || title == "" || body == "" || rawTx == "" {
+		h.sendJSON(w, http.StatusBadRequest, map[string]interface{}{"error": "All fields are required"})
+		return
+	}
+
+	seqID, err := h.store.PeekCardTransactionSeqID()
+	if err != nil {
+		h.sendJSON(w, http.StatusInternalServerError, map[string]interface{}{"error": "Failed to build preview"})
+		return
+	}
+
+	_, normalizedRaw, txID, err := buildUICardTransaction(rawTx, seqID)
+	if err != nil {
+		h.sendJSON(w, http.StatusBadRequest, map[string]interface{}{"error": "Invalid card transaction JSON object"})
+		return
+	}
+
+	h.sendJSON(w, http.StatusOK, map[string]interface{}{
+		"webhook":           buildUICardTxWebhookPreview(userID, title, body, txID, cardID),
+		"transaction":       json.RawMessage(normalizedRaw),
+		"nextTransactionId": seqID,
+	})
 }
