@@ -326,9 +326,16 @@ jobs:
     # publish-helm-chart transitively depends on both image-push jobs, so a
     # successful run here guarantees images + chart are both published.
     needs: [determine_version, publish-helm-chart]
-    # Only run on real releases. PR builds set release_tag to "" and must
-    # never open PRs in the deploy repo.
-    if: inputs.release_tag != ''
+    # Gate explicitly on the calling context rather than just `inputs.release_tag`.
+    # `inputs` is only populated for `workflow_call`, but checking the event
+    # name as well makes the intent unambiguous and future-proofs the job in
+    # case `publish-helm-chart` is ever allowed to run from other triggers.
+    # `dockerPush` is the same signal `publish-helm-chart` uses to decide
+    # whether real release artifacts were produced.
+    if: >-
+      github.event_name == 'workflow_call'
+      && inputs.release_tag != ''
+      && needs.determine_version.outputs.dockerPush == 'true'
     runs-on: ubuntu-latest
     # No write access needed on THIS repo — all writes go through the App
     # token against the deploy repo.
@@ -343,6 +350,11 @@ jobs:
       # appset and Chart.yaml use the version WITHOUT the leading "v", so
       # we strip it later before writing.
       VERSION: ${{ needs.determine_version.outputs.version }}
+      # Pin yq version + sha256 in one place. The checksum is taken from
+      # https://github.com/mikefarah/yq/releases/download/<VERSION>/checksums
+      # (column 18 / SHA-256 per checksums_hashes_order).
+      YQ_VERSION: v4.44.3
+      YQ_SHA256: a2c097180dd884a8d50c956ee16a9cec070f30a7947cf4ebf87d5f36213e9ed7
     steps:
       # Mint an installation token scoped narrowly to the deploy repo only.
       # `owner` + `repositories` ensures the token cannot accidentally modify
@@ -371,9 +383,10 @@ jobs:
 
       # Clone the deploy repo into a subdirectory so the workspace root
       # remains the source repo (avoids confusing relative paths if more
-      # steps are added later).
+      # steps are added later). Pinned to v4 to match the rest of this repo's
+      # workflows (e.g. release.yml) and reduce maintenance surface.
       - name: Checkout interledger-app-deploy
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           repository: ${{ env.DEPLOY_REPO }}
           token: ${{ steps.app-token.outputs.token }}
@@ -382,13 +395,18 @@ jobs:
 
       # Pin a known-good yq build rather than relying on whatever the runner
       # image happens to ship. The select()-based update below depends on
-      # mikefarah/yq v4 syntax (not python-yq / jq-style).
+      # mikefarah/yq v4 syntax (not python-yq / jq-style). Supply-chain
+      # safety: verify the downloaded artifact matches the pinned SHA-256
+      # before allowing it on PATH.
       - name: Install yq
         run: |
           set -euo pipefail
-          sudo curl -fsSL -o /usr/local/bin/yq \
-            https://github.com/mikefarah/yq/releases/download/v4.44.3/yq_linux_amd64
-          sudo chmod +x /usr/local/bin/yq
+          tmp="$(mktemp)"
+          curl -fsSL -o "${tmp}" \
+            "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64"
+          echo "${YQ_SHA256}  ${tmp}" | sha256sum --check --status
+          sudo install -m 0755 "${tmp}" /usr/local/bin/yq
+          rm -f "${tmp}"
           yq --version
 
       # Surgically update ONLY the `interledger-app` element of the
@@ -412,6 +430,14 @@ jobs:
           CURRENT=$(yq -r \
             ".spec.generators[].list.elements[] | select(.name == \"${CHART}\") | .chartVersion" \
             "${FILE}")
+          # Fail loudly if the target element disappears or the appset
+          # structure changes upstream. Without this, yq -i below would be
+          # a no-op and `git commit` would later fail with the misleading
+          # "nothing to commit" error.
+          if [[ -z "${CURRENT}" || "${CURRENT}" == "null" ]]; then
+            echo "::error::Could not find chartVersion for ${CHART} in ${FILE}. The appset structure may have changed."
+            exit 1
+          fi
           echo "Current chartVersion: ${CURRENT}"
           echo "New chartVersion:     ${NEW_VERSION}"
           # Idempotency guard: someone may have already bumped the deploy
@@ -425,6 +451,13 @@ jobs:
           yq -i \
             "(.spec.generators[].list.elements[] | select(.name == \"${CHART}\")).chartVersion = \"${NEW_VERSION}\"" \
             "${FILE}"
+          # Belt-and-braces: confirm the file actually changed before we try
+          # to commit it. Protects against a yq query that silently matches
+          # nothing.
+          if git diff --quiet -- "${FILE}"; then
+            echo "::error::yq update produced no diff in ${FILE}. Refusing to continue."
+            exit 1
+          fi
           # Print the resulting diff for easy debugging from the Actions log.
           git --no-pager diff -- "${FILE}"
 
@@ -432,13 +465,20 @@ jobs:
       # Auto-merge causes GitHub to merge as soon as the deploy repo's
       # required checks (conform.yaml: helm_kubeconform + manifest_kubeconform)
       # pass. If checks fail, the PR stays open for a human to investigate.
+      #
+      # Idempotency: the branch name is deterministic for a given release
+      # tag, so a re-run of this workflow for the same tag must NOT try to
+      # recreate an existing branch/PR. We detect both cases and reuse what
+      # already exists (force-pushing the latest contents and re-enabling
+      # auto-merge in case it was disabled).
       - name: Open auto-merge PR
         if: env.skip != 'true'
         working-directory: deploy
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
-          # Branch name includes the release tag so reruns produce distinct
-          # branches and never clobber an in-flight PR.
+          # Branch name is deterministic per release tag (one bump PR per
+          # release). Re-running the workflow updates the existing branch
+          # in place rather than creating a parallel PR.
           BRANCH: chore/bump-interledger-app-${{ env.RELEASE_TAG }}
         run: |
           set -euo pipefail
@@ -455,7 +495,12 @@ jobs:
           git commit \
             -m "chore: bump interledger-app chart to ${CHART_VERSION} in development" \
             -m "Triggered by release ${RELEASE_TAG} of interledger/interledger-app."
-          git push --set-upstream origin "${BRANCH}"
+          # --force handles the rerun case where the branch already exists
+          # remotely (e.g. a previous run pushed the branch but failed
+          # before opening or auto-merging the PR). The branch namespace
+          # `chore/bump-interledger-app-<tag>` is unique to this job, so a
+          # force push here cannot stomp on unrelated work.
+          git push --force --set-upstream origin "${BRANCH}"
 
           # PR body is written via heredoc to a file (rather than --body
           # inline) to dodge shell-quoting headaches with backticks and
@@ -471,17 +516,37 @@ jobs:
           # Strip the leading indentation introduced by the YAML block.
           sed -i 's/^          //' /tmp/pr-body.md
 
-          PR_URL=$(gh pr create \
+          # If a PR for this branch already exists (open), reuse it.
+          # Otherwise create a new one. `gh pr list` filters by head branch
+          # and returns at most one match for our deterministic name.
+          PR_URL=$(gh pr list \
             --repo "${DEPLOY_REPO}" \
-            --base main \
             --head "${BRANCH}" \
-            --title "chore: bump interledger-app chart to ${CHART_VERSION} in development" \
-            --body-file /tmp/pr-body.md \
-            --label automated \
-            --label chart-bump)
-          echo "Opened ${PR_URL}"
+            --state open \
+            --json url \
+            --jq '.[0].url // ""')
+
+          if [[ -z "${PR_URL}" ]]; then
+            PR_URL=$(gh pr create \
+              --repo "${DEPLOY_REPO}" \
+              --base main \
+              --head "${BRANCH}" \
+              --title "chore: bump interledger-app chart to ${CHART_VERSION} in development" \
+              --body-file /tmp/pr-body.md \
+              --label automated \
+              --label chart-bump)
+            echo "Opened ${PR_URL}"
+          else
+            echo "Reusing existing PR ${PR_URL}"
+            # Refresh the body in case the chart version changed since the
+            # earlier rerun (rare, but cheap to handle).
+            gh pr edit "${PR_URL}" --repo "${DEPLOY_REPO}" \
+              --title "chore: bump interledger-app chart to ${CHART_VERSION} in development" \
+              --body-file /tmp/pr-body.md
+          fi
 
           # --auto requires auto-merge to be enabled in the deploy repo
           # settings AND a passing required-status-checks config; otherwise
           # `gh pr merge --auto` returns a non-zero exit and fails this job.
+          # Safe to re-run on an already-auto-merging PR (idempotent).
           gh pr merge "${PR_URL}" --repo "${DEPLOY_REPO}" --squash --auto
