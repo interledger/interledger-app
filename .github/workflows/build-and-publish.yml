@@ -383,10 +383,10 @@ jobs:
 
       # Clone the deploy repo into a subdirectory so the workspace root
       # remains the source repo (avoids confusing relative paths if more
-      # steps are added later). Pinned to v4 to match the rest of this repo's
-      # workflows (e.g. release.yml) and reduce maintenance surface.
+      # steps are added later). Pinned to v6 to match every other checkout
+      # step in this workflow file.
       - name: Checkout interledger-app-deploy
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: ${{ env.DEPLOY_REPO }}
           token: ${{ steps.app-token.outputs.token }}
