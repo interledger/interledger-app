@@ -276,7 +276,8 @@ Releases are fully automated via **semantic-release** — do not create `release
    - `BREAKING CHANGE:` footer or `feat!:` / `fix!:` → major (`2.0.0`)
    - `refactor:`, `chore:`, `docs:`, `test:`, `ci:`, `build:`, `style:`, `local:` → **no release**
 4. If there is a releasable commit, semantic-release creates a `vX.Y.Z` git tag and a GitHub Release with auto-generated notes.
-5. The new tag triggers `build-and-publish.yml`, which builds all Docker images and pushes them to GCP Artifact Registry tagged with that version.
+5. The new tag triggers `build-and-publish.yml`, which builds all Docker images and pushes them to GCP Artifact Registry tagged with that version. It also packages and publishes the `helm/interledger-app` chart (OCI) to both dev and prod Artifact Registries.
+6. After the chart publish succeeds, the `bump-deploy-dev` job in `build-and-publish.yml` opens an auto-merge PR in `interledger/interledger-app-deploy` that updates `chartVersion` for the `interledger-app` entry in `env/development/appsets/wallet-appset.yaml` to the new version (with the leading `v` stripped). The PR auto-merges once the deploy repo's `conform.yaml` checks pass. Only `development` is bumped automatically; `sandbox` and `production` remain manual/promotion-based.
 
 **Config files**: `.releaserc.json` (release config), `package.json` + `pnpm-lock.yaml` at repo root (semantic-release dependencies).
 
@@ -286,6 +287,8 @@ Releases are fully automated via **semantic-release** — do not create `release
 - `RELEASE_APP_PRIVATE_KEY` — the App's PEM private key (not the OAuth client secret)
 
 The App must be installed on this repository with **Contents: Read & write** permission. The installation ID is auto-discovered at runtime by `actions/create-github-app-token`. `release.yml` validates that the App credentials authenticate and that the App is installed on this repository before invoking semantic-release. If the installation is missing the required permission, semantic-release itself fails with `Resource not accessible by integration`.
+
+**For the `bump-deploy-dev` job**: the same App must additionally be installed on `interledger/interledger-app-deploy` with **Contents: Read & write** and **Pull requests: Read & write**. The token is minted scoped to that repo via `actions/create-github-app-token` with `owner: interledger` and `repositories: interledger-app-deploy`. If the App is not installed there, the job fails loudly (intentional — failure surfaces the misconfiguration). The deploy repo must also have **auto-merge enabled** in its repository settings.
 
 **If `main` is protected**: ensure the App (its bot user, e.g. `your-app[bot]`) is listed as an allowed actor that can bypass branch protection for tag creation, or that the protection rules permit tag pushes from Apps.
 
