@@ -5,7 +5,9 @@
 package ops
 
 import (
+	"encoding/json"
 	"net/http"
+	"time"
 
 	"gitlab.com/fynbos/backend/api/apperrors"
 	"gitlab.com/fynbos/backend/errcodes"
@@ -42,9 +44,42 @@ func (h *Handlers) notImplemented(w http.ResponseWriter, r *http.Request, endpoi
 	apperrors.WriteAppError(w, r, http.StatusNotImplemented, errcodes.ErrCodeInternal, "plaid endpoint not yet implemented")
 }
 
-// CreateLinkToken — filled by B5a.
+// CreateLinkToken — POST /plaid/link-token. Calls Plaid /link/token/create
+// using the current Kratos user as client_user_id and returns the link token
+// the frontend hands to react-plaid-link.
 func (h *Handlers) CreateLinkToken(w http.ResponseWriter, r *http.Request) {
-	h.notImplemented(w, r, "POST /plaid/link-token")
+	u, err := ops.UserForContext(r.Context())
+	if err != nil {
+		apperrors.WriteAppError(w, r, http.StatusUnauthorized, errcodes.ErrCodeUnauthorized, "unauthenticated")
+		return
+	}
+
+	linkToken, expiration, err := h.client.CreateLinkToken(r.Context(), u.ID)
+	if err != nil {
+		log.Error("plaid: CreateLinkToken failed",
+			zap.String("user_id", u.ID),
+			zap.Error(err),
+		)
+		apperrors.WriteAppError(w, r, http.StatusBadGateway, errcodes.ErrCodeInternal, "plaid link-token create failed")
+		return
+	}
+
+	log.Info("plaid link token issued",
+		zap.String("user_id", u.ID),
+		zap.Time("expiration", expiration),
+	)
+	writeJSON(w, http.StatusOK, struct {
+		LinkToken  string    `json:"link_token"`
+		Expiration time.Time `json:"expiration"`
+	}{LinkToken: linkToken, Expiration: expiration})
+}
+
+func writeJSON(w http.ResponseWriter, status int, body any) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	if err := json.NewEncoder(w).Encode(body); err != nil {
+		log.Error("plaid: writeJSON encode", zap.Error(err))
+	}
 }
 
 // ExchangePublicToken — filled by B5b.

@@ -4,6 +4,7 @@ package client
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -52,9 +53,35 @@ func New(cfg plaid.Config) (*Client, error) {
 	}, nil
 }
 
-// CreateLinkToken is implemented in B5a.
-func (c *Client) CreateLinkToken(_ context.Context, _ string) (string, time.Time, error) {
-	return "", time.Time{}, plaid.ErrNotImplemented
+// CreateLinkToken calls Plaid `/link/token/create` and returns the link token
+// and its expiry. `userID` is sent as `client_user_id` so Plaid Dashboard logs
+// can be filtered per app user.
+func (c *Client) CreateLinkToken(ctx context.Context, userID string) (string, time.Time, error) {
+	req := plaidsdk.NewLinkTokenCreateRequest("Interledger Wallet", "en", c.countryCodes)
+	req.SetUser(plaidsdk.LinkTokenCreateRequestUser{ClientUserId: userID})
+	req.SetProducts(c.products)
+
+	resp, _, err := c.sdk.PlaidApi.LinkTokenCreate(ctx).LinkTokenCreateRequest(*req).Execute()
+	if err != nil {
+		return "", time.Time{}, fmt.Errorf("plaid: LinkTokenCreate: %w", wrapPlaidError(err))
+	}
+	fmt.Println("plaid: ✅ link token created for user: ", userID, ": ", resp.LinkToken)
+	return resp.LinkToken, resp.Expiration, nil
+}
+
+// wrapPlaidError surfaces Plaid's JSON error_code / error_message / display_message
+// alongside the generic SDK error string. Without this the caller only sees
+// `400 Bad Request` with no diagnostic detail.
+func wrapPlaidError(err error) error {
+	var openAPIErr plaidsdk.GenericOpenAPIError
+	if !errors.As(err, &openAPIErr) {
+		return err
+	}
+	body := openAPIErr.Body()
+	if len(body) == 0 {
+		return err
+	}
+	return fmt.Errorf("%s: %s", err.Error(), string(body))
 }
 
 // ExchangePublicToken is implemented in B5b.
