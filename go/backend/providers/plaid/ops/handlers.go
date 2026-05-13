@@ -273,9 +273,21 @@ func (h *Handlers) GetIdentity(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, resp)
 }
 
-// GetTransactions — filled by B5e.
+// GetTransactions — GET /plaid/transactions. Drives `/transactions/sync` from
+// cursor=0 and returns the full added/modified/removed roll-up plus the final
+// next_cursor. Sandbox needs a few seconds after item creation to populate;
+// an empty array with a cursor is the normal early response.
 func (h *Handlers) GetTransactions(w http.ResponseWriter, r *http.Request) {
-	h.notImplemented(w, r, "GET /plaid/transactions")
+	userID, accessToken, ok := h.requireLinkedUser(w, r)
+	if !ok {
+		return
+	}
+	res, err := h.client.SyncTransactions(r.Context(), accessToken)
+	if err != nil {
+		h.onPlaidErr(w, r, "TransactionsSync", userID, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, res)
 }
 
 // Disconnect — filled by B5f.

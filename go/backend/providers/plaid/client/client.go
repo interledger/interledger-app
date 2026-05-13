@@ -163,9 +163,42 @@ func (c *Client) GetIdentity(ctx context.Context, accessToken string) (*plaidsdk
 	return &resp, nil
 }
 
-// SyncTransactions is implemented in B5e.
-func (c *Client) SyncTransactions(_ context.Context, _ string) (*plaid.TransactionsSyncResult, error) {
-	return nil, plaid.ErrNotImplemented
+// SyncTransactions walks the Plaid `/transactions/sync` cursor stream from
+// the beginning of the Item's history and accumulates added / modified /
+// removed transactions. Returns the final `next_cursor` so a future caller
+// could resume incrementally; we don't persist it in the POC.
+//
+// Safety cap: 50 pages × 100 items = 5,000 transactions. Sandbox + most real
+// items finish in 1–3 pages; the cap exists to bound runaway loops on
+// malformed cursor responses.
+func (c *Client) SyncTransactions(ctx context.Context, accessToken string) (*plaid.TransactionsSyncResult, error) {
+	const maxPages = 50
+
+	result := &plaid.TransactionsSyncResult{}
+	cursor := ""
+	for page := range maxPages {
+		req := plaidsdk.NewTransactionsSyncRequest(accessToken)
+		if cursor != "" {
+			req.SetCursor(cursor)
+		}
+		resp, _, err := c.sdk.PlaidApi.TransactionsSync(ctx).TransactionsSyncRequest(*req).Execute()
+		if err != nil {
+			return nil, fmt.Errorf("plaid: TransactionsSync (page %d): %w", page, wrapPlaidError(err))
+		}
+		
+		fmt.Printf("plaid: ✅ transactions sync page %d: %d added, %d modified, %d removed, has_more=%v",
+			page, len(resp.Added), len(resp.Modified), len(resp.Removed), resp.HasMore)
+
+		result.Added = append(result.Added, resp.Added...)
+		result.Modified = append(result.Modified, resp.Modified...)
+		result.Removed = append(result.Removed, resp.Removed...)
+		cursor = resp.NextCursor
+		if !resp.HasMore {
+			result.NextCursor = cursor
+			return result, nil
+		}
+	}
+	return nil, fmt.Errorf("plaid: TransactionsSync exceeded %d pages", maxPages)
 }
 
 // RemoveItem is implemented in B5f.
