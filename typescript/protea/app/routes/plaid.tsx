@@ -32,7 +32,9 @@ import {
   WalletGrid,
   GridColumn,
   OutlineButton,
-  PlaidLinkButton
+  PlaidLinkButton,
+  EndpointButton,
+  ProductCard
 } from '~/components'
 import type { ApplicationProps } from '~/components'
 import { getUserSession } from '~/lib/kratos/session.server'
@@ -247,7 +249,8 @@ export default function PlaidRoute() {
     lastError,
     lastResponses,
     setLinked,
-    clearLinked
+    clearLinked,
+    setLastResponse
   } = usePlaidStore()
 
   // Mirror canonical backend state into the Zustand store.
@@ -262,6 +265,13 @@ export default function PlaidRoute() {
       clearLinked()
     }
   }, [state.linked, state.item_id, state.institution_name, state.linked_at, setLinked, clearLinked])
+
+  // Save successful product fetch responses into the Zustand store.
+  useEffect(() => {
+    if (actionData?.intent === 'fetch_product' && actionData.ok) {
+      setLastResponse(actionData.product, actionData.response)
+    }
+  }, [actionData, setLastResponse])
 
   return (
     <WalletGrid>
@@ -293,6 +303,25 @@ export default function PlaidRoute() {
             )}
           </CardContent>
         </Card>
+
+        {state.linked && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Endpoints</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className='grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5'>
+                {PRODUCT_KEYS.map((p) => (
+                  <EndpointButton key={p} product={p} />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {PRODUCT_KEYS.map((p) => (
+          <ProductCard key={p} product={p} />
+        ))}
 
         {linkToken && (
           <Card>
