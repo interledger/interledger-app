@@ -74,13 +74,13 @@ var (
 	CardTransactionResponseCodeWCVV1 string = "WCVV1"
 	CardTransactionResponseCodeWCVV2 string = "WCVV2"
 	CardTransactionResponseCodeWPIN  string = "WPIN"
-	CardTransactionResponseCodeCAEDM string = "CAEDM"
-	CardTransactionResponseCodeCAEDI string = "CAEDI"
-	CardTransactionResponseCodeCAEXP string = "CAEXP"
-	CardTransactionResponseCodeCASUS string = "CASUS"
-	CardTransactionResponseCodeCALOS string = "CALOS"
-	CardTransactionResponseCodeCASTO string = "CASTO"
-	CardTransactionResponseCodeCAUSR string = "CAUSR"
+	CardTransactionResponseCodeCAEDM string = "CAEDM" // card expiration date doesn't match
+	CardTransactionResponseCodeCAEDI string = "CAEDI" // card expiration date invalid
+	CardTransactionResponseCodeCAEXP string = "CAEXP" // card expired
+	CardTransactionResponseCodeCASUS string = "CASUS" // card frozen
+	CardTransactionResponseCodeCALOS string = "CALOS" // card lost
+	CardTransactionResponseCodeCASTO string = "CASTO" // card stolen
+	CardTransactionResponseCodeCAUSR string = "CAUSR" // card suspended
 )
 
 const (
