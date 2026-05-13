@@ -26,8 +26,7 @@ func startServices() error {
 
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		redactedOutput := strings.ReplaceAll(string(output), webhookCryptoState.signingPrivateJWK, "[REDACTED_SIGNING_JWK]")
-		redactedOutput = strings.ReplaceAll(redactedOutput, webhookCryptoState.encryptionPrivateJWK, "[REDACTED_ENCRYPTION_JWK]")
+		redactedOutput := strings.ReplaceAll(string(output), webhookCryptoState.signingPrivatePEM, "[REDACTED_SIGNING_KEY]")
 		return fmt.Errorf("docker compose up failed: %w\n%s", err, redactedOutput)
 	}
 	return nil

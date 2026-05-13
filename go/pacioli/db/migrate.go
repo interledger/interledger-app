@@ -19,7 +19,7 @@ import (
 	"go.uber.org/zap"
 )
 
-const testingCrdbConnectionString = "postgres://postgres:password@0.0.0.0:5432/%s?sslmode=disable"
+const testingCrdbConnectionString = "postgres://postgres:password@127.0.0.1:55432/%s?sslmode=disable"
 
 //go:embed schema.hcl
 var schemaFile embed.FS
