@@ -2761,6 +2761,40 @@ export interface VerifyIdentityRequest {
     id: string;
 }
 /**
+ * @generated from protobuf message backend.v1.AppError
+ */
+export interface AppError {
+    /**
+     * @generated from protobuf field: string errorCode = 1;
+     */
+    errorCode: string; // See errcodes.go for all possible values
+    /**
+     * @generated from protobuf field: string message = 2;
+     */
+    message: string;
+    /**
+     * @generated from protobuf field: repeated backend.v1.AppErrorField fields = 3;
+     */
+    fields: AppErrorField[];
+    /**
+     * @generated from protobuf field: string reqId = 4;
+     */
+    reqId: string;
+}
+/**
+ * @generated from protobuf message backend.v1.AppErrorField
+ */
+export interface AppErrorField {
+    /**
+     * @generated from protobuf field: string field = 1;
+     */
+    field: string;
+    /**
+     * @generated from protobuf field: string error = 2;
+     */
+    error: string;
+}
+/**
  * @generated from protobuf enum backend.v1.CardTokenType
  */
 export enum CardTokenType {
@@ -12729,6 +12763,128 @@ class VerifyIdentityRequest$Type extends MessageType<VerifyIdentityRequest> {
  * @generated MessageType for protobuf message backend.v1.VerifyIdentityRequest
  */
 export const VerifyIdentityRequest = new VerifyIdentityRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class AppError$Type extends MessageType<AppError> {
+    constructor() {
+        super("backend.v1.AppError", [
+            { no: 1, name: "errorCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "message", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "fields", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => AppErrorField },
+            { no: 4, name: "reqId", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<AppError>): AppError {
+        const message = { errorCode: "", message: "", fields: [], reqId: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<AppError>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: AppError): AppError {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string errorCode */ 1:
+                    message.errorCode = reader.string();
+                    break;
+                case /* string message */ 2:
+                    message.message = reader.string();
+                    break;
+                case /* repeated backend.v1.AppErrorField fields */ 3:
+                    message.fields.push(AppErrorField.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* string reqId */ 4:
+                    message.reqId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: AppError, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string errorCode = 1; */
+        if (message.errorCode !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.errorCode);
+        /* string message = 2; */
+        if (message.message !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.message);
+        /* repeated backend.v1.AppErrorField fields = 3; */
+        for (let i = 0; i < message.fields.length; i++)
+            AppErrorField.internalBinaryWrite(message.fields[i], writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        /* string reqId = 4; */
+        if (message.reqId !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.reqId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.AppError
+ */
+export const AppError = new AppError$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class AppErrorField$Type extends MessageType<AppErrorField> {
+    constructor() {
+        super("backend.v1.AppErrorField", [
+            { no: 1, name: "field", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "error", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<AppErrorField>): AppErrorField {
+        const message = { field: "", error: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<AppErrorField>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: AppErrorField): AppErrorField {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string field */ 1:
+                    message.field = reader.string();
+                    break;
+                case /* string error */ 2:
+                    message.error = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: AppErrorField, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string field = 1; */
+        if (message.field !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.field);
+        /* string error = 2; */
+        if (message.error !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.error);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.AppErrorField
+ */
+export const AppErrorField = new AppErrorField$Type();
 /**
  * @generated ServiceType for protobuf service backend.v1.BackendService
  */

@@ -1,0 +1,10 @@
+{{- define "interledger-app.backend.grpc.service" -}}
+{{- $top := first . -}}
+metadata:
+  labels:
+    {{/* Override the name label so it matches the service resource name, not the component name */}}
+    app.kubernetes.io/name: {{ include "common.fullname" $top }}-backend-service-grpc
+{{- end }}
+{{- if .Values.backend.server.enabled }}
+{{- include "common.svc" (list . .Values.backend.server.service.grpc .Values.backend.server "interledger-app.backend.grpc.service") }}
+{{- end }}

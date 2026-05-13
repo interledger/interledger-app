@@ -1,0 +1,68 @@
+suite: Interledger App - Admin required field validation
+templates:
+  - validation.admin.yaml
+set:
+  fullnameOverride: wallet
+release:
+  name: wallet
+tests:
+  - it: 'Should succeed when all required fields are populated'
+    set:
+      admin:
+        config:
+          kratos:
+            adminUrl: "http://kratos-admin:4434"
+          backend:
+            grpcUrl: "wallet-backend-service-grpc:8448"
+    asserts:
+      - isNull:
+          path: spec
+
+  - it: 'Should fail when admin.config.kratos.adminUrl is empty'
+    set:
+      admin:
+        config:
+          kratos:
+            adminUrl: ""
+          backend:
+            grpcUrl: "wallet-backend-service-grpc:8448"
+    asserts:
+      - failedTemplate:
+          errorMessage: "The following required values are empty: admin.config.kratos.adminUrl"
+
+  - it: 'Should fail when admin.config.backend.grpcUrl is empty'
+    set:
+      admin:
+        config:
+          kratos:
+            adminUrl: "http://kratos-admin:4434"
+          backend:
+            grpcUrl: ""
+    asserts:
+      - failedTemplate:
+          errorMessage: "The following required values are empty: admin.config.backend.grpcUrl"
+
+  - it: 'Should fail when all required fields are empty'
+    set:
+      admin:
+        config:
+          kratos:
+            adminUrl: ""
+          backend:
+            grpcUrl: ""
+    asserts:
+      - failedTemplate:
+          errorMessage: "The following required values are empty: admin.config.kratos.adminUrl, admin.config.backend.grpcUrl"
+
+  - it: 'Should skip validation when admin is disabled'
+    set:
+      admin:
+        enabled: false
+        config:
+          kratos:
+            adminUrl: ""
+          backend:
+            grpcUrl: ""
+    asserts:
+      - isNull:
+          path: spec

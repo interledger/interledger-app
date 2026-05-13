@@ -1199,3 +1199,15 @@ message CreateDomainIdentityResponse {
 message VerifyIdentityRequest {
   string id = 1;
 }
+
+message AppError {
+  string errorCode = 1; // See errcodes.go for all possible values
+  string message = 2;
+  repeated AppErrorField fields = 3;
+  string reqId = 4;
+}
+
+message AppErrorField {
+  string field = 1;
+  string error = 2;
+}
