@@ -150,6 +150,7 @@ backend:
       policy_aud_ref: adminPortalCloudFlarePolicyAud
       team_domain_ref: adminPortalCloudflareTeamDomain
 
+    # Not used
     smarty:
       auth:
         id: "not_used"
