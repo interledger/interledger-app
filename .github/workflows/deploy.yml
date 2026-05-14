@@ -144,18 +144,27 @@ jobs:
         run: |
           set -euo pipefail
 
-          # List all chart versions, newest first. The `name` field is the
-          # fully-qualified resource path; the trailing component is the
-          # chart version (without the leading "v").
-          echo "Listing chart versions in ${AR_LOCATION}/${GCR_PROJECT}/${AR_REPO}/${AR_PACKAGE}..."
-          mapfile -t VERSIONS < <(gcloud artifacts versions list \
-            --project="${GCR_PROJECT}" \
-            --location="${AR_LOCATION}" \
-            --repository="${AR_REPO}" \
-            --package="${AR_PACKAGE}" \
-            --sort-by="~CREATE_TIME" \
-            --format="value(name)" \
-            | awk -F/ '{print $NF}')
+          # List chart tags (human-readable versions), newest first.
+          #
+          # We deliberately do NOT use `gcloud artifacts versions list` here:
+          # for OCI artifacts that command returns content digests
+          # (sha256:...), not the semver tags ("1.11.6") that the appset
+          # stores. `docker images list --include-tags` returns each manifest
+          # with its associated tag(s), which is what we actually want.
+          #
+          # One manifest can carry multiple tags (e.g. "1.11.6" alongside
+          # "latest"), so the `tags` column is a comma-separated list; we
+          # split on commas, drop empties, and dedupe while preserving the
+          # newest-first ordering produced by --sort-by=~UPDATE_TIME.
+          IMAGE="${AR_LOCATION}-docker.pkg.dev/${GCR_PROJECT}/${AR_REPO}/${AR_PACKAGE}"
+          echo "Listing chart tags in ${IMAGE}..."
+          mapfile -t VERSIONS < <(gcloud artifacts docker images list \
+            "${IMAGE}" \
+            --include-tags \
+            --sort-by="~UPDATE_TIME" \
+            --format="value(tags)" \
+            | tr ',' '\n' \
+            | awk 'NF && !seen[$0]++')
 
           if [[ "${#VERSIONS[@]}" -eq 0 ]]; then
             echo "::error::No chart versions found for ${AR_PACKAGE} in ${AR_REPO}."
