@@ -17,9 +17,6 @@ name: Deploy
 #
 # Inputs:
 #   - environment: target environment (`sandbox` or `production`).
-#       `production` is included so the surface is in place, but is
-#       intentionally rejected with a clear error until we are ready to
-#       promote there.
 #   - version: chart version to deploy. Leave blank to resolve to the
 #       newest chart published in the GCP Artifact Registry OCI repo (which
 #       is updated by release.yml -> build-and-publish.yml). Accepts either
@@ -29,10 +26,13 @@ name: Deploy
 # Side effects:
 #   1. Opens an auto-merge PR in interledger/interledger-app-deploy bumping
 #      `env/<environment>/appsets/wallet-appset.yaml` to the chosen version.
-#   2. For sandbox: registers the release with Linear via the Linear
-#      Release Action (Sandbox Pipeline). The `LINEAR_RELEASE_ACCESS` secret
-#      lives on the `sandbox` GitHub Environment and is the Linear pipeline
-#      access key for the Sandbox pipeline.
+#   2. Polls the public healthz endpoint until the new release tag is live.
+#   3. Registers the release with Linear via the Linear Release Action. The
+#      `LINEAR_RELEASE_ACCESS` secret is environment-scoped, so the
+#      `sandbox` GitHub Environment holds the Sandbox pipeline access key
+#      and the `production` GitHub Environment holds the Production
+#      pipeline access key. Both Linear pipelines are continuous, so only
+#      `sync` is invoked.
 #
 # GitHub Environments:
 #   - The `environment:` key on each job is set to the dispatched target so
@@ -75,9 +75,10 @@ jobs:
   # ------------------------------------------------------------------------
   # guard
   #
-  # Cheap up-front rejection of `production` so we don't authenticate to GCP
-  # or mint an App token just to discover the target is gated. Keep this
-  # job tiny and dependency-free.
+  # Up-front validation of the dispatched environment. Both sandbox and
+  # production are supported; this job exists to fail fast (before GCP
+  # auth / App-token minting) if the matrix ever grows an unknown value
+  # that shouldn't actually trigger a deploy.
   # ------------------------------------------------------------------------
   guard:
     name: Validate target environment
@@ -87,12 +88,8 @@ jobs:
         run: |
           set -euo pipefail
           case "${{ inputs.environment }}" in
-            sandbox)
-              echo "Target: sandbox"
-              ;;
-            production)
-              echo "::error::Deploying to production via this workflow is not yet enabled. Promote manually for now."
-              exit 1
+            sandbox|production)
+              echo "Target: ${{ inputs.environment }}"
               ;;
             *)
               echo "::error::Unknown environment '${{ inputs.environment }}'."
@@ -107,11 +104,14 @@ jobs:
   # GCP Artifact Registry rather than relying on git tags so we only ever
   # deploy something that has actually been published as a chart.
   #
-  # Sandbox/development share the dev GCP project (wallet-dev-462809) and
-  # therefore the dev Artifact Registry (see copilot-instructions.md and
+  # Sandbox shares the dev GCP project (wallet-dev-462809) and therefore
+  # the dev Artifact Registry (see copilot-instructions.md and
   # build-and-publish.yml -> push-dev-image / publish-helm-chart dev step).
-  # Production charts live in the prod registry but we don't currently
-  # support that target — guarded above.
+  # Production charts live in the prod project (wallet-451208) and use the
+  # unsuffixed `GCR_PROJECT` / `GSA_EMAIL` / `GCR_WORKLOAD_IDENTITY_PROVIDER`
+  # secrets — same names build-and-publish.yml uses for the prod chart
+  # publish step. We branch on inputs.environment using GitHub Actions'
+  # ternary expression rather than per-env jobs to keep the workflow flat.
   # ------------------------------------------------------------------------
   resolve_version:
     name: Resolve chart version
@@ -122,25 +122,85 @@ jobs:
       version: ${{ steps.resolve.outputs.version }}
       version_tag: ${{ steps.resolve.outputs.version_tag }}
     env:
-      # Sandbox = dev GCP project (shared with development).
-      GCR_PROJECT: ${{ secrets.GCR_DEV_PROJECT }}
-      GSA_EMAIL: ${{ secrets.GSA_DEV_EMAIL }}
-      GCR_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCR_DEV_WORKLOAD_IDENTITY_PROVIDER }}
+      # Both secret sets are exposed unconditionally; the `select_secrets`
+      # step below picks the correct one based on the dispatched
+      # environment and fails loudly if the selected set is incomplete.
+      #
+      # We deliberately don't use a `a && b || c` ternary on the secrets
+      # themselves: empty strings are falsy in GitHub Actions expressions,
+      # so a missing/unset production secret would silently fall through
+      # to the dev value and resolve versions against the wrong project.
+      # GitHub Actions also doesn't support dynamic `secrets[<name>]`
+      # lookups, so we do the selection + validation in a script step.
+      DEV_GCR_PROJECT: ${{ secrets.GCR_DEV_PROJECT }}
+      DEV_GSA_EMAIL: ${{ secrets.GSA_DEV_EMAIL }}
+      DEV_GCR_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCR_DEV_WORKLOAD_IDENTITY_PROVIDER }}
+      PROD_GCR_PROJECT: ${{ secrets.GCR_PROJECT }}
+      PROD_GSA_EMAIL: ${{ secrets.GSA_EMAIL }}
+      PROD_GCR_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCR_WORKLOAD_IDENTITY_PROVIDER }}
       AR_LOCATION: europe-west4
       AR_REPO: interledger-helm-charts
       AR_PACKAGE: interledger-app
     steps:
+      - name: Select GCP secrets for target environment
+        id: select_secrets
+        env:
+          TARGET_ENV: ${{ inputs.environment }}
+        run: |
+          set -euo pipefail
+          case "${TARGET_ENV}" in
+            production)
+              GCR_PROJECT="${PROD_GCR_PROJECT}"
+              GSA_EMAIL="${PROD_GSA_EMAIL}"
+              GCR_WIP="${PROD_GCR_WORKLOAD_IDENTITY_PROVIDER}"
+              REQUIRED_HINT="GCR_PROJECT / GSA_EMAIL / GCR_WORKLOAD_IDENTITY_PROVIDER (production environment secrets)"
+              ;;
+            sandbox)
+              GCR_PROJECT="${DEV_GCR_PROJECT}"
+              GSA_EMAIL="${DEV_GSA_EMAIL}"
+              GCR_WIP="${DEV_GCR_WORKLOAD_IDENTITY_PROVIDER}"
+              REQUIRED_HINT="GCR_DEV_PROJECT / GSA_DEV_EMAIL / GCR_DEV_WORKLOAD_IDENTITY_PROVIDER (sandbox environment secrets)"
+              ;;
+            *)
+              echo "::error::Unsupported environment '${TARGET_ENV}'."
+              exit 1
+              ;;
+          esac
+
+          MISSING=()
+          [[ -z "${GCR_PROJECT}" ]] && MISSING+=("GCR project")
+          [[ -z "${GSA_EMAIL}" ]] && MISSING+=("GSA email")
+          [[ -z "${GCR_WIP}" ]] && MISSING+=("workload identity provider")
+          if [[ "${#MISSING[@]}" -gt 0 ]]; then
+            echo "::error::Missing GCP secrets for ${TARGET_ENV}: ${MISSING[*]}. Expected ${REQUIRED_HINT}."
+            exit 1
+          fi
+
+          # Mask the values so they don't leak even though they aren't
+          # strictly secret (project IDs / SA emails); the WIP can be
+          # treated as low-sensitivity but we mask uniformly.
+          echo "::add-mask::${GCR_PROJECT}"
+          echo "::add-mask::${GSA_EMAIL}"
+          echo "::add-mask::${GCR_WIP}"
+
+          {
+            echo "gcr_project=${GCR_PROJECT}"
+            echo "gsa_email=${GSA_EMAIL}"
+            echo "gcr_workload_identity_provider=${GCR_WIP}"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v3
         with:
-          service_account: ${{ env.GSA_EMAIL }}
-          workload_identity_provider: ${{ env.GCR_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ steps.select_secrets.outputs.gsa_email }}
+          workload_identity_provider: ${{ steps.select_secrets.outputs.gcr_workload_identity_provider }}
           export_environment_variables: true
 
       - name: Resolve version
         id: resolve
         env:
           REQUESTED: ${{ inputs.version }}
+          GCR_PROJECT: ${{ steps.select_secrets.outputs.gcr_project }}
         run: |
           set -euo pipefail
 
@@ -422,12 +482,13 @@ jobs:
         id: target
         run: |
           set -euo pipefail
-          # Environment -> public healthz URL mapping. Adding production
-          # later is just a new case branch here once the guard above is
-          # removed.
+          # Environment -> public healthz URL mapping.
           case "${TARGET_ENV}" in
             sandbox)
               URL="https://sandbox.interledger.app/healthz"
+              ;;
+            production)
+              URL="https://interledger.app/healthz"
               ;;
             *)
               echo "::error::No healthz URL configured for environment '${TARGET_ENV}'."
@@ -469,17 +530,19 @@ jobs:
   # ------------------------------------------------------------------------
   # linear_release
   #
-  # Registers the deployment with Linear so the Sandbox pipeline reflects
-  # what is currently being promoted. Runs only for sandbox today; when
-  # production is enabled we will gate this on environment + add a separate
-  # `LINEAR_RELEASE_ACCESS` secret on the production environment.
+  # Registers the deployment with Linear so the target pipeline reflects
+  # what is currently being promoted. `LINEAR_RELEASE_ACCESS` is
+  # environment-scoped: the `sandbox` GitHub Environment holds the Sandbox
+  # pipeline access key, the `production` GitHub Environment holds the
+  # Production pipeline access key. Both Linear pipelines are configured
+  # as continuous pipelines, so `sync` is the only command used —
+  # `update`/`complete` are scheduled-pipeline-only and would fail here.
   #
   # Ordering: gated on `wait_for_rollout` so we only notify Linear once the
-  # new version is actually serving traffic on the target environment. The
-  # Sandbox pipeline in Linear is configured as a continuous pipeline,
-  # which means `sync` creates the release directly in the completed stage
-  # — calling it earlier would falsely report the deploy as done before
-  # ArgoCD has rolled it out.
+  # new version is actually serving traffic on the target environment. In a
+  # continuous pipeline `sync` creates the release directly in the
+  # completed stage, so calling it earlier would falsely report the deploy
+  # as done before ArgoCD has rolled it out.
   #
   # The Linear Release Action needs full commit history to scan for issue
   # identifiers between releases — hence `fetch-depth: 0` and a checkout
@@ -488,7 +551,7 @@ jobs:
   linear_release:
     name: Register release with Linear
     needs: [bump_deploy, resolve_version, wait_for_rollout]
-    if: inputs.environment == 'sandbox' && needs.bump_deploy.outputs.pr_url != ''
+    if: needs.bump_deploy.outputs.pr_url != ''
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     permissions:
