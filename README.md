@@ -65,5 +65,3 @@ make unit-test-db-down
 Some notes
 - In previous iterations the project used Postgres 15, so be on the lookout for issues relating to the move to Postgres 17
 - After performing the steps above you should be able to run the tests directly from vscode
-
-The end.
