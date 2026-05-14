@@ -9,13 +9,14 @@ import (
 )
 
 var (
-	ErrTokenNotFound        = errors.New("token not found")
-	ErrInvalidToken         = errors.New("invalid token")
-	ErrTokenExpired         = errors.New("token expired")
-	ErrSubAccountNotFound   = errors.New("sub-account not found")
-	ErrBeneficiaryNotFound  = errors.New("beneficiary not found")
-	ErrInsufficientBalance  = errors.New("insufficient balance")
-	ErrDuplicateTransaction = errors.New("duplicate transaction")
+	ErrTokenNotFound               = errors.New("token not found")
+	ErrInvalidToken                = errors.New("invalid token")
+	ErrTokenExpired                = errors.New("token expired")
+	ErrSubAccountNotFound          = errors.New("sub-account not found")
+	ErrBeneficiaryNotFound         = errors.New("beneficiary not found")
+	ErrInsufficientBalance         = errors.New("insufficient balance")
+	ErrDuplicateTransaction        = errors.New("duplicate transaction")
+	ErrCurrencyConversionNotFound  = errors.New("currency conversion not found")
 )
 
 // Storage interface defines all storage operations
@@ -71,6 +72,10 @@ type Storage interface {
 	UpdateJobStatus(ctx context.Context, jobID string, status string, completedAt *time.Time, lastError string) error
 	IncrementJobAttempts(ctx context.Context, jobID string) error
 	ClearJobs(ctx context.Context) error
+
+	// Currency conversion operations
+	SaveCurrencyConversion(ctx context.Context, conv *models.CurrencyConversion) error
+	GetCurrencyConversion(ctx context.Context, convertID string) (*models.CurrencyConversion, error)
 
 	// Reset all data (for testing)
 	Reset(ctx context.Context) error

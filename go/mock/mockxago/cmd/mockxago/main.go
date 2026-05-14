@@ -147,6 +147,11 @@ func setupRoutes(router *chi.Mux, h *handler.Handler) {
 
 		r.Group(func(pr chi.Router) {
 			pr.Use(h.AuthMiddleware)
+
+			// Currency conversion endpoints
+			pr.Post("/currencyconvert", h.ConvertCurrencyHandler)
+			pr.Get("/currencyconvert", h.GetConvertCurrencyDetails)
+
 			pr.Post("/company/accounts", h.CreateSubAccount)
 			pr.Put("/company/accounts/{accountId}", h.UpdateSubAccount)
 			pr.Get("/company/accounts", h.GetSubAccountByWallet)

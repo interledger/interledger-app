@@ -293,6 +293,33 @@ type ListDepositsResponse struct {
 	Pagination DepositPagination `json:"pagination"`
 }
 
+// ConvertCurrencyPairEnum identifies a currency conversion direction.
+type ConvertCurrencyPairEnum string
+
+const (
+	ZARtoEUR ConvertCurrencyPairEnum = "ZAR/EUR"
+	EURtoZAR ConvertCurrencyPairEnum = "EUR/ZAR"
+)
+
+// ConvertCurrencyRequest is the payload for both estimate and actual conversion.
+type ConvertCurrencyRequest struct {
+	ConvertCurrencyPair ConvertCurrencyPairEnum `json:"convertCurrencyPair"`
+	Amount              float64                 `json:"amount"`
+	EstimateCalculation bool                    `json:"estimateCalculation"`
+}
+
+// EstimateConvertCurrencyResponse is the response for an estimate request.
+type EstimateConvertCurrencyResponse struct {
+	BuyAveragePrice float64 `json:"buyAveragePrice"`
+	BuyOrders       float64 `json:"buyOrders"`
+	EstimatedRate   float64 `json:"estimatedRate"`
+	FinalBuyAmount  float64 `json:"finalBuyAmount"`
+	FinalSellAmount float64 `json:"finalSellAmount"`
+	QuoteAmount     float64 `json:"quoteAmount"`
+	ReceivedAmount  float64 `json:"receivedAmount"`
+	SellOrders      float64 `json:"sellOrders"`
+}
+
 // DepositWebhookPayload represents the webhook payload sent when a deposit completes
 type DepositWebhookPayload struct {
 	AccountID            string  `json:"accountId"`
