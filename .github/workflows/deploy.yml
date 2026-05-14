@@ -378,6 +378,95 @@ jobs:
           echo "- Deploy PR: ${PR_URL}" >> "$GITHUB_STEP_SUMMARY"
 
   # ------------------------------------------------------------------------
+  # wait_for_rollout
+  #
+  # Polls the public healthz endpoint of the target environment until the
+  # `interledger-app-version` response header matches the release tag we
+  # just deployed (the v-prefixed Chart `appVersion` / image tag, e.g.
+  # `v1.11.6`). Note this is the release tag, not the unprefixed Helm
+  # `chartVersion` that lives in the appset — they share digits but differ
+  # in the leading `v`, and the running container only knows about the
+  # former (it was baked into the image via the IMAGE_HASH build-arg).
+  #
+  # This is a much simpler "is it actually live?" signal than tailing the
+  # deploy PR + ArgoCD sync state:
+  #
+  #   1. PR auto-merges in interledger-app-deploy after `conform.yaml` passes
+  #   2. ArgoCD picks up the new chartVersion and rolls out the new pods
+  #   3. Traefik starts routing to the new Protea pods, which advertise
+  #      `interledger-app-version: <tag>` from the IMAGE_HASH build-arg
+  #
+  # When the header value matches the deployed tag we know the new build
+  # is serving traffic, which is the signal Linear cares about.
+  #
+  # The Protea Dockerfile only sets INTERLEDGER_APP_VERSION in production
+  # images, so the header is intentionally absent in dev/local and a wait
+  # against a fresh sandbox env that hasn't been bumped yet will time out
+  # rather than passing silently.
+  # ------------------------------------------------------------------------
+  wait_for_rollout:
+    name: Wait for ${{ inputs.environment }} rollout
+    needs: [bump_deploy, resolve_version]
+    if: needs.bump_deploy.outputs.pr_url != ''
+    runs-on: ubuntu-latest
+    # Sandbox rollouts (PR merge -> ArgoCD sync -> pod rollout) usually
+    # complete in ~10 minutes. 60 minutes gives generous headroom for a
+    # slow CI run or rollout, while still failing the workflow rather than
+    # hanging a runner forever if something is stuck.
+    timeout-minutes: 60
+    env:
+      EXPECTED_TAG: ${{ needs.resolve_version.outputs.version_tag }}
+      TARGET_ENV: ${{ inputs.environment }}
+    steps:
+      - name: Resolve healthz URL
+        id: target
+        run: |
+          set -euo pipefail
+          # Environment -> public healthz URL mapping. Adding production
+          # later is just a new case branch here once the guard above is
+          # removed.
+          case "${TARGET_ENV}" in
+            sandbox)
+              URL="https://sandbox.interledger.app/healthz"
+              ;;
+            *)
+              echo "::error::No healthz URL configured for environment '${TARGET_ENV}'."
+              exit 1
+              ;;
+          esac
+          echo "url=${URL}" >> "$GITHUB_OUTPUT"
+          echo "Polling ${URL} for interledger-app-version=${EXPECTED_TAG}"
+
+      - name: Poll healthz for new version
+        env:
+          URL: ${{ steps.target.outputs.url }}
+        run: |
+          set -euo pipefail
+          # Header is lowercased to match curl's HTTP/2 output; we also fold
+          # response whitespace and trim CR before comparison. -k is NOT
+          # used: we require valid TLS on the public endpoint.
+          while true; do
+            RESPONSE_HEADERS=$(curl -fsSL -o /dev/null -D - --max-time 10 "${URL}" || true)
+            CURRENT=$(printf '%s' "${RESPONSE_HEADERS}" \
+              | tr -d '\r' \
+              | awk -F': ' 'tolower($1)=="interledger-app-version" {print $2; exit}')
+            if [[ -n "${CURRENT}" ]]; then
+              echo "Current: ${CURRENT} (expected: ${EXPECTED_TAG})"
+              if [[ "${CURRENT}" == "${EXPECTED_TAG}" ]]; then
+                echo "Rollout complete."
+                {
+                  echo "- Rollout verified at ${URL}"
+                  echo "- Live version: \`${CURRENT}\`"
+                } >> "$GITHUB_STEP_SUMMARY"
+                exit 0
+              fi
+            else
+              echo "No interledger-app-version header in response yet."
+            fi
+            sleep 30
+          done
+
+  # ------------------------------------------------------------------------
   # linear_release
   #
   # Registers the deployment with Linear so the Sandbox pipeline reflects
@@ -385,14 +474,21 @@ jobs:
   # production is enabled we will gate this on environment + add a separate
   # `LINEAR_RELEASE_ACCESS` secret on the production environment.
   #
+  # Ordering: gated on `wait_for_rollout` so we only notify Linear once the
+  # new version is actually serving traffic on the target environment. The
+  # Sandbox pipeline in Linear is configured as a continuous pipeline,
+  # which means `sync` creates the release directly in the completed stage
+  # — calling it earlier would falsely report the deploy as done before
+  # ArgoCD has rolled it out.
+  #
   # The Linear Release Action needs full commit history to scan for issue
   # identifiers between releases — hence `fetch-depth: 0` and a checkout
   # pinned to the deployed tag.
   # ------------------------------------------------------------------------
   linear_release:
     name: Register release with Linear
-    needs: [bump_deploy, resolve_version]
-    if: inputs.environment == 'sandbox'
+    needs: [bump_deploy, resolve_version, wait_for_rollout]
+    if: inputs.environment == 'sandbox' && needs.bump_deploy.outputs.pr_url != ''
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     permissions:
