@@ -381,9 +381,15 @@ jobs:
   # wait_for_rollout
   #
   # Polls the public healthz endpoint of the target environment until the
-  # `interledger-app-version` response header matches the chart version we
-  # just deployed. This is a much simpler "is it actually live?" signal than
-  # tailing the deploy PR + ArgoCD sync state:
+  # `interledger-app-version` response header matches the release tag we
+  # just deployed (the v-prefixed Chart `appVersion` / image tag, e.g.
+  # `v1.11.6`). Note this is the release tag, not the unprefixed Helm
+  # `chartVersion` that lives in the appset — they share digits but differ
+  # in the leading `v`, and the running container only knows about the
+  # former (it was baked into the image via the IMAGE_HASH build-arg).
+  #
+  # This is a much simpler "is it actually live?" signal than tailing the
+  # deploy PR + ArgoCD sync state:
   #
   #   1. PR auto-merges in interledger-app-deploy after `conform.yaml` passes
   #   2. ArgoCD picks up the new chartVersion and rolls out the new pods
@@ -409,7 +415,7 @@ jobs:
     # hanging a runner forever if something is stuck.
     timeout-minutes: 60
     env:
-      EXPECTED_VERSION: ${{ needs.resolve_version.outputs.version_tag }}
+      EXPECTED_TAG: ${{ needs.resolve_version.outputs.version_tag }}
       TARGET_ENV: ${{ inputs.environment }}
     steps:
       - name: Resolve healthz URL
@@ -429,7 +435,7 @@ jobs:
               ;;
           esac
           echo "url=${URL}" >> "$GITHUB_OUTPUT"
-          echo "Polling ${URL} for interledger-app-version=${EXPECTED_VERSION}"
+          echo "Polling ${URL} for interledger-app-version=${EXPECTED_TAG}"
 
       - name: Poll healthz for new version
         env:
@@ -445,8 +451,8 @@ jobs:
               | tr -d '\r' \
               | awk -F': ' 'tolower($1)=="interledger-app-version" {print $2; exit}')
             if [[ -n "${CURRENT}" ]]; then
-              echo "Current: ${CURRENT} (expected: ${EXPECTED_VERSION})"
-              if [[ "${CURRENT}" == "${EXPECTED_VERSION}" ]]; then
+              echo "Current: ${CURRENT} (expected: ${EXPECTED_TAG})"
+              if [[ "${CURRENT}" == "${EXPECTED_TAG}" ]]; then
                 echo "Rollout complete."
                 {
                   echo "- Rollout verified at ${URL}"
