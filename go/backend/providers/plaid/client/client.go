@@ -202,10 +202,12 @@ func (c *Client) SyncTransactions(ctx context.Context, accessToken string) (*pla
 }
 
 // CreateProcessorToken calls Plaid `/processor/token/create` to mint a
-// one-shot, account-scoped credential for a partner processor (e.g. "fiant").
-// The returned processor_token is forwarded to the partner (Phase 2: Fiant
-// `/users/{externalId}/payment-information`) and is single-use from Plaid's
-// side — minted fresh per account per Fiant registration.
+// long-lived, account-scoped credential for a partner processor (e.g. "fiant").
+// The returned processor_token is bound to exactly one (item, account_id,
+// processor) triple — the partner (Fiant) can use it repeatedly to query
+// Plaid for that one account until the Item is removed or access revoked.
+// N accounts → N processor tokens. Phase 2 forwards it to Fiant via
+// /users/{externalId}/payment-information.
 func (c *Client) CreateProcessorToken(ctx context.Context, accessToken, accountID, processor string) (string, error) {
 	req := plaidsdk.NewProcessorTokenCreateRequest(accessToken, accountID, processor)
 	resp, _, err := c.sdk.PlaidApi.ProcessorTokenCreate(ctx).ProcessorTokenCreateRequest(*req).Execute()
