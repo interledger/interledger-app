@@ -130,6 +130,7 @@ type StartArgs struct {
 	PlaidEnv                      string
 	PlaidProducts                 []string
 	PlaidCountryCodes             []string
+	PlaidProcessor                string
 	RedisURL                      string
 }
 
@@ -527,6 +528,7 @@ func ParseStartArgs() (*StartArgs, error) {
 	plaidEnv := os.Getenv("PLAID_ENV")
 	plaidProductsStr := os.Getenv("PLAID_PRODUCTS")
 	plaidCountryCodesStr := os.Getenv("PLAID_COUNTRY_CODES")
+	plaidProcessor := os.Getenv("PLAID_PROCESSOR")
 
 	plaidProducts := splitAndTrim(plaidProductsStr, ",")
 	plaidCountryCodes := splitAndTrim(plaidCountryCodesStr, ",")
@@ -549,6 +551,12 @@ func ParseStartArgs() (*StartArgs, error) {
 		}
 		if len(plaidCountryCodes) == 0 {
 			return nil, errors.New("PLAID_COUNTRY_CODES is required when PLAID_ENABLED=true (comma-separated)")
+		}
+		if plaidProcessor == "" {
+			plaidProcessor = "fiant"
+		}
+		if plaidProcessor != "fiant" && plaidProcessor != "zero_hash" {
+			return nil, errors.New("PLAID_PROCESSOR must be one of: fiant, zero_hash")
 		}
 	}
 
@@ -629,6 +637,7 @@ func ParseStartArgs() (*StartArgs, error) {
 		PlaidEnv:                      plaidEnv,
 		PlaidProducts:                 plaidProducts,
 		PlaidCountryCodes:             plaidCountryCodes,
+		PlaidProcessor:                plaidProcessor,
 		RedisURL:                      redisURL,
 	}, nil
 }

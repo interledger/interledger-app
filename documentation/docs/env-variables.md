@@ -283,6 +283,7 @@ Plaid integration is a proof-of-concept (see `documentation/poc/plaid/`). The fe
 | `PLAID_ENV` | Plaid environment selector (`sandbox` or `production`) | No | Local POC: `sandbox`; deployed: unset |
 | `PLAID_PRODUCTS` | Comma-separated list of Plaid products requested at Link creation | No | POC: `auth,transactions,balance,identity` |
 | `PLAID_COUNTRY_CODES` | Comma-separated ISO-3166-1 alpha-2 country codes for Link institution filtering | No | POC: `US` (sandbox only supports US institutions out of the box) |
+| `PLAID_PROCESSOR` | Plaid processor partner used when minting a processor token via `processor/token/create` (`fiant` or `zero_hash`). Phase 2 only. | No | Default: `fiant`. Use `zero_hash` to validate plumbing if `fiant` is not enabled in your Plaid team. |
 
 ### Legacy Variables
 
