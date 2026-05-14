@@ -44,6 +44,9 @@ type E2EContext struct {
 	userDetails map[string]*UserDetails
 	currentUser string // Currently impersonated user
 
+	// Botanist admin portal
+	botanistBaseURL string
+
 	// Payment flow state
 	receiverWalletAddress string // Wallet address/identifier for payment receiver
 	ptiDepositRequestID   string // PTI deposit requestId, captured from /deposit/:id URL
@@ -367,6 +370,23 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	})
 	ctx.Step(`^I should see the snackbar "([^"]*)"$`, func(message string) error {
 		return sc.iShouldSeeTheSnackbar(message)
+	})
+
+	// Botanist admin portal steps
+	ctx.Step(`^the admin portal is running at "([^"]*)"$`, func(url string) error {
+		return sc.theAdminPortalIsRunningAt(url)
+	})
+	ctx.Step(`^I navigate to the admin portal$`, func() error {
+		return sc.iNavigateToTheAdminPortal()
+	})
+	ctx.Step(`^the navigation menu should be visible$`, func() error {
+		return sc.theNavigationMenuShouldBeVisible()
+	})
+	ctx.Step(`^the "([^"]*)" menu item should be visible$`, func(label string) error {
+		return sc.theMenuItemShouldBeVisible(label)
+	})
+	ctx.Step(`^the page title should be "([^"]*)"$`, func(title string) error {
+		return sc.thePageTitleShouldBe(title)
 	})
 }
 
