@@ -136,3 +136,85 @@ func (sc *E2EContext) thePageTitleShouldBe(expectedTitle string) error {
 	debugPrintf("✓ Page title: %s\n", title)
 	return nil
 }
+
+// iNavigateToTheBotanistWalletsPage navigates the current page to the /wallets route.
+func (sc *E2EContext) iNavigateToTheBotanistWalletsPage() error {
+	walletsURL := sc.botanistBaseURL + "/wallets"
+	debugPrintf("\n🌐 Navigating to botanist wallets page: %s\n", walletsURL)
+
+	_, err := sc.page.Goto(walletsURL, playwright.PageGotoOptions{
+		Timeout:   playwright.Float(30000),
+		WaitUntil: playwright.WaitUntilStateNetworkidle,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to navigate to wallets page: %w", err)
+	}
+
+	if err = sc.page.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
+		State:   playwright.LoadStateNetworkidle,
+		Timeout: playwright.Float(15000),
+	}); err != nil {
+		return fmt.Errorf("wallets page did not reach network idle: %w", err)
+	}
+
+	debugPrintf("✓ On botanist wallets page\n")
+	return nil
+}
+
+// iFilterTheWalletsListBy types searchTerm into the filter input and waits for
+// the client-side React re-render to apply.
+func (sc *E2EContext) iFilterTheWalletsListBy(searchTerm string) error {
+	debugPrintf("🔍 Filtering wallets by: %q\n", searchTerm)
+
+	filterInput := sc.page.Locator("input[aria-label='Filter wallets']")
+	if err := filterInput.WaitFor(playwright.LocatorWaitForOptions{
+		State:   playwright.WaitForSelectorStateVisible,
+		Timeout: playwright.Float(5000),
+	}); err != nil {
+		return fmt.Errorf("filter input not found: %w", err)
+	}
+
+	if err := filterInput.Fill(searchTerm); err != nil {
+		return fmt.Errorf("failed to fill filter input: %w", err)
+	}
+
+	// React re-renders synchronously on input, but give the browser a tick.
+	sc.page.WaitForTimeout(300)
+
+	debugPrintf("✓ Filter applied: %q\n", searchTerm)
+	return nil
+}
+
+// iFilterTheWalletsListByMyEmail filters the wallets list using the current
+// impersonated user's email address.
+func (sc *E2EContext) iFilterTheWalletsListByMyEmail() error {
+	email, err := sc.getCurrentUserEmail()
+	if err != nil {
+		return fmt.Errorf("cannot filter by email: %w", err)
+	}
+	return sc.iFilterTheWalletsListBy(email)
+}
+
+// myWalletShouldAppearInTheWalletsList asserts that a table row containing the
+// current user's email is visible in the wallets table.
+func (sc *E2EContext) myWalletShouldAppearInTheWalletsList() error {
+	email, err := sc.getCurrentUserEmail()
+	if err != nil {
+		return fmt.Errorf("cannot check wallet visibility: %w", err)
+	}
+
+	debugPrintf("🔎 Looking for wallet with email %q in table\n", email)
+
+	// Poll briefly — after signup there may be a short propagation delay.
+	locator := sc.page.Locator(fmt.Sprintf("td:has-text('%s')", email)).First()
+	if err := locator.WaitFor(playwright.LocatorWaitForOptions{
+		State:   playwright.WaitForSelectorStateVisible,
+		Timeout: playwright.Float(15000),
+	}); err != nil {
+		_ = sc.iTakeAScreenshot("wallet-not-found")
+		return fmt.Errorf("wallet with email %q not visible in wallets table: %w", email, err)
+	}
+
+	debugPrintf("✓ Wallet for %q is visible in the list\n", email)
+	return nil
+}
