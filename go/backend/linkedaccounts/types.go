@@ -33,6 +33,11 @@ type LinkedAccount struct {
 	CreatedAt           time.Time         `db:"created_at"`
 	UpdatedAt           time.Time         `db:"updated_at"`
 	DeletedAt           sql.NullTime      `db:"deleted_at"`
+	// PlaidAccountID is the Plaid `accounts[*].account_id` this row was
+	// provisioned from (Plaid POC Phase 2). NULL for accounts linked through
+	// any other path. Used by /plaid/link-to-fiant to short-circuit duplicate
+	// registrations.
+	PlaidAccountID sql.NullString `db:"plaid_account_id"`
 }
 
 func (la *LinkedAccount) Title() string {
@@ -79,6 +84,9 @@ type CreateArgs struct {
 	ReceiveCurrency     currency.Currency
 	ReceiveAvailability FundsAvailability
 	ReceiveNetwork      string
+	// PlaidAccountID is the originating Plaid account_id for Phase 2 Plaid-
+	// sourced rows. Optional; pass empty string for non-Plaid creations.
+	PlaidAccountID string
 }
 
 type GetByProviderIDArgs struct {
