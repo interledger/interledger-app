@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useLoaderData } from 'react-router';
 import clsx from 'clsx'
 import { href } from 'react-router'
@@ -27,6 +28,8 @@ import { usePendingConfirmations } from '~/lib/cards/usePendingConfirmations'
 import { usePusher } from '~/lib/usePusher'
 import type { loader, AppLoaderData } from './route'
 import { KycStatus } from '~/lib/types'
+
+import { BankSourceModal } from './BankSourceModal'
 
 export function AppPage() {
   const {
@@ -328,6 +331,7 @@ export function AppPage() {
 
 function CTACards() {
   const { features, walletInfo } = useLoaderData<typeof loader>() as AppLoaderData
+  const [bankSourceModalOpen, setBankSourceModalOpen] = useState(false)
 
   return (
     <>
@@ -395,16 +399,13 @@ function CTACards() {
                     Connect bank accounts to easily add or withdraw from your
                     balance.
                   </p>
-                  <Router
-                    className='text-sm font-medium text-primary'
-                    to={href(
-                      walletInfo.country === 'US'
-                        ? '/connect/bank/us'
-                        : '/connect/bank/za'
-                    )}
+                  <button
+                    type='button'
+                    onClick={() => setBankSourceModalOpen(true)}
+                    className='self-start rounded text-sm font-medium text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-500'
                   >
                     Connect a bank account
-                  </Router>
+                  </button>
                 </div>
               </div>
             </CardContent>
@@ -433,6 +434,11 @@ function CTACards() {
           </CardContent>
         </Card>
       )}
+      <BankSourceModal
+        open={bankSourceModalOpen}
+        setOpen={setBankSourceModalOpen}
+        country={walletInfo.country}
+      />
     </>
   )
 }
