@@ -8,7 +8,14 @@
 // (case-insensitive). Phase-2 sandbox is US-only — non-US wallets get 404.
 
 import { useEffect } from 'react'
-import { Form, href, redirect, useLoaderData, useNavigation } from 'react-router'
+import {
+  Form,
+  href,
+  redirect,
+  useActionData,
+  useLoaderData,
+  useNavigation
+} from 'react-router'
 
 import type { ApplicationProps } from '~/components'
 import {
@@ -24,10 +31,8 @@ import {
 import { getWalletInfo } from '~/data/wallet.server'
 import { mergeMeta } from '~/lib/meta'
 import plaid, { isPlaidError } from '~/lib/plaid.server'
-import {
-  jsonWithSnackbar,
-  redirectWithSnackbar
-} from '~/lib/snackbar.server'
+import { redirectWithSnackbar } from '~/lib/snackbar.server'
+import type { SnackbarAction } from '~/lib/useScaffoldStore'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 
 import type { Route } from './+types/connect_.plaid_.$country'
@@ -118,27 +123,57 @@ export async function loader({ request, params }: Route.LoaderArgs): Promise<Loa
 
 /* ─── action ─────────────────────────────────────────────────────────── */
 
+/**
+ * Action error payload. The snackbar is delivered INLINE (not via the
+ * server-flash cookie) because in this app's single-fetch + Redis-session
+ * setup the root loader's `getSnackbar` does not reliably read a flash that
+ * the same action just wrote — the user otherwise sees the error toast only
+ * after a refresh. The component pushes `actionData.snackbar` via a
+ * `useEffect` into `useScaffoldStore` on every new action response.
+ *
+ * Success path stays on `redirectWithSnackbar` — the redirect is followed by
+ * a fresh GET cycle so the flash is read on the next request's root loader.
+ */
+export interface ActionError {
+  ok: false
+  error: string
+  snackbar: {
+    id: string
+    message: string
+    action?: SnackbarAction
+    icon: string
+  }
+}
+
+function actionError(
+  error: string,
+  snackbar: { message: string; action?: SnackbarAction; icon?: string }
+): ActionError {
+  return {
+    ok: false,
+    error,
+    snackbar: {
+      id: `link-to-fiant-error-${Date.now()}`,
+      message: snackbar.message,
+      action: snackbar.action,
+      icon: snackbar.icon ?? 'close'
+    }
+  }
+}
+
 export async function action({ request, params }: Route.ActionArgs) {
   const form = await request.formData()
   const intent = String(form.get('intent') || '')
 
   if (intent !== 'link-to-fiant') {
-    return jsonWithSnackbar(
-      request,
-      { ok: false, error: `unknown intent: ${intent}` },
-      { message: `Unknown action.`, icon: 'close' },
-      400
-    )
+    return actionError(`unknown intent: ${intent}`, { message: 'Unknown action.' })
   }
 
   const accountID = String(form.get('account_id') || '')
   if (!accountID) {
-    return jsonWithSnackbar(
-      request,
-      { ok: false, error: 'account_id is required' },
-      { message: 'Missing Plaid account id.', icon: 'close' },
-      400
-    )
+    return actionError('account_id is required', {
+      message: 'Missing Plaid account id.'
+    })
   }
 
   const accountName = String(form.get('account_name') || '')
@@ -153,25 +188,16 @@ export async function action({ request, params }: Route.ActionArgs) {
   if (isPlaidError(result)) {
     // Status-aware error UX. 401 surfaces via the snackbar but the user can
     // re-link from /plaid; 4xx from Plaid (e.g. INVALID_ACCESS_TOKEN) gets a
-    // "Re-link Plaid" hint via the Set-up-Plaid action; everything else is a
-    // plain error toast.
+    // "Set up Plaid" action; everything else is a plain error toast.
     const isReLinkable =
       result.status === 401 ||
       /INVALID_ACCESS_TOKEN|ITEM_LOGIN_REQUIRED|INVALID_PROCESSOR/i.test(
         result.errorCode || ''
       )
-    return jsonWithSnackbar(
-      request,
-      { ok: false, error: result.message },
-      isReLinkable
-        ? {
-            message: `Couldn't link this account: ${result.message}`,
-            action: 'Set up Plaid',
-            icon: 'close'
-          }
-        : { message: `Couldn't link this account: ${result.message}`, icon: 'close' },
-      result.status
-    )
+    return actionError(result.message, {
+      message: `Couldn't link this account: ${result.message}`,
+      action: isReLinkable ? 'Set up Plaid' : undefined
+    })
   }
 
   // Success path — soft-success copy for the idempotent dedupe hit.
@@ -192,14 +218,25 @@ export async function action({ request, params }: Route.ActionArgs) {
 
 export default function ConnectPlaidCountry() {
   const { accounts, alreadyLinked } = useLoaderData<typeof loader>()
+  const actionData = useActionData<typeof action>() as ActionError | undefined
   const navigation = useNavigation()
   const setLoading = useScaffoldStore((s) => s.setLoading)
+  const pushSnackbar = useScaffoldStore((s) => s.pushSnackbar)
   const isSubmitting = navigation.state === 'submitting'
 
   useEffect(() => {
     setLoading(isSubmitting)
     return () => setLoading(false)
   }, [isSubmitting, setLoading])
+
+  // Action errors deliver their snackbar inline (see action() comment). Push
+  // it into the store whenever a new error response comes back; the snackbar
+  // `id` is unique per response so re-clicks always surface a fresh toast.
+  useEffect(() => {
+    if (actionData?.ok === false && actionData.snackbar) {
+      pushSnackbar(actionData.snackbar)
+    }
+  }, [actionData, pushSnackbar])
 
   const alreadyLinkedSet = new Set(alreadyLinked)
 
