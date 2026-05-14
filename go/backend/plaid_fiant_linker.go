@@ -140,6 +140,31 @@ func (l *plaidFiantLinker) Register(ctx context.Context, args plaid_ops.LinkPlai
 	}, nil
 }
 
+// ListLinkedPlaidAccountIDs — see plaid_ops.FiantLinker.
+func (l *plaidFiantLinker) ListLinkedPlaidAccountIDs(ctx context.Context, userID string) ([]string, error) {
+	walletID, err := l.walletForUser(ctx, userID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	var ids []string
+	err = l.b.DB().SelectContext(
+		ctx,
+		&ids,
+		`SELECT plaid_account_id FROM linked_accounts
+		 WHERE wallet_id = $1
+		   AND plaid_account_id IS NOT NULL
+		   AND deleted_at IS NULL;`,
+		walletID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("plaid/fiant linker: list plaid account ids: %w", err)
+	}
+	return ids, nil
+}
+
 // walletForUser returns the first wallet attached to a Kratos user. Mirrors
 // the convention in wallets/middleware which also "picks a default" when the
 // user has more than one.

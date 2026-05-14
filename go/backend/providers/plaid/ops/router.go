@@ -47,8 +47,11 @@ func NewRouter(client plaid.Client, store plaid.TokenStore, uc user.Client, link
 	r.Get("/transactions", h.GetTransactions)
 	r.Delete("/disconnect", h.Disconnect)
 
-	if linker != nil && processor != "" {
-		r.Post("/link-to-fiant", h.LinkToFiant)
+	if linker != nil {
+		r.Get("/registered", h.GetRegistered)
+		if processor != "" {
+			r.Post("/link-to-fiant", h.LinkToFiant)
+		}
 	}
 
 	return r

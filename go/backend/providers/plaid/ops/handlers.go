@@ -389,6 +389,39 @@ type linkToFiantResponse struct {
 	AlreadyLinked bool `json:"already_linked"`
 }
 
+// GetRegistered — GET /plaid/registered. Returns the Plaid account_ids the
+// current user has already linked to Fiant via /plaid/link-to-fiant. Drives
+// the "Linked" tag on the /connect/plaid/{country} selector. Always returns
+// 200 with a (possibly empty) array; never reveals counts of other users.
+func (h *Handlers) GetRegistered(w http.ResponseWriter, r *http.Request) {
+	if h.linker == nil {
+		apperrors.WriteAppError(w, r, http.StatusServiceUnavailable, errcodes.ErrCodeInternal, "plaid/fiant linker not configured")
+		return
+	}
+
+	u, err := ops.UserForContext(r.Context())
+	if err != nil {
+		apperrors.WriteAppError(w, r, http.StatusUnauthorized, errcodes.ErrCodeUnauthorized, "unauthenticated")
+		return
+	}
+
+	ids, err := h.linker.ListLinkedPlaidAccountIDs(r.Context(), u.ID)
+	if err != nil {
+		log.Error("plaid: ListLinkedPlaidAccountIDs failed",
+			zap.String("user_id", u.ID),
+			zap.Error(err),
+		)
+		apperrors.WriteAppError(w, r, http.StatusInternalServerError, errcodes.ErrCodeInternal, "failed to list registered plaid accounts")
+		return
+	}
+	if ids == nil {
+		ids = []string{}
+	}
+	writeJSON(w, http.StatusOK, struct {
+		PlaidAccountIDs []string `json:"plaid_account_ids"`
+	}{PlaidAccountIDs: ids})
+}
+
 // Disconnect — DELETE /plaid/disconnect. Removes the Item on Plaid's side
 // (best-effort) and always deletes the local TokenStore entry. Returns
 // `{"disconnected": true}` once the store is clean even if Plaid returned an

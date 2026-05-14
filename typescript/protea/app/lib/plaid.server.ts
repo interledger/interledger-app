@@ -104,6 +104,11 @@ export interface PlaidDisconnectResult {
   disconnected: boolean
 }
 
+/** Shape returned by GET /plaid/registered (Phase 2). */
+export interface PlaidRegisteredResult {
+  plaid_account_ids: string[]
+}
+
 /** Plaid product responses are passed through verbatim (SDK shapes). */
 export type PlaidProductResponse = unknown
 
@@ -220,6 +225,12 @@ function disconnect(
   })
 }
 
+function getRegistered(
+  request: Request
+): Promise<PlaidRegisteredResult | PlaidError> {
+  return plaidFetch<PlaidRegisteredResult>(request, `${PLAID_API_PATH}/registered`)
+}
+
 export default {
   getState,
   createLinkToken,
@@ -230,4 +241,5 @@ export default {
   getIdentity,
   getTransactions,
   disconnect,
+  getRegistered,
 }
