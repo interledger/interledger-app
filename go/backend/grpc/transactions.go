@@ -180,6 +180,7 @@ func transformTransaction(tx transactions.Transaction, transfers []transactions.
 			CardId:        tx.CardTransactionDetails.CardID,
 			CardMaskedPan: tx.CardTransactionDetails.CardMaskedPan,
 			Type:          int64(tx.CardTransactionDetails.Type),
+			Operation:     cardOperationToProto(tx.CardTransactionDetails.Operation),
 		}
 		ret.CardTransactionDetails = &details
 	}
@@ -209,4 +210,15 @@ func (s *rpcService) LookupTransaction(ctx context.Context, req *pb.LookupTransa
 	}
 
 	return transformTransaction(*tx, transfers), nil
+}
+
+func cardOperationToProto(op string) pb.CardOperation {
+	switch op {
+	case "0":
+		return pb.CardOperation_CARD_OPERATION_WITHDRAW
+	case "1":
+		return pb.CardOperation_CARD_OPERATION_DEPOSIT
+	default:
+		return pb.CardOperation_CARD_OPERATION_NONE
+	}
 }

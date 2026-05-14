@@ -110,6 +110,7 @@ type CardTransactionDetails struct {
 	CardID        string `db:"card_id"`
 	CardMaskedPan string `db:"card_masked_pan"`
 	Type          int    `db:"type"`
+	Operation     string `db:"operation"`
 }
 
 // Transaction is abstract information representing either an incoming or outgoing payment, wallet top up or withdrawal.

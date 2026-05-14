@@ -1,7 +1,8 @@
 import type { PlainMessage } from '@bufbuild/protobuf'
+import clsx from 'clsx'
 import { useState } from 'react'
 import type { UIMatch } from 'react-router'
-import { Link, data, href, useLoaderData } from 'react-router'
+import { data, href, Link, useLoaderData } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   Alert,
@@ -27,13 +28,17 @@ import {
   WebMoLogo
 } from '~/components'
 import { Label } from '~/components/Label'
-import { type PublicWalletInfo } from '~/generated/connect/backend/v1/backend_pb'
+import {
+  CardOperation,
+  type PublicWalletInfo
+} from '~/generated/connect/backend/v1/backend_pb'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
 import { getPusherArgs } from '~/lib/pusher.server'
 import { usePusher } from '~/lib/usePusher'
 import type { Route } from './+types/payments.$paymentId'
+import Page, { meta } from '~/root'
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   let statement = false
@@ -112,6 +117,7 @@ export const handle: ApplicationProps = {
         if (!match.loaderData) return null
         const { transaction } = match.loaderData
         if (transaction.refundState == TransactionRefundState.PENDING) {
+        if (transaction.refundState == TransactionRefundState.PENDING) {
           return {
             key: 'Pending refund',
             nodes: <Chip color={ChipColor.red}>Pending refund</Chip>
@@ -175,12 +181,12 @@ export default function Page() {
     <>
       {(transaction.type == 'sent' ||
         transaction.type == 'web_monetization_outgoing') && (
-        <Sent openDialog={() => setShowDialog(true)} />
-      )}
+          <Sent openDialog={() => setShowDialog(true)} />
+        )}
       {(transaction.type == 'received' ||
         transaction.type == 'web_monetization_incoming') && (
-        <Received openDialog={() => setShowDialog(true)} />
-      )}
+          <Received openDialog={() => setShowDialog(true)} />
+        )}
       {transaction.type == 'card_transaction' && <CardTransaction />}
       {transaction.type == 'withdrawal' && <Withdrawal />}
       {transaction.type == 'deposit' && <Deposit />}
@@ -854,7 +860,22 @@ function CardTransaction() {
       <Card>
         <CardContent>
           <div className='flex items-center justify-between'>
-            <h2 className='text-4xl font-medium text-error'>
+            <h2
+              className={clsx(
+                'text-4xl font-medium',
+                transaction.cardTransactionDetails?.operation ===
+                  CardOperation.WITHDRAW && 'text-error',
+                transaction.cardTransactionDetails?.operation ===
+                  CardOperation.DEPOSIT && 'text-medium',
+                transaction.cardTransactionDetails?.operation ==
+                  CardOperation.DEPOSIT &&
+                  ([0, 1, 2, 5].includes(
+                    Number(transaction.cardTransactionDetails?.type ?? -1)
+                  )
+                    ? 'text-error'
+                    : 'text-base')
+              )}
+            >
               {transaction.subtotal}
             </h2>
             <div className='flex flex-col items-end space-y-1'>
@@ -867,24 +888,9 @@ function CardTransaction() {
             </div>
           </div>
         </CardContent>
-        <Label>
-          {transaction.cardTransactionDetails?.type?.toString() === '0' &&
-            'Recipient'}
-          {transaction.cardTransactionDetails?.type?.toString() === '1' &&
-            'Cash at'}
-        </Label>
+        <Label>Merchant</Label>
         <div className='my-1 flex space-x-2 rounded-xl bg-nav p-3'>
-          <div className='flex w-full items-center justify-between text-medium'>
-            <div className='flex space-x-2'>
-              <Icon>
-                {transaction.cardTransactionDetails?.type?.toString() === '0' &&
-                  'local_mall'}
-                {transaction.cardTransactionDetails?.type?.toString() === '1' &&
-                  'atm'}
-              </Icon>
-              <span>{transaction.title}</span>
-            </div>
-          </div>
+          <span className='text-medium'>{transaction.title}</span>
         </div>
       </Card>
       <Card>
@@ -926,6 +932,12 @@ function CardTransaction() {
               </Link>
             </span>
           </div>
+          {transaction.reference && (
+            <div className='mt-2 flex w-full justify-between'>
+              <span className='text-weak'>Note</span>
+              <span className='text-medium'>{transaction.reference}</span>
+            </div>
+          )}
           <div className='mt-4 flex w-full justify-between font-medium'>
             <span className='text-medium'>Amount</span>
             <span className='text-medium'>{transaction.fundsReceived}</span>

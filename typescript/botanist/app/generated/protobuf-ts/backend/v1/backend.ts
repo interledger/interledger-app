@@ -1000,6 +1000,10 @@ export interface CardTransactionDetails {
      * @generated from protobuf field: int64 type = 3;
      */
     type: string;
+    /**
+     * @generated from protobuf field: backend.v1.CardOperation operation = 4;
+     */
+    operation: CardOperation;
 }
 /**
  * @generated from protobuf message backend.v1.Transaction
@@ -2933,6 +2937,23 @@ export enum CardLockLevel {
      * @generated from protobuf enum value: CARD_LOCK_LEVEL_ADMIN = 3;
      */
     ADMIN = 3
+}
+/**
+ * @generated from protobuf enum backend.v1.CardOperation
+ */
+export enum CardOperation {
+    /**
+     * @generated from protobuf enum value: CARD_OPERATION_NONE = 0;
+     */
+    NONE = 0,
+    /**
+     * @generated from protobuf enum value: CARD_OPERATION_WITHDRAW = 1;
+     */
+    WITHDRAW = 1,
+    /**
+     * @generated from protobuf enum value: CARD_OPERATION_DEPOSIT = 2;
+     */
+    DEPOSIT = 2
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class PaginationRequest$Type extends MessageType<PaginationRequest> {
@@ -6579,11 +6600,12 @@ class CardTransactionDetails$Type extends MessageType<CardTransactionDetails> {
         super("backend.v1.CardTransactionDetails", [
             { no: 1, name: "card_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "card_masked_pan", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "type", kind: "scalar", T: 3 /*ScalarType.INT64*/ }
+            { no: 3, name: "type", kind: "scalar", T: 3 /*ScalarType.INT64*/ },
+            { no: 4, name: "operation", kind: "enum", T: () => ["backend.v1.CardOperation", CardOperation, "CARD_OPERATION_"] }
         ]);
     }
     create(value?: PartialMessage<CardTransactionDetails>): CardTransactionDetails {
-        const message = { cardId: "", cardMaskedPan: "", type: "0" };
+        const message = { cardId: "", cardMaskedPan: "", type: "0", operation: 0 };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<CardTransactionDetails>(this, message, value);
@@ -6602,6 +6624,9 @@ class CardTransactionDetails$Type extends MessageType<CardTransactionDetails> {
                     break;
                 case /* int64 type */ 3:
                     message.type = reader.int64().toString();
+                    break;
+                case /* backend.v1.CardOperation operation */ 4:
+                    message.operation = reader.int32();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -6624,6 +6649,9 @@ class CardTransactionDetails$Type extends MessageType<CardTransactionDetails> {
         /* int64 type = 3; */
         if (message.type !== "0")
             writer.tag(3, WireType.Varint).int64(message.type);
+        /* backend.v1.CardOperation operation = 4; */
+        if (message.operation !== 0)
+            writer.tag(4, WireType.Varint).int32(message.operation);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

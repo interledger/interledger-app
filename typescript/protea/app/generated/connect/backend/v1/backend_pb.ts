@@ -295,6 +295,32 @@ proto3.util.setEnumType(CardLockLevel, "backend.v1.CardLockLevel", [
 ]);
 
 /**
+ * @generated from enum backend.v1.CardOperation
+ */
+export enum CardOperation {
+  /**
+   * @generated from enum value: CARD_OPERATION_NONE = 0;
+   */
+  NONE = 0,
+
+  /**
+   * @generated from enum value: CARD_OPERATION_WITHDRAW = 1;
+   */
+  WITHDRAW = 1,
+
+  /**
+   * @generated from enum value: CARD_OPERATION_DEPOSIT = 2;
+   */
+  DEPOSIT = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(CardOperation)
+proto3.util.setEnumType(CardOperation, "backend.v1.CardOperation", [
+  { no: 0, name: "CARD_OPERATION_NONE" },
+  { no: 1, name: "CARD_OPERATION_WITHDRAW" },
+  { no: 2, name: "CARD_OPERATION_DEPOSIT" },
+]);
+
+/**
  * @generated from message backend.v1.PaginationRequest
  */
 export class PaginationRequest extends Message<PaginationRequest> {
@@ -3243,6 +3269,11 @@ export class CardTransactionDetails extends Message<CardTransactionDetails> {
    */
   type = protoInt64.zero;
 
+  /**
+   * @generated from field: backend.v1.CardOperation operation = 4;
+   */
+  operation = CardOperation.NONE;
+
   constructor(data?: PartialMessage<CardTransactionDetails>) {
     super();
     proto3.util.initPartial(data, this);
@@ -3254,6 +3285,7 @@ export class CardTransactionDetails extends Message<CardTransactionDetails> {
     { no: 1, name: "card_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "card_masked_pan", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "type", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 4, name: "operation", kind: "enum", T: proto3.getEnumType(CardOperation) },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CardTransactionDetails {

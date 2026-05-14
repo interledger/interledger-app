@@ -334,7 +334,14 @@ func listTransaction(ctx context.Context, b Backends, page db.Pagination, sqlStm
 	resp := make([]transactions.Transaction, len(txs))
 
 	for i, t := range txs {
-		resp[i] = transformTransaction(t)
+		if t.Type == "card_transaction" {
+			resp[i], err = transformCardTransaction(ctx, b, t)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			resp[i] = transformTransaction(t)
+		}
 	}
 
 	return resp, err
@@ -744,7 +751,7 @@ func transformCardTransaction(ctx context.Context, b Backends, tx dbTransaction)
 	}
 
 	var details transactions.CardTransactionDetails
-	err := b.DB().GetContext(ctx, &details, "SELECT card_id, card_masked_pan, type FROM gatehub_card_transactions WHERE id = $1", tx.ForeignID.String)
+	err := b.DB().GetContext(ctx, &details, "SELECT card_id, card_masked_pan, type, raw_transaction ->> 'operation' AS operation FROM gatehub_card_transactions WHERE id = $1", tx.ForeignID.String)
 	if errors.Is(err, sql.ErrNoRows) {
 		return transactions.Transaction{}, fmt.Errorf("%w gatehub card transaction details details not found ID (%s)", transactions.ErrNotFound, t.ID)
 	}
