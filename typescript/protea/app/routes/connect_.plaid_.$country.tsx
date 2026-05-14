@@ -21,10 +21,13 @@ import {
   Layouts,
   WalletGrid
 } from '~/components'
-import { isConnectError } from '~/lib/error.server'
 import { getWalletInfo } from '~/data/wallet.server'
 import { mergeMeta } from '~/lib/meta'
 import plaid, { isPlaidError } from '~/lib/plaid.server'
+import {
+  jsonWithSnackbar,
+  redirectWithSnackbar
+} from '~/lib/snackbar.server'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 
 import type { Route } from './+types/connect_.plaid_.$country'
@@ -91,15 +94,7 @@ export async function loader({ request, params }: Route.LoaderArgs): Promise<Loa
   // gotten here from F9's guard, but a manual URL visit would 404 the
   // backend's accessToken lookup. Treat both states as "send them back home
   // with a snackbar" — the guard on Home is the right place to recover from.
-  if (isPlaidError(accountsRes)) {
-    throw redirect(href('/'))
-  }
-  if (isConnectError(registeredRes)) {
-    // ConnectError can't happen here — registered is a plain fetch — but the
-    // guard keeps the discriminated narrowing tidy.
-    throw redirect(href('/'))
-  }
-  if (isPlaidError(registeredRes)) {
+  if (isPlaidError(accountsRes) || isPlaidError(registeredRes)) {
     throw redirect(href('/'))
   }
 
@@ -119,6 +114,78 @@ export async function loader({ request, params }: Route.LoaderArgs): Promise<Loa
     accounts,
     alreadyLinked: registeredRes.plaid_account_ids ?? []
   }
+}
+
+/* ─── action ─────────────────────────────────────────────────────────── */
+
+export async function action({ request, params }: Route.ActionArgs) {
+  const form = await request.formData()
+  const intent = String(form.get('intent') || '')
+
+  if (intent !== 'link-to-fiant') {
+    return jsonWithSnackbar(
+      request,
+      { ok: false, error: `unknown intent: ${intent}` },
+      { message: `Unknown action.`, icon: 'close' },
+      400
+    )
+  }
+
+  const accountID = String(form.get('account_id') || '')
+  if (!accountID) {
+    return jsonWithSnackbar(
+      request,
+      { ok: false, error: 'account_id is required' },
+      { message: 'Missing Plaid account id.', icon: 'close' },
+      400
+    )
+  }
+
+  const accountName = String(form.get('account_name') || '')
+  const accountMask = String(form.get('account_mask') || '')
+
+  const result = await plaid.linkToFiant(request, {
+    account_id: accountID,
+    account_name: accountName || undefined,
+    account_mask: accountMask || undefined
+  })
+
+  if (isPlaidError(result)) {
+    // Status-aware error UX. 401 surfaces via the snackbar but the user can
+    // re-link from /plaid; 4xx from Plaid (e.g. INVALID_ACCESS_TOKEN) gets a
+    // "Re-link Plaid" hint via the Set-up-Plaid action; everything else is a
+    // plain error toast.
+    const isReLinkable =
+      result.status === 401 ||
+      /INVALID_ACCESS_TOKEN|ITEM_LOGIN_REQUIRED|INVALID_PROCESSOR/i.test(
+        result.errorCode || ''
+      )
+    return jsonWithSnackbar(
+      request,
+      { ok: false, error: result.message },
+      isReLinkable
+        ? {
+            message: `Couldn't link this account: ${result.message}`,
+            action: 'Set up Plaid',
+            icon: 'close'
+          }
+        : { message: `Couldn't link this account: ${result.message}`, icon: 'close' },
+      result.status
+    )
+  }
+
+  // Success path — soft-success copy for the idempotent dedupe hit.
+  const niceName = (accountName || 'Bank account').trim()
+  const niceMask = accountMask ? ` ••••${accountMask}` : ''
+  const message = result.already_linked
+    ? `${niceName}${niceMask} was already linked to Fiant.`
+    : `Linked ${niceName}${niceMask} to Fiant.`
+
+  return redirectWithSnackbar(
+    request,
+    `/connect/plaid/${params.country}`,
+    { message, icon: result.already_linked ? 'info' : 'check' }
+  )
 }
 
 /* ─── component ──────────────────────────────────────────────────────── */

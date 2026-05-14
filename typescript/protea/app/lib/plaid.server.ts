@@ -109,6 +109,20 @@ export interface PlaidRegisteredResult {
   plaid_account_ids: string[]
 }
 
+/** Shape returned by POST /plaid/link-to-fiant (Phase 2). */
+export interface PlaidLinkToFiantResult {
+  linked_account_id: string
+  payment_information_id: string
+  already_linked: boolean
+}
+
+/** Body accepted by POST /plaid/link-to-fiant. */
+export interface PlaidLinkToFiantArgs {
+  account_id: string
+  account_name?: string
+  account_mask?: string
+}
+
 /** Plaid product responses are passed through verbatim (SDK shapes). */
 export type PlaidProductResponse = unknown
 
@@ -231,6 +245,16 @@ function getRegistered(
   return plaidFetch<PlaidRegisteredResult>(request, `${PLAID_API_PATH}/registered`)
 }
 
+function linkToFiant(
+  request: Request,
+  args: PlaidLinkToFiantArgs
+): Promise<PlaidLinkToFiantResult | PlaidError> {
+  return plaidFetch<PlaidLinkToFiantResult>(request, `${PLAID_API_PATH}/link-to-fiant`, {
+    method: 'POST',
+    body: JSON.stringify(args)
+  })
+}
+
 export default {
   getState,
   createLinkToken,
@@ -242,4 +266,5 @@ export default {
   getTransactions,
   disconnect,
   getRegistered,
+  linkToFiant,
 }
