@@ -11,12 +11,16 @@ import (
 )
 
 // NewRouter mounts the /plaid HTTP surface. Caller wires it from main.go via
-// `router.Mount("/plaid", plaid_ops.NewRouter(...))` and only when the Plaid
-// provider is enabled (`b.plaidClient != nil`).
+// `router.Mount("/api/plaid", plaid_ops.NewRouter(...))` and only when the
+// Plaid provider is enabled (`b.plaidClient != nil`).
+//
+// `linker` + `processor` are optional — pass non-nil + non-empty to enable
+// Phase 2's /plaid/link-to-fiant. The route is omitted when either is missing
+// (e.g. PTI disabled in local dev).
 //
 // The Kratos session is attached by `MakeUserMiddleware`; each handler
 // enforces presence via `ops.UserForContext` and returns 401 if missing.
-func NewRouter(client plaid.Client, store plaid.TokenStore, uc user.Client) http.Handler {
+func NewRouter(client plaid.Client, store plaid.TokenStore, uc user.Client, linker FiantLinker, processor string) http.Handler {
 	if client == nil {
 		panic("plaid: client is nil")
 	}
@@ -27,7 +31,7 @@ func NewRouter(client plaid.Client, store plaid.TokenStore, uc user.Client) http
 		panic("plaid: user.Client is nil")
 	}
 
-	h := New(client, store)
+	h := New(client, store, linker, processor)
 
 	r := chi.NewRouter()
 	r.Use(api_middleware.MakeRequestIDMiddleware())
@@ -42,6 +46,10 @@ func NewRouter(client plaid.Client, store plaid.TokenStore, uc user.Client) http
 	r.Get("/identity", h.GetIdentity)
 	r.Get("/transactions", h.GetTransactions)
 	r.Delete("/disconnect", h.Disconnect)
+
+	if linker != nil && processor != "" {
+		r.Post("/link-to-fiant", h.LinkToFiant)
+	}
 
 	return r
 }

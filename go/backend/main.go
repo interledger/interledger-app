@@ -219,7 +219,15 @@ func start(args *cli.StartArgs) {
 	router.Handle("/{wallet_id}/identities/{identity_sig_hash}", wallet_handler.GetIdentityHandler(b))
 
 	if b.plaidClient != nil {
-		router.Mount("/api/plaid", plaid_ops.NewRouter(b.plaidClient, b.plaidStore, b.Users()))
+		var linker plaid_ops.FiantLinker
+		if args.PTIEnabled {
+			fl, err := newPlaidFiantLinker(b, args.PTIBaseURL, args.PTIClientID, args.PTIJWK)
+			if err != nil {
+				log.Fatalln(err)
+			}
+			linker = fl
+		}
+		router.Mount("/api/plaid", plaid_ops.NewRouter(b.plaidClient, b.plaidStore, b.Users(), linker, args.PlaidProcessor))
 	}
 
 	router.NotFound(wallet_handler.WalletRedirectHandler(b))

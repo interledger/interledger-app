@@ -18,15 +18,20 @@ import (
 )
 
 // Handlers groups the chi handler funcs that make up the /plaid HTTP surface.
-// Each method is filled in by tasks B5a–B5f; B4 mounts them.
+// Each method is filled in by tasks B5a–B5f; B4 mounts them. Phase 2 adds
+// `linker` + `processor` for /plaid/link-to-fiant; both may be nil/empty when
+// the Phase-2 wiring is absent (router conditionally registers the route).
 type Handlers struct {
-	client plaid.Client
-	store  plaid.TokenStore
+	client    plaid.Client
+	store     plaid.TokenStore
+	linker    FiantLinker
+	processor string
 }
 
-// New wires a Handlers with its collaborators.
-func New(client plaid.Client, store plaid.TokenStore) *Handlers {
-	return &Handlers{client: client, store: store}
+// New wires a Handlers with its collaborators. `linker` and `processor` are
+// optional and only required for the Phase-2 /plaid/link-to-fiant route.
+func New(client plaid.Client, store plaid.TokenStore, linker FiantLinker, processor string) *Handlers {
+	return &Handlers{client: client, store: store, linker: linker, processor: processor}
 }
 
 // CreateLinkToken — POST /plaid/link-token. Calls Plaid /link/token/create
@@ -273,6 +278,115 @@ func (h *Handlers) GetTransactions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, res)
+}
+
+// LinkToFiant — POST /plaid/link-to-fiant. Body:
+//
+//	{ "account_id": "...", "account_name": "...", "account_mask": "..." }
+//
+// Phase 2 of the Plaid POC. Registers a Plaid-authorised account with Fiant by
+// minting a `processor/token` and forwarding it via Fiant's payment-information
+// endpoint. Idempotent on `(wallet_id, plaid_account_id)` — see B13's partial
+// unique index. Returns:
+//
+//	{ "linked_account_id": "...", "payment_information_id": "...", "already_linked": bool }
+//
+// `already_linked: true` means the row existed; no Plaid or Fiant calls were
+// made on this request.
+func (h *Handlers) LinkToFiant(w http.ResponseWriter, r *http.Request) {
+	if h.linker == nil || h.processor == "" {
+		apperrors.WriteAppError(w, r, http.StatusServiceUnavailable, errcodes.ErrCodeInternal, "plaid/fiant linker not configured")
+		return
+	}
+
+	u, err := ops.UserForContext(r.Context())
+	if err != nil {
+		apperrors.WriteAppError(w, r, http.StatusUnauthorized, errcodes.ErrCodeUnauthorized, "unauthenticated")
+		return
+	}
+
+	var body struct {
+		AccountID   string `json:"account_id"`
+		AccountName string `json:"account_name"`
+		AccountMask string `json:"account_mask"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.AccountID == "" {
+		apperrors.WriteAppError(w, r, http.StatusBadRequest, errcodes.ErrCodeBadRequest, "account_id is required")
+		return
+	}
+
+	// (a) Dedupe first — cheapest path, no Plaid/Fiant network calls.
+	existing, err := h.linker.ExistingLink(r.Context(), u.ID, body.AccountID)
+	if err != nil {
+		log.Error("plaid: ExistingLink lookup failed",
+			zap.String("user_id", u.ID),
+			zap.String("plaid_account_id", body.AccountID),
+			zap.Error(err),
+		)
+		apperrors.WriteAppError(w, r, http.StatusInternalServerError, errcodes.ErrCodeInternal, "failed to check existing fiant link")
+		return
+	}
+	if existing != nil {
+		log.Info("plaid: account already linked to fiant (idempotent hit)",
+			zap.String("user_id", u.ID),
+			zap.String("plaid_account_id", body.AccountID),
+			zap.String("linked_account_id", existing.LinkedAccountID),
+		)
+		writeJSON(w, http.StatusOK, linkToFiantResponse{LinkedIDs: *existing, AlreadyLinked: true})
+		return
+	}
+
+	// (b) Need the access_token. 404 cleanly if the user hasn't done Phase 1.
+	_, accessToken, ok := h.requireLinkedUser(w, r)
+	if !ok {
+		return
+	}
+
+	// (c) Mint a processor token. Long-lived, bound to (item, account, processor).
+	processorToken, err := h.client.CreateProcessorToken(r.Context(), accessToken, body.AccountID, h.processor)
+	if err != nil {
+		log.Error("plaid: CreateProcessorToken failed",
+			zap.String("user_id", u.ID),
+			zap.String("plaid_account_id", body.AccountID),
+			zap.String("processor", h.processor),
+			zap.Error(err),
+		)
+		apperrors.WriteAppError(w, r, http.StatusBadGateway, errcodes.ErrCodeInternal, "plaid processor token mint failed")
+		return
+	}
+
+	// (d) Cross-system write: Fiant POST + linked_account persist. Idempotency
+	//     guard at the DB layer via the partial unique index — duplicate inserts
+	//     surface as ErrInternal here but should be rare given (a).
+	ids, err := h.linker.Register(r.Context(), LinkPlaidArgs{
+		UserID:         u.ID,
+		PlaidAccountID: body.AccountID,
+		AccountName:    body.AccountName,
+		AccountMask:    body.AccountMask,
+		ProcessorToken: processorToken,
+	})
+	if err != nil {
+		log.Error("plaid: FiantLinker.Register failed",
+			zap.String("user_id", u.ID),
+			zap.String("plaid_account_id", body.AccountID),
+			zap.Error(err),
+		)
+		apperrors.WriteAppError(w, r, http.StatusBadGateway, errcodes.ErrCodeInternal, "fiant registration failed")
+		return
+	}
+
+	log.Info("plaid: account linked to fiant",
+		zap.String("user_id", u.ID),
+		zap.String("plaid_account_id", body.AccountID),
+		zap.String("linked_account_id", ids.LinkedAccountID),
+		zap.String("payment_information_id", ids.PaymentInformationID),
+	)
+	writeJSON(w, http.StatusOK, linkToFiantResponse{LinkedIDs: *ids, AlreadyLinked: false})
+}
+
+type linkToFiantResponse struct {
+	LinkedIDs
+	AlreadyLinked bool `json:"already_linked"`
 }
 
 // Disconnect — DELETE /plaid/disconnect. Removes the Item on Plaid's side
