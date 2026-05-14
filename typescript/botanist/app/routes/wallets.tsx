@@ -139,7 +139,11 @@ export default function Page() {
                     >
                       <td colSpan={2} className='p-4'>
                         <p className='text-sm text-weak'>
-                          Showing <span className='font-medium'>1</span> to{' '}
+                          Showing{' '}
+                          <span className='font-medium'>
+                            {filtered.length === 0 ? 0 : 1}
+                          </span>{' '}
+                          to{' '}
                           <span className='font-medium'>{filtered.length}</span>{' '}
                           of{' '}
                           <span className='font-medium'>
