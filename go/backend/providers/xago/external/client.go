@@ -1141,10 +1141,10 @@ func (c *client) GetConvertCurrencyDetails(ctx context.Context, convertID string
 		return nil, err
 	}
 
-	var convertDetails *GetConvertCurrencyDetailsResponse
-	if err = json.Unmarshal(respBody, convertDetails); err != nil {
+	var convertDetails GetConvertCurrencyDetailsResponse
+	if err = json.Unmarshal(respBody, &convertDetails); err != nil {
 		return nil, err
 	}
 
-	return convertDetails, nil
+	return &convertDetails, nil
 }

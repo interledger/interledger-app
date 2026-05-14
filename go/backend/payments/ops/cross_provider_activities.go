@@ -22,9 +22,9 @@ import (
 type CrossProviderType int
 
 const (
-	CrossProviderNone       CrossProviderType = iota
-	CrossProviderGatehubToXago                // EUR → ZAR
-	CrossProviderXagoToGatehub                // ZAR → EUR
+	CrossProviderNone          CrossProviderType = iota
+	CrossProviderGatehubToXago                   // EUR → ZAR
+	CrossProviderXagoToGatehub                   // ZAR → EUR
 )
 
 // CheckCrossProviderType determines whether a payment is a cross-provider transfer.
@@ -247,7 +247,8 @@ func (a *Activity) XagoCheckConvertComplete(ctx context.Context, convertID strin
 
 	status := strings.ToLower(details.Status)
 	switch status {
-	case "complete", "completed", "settled":
+	// TODO check what the possible statuses are
+	case "complete", "completed", "settled", "success":
 		return XagoConvertDetails{
 			Complete:        true,
 			Rate:            details.Rate,
@@ -283,9 +284,9 @@ func (a *Activity) StoreActualFXRateAndAmount(ctx context.Context, paymentID str
 }
 
 // PostCrossProviderS1Transfers atomically settles a Scenario 1 (EUR→ZAR) payment:
-//   1. Posts the pending EUR reserve (p.SendTransactionID): user.EUR → gatehub.EURClearingAccount
-//   2. Creates a posted transfer: xago.EURClearingAccount → xago.EUROpsAccount
-//   3. Creates a posted transfer: xago.ZAROpsAccount → user.ZAR (using receiverTxID)
+//  1. Posts the pending EUR reserve (p.SendTransactionID): user.EUR → gatehub.EURClearingAccount
+//  2. Creates a posted transfer: xago.EURClearingAccount → xago.EUROpsAccount
+//  3. Creates a posted transfer: xago.ZAROpsAccount → user.ZAR (using receiverTxID)
 func (a *Activity) PostCrossProviderS1Transfers(ctx context.Context, paymentID, clearingTxID, receiverTxID string) error {
 	p, err := Lookup(ctx, a.b, paymentID)
 	if err != nil {
@@ -340,9 +341,9 @@ func (a *Activity) PostCrossProviderS1Transfers(ctx context.Context, paymentID, 
 }
 
 // PostCrossProviderS2Transfers atomically settles a Scenario 2 (ZAR→EUR) payment:
-//   1. Posts the pending ZAR reserve (p.SendTransactionID): user.ZAR → xago.ZARLiquidityAccount
-//   2. Creates a posted transfer: xago.EUROpsAccount → xago.EURClearingAccount
-//   3. Creates a posted transfer: gatehub.EURClearingAccount → user.EUR (using receiverTxID)
+//  1. Posts the pending ZAR reserve (p.SendTransactionID): user.ZAR → xago.ZARLiquidityAccount
+//  2. Creates a posted transfer: xago.EUROpsAccount → xago.EURClearingAccount
+//  3. Creates a posted transfer: gatehub.EURClearingAccount → user.EUR (using receiverTxID)
 func (a *Activity) PostCrossProviderS2Transfers(ctx context.Context, paymentID, xagoOpsTxID, receiverTxID string) error {
 	p, err := Lookup(ctx, a.b, paymentID)
 	if err != nil {

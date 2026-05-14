@@ -225,7 +225,7 @@ type EstimateConvertCurrencyResponse struct {
 	EstimatedRate   float64 `json:"estimatedRate"`
 	FinalBuyAmount  float64 `json:"finalBuyAmount"`
 	FinalSellAmount float64 `json:"finalSellAmount"`
-	QuoteAmount     int     `json:"quoteAmount"`
+	QuoteAmount     float64 `json:"quoteAmount"`
 	ReceivedAmount  float64 `json:"receivedAmount"`
 	SellOrders      float64 `json:"sellOrders"`
 }
@@ -241,7 +241,7 @@ type GetConvertCurrencyDetailsResponse struct {
 	ConvertID           string    `json:"convertId"`
 	BuyOrderID          string    `json:"buyOrderId"`
 	Status              string    `json:"status"`
-	SendAmount          int       `json:"sendAmount"`
+	SendAmount          float64   `json:"sendAmount"`
 	Type                string    `json:"type"`
 	BuyStatus           string    `json:"buyStatus"`
 	CreatedAt           time.Time `json:"createdAt"`

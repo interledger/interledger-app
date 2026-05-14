@@ -304,8 +304,9 @@ const (
 // ConvertCurrencyRequest is the payload for both estimate and actual conversion.
 type ConvertCurrencyRequest struct {
 	ConvertCurrencyPair ConvertCurrencyPairEnum `json:"convertCurrencyPair"`
-	Amount              float64                 `json:"amount"`
-	EstimateCalculation bool                    `json:"estimateCalculation"`
+
+	Amount              float64 `json:"amount"`
+	EstimateCalculation bool    `json:"estimateCalculation"`
 }
 
 // EstimateConvertCurrencyResponse is the response for an estimate request.

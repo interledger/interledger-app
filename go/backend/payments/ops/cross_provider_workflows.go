@@ -1,6 +1,7 @@
 package ops
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -24,6 +25,17 @@ func crossProviderGatehubToXagoPayIn(ctx workflow.Context, a *Activity, paymentI
 	}
 
 	err = workflow.ExecuteActivity(ctx, a.SaveGatehubTransfer, paymentID, externalTxID).Get(ctx, nil)
+	if err != nil {
+		return "", false, err
+	}
+
+	// TODO we probably need to remove this, but at the moment it's great for testing locally
+
+	// Signal the PayoutWorkflow immediately so it doesn't wait for a GateHub webhook
+	// that may never arrive (e.g. when TransferUserToOmnibus is mocked and returns
+	// a synchronously-completed transaction). Temporal buffers the signal, so it is
+	// safe to send before the PayoutWorkflow has started listening.
+	err = workflow.SignalExternalWorkflow(ctx, fmt.Sprintf(payoutWorkflowFmt, paymentID), "", gatehubNotifyChanName, nil).Get(ctx, nil)
 	if err != nil {
 		return "", false, err
 	}
