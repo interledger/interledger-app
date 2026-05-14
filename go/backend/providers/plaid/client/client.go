@@ -201,6 +201,20 @@ func (c *Client) SyncTransactions(ctx context.Context, accessToken string) (*pla
 	return nil, fmt.Errorf("plaid: TransactionsSync exceeded %d pages", maxPages)
 }
 
+// CreateProcessorToken calls Plaid `/processor/token/create` to mint a
+// one-shot, account-scoped credential for a partner processor (e.g. "fiant").
+// The returned processor_token is forwarded to the partner (Phase 2: Fiant
+// `/users/{externalId}/payment-information`) and is single-use from Plaid's
+// side — minted fresh per account per Fiant registration.
+func (c *Client) CreateProcessorToken(ctx context.Context, accessToken, accountID, processor string) (string, error) {
+	req := plaidsdk.NewProcessorTokenCreateRequest(accessToken, accountID, processor)
+	resp, _, err := c.sdk.PlaidApi.ProcessorTokenCreate(ctx).ProcessorTokenCreateRequest(*req).Execute()
+	if err != nil {
+		return "", fmt.Errorf("plaid: ProcessorTokenCreate: %w", wrapPlaidError(err))
+	}
+	return resp.ProcessorToken, nil
+}
+
 // RemoveItem invalidates an Item on Plaid via `/item/remove`. After this call
 // the access_token can no longer be used. Local TokenStore deletion is the
 // caller's responsibility (see ops.Handlers.Disconnect).

@@ -16,6 +16,10 @@ type Config struct {
 	Env          string
 	Products     []string
 	CountryCodes []string
+	// Processor is the Plaid processor partner identifier passed to
+	// `/processor/token/create` (Phase 2). Validated in cli.go to one of
+	// `fiant` or `zero_hash`.
+	Processor string
 }
 
 // TokenSet is the per-user state persisted after a successful Plaid Link.
@@ -57,6 +61,11 @@ type Client interface {
 	GetIdentity(ctx context.Context, accessToken string) (*plaidsdk.IdentityGetResponse, error)
 	SyncTransactions(ctx context.Context, accessToken string) (*TransactionsSyncResult, error)
 	RemoveItem(ctx context.Context, accessToken string) error
+	// CreateProcessorToken mints a Plaid processor token bound to a single
+	// account, scoped to a partner processor (e.g. "fiant", "zero_hash").
+	// Phase 2 uses this to hand a one-shot credential to Fiant via
+	// /users/{externalId}/payment-information.
+	CreateProcessorToken(ctx context.Context, accessToken, accountID, processor string) (string, error)
 }
 
 // TokenStore persists TokenSets keyed by user ID. POC uses Redis (see

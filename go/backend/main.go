@@ -879,6 +879,7 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 			Env:          args.PlaidEnv,
 			Products:     args.PlaidProducts,
 			CountryCodes: args.PlaidCountryCodes,
+			Processor:    args.PlaidProcessor,
 		}
 		plaidC, err := plaid_client.New(b.plaidConfig)
 		if err != nil {
@@ -894,6 +895,7 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 			zap.String("env", args.PlaidEnv),
 			zap.Strings("products", args.PlaidProducts),
 			zap.Strings("country_codes", args.PlaidCountryCodes),
+			zap.String("processor", args.PlaidProcessor),
 			zap.String("store", "redis"),
 		)
 	} else {
