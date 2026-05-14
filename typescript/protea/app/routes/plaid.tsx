@@ -13,7 +13,7 @@
 // status surface so the route is navigable and the loader/action wiring can
 // be exercised. Snackbars wired in F6.
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Form,
   href,
@@ -39,7 +39,8 @@ import {
   PlaidLinkButton,
   EndpointButton,
   ProductCard,
-  DebugPanel
+  DebugPanel,
+  TextButton
 } from '~/components'
 import type { ApplicationProps } from '~/components'
 import { getUserSession } from '~/lib/kratos/session.server'
@@ -268,10 +269,13 @@ export default function PlaidRoute() {
     itemId,
     institutionName,
     linkedAt,
+    activeProduct,
     setLinked,
     clearLinked,
     setLastResponse
   } = usePlaidStore()
+
+  const [showDebug, setShowDebug] = useState(false)
 
   // Mirror canonical backend state into the Zustand store.
   useEffect(() => {
@@ -339,11 +343,22 @@ export default function PlaidRoute() {
           </Card>
         )}
 
-        {PRODUCT_KEYS.map((p) => (
-          <ProductCard key={p} product={p} />
-        ))}
+        {activeProduct && (
+          <ProductCard key={activeProduct} product={activeProduct} />
+        )}
 
-        <DebugPanel userId={userId} state={state} actionData={actionData} />
+        <div className='mt-6 flex justify-end'>
+          <TextButton
+            onClick={() => setShowDebug((v) => !v)}
+            aria-expanded={showDebug}
+          >
+            {showDebug ? 'Hide debug' : 'Show debug'}
+          </TextButton>
+        </div>
+
+        {showDebug && (
+          <DebugPanel userId={userId} state={state} actionData={actionData} />
+        )}
       </GridColumn>
     </WalletGrid>
   )

@@ -41,6 +41,13 @@ interface PlaidStoreState {
   /** Last product fetch by product key. Keyed → product call. */
   lastResponses: LastResponsesMap
 
+  /**
+   * Most recently fetched product — the page renders only this card so the
+   * results don't stack on top of each other when the user pokes multiple
+   * endpoints in a row.
+   */
+  activeProduct: PlaidProduct | null
+
   /** True while Plaid Link is opening or a public-token exchange is in flight. */
   isLinking: boolean
 }
@@ -54,6 +61,7 @@ interface PlaidStoreActions {
   }) => void
   clearLinked: () => void
   setLastResponse: (product: PlaidProduct, response: unknown) => void
+  setActiveProduct: (product: PlaidProduct | null) => void
   setLastError: (message: string | null) => void
   setIsLinking: (linking: boolean) => void
   reset: () => void
@@ -66,6 +74,7 @@ const initialState: PlaidStoreState = {
   linkedAt: null,
   lastError: null,
   lastResponses: {},
+  activeProduct: null,
   isLinking: false
 }
 
@@ -90,13 +99,17 @@ export const usePlaidStore = create<PlaidStoreState & PlaidStoreActions>()(
         itemId: null,
         institutionName: null,
         linkedAt: null,
-        lastResponses: {}
+        lastResponses: {},
+        activeProduct: null
       }),
 
     setLastResponse: (product, response) =>
       set((state) => ({
-        lastResponses: { ...state.lastResponses, [product]: response }
+        lastResponses: { ...state.lastResponses, [product]: response },
+        activeProduct: product
       })),
+
+    setActiveProduct: (activeProduct) => set({ activeProduct }),
 
     setLastError: (lastError) => set({ lastError }),
 
