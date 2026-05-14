@@ -360,7 +360,8 @@ jobs:
           echo "New chartVersion:     ${NEW_VERSION}"
 
           if [[ "${CURRENT}" == "${NEW_VERSION}" ]]; then
-            echo "Already at ${NEW_VERSION}; nothing to do."
+            echo "Already at ${NEW_VERSION}; skipping appset bump."
+            echo "- Appset already at \`${NEW_VERSION}\`; skipped bump PR." >> "$GITHUB_STEP_SUMMARY"
             echo "skip=true" >> "$GITHUB_ENV"
             exit 0
           fi
@@ -463,11 +464,15 @@ jobs:
   # images, so the header is intentionally absent in dev/local and a wait
   # against a fresh sandbox env that hasn't been bumped yet will time out
   # rather than passing silently.
+  #
+  # This job runs unconditionally (no gate on bump_deploy.outputs.pr_url):
+  # if the target environment was already at the requested chartVersion,
+  # bump_deploy is a no-op but we still want to confirm the environment is
+  # actually serving that version and proceed to the Linear sync below.
   # ------------------------------------------------------------------------
   wait_for_rollout:
     name: Wait for ${{ inputs.environment }} rollout
     needs: [bump_deploy, resolve_version]
-    if: needs.bump_deploy.outputs.pr_url != ''
     runs-on: ubuntu-latest
     # Sandbox rollouts (PR merge -> ArgoCD sync -> pod rollout) usually
     # complete in ~10 minutes. 60 minutes gives generous headroom for a
@@ -551,7 +556,6 @@ jobs:
   linear_release:
     name: Register release with Linear
     needs: [bump_deploy, resolve_version, wait_for_rollout]
-    if: needs.bump_deploy.outputs.pr_url != ''
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     permissions:
