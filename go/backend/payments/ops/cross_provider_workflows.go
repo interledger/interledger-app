@@ -176,9 +176,41 @@ func crossProviderXagoToGatehubPayOut(ctx, _ workflow.Context, a *Activity, paym
 		return "", false, err
 	}
 
+	// // Wait for GateHub webhook confirming EUR reached the receiver.
+	// 	var externalTransaction gatehub_external.Transaction
+	// 	for {
+	// 		logger.Info("crossProviderXagoToGatehubPayOut: waiting for GateHub webhook")
+	// 		selector := workflow.NewSelector(ctx)
+	// 		selector.AddFuture(workflow.NewTimer(ctx, 20*time.Minute), func(f workflow.Future) {
+	// 			logger.Info("GateHub webhook timer fired")
+	// 		})
+	// 		selector.AddReceive(workflow.GetSignalChannel(ctx, gatehubNotifyChanName), func(c workflow.ReceiveChannel, more bool) {
+	// 			c.Receive(ctx, nil)
+	// 		})
+	// 		selector.Select(ctx)
+
+	// 		err = workflow.ExecuteActivity(ctx, a.GetGatehubS2ReceiverTransfer, paymentID).Get(ctx, &externalTransaction)
+	// 		if err != nil {
+	// 			return "", false, err
+	// 		}
+	// 		if externalTransaction.Status == gatehub_external.TransactionStatusCompleted {
+	// 			break
+	// 		} else if externalTransaction.Status == gatehub_external.TransactionStatusFailed {
+	// 			return "", false, nil
+	// 		}
+	// 	}
+
+	// TODO remove vvv
 	// Wait for GateHub webhook confirming EUR reached the receiver.
+	// Check immediately first — mock/placeholder transactions are already completed.
 	var externalTransaction gatehub_external.Transaction
-	for {
+	err = workflow.ExecuteActivity(ctx, a.GetGatehubS2ReceiverTransfer, paymentID).Get(ctx, &externalTransaction)
+	if err != nil {
+		return "", false, err
+	}
+
+	for externalTransaction.Status != gatehub_external.TransactionStatusCompleted &&
+		externalTransaction.Status != gatehub_external.TransactionStatusFailed {
 		logger.Info("crossProviderXagoToGatehubPayOut: waiting for GateHub webhook")
 		selector := workflow.NewSelector(ctx)
 		selector.AddFuture(workflow.NewTimer(ctx, 20*time.Minute), func(f workflow.Future) {
@@ -193,12 +225,11 @@ func crossProviderXagoToGatehubPayOut(ctx, _ workflow.Context, a *Activity, paym
 		if err != nil {
 			return "", false, err
 		}
-		if externalTransaction.Status == gatehub_external.TransactionStatusCompleted {
-			break
-		} else if externalTransaction.Status == gatehub_external.TransactionStatusFailed {
-			return "", false, nil
-		}
 	}
+	if externalTransaction.Status == gatehub_external.TransactionStatusFailed {
+		return "", false, nil
+	}
+	// TODO remove ^^^^^
 
 	// Execute Xago ZAR→EUR conversion (non-retryable; moves real money).
 	var convertID string
