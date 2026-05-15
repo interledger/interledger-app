@@ -132,6 +132,12 @@ func ParseStartArgs() (*StartArgs, error) {
 		}
 	}
 
+	applicationENV := os.Getenv("APPLICATION_URL")
+	if applicationENV == "" {
+		return nil, errors.New("APPLICATION_URL is required.")
+	}
+	env.SetApplicationURL(applicationENV)
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"

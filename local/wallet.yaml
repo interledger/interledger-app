@@ -62,6 +62,9 @@ services:
       - LOG_LEVEL=${BACKEND_LOG_LEVEL:-info}
       - FYNBOS_ENV=${BACKEND_FYNBOS_ENV:-local}
 
+      # application URL
+      - APPLICATION_URL=${BACKEND_APPLICATION_URL:-https://interledger.test}
+
       # Service ports
       - PORT=${BACKEND_PORT:-8080}
 
