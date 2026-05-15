@@ -132,11 +132,11 @@ func ParseStartArgs() (*StartArgs, error) {
 		}
 	}
 
-	applicationENV := os.Getenv("APPLICATION_URL")
-	if applicationENV == "" {
+	applicationURL := os.Getenv("APPLICATION_URL")
+	if applicationURL == "" {
 		return nil, errors.New("APPLICATION_URL is required.")
 	}
-	env.SetApplicationURL(applicationENV)
+	env.SetApplicationURL(applicationURL)
 
 	port := os.Getenv("PORT")
 	if port == "" {
