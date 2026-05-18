@@ -124,7 +124,7 @@ type StartArgs struct {
 	AndroidSHA256                 string
 	OperatorTenantID              string
 	AdminAPISecret                string
-	SignatureVersion               string
+	SignatureVersion              string
 	SentryDSN                     string
 	SentryRelease                 string
 	SlackToken                    string
@@ -159,7 +159,7 @@ func ParseStartArgs() (*StartArgs, error) {
 	// Configure the env package before calling any env.Is* helpers below.
 	fynbosEnvValue := os.Getenv("FYNBOS_ENV")
 	if fynbosEnvValue == "" {
-		fynbosEnvValue = "prod"
+		return nil, errors.New("FYNBOS_ENV environment variable is required and must be set to one of: local, dev, sandbox, prod, test")
 	}
 	env.SetFynbosEnv(fynbosEnvValue)
 
@@ -206,11 +206,11 @@ func ParseStartArgs() (*StartArgs, error) {
 
 	kratosUrl := os.Getenv("KRATOS_URL")
 	if kratosUrl == "" {
-		kratosUrl = "http://localhost:4433"
+		return nil, errors.New("KRATOS_URL is required.")
 	}
 	kratosAdminUrl := os.Getenv("KRATOS_ADMIN_URL")
 	if kratosAdminUrl == "" {
-		kratosAdminUrl = "http://localhost:4433"
+		return nil, errors.New("KRATOS_ADMIN_URL is required.")
 	}
 
 	logLevel := os.Getenv("LOG_LEVEL")
@@ -244,7 +244,7 @@ func ParseStartArgs() (*StartArgs, error) {
 
 	personaBaseURL := os.Getenv("PERSONA_BASE_URL")
 	if personaBaseURL == "" {
-		personaBaseURL = "https://api.withpersona.com/api/v1/"
+		return nil, errors.New("PERSONA_BASE_URL is required")
 	}
 
 	personaToken := os.Getenv("PERSONA_TOKEN")
@@ -520,12 +520,12 @@ func ParseStartArgs() (*StartArgs, error) {
 
 	rafikiBackendGraphQLURL := os.Getenv("RAFIKI_BACKEND_GRAPHQL_URL")
 	if rafikiBackendGraphQLURL == "" {
-		rafikiBackendGraphQLURL = "http://localhost:3001/graphql"
+		return nil, errors.New("RAFIKI_BACKEND_GRAPHQL_URL is required")
 	}
 
 	rafikiAuthGraphQLURL := os.Getenv("RAFIKI_AUTH_GRAPHQL_URL")
 	if rafikiAuthGraphQLURL == "" {
-		rafikiAuthGraphQLURL = "http://localhost:3003/graphql"
+		return nil, errors.New("RAFIKI_AUTH_GRAPHQL_URL is required")
 	}
 
 	signupAgreementIDs := parseSignupAgreementIDs(os.Getenv("SIGNUP_AGREEMENT_IDS"))
