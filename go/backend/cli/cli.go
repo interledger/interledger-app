@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 
 	"gitlab.com/fynbos/env"
 
@@ -17,6 +18,8 @@ type MigrationArgs struct {
 	KratosUrl               string
 	LogLevel                string
 	LogOutputPath           string
+	SentryDSN               string
+	SentryRelease           string
 }
 
 func ParseMigrationArgs() (*MigrationArgs, error) {
@@ -49,6 +52,8 @@ func ParseMigrationArgs() (*MigrationArgs, error) {
 		LogLevel:                logLevel,
 		LogOutputPath:           logOutputPath,
 		PacioliConnectionString: pacDB,
+		SentryDSN:               os.Getenv("SENTRY_DSN"),
+		SentryRelease:           os.Getenv("SENTRY_RELEASE"),
 	}, nil
 }
 
@@ -119,7 +124,26 @@ type StartArgs struct {
 	AndroidSHA256                 string
 	OperatorTenantID              string
 	AdminAPISecret                string
-	SignatureVersion              string
+	SignatureVersion               string
+	SentryDSN                     string
+	SentryRelease                 string
+	SlackToken                    string
+	SlackClientID                 string
+	SlackClientSecret             string
+	SlackRedirectURL              string
+	SignupAgreementIDs            []string
+	CDNKey                        string
+	VaultAddr                     string
+	VaultTransitEnginePath        string
+	VaultToken                    string
+	RafikiBackendGraphQLURL       string
+	RafikiAuthGraphQLURL          string
+	ChimoneyWebhookSecret         string
+	ChimoneyToken                 string
+	RafikiDBURL                   string
+	RafikiAuthDBURL               string
+	TempGatehubAppID              string
+	TempGatehubSecret             string
 }
 
 func ParseStartArgs() (*StartArgs, error) {
@@ -130,6 +154,33 @@ func ParseStartArgs() (*StartArgs, error) {
 			log.Fatal("Error loading .env file")
 			return nil, err
 		}
+	}
+
+	// Configure the env package before calling any env.Is* helpers below.
+	fynbosEnvValue := os.Getenv("FYNBOS_ENV")
+	if fynbosEnvValue == "" {
+		fynbosEnvValue = "prod"
+	}
+	env.SetFynbosEnv(fynbosEnvValue)
+
+	allowedWalletIDsRaw := os.Getenv("ALLOWED_WALLET_IDS")
+	if allowedWalletIDsRaw != "" {
+		env.SetAllowedWalletIDs(parseList(allowedWalletIDsRaw))
+	}
+
+	blockedRegionsRaw := os.Getenv("BLOCKED_REGIONS")
+	if blockedRegionsRaw != "" {
+		env.SetBlockedRegions(parseList(blockedRegionsRaw))
+	}
+
+	if v := os.Getenv("OPEN_PAYMENTS_BASE_URL"); v != "" {
+		env.SetOpenPaymentsURL(v)
+	}
+	if v := os.Getenv("AUTH_BASE_URL"); v != "" {
+		env.SetAuthURL(v)
+	}
+	if v := os.Getenv("ADMIN_BASE_URL"); v != "" {
+		env.SetAdminURL(v)
 	}
 
 	applicationURL := os.Getenv("APPLICATION_URL")
@@ -467,6 +518,18 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, errors.New("SIGNATURE_VERSION is required")
 	}
 
+	rafikiBackendGraphQLURL := os.Getenv("RAFIKI_BACKEND_GRAPHQL_URL")
+	if rafikiBackendGraphQLURL == "" {
+		rafikiBackendGraphQLURL = "http://localhost:3001/graphql"
+	}
+
+	rafikiAuthGraphQLURL := os.Getenv("RAFIKI_AUTH_GRAPHQL_URL")
+	if rafikiAuthGraphQLURL == "" {
+		rafikiAuthGraphQLURL = "http://localhost:3003/graphql"
+	}
+
+	signupAgreementIDs := parseSignupAgreementIDs(os.Getenv("SIGNUP_AGREEMENT_IDS"))
+
 	return &StartArgs{
 		Port:                          port,
 		DbConnectionString:            dbUrl,
@@ -535,5 +598,42 @@ func ParseStartArgs() (*StartArgs, error) {
 		OperatorTenantID:              operatorTenantID,
 		AdminAPISecret:                adminAPISecret,
 		SignatureVersion:              signatureVersion,
+		SentryDSN:                     os.Getenv("SENTRY_DSN"),
+		SentryRelease:                 os.Getenv("SENTRY_RELEASE"),
+		SlackToken:                    os.Getenv("SLACK_TOKEN"),
+		SlackClientID:                 os.Getenv("SLACK_CLIENT_ID"),
+		SlackClientSecret:             os.Getenv("SLACK_CLIENT_SECRET"),
+		SlackRedirectURL:              os.Getenv("SLACK_REDIRECT_URL"),
+		SignupAgreementIDs:            signupAgreementIDs,
+		CDNKey:                        os.Getenv("CDN_KEY"),
+		VaultAddr:                     os.Getenv("VAULT_ADDR"),
+		VaultTransitEnginePath:        os.Getenv("VAULT_TRANSIT_ENGINE_PATH"),
+		VaultToken:                    os.Getenv("VAULT_TOKEN"),
+		RafikiBackendGraphQLURL:       rafikiBackendGraphQLURL,
+		RafikiAuthGraphQLURL:          rafikiAuthGraphQLURL,
+		ChimoneyWebhookSecret:         os.Getenv("CHIMONEY_WEBHOOK_SECRET"),
+		ChimoneyToken:                 os.Getenv("CHIMONEY_TOKEN"),
+		RafikiDBURL:                   os.Getenv("RAFIKI_DB_URL"),
+		RafikiAuthDBURL:               os.Getenv("RAFIKI_AUTH_DB_URL"),
+		TempGatehubAppID:              os.Getenv("TEMP_GATEHUB_APP_ID"),
+		TempGatehubSecret:             os.Getenv("TEMP_GATEHUB_SECRET"),
 	}, nil
+}
+
+func parseList(input string) []string {
+	input = strings.ReplaceAll(input, " ", "")
+	return strings.Split(input, ",")
+}
+
+func parseSignupAgreementIDs(raw string) []string {
+	if raw == "" {
+		return nil
+	}
+	var ids []string
+	for _, s := range strings.Split(raw, ",") {
+		if id := strings.TrimSpace(s); id != "" {
+			ids = append(ids, id)
+		}
+	}
+	return ids
 }

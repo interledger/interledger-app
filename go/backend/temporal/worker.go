@@ -1,8 +1,6 @@
 package temporal
 
 import (
-	"os"
-
 	"github.com/lestrrat-go/jwx/v3/jwk"
 	"gitlab.com/fynbos/log"
 
@@ -21,7 +19,7 @@ import (
 	"go.temporal.io/sdk/worker"
 )
 
-func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago_external.Config) (worker.Worker, error) {
+func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago_external.Config, ptiJWK, ptiBaseURL, ptiClientID string) (worker.Worker, error) {
 	w := worker.New(b.Temporal(), "backend", worker.Options{})
 
 	w.RegisterActivity(kyc_workflows.NewActivity(b))
@@ -96,25 +94,12 @@ func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago
 	w.RegisterWorkflow(pti_workflows.SettleWithdrawWorkflow)
 	w.RegisterWorkflow(pti_workflows.RevertWithdrawWorkflow)
 	w.RegisterWorkflow(pti_workflows.ReturnedWorkflow)
-	var ptiPrivateKey jwk.Key
-	// if env.IsLocal() {
-	// 	privateKey, err := rsa.GenerateKey(rand.Reader, 4096)
-	// 	if err != nil {
-	// 		log.Fatalln(err)
-	// 	}
-	// 	// ptiPrivateKey, err = jwk.FromRaw(privateKey)
-	// 	ptiPrivateKey, err = jwk.Import(privateKey)
-	// 	if err != nil {
-	// 		log.Fatalln(err)
-	// 	}
-	// } else {
-	var err error
-	ptiPrivateKey, err = jwk.ParseKey([]byte(os.Getenv("PTI_JWK")))
+	ptiPrivateKey, err := jwk.ParseKey([]byte(ptiJWK))
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	w.RegisterActivity(pti_workflows.NewActivity(b, ptiPrivateKey))
+	w.RegisterActivity(pti_workflows.NewActivity(b, ptiPrivateKey, ptiBaseURL, ptiClientID))
 	w.RegisterWorkflow(pti_workflows.CreateWalletWorkflow)
 
 	w.RegisterWorkflow(pti_workflows.CreateUserWorkflow)

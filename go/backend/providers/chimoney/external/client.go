@@ -8,7 +8,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 
 	"gitlab.com/fynbos/backend/currency"
@@ -16,6 +15,10 @@ import (
 	"gitlab.com/fynbos/env"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
+
+var apiKey string
+
+func Init(key string) { apiKey = key }
 
 type Client interface {
 	CreateWallet(ctx context.Context, req CreateWalletReq) (string, error)
@@ -49,7 +52,7 @@ func New(transport *http.Client) Client {
 	return &client{
 		api:     api,
 		baseURL: baseURL,
-		apiKey:  os.Getenv("CHIMONEY_TOKEN"),
+		apiKey:  apiKey,
 	}
 }
 

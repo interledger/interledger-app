@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"os"
 	"time"
 
 	"github.com/lestrrat-go/jwx/v3/jwk"
@@ -24,15 +23,15 @@ type Client struct {
 	external external.Client
 }
 
-func New(b ops.Backends) *Client {
-	ptiPrivateKey, err := jwk.ParseKey([]byte(os.Getenv("PTI_JWK")))
+func New(b ops.Backends, jwkStr, baseURL, clientID string) *Client {
+	ptiPrivateKey, err := jwk.ParseKey([]byte(jwkStr))
 	if err != nil {
 		log.Fatalln(err)
 	}
 	ptiExternal, err := external.NewWithOptions(
-		external.WithBaseURL(os.Getenv("PTI_BASE_URL")),
+		external.WithBaseURL(baseURL),
 		external.WithOTELLHTTPClient(),
-		external.WithClientID(os.Getenv("PTI_CLIENT_ID")),
+		external.WithClientID(clientID),
 		external.WithDerivedKeys(ptiPrivateKey),
 	)
 	if err != nil {

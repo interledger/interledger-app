@@ -2,9 +2,7 @@ package env
 
 import (
 	"flag"
-	"os"
 	"strings"
-	"sync"
 	"testing"
 )
 
@@ -21,9 +19,6 @@ func GetUrl() string {
 var fynbosEnv = "prod"
 var blockedRegions = []string{}
 var allowedWalletIds = []string{}
-var once = sync.Once{}
-var onceAllowedWalletIds = sync.Once{}
-var onceBlockedRegions = sync.Once{}
 
 var allowedEnvs = []string{
 	"prod",    // Live production environment
@@ -41,37 +36,30 @@ func SetEnv(t *testing.T, env string) {
 	})
 }
 
+func SetFynbosEnv(v string) {
+	fynbosEnv = v
+}
+
+func SetAllowedWalletIDs(ids []string) {
+	allowedWalletIds = ids
+}
+
+func SetBlockedRegions(regions []string) {
+	blockedRegions = regions
+}
+
 func GetAllowedWalletIds() []string {
-	onceAllowedWalletIds.Do(func() {
-		a := os.Getenv("ALLOWED_WALLET_IDS")
-		if a == "" {
-			allowedWalletIds = []string{}
-		} else {
-			allowedWalletIds = parseList(a)
-		}
-	})
 	return allowedWalletIds
 }
 
 func GetBlockedRegions() []string {
-	onceBlockedRegions.Do(func() {
-		a := os.Getenv("BLOCKED_REGIONS")
-		if a == "" {
-			blockedRegions = []string{}
-		} else {
-			blockedRegions = parseList(a)
-		}
-	})
 	return blockedRegions
 }
 
 func GetEnv() string {
-	once.Do(func() {
-		fynbosEnv = os.Getenv("FYNBOS_ENV")
-		if fynbosEnv == "" {
-			fynbosEnv = "prod"
-		}
-	})
+	if fynbosEnv == "" {
+		panic("FYNBOS_ENV environment variable is not set")
+	}
 	var contains bool
 	for _, env := range allowedEnvs {
 		if env == fynbosEnv {
@@ -120,69 +108,66 @@ func IsTestExecution() bool {
 }
 
 var openPaymentsURL string
-var openPaymentsSync sync.Once
+
+func SetOpenPaymentsURL(url string) {
+	openPaymentsURL = url
+}
 
 func OpenPaymentsURL() string {
-	openPaymentsSync.Do(func() {
-		openPaymentsURL = os.Getenv("OPEN_PAYMENTS_BASE_URL")
-		if openPaymentsURL == "" {
-			if IsProd() {
-				openPaymentsURL = "https://ilp.link"
-			} else if IsDev() {
-				openPaymentsURL = "https://sandbox.ilp.link"
-			} else if IsLocal() || IsTest() {
-				openPaymentsURL = "https://local.ilp.link"
-			} else {
-				openPaymentsURL = "https://sandbox.ilp.link"
-			}
+	if openPaymentsURL == "" {
+		if IsProd() {
+			openPaymentsURL = "https://ilp.link"
+		} else if IsDev() {
+			openPaymentsURL = "https://sandbox.ilp.link"
+		} else if IsLocal() || IsTest() {
+			openPaymentsURL = "https://local.ilp.link"
+		} else {
+			openPaymentsURL = "https://sandbox.ilp.link"
 		}
-	})
-
+	}
 	return openPaymentsURL
 }
 
 var authURL string
-var authURLSync sync.Once
+
+func SetAuthURL(url string) {
+	authURL = url
+}
 
 // TODO -  is this used?
 func AuthURL() string {
-	authURLSync.Do(func() {
-		authURL = os.Getenv("AUTH_BASE_URL")
-		if authURL == "" {
-			if IsProd() {
-				authURL = "https://auth.ilp.link"
-			} else if IsDev() {
-				authURL = "https://auth.sandbox.ilp.link"
-			} else if IsLocal() || IsTest() {
-				authURL = "https://auth.local.ilp.link"
-			} else {
-				authURL = "https://auth.ilp.link"
-			}
+	if authURL == "" {
+		if IsProd() {
+			authURL = "https://auth.ilp.link"
+		} else if IsDev() {
+			authURL = "https://auth.sandbox.ilp.link"
+		} else if IsLocal() || IsTest() {
+			authURL = "https://auth.local.ilp.link"
+		} else {
+			authURL = "https://auth.ilp.link"
 		}
-	})
-
+	}
 	return authURL
 }
 
 var adminURL string
-var adminURLSync sync.Once
+
+func SetAdminURL(url string) {
+	adminURL = url
+}
 
 func AdminURL() string {
-	adminURLSync.Do(func() {
-		adminURL = os.Getenv("ADMIN_BASE_URL")
-		if adminURL == "" {
-			if IsProd() {
-				adminURL = "https://admin.interledger.tech"
-			} else if IsDev() {
-				adminURL = "https://admin.sandbox.interledger.tech"
-			} else if IsLocal() || IsTest() {
-				adminURL = "https://admin.interledger.test"
-			} else {
-				adminURL = "https://admin.sandbox.interledger.tech"
-			}
+	if adminURL == "" {
+		if IsProd() {
+			adminURL = "https://admin.interledger.tech"
+		} else if IsDev() {
+			adminURL = "https://admin.sandbox.interledger.tech"
+		} else if IsLocal() || IsTest() {
+			adminURL = "https://admin.interledger.test"
+		} else {
+			adminURL = "https://admin.sandbox.interledger.tech"
 		}
-	})
-
+	}
 	return adminURL
 }
 

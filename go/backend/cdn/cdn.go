@@ -5,14 +5,15 @@ import (
 	"context"
 	"net/http"
 	"net/url"
-	"os"
-	"sync"
 )
 
 var key string
-var initOnce sync.Once
 
 const CDNBaseURL = "https://cdn.fynbos.app"
+
+func Init(cdnKey string) {
+	key = cdnKey
+}
 
 type PutArgs struct {
 	Data        []byte
@@ -21,9 +22,6 @@ type PutArgs struct {
 }
 
 func Put(ctx context.Context, args PutArgs) error {
-	initOnce.Do(func() {
-		key = os.Getenv("CDN_KEY")
-	})
 	if key == "" {
 		return nil
 	}

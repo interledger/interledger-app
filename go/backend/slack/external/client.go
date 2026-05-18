@@ -3,7 +3,6 @@ package external
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"gitlab.com/fynbos/env"
 
@@ -11,45 +10,55 @@ import (
 	"golang.org/x/oauth2"
 )
 
+type Config struct {
+	ClientID     string
+	ClientSecret string
+	RedirectURL  string
+}
+
 type client struct {
 	conf     *oauth2.Config
 	botConf  *oauth2.Config
 	verifier *oidc.IDTokenVerifier
 }
 
-func getEnvDefault(key, fallback string) string {
-	val := os.Getenv(key)
-	if val == "" {
-		return fallback
-	}
-
-	return val
-}
-
-func New() (Client, error) {
+func New(cfg Config) (Client, error) {
 	provider, err := oidc.NewProvider(context.Background(), "https://slack.com")
 	if err != nil {
 		return nil, err
 	}
 
+	clientID := cfg.ClientID
+	if clientID == "" {
+		clientID = "2317468772181.5841878200565"
+	}
+	clientSecret := cfg.ClientSecret
+	if clientSecret == "" {
+		clientSecret = "e0705d863bc2726505cd175b65cc12d9"
+	}
+	redirectURL := cfg.RedirectURL
+	if redirectURL == "" {
+		redirectURL = env.GetUrl() + "/connect/slack"
+	}
+
 	oidcConfig := &oidc.Config{
-		ClientID: getEnvDefault("SLACK_CLIENT_ID", "2317468772181.5841878200565"),
+		ClientID: clientID,
 	}
 	verifier := provider.Verifier(oidcConfig)
 
 	conf := &oauth2.Config{
-		ClientID:     getEnvDefault("SLACK_CLIENT_ID", "2317468772181.5841878200565"),
-		ClientSecret: getEnvDefault("SLACK_CLIENT_SECRET", "e0705d863bc2726505cd175b65cc12d9"),
+		ClientID:     clientID,
+		ClientSecret: clientSecret,
 		Endpoint:     provider.Endpoint(),
-		RedirectURL:  getEnvDefault("SLACK_REDIRECT_URL", env.GetUrl()+"/connect/slack"),
+		RedirectURL:  redirectURL,
 		Scopes:       []string{oidc.ScopeOpenID, "profile", "email"},
 	}
 
 	botConf := &oauth2.Config{
-		ClientID:     getEnvDefault("SLACK_CLIENT_ID", "2317468772181.5841878200565"),
-		ClientSecret: getEnvDefault("SLACK_CLIENT_SECRET", "e0705d863bc2726505cd175b65cc12d9"),
+		ClientID:     clientID,
+		ClientSecret: clientSecret,
 		Endpoint:     oauth2.Endpoint{TokenURL: "https://slack.com/api/oauth.v2.access", AuthStyle: oauth2.AuthStyleInParams},
-		RedirectURL:  getEnvDefault("SLACK_REDIRECT_URL", env.GetUrl()+"/webhooks/slack/bot/install"),
+		RedirectURL:  env.GetUrl() + "/webhooks/slack/bot/install",
 	}
 
 	return client{
