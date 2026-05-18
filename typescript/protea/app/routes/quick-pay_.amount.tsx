@@ -8,7 +8,7 @@ import type { ApplicationProps } from '~/components'
 import { Button, GridColumn, Layouts, WalletGrid } from '~/components'
 import { BackButton } from '~/components/QuickPay'
 import { DialPad, DialPadIds } from '~/components/QuickPay/Dialpad'
-import { useDialPadContext } from '~/lib/context/dialpad'
+import { useDialPadStore } from '~/lib/useDialPadStore'
 import { mergeMeta } from '~/lib/meta'
 import { getSession } from '~/session.server'
 import { routeAllowed } from '~/lib/utils.server'
@@ -49,7 +49,7 @@ export const meta: MetaFunction = mergeMeta(() => [
 export default function Page() {
   const navigate = useNavigate()
   const { assetCode } = useLoaderData<typeof loader>()
-  const { amountValue, setAmountValue, setAssetCode } = useDialPadContext()
+  const { amountValue, setAmountValue, setAssetCode } = useDialPadStore()
 
   useEffect(() => {
     setAssetCode(assetCode)

@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react'
 import { z } from 'zod'
 import { ActionMessage, type ApplicationProps, Button, GridColumn, Layouts, TextField, WalletGrid } from '~/components'
 import { AmountDisplay, QuoteDialog, PayWithInterledgerMark } from '~/components/QuickPay/'
-import { useDialPadContext } from '~/lib/context/dialpad'
+import { useDialPadStore } from '~/lib/useDialPadStore'
 import { mergeMeta } from '~/lib/meta'
 import { fetchQuote, getValidWalletAddress, initializePayment } from '~/lib/open-payments.server'
 import { paymentSchema, formatAmount, createError, handleSessionUpdate, routeAllowed } from '~/lib/utils.server'
@@ -94,7 +94,7 @@ export default function Page() {
   const actionData = useActionData<ActionData>()
   const navigation = useNavigation()
   const isSubmitting = navigation.state === "submitting"
-  const { amountValue } = useDialPadContext()
+  const { amountValue } = useDialPadStore()
   const [modalOpen, setModalOpen] = useState(false)
   const errors = actionData?.errors
   const clearSessionKeys: Array<keyof QuickPaySession>  = ['receiverAddress']

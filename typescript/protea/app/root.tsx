@@ -39,7 +39,6 @@ import { grpc } from './lib/grpc.server'
 import { getPusherArgs } from './lib/pusher.server'
 import { emailVerificationGuard, recoveryLinkSessionInvalidationGuard, withAAL2Guard } from './lib/totp.server'
 import { usePusher } from './lib/usePusher'
-import { DialPadProvider } from '~/lib/providers/dialPadProvider'
 import { envBool } from '~/env.server'
 import { PtiConfigProvider } from './lib/pti-context'
 import { Route } from './+types/root';
@@ -197,22 +196,20 @@ function Page() {
   return (
     <PtiConfigProvider>
       <Document>
-        <DialPadProvider>
-          {isDisabled ? (
-            <Unavailable walletAddress={walletAddress} />
-          ) : (
-            <>
-              <Scaffold />
-              <PendingConfirmationsLoader walletId={pusherArgs.walletId} />
-              <TotpChallengeGlobal />
-            </>
-          )}
-          <script
-            dangerouslySetInnerHTML={{
-              __html: `window.ENV = ${JSON.stringify(env)}`
-            }}
-          />
-        </DialPadProvider>
+        {isDisabled ? (
+          <Unavailable walletAddress={walletAddress} />
+        ) : (
+          <>
+            <Scaffold />
+            <PendingConfirmationsLoader walletId={pusherArgs.walletId} />
+            <TotpChallengeGlobal />
+          </>
+        )}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.ENV = ${JSON.stringify(env)}`
+          }}
+        />
       </Document>
     </PtiConfigProvider>
   )

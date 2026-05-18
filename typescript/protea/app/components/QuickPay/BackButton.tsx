@@ -1,6 +1,6 @@
 import { Link, useFetcher, useNavigate } from 'react-router'
 import { flushSync } from 'react-dom'
-import { useDialPadContext } from '~/lib/context/dialpad'
+import { useDialPadStore } from '~/lib/useDialPadStore'
 import type { QuickPaySession } from '~/lib/types'
 import { clsx } from 'clsx'
 
@@ -14,7 +14,7 @@ interface BackButtonProps {
 
 export const BackButton = ({ title, to, clearSessionKeys, className, resetAmount }: BackButtonProps) => {
     const fetcher = useFetcher()
-    const { setAmountValue } = useDialPadContext()
+    const { setAmountValue } = useDialPadStore()
     const navigate = useNavigate()
     const handleBackClick = (e: React.MouseEvent, to: string, clearSessionKeys?: Array<keyof QuickPaySession> | 'all') => {
         e.preventDefault()
