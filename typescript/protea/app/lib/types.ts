@@ -21,14 +21,6 @@ export interface Amount {
   assetScale: number
 }
 
-export interface WalletAddressType {
-  id: string
-  assetScale: number
-  assetCode: string
-  authServer: string
-  resourceServer: string
-}
-
 export type FormatAmountArgs = Amount & {
   value: string
 }

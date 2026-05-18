@@ -1,5 +1,6 @@
 import { z } from 'zod'
-import { Errors, FormattedAmount, FormatAmountArgs, WalletAddressType } from './types'
+import { type WalletAddress } from '@interledger/open-payments'
+import { Errors, FormattedAmount, FormatAmountArgs } from './types'
 import { redirect, type Session } from 'react-router'
 import { getCurrencySymbol } from '~/lib/helpers'
 import type { QuickPaySession } from '~/lib/types'
@@ -112,8 +113,8 @@ export function createError(key: string, message: string): Errors {
 }
 
 export const isWalletAddress = (
-  o: WalletAddressType
-): o is WalletAddressType => {
+  o: WalletAddress
+): o is WalletAddress => {
   return !!(
     o.id &&
     typeof o.id === 'string' &&
