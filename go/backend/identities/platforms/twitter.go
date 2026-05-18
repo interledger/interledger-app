@@ -11,7 +11,6 @@ import (
 	"regexp"
 	"time"
 
-	"gitlab.com/fynbos/backend/cdn"
 	"gitlab.com/fynbos/backend/keys"
 	"gitlab.com/fynbos/backend/twitter"
 	"go.temporal.io/sdk/activity"
@@ -93,30 +92,12 @@ func (tp *twitterPlatform) GenerateSignedClaim(ctx context.Context, args *Signed
 }
 
 func (tp *twitterPlatform) GenerateImages(ctx context.Context, args *GenerateImagesArgs) error {
-	sigHashBase64 := base64.URLEncoding.EncodeToString(args.SignatureHash)
-
-	img, err := tp.b.Images().GenerateTwitterIdentity(ctx, args.WalletURL, args.Identifier)
-	if err != nil {
-		return err
-	}
-	err = cdn.Put(ctx, cdn.PutArgs{
-		Data:        img,
-		ContentType: "image/png",
-		Path:        "identities/" + sigHashBase64 + "/twitter.png",
-	})
+	_, err := tp.b.Images().GenerateTwitterIdentity(ctx, args.WalletURL, args.Identifier)
 	if err != nil {
 		return err
 	}
 
-	imgOG, err := tp.b.Images().GenerateTwitterIdentityOG(ctx, args.WalletURL, args.Identifier)
-	if err != nil {
-		return err
-	}
-	err = cdn.Put(ctx, cdn.PutArgs{
-		Data:        imgOG,
-		ContentType: "image/png",
-		Path:        "identities/" + sigHashBase64 + "/twitter-og.png",
-	})
+	_, err = tp.b.Images().GenerateTwitterIdentityOG(ctx, args.WalletURL, args.Identifier)
 	if err != nil {
 		return err
 	}

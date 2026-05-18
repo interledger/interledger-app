@@ -30,7 +30,6 @@ import (
 	analytics_client "gitlab.com/fynbos/backend/analytics/client"
 	analytics_webhook "gitlab.com/fynbos/backend/analytics/webhook"
 	"gitlab.com/fynbos/backend/api"
-	"gitlab.com/fynbos/backend/cdn"
 	"gitlab.com/fynbos/backend/cli"
 	"gitlab.com/fynbos/backend/contacts"
 	"gitlab.com/fynbos/backend/jobs"
@@ -726,7 +725,6 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	})
 
 	slack.Init(args.SlackToken)
-	cdn.Init(args.CDNKey)
 	_grpc.InitAgreementIDs(args.SignupAgreementIDs)
 
 	b.slack, err = slack_client.New(b, slack_external.Config{
