@@ -74,11 +74,8 @@ services:
       - PUBLIC_OP_AUTH_HOST=${PROTEA_PUBLIC_OP_AUTH_HOST:-auth.local.ilp.link}
       - PTI_SDK_URL=${PROTEA_PTI_SDK_URL:-https://mockpti.interledger.test/sdk/index.js}
       - PTI_FORMS_URL=${PROTEA_PTI_FORMS_URL:-https://mockpti.interledger.test/forms}
-      - BACKEND_GRPC_URL=${PROTEA_BACKEND_GRPC_URL:-http://0.0.0.0:8443}
-      - BACKEND_HTTP_URL=${PROTEA_BACKEND_HTTP_URL:-http://backend:8080}
       - TARGET_HOST=${PROTEA_TARGET_HOST:-https://interledger.app}
       - SUPPORT_EMAIL=${PROTEA_SUPPORT_EMAIL:-support@interledger.app}
-      - PAYMENT_POINTER_BASE=${PROTEA_PAYMENT_POINTER_BASE:-ilp.link}
 
     depends_on:
       - backend
