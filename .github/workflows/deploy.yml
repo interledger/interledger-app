@@ -1,0 +1,578 @@
+name: Deploy
+
+# --------------------------------------------------------------------------
+# Deploy
+#
+# Manually-triggered promotion of a published `interledger-app` Helm chart
+# release to a target environment by opening an auto-merge PR in
+# interledger/interledger-app-deploy that updates the `chartVersion` for the
+# `interledger-app` entry in the target environment's wallet ApplicationSet.
+#
+# Why this exists (vs. the existing bump-deploy-dev job):
+#   - `bump-deploy-dev` in build-and-publish.yml automatically promotes every
+#     release to `development` immediately after publish. Sandbox/production
+#     are intentionally gated and require human intent + a specific version
+#     pick, so we expose a separate manually-dispatched workflow rather than
+#     widening the auto-publish flow.
+#
+# Inputs:
+#   - environment: target environment (`sandbox` or `production`).
+#   - version: chart version to deploy. Leave blank to resolve to the
+#       newest chart published in the GCP Artifact Registry OCI repo (which
+#       is updated by release.yml -> build-and-publish.yml). Accepts either
+#       `1.11.4` or `v1.11.4` — the leading `v` is stripped before writing
+#       to the appset (Chart.yaml / appset values are stored without `v`).
+#
+# Side effects:
+#   1. Opens an auto-merge PR in interledger/interledger-app-deploy bumping
+#      `env/<environment>/appsets/wallet-appset.yaml` to the chosen version.
+#   2. Polls the public healthz endpoint until the new release tag is live.
+#   3. Registers the release with Linear via the Linear Release Action. The
+#      `LINEAR_RELEASE_ACCESS` secret is environment-scoped, so the
+#      `sandbox` GitHub Environment holds the Sandbox pipeline access key
+#      and the `production` GitHub Environment holds the Production
+#      pipeline access key. Both Linear pipelines are continuous, so only
+#      `sync` is invoked.
+#
+# GitHub Environments:
+#   - The `environment:` key on each job is set to the dispatched target so
+#     environment-scoped secrets (LINEAR_RELEASE_ACCESS) and protection
+#     rules (required reviewers etc.) apply. Configure required reviewers
+#     on the `sandbox` / `production` environments in the repo settings —
+#     this workflow does not enforce them inline.
+# --------------------------------------------------------------------------
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        type: choice
+        default: sandbox
+        options:
+          - sandbox
+          - production
+      version:
+        description: 'Chart version to deploy (e.g. 1.11.4 or v1.11.4). Leave blank to deploy the latest published chart.'
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  # All writes to this repo are unnecessary — we only read tags/releases for
+  # listing, and writes go to the deploy repo via the GitHub App token.
+  contents: read
+  id-token: write
+
+concurrency:
+  # Per-environment concurrency: a second dispatch for the same environment
+  # queues behind the first, but sandbox and production can run independently.
+  group: deploy-${{ inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+  # ------------------------------------------------------------------------
+  # guard
+  #
+  # Up-front validation of the dispatched environment. Both sandbox and
+  # production are supported; this job exists to fail fast (before GCP
+  # auth / App-token minting) if the matrix ever grows an unknown value
+  # that shouldn't actually trigger a deploy.
+  # ------------------------------------------------------------------------
+  guard:
+    name: Validate target environment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Reject unsupported targets
+        run: |
+          set -euo pipefail
+          case "${{ inputs.environment }}" in
+            sandbox|production)
+              echo "Target: ${{ inputs.environment }}"
+              ;;
+            *)
+              echo "::error::Unknown environment '${{ inputs.environment }}'."
+              exit 1
+              ;;
+          esac
+
+  # ------------------------------------------------------------------------
+  # resolve_version
+  #
+  # Determine the chart version to deploy. We list the OCI chart repo in
+  # GCP Artifact Registry rather than relying on git tags so we only ever
+  # deploy something that has actually been published as a chart.
+  #
+  # Sandbox shares the dev GCP project (wallet-dev-462809) and therefore
+  # the dev Artifact Registry (see copilot-instructions.md and
+  # build-and-publish.yml -> push-dev-image / publish-helm-chart dev step).
+  # Production charts live in the prod project (wallet-451208) and use the
+  # unsuffixed `GCR_PROJECT` / `GSA_EMAIL` / `GCR_WORKLOAD_IDENTITY_PROVIDER`
+  # secrets — same names build-and-publish.yml uses for the prod chart
+  # publish step. We branch on inputs.environment using GitHub Actions'
+  # ternary expression rather than per-env jobs to keep the workflow flat.
+  # ------------------------------------------------------------------------
+  resolve_version:
+    name: Resolve chart version
+    needs: guard
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    outputs:
+      version: ${{ steps.resolve.outputs.version }}
+      version_tag: ${{ steps.resolve.outputs.version_tag }}
+    env:
+      # Both secret sets are exposed unconditionally; the `select_secrets`
+      # step below picks the correct one based on the dispatched
+      # environment and fails loudly if the selected set is incomplete.
+      #
+      # We deliberately don't use a `a && b || c` ternary on the secrets
+      # themselves: empty strings are falsy in GitHub Actions expressions,
+      # so a missing/unset production secret would silently fall through
+      # to the dev value and resolve versions against the wrong project.
+      # GitHub Actions also doesn't support dynamic `secrets[<name>]`
+      # lookups, so we do the selection + validation in a script step.
+      DEV_GCR_PROJECT: ${{ secrets.GCR_DEV_PROJECT }}
+      DEV_GSA_EMAIL: ${{ secrets.GSA_DEV_EMAIL }}
+      DEV_GCR_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCR_DEV_WORKLOAD_IDENTITY_PROVIDER }}
+      PROD_GCR_PROJECT: ${{ secrets.GCR_PROJECT }}
+      PROD_GSA_EMAIL: ${{ secrets.GSA_EMAIL }}
+      PROD_GCR_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCR_WORKLOAD_IDENTITY_PROVIDER }}
+      AR_LOCATION: europe-west4
+      AR_REPO: interledger-helm-charts
+      AR_PACKAGE: interledger-app
+    steps:
+      - name: Select GCP secrets for target environment
+        id: select_secrets
+        env:
+          TARGET_ENV: ${{ inputs.environment }}
+        run: |
+          set -euo pipefail
+          case "${TARGET_ENV}" in
+            production)
+              GCR_PROJECT="${PROD_GCR_PROJECT}"
+              GSA_EMAIL="${PROD_GSA_EMAIL}"
+              GCR_WIP="${PROD_GCR_WORKLOAD_IDENTITY_PROVIDER}"
+              REQUIRED_HINT="GCR_PROJECT / GSA_EMAIL / GCR_WORKLOAD_IDENTITY_PROVIDER (production environment secrets)"
+              ;;
+            sandbox)
+              GCR_PROJECT="${DEV_GCR_PROJECT}"
+              GSA_EMAIL="${DEV_GSA_EMAIL}"
+              GCR_WIP="${DEV_GCR_WORKLOAD_IDENTITY_PROVIDER}"
+              REQUIRED_HINT="GCR_DEV_PROJECT / GSA_DEV_EMAIL / GCR_DEV_WORKLOAD_IDENTITY_PROVIDER (sandbox environment secrets)"
+              ;;
+            *)
+              echo "::error::Unsupported environment '${TARGET_ENV}'."
+              exit 1
+              ;;
+          esac
+
+          MISSING=()
+          [[ -z "${GCR_PROJECT}" ]] && MISSING+=("GCR project")
+          [[ -z "${GSA_EMAIL}" ]] && MISSING+=("GSA email")
+          [[ -z "${GCR_WIP}" ]] && MISSING+=("workload identity provider")
+          if [[ "${#MISSING[@]}" -gt 0 ]]; then
+            echo "::error::Missing GCP secrets for ${TARGET_ENV}: ${MISSING[*]}. Expected ${REQUIRED_HINT}."
+            exit 1
+          fi
+
+          # Mask the values so they don't leak even though they aren't
+          # strictly secret (project IDs / SA emails); the WIP can be
+          # treated as low-sensitivity but we mask uniformly.
+          echo "::add-mask::${GCR_PROJECT}"
+          echo "::add-mask::${GSA_EMAIL}"
+          echo "::add-mask::${GCR_WIP}"
+
+          {
+            echo "gcr_project=${GCR_PROJECT}"
+            echo "gsa_email=${GSA_EMAIL}"
+            echo "gcr_workload_identity_provider=${GCR_WIP}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v3
+        with:
+          service_account: ${{ steps.select_secrets.outputs.gsa_email }}
+          workload_identity_provider: ${{ steps.select_secrets.outputs.gcr_workload_identity_provider }}
+          export_environment_variables: true
+
+      - name: Resolve version
+        id: resolve
+        env:
+          REQUESTED: ${{ inputs.version }}
+          GCR_PROJECT: ${{ steps.select_secrets.outputs.gcr_project }}
+        run: |
+          set -euo pipefail
+
+          # List chart tags (human-readable versions), newest first.
+          #
+          # We deliberately do NOT use `gcloud artifacts versions list` here:
+          # for OCI artifacts that command returns content digests
+          # (sha256:...), not the semver tags ("1.11.6") that the appset
+          # stores. `docker images list --include-tags` returns each manifest
+          # with its associated tag(s), which is what we actually want.
+          #
+          # One manifest can carry multiple tags (e.g. "1.11.6" alongside
+          # "latest"), so the `tags` column is a comma-separated list; we
+          # split on commas, drop empties, and dedupe while preserving the
+          # newest-first ordering produced by --sort-by=~UPDATE_TIME.
+          IMAGE="${AR_LOCATION}-docker.pkg.dev/${GCR_PROJECT}/${AR_REPO}/${AR_PACKAGE}"
+          echo "Listing chart tags in ${IMAGE}..."
+          mapfile -t VERSIONS < <(gcloud artifacts docker images list \
+            "${IMAGE}" \
+            --include-tags \
+            --sort-by="~UPDATE_TIME" \
+            --format="value(tags)" \
+            | tr ',' '\n' \
+            | awk 'NF && !seen[$0]++')
+
+          if [[ "${#VERSIONS[@]}" -eq 0 ]]; then
+            echo "::error::No chart versions found for ${AR_PACKAGE} in ${AR_REPO}."
+            exit 1
+          fi
+
+          # Surface the available versions in the run log to help future
+          # dispatchers pick a version (since workflow_dispatch can't show
+          # a dynamic dropdown).
+          echo "Available versions (newest first):"
+          printf '  %s\n' "${VERSIONS[@]}" | head -n 25
+
+          # Normalise the requested version: trim whitespace + strip leading "v".
+          REQUESTED_RAW="${REQUESTED}"
+          REQUESTED="$(echo "${REQUESTED_RAW}" | tr -d '[:space:]')"
+          REQUESTED="${REQUESTED#v}"
+
+          if [[ -z "${REQUESTED}" ]]; then
+            VERSION="${VERSIONS[0]}"
+            echo "No version supplied; defaulting to latest: ${VERSION}"
+          else
+            # Validate the requested version was actually published.
+            FOUND=""
+            for v in "${VERSIONS[@]}"; do
+              if [[ "${v}" == "${REQUESTED}" ]]; then
+                FOUND="${v}"
+                break
+              fi
+            done
+            if [[ -z "${FOUND}" ]]; then
+              echo "::error::Version '${REQUESTED_RAW}' not found in Artifact Registry. See the list above for valid versions."
+              exit 1
+            fi
+            VERSION="${FOUND}"
+            echo "Using requested version: ${VERSION}"
+          fi
+
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          # Keep a "v"-prefixed form for git tag lookups / Linear release naming.
+          echo "version_tag=v${VERSION}" >> "$GITHUB_OUTPUT"
+
+          {
+            echo "## Deploy ${AR_PACKAGE} v${VERSION} to ${{ inputs.environment }}"
+            echo ""
+            echo "- Requested: \`${REQUESTED_RAW:-<latest>}\`"
+            echo "- Resolved chart version: \`${VERSION}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # ------------------------------------------------------------------------
+  # bump_deploy
+  #
+  # Mirrors `bump-deploy-dev` in build-and-publish.yml but targets the
+  # selected environment's appset. See that job's comments for the full
+  # rationale on App-token scoping, idempotency, yq pinning, etc. — those
+  # apply unchanged here.
+  # ------------------------------------------------------------------------
+  bump_deploy:
+    name: Bump interledger-app-deploy (${{ inputs.environment }})
+    needs: [guard, resolve_version]
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    permissions:
+      contents: read
+    env:
+      DEPLOY_REPO: interledger/interledger-app-deploy
+      APPSET_FILE: env/${{ inputs.environment }}/appsets/wallet-appset.yaml
+      CHART_NAME: interledger-app
+      VERSION: ${{ needs.resolve_version.outputs.version }}
+      VERSION_TAG: ${{ needs.resolve_version.outputs.version_tag }}
+      TARGET_ENV: ${{ inputs.environment }}
+      # Same pin as bump-deploy-dev. Keep these in sync if either is bumped.
+      YQ_VERSION: v4.44.3
+      YQ_SHA256: a2c097180dd884a8d50c956ee16a9cec070f30a7947cf4ebf87d5f36213e9ed7
+    outputs:
+      pr_url: ${{ steps.open_pr.outputs.pr_url }}
+    steps:
+      - name: Generate GitHub App token for interledger-app-deploy
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          owner: interledger
+          repositories: interledger-app-deploy
+
+      - name: Verify App is installed on deploy repo
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          set -euo pipefail
+          if ! gh api "repos/${DEPLOY_REPO}" --silent >/dev/null 2>&1; then
+            echo "::error::App token cannot access ${DEPLOY_REPO}. Install the App on that repo with Contents:write and Pull requests:write."
+            exit 1
+          fi
+
+      - name: Checkout interledger-app-deploy
+        uses: actions/checkout@v6
+        with:
+          repository: ${{ env.DEPLOY_REPO }}
+          token: ${{ steps.app-token.outputs.token }}
+          path: deploy
+          fetch-depth: 1
+
+      - name: Install yq
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp)"
+          curl -fsSL -o "${tmp}" \
+            "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64"
+          echo "${YQ_SHA256}  ${tmp}" | sha256sum --check --status
+          sudo install -m 0755 "${tmp}" /usr/local/bin/yq
+          rm -f "${tmp}"
+          yq --version
+
+      - name: Update chartVersion in target appset
+        working-directory: deploy
+        env:
+          CHART: ${{ env.CHART_NAME }}
+          FILE: ${{ env.APPSET_FILE }}
+        run: |
+          set -euo pipefail
+          NEW_VERSION="${VERSION}"
+          echo "chart_version=${NEW_VERSION}" >> "$GITHUB_ENV"
+
+          CURRENT=$(yq -r \
+            ".spec.generators[].list.elements[] | select(.name == \"${CHART}\") | .chartVersion" \
+            "${FILE}")
+          if [[ -z "${CURRENT}" || "${CURRENT}" == "null" ]]; then
+            echo "::error::Could not find chartVersion for ${CHART} in ${FILE}. The appset structure may have changed."
+            exit 1
+          fi
+          echo "Current chartVersion: ${CURRENT}"
+          echo "New chartVersion:     ${NEW_VERSION}"
+
+          if [[ "${CURRENT}" == "${NEW_VERSION}" ]]; then
+            echo "Already at ${NEW_VERSION}; skipping appset bump."
+            echo "- Appset already at \`${NEW_VERSION}\`; skipped bump PR." >> "$GITHUB_STEP_SUMMARY"
+            echo "skip=true" >> "$GITHUB_ENV"
+            exit 0
+          fi
+
+          yq -i \
+            "(.spec.generators[].list.elements[] | select(.name == \"${CHART}\")).chartVersion = \"${NEW_VERSION}\"" \
+            "${FILE}"
+
+          if git diff --quiet -- "${FILE}"; then
+            echo "::error::yq update produced no diff in ${FILE}. Refusing to continue."
+            exit 1
+          fi
+          git --no-pager diff -- "${FILE}"
+
+      - name: Open auto-merge PR
+        id: open_pr
+        if: env.skip != 'true'
+        working-directory: deploy
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          # Branch name encodes both the target environment and the version
+          # so concurrent deploys to different environments don't collide,
+          # and reruns for the same (env, version) are idempotent.
+          BRANCH: chore/deploy-interledger-app-${{ env.TARGET_ENV }}-${{ env.VERSION_TAG }}
+        run: |
+          set -euo pipefail
+          CHART_VERSION="${chart_version}"
+
+          git config user.name  "${{ steps.app-token.outputs.app-slug }}[bot]"
+          git config user.email "${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com"
+
+          git checkout -b "${BRANCH}"
+          git add "${APPSET_FILE}"
+          git commit \
+            -m "chore: deploy interledger-app ${CHART_VERSION} to ${TARGET_ENV}" \
+            -m "Triggered manually via the Deploy workflow on interledger/interledger-app."
+          git push --force --set-upstream origin "${BRANCH}"
+
+          cat > /tmp/pr-body.md <<EOF
+          Manual deploy of [interledger-app ${VERSION_TAG}](https://github.com/${GITHUB_REPOSITORY}/releases/tag/${VERSION_TAG}) to **${TARGET_ENV}**.
+
+          Updates \`${APPSET_FILE}\` chartVersion for \`${CHART_NAME}\` to \`${CHART_VERSION}\`.
+
+          Auto-merge is enabled; will merge once \`conform.yaml\` checks pass.
+          EOF
+          sed -i 's/^          //' /tmp/pr-body.md
+
+          PR_URL=$(gh pr list \
+            --repo "${DEPLOY_REPO}" \
+            --head "${BRANCH}" \
+            --state open \
+            --json url \
+            --jq '.[0].url // ""')
+
+          if [[ -z "${PR_URL}" ]]; then
+            PR_URL=$(gh pr create \
+              --repo "${DEPLOY_REPO}" \
+              --base main \
+              --head "${BRANCH}" \
+              --title "chore: deploy interledger-app ${CHART_VERSION} to ${TARGET_ENV}" \
+              --body-file /tmp/pr-body.md \
+              --label automated \
+              --label chart-bump)
+            echo "Opened ${PR_URL}"
+          else
+            echo "Reusing existing PR ${PR_URL}"
+            gh pr edit "${PR_URL}" --repo "${DEPLOY_REPO}" \
+              --title "chore: deploy interledger-app ${CHART_VERSION} to ${TARGET_ENV}" \
+              --body-file /tmp/pr-body.md
+          fi
+
+          gh pr merge "${PR_URL}" --repo "${DEPLOY_REPO}" --squash --auto
+
+          echo "pr_url=${PR_URL}" >> "$GITHUB_OUTPUT"
+          echo "- Deploy PR: ${PR_URL}" >> "$GITHUB_STEP_SUMMARY"
+
+  # ------------------------------------------------------------------------
+  # wait_for_rollout
+  #
+  # Polls the public healthz endpoint of the target environment until the
+  # `interledger-app-version` response header matches the release tag we
+  # just deployed (the v-prefixed Chart `appVersion` / image tag, e.g.
+  # `v1.11.6`). Note this is the release tag, not the unprefixed Helm
+  # `chartVersion` that lives in the appset — they share digits but differ
+  # in the leading `v`, and the running container only knows about the
+  # former (it was baked into the image via the IMAGE_HASH build-arg).
+  #
+  # This is a much simpler "is it actually live?" signal than tailing the
+  # deploy PR + ArgoCD sync state:
+  #
+  #   1. PR auto-merges in interledger-app-deploy after `conform.yaml` passes
+  #   2. ArgoCD picks up the new chartVersion and rolls out the new pods
+  #   3. Traefik starts routing to the new Protea pods, which advertise
+  #      `interledger-app-version: <tag>` from the IMAGE_HASH build-arg
+  #
+  # When the header value matches the deployed tag we know the new build
+  # is serving traffic, which is the signal Linear cares about.
+  #
+  # The Protea Dockerfile only sets INTERLEDGER_APP_VERSION in production
+  # images, so the header is intentionally absent in dev/local and a wait
+  # against a fresh sandbox env that hasn't been bumped yet will time out
+  # rather than passing silently.
+  #
+  # This job runs unconditionally (no gate on bump_deploy.outputs.pr_url):
+  # if the target environment was already at the requested chartVersion,
+  # bump_deploy is a no-op but we still want to confirm the environment is
+  # actually serving that version and proceed to the Linear sync below.
+  # ------------------------------------------------------------------------
+  wait_for_rollout:
+    name: Wait for ${{ inputs.environment }} rollout
+    needs: [bump_deploy, resolve_version]
+    runs-on: ubuntu-latest
+    # Sandbox rollouts (PR merge -> ArgoCD sync -> pod rollout) usually
+    # complete in ~10 minutes. 60 minutes gives generous headroom for a
+    # slow CI run or rollout, while still failing the workflow rather than
+    # hanging a runner forever if something is stuck.
+    timeout-minutes: 60
+    env:
+      EXPECTED_TAG: ${{ needs.resolve_version.outputs.version_tag }}
+      TARGET_ENV: ${{ inputs.environment }}
+    steps:
+      - name: Resolve healthz URL
+        id: target
+        run: |
+          set -euo pipefail
+          # Environment -> public healthz URL mapping.
+          case "${TARGET_ENV}" in
+            sandbox)
+              URL="https://sandbox.interledger.app/healthz"
+              ;;
+            production)
+              URL="https://interledger.app/healthz"
+              ;;
+            *)
+              echo "::error::No healthz URL configured for environment '${TARGET_ENV}'."
+              exit 1
+              ;;
+          esac
+          echo "url=${URL}" >> "$GITHUB_OUTPUT"
+          echo "Polling ${URL} for interledger-app-version=${EXPECTED_TAG}"
+
+      - name: Poll healthz for new version
+        env:
+          URL: ${{ steps.target.outputs.url }}
+        run: |
+          set -euo pipefail
+          # Header is lowercased to match curl's HTTP/2 output; we also fold
+          # response whitespace and trim CR before comparison. -k is NOT
+          # used: we require valid TLS on the public endpoint.
+          while true; do
+            RESPONSE_HEADERS=$(curl -fsSL -o /dev/null -D - --max-time 10 "${URL}" || true)
+            CURRENT=$(printf '%s' "${RESPONSE_HEADERS}" \
+              | tr -d '\r' \
+              | awk -F': ' 'tolower($1)=="interledger-app-version" {print $2; exit}')
+            if [[ -n "${CURRENT}" ]]; then
+              echo "Current: ${CURRENT} (expected: ${EXPECTED_TAG})"
+              if [[ "${CURRENT}" == "${EXPECTED_TAG}" ]]; then
+                echo "Rollout complete."
+                {
+                  echo "- Rollout verified at ${URL}"
+                  echo "- Live version: \`${CURRENT}\`"
+                } >> "$GITHUB_STEP_SUMMARY"
+                exit 0
+              fi
+            else
+              echo "No interledger-app-version header in response yet."
+            fi
+            sleep 30
+          done
+
+  # ------------------------------------------------------------------------
+  # linear_release
+  #
+  # Registers the deployment with Linear so the target pipeline reflects
+  # what is currently being promoted. `LINEAR_RELEASE_ACCESS` is
+  # environment-scoped: the `sandbox` GitHub Environment holds the Sandbox
+  # pipeline access key, the `production` GitHub Environment holds the
+  # Production pipeline access key. Both Linear pipelines are configured
+  # as continuous pipelines, so `sync` is the only command used —
+  # `update`/`complete` are scheduled-pipeline-only and would fail here.
+  #
+  # Ordering: gated on `wait_for_rollout` so we only notify Linear once the
+  # new version is actually serving traffic on the target environment. In a
+  # continuous pipeline `sync` creates the release directly in the
+  # completed stage, so calling it earlier would falsely report the deploy
+  # as done before ArgoCD has rolled it out.
+  #
+  # The Linear Release Action needs full commit history to scan for issue
+  # identifiers between releases — hence `fetch-depth: 0` and a checkout
+  # pinned to the deployed tag.
+  # ------------------------------------------------------------------------
+  linear_release:
+    name: Register release with Linear
+    needs: [bump_deploy, resolve_version, wait_for_rollout]
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout at deployed tag
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.resolve_version.outputs.version_tag }}
+          fetch-depth: 0
+
+      - name: Sync release with Linear
+        uses: linear/linear-release-action@v0
+        with:
+          access_key: ${{ secrets.LINEAR_RELEASE_ACCESS }}
+          # Pin the release to the chart version we just deployed so reruns
+          # target the same Linear release rather than creating a new one
+          # per dispatch.
+          version: ${{ needs.resolve_version.outputs.version_tag }}
+          name: ${{ needs.resolve_version.outputs.version_tag }}
