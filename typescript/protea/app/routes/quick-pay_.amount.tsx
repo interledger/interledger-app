@@ -80,7 +80,7 @@ export default function Page() {
       <GridColumn
         className='col-span-full mt-20 mx-auto'
       >
-        <BackButton title="Back" to="/quick-pay" resetAmount/>
+        <BackButton title="Back" to="/quick-pay"/>
         <DialPad />
         <div className="flex justify-center gap-2 mt-12 w-64">
           <Button

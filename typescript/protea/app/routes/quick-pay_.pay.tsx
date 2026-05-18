@@ -9,7 +9,7 @@ import { AmountDisplay, QuoteDialog, PayWithInterledgerMark } from '~/components
 import { useDialPadStore } from '~/lib/useDialPadStore'
 import { mergeMeta } from '~/lib/meta'
 import { fetchQuote, getValidWalletAddress, initializePayment } from '~/lib/open-payments.server'
-import { paymentSchema, formatAmount, createError, handleSessionUpdate, routeAllowed } from '~/lib/utils.server'
+import { paymentSchema, formatAmount, createError, routeAllowed } from '~/lib/utils.server'
 import { commitSession, getSession } from '~/session.server'
 import { type ActionData, QuickPaySession } from '~/lib/types'
 import { formatError } from '~/lib/helpers'
@@ -178,9 +178,6 @@ export async function action({ request }: Route.ActionArgs) {
 
   const formData = Object.fromEntries(await request.formData())
   const intent = formData.intent
-
-  //Used by BackButton logic
-  await handleSessionUpdate(session, formData)
 
   if (intent !== 'pay' && intent !== 'confirm') {
     sessionData.quote = undefined
