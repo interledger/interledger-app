@@ -64,7 +64,6 @@ import (
 	payments_client "gitlab.com/fynbos/backend/payments/client"
 	"gitlab.com/fynbos/backend/providers/chimoney"
 	chimoney_client "gitlab.com/fynbos/backend/providers/chimoney/client"
-	chimoney_external "gitlab.com/fynbos/backend/providers/chimoney/external"
 	chimoney_ops "gitlab.com/fynbos/backend/providers/chimoney/ops"
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	gatehub_client "gitlab.com/fynbos/backend/providers/gatehub/client"
@@ -210,7 +209,7 @@ func start(args *cli.StartArgs) {
 		WebhookSecret: args.PersonaWebhookToken,
 	})
 	router.Handle("/webhooks/persona", kyc_ops.NewHandlePersonaWebhook(b, personaClient))
-	router.Handle("/webhooks/chimoney", chimoney_ops.NewWebhook(b, args.ChimoneyWebhookSecret))
+	router.Handle("/webhooks/chimoney", chimoney_ops.NewWebhook(b, args.ChimoneyWebhookSecret, args.ChimoneyToken))
 	router.Handle("/.well-known/apple-app-site-association", aasa_assetlinks.AppSiteAssociationHandler(b.aasaConfig))
 	router.Handle("/.well-known/assetlinks.json", aasa_assetlinks.AssetLinksHandler(b.aasaConfig))
 
@@ -891,8 +890,7 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	}
 
 	log.Debug("initialising Chimoney")
-	chimoney_external.Init(args.ChimoneyToken)
-	b.chimoney = chimoney_client.New(b)
+	b.chimoney = chimoney_client.New(b, args.ChimoneyToken)
 
 	b.aasaConfig = aasa_assetlinks.Config{
 		AppleAppID:         args.AppleAppID,

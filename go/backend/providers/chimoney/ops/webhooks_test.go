@@ -187,7 +187,7 @@ func TestExtractChiWalletIDFromIssueID(t *testing.T) {
 }
 
 func TestWebhookHandler_OptionsMethod(t *testing.T) {
-	handler := ops.NewWebhook(nil, "")
+	handler := ops.NewWebhook(nil, "", "")
 
 	req := httptest.NewRequest(http.MethodOptions, "/webhook", nil)
 	rec := httptest.NewRecorder()
@@ -198,7 +198,7 @@ func TestWebhookHandler_OptionsMethod(t *testing.T) {
 }
 
 func TestWebhookHandler_InvalidMethod(t *testing.T) {
-	handler := ops.NewWebhook(nil, "")
+	handler := ops.NewWebhook(nil, "", "")
 
 	req := httptest.NewRequest(http.MethodGet, "/webhook", nil)
 	rec := httptest.NewRecorder()
@@ -215,7 +215,7 @@ func TestWebhookHandler_InvalidJSON(t *testing.T) {
 	os.Setenv("CHIMONEY_WEBHOOK_SECRET", "whsec_"+base64.StdEncoding.EncodeToString(secret))
 	defer os.Setenv("CHIMONEY_WEBHOOK_SECRET", oldSecret)
 
-	handler := ops.NewWebhook(nil, "")
+	handler := ops.NewWebhook(nil, "", "")
 
 	payload := `{invalid json}`
 	req := createSignedRequest(t, payload, secret)
@@ -232,7 +232,7 @@ func TestWebhookHandler_UnknownEventType(t *testing.T) {
 	os.Setenv("CHIMONEY_WEBHOOK_SECRET", "whsec_"+base64.StdEncoding.EncodeToString(secret))
 	defer os.Setenv("CHIMONEY_WEBHOOK_SECRET", oldSecret)
 
-	handler := ops.NewWebhook(nil, "")
+	handler := ops.NewWebhook(nil, "", "")
 
 	payload := `{"eventType":"unknown.event.type","issueID":"test-123"}`
 	req := createSignedRequest(t, payload, secret)
