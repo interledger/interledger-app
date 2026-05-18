@@ -114,18 +114,17 @@ func SetOpenPaymentsURL(url string) {
 }
 
 func OpenPaymentsURL() string {
-	if openPaymentsURL == "" {
-		if IsProd() {
-			openPaymentsURL = "https://ilp.link"
-		} else if IsDev() {
-			openPaymentsURL = "https://sandbox.ilp.link"
-		} else if IsLocal() || IsTest() {
-			openPaymentsURL = "https://local.ilp.link"
-		} else {
-			openPaymentsURL = "https://sandbox.ilp.link"
-		}
+	if openPaymentsURL != "" {
+		return openPaymentsURL
 	}
-	return openPaymentsURL
+	if IsProd() {
+		return "https://ilp.link"
+	} else if IsDev() {
+		return "https://sandbox.ilp.link"
+	} else if IsLocal() || IsTest() {
+		return "https://local.ilp.link"
+	}
+	return "https://sandbox.ilp.link"
 }
 
 var authURL string
@@ -136,18 +135,17 @@ func SetAuthURL(url string) {
 
 // TODO -  is this used?
 func AuthURL() string {
-	if authURL == "" {
-		if IsProd() {
-			authURL = "https://auth.ilp.link"
-		} else if IsDev() {
-			authURL = "https://auth.sandbox.ilp.link"
-		} else if IsLocal() || IsTest() {
-			authURL = "https://auth.local.ilp.link"
-		} else {
-			authURL = "https://auth.ilp.link"
-		}
+	if authURL != "" {
+		return authURL
 	}
-	return authURL
+	if IsProd() {
+		return "https://auth.ilp.link"
+	} else if IsDev() {
+		return "https://auth.sandbox.ilp.link"
+	} else if IsLocal() || IsTest() {
+		return "https://auth.local.ilp.link"
+	}
+	return "https://auth.ilp.link"
 }
 
 var adminURL string
@@ -157,18 +155,17 @@ func SetAdminURL(url string) {
 }
 
 func AdminURL() string {
-	if adminURL == "" {
-		if IsProd() {
-			adminURL = "https://admin.interledger.tech"
-		} else if IsDev() {
-			adminURL = "https://admin.sandbox.interledger.tech"
-		} else if IsLocal() || IsTest() {
-			adminURL = "https://admin.interledger.test"
-		} else {
-			adminURL = "https://admin.sandbox.interledger.tech"
-		}
+	if adminURL != "" {
+		return adminURL
 	}
-	return adminURL
+	if IsProd() {
+		return "https://admin.interledger.tech"
+	} else if IsDev() {
+		return "https://admin.sandbox.interledger.tech"
+	} else if IsLocal() || IsTest() {
+		return "https://admin.interledger.test"
+	}
+	return "https://admin.sandbox.interledger.tech"
 }
 
 func parseList(input string) []string {

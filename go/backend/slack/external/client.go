@@ -29,13 +29,7 @@ func New(cfg Config) (Client, error) {
 	}
 
 	clientID := cfg.ClientID
-	if clientID == "" {
-		clientID = "2317468772181.5841878200565"
-	}
 	clientSecret := cfg.ClientSecret
-	if clientSecret == "" {
-		clientSecret = "e0705d863bc2726505cd175b65cc12d9"
-	}
 	redirectURL := cfg.RedirectURL
 	if redirectURL == "" {
 		redirectURL = env.GetUrl() + "/connect/slack"

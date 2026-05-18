@@ -33,6 +33,7 @@ import (
 	"gitlab.com/fynbos/backend/cdn"
 	"gitlab.com/fynbos/backend/cli"
 	"gitlab.com/fynbos/backend/contacts"
+	"gitlab.com/fynbos/backend/jobs"
 	contacts_client "gitlab.com/fynbos/backend/contacts/client"
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
@@ -490,7 +491,17 @@ func startWorker(args *cli.StartArgs) {
 	serveHTTP(&http.Server{Addr: ":8081", Handler: router}, &wg)
 
 	log.Info("Worker creating")
-	w, err := temporal.NewTemporalWorker(b, b.gatehubConfig, b.xagoConfig, args.PTIJWK, args.PTIBaseURL, args.PTIClientID)
+	w, err := temporal.NewTemporalWorker(b, b.gatehubConfig, b.xagoConfig, args.PTIJWK, args.PTIBaseURL, args.PTIClientID, args.ChimoneyToken, jobs.Config{
+		KratosURL:         args.KratosUrl,
+		KratosAdminURL:    args.KratosAdminUrl,
+		PTIJWK:            args.PTIJWK,
+		PTIBaseURL:        args.PTIBaseURL,
+		PTIClientID:       args.PTIClientID,
+		RafikiDBURL:       args.RafikiDBURL,
+		RafikiAuthDBURL:   args.RafikiAuthDBURL,
+		TempGatehubAppID:  args.TempGatehubAppID,
+		TempGatehubSecret: args.TempGatehubSecret,
+	})
 	if err != nil {
 		log.Fatalln(err)
 	}

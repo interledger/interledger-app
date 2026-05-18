@@ -2,6 +2,7 @@ package cli
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -158,8 +159,13 @@ func ParseStartArgs() (*StartArgs, error) {
 
 	// Configure the env package before calling any env.Is* helpers below.
 	fynbosEnvValue := os.Getenv("FYNBOS_ENV")
-	if fynbosEnvValue == "" {
-		return nil, errors.New("FYNBOS_ENV environment variable is required and must be set to one of: local, dev, sandbox, prod, test")
+	switch fynbosEnvValue {
+	case "prod", "sandbox", "dev", "local", "test":
+		// valid
+	case "":
+		return nil, errors.New("FYNBOS_ENV is required; must be one of: prod, sandbox, dev, local, test")
+	default:
+		return nil, fmt.Errorf("FYNBOS_ENV=%q is invalid; must be one of: prod, sandbox, dev, local, test", fynbosEnvValue)
 	}
 	env.SetFynbosEnv(fynbosEnvValue)
 

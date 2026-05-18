@@ -3,7 +3,6 @@ package jobs
 import (
 	"context"
 	"fmt"
-	"os"
 	"time"
 
 	"gitlab.com/fynbos/env"
@@ -111,10 +110,7 @@ func (a *Activity) UpdateBackendWalletRootToIlpActivity(ctx context.Context, dom
 
 func (a *Activity) UpdateRafikiWalletRootToIlpActivity(ctx context.Context, domainInfo MigrationParams) error {
 	log.Info(fmt.Sprintf("Starting [rafiki] wallet update to %s", domainInfo.NewWalletAddress))
-	connString := os.Getenv("RAFIKI_DB_URL")
-	log.Info(fmt.Sprintf("Connection string: %s", connString))
-
-	db, err := DbConnection(connString)
+	db, err := DbConnection(a.cfg.RafikiDBURL)
 	if err != nil {
 		log.Error("Error establishing db connection: %v", zap.Error(err))
 		return err
@@ -141,9 +137,7 @@ func (a *Activity) UpdateRafikiWalletRootToIlpActivity(ctx context.Context, doma
 
 func (a *Activity) UpdateRafikiAuthWalletRootToIlpActivity(ctx context.Context, domainInfo MigrationParams) error {
 	log.Info(fmt.Sprintf("Starting [rafiki auth] wallet update to %s", domainInfo.NewWalletAddress))
-	connString := os.Getenv("RAFIKI_AUTH_DB_URL")
-
-	db, err := DbConnection(connString)
+	db, err := DbConnection(a.cfg.RafikiAuthDBURL)
 	if err != nil {
 		log.Error("Error establishing db connection: %v", zap.Error(err))
 		return err

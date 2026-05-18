@@ -19,7 +19,7 @@ import (
 	"go.temporal.io/sdk/worker"
 )
 
-func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago_external.Config, ptiJWK, ptiBaseURL, ptiClientID string) (worker.Worker, error) {
+func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago_external.Config, ptiJWK, ptiBaseURL, ptiClientID, chimoneyToken string, jobsCfg jobs.Config) (worker.Worker, error) {
 	w := worker.New(b.Temporal(), "backend", worker.Options{})
 
 	w.RegisterActivity(kyc_workflows.NewActivity(b))
@@ -36,7 +36,7 @@ func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago
 	w.RegisterWorkflow(twitter_workflows.PublishTwitterProofWorkflow)
 
 	// Jobs
-	w.RegisterActivity(jobs.NewActivity(b, gatehubConfig))
+	w.RegisterActivity(jobs.NewActivity(b, gatehubConfig, jobsCfg))
 	w.RegisterWorkflow(jobs.AddWalletPrivateKeysWorkflow)
 	w.RegisterWorkflow(jobs.FixWalletPublicKeysWorkflow)
 	w.RegisterWorkflow(jobs.MigratePaymentPointers)
@@ -121,7 +121,7 @@ func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago
 	gatehub_workflows.StartCardTransactionsPooling(b)
 
 	// Chimoney
-	w.RegisterActivity(chimoney_workflows.NewActivity(b))
+	w.RegisterActivity(chimoney_workflows.NewActivity(b, chimoneyToken))
 	w.RegisterWorkflow(chimoney_workflows.CreateChimoneyUserWorkflow)
 	w.RegisterWorkflow(chimoney_workflows.ChimomeyCompleteKYC)
 	w.RegisterWorkflow(chimoney_workflows.CreateChimoneyDepositWorkflow)

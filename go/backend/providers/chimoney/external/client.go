@@ -16,10 +16,6 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
-var apiKey string
-
-func Init(key string) { apiKey = key }
-
 type Client interface {
 	CreateWallet(ctx context.Context, req CreateWalletReq) (string, error)
 	GetWallet(ctx context.Context, id string) (*WalletResp, error)
@@ -38,7 +34,7 @@ type client struct {
 	api     *http.Client
 }
 
-func New(transport *http.Client) Client {
+func New(apiKey string, transport *http.Client) Client {
 	baseURL := "https://api.chimoney.io/v0.2.4"
 	if !env.IsProd() {
 		baseURL = "https://api-v2-sandbox.chimoney.io/v0.2.4"
