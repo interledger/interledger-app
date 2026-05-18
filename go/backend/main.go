@@ -32,10 +32,10 @@ import (
 	"gitlab.com/fynbos/backend/api"
 	"gitlab.com/fynbos/backend/cli"
 	"gitlab.com/fynbos/backend/contacts"
-	"gitlab.com/fynbos/backend/jobs"
 	contacts_client "gitlab.com/fynbos/backend/contacts/client"
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
+	"gitlab.com/fynbos/backend/jobs"
 
 	"gitlab.com/fynbos/backend/email"
 	email_client "gitlab.com/fynbos/backend/email/client"
