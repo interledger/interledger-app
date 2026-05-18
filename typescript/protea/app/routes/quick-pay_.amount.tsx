@@ -17,7 +17,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   routeAllowed('OP_INTPAY_ENABLED')
   const session = await getSession(request.headers.get('Cookie'))
   const walletAddressInfo = session.get('quickPay')
-  const assetCode = walletAddressInfo?.validWalletAddress?.assetCode
+  const assetCode = walletAddressInfo?.senderAddress?.assetCode
 
   if (walletAddressInfo === undefined || assetCode === undefined) {
     throw data(

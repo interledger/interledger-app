@@ -21,8 +21,8 @@ export async function loader({ request }: Route.LoaderArgs) {
   routeAllowed('OP_INTPAY_ENABLED')
   const session = await getSession(request.headers.get('Cookie'))
   const sessionData = session.get('quickPay')
-  const walletAddressInfo = sessionData?.validWalletAddress
-  const assetCode = walletAddressInfo?.validWalletAddress?.assetCode
+  const walletAddressInfo = sessionData?.senderAddress
+  const assetCode = walletAddressInfo?.senderAddress?.assetCode
 
   const incomingPayment = sessionData?.request
   const showGeneratedRequest = !!incomingPayment

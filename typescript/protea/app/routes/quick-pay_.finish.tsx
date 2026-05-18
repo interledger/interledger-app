@@ -151,7 +151,7 @@ export async function action({ request }: Route.ActionArgs) {
 
   if (intent === 'checkIncomingPayment') {
     const interactRef = formData.interactRef as string
-    const walletAddressInfo = sessionData?.validWalletAddress
+    const walletAddressInfo = sessionData?.senderAddress
     const paymentId = String(formData?.paymentId) || ''
     const grant = sessionData?.grants[paymentId]
     const quote = sessionData.quote

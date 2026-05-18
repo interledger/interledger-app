@@ -22,7 +22,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   const isQuote = searchParams.get('quote') || false
   const session = await getSession(request.headers.get('Cookie'))
   const sessionData = session.get('quickPay')
-  const walletAddressInfo = sessionData?.validWalletAddress
+  const walletAddressInfo = sessionData?.senderAddress
 
   let receiverName = ''
   let receiveAmount = null
@@ -174,7 +174,7 @@ export default function Page() {
 export async function action({ request }: Route.ActionArgs) {
   const session = await getSession(request.headers.get('Cookie'))
   const sessionData: QuickPaySession = session.get('quickPay') || {}
-  const walletAddressInfo = sessionData.validWalletAddress
+  const walletAddressInfo = sessionData.senderAddress
 
   const formData = Object.fromEntries(await request.formData())
   const intent = formData.intent
@@ -223,7 +223,17 @@ export async function action({ request }: Route.ActionArgs) {
     })
   }
 
-  const quote = sessionData?.quote
+if (sessionData?.quote === undefined) {
+    throw data(
+      {
+        code: "QUICKPAY_SESSION_ERROR",
+        title: "Payment session expired."
+      },
+      { status: 400 }
+    )
+  }
+
+  const quote = sessionData.quote
   if (intent === 'confirm') {
     if (quote === undefined || walletAddressInfo === undefined) {
       throw data(
@@ -237,7 +247,7 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   const { paymentId, outgoingPaymentGrant } = await initializePayment({
-    walletAddress: walletAddressInfo.id,
+    walletAddress: String(walletAddressInfo?.id),
     quote
   })
   sessionData.grants = { ...(sessionData?.grants || {}), [paymentId]: outgoingPaymentGrant }

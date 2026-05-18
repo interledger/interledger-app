@@ -79,8 +79,8 @@ export async function action({ request }: Route.ActionArgs) {
   const walletAddress = String(formData?.walletAddress)
 
   try {
-    const validWalletAddress = await getValidWalletAddress(walletAddress)
-    sessionData.validWalletAddress = validWalletAddress
+    const senderAddress = await getValidWalletAddress(walletAddress)
+    sessionData.senderAddress = senderAddress
     session.set('quickPay', sessionData)
 
   } catch (err) {
