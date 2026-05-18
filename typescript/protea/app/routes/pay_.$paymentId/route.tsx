@@ -17,7 +17,7 @@ import {
 } from '~/components'
 import type { FormattedLinkedAccount } from '~/data/accounts.server'
 import { getLinkedAccountsForPayment } from '~/data/accounts.server'
-import { getFeatures, requireApprovedKyc } from '~/data/wallet.server'
+import { getFeatures } from '~/data/wallet.server'
 import type {
   Features,
   Payment,
@@ -51,8 +51,6 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   let features: Features | null = null
   let payment: PlainMessage<Payment> | ConnectError
   let phoneMask: string = ''
-
-  await requireApprovedKyc(request)
 
   features = await getFeatures(request)
 

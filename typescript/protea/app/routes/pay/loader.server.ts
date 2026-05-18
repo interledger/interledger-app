@@ -1,4 +1,4 @@
-import { getFeatures, requireApprovedKyc } from '~/data/wallet.server'
+import { getFeatures } from '~/data/wallet.server'
 import type {
   Features,
   Payment,
@@ -37,8 +37,6 @@ export async function payLoader({ request }: LoaderFunctionArgs) {
   // used only on route load, params change and form submission
   // TODO should figure out if we need these based on the status of the payment
   if (url.search == '') {
-    await requireApprovedKyc(request)
-
     features = await getFeatures(request)
   }
 

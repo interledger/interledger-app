@@ -28,7 +28,6 @@ import {
   getLinkedAccountsForWithdraw,
   type FormattedLinkedAccount
 } from '~/data/accounts.server'
-import { requireApprovedKyc } from '~/data/wallet.server'
 import type {
   Amount as RpcAmount
 } from '~/generated/connect/backend/v1/backend_pb';
@@ -57,8 +56,6 @@ type WithdrawalLoaderData = {
 export async function loader(args: Route.LoaderArgs) {
   const providerResponse = await grpc.getOnOffRampProvider(args.request, {})
   if (isConnectError(providerResponse)) throw providerResponse.error
-
-  await requireApprovedKyc(args.request)
 
   if (providerResponse.provider == 'gatehub') {
     return gatehubWithdrawalLoader(args)

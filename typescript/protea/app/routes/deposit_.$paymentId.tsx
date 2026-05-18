@@ -6,7 +6,6 @@ import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Icon, Layouts } from '~/components'
 import { Label } from '~/components/Label'
-import { requireApprovedKyc } from '~/data/wallet.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { ErrorDescriptions } from '~/lib/error.constants'
 import { TwillioErrorMapper } from '~/lib/error.mappers'
@@ -19,8 +18,6 @@ import { usePTISdk } from '~/lib/usePTISdk'
 import { PaymentRequiredAction } from '~/lib/types'
 
 export async function loader({ request, params }: Route.LoaderArgs) {
-  await requireApprovedKyc(request)
-
   const payment = await grpc.getPayment(request, { id: params.paymentId })
 
   if (isConnectError(payment)) throw payment.errorResponse

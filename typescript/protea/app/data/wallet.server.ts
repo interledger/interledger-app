@@ -12,8 +12,6 @@ import type {
 } from '~/generated/connect/backend/v1/backend_pb'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
-import { redirectWithSnackbar } from '~/lib/snackbar.server'
-import { KycStatus } from '~/lib/types'
 
 export async function getKycStatus(
   request: Request
@@ -23,20 +21,6 @@ export async function getKycStatus(
   if (isConnectError(response)) throw response.errorResponse
 
   return response
-}
-
-export async function requireApprovedKyc(request: Request): Promise<void> {
-  const { kycStatus } = await getKycStatus(request)
-  if (kycStatus === KycStatus.Approved) return
-
-  if (kycStatus === KycStatus.Pending || kycStatus === KycStatus.InReview) {
-    throw await redirectWithSnackbar(request, href('/'), {
-      message:
-        'Your identity is being verified.\nThis functionality will be available once approved.'
-    })
-  }
-
-  throw redirect(href('/personal-details'))
 }
 
 export async function getFeatures(request: Request): Promise<Features> {
