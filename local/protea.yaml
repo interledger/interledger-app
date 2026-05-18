@@ -52,7 +52,7 @@ services:
       - MOCKXAGO_ENDPOINT=${PROTEA_MOCKXAGO_ENDPOINT:-https://mockxago.interledger.test}
 
       # Provider/runtime integrations
-      - PTI_CLIENT_ID=${PROTEA_PTI_CLIENT_ID:-}
+      - PTI_CLIENT_ID=${PROTEA_PTI_CLIENT_ID:-04d3e1b5-96d4-47e4-9eaa-13e9b4b0f219}
       - GOOGLE_MAPS_API_KEY=${PROTEA_GOOGLE_MAPS_API_KEY:-}
 
       # Observability and analytics
@@ -79,7 +79,6 @@ services:
       - TARGET_HOST=${PROTEA_TARGET_HOST:-https://interledger.app}
       - SUPPORT_EMAIL=${PROTEA_SUPPORT_EMAIL:-support@interledger.app}
       - PAYMENT_POINTER_BASE=${PROTEA_PAYMENT_POINTER_BASE:-ilp.link}
-      - PTI_CLIENT_ID=${PROTEA_PTI_CLIENT_ID:-}
 
     depends_on:
       - backend
