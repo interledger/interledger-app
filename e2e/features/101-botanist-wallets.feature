@@ -19,7 +19,7 @@ Feature: Botanist Wallets Filter
     And I impersonate 'botanist-user'
 
   @botanist @wallets-filter @xago
-  Scenario: Admin can filter wallets by email after a user signs up
+  Scenario: Admin can search wallets by wallet name after a user signs up
     Given that my "country" is "South Africa"
     And I completed the signup workflow
     And I take a screenshot "signup-complete"
