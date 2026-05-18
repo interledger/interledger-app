@@ -680,16 +680,16 @@ func (a *Activity) GetGatehubTransfer(ctx context.Context, paymentID string) (*g
 		return nil, err
 	}
 
-	// TODO Remove this ASAP
-	if strings.HasPrefix(externalID, "placeholder_") {
-		now := time.Now().UTC().Format(time.RFC3339)
-		return &gatehub_external.Transaction{
-			ID:          externalID,
-			Status:      gatehub_external.TransactionStatusCompleted,
-			CreatedAt:   now,
-			CompletedAt: now,
-		}, nil
-	}
+	// // TODO Remove this ASAP
+	// if strings.HasPrefix(externalID, "placeholder_") {
+	// 	now := time.Now().UTC().Format(time.RFC3339)
+	// 	return &gatehub_external.Transaction{
+	// 		ID:          externalID,
+	// 		Status:      gatehub_external.TransactionStatusCompleted,
+	// 		CreatedAt:   now,
+	// 		CompletedAt: now,
+	// 	}, nil
+	// }
 
 	p, err := Lookup(ctx, a.b, paymentID)
 	if err != nil {

@@ -13,8 +13,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/uuid"
-
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
@@ -572,47 +570,46 @@ func TransferUserToOmnibus(ctx context.Context, b Backends, ec external.Client, 
 		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
 	}
 
-	// senderExternalUserID, err := getExternalUserID(ctx, b, la.WalletID)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	senderExternalUserID, err := getExternalUserID(ctx, b, la.WalletID)
+	if err != nil {
+		return nil, err
+	}
 
 	// TODO Figure out what Gatehub endpoint we need to call and with what args
-
-	// externalTx, err := ec.CreateTransaction(ctx, external.CreateTransactionRequest{
-	// 	SendingUserID:    senderExternalUserID,
-	// 	SendingAddress:   la.ProviderID,
-	// 	ReceivingAddress: omnibusAddress,
-	// 	Amount:           amount.Float64(),
-	// 	Type:             external.TransactionTypeHosted,
-	// 	VaultID:          vaultID,
-	// })
-	// if err != nil {
-	// 	return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
-	// }
+	externalTx, err := ec.CreateTransaction(ctx, external.CreateTransactionRequest{
+		SendingUserID:    senderExternalUserID,
+		SendingAddress:   la.ProviderID,
+		ReceivingAddress: omnibusAddress,
+		Amount:           amount.Float64(),
+		Type:             external.TransactionTypeHosted,
+		VaultID:          vaultID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
 
 	// TODO remove once we know what to call on the Gatehub side
 	// _ = senderExternalUserID
-	now := time.Now().UTC().Format(time.RFC3339)
-	externalTx := &external.Transaction{
-		ID:          "placeholder_" + uuid.New().String(),
-		CreatedAt:   now,
-		CompletedAt: now,
-		Amount:      amount.FormatAmount(),
-		Total:       amount.FormatAmount(),
-		Fee:         "0",
-		SendingWallet: external.Wallet{
-			Address: la.ProviderID,
-		},
-		ReceivingWallet: external.Wallet{
-			Address: omnibusAddress,
-		},
-		Vault: external.Vault{
-			UUID: vaultID,
-		},
-		Status: external.TransactionStatusCompleted,
-		Type:   external.TransactionTypeHosted,
-	}
+	// now := time.Now().UTC().Format(time.RFC3339)
+	// externalTx := &external.Transaction{
+	// 	ID:          "placeholder_" + uuid.New().String(),
+	// 	CreatedAt:   now,
+	// 	CompletedAt: now,
+	// 	Amount:      amount.FormatAmount(),
+	// 	Total:       amount.FormatAmount(),
+	// 	Fee:         "0",
+	// 	SendingWallet: external.Wallet{
+	// 		Address: la.ProviderID,
+	// 	},
+	// 	ReceivingWallet: external.Wallet{
+	// 		Address: omnibusAddress,
+	// 	},
+	// 	Vault: external.Vault{
+	// 		UUID: vaultID,
+	// 	},
+	// 	Status: external.TransactionStatusCompleted,
+	// 	Type:   external.TransactionTypeHosted,
+	// }
 
 	return externalTx, nil
 }
@@ -623,39 +620,39 @@ func TransferOmnibusToUser(ctx context.Context, b Backends, ec external.Client, 
 		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
 	}
 
-	// externalTx, err := ec.CreateTransaction(ctx, external.CreateTransactionRequest{
-	// 	SendingUserID:    sendingUserID,
-	// 	SendingAddress:   omnibusAddress,
-	// 	ReceivingAddress: la.ProviderID,
-	// 	Amount:           amount.Float64(),
-	// 	Type:             external.TransactionTypeHosted,
-	// 	VaultID:          vaultID,
-	// })
-	// if err != nil {
-	// 	return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
-	// }
-
-	// TODO remove once we know what to call on the Gatehub side
-	now := time.Now().UTC().Format(time.RFC3339)
-	externalTx := &external.Transaction{
-		ID:          "placeholder_" + uuid.New().String(),
-		CreatedAt:   now,
-		CompletedAt: now,
-		Amount:      amount.FormatAmount(),
-		Total:       amount.FormatAmount(),
-		Fee:         "0",
-		SendingWallet: external.Wallet{
-			Address: omnibusAddress,
-		},
-		ReceivingWallet: external.Wallet{
-			Address: la.ProviderID,
-		},
-		Vault: external.Vault{
-			UUID: vaultID,
-		},
-		Status: external.TransactionStatusCompleted,
-		Type:   external.TransactionTypeHosted,
+	externalTx, err := ec.CreateTransaction(ctx, external.CreateTransactionRequest{
+		SendingUserID:    sendingUserID,
+		SendingAddress:   omnibusAddress,
+		ReceivingAddress: la.ProviderID,
+		Amount:           amount.Float64(),
+		Type:             external.TransactionTypeHosted,
+		VaultID:          vaultID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
 	}
+
+	// // TODO remove once we know what to call on the Gatehub side
+	// now := time.Now().UTC().Format(time.RFC3339)
+	// externalTx := &external.Transaction{
+	// 	ID:          "placeholder_" + uuid.New().String(),
+	// 	CreatedAt:   now,
+	// 	CompletedAt: now,
+	// 	Amount:      amount.FormatAmount(),
+	// 	Total:       amount.FormatAmount(),
+	// 	Fee:         "0",
+	// 	SendingWallet: external.Wallet{
+	// 		Address: omnibusAddress,
+	// 	},
+	// 	ReceivingWallet: external.Wallet{
+	// 		Address: la.ProviderID,
+	// 	},
+	// 	Vault: external.Vault{
+	// 		UUID: vaultID,
+	// 	},
+	// 	Status: external.TransactionStatusCompleted,
+	// 	Type:   external.TransactionTypeHosted,
+	// }
 
 	return externalTx, nil
 }
