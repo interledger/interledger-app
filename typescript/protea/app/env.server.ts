@@ -15,7 +15,9 @@ const knownEnvKeysRequired: string[] = [
     "PERSONA_SDK_URL",
     "MOCKXAGO_ENDPOINT",
     "TARGET_HOST",
-    "SUPPORT_EMAIL"
+    "SUPPORT_EMAIL",
+    "PAYMENT_POINTER_BASE",
+    "PTI_CLIENT_ID"
 ]
 
 const knownEnvKeysOptional: string[] = [
@@ -24,14 +26,11 @@ const knownEnvKeysOptional: string[] = [
     "FYNBOS_ENV",
     "LOG_LEVEL",
     "LOG_PRETTY",
-    "PAYMENT_POINTER_BASE",
     "PUSHER_APP_KEY",
     "PUSHER_APP_CLUSTER",
     "DEFAULT_RATE_LIMIT_REQUESTS",
     "DEFAULT_RATE_LIMIT_TIME",
-    "GOOGLE_MAPS_API_KEY",
-    "PTI_CLIENT_ID",
-
+    "GOOGLE_MAPS_API_KEY"
 ]
 
 const knownEnvKeysEnabled = {
