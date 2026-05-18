@@ -91,17 +91,7 @@ func (tp *twitterPlatform) GenerateSignedClaim(ctx context.Context, args *Signed
 	}, nil
 }
 
-func (tp *twitterPlatform) GenerateImages(ctx context.Context, args *GenerateImagesArgs) error {
-	_, err := tp.b.Images().GenerateTwitterIdentity(ctx, args.WalletURL, args.Identifier)
-	if err != nil {
-		return err
-	}
-
-	_, err = tp.b.Images().GenerateTwitterIdentityOG(ctx, args.WalletURL, args.Identifier)
-	if err != nil {
-		return err
-	}
-
+func (tp *twitterPlatform) GenerateImages(_ context.Context, _ *GenerateImagesArgs) error {
 	return nil
 }
 

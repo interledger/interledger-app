@@ -728,9 +728,10 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	_grpc.InitAgreementIDs(args.SignupAgreementIDs)
 
 	b.slack, err = slack_client.New(b, slack_external.Config{
-		ClientID:     args.SlackClientID,
-		ClientSecret: args.SlackClientSecret,
-		RedirectURL:  args.SlackRedirectURL,
+		ClientID:       args.SlackClientID,
+		ClientSecret:   args.SlackClientSecret,
+		RedirectURL:    args.SlackRedirectURL,
+		BotRedirectURL: args.SlackBotRedirectURL,
 	})
 	if err != nil {
 		log.Fatalln(err)

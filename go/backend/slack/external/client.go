@@ -11,9 +11,10 @@ import (
 )
 
 type Config struct {
-	ClientID     string
-	ClientSecret string
-	RedirectURL  string
+	ClientID       string
+	ClientSecret   string
+	RedirectURL    string
+	BotRedirectURL string
 }
 
 type client struct {
@@ -31,8 +32,18 @@ func New(cfg Config) (Client, error) {
 	clientID := cfg.ClientID
 	clientSecret := cfg.ClientSecret
 	redirectURL := cfg.RedirectURL
+	botRedirectURL := cfg.BotRedirectURL
+
+	slackConfigured := clientID != "" || clientSecret != "" || redirectURL != "" || botRedirectURL != ""
+	if slackConfigured && (clientID == "" || clientSecret == "") {
+		return nil, fmt.Errorf("SLACK_CLIENT_ID and SLACK_CLIENT_SECRET must both be set when Slack OAuth is configured")
+	}
+
 	if redirectURL == "" {
 		redirectURL = env.GetUrl() + "/connect/slack"
+	}
+	if botRedirectURL == "" {
+		botRedirectURL = env.GetUrl() + "/webhooks/slack/bot/install"
 	}
 
 	oidcConfig := &oidc.Config{
@@ -52,7 +63,7 @@ func New(cfg Config) (Client, error) {
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
 		Endpoint:     oauth2.Endpoint{TokenURL: "https://slack.com/api/oauth.v2.access", AuthStyle: oauth2.AuthStyleInParams},
-		RedirectURL:  env.GetUrl() + "/webhooks/slack/bot/install",
+		RedirectURL:  botRedirectURL,
 	}
 
 	return client{

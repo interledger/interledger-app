@@ -132,6 +132,7 @@ type StartArgs struct {
 	SlackClientID                 string
 	SlackClientSecret             string
 	SlackRedirectURL              string
+	SlackBotRedirectURL           string
 	SignupAgreementIDs            []string
 	VaultAddr                     string
 	VaultTransitEnginePath        string
@@ -609,6 +610,7 @@ func ParseStartArgs() (*StartArgs, error) {
 		SlackClientID:                 os.Getenv("SLACK_CLIENT_ID"),
 		SlackClientSecret:             os.Getenv("SLACK_CLIENT_SECRET"),
 		SlackRedirectURL:              os.Getenv("SLACK_REDIRECT_URL"),
+		SlackBotRedirectURL:           os.Getenv("SLACK_BOT_REDIRECT_URL"),
 		SignupAgreementIDs:            signupAgreementIDs,
 		VaultAddr:                     os.Getenv("VAULT_ADDR"),
 		VaultTransitEnginePath:        os.Getenv("VAULT_TRANSIT_ENGINE_PATH"),

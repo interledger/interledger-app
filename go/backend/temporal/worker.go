@@ -1,6 +1,8 @@
 package temporal
 
 import (
+	"fmt"
+
 	"github.com/lestrrat-go/jwx/v3/jwk"
 	"gitlab.com/fynbos/log"
 
@@ -87,24 +89,31 @@ func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago
 	xago_workflows.StartDepositsPolling(b)
 
 	// PTI
-	w.RegisterWorkflow(pti_workflows.DepositWorkflow)
-	w.RegisterWorkflow(pti_workflows.SettleDepositWorkflow)
-	w.RegisterWorkflow(pti_workflows.MarkTransactionStateWorkflow)
-	w.RegisterWorkflow(pti_workflows.ReservePtiBalance)
-	w.RegisterWorkflow(pti_workflows.SettleWithdrawWorkflow)
-	w.RegisterWorkflow(pti_workflows.RevertWithdrawWorkflow)
-	w.RegisterWorkflow(pti_workflows.ReturnedWorkflow)
-	ptiPrivateKey, err := jwk.ParseKey([]byte(ptiJWK))
-	if err != nil {
-		log.Fatalln(err)
+	if ptiJWK == "" {
+		if ptiBaseURL != "" || ptiClientID != "" {
+			return nil, fmt.Errorf("PTI_JWK is required when PTI is configured")
+		}
+		log.Warn("PTI not configured: skipping PTI workflow/activity registration")
+	} else {
+		w.RegisterWorkflow(pti_workflows.DepositWorkflow)
+		w.RegisterWorkflow(pti_workflows.SettleDepositWorkflow)
+		w.RegisterWorkflow(pti_workflows.MarkTransactionStateWorkflow)
+		w.RegisterWorkflow(pti_workflows.ReservePtiBalance)
+		w.RegisterWorkflow(pti_workflows.SettleWithdrawWorkflow)
+		w.RegisterWorkflow(pti_workflows.RevertWithdrawWorkflow)
+		w.RegisterWorkflow(pti_workflows.ReturnedWorkflow)
+
+		ptiPrivateKey, err := jwk.ParseKey([]byte(ptiJWK))
+		if err != nil {
+			return nil, fmt.Errorf("invalid PTI_JWK: %w", err)
+		}
+
+		w.RegisterActivity(pti_workflows.NewActivity(b, ptiPrivateKey, ptiBaseURL, ptiClientID))
+		w.RegisterWorkflow(pti_workflows.CreateWalletWorkflow)
+		w.RegisterWorkflow(pti_workflows.CreateUserWorkflow)
+		w.RegisterWorkflow(pti_workflows.CreateCardWorkflow)
+		w.RegisterWorkflow(pti_workflows.CreatePtiBankAccountWorkflow)
 	}
-
-	w.RegisterActivity(pti_workflows.NewActivity(b, ptiPrivateKey, ptiBaseURL, ptiClientID))
-	w.RegisterWorkflow(pti_workflows.CreateWalletWorkflow)
-
-	w.RegisterWorkflow(pti_workflows.CreateUserWorkflow)
-	w.RegisterWorkflow(pti_workflows.CreateCardWorkflow)
-	w.RegisterWorkflow(pti_workflows.CreatePtiBankAccountWorkflow)
 
 	// Gatehub
 	w.RegisterActivity(gatehub_workflows.NewActivity(b, gatehubConfig))

@@ -78,16 +78,6 @@ func (s *slackPlatform) VerifyInstructions(_ context.Context, _ *VerifyInstructi
 	return "Successful", nil
 }
 
-func (s *slackPlatform) GenerateImages(ctx context.Context, args *GenerateImagesArgs) error {
-	_, err := s.b.Images().GenerateSlackIdentity(ctx, args.WalletURL, args.Identifier)
-	if err != nil {
-		return err
-	}
-
-	_, err = s.b.Images().GenerateSlackIdentityOG(ctx, args.WalletURL, args.Identifier)
-	if err != nil {
-		return err
-	}
-
+func (s *slackPlatform) GenerateImages(_ context.Context, _ *GenerateImagesArgs) error {
 	return nil
 }

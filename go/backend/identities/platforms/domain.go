@@ -36,17 +36,7 @@ func (dp *domainPlatform) VerifyInstructions(ctx context.Context, args *VerifyIn
 	return "", nil
 }
 
-func (dp *domainPlatform) GenerateImages(ctx context.Context, args *GenerateImagesArgs) error {
-	_, err := dp.b.Images().GenerateDomainIdentity(ctx, args.WalletURL, args.Identifier)
-	if err != nil {
-		return err
-	}
-
-	_, err = dp.b.Images().GenerateDomainIdentityOG(ctx, args.WalletURL, args.Identifier)
-	if err != nil {
-		return err
-	}
-
+func (dp *domainPlatform) GenerateImages(_ context.Context, _ *GenerateImagesArgs) error {
 	return nil
 }
 
