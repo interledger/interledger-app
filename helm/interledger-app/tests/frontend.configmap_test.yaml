@@ -1,0 +1,117 @@
+suite: Interledger App - Frontend ConfigMap
+templates:
+  - configMap.frontend.yaml
+set:
+  fullnameOverride: wallet
+release:
+  name: wallet
+tests:
+  - it: 'Should create a ConfigMap called wallet-frontend-server'
+    documentSelector:
+      path: kind
+      value: ConfigMap
+    asserts:
+      - equal:
+          path: metadata.name
+          value: wallet-frontend-server
+
+  - it: 'Should contain LOG_LEVEL'
+    set:
+      frontend:
+        config:
+          log_level: "debug"
+    asserts:
+      - equal:
+          path: data.LOG_LEVEL
+          value: "debug"
+
+  - it: 'Should contain LOG_PRETTY as false by default'
+    asserts:
+      - equal:
+          path: data.LOG_PRETTY
+          value: "false"
+
+  - it: 'Should contain LOG_PRETTY as true when set'
+    set:
+      frontend:
+        config:
+          log_pretty: true
+    asserts:
+      - equal:
+          path: data.LOG_PRETTY
+          value: "true"
+
+  - it: 'Should contain FYNBOS_ENV'
+    set:
+      frontend:
+        config:
+          environment: "production"
+    asserts:
+      - equal:
+          path: data.FYNBOS_ENV
+          value: "production"
+
+  - it: 'Should contain BACKEND_GRPC_URL'
+    asserts:
+      - equal:
+          path: data.BACKEND_GRPC_URL
+          value: "http://wallet-backend-service-grpc:8443"
+
+  - it: 'Should contain BACKEND_HTTP_URL'
+    asserts:
+      - equal:
+          path: data.BACKEND_HTTP_URL
+          value: "http://wallet-backend-service-http:8080"
+
+  - it: 'Should contain RAFIKI_AUTH_ENDPOINT'
+    asserts:
+      - equal:
+          path: data.RAFIKI_AUTH_ENDPOINT
+          value: "http://rafiki-auth-service:3009"
+
+  - it: 'Should contain PAYMENT_POINTER_BASE'
+    asserts:
+      - equal:
+          path: data.PAYMENT_POINTER_BASE
+          value: "development.ilp.link"
+
+  - it: 'Should contain PTI_CLIENT_ID'
+    set:
+      frontend:
+        config:
+          pti:
+            client_id: "04d3e1b5-96d4-47e4-9eaa-13e9b4b0f219"
+    asserts:
+      - equal:
+          path: data.PTI_CLIENT_ID
+          value: "04d3e1b5-96d4-47e4-9eaa-13e9b4b0f219"
+
+  - it: 'Should contain PTI_SDK_URL'
+    set:
+      frontend:
+        config:
+          pti:
+            sdk_url: "https://sdk.staging.fiant.io/latest/index.js"
+    asserts:
+      - equal:
+          path: data.PTI_SDK_URL
+          value: "https://sdk.staging.fiant.io/latest/index.js"
+
+  - it: 'Should contain PTI_FORMS_URL'
+    set:
+      frontend:
+        config:
+          pti:
+            forms_url: "https://forms.staging.fiant.io"
+    asserts:
+      - equal:
+          path: data.PTI_FORMS_URL
+          value: "https://forms.staging.fiant.io"
+
+  - it: 'Should produce no ConfigMap when frontend is disabled'
+    set:
+      frontend:
+        enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0

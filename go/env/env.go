@@ -8,11 +8,15 @@ import (
 	"testing"
 )
 
-const (
-	prodUrl  = "https://interledger.app"
-	devUrl   = "https://sandbox.interledger.app"
-	localUrl = "https://interledger.test"
-)
+var applicationURL = "https://interledger.test"
+
+func SetApplicationURL(url string) {
+	applicationURL = url
+}
+
+func GetUrl() string {
+	return applicationURL
+}
 
 var fynbosEnv = "prod"
 var blockedRegions = []string{}
@@ -28,7 +32,6 @@ var allowedEnvs = []string{
 	"local",   // For local development
 	"test",    // Go testing env
 }
-
 
 func SetEnv(t *testing.T, env string) {
 	orig := GetEnv()
@@ -114,18 +117,6 @@ func IsTestExecution() bool {
 		return true
 	}
 	return flag.Lookup("test.v") != nil
-}
-
-func GetUrl() string {
-	if IsLocal() {
-		return localUrl
-	}
-
-	if IsSandbox() || IsDev() {
-		return devUrl
-	}
-
-	return prodUrl
 }
 
 var openPaymentsURL string

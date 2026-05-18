@@ -1,0 +1,40 @@
+suite: Interledger App - Frontend replicaCount validation
+templates:
+  - validation.frontend.yaml
+set:
+  fullnameOverride: wallet
+release:
+  name: wallet
+tests:
+  - it: 'Should succeed when replicaCount is 2 (default)'
+    asserts:
+      - isNull:
+          path: spec
+
+  - it: 'Should succeed when replicaCount is 3'
+    set:
+      frontend:
+        server:
+          replicaCount: 3
+    asserts:
+      - isNull:
+          path: spec
+
+  - it: 'Should fail when replicaCount is 1'
+    set:
+      frontend:
+        server:
+          replicaCount: 1
+    asserts:
+      - failedTemplate:
+          errorMessage: "frontend.server.replicaCount must be at least 2"
+
+  - it: 'Should skip validation when frontend is disabled'
+    set:
+      frontend:
+        enabled: false
+        server:
+          replicaCount: 1
+    asserts:
+      - isNull:
+          path: spec
