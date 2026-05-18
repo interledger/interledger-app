@@ -139,6 +139,7 @@ backend:
       urlSecretRef: "dbRafikiAuthURL"
 
   config:
+    application_url: ""
     environment: dev
     log_level: "info"
     port: "8080"
@@ -799,6 +800,8 @@ backend:
     config:
       name: backend-config
       contentMap:
+        - key: APPLICATION_URL
+          valueRef: backend.config.application_url
         - key: FYNBOS_ENV
           valueRef: backend.config.environment
         - key: KRATOS_URL
