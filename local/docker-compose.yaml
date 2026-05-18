@@ -9,7 +9,7 @@ include:
   - kratos.yaml
   - temporal.yaml
   - rafiki.yaml
-  # - ngrok.yaml
+  - ngrok.yaml
 
   # profile: application
   - wallet.yaml
