@@ -2,7 +2,6 @@ package env
 
 import (
 	"flag"
-	"strings"
 	"testing"
 )
 
@@ -166,9 +165,4 @@ func AdminURL() string {
 		return "https://admin.interledger.test"
 	}
 	return "https://admin.sandbox.interledger.tech"
-}
-
-func parseList(input string) []string {
-	input = strings.ReplaceAll(input, " ", "")
-	return strings.Split(input, ",")
 }
