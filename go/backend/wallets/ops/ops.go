@@ -252,8 +252,14 @@ func ListAll(ctx context.Context, b Backends, page db.Pagination) ([]wallets.Wal
 	}
 
 	if page.Search != "" {
-		conditions = append(conditions, "(CAST(id AS text) ILIKE :search OR name ILIKE :search)")
 		args["search"] = "%" + page.Search + "%"
+		if _, err := uuid.Parse(page.Search); err == nil {
+			// Exact UUID match hits the primary-key index; also search by name.
+			conditions = append(conditions, "(id = :searchid OR name ILIKE :search)")
+			args["searchid"] = page.Search
+		} else {
+			conditions = append(conditions, "name ILIKE :search")
+		}
 	}
 
 	query := "select id, name, country, exceeded_limits from wallets"

@@ -45,6 +45,7 @@ export default function Page() {
           <Form method='get' action='/wallets'>
             <input type='hidden' name='pageSize' value={pageSize} />
             <input
+              key={search}
               id='wallet-search'
               name='search'
               type='search'

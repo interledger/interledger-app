@@ -195,7 +195,7 @@ func (sc *E2EContext) iFilterTheWalletsListBy(searchTerm string) error {
 
 // iFilterTheWalletsListByMyWalletName filters the wallets list using the
 // current impersonated user's wallet name, which is searchable at the DB level.
-func (sc *E2EContext) iFilterTheWalletsListByMyEmail() error {
+func (sc *E2EContext) iFilterTheWalletsListByMyWalletName() error {
 	email, err := sc.getCurrentUserEmail()
 	if err != nil {
 		return fmt.Errorf("cannot resolve current user email: %w", err)

@@ -35,7 +35,7 @@ Feature: Botanist Wallets Filter
     And I take a screenshot "wallets-page-unfiltered"
     Then my wallet should appear in the wallets list
     And I take a screenshot "wallet-visible-unfiltered"
-    When I filter the wallets list by my email
+    When I filter the wallets list by my wallet name
     And I take a screenshot "filter-applied"
     Then my wallet should appear in the wallets list
     And I take a screenshot "wallet-visible-filtered"
