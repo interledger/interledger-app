@@ -32,7 +32,6 @@ import (
 	"gitlab.com/fynbos/backend/api"
 	"gitlab.com/fynbos/backend/cdn"
 	"gitlab.com/fynbos/backend/cli"
-	"gitlab.com/fynbos/backend/jobs"
 	"gitlab.com/fynbos/backend/contacts"
 	contacts_client "gitlab.com/fynbos/backend/contacts/client"
 	"gitlab.com/fynbos/backend/currency"
@@ -721,9 +720,9 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	_grpc.InitAgreementIDs(args.SignupAgreementIDs)
 
 	b.slack, err = slack_client.New(b, slack_external.Config{
-		ClientID:    args.SlackClientID,
+		ClientID:     args.SlackClientID,
 		ClientSecret: args.SlackClientSecret,
-		RedirectURL: args.SlackRedirectURL,
+		RedirectURL:  args.SlackRedirectURL,
 	})
 	if err != nil {
 		log.Fatalln(err)
@@ -825,11 +824,11 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 
 	log.Debug("initialising rafiki")
 	b.rafiki = rafiki_client.New(b, rafiki_external.AdminSigningConfig{
-		OperatorTenantID:    args.OperatorTenantID,
-		AdminAPISecret:      args.AdminAPISecret,
-		SignatureVersion:    args.SignatureVersion,
-		BackendGraphQLURL:   args.RafikiBackendGraphQLURL,
-		AuthGraphQLURL:      args.RafikiAuthGraphQLURL,
+		OperatorTenantID:  args.OperatorTenantID,
+		AdminAPISecret:    args.AdminAPISecret,
+		SignatureVersion:  args.SignatureVersion,
+		BackendGraphQLURL: args.RafikiBackendGraphQLURL,
+		AuthGraphQLURL:    args.RafikiAuthGraphQLURL,
 	})
 
 	log.Debug("initialising pacioli")
