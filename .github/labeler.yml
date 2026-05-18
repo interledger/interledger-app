@@ -83,3 +83,8 @@ local:
   - changed-files:
       - any-glob-to-any-file:
           - 'local/**'
+
+helm:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'helm/**'

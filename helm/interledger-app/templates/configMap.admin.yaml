@@ -1,0 +1,3 @@
+{{- if .Values.admin.enabled }}
+{{- include "interledger-app.admin.configMap" . }}
+{{- end }}

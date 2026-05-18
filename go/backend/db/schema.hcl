@@ -14,7 +14,7 @@ table "agreement_signatures" {
     type = text
   }
   column "ip_address" {
-    null = false
+    null = true
     type = text
   }
   column "created_at" {
@@ -1685,6 +1685,11 @@ table "wallet_features" {
     type = boolean
     default = false
   }
+  column "accounts_tab_enabled" {
+    null = false
+    type = boolean
+    default = true
+  }
   column "created_at" {
     null    = false
     type    = timestamp
@@ -2060,118 +2065,6 @@ table "payments_workflow_refs" {
   }
 }
 
-table "discord_authorizations" {
-  schema = schema.public
-  column "id" {
-    null = false
-    type = uuid
-    default = sql("gen_random_uuid()")
-  }
-  column "wallet_id" {
-    null = false
-    type = uuid
-  }
-  column "client_id" {
-    null = false
-    type = text
-  }
-  column "state" {
-    null = false
-    type = text
-  }
-  column "scopes" {
-    null = false
-    type = sql("text[]")
-  }
-  column "redirect_url" {
-    null = false
-    type = text
-  }
-  column "created_at" {
-    null    = false
-    type    = timestamp
-    default = sql("now()::TIMESTAMP")
-  }
-  column "updated_at" {
-    null    = false
-    type    = timestamp
-    default = sql("now()::TIMESTAMP")
-  }
-  primary_key {
-    columns = [column.id]
-  }
-  index "discord_auth_state_ind" {
-    unique  = true
-    columns = [column.state]
-  }
-}
-
-table "discord_connections" {
-  schema = schema.public
-  column "id" {
-    null = false
-    type = uuid
-    default = sql("gen_random_uuid()")
-  }
-  column "user_id" {
-    null = false
-    type = text
-  }
-  column "scopes" {
-    null = false
-    type = sql("text[]")
-  }
-  column "username" {
-    null = false
-    type = text
-  }
-  column "global_name" {
-    null = false
-    type = text
-  }
-  column "client_id" {
-    null = false
-    type = text
-  }
-  column "access_token" {
-    null = false
-    type = text
-  }
-  column "wallet_id" {
-    null = false
-    type = uuid
-  }
-  column "refresh_token" {
-    null = false
-    type = text
-  }
-  column "expiry" {
-    null = false
-    type = timestamp
-  }
-  column "token_type" {
-    null = false
-    type = text
-  }
-  column "created_at" {
-    null    = false
-    type    = timestamp
-    default = sql("now()::TIMESTAMP")
-  }
-  column "updated_at" {
-    null    = false
-    type    = timestamp
-    default = sql("now()::TIMESTAMP")
-  }
-  primary_key {
-    columns = [column.id]
-  }
-  index "discord_wallet_user_ind" {
-    unique  = true
-    columns = [column.wallet_id, column.user_id]
-  }
-}
-
 table "slack_bot_installs" {
   schema = schema.public
   column "id" {
@@ -2379,51 +2272,6 @@ table "slack_connections" {
   }
   index "slack_user_team_ind" {
     columns = [column.user_id, column.team_domain]
-  }
-}
-
-table "discord_payment_interactions" {
-  schema = schema.public
-  column "id" {
-    null = false
-    type = uuid
-    default = sql("gen_random_uuid()")
-  }
-  column "payment_id" {
-    null = false
-    type = text
-  }
-  column "notified_processing" {
-    type    = bool
-    default = false
-  }
-  column "notified_receiver" {
-    type    = bool
-    default = false
-  }
-  column "interaction" {
-    type = text
-    default = ""
-  }
-  column "receiver_discord_user_id" {
-    type = text
-    default = ""
-  }
-  column "sender_discord_username" {
-    type = text
-    default = ""
-  }
-  column "created_at" {
-    null    = false
-    type    = timestamp
-    default = sql("now()::TIMESTAMP")
-  }
-  column "expired_at" {
-    null    = true
-    type    = timestamp
-  }
-  primary_key {
-    columns = [column.id]
   }
 }
 

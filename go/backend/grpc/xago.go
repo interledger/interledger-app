@@ -107,6 +107,11 @@ func (s *rpcService) WithdrawXagoBalance(ctx context.Context, req *pb.WithdrawXa
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
+	err = s.validateKYCTransactionRestrictions(ctx, w.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
 	fromLA, err := s.b.LinkedAccounts().Get(ctx, req.FromLinkedAccount)
 	if err != nil {
 		return nil, toGRPCError(err)

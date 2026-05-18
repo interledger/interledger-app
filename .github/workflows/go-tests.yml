@@ -2,9 +2,10 @@ name: Go Tests
 
 on:
   pull_request:
-    paths-ignore:
-      - 'documentation/**'
-      - 'local/**'
+    paths:
+      - 'go/**'
+      - '.github/workflows/go-test-template.yml'
+      - '.github/workflows/mock-tester.yml'
 
 jobs:
   backend-tests:

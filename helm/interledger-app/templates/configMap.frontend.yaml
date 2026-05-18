@@ -1,0 +1,3 @@
+{{- if .Values.frontend.enabled }}
+{{- include "interledger-app.frontend.configMap" . }}
+{{- end }}

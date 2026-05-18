@@ -66,6 +66,11 @@ RUN addgroup -g 1001 -S nodejs
 RUN adduser -S remix -u 1001
 
 ARG SENTRY_RELEASE
+# Same value as IMAGE_HASH / SENTRY_RELEASE in the publish workflow
+# (i.e. the semantic-release tag, e.g. "v1.11.6"). Surfaced on the
+# /healthz response as the `interledger-app-version` header so the
+# Deploy workflow can poll until the new version is live.
+ARG IMAGE_HASH
 
 WORKDIR /app
 ENV COREPACK_HOME=/app/.corepack
@@ -84,6 +89,10 @@ RUN find ./build -type f -name '*.map' -delete
 
 ENV NODE_ENV=production
 ENV SENTRY_RELEASE=${SENTRY_RELEASE}
+# Exposed back out via the `interledger-app-version` header on /healthz.
+# Left unset in non-production builds so dev images don't advertise a
+# bogus version.
+ENV INTERLEDGER_APP_VERSION=${IMAGE_HASH}
 
 EXPOSE 3000
 

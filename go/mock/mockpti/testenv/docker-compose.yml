@@ -1,6 +1,6 @@
 services:
   redis:
-    image: redis:7-alpine
+    image: valkey/valkey:8-alpine
     container_name: mockpti-redis-test
     ports:
       - "26380:6379"
@@ -24,8 +24,7 @@ services:
       - MOCKPTI_CLIENT_ID=test-client-id
       - MOCKPTI_REDIS_URL=redis://redis:6379
       - MOCKPTI_WEBHOOK_URL=http://host.docker.internal:24100/webhooks/pti
-      - MOCKPTI_WEBHOOK_SIGNING_JWK=${MOCKPTI_WEBHOOK_SIGNING_JWK:-}
-      - MOCKPTI_WEBHOOK_ENCRYPTION_JWK=${MOCKPTI_WEBHOOK_ENCRYPTION_JWK:-}
+      - MOCKPTI_WEBHOOK_SIGNING_KEY=${MOCKPTI_WEBHOOK_SIGNING_KEY:-}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:

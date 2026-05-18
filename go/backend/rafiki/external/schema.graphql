@@ -719,8 +719,8 @@ type WalletAddress implements Model {
   "Available liquidity"
   liquidity: UInt64
 
-  "Wallet Address URL"
-  url: String!
+  "Wallet address (full URL or path suffix)"
+  address: String!
 
   "Public name associated with the wallet address"
   publicName: String
@@ -1158,7 +1158,7 @@ input CreateWalletAddressInput {
   "Asset of the wallet address"
   assetId: String!
   "Wallet Address URL"
-  url: String!
+  address: String!
   "Public name associated with the wallet address"
   publicName: String
   "Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)"

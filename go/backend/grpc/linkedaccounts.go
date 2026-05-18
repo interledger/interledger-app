@@ -44,6 +44,7 @@ func transformLinkedAccount(la linkedaccounts.LinkedAccount) *pb.LinkedAccount {
 		DefaultSend:                la.DefaultSend,
 		DefaultReceive:             la.DefaultReceive,
 		State:                      string(la.State),
+		CreatedAt:                  la.CreatedAt.Format("2006-01-02"),
 	}
 }
 func (s *rpcService) GetLinkedAccounts(
