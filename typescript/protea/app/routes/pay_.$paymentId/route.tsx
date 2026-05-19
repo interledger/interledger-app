@@ -17,7 +17,7 @@ import {
 } from '~/components'
 import type { FormattedLinkedAccount } from '~/data/accounts.server'
 import { getLinkedAccountsForPayment } from '~/data/accounts.server'
-import { getFeatures, getKycStatus } from '~/data/wallet.server'
+import { getFeatures } from '~/data/wallet.server'
 import type {
   Features,
   Payment,
@@ -31,7 +31,7 @@ import { getUserSession } from '~/lib/kratos/session.server'
 import { mergeMeta } from '~/lib/meta'
 import { PayStep, usePayStore } from '~/lib/usePayStore'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
-import { KycStatus, PaymentIdentityType, PaymentRequiredAction } from '~/lib/types'
+import { PaymentIdentityType, PaymentRequiredAction } from '~/lib/types'
 import styles from '~/styles/flags.css?url'
 import { Amount } from './Amount'
 import { Confirm } from './Confirm'
@@ -52,10 +52,6 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   let features: Features | null = null
   let payment: PlainMessage<Payment> | ConnectError
   let phoneMask: string = ''
-
-  const { kycStatus } = await getKycStatus(request)
-  if (kycStatus != KycStatus.Approved)
-    return redirect(href('/personal-details'))
 
   features = await getFeatures(request)
 

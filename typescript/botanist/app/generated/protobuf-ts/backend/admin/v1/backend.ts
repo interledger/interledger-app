@@ -983,6 +983,10 @@ export interface PaginationRequest {
      * @generated from protobuf field: optional string pageToken = 2;
      */
     pageToken?: string;
+    /**
+     * @generated from protobuf field: optional string search = 3;
+     */
+    search?: string;
 }
 /**
  * @generated from protobuf message backend.admin.v1.Wallet
@@ -4206,7 +4210,8 @@ class PaginationRequest$Type extends MessageType<PaginationRequest> {
     constructor() {
         super("backend.admin.v1.PaginationRequest", [
             { no: 1, name: "pageSize", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
-            { no: 2, name: "pageToken", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ }
+            { no: 2, name: "pageToken", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "search", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<PaginationRequest>): PaginationRequest {
@@ -4227,6 +4232,9 @@ class PaginationRequest$Type extends MessageType<PaginationRequest> {
                 case /* optional string pageToken */ 2:
                     message.pageToken = reader.string();
                     break;
+                case /* optional string search */ 3:
+                    message.search = reader.string();
+                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -4245,6 +4253,9 @@ class PaginationRequest$Type extends MessageType<PaginationRequest> {
         /* optional string pageToken = 2; */
         if (message.pageToken !== undefined)
             writer.tag(2, WireType.LengthDelimited).string(message.pageToken);
+        /* optional string search = 3; */
+        if (message.search !== undefined)
+            writer.tag(3, WireType.LengthDelimited).string(message.search);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
