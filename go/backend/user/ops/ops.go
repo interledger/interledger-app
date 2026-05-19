@@ -182,8 +182,17 @@ func FindWalletIDByEmail(ctx context.Context, b Backends, email string) (string,
 		return "", nil
 	}
 
+	// A Kratos identity can be linked to more than one wallet. Return the most
+	// recently created one so the result is deterministic.
 	var walletID string
-	err = b.DB().GetContext(ctx, &walletID, "SELECT wallet_id FROM user_wallets WHERE user_id=$1", identities[0].Id)
+	err = b.DB().GetContext(ctx, &walletID,
+		`SELECT uw.wallet_id FROM user_wallets uw
+		 JOIN wallets w ON w.id = uw.wallet_id
+		 WHERE uw.user_id = $1
+		 ORDER BY w.created_at DESC
+		 LIMIT 1`,
+		identities[0].Id,
+	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return "", nil
