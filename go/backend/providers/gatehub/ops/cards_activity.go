@@ -124,6 +124,7 @@ func (a *Activity) FinalizeGatehubCardTransaction(ctx context.Context, cardTxID,
 		return err
 	}
 
+	// This can be removed - no more storing transfers in wallet_backend for card transactions
 	transfers, err := a.b.Transactions().ListTransfers(ctx, internalTxID)
 	if err != nil {
 		return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
@@ -255,7 +256,6 @@ type RecordGatehubCardFXData struct {
 type RecordGatehubCardWithdrawalArgs struct {
 	RecordGatehubCardTxData
 	RecordGatehubCardFXData
-	State transactions.State
 }
 
 func (a *Activity) RecordGatehubCardWithdrawal(ctx context.Context, txID string, tx external.CardTransaction, args RecordGatehubCardWithdrawalArgs) error {
@@ -265,7 +265,7 @@ func (a *Activity) RecordGatehubCardWithdrawal(ctx context.Context, txID string,
 			amount:    args.BillingAmount,
 			debitID:   args.LinkedAccountID,
 			creditID:  gatehub.EUROpsAccount,
-			isPending: args.State == transactions.StatePending,
+			isPending: true,
 		}); err != nil {
 			return err
 		}
@@ -275,7 +275,7 @@ func (a *Activity) RecordGatehubCardWithdrawal(ctx context.Context, txID string,
 		ID:                    txID,
 		WalletID:              args.WalletID,
 		Provider:              gatehub.ProviderName,
-		State:                 args.State,
+		State:                 transactions.StatePending,
 		ForeignID:             tx.TransactionID,
 		ForeignType:           transactions.TransactionTypeCardTransaction,
 		Source:                args.WalletAddress,
@@ -294,16 +294,11 @@ func (a *Activity) RecordGatehubCardWithdrawal(ctx context.Context, txID string,
 		return err
 	}
 
-	if args.State == transactions.StateCompleted {
-		return updateCardTransactionStatus(ctx, a.b, tx.TransactionID, external.CardTransactionStatusCompleted)
-	}
-
 	return nil
 }
 
 type RecordGatehubCardDepositArgs struct {
 	RecordGatehubCardTxData
-	State transactions.State
 }
 
 func (a *Activity) RecordGatehubCardDeposit(ctx context.Context, txID string, tx external.CardTransaction, args RecordGatehubCardDepositArgs) error {
@@ -313,7 +308,7 @@ func (a *Activity) RecordGatehubCardDeposit(ctx context.Context, txID string, tx
 			amount:    args.BillingAmount,
 			debitID:   gatehub.EUROpsAccount,
 			creditID:  args.LinkedAccountID,
-			isPending: args.State == transactions.StatePending,
+			isPending: true,
 		}); err != nil {
 			return err
 		}
@@ -323,7 +318,7 @@ func (a *Activity) RecordGatehubCardDeposit(ctx context.Context, txID string, tx
 		ID:                 txID,
 		WalletID:           args.WalletID,
 		Provider:           gatehub.ProviderName,
-		State:              args.State,
+		State:              transactions.StatePending,
 		ForeignID:          tx.TransactionID,
 		ForeignType:        transactions.TransactionTypeCardTransaction,
 		Source:             args.WalletAddress,
@@ -336,10 +331,6 @@ func (a *Activity) RecordGatehubCardDeposit(ctx context.Context, txID string, tx
 
 	if _, err := a.b.Transactions().CreateTransaction(ctx, createArgs); err != nil {
 		return err
-	}
-
-	if args.State == transactions.StateCompleted {
-		return updateCardTransactionStatus(ctx, a.b, tx.TransactionID, external.CardTransactionStatusCompleted)
 	}
 
 	return nil

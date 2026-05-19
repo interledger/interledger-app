@@ -239,7 +239,7 @@ func AddTransfers(ctx context.Context, b Backends, trxID string, transferArgs []
 }
 
 const (
-	transactionCols = ` id, wallet_id, foreign_id, type, state, title, provider, note, source, destination, amount, asset_scale, asset_code, linked_account_title, destination_identity_type, destination_identity, reference, updated_at, refund_state, provider_fee `
+	transactionCols = ` id, wallet_id, foreign_id, type, state, title, provider, note, source, destination, amount, asset_scale, asset_code, linked_account_title, destination_identity_type, destination_identity, reference, updated_at, refund_state, provider_fee, exchange_rate_applied, exchange_rate_reference, exchange_rate_surcharge, target_amount, target_asset, target_scale `
 	transferCols    = ` id, foreign_id, linked_acc_id, type, state, amount, asset_scale, asset_code, updated_at `
 )
 
@@ -264,6 +264,12 @@ type dbTransaction struct {
 	DestinationIdentity     sql.NullString               `db:"destination_identity"`
 	Reference               sql.NullString               `db:"reference"`
 	RefundState             transactions.RefundState     `db:"refund_state"`
+	ExchangeRateApplied     sql.NullString               `db:"exchange_rate_applied"`
+	ExchangeRateReference   sql.NullString               `db:"exchange_rate_reference"`
+	ExchangeRateSurcharge   sql.NullString               `db:"exchange_rate_surcharge"`
+	TargetAmount            sql.NullInt64                `db:"target_amount"`
+	TargetAsset             sql.NullString               `db:"target_asset"`
+	TargetScale             sql.NullInt64                `db:"target_scale"`
 }
 
 func List(ctx context.Context, b Backends, walletID string, page db.Pagination) ([]transactions.Transaction, error) {
@@ -748,18 +754,28 @@ func transformCardTransaction(ctx context.Context, b Backends, tx dbTransaction)
 			Currency: currency.ParseCurrency(tx.Asset),
 			Scale:    tx.Scale,
 		},
+		ExchangeRateApplied:   tx.ExchangeRateApplied.String,
+		ExchangeRateReference: tx.ExchangeRateReference.String,
+		ExchangeRateSurcharge: tx.ExchangeRateSurcharge.String,
 	}
 
 	var details transactions.CardTransactionDetails
-	err := b.DB().GetContext(ctx, &details, "SELECT card_id, card_masked_pan, type, raw_transaction ->> 'operation' AS operation FROM gatehub_card_transactions WHERE id = $1", tx.ForeignID.String)
+	err := b.DB().GetContext(ctx, &details, "SELECT card_id, card_masked_pan, type, raw_transaction ->> 'operation' AS operation, raw_transaction ->> 'transactionClassification' AS classification FROM gatehub_card_transactions WHERE id = $1", tx.ForeignID.String)
 	if errors.Is(err, sql.ErrNoRows) {
 		return transactions.Transaction{}, fmt.Errorf("%w gatehub card transaction details details not found ID (%s)", transactions.ErrNotFound, t.ID)
 	}
 	if err != nil {
 		return transactions.Transaction{}, fmt.Errorf("%w %s", transactions.ErrInternal, err)
 	}
-
 	t.CardTransactionDetails = details
+
+	if tx.TargetAmount.Valid {
+		t.TargetAmount = &currency.Amount{
+			Value:    tx.TargetAmount.Int64,
+			Currency: currency.ParseCurrency(tx.TargetAsset.String),
+			Scale:    int(tx.TargetScale.Int64),
+		}
+	}
 
 	return t, nil
 }

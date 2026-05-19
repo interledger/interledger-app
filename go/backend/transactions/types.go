@@ -1,6 +1,7 @@
 package transactions
 
 import (
+	"fmt"
 	"time"
 
 	"gitlab.com/fynbos/backend/currency"
@@ -59,6 +60,94 @@ const (
 	RefundStateCompleted
 )
 
+type CardOperation string
+
+const (
+	CardOperationWithdraw CardOperation = "Withdraw"
+	CardOperationDeposit  CardOperation = "Deposit"
+	CardOperationNone     CardOperation = "None"
+)
+
+func (co *CardOperation) Scan(value any) error {
+	if value == nil {
+		return fmt.Errorf("unsupported CardOperation value: %v", value)
+	}
+	s, ok := value.(string)
+	if !ok {
+		return fmt.Errorf("unsupported CardOperation value: %v", value)
+	}
+	switch s {
+	case "0":
+		*co = CardOperationWithdraw
+	case "1":
+		*co = CardOperationDeposit
+	case "2":
+		*co = CardOperationNone
+	default:
+		return fmt.Errorf("unsupported CardOperation value: %v", value)
+	}
+	return nil
+}
+
+type CardType string
+
+const (
+	CardTypePurchase                    CardType = "Purchase"
+	CardTypeATMWithdrawal               CardType = "ATMWithdrawal"
+	CardTypeCardVerificationInquiry     CardType = "CardVerificationInquiry"
+	CardTypeCashAdvance                 CardType = "CashAdvance"
+	CardTypeRefundCreditPayment         CardType = "RefundCreditPayment"
+	CardTypeBalanceInquiryOnATM         CardType = "BalanceInquiryOnATM"
+	CardTypePINUnblock                  CardType = "PINUnblock"
+	CardTypePINChange                   CardType = "PINChange"
+	CardTypePreauthorization            CardType = "Preauthorization"
+	CardTypePreauthorizationIncremental CardType = "PreauthorizationIncremental"
+	CardTypePreauthorizationCompletion  CardType = "PreauthorizationCompletion"
+	CardTypeTransferToAccount           CardType = "TransferToAccount"
+	CardTypeTransferFromAccount         CardType = "TransferFromAccount"
+)
+
+func (ct *CardType) Scan(value any) error {
+	if value == nil {
+		return fmt.Errorf("unsupported CardType value: %v", value)
+	}
+	n, ok := value.(int64)
+	if !ok {
+		return fmt.Errorf("unsupported CardType value: %v", value)
+	}
+	switch n {
+	case 0:
+		*ct = CardTypePurchase
+	case 1:
+		*ct = CardTypeATMWithdrawal
+	case 6:
+		*ct = CardTypeCardVerificationInquiry
+	case 17:
+		*ct = CardTypeCashAdvance
+	case 20:
+		*ct = CardTypeRefundCreditPayment
+	case 30:
+		*ct = CardTypeBalanceInquiryOnATM
+	case 91:
+		*ct = CardTypePINUnblock
+	case 92:
+		*ct = CardTypePINChange
+	case 101:
+		*ct = CardTypePreauthorization
+	case 102:
+		*ct = CardTypePreauthorizationIncremental
+	case 103:
+		*ct = CardTypePreauthorizationCompletion
+	case 107:
+		*ct = CardTypeTransferToAccount
+	case 108:
+		*ct = CardTypeTransferFromAccount
+	default:
+		return fmt.Errorf("unsupported CardType value: %v", value)
+	}
+	return nil
+}
+
 type CreateTransactionArgs struct {
 	ID                      string          `validate:"omitempty,uuid"`
 	WalletID                string          `validate:"uuid"` // Fynbos wallet ID
@@ -109,8 +198,10 @@ type TransferArgs struct {
 type CardTransactionDetails struct {
 	CardID        string `db:"card_id"`
 	CardMaskedPan string `db:"card_masked_pan"`
-	Type          int    `db:"type"`
-	Operation     string `db:"operation"`
+
+	Operation      CardOperation `db:"operation"`
+	Classification string        `db:"classification"`
+	Type           CardType      `db:"type"`
 }
 
 // Transaction is abstract information representing either an incoming or outgoing payment, wallet top up or withdrawal.
@@ -135,6 +226,10 @@ type Transaction struct {
 	Reference               string
 	RefundState             RefundState
 	CardTransactionDetails  CardTransactionDetails
+	ExchangeRateApplied     string
+	ExchangeRateReference   string
+	ExchangeRateSurcharge   string
+	TargetAmount            *currency.Amount
 }
 
 // Transfer is the underlying transfers that make up a single Transactions

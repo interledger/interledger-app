@@ -28,10 +28,8 @@ import {
   WebMoLogo
 } from '~/components'
 import { Label } from '~/components/Label'
-import {
-  CardOperation,
-  type PublicWalletInfo
-} from '~/generated/connect/backend/v1/backend_pb'
+import { type PublicWalletInfo } from '~/generated/connect/backend/v1/backend_pb'
+import { computeCardSubtotalStyles } from '~/lib/cards/utils'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
@@ -863,17 +861,7 @@ function CardTransaction() {
             <h2
               className={clsx(
                 'text-4xl font-medium',
-                transaction.cardTransactionDetails?.operation ===
-                  CardOperation.WITHDRAW && 'text-error',
-                transaction.cardTransactionDetails?.operation ===
-                  CardOperation.DEPOSIT && 'text-medium',
-                transaction.cardTransactionDetails?.operation ==
-                  CardOperation.DEPOSIT &&
-                  ([0, 1, 2, 5].includes(
-                    Number(transaction.cardTransactionDetails?.type ?? -1)
-                  )
-                    ? 'text-error'
-                    : 'text-base')
+                computeCardSubtotalStyles(transaction.cardTransactionDetails)
               )}
             >
               {transaction.subtotal}
@@ -936,6 +924,28 @@ function CardTransaction() {
             <div className='mt-2 flex w-full justify-between'>
               <span className='text-weak'>Note</span>
               <span className='text-medium'>{transaction.reference}</span>
+            </div>
+          )}
+          {transaction.formattedTargetAmount && (
+            <div className='mt-2 flex w-full justify-between'>
+              <span className='text-weak'>Merchant's charge</span>
+              <span className='text-medium'>{transaction.formattedTargetAmount}</span>
+            </div>
+          )}
+          {transaction.exchangeRateApplied && (
+            <div className='mt-2 flex w-full justify-between'>
+              <span className='text-weak'>Exchange rate</span>
+              <span className='text-medium'>
+                {transaction.exchangeRateApplied}
+              </span>
+            </div>
+          )}
+          {transaction.exchangeRateSurcharge && (
+            <div className='mt-2 flex w-full justify-between'>
+              <span className='text-weak'>ECB surcharge</span>
+              <span className='text-medium'>
+                {transaction.exchangeRateSurcharge}%
+              </span>
             </div>
           )}
           <div className='mt-4 flex w-full justify-between font-medium'>

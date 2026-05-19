@@ -588,8 +588,9 @@ enum CardOperation {
 message CardTransactionDetails {
   string card_id = 1;
   string card_masked_pan = 2;
-  int64 type = 3;
+  string type = 3;
   CardOperation operation = 4;
+  string classification = 5;
 }
 
 message Transaction {
@@ -620,6 +621,12 @@ message Transaction {
   string fundsReceived = 23;
 
   optional CardTransactionDetails cardTransactionDetails = 24;
+
+  optional string exchangeRateApplied = 25;
+  optional string exchangeRateReference = 26;
+  optional string exchangeRateSurcharge = 27;
+  optional Amount targetAmount = 28;
+  optional string formattedTargetAmount = 29;
 }
 
 message ListTransactionsResponse {

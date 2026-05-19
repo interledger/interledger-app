@@ -997,13 +997,17 @@ export interface CardTransactionDetails {
      */
     cardMaskedPan: string;
     /**
-     * @generated from protobuf field: int64 type = 3;
+     * @generated from protobuf field: string type = 3;
      */
     type: string;
     /**
      * @generated from protobuf field: backend.v1.CardOperation operation = 4;
      */
     operation: CardOperation;
+    /**
+     * @generated from protobuf field: string classification = 5;
+     */
+    classification: string;
 }
 /**
  * @generated from protobuf message backend.v1.Transaction
@@ -1103,6 +1107,26 @@ export interface Transaction {
      * @generated from protobuf field: optional backend.v1.CardTransactionDetails cardTransactionDetails = 24;
      */
     cardTransactionDetails?: CardTransactionDetails;
+    /**
+     * @generated from protobuf field: optional string exchangeRateApplied = 25;
+     */
+    exchangeRateApplied?: string;
+    /**
+     * @generated from protobuf field: optional string exchangeRateReference = 26;
+     */
+    exchangeRateReference?: string;
+    /**
+     * @generated from protobuf field: optional string exchangeRateSurcharge = 27;
+     */
+    exchangeRateSurcharge?: string;
+    /**
+     * @generated from protobuf field: optional backend.v1.Amount targetAmount = 28;
+     */
+    targetAmount?: Amount;
+    /**
+     * @generated from protobuf field: optional string formattedTargetAmount = 29;
+     */
+    formattedTargetAmount?: string;
 }
 /**
  * @generated from protobuf message backend.v1.ListTransactionsResponse
@@ -6600,12 +6624,13 @@ class CardTransactionDetails$Type extends MessageType<CardTransactionDetails> {
         super("backend.v1.CardTransactionDetails", [
             { no: 1, name: "card_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "card_masked_pan", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "type", kind: "scalar", T: 3 /*ScalarType.INT64*/ },
-            { no: 4, name: "operation", kind: "enum", T: () => ["backend.v1.CardOperation", CardOperation, "CARD_OPERATION_"] }
+            { no: 3, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "operation", kind: "enum", T: () => ["backend.v1.CardOperation", CardOperation, "CARD_OPERATION_"] },
+            { no: 5, name: "classification", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<CardTransactionDetails>): CardTransactionDetails {
-        const message = { cardId: "", cardMaskedPan: "", type: "0", operation: 0 };
+        const message = { cardId: "", cardMaskedPan: "", type: "", operation: 0, classification: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<CardTransactionDetails>(this, message, value);
@@ -6622,11 +6647,14 @@ class CardTransactionDetails$Type extends MessageType<CardTransactionDetails> {
                 case /* string card_masked_pan */ 2:
                     message.cardMaskedPan = reader.string();
                     break;
-                case /* int64 type */ 3:
-                    message.type = reader.int64().toString();
+                case /* string type */ 3:
+                    message.type = reader.string();
                     break;
                 case /* backend.v1.CardOperation operation */ 4:
                     message.operation = reader.int32();
+                    break;
+                case /* string classification */ 5:
+                    message.classification = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -6646,12 +6674,15 @@ class CardTransactionDetails$Type extends MessageType<CardTransactionDetails> {
         /* string card_masked_pan = 2; */
         if (message.cardMaskedPan !== "")
             writer.tag(2, WireType.LengthDelimited).string(message.cardMaskedPan);
-        /* int64 type = 3; */
-        if (message.type !== "0")
-            writer.tag(3, WireType.Varint).int64(message.type);
+        /* string type = 3; */
+        if (message.type !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.type);
         /* backend.v1.CardOperation operation = 4; */
         if (message.operation !== 0)
             writer.tag(4, WireType.Varint).int32(message.operation);
+        /* string classification = 5; */
+        if (message.classification !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.classification);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -6688,7 +6719,12 @@ class Transaction$Type extends MessageType<Transaction> {
             { no: 21, name: "destinationIdentityType", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 22, name: "refundState", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
             { no: 23, name: "fundsReceived", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 24, name: "cardTransactionDetails", kind: "message", T: () => CardTransactionDetails }
+            { no: 24, name: "cardTransactionDetails", kind: "message", T: () => CardTransactionDetails },
+            { no: 25, name: "exchangeRateApplied", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
+            { no: 26, name: "exchangeRateReference", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
+            { no: 27, name: "exchangeRateSurcharge", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
+            { no: 28, name: "targetAmount", kind: "message", T: () => Amount },
+            { no: 29, name: "formattedTargetAmount", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Transaction>): Transaction {
@@ -6772,6 +6808,21 @@ class Transaction$Type extends MessageType<Transaction> {
                 case /* optional backend.v1.CardTransactionDetails cardTransactionDetails */ 24:
                     message.cardTransactionDetails = CardTransactionDetails.internalBinaryRead(reader, reader.uint32(), options, message.cardTransactionDetails);
                     break;
+                case /* optional string exchangeRateApplied */ 25:
+                    message.exchangeRateApplied = reader.string();
+                    break;
+                case /* optional string exchangeRateReference */ 26:
+                    message.exchangeRateReference = reader.string();
+                    break;
+                case /* optional string exchangeRateSurcharge */ 27:
+                    message.exchangeRateSurcharge = reader.string();
+                    break;
+                case /* optional backend.v1.Amount targetAmount */ 28:
+                    message.targetAmount = Amount.internalBinaryRead(reader, reader.uint32(), options, message.targetAmount);
+                    break;
+                case /* optional string formattedTargetAmount */ 29:
+                    message.formattedTargetAmount = reader.string();
+                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -6853,6 +6904,21 @@ class Transaction$Type extends MessageType<Transaction> {
         /* optional backend.v1.CardTransactionDetails cardTransactionDetails = 24; */
         if (message.cardTransactionDetails)
             CardTransactionDetails.internalBinaryWrite(message.cardTransactionDetails, writer.tag(24, WireType.LengthDelimited).fork(), options).join();
+        /* optional string exchangeRateApplied = 25; */
+        if (message.exchangeRateApplied !== undefined)
+            writer.tag(25, WireType.LengthDelimited).string(message.exchangeRateApplied);
+        /* optional string exchangeRateReference = 26; */
+        if (message.exchangeRateReference !== undefined)
+            writer.tag(26, WireType.LengthDelimited).string(message.exchangeRateReference);
+        /* optional string exchangeRateSurcharge = 27; */
+        if (message.exchangeRateSurcharge !== undefined)
+            writer.tag(27, WireType.LengthDelimited).string(message.exchangeRateSurcharge);
+        /* optional backend.v1.Amount targetAmount = 28; */
+        if (message.targetAmount)
+            Amount.internalBinaryWrite(message.targetAmount, writer.tag(28, WireType.LengthDelimited).fork(), options).join();
+        /* optional string formattedTargetAmount = 29; */
+        if (message.formattedTargetAmount !== undefined)
+            writer.tag(29, WireType.LengthDelimited).string(message.formattedTargetAmount);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

@@ -39,6 +39,47 @@
         }
       },
       {
+        "case": "Purchase Transaction with FX",
+        "payload": {
+          "operation": 0,
+          "transactionClassification": "Authorization",
+          "type": 0,
+          "isTrxAmountConverted": true,
+          "txStatus": "PROCESSING",
+          "ghResponseCode": "OK",
+          "responseCode": "OK",
+          "MastercardConversion": {
+            "convRate": "0.1934",
+            "refConRate": null,
+            "refConfRateDiff": "0.66"
+          },
+          "transactionAmount": "50",
+          "transactionCurrency": "RON",
+          "billingAmount": "9.67",
+          "billingCurrency": "EUR",
+          "vaultId": 1,
+          "cardId": 277,
+          "transactionId": "TX_PURCHASE",
+          "refTransactionId": null,
+          "ghResponseDescription": "Approved",
+          "terminalId": "C0A17138",
+          "cardScheme": 3,
+          "source": "P",
+          "mcc": "5399",
+          "merchantName": "SPAR IVANCNA GORICA",
+          "merchantCountry": "SVN",
+          "merchantCity": "IVANCNA GORIC",
+          "merchantZip": "1295",
+          "merchantStreet": "STANTETOVA ULICA 1A",
+          "merchantId": "002295628",
+          "transactionDateTime": "2024-12-19T13:15:38.000Z",
+          "processDateTime": "2024-12-19T13:15:38.000Z",
+          "createdAt": "2024-12-19T13:15:38.000Z",
+          "spendExchangeRate": null,
+          "spendCurrency": null
+        }
+      },
+      {
         "case": "ATM Withdrawal",
         "payload": {
           "operation": 0,

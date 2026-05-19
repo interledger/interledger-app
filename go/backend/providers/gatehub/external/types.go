@@ -489,7 +489,7 @@ type (
 
 	MastercardConversion struct {
 		ConvRate        *string `json:"convRate"`
-		RefConfRate     *string `json:"refConRate"`
+		RefConfRate     *string `json:"refConfRate"`
 		RefConfRateDiff *string `json:"refConfRateDiff"`
 	}
 

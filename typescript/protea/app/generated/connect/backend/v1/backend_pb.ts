@@ -3265,14 +3265,19 @@ export class CardTransactionDetails extends Message<CardTransactionDetails> {
   cardMaskedPan = "";
 
   /**
-   * @generated from field: int64 type = 3;
+   * @generated from field: string type = 3;
    */
-  type = protoInt64.zero;
+  type = "";
 
   /**
    * @generated from field: backend.v1.CardOperation operation = 4;
    */
   operation = CardOperation.NONE;
+
+  /**
+   * @generated from field: string classification = 5;
+   */
+  classification = "";
 
   constructor(data?: PartialMessage<CardTransactionDetails>) {
     super();
@@ -3284,8 +3289,9 @@ export class CardTransactionDetails extends Message<CardTransactionDetails> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "card_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "card_masked_pan", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "type", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 3, name: "type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "operation", kind: "enum", T: proto3.getEnumType(CardOperation) },
+    { no: 5, name: "classification", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CardTransactionDetails {
@@ -3428,6 +3434,31 @@ export class Transaction extends Message<Transaction> {
    */
   cardTransactionDetails?: CardTransactionDetails;
 
+  /**
+   * @generated from field: optional string exchangeRateApplied = 25;
+   */
+  exchangeRateApplied?: string;
+
+  /**
+   * @generated from field: optional string exchangeRateReference = 26;
+   */
+  exchangeRateReference?: string;
+
+  /**
+   * @generated from field: optional string exchangeRateSurcharge = 27;
+   */
+  exchangeRateSurcharge?: string;
+
+  /**
+   * @generated from field: optional backend.v1.Amount targetAmount = 28;
+   */
+  targetAmount?: Amount;
+
+  /**
+   * @generated from field: optional string formattedTargetAmount = 29;
+   */
+  formattedTargetAmount?: string;
+
   constructor(data?: PartialMessage<Transaction>) {
     super();
     proto3.util.initPartial(data, this);
@@ -3459,6 +3490,11 @@ export class Transaction extends Message<Transaction> {
     { no: 22, name: "refundState", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
     { no: 23, name: "fundsReceived", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 24, name: "cardTransactionDetails", kind: "message", T: CardTransactionDetails, opt: true },
+    { no: 25, name: "exchangeRateApplied", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 26, name: "exchangeRateReference", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 27, name: "exchangeRateSurcharge", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 28, name: "targetAmount", kind: "message", T: Amount, opt: true },
+    { no: 29, name: "formattedTargetAmount", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Transaction {
