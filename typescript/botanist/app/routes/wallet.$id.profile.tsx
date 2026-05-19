@@ -297,7 +297,18 @@ async function deleteTotpAction({ request }: ActionArgs) {
     return json({ success: false, error: 'Wallet ID is required' }, { status: 400 })
   }
 
-  await DeleteUserTotp(request, identityId, walletId)
+  try {
+    await DeleteUserTotp(request, identityId, walletId)
+    return json({ success: true })
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : 'Failed to reset authenticator enrollment'
 
-  return json({ success: true })
+    return json(
+      { success: false, error: message },
+      { status: 500 }
+    )
+  }
 }
