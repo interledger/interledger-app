@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 
@@ -202,4 +203,12 @@ func (c Client) ThreeDSPaymentConfirmation(ctx context.Context, userID, txID str
 
 func (c Client) UpdateOrganizationConfiguration(ctx context.Context, apiBaseURL, twoFAType string) (*external.UpdateOrganizationConfigurationResponse, error) {
 	return ops.UpdateOrganizationConfiguration(ctx, c.external, apiBaseURL, twoFAType)
+}
+
+func (c Client) GetAccountConfirmation(ctx context.Context, walletID string) (io.ReadCloser, error) {
+	return ops.GetAccountConfirmation(ctx, c.b, c.external, walletID)
+}
+
+func (c Client) GetAccountStatement(ctx context.Context, walletID string, year, month int) (io.ReadCloser, error) {
+	return ops.GetAccountStatement(ctx, c.b, c.external, walletID, year, month)
 }

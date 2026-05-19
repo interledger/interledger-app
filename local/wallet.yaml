@@ -50,8 +50,7 @@ services:
       - "traefik.enable=true"
 
       - "traefik.http.routers.backend.service=backend"
-      - "traefik.http.routers.backend.rule=Host(`interledger.test`) && PathPrefix(`/webhooks`)"
-      - "traefik.http.routers.backend.rule=Host(`interledger.test`) && PathPrefix(`/.well-known`)"
+      - "traefik.http.routers.backend.rule=Host(`interledger.test`) && (PathPrefix(`/webhooks`) || PathPrefix(`/.well-known`))"
       - "traefik.http.services.backend.loadbalancer.server.port=8080"
 
       - "traefik.tcp.routers.delve.service=delve"
@@ -63,10 +62,11 @@ services:
       - LOG_LEVEL=${BACKEND_LOG_LEVEL:-info}
       - FYNBOS_ENV=${BACKEND_FYNBOS_ENV:-local}
 
+      # application URL
+      - APPLICATION_URL=${BACKEND_APPLICATION_URL:-https://interledger.test}
+
       # Service ports
       - PORT=${BACKEND_PORT:-8080}
-      - OPEN_PAYMENTS_PORT=${BACKEND_OPEN_PAYMENTS_PORT:-8081}
-      - AUTHORISATION_PORT=${BACKEND_AUTHORISATION_PORT:-8082}
 
       # Data stores
       - REDIS_URL=${BACKEND_REDIS_URL:-redis://redis:6379/0}
@@ -83,12 +83,14 @@ services:
       - TEMPORAL_URL=${BACKEND_TEMPORAL_URL:-temporal:7233}
       - RAFIKI_BACKEND_GRAPHQL_URL=${BACKEND_RAFIKI_BACKEND_GRAPHQL_URL:-http://rafiki_backend:3001/graphql}
       - RAFIKI_AUTH_GRAPHQL_URL=${BACKEND_RAFIKI_AUTH_GRAPHQL_URL:-http://rafiki_auth:3003/graphql}
+      - OPERATOR_TENANT_ID=${BACKEND_OPERATOR_TENANT_ID:-6b1f9f73-3d4b-4f52-9f2a-9f6a8d0a7c5e}
+      - ADMIN_API_SECRET=${BACKEND_ADMIN_API_SECRET:-test-admin-api-key}
+      - SIGNATURE_VERSION=${BACKEND_SIGNATURE_VERSION:-1}
 
       # Wallet rules and ledger controls
-      - USD_LEDGER_ID=${BACKEND_USD_LEDGER_ID:-1}
-      - NOOP_EQUITY_ACCOUNT_ID=${BACKEND_NOOP_EQUITY_ACCOUNT_ID:-43d4b2bd-e29b-4a63-9aa8-7990776c714e}
       - ALLOWED_WALLET_IDS=${BACKEND_ALLOWED_WALLET_IDS:-}
       - BLOCKED_REGIONS=${BACKEND_BLOCKED_REGIONS:-}
+      - SIGNUP_AGREEMENT_IDS=${BACKEND_SIGNUP_AGREEMENT_IDS:-privacy_policy-0.0.0}
 
       # Providers: GateHub
       - GATEHUB_API_BASE_URL=${BACKEND_GATEHUB_API_BASE_URL:-http://mockgatehub:8080}
@@ -126,7 +128,7 @@ services:
       - PTI_SDK_URL=${BACKEND_PTI_SDK_URL:-https://mockpti.interledger.test/sdk/index.js}
       - PTI_FORMS_URL=${BACKEND_PTI_FORMS_URL:-https://mockpti.interledger.test/forms}
       - PTI_JWK=${BACKEND_PTI_JWK:-{"d":"B98CLTnsSLW6uODeoMxinN0wexXQFqjfoRQVAw9f1YYyrxvCbg0yuTHaOjONDNYI-c_QEPwGoDELzJYEBC8kFiVBDru3rwBoYT9Iey4JUkfe2chT2m6njw_nHxNDTEINm5Le_NcYBVPLUZ5xOWyThG4_4ssPcRFxEPZhiQPrFxBN_igvuurM0PtSD8O4LbD4Al77cizHKED-QCR_mwD2SNSID0CCT0kLeGNbfrZpzKVgXPcxaRg-To1bzvSFjV2jkbZONlXIDAA7FSNibBg9sF9XUgr-jtcjoeSAEuZrCt09VU1vCSLbhSdVBw5X_AA3qypLWGHigxdNyKm2kapmwQ","dp":"wEEgMkxQX06Eb46rKTsMSuvjKGoZttIRHgFnLB7701WrOPQcAlqWrLiXrpzUFuD3MprWDXo87cJpayCO8lH-jh5G2XfWPvPkoqUYeUyglwLYujSOekmS8Sno4auQ80bDB3qBaWO7IOtepAsRB0Mdp9Mim8s-tbuzZiOQvlZopyU","dq":"PUhZ6pNZ5QRy85ROW4MxzB_p7j8ZCfSOeuV125zo9PoKhU-Bl3z_fhziNrQxu0mdlX6wDNRYA01Q0wHDlg1D00Ejy2TRV6KZWLW_WgOlAYfT8B3TEdOBsKTHpWqOp-FscQURHVqHwwlZf8OldZZI6L03go_igKgQP7Yj0LUTnVE","e":"AQAB","kty":"RSA","n":"8QON17556njlKTc9UadXGqYYrAfgAG8cLohdCCO__3IXM11bt2TDKrBkUToUYSvfm5-9wMdMnV1AvlA1h0FMWAgyjXgEJxUtIWjxbGLvfgJyn0x3I-czRxoi4gZDo_vq0x_sMLrZqAbGenMVZM4oEcD2_qNVDmsvNqydAyn-rqRVohzjirnGLwQaB_WiXUOJv8RcIgzXNtMjf67JH0V6tPR2LGTqBq6cz8j6Y47YuGsvf5VyeXGaVFZ29zq2L7xJtft5Ytcj2j-XZABFRUF9obyqx8WCJQHUsaLPL2a1sp5xeB_NaHTj5F1ZUYLXfUl-Yd-jr1mMP0OUWHBP8CeDLQ","p":"-Nrf6mHe-y0DkzoIlbwvF9xvZkcmwBA4Tl0My3jWb0Yq5l3l-Rs7mAVSNvaf0yBnz8EF_kCE4G5NPG0p3VmBCiRRhlTPpDsYPK7b3Yrl5zYyLD-HiRQiiZp9_PAurENR1e4dnl7oRksu7wPISuSdgU5T4HVwCPOXwCpYUjBsT70","q":"9-8LychZAsVicKq1Mw3JFowE9v4TlNCMlCwSaYQUEY6-nGQtLpUCqB98UbXTVM6IfwAywMbSFdyB6M9Rp0r8Q0ZTe3NMOiffLl5pJwC6LuLdqIIk8WQTWIXD0tZDpUobgUe75M_9r5P54sgfX59itWzv5I4_cY6Dk2-9GgLBQDE","qi":"tLxcHy-F7RtZxNcWkEPJc7NPl5rVz1CbCb1sDvaifXXhnfzGcFdOOWhluWoWpzDD0KNsqs9ViZTBPO8EI9YP47FF1R0HRbYFcf73gTBh8wHrCD38FPpJGBcuPzfGUXclWL_6B-SjuBT1sEiRYC_v2M70aL5eVmKtiHAZ5yzJosc"}}
-      - PTI_PUBLIC_KEY_JWK=${BACKEND_PTI_PUBLIC_KEY_JWK:-{"e":"AQAB","kty":"RSA","n":"yF6WeCgbEMCMqZr5oxzXyVjTC3kGdKCMSzAfi-_ECN_S0IQnv3KfH11mcHNeg2omP9033Ai_q0eWhyWOHyYOHsEdj-2PSmQaNPiYmP_ixiPuPClyqianLb6oYp3cLz6pYu1Hm4AkacddnAtzAxHB4fFHdXB6iz258zVHnt4JI6N0py88uWolRiVK8q1yR5kRzVCHs6bvgROJpI_PbDrqmaPJzfy8Jh6yW9IbM3QTceAregbrWY6W8CnciGiBWDkrvnqeLFti5CRNoaf5LKVeFxFYSLmF6BN1iPSBO4HK68sIbu6Rc2c0Ff35Yz3xCy7YbzIh2keNfKjJNS_BhM5fDw"}}
+      - PTI_PUBLIC_KEY_JWK=${BACKEND_PTI_PUBLIC_KEY_JWK:------BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAlXgzWngvg4t6oIvQ5/uFiaHT3bdPDyXtN5dK7nBLzA8=\n-----END PUBLIC KEY-----}
 
       # Providers: PTI / Fiant
       #- PTI_BASE_URL=${BACKEND_PTI_BASE_URL:-https://api.staging.fiant.io/v1/}
@@ -142,14 +144,17 @@ services:
       - XAGO_API_PUBLIC_KEY=${BACKEND_XAGO_API_PUBLIC_KEY:-test-public-key}
       - XAGO_API_SECRET=${BACKEND_XAGO_API_SECRET:-test-secret}
       - XAGO_POLICY_ID=${BACKEND_XAGO_POLICY_ID:-5e2585a474b0e90012ce8ff1}
+      - XAGO_USD_OPS_ACCOUNT=${BACKEND_XAGO_USD_OPS_ACCOUNT:-868196c3-f6b4-4920-bbfb-d1c7f6a98183}
+      - XAGO_ZAR_OPS_ACCOUNT=${BACKEND_XAGO_ZAR_OPS_ACCOUNT:-b0944908-16e6-4ef4-8677-192165e33c59}
+      - XAGO_LEDGER_ID_ZAR=${BACKEND_XAGO_LEDGER_ID_ZAR:-9246927}
+      - XAGO_LEDGER_ID_USD=${BACKEND_XAGO_LEDGER_ID_USD:-9246873}
 
       # Persona - Used for Xago KYC
-      - PERSONA_TOKEN=${BACKEND_PERSONA_TOKEN:-}
-      - PERSONA_WEBHOOK_TOKEN=${BACKEND_PERSONA_WEBHOOK_TOKEN:-}
+      - PERSONA_TOKEN=${BACKEND_PERSONA_TOKEN:-test-persona-token}
+      - PERSONA_WEBHOOK_TOKEN=${BACKEND_PERSONA_WEBHOOK_TOKEN:-test-persona-webhook-token}
 
       # Xago webhook secret
       - XAGO_WEBHOOK_SECRET=${BACKEND_XAGO_WEBHOOK_SECRET:-xago-webhook-secret}
-
       # MockXago Persona endpoint (routes Persona API calls to MockXago in local dev)
       - MOCKXAGO_ENDPOINT=${BACKEND_MOCKXAGO_ENDPOINT:-http://mockxago:8080}
       - PERSONA_BASE_URL=${BACKEND_PERSONA_BASE_URL:-http://mockxago:8080/v1/}
@@ -162,21 +167,21 @@ services:
       - TWILIO_ACCOUNT_SID=${BACKEND_TWILIO_ACCOUNT_SID:-SK021f793191208ba69c3bea87dd426085}
       - TWILIO_SERVICE_SID=${BACKEND_TWILIO_SERVICE_SID:-VA8af4e130da63b9fac4c042acbc33a267}
       - TWILIO_ACCOUNT_TOKEN=${BACKEND_TWILIO_ACCOUNT_TOKEN:-test}
+      - EMAIL_ENABLED=${BACKEND_EMAIL_ENABLED:-false}
       - SENDGRID_API_KEY=${BACKEND_SENDGRID_API_KEY:-test-sendgrid-api-key}
+      - SENDGRID_FROM_NAME=${BACKEND_SENDGRID_FROM_NAME:-Interledger Wallet}
+      - SENDGRID_FROM_EMAIL=${BACKEND_SENDGRID_FROM_EMAIL:-support@interledger.app}
+      - SENDGRID_ONE_TEMPLATE_ID=${BACKEND_SENDGRID_ONE_TEMPLATE_ID:-d-12030774d225454ea91720034b9adb97}
       - PUSHER_ADDR=${BACKEND_PUSHER_ADDR:-http://pusher:8080}
       - SEGMENT_KEY=${BACKEND_SEGMENT_KEY:-test-segment-key}
       - CDN_KEY=${BACKEND_CDN_KEY:-}
       - ADMIN_POLICY_AUD=${BACKEND_ADMIN_POLICY_AUD:-admin-policy}
       - ADMIN_TEAM_DOMAIN=${BACKEND_ADMIN_TEAM_DOMAIN:-admin-team}
 
-      # Basis Theory
-      - BASIS_THEORY_API_KEY=${BACKEND_BASIS_THEORY_API_KEY:-}
-      - BT_TOKEN=${BACKEND_BT_TOKEN:-}
-
       # Mobile app links
-      - APPLE_APP_ID=6B7AFCRT3V.app.wallet.interledger.test
-      - ANDROID_PACKAGE_NAME=org.interledger.walletandroid.test
-      - ANDROID_SHA256=25:D0:6A:A1:4F:BD:F6:05:93:2C:80:A2:AC:DA:DE:E4:2F:72:BC:23:9C:8F:2C:78:85:49:9A:AC:D2:4B:A4:FF
+      - APPLE_APP_ID=6B7AFCRT3V.app.wallet.interledger.dev
+      - ANDROID_PACKAGE_NAME=org.interledger.wallet.debug
+      - ANDROID_SHA256=19:6D:4E:28:00:95:8B:F4:5C:72:EE:B5:82:70:75:57:48:E6:B7:C1:54:29:75:33:72:47:89:28:D4:E0:BF:F3
 
       # Observability
       - OTEL_EXPORTER_OTLP_ENDPOINT=${BACKEND_OTEL_EXPORTER_OTLP_ENDPOINT:-grpc://api.honeycomb.io:443}
@@ -186,7 +191,6 @@ services:
       - SENTRY_RELEASE=${BACKEND_SENTRY_RELEASE:-}
 
       # LEGACY (unused / pending removal)
-      - GOOGLE_OAUTH2_CLIENT_ID=${BACKEND_GOOGLE_OAUTH2_CLIENT_ID:-google_oauth}
       - RAFIKI_GRAPHQL_URL=${BACKEND_RAFIKI_GRAPHQL_URL:-http://rafiki_backend:3001/graphql}
       - TEMP_GATEHUB_APP_ID=${BACKEND_TEMP_GATEHUB_APP_ID:-}
       - TEMP_GATEHUB_SECRET=${BACKEND_TEMP_GATEHUB_SECRET:-}
@@ -195,20 +199,12 @@ services:
       - XAGO_LEDGER_ID_ZAR=${BACKEND_XAGO_LEDGER_ID_ZAR:-9246927}
       - XAGO_LEDGER_ID_USD=${BACKEND_XAGO_LEDGER_ID_USD:-9246873}
       - XAGO_WEBHOOK_SECRET=${BACKEND_XAGO_WEBHOOK_SECRET:-xago-webhook-secret}
-      - ZENDESK_USER=${BACKEND_ZENDESK_USER:-matt@fynbos.dev}
-      - ZENDESK_TOKEN=${BACKEND_ZENDESK_TOKEN:-test}
       - SLACK_TOKEN=${BACKEND_SLACK_TOKEN:-}
       - SLACK_CLIENT_ID=${BACKEND_SLACK_CLIENT_ID:-}
       - SLACK_CLIENT_SECRET=${BACKEND_SLACK_CLIENT_SECRET:-}
       - SLACK_SIGNING_SECRET=${BACKEND_SLACK_SIGNING_SECRET:-}
       - VAULT_ADDR=${BACKEND_VAULT_ADDR:-}
       - VAULT_TRANSIT_ENGINE_PATH=${BACKEND_VAULT_TRANSIT_ENGINE_PATH:-}
-      - ASTRA_CLIENT_ID=${BACKEND_ASTRA_CLIENT_ID:-}
-      - ASTRA_CLIENT_SECRET=${BACKEND_ASTRA_CLIENT_SECRET:-}
-      - ASTRA_WEBHOOK_BEARER_TOKEN=${BACKEND_ASTRA_WEBHOOK_BEARER_TOKEN:-}
-      - TWITTER_CLIENT_ID=${BACKEND_TWITTER_CLIENT_ID:-}
-      - TWITTER_CLIENT_SECRET=${BACKEND_TWITTER_CLIENT_SECRET:-}
-      - TWITTER_BEARER_TOKEN=${BACKEND_TWITTER_BEARER_TOKEN:-}
       - SMARTY_AUTH_ID=${BACKEND_SMARTY_AUTH_ID:-test-smarty-auth-id}
       - SMARTY_AUTH_TOKEN=${BACKEND_SMARTY_AUTH_TOKEN:-test-smarty-auth-token}
       - LOG_OUTPUT_PATH=${BACKEND_LOG_OUTPUT_PATH:-}

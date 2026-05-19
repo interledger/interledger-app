@@ -3,7 +3,9 @@ package external
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
+	"strconv"
 	"sync"
 
 	"github.com/Khan/genqlient/graphql"
@@ -29,6 +31,8 @@ type Client interface {
 	GetIncomingPayment(ctx context.Context, id string) (*GetIncomingPaymentIncomingPayment, error)
 	UpdateWalletAddressStatus(ctx context.Context, walletID rafiki.UpdateAddressStatus, status bool) error
 	CancelOutgoingPayment(ctx context.Context, paymentPointerID, reason string) error
+	WithdrawOutgoingPaymentLiquidity(ctx context.Context, outgoingPaymentID string, timeoutSeconds uint64) error
+	WithdrawIncomingPaymentLiquidity(ctx context.Context, incomingPaymentID string, timeoutSeconds uint64) error
 }
 
 type assets struct {
@@ -42,18 +46,24 @@ type client struct {
 	a             *assets
 }
 
-func New() Client {
+type AdminSigningConfig struct {
+	OperatorTenantID string
+	AdminAPISecret   string
+	SignatureVersion string
+}
+
+func New(signingConfig AdminSigningConfig) Client {
 	backendGraphql := "http://localhost:3001/graphql"
 	if os.Getenv("RAFIKI_BACKEND_GRAPHQL_URL") != "" {
 		backendGraphql = os.Getenv("RAFIKI_BACKEND_GRAPHQL_URL")
 	}
-	cl := graphql.NewClient(backendGraphql, otelhttp.DefaultClient) // TODO: set auth headers maybe
+	cl := graphql.NewClient(backendGraphql, newSignedAdminHTTPClient(signingConfig))
 
 	authGraphql := "http://localhost:3003/graphql"
 	if os.Getenv("RAFIKI_AUTH_GRAPHQL_URL") != "" {
 		authGraphql = os.Getenv("RAFIKI_AUTH_GRAPHQL_URL")
 	}
-	authCl := graphql.NewClient(authGraphql, otelhttp.DefaultClient)
+	authCl := graphql.NewClient(authGraphql, newSignedAdminHTTPClient(signingConfig))
 
 	return &client{backendClient: cl, authClient: authCl, a: &assets{data: nil}}
 }
@@ -93,7 +103,7 @@ func (c client) CreatePaymentPointer(ctx context.Context, w wallets.Wallet) (str
 	log.Info("Creating payment pointer in rafiki", zap.String("url", w.AddressString()))
 	pp, err := CreateWalletAddress(ctx, c.backendClient, CreateWalletAddressInput{
 		AssetId:        assetID,
-		Url:            w.AddressString(),
+		Address:        w.AddressString(),
 		PublicName:     w.Name,
 		IdempotencyKey: w.ID,
 	})
@@ -201,6 +211,24 @@ func (c client) GetIncomingPayment(ctx context.Context, id string) (*GetIncoming
 	return &r.IncomingPayment, nil
 }
 
+func newSignedAdminHTTPClient(signingConfig AdminSigningConfig) *http.Client {
+	base := otelhttp.DefaultClient
+	baseTransport := base.Transport
+	if baseTransport == nil {
+		baseTransport = http.DefaultTransport
+	}
+
+	return &http.Client{
+		Transport: &adminSigningRoundTripper{
+			base:             baseTransport,
+			operatorTenantID: signingConfig.OperatorTenantID,
+			adminAPISecret:   signingConfig.AdminAPISecret,
+			signatureVersion: signingConfig.SignatureVersion,
+		},
+		Timeout: base.Timeout,
+	}
+}
+
 func (a *assets) Get(ctx context.Context, backendClient graphql.Client, assetCode string) (string, error) {
 	a.mu.RLock()
 	if a.data != nil {
@@ -249,6 +277,32 @@ func (c client) UpdateWalletAddressStatus(ctx context.Context, wallet rafiki.Upd
 		Id:         wallet.ID,
 		Status:     statusVal,
 		PublicName: wallet.Name,
+	})
+	if err != nil {
+		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+	}
+
+	return nil
+}
+
+func (c client) WithdrawOutgoingPaymentLiquidity(ctx context.Context, outgoingPaymentID string, timeoutSeconds uint64) error {
+	_, err := CreateOutgoingPaymentWithdrawal(ctx, c.backendClient, CreateOutgoingPaymentWithdrawalInput{
+		OutgoingPaymentId: outgoingPaymentID,
+		IdempotencyKey:    outgoingPaymentID + "_withdrawal",
+		TimeoutSeconds:    strconv.FormatUint(timeoutSeconds, 10),
+	})
+	if err != nil {
+		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+	}
+
+	return nil
+}
+
+func (c client) WithdrawIncomingPaymentLiquidity(ctx context.Context, incomingPaymentID string, timeoutSeconds uint64) error {
+	_, err := CreateIncomingPaymentWithdrawal(ctx, c.backendClient, CreateIncomingPaymentWithdrawalInput{
+		IncomingPaymentId: incomingPaymentID,
+		IdempotencyKey:    incomingPaymentID + "_withdrawal",
+		TimeoutSeconds:    strconv.FormatUint(timeoutSeconds, 10),
 	})
 	if err != nil {
 		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)

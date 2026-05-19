@@ -11,7 +11,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -33,17 +32,25 @@ type client struct {
 	webhookSecret string
 }
 
-func New() Client {
-	baseURL := "https://api.withpersona.com/api/v1/"
-	if override := os.Getenv("PERSONA_BASE_URL"); override != "" {
-		baseURL = override
-	}
+type Config struct {
+	BaseURL       string
+	BearerToken   string
+	WebhookSecret string
+	// Deprecated: FakeZAID is ignored by the Persona client and should be
+	// configured at the KYC layer instead.
+	FakeZAID bool
+}
+
+func New(cfg Config) Client {
+	// FakeZAID is intentionally not applied at the Persona client layer.
+	// Keep the field for backward compatibility with existing config wiring.
+	_ = cfg.FakeZAID
 
 	return &client{
 		api:           otelhttp.DefaultClient,
-		bearerToken:   os.Getenv("PERSONA_TOKEN"),
-		webhookSecret: os.Getenv("PERSONA_WEBHOOK_TOKEN"),
-		baseURL:       baseURL,
+		bearerToken:   cfg.BearerToken,
+		webhookSecret: cfg.WebhookSecret,
+		baseURL:       cfg.BaseURL,
 	}
 }
 

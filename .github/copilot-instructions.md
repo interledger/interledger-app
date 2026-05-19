@@ -13,7 +13,7 @@
 - `local/` - Docker Compose development environment
 - `proto/` - Protocol buffers definitions
 
-**Size**: ~50k+ LoC across Go and TypeScript, 38+ documentation files, 10 CI/CD workflows
+**Size**: ~50k+ LoC across Go and TypeScript, 38+ documentation files, 11 CI/CD workflows
 
 ## Build and Validation
 
@@ -222,7 +222,7 @@ typescript/
 Workflows skip unnecessary CI runs based on which files changed:
 - **Documentation-only changes** (`documentation/**`): All tests, builds, and linting are skipped.
 - **Local-only changes** (`local/**`): Unit tests, builds, and linting are skipped. E2E tests still run since they exercise the local environment.
-- These filters apply only to `pull_request` triggers — `push` to main, schedules, and manual dispatches always run.
+- These path filters apply only to the `pull_request` trigger of each workflow. They do not affect `push`, tag, schedule, or `workflow_dispatch` triggers (which each workflow defines separately).
 
 ### PR Auto-Labeling
 
@@ -247,6 +247,7 @@ PRs are automatically labeled by `.github/workflows/labeler.yml` using the confi
 | `documentation` | `documentation/**` |
 | `e2e` | `e2e/**` |
 | `local` | `local/**` |
+| `helm` | `helm/**` |
 
 **When adding new providers, mock services, or frontend apps**: Update `.github/labeler.yml` with appropriate path globs and add the label mapping to this table.
 
@@ -257,7 +258,39 @@ PRs are automatically labeled by `.github/workflows/labeler.yml` using the confi
 - `.github/workflows/go-tests.yml` - Runs `go-test-template.yml` for backend, pacioli (skipped for docs/local-only changes)
 - `.github/workflows/e2e-tests.yml` - Starts VM, runs E2E suite with concurrency=10 (skipped for docs-only changes)
 - `.github/workflows/linting.yml` - Runs golangci-lint on all Go code (skipped for docs/local-only changes)
-- `.github/workflows/build-and-publish.yml` - Builds Docker images, pushes to registry (skipped for docs/local-only changes on PRs)
+- `.github/workflows/build-and-publish.yml` - Builds Docker images on PRs (build only) and pushes to GCP Artifact Registry when triggered by a version tag or `workflow_dispatch`
+- `.github/workflows/release.yml` - Runs semantic-release on every push to `main`; creates a git tag, GitHub Release, and release notes from commit history (see Release Process below)
+- `.github/workflows/helm-tests.yml` - Runs `helm unittest` + `kubeconform` on the chart at `helm/interledger-app` (only triggered when `helm/**` files change)
+
+### Release Process
+
+Releases are fully automated via **semantic-release** — do not create `release/v*` branches or manually push version tags.
+
+**How it works:**
+
+1. A PR is merged to `main`.
+2. `release.yml` runs semantic-release, which analyses all commits since the last tag.
+3. The version bump is determined from commit types:
+   - `feat:` → minor (`1.1.0`)
+   - `fix:`, `perf:` → patch (`1.0.1`)
+   - `BREAKING CHANGE:` footer or `feat!:` / `fix!:` → major (`2.0.0`)
+   - `refactor:`, `chore:`, `docs:`, `test:`, `ci:`, `build:`, `style:`, `local:` → **no release**
+4. If there is a releasable commit, semantic-release creates a `vX.Y.Z` git tag and a GitHub Release with auto-generated notes.
+5. The new tag triggers `build-and-publish.yml`, which builds all Docker images and pushes them to GCP Artifact Registry tagged with that version. It also packages and publishes the `helm/interledger-app` chart (OCI) to both dev and prod Artifact Registries.
+6. After the chart publish succeeds, the `bump-deploy-dev` job in `build-and-publish.yml` opens an auto-merge PR in `interledger/interledger-app-deploy` that updates `chartVersion` for the `interledger-app` entry in `env/development/appsets/wallet-appset.yaml` to the new version (with the leading `v` stripped). The PR auto-merges once the deploy repo's `conform.yaml` checks pass. Only `development` is bumped automatically; `sandbox` and `production` remain manual/promotion-based.
+
+**Config files**: `.releaserc.json` (release config), `package.json` + `pnpm-lock.yaml` at repo root (semantic-release dependencies).
+
+**Authentication**: `release.yml` authenticates as a GitHub App rather than using the default `GITHUB_TOKEN`. This is required because tag pushes made with `GITHUB_TOKEN` do **not** trigger downstream workflows, so `build-and-publish.yml` would never see the new tag. Required repo secrets:
+
+- `RELEASE_APP_ID` — the GitHub App's numeric ID
+- `RELEASE_APP_PRIVATE_KEY` — the App's PEM private key (not the OAuth client secret)
+
+The App must be installed on this repository with **Contents: Read & write** permission. The installation ID is auto-discovered at runtime by `actions/create-github-app-token`. `release.yml` validates that the App credentials authenticate and that the App is installed on this repository before invoking semantic-release. If the installation is missing the required permission, semantic-release itself fails with `Resource not accessible by integration`.
+
+**For the `bump-deploy-dev` job**: the same App must additionally be installed on `interledger/interledger-app-deploy` with **Contents: Read & write** and **Pull requests: Read & write**. The token is minted scoped to that repo via `actions/create-github-app-token` with `owner: interledger` and `repositories: interledger-app-deploy`. If the App is not installed there, the job fails loudly (intentional — failure surfaces the misconfiguration). The deploy repo must also have **auto-merge enabled** in its repository settings.
+
+**If `main` is protected**: ensure the App (its bot user, e.g. `your-app[bot]`) is listed as an allowed actor that can bypass branch protection for tag creation, or that the protection rules permit tag pushes from Apps.
 
 ### Testing Locally Before Push
 
