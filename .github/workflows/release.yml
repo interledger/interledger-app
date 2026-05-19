@@ -4,7 +4,8 @@ on:
   push:
     branches:
       - main
-      - release/**
+      - '*.x'
+      - '*.*.x'
     paths-ignore:
       - 'documentation/**'
   workflow_dispatch:
@@ -93,7 +94,7 @@ jobs:
         run: |
           set -euo pipefail
           BRANCH=$(git rev-parse --abbrev-ref HEAD)
-          if [[ "${BRANCH}" == release/* ]]; then
+          if [[ "${BRANCH}" =~ ^[0-9]+(\.[0-9]+)?\.x$ ]]; then
             echo "is_maintenance=true" >> "$GITHUB_OUTPUT"
             echo "Branch ${BRANCH} detected as maintenance branch."
           else
@@ -139,12 +140,8 @@ jobs:
       id-token: write
     uses: ./.github/workflows/build-and-publish.yml
     with:
-<<<<<<< HEAD
       release_tag: ${{ needs.release.outputs.release_tag || needs.manual_release.outputs.release_tag }}
       ref: ${{ needs.manual_release.outputs.sha || '' }}
       skip_deploy_bump: ${{ needs.manual_release.outputs.release_tag != '' }}
-=======
-      release_tag: ${{ needs.release.outputs.release_tag }}
       is_maintenance_release: ${{ needs.release.outputs.is_maintenance_release == 'true' }}
->>>>>>> 41a8dfcc6 (ci: semantic versioning maintenance release process)
     secrets: inherit
