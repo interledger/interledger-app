@@ -159,6 +159,7 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 
 	// Login steps
 	ctx.Step(`^I clear the browser session$`, func() error { return sc.iClearTheBrowserSession() })
+	ctx.Step(`^I start a new browser session$`, func() error { return sc.iStartANewBrowserSession() })
 	ctx.Step(`^I navigate to (https?://.+)$`, func(url string) error { return sc.iNavigateToURL(url) })
 	ctx.Step(`^I navigate to the login page$`, func() error { return sc.iNavigateToTheLoginPage() })
 	ctx.Step(`^I fill in my login credentials$`, func() error { return sc.iFillInMyLoginCredentials() })
@@ -407,6 +408,30 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	})
 	ctx.Step(`^the wallets list should have more than 1 result$`, func() error {
 		return sc.theWalletsListShouldHaveMoreThanOneResult()
+	})
+	ctx.Step(`^I navigate to my wallet profile page in the admin portal$`, func() error {
+		return sc.iNavigateToMyWalletProfileInAdminPortal()
+	})
+	ctx.Step(`^the reset authenticator button should be visible$`, func() error {
+		return sc.theResetAuthenticatorButtonShouldBeVisible()
+	})
+	ctx.Step(`^I click the reset authenticator button$`, func() error {
+		return sc.iClickTheResetAuthenticatorButton()
+	})
+	ctx.Step(`^the authenticator reset confirmation modal should be visible$`, func() error {
+		return sc.theAuthenticatorResetConfirmationModalShouldBeVisible()
+	})
+	ctx.Step(`^I confirm the authenticator reset$`, func() error {
+		return sc.iConfirmTheAuthenticatorReset()
+	})
+	ctx.Step(`^the reset authenticator button should not be visible$`, func() error {
+		return sc.theResetAuthenticatorButtonShouldNotBeVisible()
+	})
+	ctx.Step(`^my TOTP should be disabled$`, func() error {
+		return sc.myTotpShouldBeDisabled()
+	})
+	ctx.Step(`^an authenticator reset audit log entry should exist$`, func() error {
+		return sc.anAuthenticatorResetAuditLogEntryShouldExist()
 	})
 }
 
