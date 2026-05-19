@@ -366,6 +366,7 @@ message WalletDetails {
 message PaginationRequest {
   int32 pageSize = 1;
   optional string pageToken = 2;
+  optional string search = 3;
 }
 
 message Wallet {

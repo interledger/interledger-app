@@ -396,8 +396,8 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I filter the wallets list by "([^"]*)"$`, func(term string) error {
 		return sc.iFilterTheWalletsListBy(term)
 	})
-	ctx.Step(`^I filter the wallets list by my email$`, func() error {
-		return sc.iFilterTheWalletsListByMyEmail()
+	ctx.Step(`^I filter the wallets list by my wallet name$`, func() error {
+		return sc.iFilterTheWalletsListByMyWalletName()
 	})
 	ctx.Step(`^my wallet should appear in the wallets list$`, func() error {
 		return sc.myWalletShouldAppearInTheWalletsList()

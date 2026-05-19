@@ -3114,6 +3114,7 @@ type PaginationRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	PageSize      int32                  `protobuf:"varint,1,opt,name=pageSize,proto3" json:"pageSize,omitempty"`
 	PageToken     *string                `protobuf:"bytes,2,opt,name=pageToken,proto3,oneof" json:"pageToken,omitempty"`
+	Search        *string                `protobuf:"bytes,3,opt,name=search,proto3,oneof" json:"search,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3158,6 +3159,13 @@ func (x *PaginationRequest) GetPageSize() int32 {
 func (x *PaginationRequest) GetPageToken() string {
 	if x != nil && x.PageToken != nil {
 		return *x.PageToken
+	}
+	return ""
+}
+
+func (x *PaginationRequest) GetSearch() string {
+	if x != nil && x.Search != nil {
+		return *x.Search
 	}
 	return ""
 }
