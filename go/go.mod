@@ -1,6 +1,6 @@
 module gitlab.com/fynbos
 
-go 1.25
+go 1.25.0
 
 require (
 	github.com/Khan/genqlient v0.6.0
@@ -50,7 +50,7 @@ require (
 	go.temporal.io/sdk v1.34.0
 	go.temporal.io/sdk/contrib/opentelemetry v0.6.0
 	go.uber.org/zap v1.19.1
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260209200024-4cfbd4190f57
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260519071638-aa98bba5eb94
 	google.golang.org/grpc v1.72.0
 	google.golang.org/protobuf v1.36.11
 	gopkg.in/stretchr/testify.v1 v1.2.2
@@ -147,7 +147,7 @@ require (
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/facebookgo/clock v0.0.0-20150410010913-600d898af40a // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
-	github.com/go-playground/universal-translator v0.18.0 // indirect
+	github.com/go-playground/universal-translator v0.18.0
 	github.com/gogo/googleapis v1.4.1
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/gogo/status v1.0.3
