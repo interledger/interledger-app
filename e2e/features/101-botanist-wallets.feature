@@ -34,8 +34,35 @@ Feature: Botanist Wallets Filter
     And I navigate to the botanist wallets page
     And I take a screenshot "wallets-page-unfiltered"
     Then my wallet should appear in the wallets list
+    And the wallets list should have more than 1 result
     And I take a screenshot "wallet-visible-unfiltered"
     When I filter the wallets list by my wallet name
     And I take a screenshot "filter-applied"
     Then my wallet should appear in the wallets list
+    And the wallets list should show exactly 1 result
     And I take a screenshot "wallet-visible-filtered"
+
+  @botanist @wallets-totp-reset @xago
+  Scenario: Admin can reset a wallet user's authenticator enrollment
+    Given that my "country" is "South Africa"
+    And I completed the signup workflow
+    And I completed the account verification workflow
+    And I finished the TOTP registration workflow
+    And I finished the wallet address creation workflow
+    When I navigate to the admin portal
+    And I navigate to my wallet profile page in the admin portal
+    Then the reset authenticator button should be visible
+    When I click the reset authenticator button
+    Then the authenticator reset confirmation modal should be visible
+    And I take a screenshot "reset-authenticator-modal"
+    When I confirm the authenticator reset
+    Then the reset authenticator button should not be visible
+    And my TOTP should be disabled
+    And an authenticator reset audit log entry should exist
+    And I take a screenshot "reset-authenticator-complete"
+    When I start a new browser session
+    And I navigate to the login page
+    And I fill in the login form with my details
+    And I submit the login
+    Then I should be navigated to the TOTP page
+    And I take a screenshot "totp-reenrollment-after-admin-reset"
