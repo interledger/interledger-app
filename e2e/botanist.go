@@ -161,38 +161,58 @@ func (sc *E2EContext) iNavigateToTheBotanistWalletsPage() error {
 	return nil
 }
 
-// iFilterTheWalletsListBy types searchTerm into the filter input and waits for
-// the client-side React re-render to apply.
+// iFilterTheWalletsListBy types searchTerm into the search input and submits
+// the form, triggering a server-side search and page reload.
 func (sc *E2EContext) iFilterTheWalletsListBy(searchTerm string) error {
-	debugPrintf("🔍 Filtering wallets by: %q\n", searchTerm)
+	debugPrintf("🔍 Searching wallets by: %q\n", searchTerm)
 
-	filterInput := sc.page.Locator("input[aria-label='Filter wallets']")
-	if err := filterInput.WaitFor(playwright.LocatorWaitForOptions{
+	searchInput := sc.page.Locator("input[aria-label='Search wallets']")
+	if err := searchInput.WaitFor(playwright.LocatorWaitForOptions{
 		State:   playwright.WaitForSelectorStateVisible,
 		Timeout: playwright.Float(5000),
 	}); err != nil {
-		return fmt.Errorf("filter input not found: %w", err)
+		return fmt.Errorf("search input not found: %w", err)
 	}
 
-	if err := filterInput.Fill(searchTerm); err != nil {
-		return fmt.Errorf("failed to fill filter input: %w", err)
+	if err := searchInput.Fill(searchTerm); err != nil {
+		return fmt.Errorf("failed to fill search input: %w", err)
 	}
 
-	// React re-renders synchronously on input, but give the browser a tick.
-	sc.page.WaitForTimeout(300)
+	if err := searchInput.Press("Enter"); err != nil {
+		return fmt.Errorf("failed to submit search: %w", err)
+	}
 
-	debugPrintf("✓ Filter applied: %q\n", searchTerm)
+	if err := sc.page.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
+		State:   playwright.LoadStateNetworkidle,
+		Timeout: playwright.Float(15000),
+	}); err != nil {
+		return fmt.Errorf("wallets page did not reload after search: %w", err)
+	}
+
+	debugPrintf("✓ Search applied: %q\n", searchTerm)
 	return nil
 }
 
-// iFilterTheWalletsListByMyEmail filters the wallets list using the current
-// impersonated user's email address.
-func (sc *E2EContext) iFilterTheWalletsListByMyEmail() error {
+// iFilterTheWalletsListByMyWalletName filters the wallets list using the
+// current impersonated user's wallet name, which is searchable at the DB level.
+func (sc *E2EContext) iFilterTheWalletsListByMyWalletName() error {
 	email, err := sc.getCurrentUserEmail()
 	if err != nil {
-		return fmt.Errorf("cannot filter by email: %w", err)
+		return fmt.Errorf("cannot resolve current user email: %w", err)
 	}
-	return sc.iFilterTheWalletsListBy(email)
+
+	kratosID := sc.getKratosUserIDByEmail(email)
+	if kratosID == "" {
+		return fmt.Errorf("cannot resolve kratos ID for email %q", email)
+	}
+
+	details, err := sc.getWalletDetailsForUser(kratosID)
+	if err != nil {
+		return fmt.Errorf("cannot get wallet details for user %q: %w", email, err)
+	}
+
+	debugPrintf("🔍 Searching wallets by wallet name %q (user: %s)\n", details.Name, email)
+	return sc.iFilterTheWalletsListBy(details.Name)
 }
 
 // myWalletShouldAppearInTheWalletsList asserts that a table row containing the
@@ -216,5 +236,231 @@ func (sc *E2EContext) myWalletShouldAppearInTheWalletsList() error {
 	}
 
 	debugPrintf("✓ Wallet for %q is visible in the list\n", email)
+	return nil
+}
+
+// theWalletsListShouldShowExactlyOneResult asserts that the search result counter
+// reads "1 result for …" (singular). This catches the regression where the filter
+// is silently ignored and all wallets are returned instead of only the match.
+func (sc *E2EContext) theWalletsListShouldShowExactlyOneResult() error {
+	// The wallets page renders '<n> result(s) for "<search>"' only when a search
+	// is active. After filtering to a single wallet the text must be singular.
+	counter := sc.page.Locator(`p:has-text(" for ")`).First()
+	if err := counter.WaitFor(playwright.LocatorWaitForOptions{
+		State:   playwright.WaitForSelectorStateVisible,
+		Timeout: playwright.Float(5000),
+	}); err != nil {
+		_ = sc.iTakeAScreenshot("result-counter-not-found")
+		return fmt.Errorf("result counter not visible after search: %w", err)
+	}
+
+	text, err := counter.TextContent()
+	if err != nil {
+		return fmt.Errorf("failed to read result counter: %w", err)
+	}
+
+	trimmed := strings.TrimSpace(text)
+	if !strings.HasPrefix(trimmed, "1 result for") {
+		_ = sc.iTakeAScreenshot("unexpected-result-count")
+		return fmt.Errorf("filter did not narrow to 1 result — counter says: %q", trimmed)
+	}
+
+	debugPrintf("✓ Result counter shows exactly 1 result: %q\n", trimmed)
+	return nil
+}
+
+// theWalletsListShouldHaveMoreThanOneResult asserts that the unfiltered wallets
+// table contains at least two rows. This is a pre-condition for the filter tests:
+// if the list already has only one wallet, filtering to one result would not prove
+// the filter is working.
+func (sc *E2EContext) theWalletsListShouldHaveMoreThanOneResult() error {
+	// Data rows are <tr> elements inside <tbody> that are NOT the pagination row.
+	rows := sc.page.Locator(`tbody tr:not([aria-label="Pagination"])`)
+	count, err := rows.Count()
+	if err != nil {
+		return fmt.Errorf("failed to count wallet rows: %w", err)
+	}
+	if count < 2 {
+		_ = sc.iTakeAScreenshot("too-few-wallets-unfiltered")
+		return fmt.Errorf("expected at least 2 wallets in the unfiltered list, got %d — filter test would be meaningless", count)
+	}
+
+	debugPrintf("✓ Unfiltered list has %d wallet rows\n", count)
+	return nil
+}
+
+func (sc *E2EContext) iNavigateToMyWalletProfileInAdminPortal() error {
+	email, err := sc.getCurrentUserEmail()
+	if err != nil {
+		return fmt.Errorf("cannot resolve current user email: %w", err)
+	}
+
+	kratosID := sc.getKratosUserIDByEmail(email)
+	if kratosID == "" {
+		return fmt.Errorf("cannot resolve kratos ID for email %q", email)
+	}
+
+	details, err := sc.getWalletDetailsForUser(kratosID)
+	if err != nil {
+		return fmt.Errorf("cannot get wallet details for user %q: %w", email, err)
+	}
+
+	profileURL := sc.botanistBaseURL + "/wallet/" + details.ID + "/profile"
+	debugPrintf("\n🌐 Navigating to botanist wallet profile page: %s\n", profileURL)
+
+	_, err = sc.page.Goto(profileURL, playwright.PageGotoOptions{
+		Timeout:   playwright.Float(30000),
+		WaitUntil: playwright.WaitUntilStateNetworkidle,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to navigate to wallet profile page: %w", err)
+	}
+
+	if err = sc.page.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
+		State:   playwright.LoadStateNetworkidle,
+		Timeout: playwright.Float(15000),
+	}); err != nil {
+		return fmt.Errorf("wallet profile page did not reach network idle: %w", err)
+	}
+
+	debugPrintf("✓ On botanist wallet profile page\n")
+	return nil
+}
+
+func (sc *E2EContext) theResetAuthenticatorButtonShouldBeVisible() error {
+	btn := sc.page.Locator("button:has-text('Reset authenticator')").First()
+	if err := btn.WaitFor(playwright.LocatorWaitForOptions{
+		State:   playwright.WaitForSelectorStateVisible,
+		Timeout: playwright.Float(5000),
+	}); err != nil {
+		_ = sc.iTakeAScreenshot("reset-authenticator-not-visible")
+		return fmt.Errorf("reset authenticator button not visible: %w", err)
+	}
+
+	debugPrintln("✓ Reset authenticator button is visible")
+	return nil
+}
+
+func (sc *E2EContext) theResetAuthenticatorButtonShouldNotBeVisible() error {
+	btn := sc.page.Locator("button:has-text('Reset authenticator')").First()
+
+	count, err := btn.Count()
+	if err != nil {
+		return fmt.Errorf("failed to inspect reset authenticator button: %w", err)
+	}
+
+	if count == 0 {
+		debugPrintln("✓ Reset authenticator button is hidden")
+		return nil
+	}
+
+	isVisible, err := btn.IsVisible()
+	if err != nil {
+		return fmt.Errorf("failed to check reset authenticator visibility: %w", err)
+	}
+
+	if isVisible {
+		_ = sc.iTakeAScreenshot("reset-authenticator-still-visible")
+		return fmt.Errorf("reset authenticator button should be hidden after reset")
+	}
+
+	debugPrintln("✓ Reset authenticator button is hidden")
+	return nil
+}
+
+func (sc *E2EContext) iClickTheResetAuthenticatorButton() error {
+	btn := sc.page.Locator("button:has-text('Reset authenticator')").First()
+	if err := btn.Click(); err != nil {
+		return fmt.Errorf("failed to click reset authenticator button: %w", err)
+	}
+
+	debugPrintln("✓ Clicked reset authenticator button")
+	return nil
+}
+
+func (sc *E2EContext) theAuthenticatorResetConfirmationModalShouldBeVisible() error {
+	modalTitle := sc.page.Locator("text=Reset authenticator for this wallet owner?").First()
+	if err := modalTitle.WaitFor(playwright.LocatorWaitForOptions{
+		State:   playwright.WaitForSelectorStateVisible,
+		Timeout: playwright.Float(5000),
+	}); err != nil {
+		_ = sc.iTakeAScreenshot("reset-authenticator-modal-not-visible")
+		return fmt.Errorf("confirmation modal not visible: %w", err)
+	}
+
+	debugPrintln("✓ Reset authenticator confirmation modal is visible")
+	return nil
+}
+
+func (sc *E2EContext) iConfirmTheAuthenticatorReset() error {
+	confirmButton := sc.page.Locator("button:has-text('Confirm reset')").First()
+	if err := confirmButton.Click(); err != nil {
+		return fmt.Errorf("failed to click confirm reset button: %w", err)
+	}
+
+	modalTitle := sc.page.Locator("text=Reset authenticator for this wallet owner?").First()
+	if err := modalTitle.WaitFor(playwright.LocatorWaitForOptions{
+		State:   playwright.WaitForSelectorStateHidden,
+		Timeout: playwright.Float(20000),
+	}); err != nil {
+		_ = sc.iTakeAScreenshot("reset-authenticator-modal-stuck")
+		return fmt.Errorf("confirmation modal did not close after reset: %w", err)
+	}
+
+	debugPrintln("✓ Confirmed authenticator reset")
+	return nil
+}
+
+func (sc *E2EContext) myTotpShouldBeDisabled() error {
+	email, err := sc.getCurrentUserEmail()
+	if err != nil {
+		return fmt.Errorf("cannot resolve current user email: %w", err)
+	}
+
+	_, err = sc.getTOTPSecretForEmail(email)
+	if err == nil {
+		return fmt.Errorf("expected TOTP to be disabled for %q but secret is still present", email)
+	}
+
+	debugPrintf("✓ TOTP credentials are removed for %q\n", email)
+	return nil
+}
+
+func (sc *E2EContext) anAuthenticatorResetAuditLogEntryShouldExist() error {
+	if err := sc.ensureDB(); err != nil {
+		return fmt.Errorf("audit assertion: %w", err)
+	}
+
+	email, err := sc.getCurrentUserEmail()
+	if err != nil {
+		return fmt.Errorf("cannot resolve current user email: %w", err)
+	}
+
+	kratosID := sc.getKratosUserIDByEmail(email)
+	if kratosID == "" {
+		return fmt.Errorf("cannot resolve kratos ID for email %q", email)
+	}
+
+	details, err := sc.getWalletDetailsForUser(kratosID)
+	if err != nil {
+		return fmt.Errorf("cannot get wallet details for user %q: %w", email, err)
+	}
+
+	var count int
+	err = sc.db.QueryRow(`
+		SELECT COUNT(*)
+		FROM admin_audit_log
+		WHERE wallet_id = $1
+		AND operation LIKE '%Delete2FATotpEnrollment'
+	`, details.ID).Scan(&count)
+	if err != nil {
+		return fmt.Errorf("failed to query admin audit log: %w", err)
+	}
+
+	if count < 1 {
+		return fmt.Errorf("expected at least one authenticator reset audit log entry for wallet %s", details.ID)
+	}
+
+	debugPrintf("✓ Found %d authenticator reset audit log entry(ies) for wallet %s\n", count, details.ID)
 	return nil
 }
