@@ -161,38 +161,58 @@ func (sc *E2EContext) iNavigateToTheBotanistWalletsPage() error {
 	return nil
 }
 
-// iFilterTheWalletsListBy types searchTerm into the filter input and waits for
-// the client-side React re-render to apply.
+// iFilterTheWalletsListBy types searchTerm into the search input and submits
+// the form, triggering a server-side search and page reload.
 func (sc *E2EContext) iFilterTheWalletsListBy(searchTerm string) error {
-	debugPrintf("🔍 Filtering wallets by: %q\n", searchTerm)
+	debugPrintf("🔍 Searching wallets by: %q\n", searchTerm)
 
-	filterInput := sc.page.Locator("input[aria-label='Filter wallets']")
-	if err := filterInput.WaitFor(playwright.LocatorWaitForOptions{
+	searchInput := sc.page.Locator("input[aria-label='Search wallets']")
+	if err := searchInput.WaitFor(playwright.LocatorWaitForOptions{
 		State:   playwright.WaitForSelectorStateVisible,
 		Timeout: playwright.Float(5000),
 	}); err != nil {
-		return fmt.Errorf("filter input not found: %w", err)
+		return fmt.Errorf("search input not found: %w", err)
 	}
 
-	if err := filterInput.Fill(searchTerm); err != nil {
-		return fmt.Errorf("failed to fill filter input: %w", err)
+	if err := searchInput.Fill(searchTerm); err != nil {
+		return fmt.Errorf("failed to fill search input: %w", err)
 	}
 
-	// React re-renders synchronously on input, but give the browser a tick.
-	sc.page.WaitForTimeout(300)
+	if err := searchInput.Press("Enter"); err != nil {
+		return fmt.Errorf("failed to submit search: %w", err)
+	}
 
-	debugPrintf("✓ Filter applied: %q\n", searchTerm)
+	if err := sc.page.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
+		State:   playwright.LoadStateNetworkidle,
+		Timeout: playwright.Float(15000),
+	}); err != nil {
+		return fmt.Errorf("wallets page did not reload after search: %w", err)
+	}
+
+	debugPrintf("✓ Search applied: %q\n", searchTerm)
 	return nil
 }
 
-// iFilterTheWalletsListByMyEmail filters the wallets list using the current
-// impersonated user's email address.
-func (sc *E2EContext) iFilterTheWalletsListByMyEmail() error {
+// iFilterTheWalletsListByMyWalletName filters the wallets list using the
+// current impersonated user's wallet name, which is searchable at the DB level.
+func (sc *E2EContext) iFilterTheWalletsListByMyWalletName() error {
 	email, err := sc.getCurrentUserEmail()
 	if err != nil {
-		return fmt.Errorf("cannot filter by email: %w", err)
+		return fmt.Errorf("cannot resolve current user email: %w", err)
 	}
-	return sc.iFilterTheWalletsListBy(email)
+
+	kratosID := sc.getKratosUserIDByEmail(email)
+	if kratosID == "" {
+		return fmt.Errorf("cannot resolve kratos ID for email %q", email)
+	}
+
+	details, err := sc.getWalletDetailsForUser(kratosID)
+	if err != nil {
+		return fmt.Errorf("cannot get wallet details for user %q: %w", email, err)
+	}
+
+	debugPrintf("🔍 Searching wallets by wallet name %q (user: %s)\n", details.Name, email)
+	return sc.iFilterTheWalletsListBy(details.Name)
 }
 
 // myWalletShouldAppearInTheWalletsList asserts that a table row containing the

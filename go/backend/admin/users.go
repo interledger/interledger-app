@@ -26,6 +26,11 @@ func (s *AdminRpcService) ListWallets(ctx context.Context, req *adminv1.Paginati
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
+	hasNextPage := len(wallets) > page.PageSize
+	if hasNextPage {
+		wallets = wallets[:page.PageSize]
+	}
+
 	resp := make([]*adminv1.Wallet, len(wallets))
 	for i, w := range wallets {
 		users, err := s.b.Users().ListUsers(ctx, w.ID)
@@ -46,13 +51,13 @@ func (s *AdminRpcService) ListWallets(ctx context.Context, req *adminv1.Paginati
 	}
 
 	nextPageToken := ""
-	if len(resp) > 0 {
-		nextPageToken = resp[len(resp)-1].WalletID	
+	if hasNextPage && len(resp) > 0 {
+		nextPageToken = resp[len(resp)-1].WalletID
 	}
 
 	return &adminv1.ListWalletsResponse{
 		Wallets:       resp,
-		NextPageToken: nextPageToken, // TODO Need to actually populate this
+		NextPageToken: nextPageToken,
 	}, nil
 }
 

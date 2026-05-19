@@ -1,44 +1,33 @@
 import type { LoaderArgs } from '@remix-run/node'
-import { useState } from 'react'
 
 import { Router, Grid } from '~/components'
 import { json } from '@remix-run/node'
-import { useLoaderData } from '@remix-run/react'
+import { Form, useLoaderData, useNavigation } from '@remix-run/react'
 import { ListWallets } from '~/lib/wallet.server'
 import { route } from 'routes-gen'
 
 export async function loader({ request }: LoaderArgs) {
   const url = new URL(request.url)
-  const pageSize = url.searchParams.get('pageSize') || '100'
+  const pageSize = url.searchParams.get('pageSize') || '50'
   const pageToken = url.searchParams.get('pageToken') || ''
+  const search = url.searchParams.get('search') || ''
   const wallets = await ListWallets(request, {
     pageSize: parseInt(pageSize),
-    pageToken: pageToken
+    pageToken: pageToken,
+    search: search || undefined
   })
 
   return json({
     wallets,
-    pageSize
+    pageSize,
+    search
   })
 }
 
 export default function Page() {
-  const { wallets, pageSize } = useLoaderData<typeof loader>()
-  const [filter, setFilter] = useState('')
-
-  const q = filter.trim().toLowerCase()
-  const filtered = q
-    ? wallets.wallets.filter((wallet) => {
-        const email = wallet.users[0]?.email ?? ''
-        const phone = wallet.users[0]?.phoneNumber ?? ''
-        return (
-          wallet.walletID.toLowerCase().includes(q) ||
-          wallet.walletName.toLowerCase().includes(q) ||
-          email.toLowerCase().includes(q) ||
-          phone.toLowerCase().includes(q)
-        )
-      })
-    : wallets.wallets
+  const { wallets, pageSize, search } = useLoaderData<typeof loader>()
+  const navigation = useNavigation()
+  const isSearching = navigation.state === 'loading'
 
   return (
     <Grid>
@@ -53,18 +42,22 @@ export default function Page() {
         </div>
 
         <div className='mt-4'>
-          <input
-            id='wallet-filter'
-            type='search'
-            placeholder='Filter by ID, name, email or phone…'
-            aria-label='Filter wallets'
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            className='w-full max-w-sm rounded-xl border-2 border-base px-4 py-2 text-sm focus:border-focus focus:outline-none'
-          />
-          {q && (
+          <Form method='get' action='/wallets'>
+            <input type='hidden' name='pageSize' value={pageSize} />
+            <input
+              key={search}
+              id='wallet-search'
+              name='search'
+              type='search'
+              placeholder='Search by ID or name…'
+              aria-label='Search wallets'
+              defaultValue={search}
+              className='w-full max-w-sm rounded-xl border-2 border-base px-4 py-2 text-sm focus:border-focus focus:outline-none'
+            />
+          </Form>
+          {search && (
             <p className='mt-1 text-xs text-medium'>
-              {filtered.length} of {wallets.wallets.length} wallets
+              {wallets.wallets.length} result{wallets.wallets.length !== 1 ? 's' : ''} for &ldquo;{search}&rdquo;
             </p>
           )}
         </div>
@@ -73,7 +66,7 @@ export default function Page() {
           <div className='-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8'>
             <div className='inline-block min-w-full py-2 align-middle md:px-6 lg:px-8'>
               <div className='overflow-hidden ring-2 ring-base md:rounded-lg'>
-                <table className='min-w-full divide-y divide-base'>
+                <table className={`min-w-full divide-y divide-base${isSearching ? ' opacity-50' : ''}`}>
                   <thead className='bg-app'>
                     <tr>
                       <th
@@ -106,7 +99,7 @@ export default function Page() {
                     </tr>
                   </thead>
                   <tbody className='divide-y divide-gray-200 bg-white'>
-                    {filtered.map((wallet) => (
+                    {wallets.wallets.map((wallet) => (
                       <tr key={wallet.walletID}>
                         <td className='p-4 text-sm font-medium text-gray-900'>
                           {wallet.walletID}
@@ -141,27 +134,23 @@ export default function Page() {
                         <p className='text-sm text-weak'>
                           Showing{' '}
                           <span className='font-medium'>
-                            {filtered.length === 0 ? 0 : 1}
+                            {wallets.wallets.length === 0 ? 0 : 1}
                           </span>{' '}
                           to{' '}
-                          <span className='font-medium'>{filtered.length}</span>{' '}
-                          of{' '}
-                          <span className='font-medium'>
-                            {wallets.wallets.length > 10
-                              ? 'unknown'
-                              : wallets.wallets.length}
-                          </span>{' '}
+                          <span className='font-medium'>{wallets.wallets.length}</span>{' '}
                           results
                         </p>
                       </td>
                       <td colSpan={3}>
                         <div className='flex flex-1 justify-between pr-3 sm:justify-end'>
-                          <Router
-                            to={`/wallets?pageToken=${wallets.nextPageToken}&pageSize=${pageSize}`}
-                            className='relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50'
-                          >
-                            Next
-                          </Router>
+                          {wallets.nextPageToken && (
+                            <Router
+                              to={`/wallets?pageToken=${wallets.nextPageToken}&pageSize=${pageSize}${search ? `&search=${encodeURIComponent(search)}` : ''}`}
+                              className='relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50'
+                            >
+                              Next
+                            </Router>
+                          )}
                         </div>
                       </td>
                     </tr>
