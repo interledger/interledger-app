@@ -1,0 +1,121 @@
+suite: Interledger App - Backend migration Job
+templates:
+  - initialisation.yaml
+set:
+  fullnameOverride: wallet
+release:
+  name: wallet
+tests:
+  - it: 'Should create a Job called wallet-migration'
+    documentSelector:
+      path: kind
+      value: Job
+    asserts:
+      - equal:
+          path: metadata.name
+          value: wallet-migration
+
+  - it: 'Annotations should contain Helm hook info for pre-install/pre-upgrade'
+    asserts:
+      - equal:
+          path: metadata.annotations["helm.sh/hook"]
+          value: pre-install,pre-upgrade
+      - equal:
+          path: metadata.annotations["helm.sh/hook-delete-policy"]
+          value: before-hook-creation,hook-succeeded
+
+  - it: 'Labels should contain app.kubernetes.io tags'
+    documentSelector:
+      path: kind
+      value: Job
+    asserts:
+      - equal:
+          path: metadata.labels["app.kubernetes.io/instance"]
+          value: wallet
+      - equal:
+          path: metadata.labels["app.kubernetes.io/managed-by"]
+          value: Helm
+      - exists:
+          path: metadata.labels["app.kubernetes.io/version"]
+
+  - it: 'Should run as the specified service account'
+    set:
+      backend:
+        initialisation:
+          serviceAccountName: myServiceAccount
+    asserts:
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: myServiceAccount
+
+  - it: 'Should have DB_URL_WITH_CERTS referencing the backend secret'
+    documentSelector:
+      path: kind
+      value: Job
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[0].name
+          value: DB_URL_WITH_CERTS
+      - equal:
+          path: spec.template.spec.containers[0].env[0].valueFrom.secretKeyRef.name
+          value: wallet-backend
+      - equal:
+          path: spec.template.spec.containers[0].env[0].valueFrom.secretKeyRef.key
+          value: dbBackendMigrationsURL
+
+  - it: 'Should have PACIOLI_DB_URL_WITH_CERTS referencing the backend secret'
+    documentSelector:
+      path: kind
+      value: Job
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[1].name
+          value: PACIOLI_DB_URL_WITH_CERTS
+      - equal:
+          path: spec.template.spec.containers[0].env[1].valueFrom.secretKeyRef.name
+          value: wallet-backend
+      - equal:
+          path: spec.template.spec.containers[0].env[1].valueFrom.secretKeyRef.key
+          value: dbPacioliMigrationsURL
+
+  - it: 'Should use the global imageOverride when no initialisation image is specified'
+    set:
+      backend:
+        imageOverride:
+          repository: europe-west4-docker.pkg.dev/wallet-451208/interledger-app
+          name: zulu
+          tag: v0.2.2
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: europe-west4-docker.pkg.dev/wallet-451208/interledger-app/zulu:v0.2.2
+
+  - it: 'Should use a specific initialisation image when provided'
+    set:
+      backend:
+        initialisation:
+          image:
+            repository: nl-west4-docker.pkg.dev/wallet-451208/lalaland
+            name: rodeo
+            tag: v3.3.3
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: nl-west4-docker.pkg.dev/wallet-451208/lalaland/rodeo:v3.3.3
+
+  - it: 'Initialisation image should take precedence over global imageOverride'
+    set:
+      backend:
+        imageOverride:
+          repository: europe-west4-docker.pkg.dev/wallet-451208/interledger-app
+          name: zulu
+          tag: v0.2.2
+        initialisation:
+          image:
+            repository: nl-west4-docker.pkg.dev/wallet-451208/lalaland
+            name: rodeo
+            tag: v3.3.3
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: nl-west4-docker.pkg.dev/wallet-451208/lalaland/rodeo:v3.3.3

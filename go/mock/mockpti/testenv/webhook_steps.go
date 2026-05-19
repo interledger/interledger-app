@@ -22,8 +22,8 @@ type webhookCapture struct {
 }
 
 type capturedWebhook struct {
-	payload   map[string]interface{}
-	encrypted bool
+	payload map[string]interface{}
+	signed  bool
 }
 
 var capture webhookCapture
@@ -32,7 +32,7 @@ var webhookServerErr error
 
 func webhookHandler(w http.ResponseWriter, r *http.Request) {
 	body, _ := io.ReadAll(r.Body)
-	payload, encrypted, err := parseWebhookPayload(body)
+	payload, signed, err := parseWebhookPayload(body, r.Header.Get("X-Signature"))
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		_, _ = w.Write([]byte(`{"error":"invalid_webhook_payload"}`))
@@ -40,7 +40,7 @@ func webhookHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	capture.mu.Lock()
-	capture.events = append(capture.events, capturedWebhook{payload: payload, encrypted: encrypted})
+	capture.events = append(capture.events, capturedWebhook{payload: payload, signed: signed})
 	capture.mu.Unlock()
 
 	w.WriteHeader(http.StatusOK)
@@ -141,7 +141,7 @@ func (tc *TestContext) mockptiProcessesTheAssessmentCompletion() error {
 		return err
 	}
 	tc.lastWebhook = evt.payload
-	tc.lastWebhookEncrypted = evt.encrypted
+	tc.lastWebhookSigned = evt.signed
 	return nil
 }
 
@@ -225,16 +225,16 @@ func (tc *TestContext) mockptiTransitionsTheTransactionTo(status string) error {
 		return err
 	}
 	tc.lastWebhook = evt.payload
-	tc.lastWebhookEncrypted = evt.encrypted
+	tc.lastWebhookSigned = evt.signed
 	return nil
 }
 
-func (tc *TestContext) theWebhookPayloadShouldBeSignedAndEncrypted() error {
+func (tc *TestContext) theWebhookPayloadShouldBeSigned() error {
 	if tc.lastWebhook == nil {
 		return fmt.Errorf("no webhook captured")
 	}
-	if !tc.lastWebhookEncrypted {
-		return fmt.Errorf("expected encrypted webhook payload")
+	if !tc.lastWebhookSigned {
+		return fmt.Errorf("expected signed webhook payload")
 	}
 	return nil
 }
@@ -317,7 +317,7 @@ func (tc *TestContext) mockptiSettlesADeposit() error {
 		return err
 	}
 	tc.lastWebhook = evt.payload
-	tc.lastWebhookEncrypted = evt.encrypted
+	tc.lastWebhookSigned = evt.signed
 	return nil
 }
 
@@ -356,7 +356,7 @@ func (tc *TestContext) mockptiSettlesAWithdrawal() error {
 		return err
 	}
 	tc.lastWebhook = evt.payload
-	tc.lastWebhookEncrypted = evt.encrypted
+	tc.lastWebhookSigned = evt.signed
 	return nil
 }
 
@@ -386,7 +386,7 @@ func (tc *TestContext) mockptiReturnsTheDeposit() error {
 		return err
 	}
 	tc.lastWebhook = evt.payload
-	tc.lastWebhookEncrypted = evt.encrypted
+	tc.lastWebhookSigned = evt.signed
 	return nil
 }
 
@@ -416,7 +416,7 @@ func (tc *TestContext) mockptiReturnsTheWithdrawal() error {
 		return err
 	}
 	tc.lastWebhook = evt.payload
-	tc.lastWebhookEncrypted = evt.encrypted
+	tc.lastWebhookSigned = evt.signed
 	return nil
 }
 

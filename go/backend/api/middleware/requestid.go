@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
-	"gitlab.com/fynbos/backend/api/appcontext"
+	"gitlab.com/fynbos/backend/appcontext"
 )
 
 func MakeRequestIDMiddleware() func(http.Handler) http.Handler {

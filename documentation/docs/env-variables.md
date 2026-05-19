@@ -92,8 +92,6 @@ The Go backend is the core of the wallet, handling payments, provider integratio
 | `FYNBOS_ENV` | Runtime environment tag | No | Prod: `prod`; Sandbox/Dev: `dev`; Local: `local` |
 | `LOG_LEVEL` | Log verbosity | No | Dev: `debug`; all others: `info` |
 | `PORT` | HTTP server port (webhooks, health) | No | All environments: `8080` |
-| `OPEN_PAYMENTS_PORT` | Open Payments protocol server port | No | All environments: `8081` |
-| `AUTHORISATION_PORT` | Authorisation server port | No | All environments: `8082` |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | OpenTelemetry collector endpoint | No | All environments: `grpc://api.honeycomb.io:443` |
 | `OTEL_SERVICE_NAME` | Service name in traces | No | All environments: `backend` |
 | `OTEL_EXPORTER_OTLP_HEADERS` | Auth headers for the OTLP endpoint | Yes | Local default: `x-honeycomb-team=7Qskhns7Dc7wgazrDe6yZD` |
@@ -115,8 +113,6 @@ The Go backend is the core of the wallet, handling payments, provider integratio
 
 | Variable | Description | Secret | Notes |
 |---|---|---|---|
-| `USD_LEDGER_ID` | Internal Pacioli ledger ID for USD accounts | No | All environments: `1` |
-| `NOOP_EQUITY_ACCOUNT_ID` | Equity account UUID used as no-op placeholder in ledger entries | No | Deployed: `00000000-0000-0000-0000-000000000000`; Local: `43d4b2bd-e29b-4a63-9aa8-7990776c714e` |
 | `REDIS_URL` | Redis connection URL for queues and caching | Yes | Local default: `redis://redis:6379/0` (provided by local compose); currently no direct `REDIS_URL` reference under `go/backend` |
 | `ALLOWED_WALLET_IDS` | Comma-separated wallet IDs allowed through regional blocks | No | All environments: empty |
 | `BLOCKED_REGIONS` | Comma-separated ISO country codes to block wallet access from | No | Prod: `US`; all others: empty |
@@ -159,8 +155,6 @@ The Go backend is the core of the wallet, handling payments, provider integratio
 | `SENDGRID_FROM_NAME` | Display name for outgoing emails (e.g. "Interledger Wallet"). Required when `EMAIL_ENABLED` is not `false`. | No | Local default: `Interledger Wallet` |
 | `SENDGRID_FROM_EMAIL` | Sender email address for outgoing emails. Required when `EMAIL_ENABLED` is not `false`. | No | Local default: `support@interledger.app` |
 | `SENDGRID_ONE_TEMPLATE_ID` | SendGrid Dynamic Template ID used by backend transactional emails. Required when `EMAIL_ENABLED` is not `false`. | No | Local default: `d-12030774d225454ea91720034b9adb97` |
-| `ZENDESK_USER` | Zendesk account email (currently not actively used) | No | Deployed: `support@interledger-app.dev`; Local: `matt@fynbos.dev` |
-| `ZENDESK_TOKEN` | Zendesk API token | Yes | Local default: `test` |
 
 ### Segment (Analytics)
 
@@ -175,13 +169,7 @@ The Go backend is the core of the wallet, handling payments, provider integratio
 | `PERSONA_TOKEN` | Persona API token for identity verification. Required at backend startup. | Yes | Prod/Sandbox/Dev: secret from 1Password; Local default: `test-persona-token` |
 | `PERSONA_WEBHOOK_TOKEN` | Persona webhook verification token. Required at backend startup. | Yes | Prod/Sandbox/Dev: secret from 1Password; Local default: `test-persona-webhook-token` |
 | `PERSONA_BASE_URL` | Persona API base URL override used by backend Persona client | No | Default when unset: `https://api.withpersona.com/api/v1/`; Local default in compose: `http://mockxago:8080/v1/` |
-
-### Basis Theory (Card Tokenisation)
-
-| Variable | Description | Secret | Notes |
-|---|---|---|---|
-| `BASIS_THEORY_API_KEY` | Basis Theory private API key (server-side) | Yes | Not set locally |
-| `BT_TOKEN` | Basis Theory session token for frontend card operations | Yes | Not set locally |
+| `PERSONA_SANDBOX_ZA_FAKE_ZA_ID` | **Persona sandbox workaround only.** When `true`, the backend generates a synthetic South African ID number instead of fetching one from Persona. This is required in the Persona sandbox environment because Persona's sandbox always returns an American user profile — meaning the South African ID field is always null. Without this flag, Xago subaccount creation fails for all sandbox users since a valid ZA ID is a required field. Has no effect in production, where Persona returns real ZA ID documents. | No | Default: `false`; Set to `true` in sandbox |
 
 ### CDN
 
@@ -278,13 +266,6 @@ For deployed environments the `PTI_JWK`, `PTI_PUBLIC_KEY_JWK`, and `PTI_BASE_URL
 | `VAULT_TRANSIT_ENGINE_PATH` | Vault transit engine path used by legacy encryption/decryption flows | No | Keep documented, no environment value guidance |
 | `SMARTY_AUTH_ID` | Smarty auth ID used by legacy address validation integration | No | Keep documented, no environment value guidance |
 | `SMARTY_AUTH_TOKEN` | Smarty auth token used by legacy address validation integration | No | Keep documented, no environment value guidance |
-| `ASTRA_CLIENT_ID` | Astra client ID used by legacy Astra integration paths | Yes | Keep documented, no environment value guidance |
-| `ASTRA_CLIENT_SECRET` | Astra client secret used by legacy Astra integration paths | Yes | Keep documented, no environment value guidance |
-| `ASTRA_WEBHOOK_BEARER_TOKEN` | Astra webhook bearer token used by legacy webhook verification paths | Yes | Keep documented, no environment value guidance |
-| `TWITTER_CLIENT_ID` | Twitter/X OAuth client ID used by legacy social login integration | No | Keep documented, no environment value guidance |
-| `TWITTER_CLIENT_SECRET` | Twitter/X OAuth client secret used by legacy social login integration | No | Keep documented, no environment value guidance |
-| `TWITTER_BEARER_TOKEN` | Twitter/X API bearer token used by legacy integration paths | No | Keep documented, no environment value guidance |
-| `TWITTER_REDIRECT_URL` | Twitter/X OAuth redirect URL used by legacy callback handling | No | Keep documented, no environment value guidance |
 | `RAFIKI_GRAPHQL_URL` | Legacy Rafiki GraphQL URL alias from older local compose manifests | No | Historic YAML-only variable; should not be used for active configuration |
 | `XAGO_USD_OPS_ACCOUNT` | Legacy Xago USD operations account UUID from older local compose manifests | No | Historic YAML-only variable; should not be used for active configuration |
 | `XAGO_ZAR_OPS_ACCOUNT` | Legacy Xago ZAR operations account UUID from older local compose manifests | No | Historic YAML-only variable; should not be used for active configuration |
@@ -293,11 +274,3 @@ For deployed environments the `PTI_JWK`, `PTI_PUBLIC_KEY_JWK`, and `PTI_BASE_URL
 | `XAGO_WEBHOOK_SECRET` | Legacy Xago webhook secret placeholder from older local compose manifests | Yes | Historic YAML-only variable; should not be used for active configuration |
 
 > **Discord:** No Discord-related environment variables are currently present in the active service configuration.
-
-### Google OAuth
-
-| Variable | Description | Secret | Notes |
-|---|---|---|---|
-| `GOOGLE_OAUTH2_CLIENT_ID` | Google OAuth 2.0 client ID (currently not actively used) | No | All environments: `google_oauth` |
-
----

@@ -3,15 +3,16 @@ package webhooks
 import (
 	"bytes"
 	"context"
+	"crypto/ed25519"
+	"crypto/x509"
+	"encoding/base64"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
-	"github.com/lestrrat-go/jwx/v2/jwa"
-	"github.com/lestrrat-go/jwx/v2/jwe"
-	"github.com/lestrrat-go/jwx/v2/jwk"
-	"github.com/lestrrat-go/jwx/v2/jws"
 	"gitlab.com/fynbos/mock/mockpti/internal/logger"
 	"gitlab.com/fynbos/mock/mockpti/internal/models"
 )
@@ -44,8 +45,7 @@ type TransactionStatusPayload struct {
 type Sender struct {
 	webhookURL string
 	client     *http.Client
-	signingKey jwk.Key
-	encryptKey jwk.Key
+	signingKey ed25519.PrivateKey
 }
 
 // NewSender creates a webhook sender targeting webhookURL.
@@ -56,30 +56,32 @@ func NewSender(webhookURL string) *Sender {
 	}
 }
 
-// ConfigureSecurity enables PTI-like webhook signing (JWS) and encryption (JWE).
-// If keys are not provided, sender continues with plain JSON payloads.
-func (s *Sender) ConfigureSecurity(signingJWK, encryptionJWK string) error {
-	if signingJWK == "" || encryptionJWK == "" {
+// ConfigureSecurity enables Ed25519 webhook signing from a PEM-encoded private key.
+// Literal \n sequences in signingPEM are treated as newlines to support single-line env var values.
+// If signingPEM is empty, the sender continues with plain unsigned JSON payloads.
+func (s *Sender) ConfigureSecurity(signingPEM string) error {
+	if signingPEM == "" {
 		return nil
 	}
 
-	signingKey, err := jwk.ParseKey([]byte(signingJWK))
-	if err != nil {
-		return fmt.Errorf("invalid webhook signing jwk: %w", err)
+	signingPEM = strings.ReplaceAll(signingPEM, `\n`, "\n")
+
+	block, _ := pem.Decode([]byte(signingPEM))
+	if block == nil {
+		return fmt.Errorf("failed to decode signing key PEM")
 	}
 
-	encryptionKey, err := jwk.ParseKey([]byte(encryptionJWK))
+	key, err := x509.ParsePKCS8PrivateKey(block.Bytes)
 	if err != nil {
-		return fmt.Errorf("invalid webhook encryption jwk: %w", err)
+		return fmt.Errorf("failed to parse signing key: %w", err)
 	}
 
-	publicKey, err := jwk.PublicKeyOf(encryptionKey)
-	if err != nil {
-		return fmt.Errorf("failed to derive encryption public key: %w", err)
+	edKey, ok := key.(ed25519.PrivateKey)
+	if !ok {
+		return fmt.Errorf("signing key is not Ed25519")
 	}
 
-	s.signingKey = signingKey
-	s.encryptKey = publicKey
+	s.signingKey = edKey
 	return nil
 }
 
@@ -129,30 +131,16 @@ func (s *Sender) post(ctx context.Context, payload interface{}) error {
 		return fmt.Errorf("failed to marshal webhook payload: %w", err)
 	}
 
-	if s.signingKey != nil && s.encryptKey != nil {
-		signed, err := jws.Sign(body, jws.WithKey(jwa.RS512, s.signingKey))
-		if err != nil {
-			return fmt.Errorf("failed to sign webhook payload: %w", err)
-		}
-
-		encrypted, err := jwe.Encrypt(
-			signed,
-			jwe.WithJSON(),
-			jwe.WithContentEncryption(jwa.A256CBC_HS512),
-			jwe.WithKey(jwa.RSA_OAEP_256, s.encryptKey),
-		)
-		if err != nil {
-			return fmt.Errorf("failed to encrypt webhook payload: %w", err)
-		}
-
-		body = encrypted
-	}
-
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, s.webhookURL, bytes.NewReader(body))
 	if err != nil {
 		return fmt.Errorf("failed to create webhook request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
+
+	if s.signingKey != nil {
+		sig := ed25519.Sign(s.signingKey, body)
+		req.Header.Set("X-Signature", "v1="+base64.StdEncoding.EncodeToString(sig))
+	}
 
 	resp, err := s.client.Do(req)
 	if err != nil {
