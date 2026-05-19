@@ -88,6 +88,7 @@ export function CommandActions() {
     (value: PlainMessage<SearchResult> | Action) => void
   >(
     (event) => {
+      setCommandPaletteOpen(false)
       if (isAction(event)) {
         navigate(event.route)
       } else {
@@ -100,7 +101,7 @@ export function CommandActions() {
         )
       }
     },
-    [navigate, submit]
+    [navigate, setCommandPaletteOpen, submit]
   )
   useEffect(() => {
     return () => setCommandPaletteOpen(false)

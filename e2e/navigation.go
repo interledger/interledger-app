@@ -254,3 +254,43 @@ func (sc *E2EContext) iNavigateToTheLoginPage() error {
 
 	return nil
 }
+
+func (sc *E2EContext) iStartANewBrowserSession() error {
+	if sc.browser == nil {
+		pw, err := playwright.Run()
+		if err != nil {
+			return fmt.Errorf("failed to start playwright: %w", err)
+		}
+		sc.pw = pw
+
+		browser, err := pw.Chromium.Launch()
+		if err != nil {
+			return fmt.Errorf("failed to launch browser: %w", err)
+		}
+		sc.browser = browser
+	}
+
+	if sc.page != nil {
+		_ = sc.page.Close()
+	}
+	if sc.context != nil {
+		_ = sc.context.Close()
+	}
+
+	context, err := sc.browser.NewContext(playwright.BrowserNewContextOptions{
+		IgnoreHttpsErrors: playwright.Bool(true),
+	})
+	if err != nil {
+		return fmt.Errorf("failed to create browser context: %w", err)
+	}
+	sc.context = context
+
+	page, err := context.NewPage()
+	if err != nil {
+		return fmt.Errorf("failed to create page: %w", err)
+	}
+	sc.page = page
+
+	debugPrintln("✓ Started a new browser session")
+	return nil
+}

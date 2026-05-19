@@ -10,6 +10,7 @@ import (
 type Pagination struct {
 	PageToken string
 	PageSize  int
+	Search    string
 }
 
 func (p *Pagination) SQL() string {
@@ -41,5 +42,6 @@ func FromAdminPB(req *adminpb.PaginationRequest) Pagination {
 	return Pagination{
 		PageToken: req.GetPageToken(),
 		PageSize:  int(pageSize),
+		Search:    req.GetSearch(),
 	}
 }
