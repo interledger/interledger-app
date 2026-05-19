@@ -80,6 +80,7 @@
   border-radius: var(--rounded-2xl);
   padding: var(--padding-5xl) var(--padding-6xl);
   position: relative;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -89,12 +90,6 @@
 }
 
 .cta-glow-bg {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 400px;
-  height: 268px;
   z-index: 0;
 }
 
@@ -140,16 +135,11 @@
     min-height: auto;
     padding-block: var(--padding-4xl);
   }
-  .cta-glow-bg {
-    width: 300px;
-    height: 200px;
+
+  .our-ecosystem-header {
+    padding-inline: var(--padding-xl);
+    margin-bottom: var(--spacing-2xl);
   }
-
-
-.our-ecosystem-header {
-  padding-inline: var(--padding-xl);
-  margin-bottom: var(--spacing-2xl);
-}
 }
 
 @media (max-width: 640px) {
@@ -159,5 +149,8 @@
   }
   .our-ecosystem-section {
     padding-bottom: var(--padding-5xl);
+  }
+  .cta-button-primary {
+    width: 100%;
   }
 }

@@ -98,6 +98,7 @@
   color: var(--color-text-primary);
   font-family: var(--font-family);
   min-height: 100vh;
+  overflow-x: clip;
 }
 
 .section-heading {
