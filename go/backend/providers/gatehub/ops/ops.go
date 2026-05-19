@@ -564,20 +564,20 @@ func CreateTransfer(ctx context.Context, b Backends, ec external.Client, args ga
 	return externalTx, nil
 }
 
-func TransferUserToOmnibus(ctx context.Context, b Backends, ec external.Client, linkedAccountID string, amount currency.Amount, sendingUserID, omnibusAddress, vaultID string) (*external.Transaction, error) {
-	la, err := b.LinkedAccounts().Get(ctx, linkedAccountID)
+func TransferUserToOmnibus(ctx context.Context, b Backends, ec external.Client, senderLinkedAccountID string, amount currency.Amount, omnibusAddress, vaultID string) (*external.Transaction, error) {
+	la, err := b.LinkedAccounts().Get(ctx, senderLinkedAccountID)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
 	}
 
-	senderExternalUserID, err := getExternalUserID(ctx, b, la.WalletID)
-	if err != nil {
-		return nil, err
-	}
+	// senderExternalUserID, err := getExternalUserID(ctx, b, la.WalletID)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	// TODO Figure out what Gatehub endpoint we need to call and with what args
+	// TODO Figure out what Gatehub endpoint we need to call
 	externalTx, err := ec.CreateTransaction(ctx, external.CreateTransactionRequest{
-		SendingUserID:    senderExternalUserID,
+		// SendingUserID:    senderExternalUserID,
 		SendingAddress:   la.ProviderID,
 		ReceivingAddress: omnibusAddress,
 		Amount:           amount.Float64(),
@@ -588,40 +588,17 @@ func TransferUserToOmnibus(ctx context.Context, b Backends, ec external.Client, 
 		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
 	}
 
-	// TODO remove once we know what to call on the Gatehub side
-	// _ = senderExternalUserID
-	// now := time.Now().UTC().Format(time.RFC3339)
-	// externalTx := &external.Transaction{
-	// 	ID:          "placeholder_" + uuid.New().String(),
-	// 	CreatedAt:   now,
-	// 	CompletedAt: now,
-	// 	Amount:      amount.FormatAmount(),
-	// 	Total:       amount.FormatAmount(),
-	// 	Fee:         "0",
-	// 	SendingWallet: external.Wallet{
-	// 		Address: la.ProviderID,
-	// 	},
-	// 	ReceivingWallet: external.Wallet{
-	// 		Address: omnibusAddress,
-	// 	},
-	// 	Vault: external.Vault{
-	// 		UUID: vaultID,
-	// 	},
-	// 	Status: external.TransactionStatusCompleted,
-	// 	Type:   external.TransactionTypeHosted,
-	// }
-
 	return externalTx, nil
 }
 
-func TransferOmnibusToUser(ctx context.Context, b Backends, ec external.Client, linkedAccountID string, amount currency.Amount, sendingUserID, omnibusAddress, vaultID string) (*external.Transaction, error) {
-	la, err := b.LinkedAccounts().Get(ctx, linkedAccountID)
+func TransferOmnibusToUser(ctx context.Context, b Backends, ec external.Client, receiverLinkedAccountID string, amount currency.Amount, omnibusAddress, vaultID string) (*external.Transaction, error) {
+	la, err := b.LinkedAccounts().Get(ctx, receiverLinkedAccountID)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
 	}
 
 	externalTx, err := ec.CreateTransaction(ctx, external.CreateTransactionRequest{
-		SendingUserID:    sendingUserID,
+		// SendingUserID:    sendingUserID,
 		SendingAddress:   omnibusAddress,
 		ReceivingAddress: la.ProviderID,
 		Amount:           amount.Float64(),
@@ -631,28 +608,6 @@ func TransferOmnibusToUser(ctx context.Context, b Backends, ec external.Client, 
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
 	}
-
-	// // TODO remove once we know what to call on the Gatehub side
-	// now := time.Now().UTC().Format(time.RFC3339)
-	// externalTx := &external.Transaction{
-	// 	ID:          "placeholder_" + uuid.New().String(),
-	// 	CreatedAt:   now,
-	// 	CompletedAt: now,
-	// 	Amount:      amount.FormatAmount(),
-	// 	Total:       amount.FormatAmount(),
-	// 	Fee:         "0",
-	// 	SendingWallet: external.Wallet{
-	// 		Address: omnibusAddress,
-	// 	},
-	// 	ReceivingWallet: external.Wallet{
-	// 		Address: la.ProviderID,
-	// 	},
-	// 	Vault: external.Vault{
-	// 		UUID: vaultID,
-	// 	},
-	// 	Status: external.TransactionStatusCompleted,
-	// 	Type:   external.TransactionTypeHosted,
-	// }
 
 	return externalTx, nil
 }
