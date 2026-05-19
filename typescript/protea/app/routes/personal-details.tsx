@@ -36,7 +36,6 @@ export async function loader({ request }: Route.LoaderArgs) {
     hasGatehubWidget: !!response.gatehubWidget,
     gatehubWidgetUrl: response.gatehubWidget?.widgetUrl,
     hasPersonaWidget: !!response.personaInquiry,
-    hasChimoneyWidget: !!response.chimoneyWidget,
     hasPtiWidget: !!response.ptiWidget,
     flow: 'kyc'
   }, '[KYC] Personal details page loaded')
@@ -51,7 +50,6 @@ export async function loader({ request }: Route.LoaderArgs) {
     provider: response.provider,
     gatehubWidget: response.gatehubWidget,
     personaWidget: response.personaInquiry,
-    chimoneyWidget: response.chimoneyWidget,
     ptiWidget: response.ptiWidget,
     personaSdkUrl:
       process.env.PERSONA_SDK_URL ||
