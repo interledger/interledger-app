@@ -76,41 +76,6 @@ export const meta = mergeMeta(() => [
   }
 ])
 
-function ChimoneyPage() {
-  const submit = useSubmit()
-  const { chimoneyWidget } = useLoaderData()
-
-  useEffect(() => {
-    const onKYCComplete = (e: MessageEvent) => {
-      if (!e.data) return
-
-      if (e.data.kyc) {
-        submit(null, {
-          action: '/personal-details',
-          method: 'post'
-        })
-      }
-    }
-
-    window.addEventListener('message', onKYCComplete)
-
-    return () => {
-      window.removeEventListener('message', onKYCComplete)
-    }
-  }, [submit])
-
-  return (
-    <iframe
-      title='Activate wallet'
-      src={chimoneyWidget}
-      sandbox='allow-top-navigation allow-forms allow-same-origin allow-popups allow-scripts'
-      scrolling='yes'
-      allow='camera;microphone'
-      className='h-[750px] sm:min-w-[400px] md:min-w-[400px]'
-    />
-  )
-}
-
 function PersonaPage() {
   const submit = useSubmit()
   const { personaWidget, personaSdkUrl, mockxagoEndpoint } = useLoaderData<typeof loader>()
@@ -422,8 +387,6 @@ export default function Page() {
 
   if (provider == 'persona') {
     return <PersonaPage />
-  } else if (provider == 'chimoney') {
-    return <ChimoneyPage />
   } else if (provider == 'pti') {
     return <PtiPage />
   } else return <GatehubPage />

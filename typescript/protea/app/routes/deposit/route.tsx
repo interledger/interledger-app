@@ -12,7 +12,6 @@ import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
 import { href } from 'react-router'
 import styles from '~/styles/flags.css?url'
-import { ChimoneyDepositPage } from './chimoney'
 import { FynbosDepositPage } from './fynbos'
 import { GatehubDepositPage } from './gatehub'
 import { KRATOS_URL } from '~/lib/kratos/kratos-client.server'
@@ -67,9 +66,9 @@ export default function Page() {
 
   if (provider == 'gatehub') {
     return <GatehubDepositPage />
-  } else if (provider == 'chimoney') {
-    return <ChimoneyDepositPage />
-  } else return <FynbosDepositPage />
+  }
+
+  return <FynbosDepositPage />
 }
 
 export async function action(args: ActionFunctionArgs) {
