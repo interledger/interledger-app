@@ -3995,12 +3995,14 @@ const file_backend_admin_v1_backend_proto_rawDesc = "" +
 	"\vnationality\x18\v \x01(\tR\vnationality\x12\x1e\n" +
 	"\n" +
 	"walletName\x18\f \x01(\tR\n" +
-	"walletName\"`\n" +
+	"walletName\"\x88\x01\n" +
 	"\x11PaginationRequest\x12\x1a\n" +
 	"\bpageSize\x18\x01 \x01(\x05R\bpageSize\x12!\n" +
-	"\tpageToken\x18\x02 \x01(\tH\x00R\tpageToken\x88\x01\x01B\f\n" +
+	"\tpageToken\x18\x02 \x01(\tH\x00R\tpageToken\x88\x01\x01\x12\x1b\n" +
+	"\x06search\x18\x03 \x01(\tH\x01R\x06search\x88\x01\x01B\f\n" +
 	"\n" +
-	"_pageToken\"r\n" +
+	"_pageTokenB\t\n" +
+	"\a_search\"r\n" +
 	"\x06Wallet\x12\x1a\n" +
 	"\bwalletID\x18\x01 \x01(\tR\bwalletID\x12\x1e\n" +
 	"\n" +

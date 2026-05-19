@@ -2521,6 +2521,11 @@ export class PaginationRequest extends Message<PaginationRequest> {
    */
   pageToken?: string;
 
+  /**
+   * @generated from field: optional string search = 3;
+   */
+  search?: string;
+
   constructor(data?: PartialMessage<PaginationRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -2531,6 +2536,7 @@ export class PaginationRequest extends Message<PaginationRequest> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "pageSize", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
     { no: 2, name: "pageToken", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 3, name: "search", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PaginationRequest {
