@@ -570,14 +570,14 @@ func TransferUserToOmnibus(ctx context.Context, b Backends, ec external.Client, 
 		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
 	}
 
-	// senderExternalUserID, err := getExternalUserID(ctx, b, la.WalletID)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	senderExternalUserID, err := getExternalUserID(ctx, b, la.WalletID)
+	if err != nil {
+		return nil, err
+	}
 
 	// TODO Figure out what Gatehub endpoint we need to call
 	externalTx, err := ec.CreateTransaction(ctx, external.CreateTransactionRequest{
-		// SendingUserID:    senderExternalUserID,
+		SendingUserID:    senderExternalUserID,
 		SendingAddress:   la.ProviderID,
 		ReceivingAddress: omnibusAddress,
 		Amount:           amount.Float64(),
@@ -591,14 +591,14 @@ func TransferUserToOmnibus(ctx context.Context, b Backends, ec external.Client, 
 	return externalTx, nil
 }
 
-func TransferOmnibusToUser(ctx context.Context, b Backends, ec external.Client, receiverLinkedAccountID string, amount currency.Amount, omnibusAddress, vaultID string) (*external.Transaction, error) {
+func TransferOmnibusToUser(ctx context.Context, b Backends, ec external.Client, receiverLinkedAccountID string, amount currency.Amount, sendingUserID, omnibusAddress, vaultID string) (*external.Transaction, error) {
 	la, err := b.LinkedAccounts().Get(ctx, receiverLinkedAccountID)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
 	}
 
 	externalTx, err := ec.CreateTransaction(ctx, external.CreateTransactionRequest{
-		// SendingUserID:    sendingUserID,
+		SendingUserID:    sendingUserID,
 		SendingAddress:   omnibusAddress,
 		ReceivingAddress: la.ProviderID,
 		Amount:           amount.Float64(),
