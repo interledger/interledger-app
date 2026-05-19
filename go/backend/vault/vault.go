@@ -3,7 +3,6 @@ package vault
 import (
 	"encoding/base64"
 	"fmt"
-	"os"
 	"strings"
 
 	vault "github.com/hashicorp/vault/api"
@@ -11,28 +10,30 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
+type Config struct {
+	Addr               string
+	TransitEnginePath  string
+	Token              string
+}
+
 type client struct {
 	vc                *vault.Client
 	transitEnginePath string
 }
 
-func NewClient() (Client, error) {
-
+func NewClient(cfg Config) (Client, error) {
 	// Only login to vault on non-local environments.
 	if !(env.IsLocal() || env.IsTest()) {
-		addr := os.Getenv("VAULT_ADDR")
-		transitEnginePath := os.Getenv("VAULT_TRANSIT_ENGINE_PATH")
-
 		config := vault.DefaultConfig()
-		config.Address = addr
+		config.Address = cfg.Addr
 		config.HttpClient = otelhttp.DefaultClient
 		vc, err := vault.NewClient(config)
 		if err != nil {
 			return nil, fmt.Errorf("unable to initialize Vault client: %w", err)
 		}
-		vc.SetToken(os.Getenv("VAULT_TOKEN"))
+		vc.SetToken(cfg.Token)
 
-		return client{vc: vc, transitEnginePath: transitEnginePath}, nil
+		return client{vc: vc, transitEnginePath: cfg.TransitEnginePath}, nil
 	}
 
 	return client{vc: nil}, nil
