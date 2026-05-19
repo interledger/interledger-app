@@ -245,7 +245,7 @@ func (sc *E2EContext) myWalletShouldAppearInTheWalletsList() error {
 func (sc *E2EContext) theWalletsListShouldShowExactlyOneResult() error {
 	// The wallets page renders '<n> result(s) for "<search>"' only when a search
 	// is active. After filtering to a single wallet the text must be singular.
-	counter := sc.page.Locator(`p:has-text("result for")`).First()
+	counter := sc.page.Locator(`p:has-text(" for ")`).First()
 	if err := counter.WaitFor(playwright.LocatorWaitForOptions{
 		State:   playwright.WaitForSelectorStateVisible,
 		Timeout: playwright.Float(5000),
