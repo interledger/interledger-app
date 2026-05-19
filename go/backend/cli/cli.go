@@ -2,9 +2,11 @@ package cli
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"strconv"
+	"strings"
 
 	"gitlab.com/fynbos/env"
 
@@ -17,6 +19,8 @@ type MigrationArgs struct {
 	KratosUrl               string
 	LogLevel                string
 	LogOutputPath           string
+	SentryDSN               string
+	SentryRelease           string
 }
 
 func ParseMigrationArgs() (*MigrationArgs, error) {
@@ -49,6 +53,8 @@ func ParseMigrationArgs() (*MigrationArgs, error) {
 		LogLevel:                logLevel,
 		LogOutputPath:           logOutputPath,
 		PacioliConnectionString: pacDB,
+		SentryDSN:               os.Getenv("SENTRY_DSN"),
+		SentryRelease:           os.Getenv("SENTRY_RELEASE"),
 	}, nil
 }
 
@@ -120,6 +126,25 @@ type StartArgs struct {
 	OperatorTenantID              string
 	AdminAPISecret                string
 	SignatureVersion              string
+	SentryDSN                     string
+	SentryRelease                 string
+	SlackToken                    string
+	SlackClientID                 string
+	SlackClientSecret             string
+	SlackRedirectURL              string
+	SlackBotRedirectURL           string
+	SignupAgreementIDs            []string
+	VaultAddr                     string
+	VaultTransitEnginePath        string
+	VaultToken                    string
+	RafikiBackendGraphQLURL       string
+	RafikiAuthGraphQLURL          string
+	ChimoneyWebhookSecret         string
+	ChimoneyToken                 string
+	RafikiDBURL                   string
+	RafikiAuthDBURL               string
+	TempGatehubAppID              string
+	TempGatehubSecret             string
 }
 
 func ParseStartArgs() (*StartArgs, error) {
@@ -130,6 +155,38 @@ func ParseStartArgs() (*StartArgs, error) {
 			log.Fatal("Error loading .env file")
 			return nil, err
 		}
+	}
+
+	// Configure the env package before calling any env.Is* helpers below.
+	fynbosEnvValue := os.Getenv("FYNBOS_ENV")
+	switch fynbosEnvValue {
+	case "prod", "sandbox", "dev", "local", "test":
+		// valid
+	case "":
+		return nil, errors.New("FYNBOS_ENV is required; must be one of: prod, sandbox, dev, local, test")
+	default:
+		return nil, fmt.Errorf("FYNBOS_ENV=%q is invalid; must be one of: prod, sandbox, dev, local, test", fynbosEnvValue)
+	}
+	env.SetFynbosEnv(fynbosEnvValue)
+
+	allowedWalletIDsRaw := os.Getenv("ALLOWED_WALLET_IDS")
+	if allowedWalletIDsRaw != "" {
+		env.SetAllowedWalletIDs(parseList(allowedWalletIDsRaw))
+	}
+
+	blockedRegionsRaw := os.Getenv("BLOCKED_REGIONS")
+	if blockedRegionsRaw != "" {
+		env.SetBlockedRegions(parseList(blockedRegionsRaw))
+	}
+
+	if v := os.Getenv("OPEN_PAYMENTS_BASE_URL"); v != "" {
+		env.SetOpenPaymentsURL(v)
+	}
+	if v := os.Getenv("AUTH_BASE_URL"); v != "" {
+		env.SetAuthURL(v)
+	}
+	if v := os.Getenv("ADMIN_BASE_URL"); v != "" {
+		env.SetAdminURL(v)
 	}
 
 	applicationURL := os.Getenv("APPLICATION_URL")
@@ -155,11 +212,11 @@ func ParseStartArgs() (*StartArgs, error) {
 
 	kratosUrl := os.Getenv("KRATOS_URL")
 	if kratosUrl == "" {
-		kratosUrl = "http://localhost:4433"
+		return nil, errors.New("KRATOS_URL is required.")
 	}
 	kratosAdminUrl := os.Getenv("KRATOS_ADMIN_URL")
 	if kratosAdminUrl == "" {
-		kratosAdminUrl = "http://localhost:4433"
+		return nil, errors.New("KRATOS_ADMIN_URL is required.")
 	}
 
 	logLevel := os.Getenv("LOG_LEVEL")
@@ -193,7 +250,7 @@ func ParseStartArgs() (*StartArgs, error) {
 
 	personaBaseURL := os.Getenv("PERSONA_BASE_URL")
 	if personaBaseURL == "" {
-		personaBaseURL = "https://api.withpersona.com/api/v1/"
+		return nil, errors.New("PERSONA_BASE_URL is required")
 	}
 
 	personaToken := os.Getenv("PERSONA_TOKEN")
@@ -467,6 +524,18 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, errors.New("SIGNATURE_VERSION is required")
 	}
 
+	rafikiBackendGraphQLURL := os.Getenv("RAFIKI_BACKEND_GRAPHQL_URL")
+	if rafikiBackendGraphQLURL == "" {
+		return nil, errors.New("RAFIKI_BACKEND_GRAPHQL_URL is required")
+	}
+
+	rafikiAuthGraphQLURL := os.Getenv("RAFIKI_AUTH_GRAPHQL_URL")
+	if rafikiAuthGraphQLURL == "" {
+		return nil, errors.New("RAFIKI_AUTH_GRAPHQL_URL is required")
+	}
+
+	signupAgreementIDs := parseSignupAgreementIDs(os.Getenv("SIGNUP_AGREEMENT_IDS"))
+
 	return &StartArgs{
 		Port:                          port,
 		DbConnectionString:            dbUrl,
@@ -535,5 +604,42 @@ func ParseStartArgs() (*StartArgs, error) {
 		OperatorTenantID:              operatorTenantID,
 		AdminAPISecret:                adminAPISecret,
 		SignatureVersion:              signatureVersion,
+		SentryDSN:                     os.Getenv("SENTRY_DSN"),
+		SentryRelease:                 os.Getenv("SENTRY_RELEASE"),
+		SlackToken:                    os.Getenv("SLACK_TOKEN"),
+		SlackClientID:                 os.Getenv("SLACK_CLIENT_ID"),
+		SlackClientSecret:             os.Getenv("SLACK_CLIENT_SECRET"),
+		SlackRedirectURL:              os.Getenv("SLACK_REDIRECT_URL"),
+		SlackBotRedirectURL:           os.Getenv("SLACK_BOT_REDIRECT_URL"),
+		SignupAgreementIDs:            signupAgreementIDs,
+		VaultAddr:                     os.Getenv("VAULT_ADDR"),
+		VaultTransitEnginePath:        os.Getenv("VAULT_TRANSIT_ENGINE_PATH"),
+		VaultToken:                    os.Getenv("VAULT_TOKEN"),
+		RafikiBackendGraphQLURL:       rafikiBackendGraphQLURL,
+		RafikiAuthGraphQLURL:          rafikiAuthGraphQLURL,
+		ChimoneyWebhookSecret:         os.Getenv("CHIMONEY_WEBHOOK_SECRET"),
+		ChimoneyToken:                 os.Getenv("CHIMONEY_TOKEN"),
+		RafikiDBURL:                   os.Getenv("RAFIKI_DB_URL"),
+		RafikiAuthDBURL:               os.Getenv("RAFIKI_AUTH_DB_URL"),
+		TempGatehubAppID:              os.Getenv("TEMP_GATEHUB_APP_ID"),
+		TempGatehubSecret:             os.Getenv("TEMP_GATEHUB_SECRET"),
 	}, nil
+}
+
+func parseList(input string) []string {
+	input = strings.ReplaceAll(input, " ", "")
+	return strings.Split(input, ",")
+}
+
+func parseSignupAgreementIDs(raw string) []string {
+	if raw == "" {
+		return nil
+	}
+	var ids []string
+	for _, s := range strings.Split(raw, ",") {
+		if id := strings.TrimSpace(s); id != "" {
+			ids = append(ids, id)
+		}
+	}
+	return ids
 }

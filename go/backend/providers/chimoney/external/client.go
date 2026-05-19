@@ -8,7 +8,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 
 	"gitlab.com/fynbos/backend/currency"
@@ -35,7 +34,7 @@ type client struct {
 	api     *http.Client
 }
 
-func New(transport *http.Client) Client {
+func New(apiKey string, transport *http.Client) Client {
 	baseURL := "https://api.chimoney.io/v0.2.4"
 	if !env.IsProd() {
 		baseURL = "https://api-v2-sandbox.chimoney.io/v0.2.4"
@@ -49,7 +48,7 @@ func New(transport *http.Client) Client {
 	return &client{
 		api:     api,
 		baseURL: baseURL,
-		apiKey:  os.Getenv("CHIMONEY_TOKEN"),
+		apiKey:  apiKey,
 	}
 }
 

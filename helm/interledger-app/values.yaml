@@ -244,9 +244,6 @@ backend:
       token_ref: "personaToken"
       webhook_token_ref: "personaWebhookToken"
 
-    cdn:
-      key_ref: "cdnKey"
-
     xago:
       api_base_url: ""
       identity_base_url: ""
@@ -376,12 +373,6 @@ backend:
           secretKeyRef:
             name: '{{ include "common.fullname" . }}-backend'
             key: "{{ .Values.backend.config.persona.webhook_token_ref }}"
-      # DEPRECATED
-      - name: CDN_KEY
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.cdn.key_ref }}"
       - name: SENTRY_DSN
         valueFrom:
           secretKeyRef:
@@ -650,11 +641,6 @@ backend:
           secretKeyRef:
             name: '{{ include "common.fullname" . }}-backend'
             key: "{{ .Values.backend.config.persona.webhook_token_ref }}"
-      - name: CDN_KEY
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.cdn.key_ref }}"
       - name: SENTRY_DSN
         valueFrom:
           secretKeyRef:

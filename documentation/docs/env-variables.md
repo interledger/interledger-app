@@ -171,12 +171,6 @@ The Go backend is the core of the wallet, handling payments, provider integratio
 | `PERSONA_BASE_URL` | Persona API base URL override used by backend Persona client | No | Default when unset: `https://api.withpersona.com/api/v1/`; Local default in compose: `http://mockxago:8080/v1/` |
 | `PERSONA_SANDBOX_ZA_FAKE_ZA_ID` | **Persona sandbox workaround only.** When `true`, the backend generates a synthetic South African ID number instead of fetching one from Persona. This is required in the Persona sandbox environment because Persona's sandbox always returns an American user profile — meaning the South African ID field is always null. Without this flag, Xago subaccount creation fails for all sandbox users since a valid ZA ID is a required field. Has no effect in production, where Persona returns real ZA ID documents. | No | Default: `false`; Set to `true` in sandbox |
 
-### CDN
-
-| Variable | Description | Secret | Notes |
-|---|---|---|---|
-| `CDN_KEY` | CDN authentication key for signed asset URLs | Yes | Not set locally |
-
 ### Slack (Notifications)
 
 | Variable | Description | Secret | Notes |
