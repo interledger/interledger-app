@@ -10,13 +10,10 @@ import { Layouts } from '~/components'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
-import { href } from 'react-router'
 import styles from '~/styles/flags.css?url'
 import { FynbosDepositPage } from './fynbos'
 import { GatehubDepositPage } from './gatehub'
 import { KRATOS_URL } from '~/lib/kratos/kratos-client.server'
-import { getKycStatus } from '~/data/wallet.server'
-import { KycStatus } from '~/lib/types'
 import { fynbosDepositLoader, gatehubDepositLoader } from './loader.server';
 import { fynbosDepositAction, xagoTestAccountDepositAction } from './action.server';
 
@@ -28,10 +25,6 @@ export async function loader(args: LoaderFunctionArgs) {
   if (session.status === 401) {
     return redirect('/login')
   }
-  const { kycStatus } = await getKycStatus(args.request)
-  if (kycStatus != KycStatus.Approved)
-    return redirect(href('/personal-details'))
-
   const providerResponse = await grpc.getOnOffRampProvider(args.request, {})
   if (isConnectError(providerResponse)) throw providerResponse.error
   if (providerResponse.provider == 'gatehub') {

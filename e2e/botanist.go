@@ -161,38 +161,58 @@ func (sc *E2EContext) iNavigateToTheBotanistWalletsPage() error {
 	return nil
 }
 
-// iFilterTheWalletsListBy types searchTerm into the filter input and waits for
-// the client-side React re-render to apply.
+// iFilterTheWalletsListBy types searchTerm into the search input and submits
+// the form, triggering a server-side search and page reload.
 func (sc *E2EContext) iFilterTheWalletsListBy(searchTerm string) error {
-	debugPrintf("🔍 Filtering wallets by: %q\n", searchTerm)
+	debugPrintf("🔍 Searching wallets by: %q\n", searchTerm)
 
-	filterInput := sc.page.Locator("input[aria-label='Filter wallets']")
-	if err := filterInput.WaitFor(playwright.LocatorWaitForOptions{
+	searchInput := sc.page.Locator("input[aria-label='Search wallets']")
+	if err := searchInput.WaitFor(playwright.LocatorWaitForOptions{
 		State:   playwright.WaitForSelectorStateVisible,
 		Timeout: playwright.Float(5000),
 	}); err != nil {
-		return fmt.Errorf("filter input not found: %w", err)
+		return fmt.Errorf("search input not found: %w", err)
 	}
 
-	if err := filterInput.Fill(searchTerm); err != nil {
-		return fmt.Errorf("failed to fill filter input: %w", err)
+	if err := searchInput.Fill(searchTerm); err != nil {
+		return fmt.Errorf("failed to fill search input: %w", err)
 	}
 
-	// React re-renders synchronously on input, but give the browser a tick.
-	sc.page.WaitForTimeout(300)
+	if err := searchInput.Press("Enter"); err != nil {
+		return fmt.Errorf("failed to submit search: %w", err)
+	}
 
-	debugPrintf("✓ Filter applied: %q\n", searchTerm)
+	if err := sc.page.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
+		State:   playwright.LoadStateNetworkidle,
+		Timeout: playwright.Float(15000),
+	}); err != nil {
+		return fmt.Errorf("wallets page did not reload after search: %w", err)
+	}
+
+	debugPrintf("✓ Search applied: %q\n", searchTerm)
 	return nil
 }
 
-// iFilterTheWalletsListByMyEmail filters the wallets list using the current
-// impersonated user's email address.
-func (sc *E2EContext) iFilterTheWalletsListByMyEmail() error {
+// iFilterTheWalletsListByMyWalletName filters the wallets list using the
+// current impersonated user's wallet name, which is searchable at the DB level.
+func (sc *E2EContext) iFilterTheWalletsListByMyWalletName() error {
 	email, err := sc.getCurrentUserEmail()
 	if err != nil {
-		return fmt.Errorf("cannot filter by email: %w", err)
+		return fmt.Errorf("cannot resolve current user email: %w", err)
 	}
-	return sc.iFilterTheWalletsListBy(email)
+
+	kratosID := sc.getKratosUserIDByEmail(email)
+	if kratosID == "" {
+		return fmt.Errorf("cannot resolve kratos ID for email %q", email)
+	}
+
+	details, err := sc.getWalletDetailsForUser(kratosID)
+	if err != nil {
+		return fmt.Errorf("cannot get wallet details for user %q: %w", email, err)
+	}
+
+	debugPrintf("🔍 Searching wallets by wallet name %q (user: %s)\n", details.Name, email)
+	return sc.iFilterTheWalletsListBy(details.Name)
 }
 
 // myWalletShouldAppearInTheWalletsList asserts that a table row containing the
@@ -216,5 +236,55 @@ func (sc *E2EContext) myWalletShouldAppearInTheWalletsList() error {
 	}
 
 	debugPrintf("✓ Wallet for %q is visible in the list\n", email)
+	return nil
+}
+
+// theWalletsListShouldShowExactlyOneResult asserts that the search result counter
+// reads "1 result for …" (singular). This catches the regression where the filter
+// is silently ignored and all wallets are returned instead of only the match.
+func (sc *E2EContext) theWalletsListShouldShowExactlyOneResult() error {
+	// The wallets page renders '<n> result(s) for "<search>"' only when a search
+	// is active. After filtering to a single wallet the text must be singular.
+	counter := sc.page.Locator(`p:has-text(" for ")`).First()
+	if err := counter.WaitFor(playwright.LocatorWaitForOptions{
+		State:   playwright.WaitForSelectorStateVisible,
+		Timeout: playwright.Float(5000),
+	}); err != nil {
+		_ = sc.iTakeAScreenshot("result-counter-not-found")
+		return fmt.Errorf("result counter not visible after search: %w", err)
+	}
+
+	text, err := counter.TextContent()
+	if err != nil {
+		return fmt.Errorf("failed to read result counter: %w", err)
+	}
+
+	trimmed := strings.TrimSpace(text)
+	if !strings.HasPrefix(trimmed, "1 result for") {
+		_ = sc.iTakeAScreenshot("unexpected-result-count")
+		return fmt.Errorf("filter did not narrow to 1 result — counter says: %q", trimmed)
+	}
+
+	debugPrintf("✓ Result counter shows exactly 1 result: %q\n", trimmed)
+	return nil
+}
+
+// theWalletsListShouldHaveMoreThanOneResult asserts that the unfiltered wallets
+// table contains at least two rows. This is a pre-condition for the filter tests:
+// if the list already has only one wallet, filtering to one result would not prove
+// the filter is working.
+func (sc *E2EContext) theWalletsListShouldHaveMoreThanOneResult() error {
+	// Data rows are <tr> elements inside <tbody> that are NOT the pagination row.
+	rows := sc.page.Locator(`tbody tr:not([aria-label="Pagination"])`)
+	count, err := rows.Count()
+	if err != nil {
+		return fmt.Errorf("failed to count wallet rows: %w", err)
+	}
+	if count < 2 {
+		_ = sc.iTakeAScreenshot("too-few-wallets-unfiltered")
+		return fmt.Errorf("expected at least 2 wallets in the unfiltered list, got %d — filter test would be meaningless", count)
+	}
+
+	debugPrintf("✓ Unfiltered list has %d wallet rows\n", count)
 	return nil
 }
