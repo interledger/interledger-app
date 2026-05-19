@@ -44,6 +44,9 @@ type E2EContext struct {
 	userDetails map[string]*UserDetails
 	currentUser string // Currently impersonated user
 
+	// Botanist admin portal
+	botanistBaseURL string
+
 	// Payment flow state
 	receiverWalletAddress string // Wallet address/identifier for payment receiver
 	ptiDepositRequestID   string // PTI deposit requestId, captured from /deposit/:id URL
@@ -156,6 +159,7 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 
 	// Login steps
 	ctx.Step(`^I clear the browser session$`, func() error { return sc.iClearTheBrowserSession() })
+	ctx.Step(`^I start a new browser session$`, func() error { return sc.iStartANewBrowserSession() })
 	ctx.Step(`^I navigate to (https?://.+)$`, func(url string) error { return sc.iNavigateToURL(url) })
 	ctx.Step(`^I navigate to the login page$`, func() error { return sc.iNavigateToTheLoginPage() })
 	ctx.Step(`^I fill in my login credentials$`, func() error { return sc.iFillInMyLoginCredentials() })
@@ -367,6 +371,67 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	})
 	ctx.Step(`^I should see the snackbar "([^"]*)"$`, func(message string) error {
 		return sc.iShouldSeeTheSnackbar(message)
+	})
+
+	// Botanist admin portal steps
+	ctx.Step(`^the admin portal is running at "([^"]*)"$`, func(url string) error {
+		return sc.theAdminPortalIsRunningAt(url)
+	})
+	ctx.Step(`^I navigate to the admin portal$`, func() error {
+		return sc.iNavigateToTheAdminPortal()
+	})
+	ctx.Step(`^the navigation menu should be visible$`, func() error {
+		return sc.theNavigationMenuShouldBeVisible()
+	})
+	ctx.Step(`^the "([^"]*)" menu item should be visible$`, func(label string) error {
+		return sc.theMenuItemShouldBeVisible(label)
+	})
+	ctx.Step(`^the page title should be "([^"]*)"$`, func(title string) error {
+		return sc.thePageTitleShouldBe(title)
+	})
+
+	// Botanist wallets filter steps
+	ctx.Step(`^I navigate to the botanist wallets page$`, func() error {
+		return sc.iNavigateToTheBotanistWalletsPage()
+	})
+	ctx.Step(`^I filter the wallets list by "([^"]*)"$`, func(term string) error {
+		return sc.iFilterTheWalletsListBy(term)
+	})
+	ctx.Step(`^I filter the wallets list by my wallet name$`, func() error {
+		return sc.iFilterTheWalletsListByMyWalletName()
+	})
+	ctx.Step(`^my wallet should appear in the wallets list$`, func() error {
+		return sc.myWalletShouldAppearInTheWalletsList()
+	})
+	ctx.Step(`^the wallets list should show exactly 1 result$`, func() error {
+		return sc.theWalletsListShouldShowExactlyOneResult()
+	})
+	ctx.Step(`^the wallets list should have more than 1 result$`, func() error {
+		return sc.theWalletsListShouldHaveMoreThanOneResult()
+	})
+	ctx.Step(`^I navigate to my wallet profile page in the admin portal$`, func() error {
+		return sc.iNavigateToMyWalletProfileInAdminPortal()
+	})
+	ctx.Step(`^the reset authenticator button should be visible$`, func() error {
+		return sc.theResetAuthenticatorButtonShouldBeVisible()
+	})
+	ctx.Step(`^I click the reset authenticator button$`, func() error {
+		return sc.iClickTheResetAuthenticatorButton()
+	})
+	ctx.Step(`^the authenticator reset confirmation modal should be visible$`, func() error {
+		return sc.theAuthenticatorResetConfirmationModalShouldBeVisible()
+	})
+	ctx.Step(`^I confirm the authenticator reset$`, func() error {
+		return sc.iConfirmTheAuthenticatorReset()
+	})
+	ctx.Step(`^the reset authenticator button should not be visible$`, func() error {
+		return sc.theResetAuthenticatorButtonShouldNotBeVisible()
+	})
+	ctx.Step(`^my TOTP should be disabled$`, func() error {
+		return sc.myTotpShouldBeDisabled()
+	})
+	ctx.Step(`^an authenticator reset audit log entry should exist$`, func() error {
+		return sc.anAuthenticatorResetAuditLogEntryShouldExist()
 	})
 }
 
