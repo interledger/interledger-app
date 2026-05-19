@@ -34,8 +34,10 @@ Feature: Botanist Wallets Filter
     And I navigate to the botanist wallets page
     And I take a screenshot "wallets-page-unfiltered"
     Then my wallet should appear in the wallets list
+    And the wallets list should have more than 1 result
     And I take a screenshot "wallet-visible-unfiltered"
     When I filter the wallets list by my wallet name
     And I take a screenshot "filter-applied"
     Then my wallet should appear in the wallets list
+    And the wallets list should show exactly 1 result
     And I take a screenshot "wallet-visible-filtered"

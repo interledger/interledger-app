@@ -402,6 +402,12 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^my wallet should appear in the wallets list$`, func() error {
 		return sc.myWalletShouldAppearInTheWalletsList()
 	})
+	ctx.Step(`^the wallets list should show exactly 1 result$`, func() error {
+		return sc.theWalletsListShouldShowExactlyOneResult()
+	})
+	ctx.Step(`^the wallets list should have more than 1 result$`, func() error {
+		return sc.theWalletsListShouldHaveMoreThanOneResult()
+	})
 }
 
 // Background step implementations

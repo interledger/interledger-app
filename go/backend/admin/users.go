@@ -3,6 +3,7 @@ package admin
 import (
 	"context"
 	"errors"
+	"net/mail"
 	"sort"
 	"time"
 
@@ -21,6 +22,21 @@ import (
 
 func (s *AdminRpcService) ListWallets(ctx context.Context, req *adminv1.PaginationRequest) (*adminv1.ListWalletsResponse, error) {
 	page := db.FromAdminPB(req)
+
+	// Email addresses are stored in Kratos, not in the wallets table. When the
+	// search term parses as a valid RFC 5322 address, resolve it to a wallet ID
+	// first so that the normal name/ID filter path can handle it.
+	if _, err := mail.ParseAddress(page.Search); err == nil {
+		walletID, err := s.b.Users().FindWalletIDByEmail(ctx, page.Search)
+		if err != nil {
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+		if walletID == "" {
+			return &adminv1.ListWalletsResponse{}, nil
+		}
+		page.Search = walletID
+	}
+
 	wallets, err := s.b.Wallets().ListAll(ctx, page)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
