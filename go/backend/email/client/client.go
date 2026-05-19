@@ -103,3 +103,7 @@ func (c *client) SendPending3DSConfirmation(ctx context.Context, walletID, confi
 func (c *client) SendKYCDocumentsRequiredEmail(ctx context.Context, walletID string) {
 	ops.SendKYCDocumentsRequiredEmail(ctx, c.b, walletID)
 }
+
+func (c *client) SendAuthenticatorResetEmail(ctx context.Context, walletID string) {
+	ops.SendAuthenticatorResetEmail(ctx, c.b, walletID)
+}

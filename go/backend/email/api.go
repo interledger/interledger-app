@@ -27,4 +27,5 @@ type Client interface {
 	SendCardCreatedEmail(ctx context.Context, walletID, cardID string)
 	SendPending3DSConfirmation(ctx context.Context, walletID, confirmationID string)
 	SendKYCDocumentsRequiredEmail(ctx context.Context, walletID string)
+	SendAuthenticatorResetEmail(ctx context.Context, walletID string)
 }
