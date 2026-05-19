@@ -284,21 +284,39 @@ async function setWalletCountryAction({ request, params }: ActionArgs) {
   return null
 }
 //
-async function deleteTotpAction({ request }: ActionArgs) {
+async function deleteTotpAction({ request, params }: ActionArgs) {
   const form = await request.formData()
   const walletId = form.get('walletId') as string
   const identityId = form.get('identityId') as string
+  const routeWalletId = params.id as string
 
   if (!identityId) {
     return json({ success: false, error: 'Identity ID is required' }, { status: 400 })
   }
 
-  if (!walletId) {
+  if (!routeWalletId) {
     return json({ success: false, error: 'Wallet ID is required' }, { status: 400 })
   }
 
+  if (walletId && walletId !== routeWalletId) {
+    return json(
+      { success: false, error: 'Wallet ID does not match the requested wallet' },
+      { status: 400 }
+    )
+  }
+
+  const wallet = await GetWalletDetails(request, routeWalletId)
+  const walletIdentityIds = new Set(wallet.users.map((user) => user.id))
+
+  if (!walletIdentityIds.has(identityId)) {
+    return json(
+      { success: false, error: 'Identity does not belong to this wallet' },
+      { status: 400 }
+    )
+  }
+
   try {
-    await DeleteUserTotp(request, identityId, walletId)
+    await DeleteUserTotp(request, identityId, routeWalletId)
     return json({ success: true })
   } catch (error) {
     const message =

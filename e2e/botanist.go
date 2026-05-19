@@ -461,6 +461,6 @@ func (sc *E2EContext) anAuthenticatorResetAuditLogEntryShouldExist() error {
 		return fmt.Errorf("expected at least one authenticator reset audit log entry for wallet %s", details.ID)
 	}
 
-	debugPrintf("✓ Found %d authenticator reset audit log entrie(s) for wallet %s\n", count, details.ID)
+	debugPrintf("✓ Found %d authenticator reset audit log entry(ies) for wallet %s\n", count, details.ID)
 	return nil
 }

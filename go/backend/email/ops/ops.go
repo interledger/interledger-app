@@ -537,9 +537,9 @@ func SendAuthenticatorResetEmail(ctx context.Context, b Backends, walletID strin
 		return
 	}
 
-	securityURL, err := url.JoinPath(env.GetUrl(), "profile")
+	securityURL, err := url.JoinPath(env.GetUrl(), "settings")
 	if err != nil {
-		log.Error("Failed to build profile URL for authenticator reset email.", zap.Error(err), zap.String("walletID", walletID))
+		log.Error("Failed to build settings URL for authenticator reset email.", zap.Error(err), zap.String("walletID", walletID))
 		return
 	}
 
