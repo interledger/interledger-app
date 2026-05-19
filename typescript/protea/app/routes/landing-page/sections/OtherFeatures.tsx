@@ -1,6 +1,8 @@
 import { useRef } from "react"
 import { useInView } from "framer-motion"
 import { PageSection } from "../components/PageSection"
+import appStoreBadgeIcon from "../assets/app-store-badge-icon.svg"
+import googlePlayBadgeIcon from "../assets/google-play-badge-icon.svg"
 
 export function OtherFeatures() {
   const ref = useRef<HTMLDivElement>(null)
@@ -14,11 +16,11 @@ export function OtherFeatures() {
       >
         <header className="other-features-header">
           <div className="other-features-left">
-            <div className="other-features-headline-stack">
-              <h2 className="text-h2 other-features-headline">Open standards.</h2>
-              <h2 className="text-h2 other-features-headline">Solid foundations.</h2>
-              <h2 className="text-h2 other-features-headline">Intentionally simple.</h2>
-            </div>
+            <h2 className="text-h2 other-features-headline-stack">
+              <span className="other-features-headline">Open standards.</span>
+              <span className="other-features-headline">Solid foundations.</span>
+              <span className="other-features-headline">Intentionally simple.</span>
+            </h2>
           </div>
           <div className="other-features-right">
             <p className="other-features-description">
@@ -41,15 +43,41 @@ export function OtherFeatures() {
           </a>
 
           <div className="other-features-badges">
-            <a href="#" className="app-badge app-badge--ios">
-              <span className="app-badge__icon"></span>
+            <a
+              href="#"
+              className="app-badge app-badge--ios"
+              aria-label="Download on the App Store"
+            >
+              <span className="app-badge__icon" aria-hidden="true">
+                <img
+                  src={appStoreBadgeIcon}
+                  alt=""
+                  width="24"
+                  height="24"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </span>
               <div className="app-badge__text">
                 <span className="app-badge__sub">Download on the</span>
                 <span className="app-badge__main">App Store</span>
               </div>
             </a>
-            <a href="#" className="app-badge app-badge--android">
-              <span className="app-badge__icon">▶</span>
+            <a
+              href="#"
+              className="app-badge app-badge--android"
+              aria-label="Get it on Google Play"
+            >
+              <span className="app-badge__icon" aria-hidden="true">
+                <img
+                  src={googlePlayBadgeIcon}
+                  alt=""
+                  width="24"
+                  height="24"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </span>
               <div className="app-badge__text">
                 <span className="app-badge__sub">GET IT ON</span>
                 <span className="app-badge__main">Google Play</span>
