@@ -238,3 +238,53 @@ func (sc *E2EContext) myWalletShouldAppearInTheWalletsList() error {
 	debugPrintf("✓ Wallet for %q is visible in the list\n", email)
 	return nil
 }
+
+// theWalletsListShouldShowExactlyOneResult asserts that the search result counter
+// reads "1 result for …" (singular). This catches the regression where the filter
+// is silently ignored and all wallets are returned instead of only the match.
+func (sc *E2EContext) theWalletsListShouldShowExactlyOneResult() error {
+	// The wallets page renders '<n> result(s) for "<search>"' only when a search
+	// is active. After filtering to a single wallet the text must be singular.
+	counter := sc.page.Locator(`p:has-text("result for")`).First()
+	if err := counter.WaitFor(playwright.LocatorWaitForOptions{
+		State:   playwright.WaitForSelectorStateVisible,
+		Timeout: playwright.Float(5000),
+	}); err != nil {
+		_ = sc.iTakeAScreenshot("result-counter-not-found")
+		return fmt.Errorf("result counter not visible after search: %w", err)
+	}
+
+	text, err := counter.TextContent()
+	if err != nil {
+		return fmt.Errorf("failed to read result counter: %w", err)
+	}
+
+	trimmed := strings.TrimSpace(text)
+	if !strings.HasPrefix(trimmed, "1 result for") {
+		_ = sc.iTakeAScreenshot("unexpected-result-count")
+		return fmt.Errorf("filter did not narrow to 1 result — counter says: %q", trimmed)
+	}
+
+	debugPrintf("✓ Result counter shows exactly 1 result: %q\n", trimmed)
+	return nil
+}
+
+// theWalletsListShouldHaveMoreThanOneResult asserts that the unfiltered wallets
+// table contains at least two rows. This is a pre-condition for the filter tests:
+// if the list already has only one wallet, filtering to one result would not prove
+// the filter is working.
+func (sc *E2EContext) theWalletsListShouldHaveMoreThanOneResult() error {
+	// Data rows are <tr> elements inside <tbody> that are NOT the pagination row.
+	rows := sc.page.Locator(`tbody tr:not([aria-label="Pagination"])`)
+	count, err := rows.Count()
+	if err != nil {
+		return fmt.Errorf("failed to count wallet rows: %w", err)
+	}
+	if count < 2 {
+		_ = sc.iTakeAScreenshot("too-few-wallets-unfiltered")
+		return fmt.Errorf("expected at least 2 wallets in the unfiltered list, got %d — filter test would be meaningless", count)
+	}
+
+	debugPrintf("✓ Unfiltered list has %d wallet rows\n", count)
+	return nil
+}
