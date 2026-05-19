@@ -1,0 +1,66 @@
+suite: Interledger App - Frontend Deployment
+templates:
+  - deployment.frontend.yaml
+set:
+  fullnameOverride: wallet
+release:
+  name: wallet
+tests:
+  - it: 'Should create a Deployment called wallet-frontend-server'
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - equal:
+          path: metadata.name
+          value: wallet-frontend-server
+
+  - it: 'Should provide readinessProbe and livenessProbe on /healthz:3000'
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.path
+          value: /healthz
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.port
+          value: 3000
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.path
+          value: /healthz
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.port
+          value: 3000
+
+  - it: 'Should set topologySpreadConstraints'
+    asserts:
+      - equal:
+          path: spec.template.spec.topologySpreadConstraints[0].topologyKey
+          value: kubernetes.io/hostname
+      - equal:
+          path: spec.template.spec.topologySpreadConstraints[0].whenUnsatisfiable
+          value: DoNotSchedule
+
+  - it: 'Should contain the configmap hash annotation'
+    asserts:
+      - exists:
+          path: spec.template.metadata.annotations["ilf-configmap-frontend-sha256"]
+
+  - it: 'Should honour image override on the server spec'
+    set:
+      frontend:
+        server:
+          image:
+            repository: europe-west4-docker.pkg.dev/wallet-451208/interledger-app
+            name: zulu
+            tag: v0.2.2
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: europe-west4-docker.pkg.dev/wallet-451208/interledger-app/zulu:v0.2.2
+
+  - it: 'Should produce no Deployment when frontend is disabled'
+    set:
+      frontend:
+        enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0

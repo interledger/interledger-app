@@ -27,7 +27,7 @@ import (
 	"go.uber.org/zap"
 )
 
-const testingConnectionString = "postgres://postgres:password@0.0.0.0:5432/%s?sslmode=disable"
+const testingConnectionString = "postgres://postgres:password@127.0.0.1:55432/%s?sslmode=disable"
 
 func Migrate(ctx context.Context, connString string) error {
 	_, moduleDir, _, ok := runtime.Caller(0)
@@ -100,7 +100,7 @@ func Migrate(ctx context.Context, connString string) error {
 	}
 
 	err = seedSysAccounts(ctx, db)
-	
+
 	if err == nil {
 		log.Info("MIGRATION APPLIED for backend")
 	}

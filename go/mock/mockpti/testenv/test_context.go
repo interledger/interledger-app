@@ -32,7 +32,7 @@ type TestContext struct {
 	depositAmount            float64
 	lastUpdateID             string
 	lastWebhook              map[string]interface{}
-	lastWebhookEncrypted     bool
+	lastWebhookSigned        bool
 }
 
 // Reset initializes the test context to a clean state.
@@ -55,7 +55,7 @@ func (tc *TestContext) Reset() {
 	tc.depositAmount = 0
 	tc.lastUpdateID = ""
 	tc.lastWebhook = nil
-	tc.lastWebhookEncrypted = false
+	tc.lastWebhookSigned = false
 }
 
 // resetBackend calls the /test/reset endpoint to clear all mock data.
