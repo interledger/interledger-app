@@ -4,8 +4,10 @@ import { json } from '@remix-run/node'
 import { Form, useFetcher, useLoaderData } from '@remix-run/react'
 import { useCallback, useEffect, useState } from 'react'
 import { route } from 'routes-gen'
-import { Autocomplete, GridCard, Switch } from '~/components'
+import { Autocomplete, Button, Dialog, GridCard, Switch, TextButton } from '~/components'
 import {
+  CheckUserTotpEnabled,
+  DeleteUserTotp,
   GetWalletDetails,
   GetWalletFeatures,
   SetWalletFeatures,
@@ -18,11 +20,20 @@ export async function loader({ request, params }: LoaderArgs) {
   const features = await GetWalletFeatures(request, params.id as string)
   const countries = await ListCountries(request)
   const identityId = wallet.users?.[0]?.id
+  let hasTotpEnabled = false
+
+  if (identityId) {
+    hasTotpEnabled = await CheckUserTotpEnabled(
+      request,
+      identityId,
+      params.id as string
+    )
+  }
 
   return json({
     wallet,
     features,
-    hasTotpEnabled: false,
+    hasTotpEnabled,
     countries: countries.countries.map((value) => ({
       id: value.code,
       name: value.name
@@ -32,14 +43,18 @@ export async function loader({ request, params }: LoaderArgs) {
 }
 
 export default function Page() {
-  const { wallet, features, countries } = useLoaderData<typeof loader>()
+  const { wallet, features, countries, hasTotpEnabled, identityId } =
+    useLoaderData<typeof loader>()
+  const [isTotpEnabled, setIsTotpEnabled] = useState(hasTotpEnabled)
   const [country, setCountry] = useState<{ id: string; name: string }>()
   const [query, setQuery] = useState<string>('')
   const [filteredCountries, setFilteredCountries] = useState<
     { id: string; name: string }[]
   >([])
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false)
 
   const fetcher = useFetcher()
+  const resetFetcher = useFetcher<{ success?: boolean; error?: string }>()
 
   const _onChangeFeatureSwitch = useCallback<{
     (key: string, val: boolean): void
@@ -61,24 +76,18 @@ export default function Page() {
     )
   }
 
-  // const _onDeleteTotp = () => {
-  //   if (!identityId) return
-  //   if (
-  //     !confirm(
-  //       'Are you sure you want to delete TOTP enrollment for the selected user? He will have to re-enable TOTP.'
-  //     )
-  //   )
-  //     return
-  //
-  //   fetcher.submit(
-  //     {
-  //       identityId: identityId,
-  //       walletId: wallet.walletID,
-  //       formName: 'deleteTotp'
-  //     },
-  //     { method: 'post' }
-  //   )
-  // }
+  const _onConfirmResetAuthenticator = () => {
+    if (!identityId || !isTotpEnabled) return
+
+    resetFetcher.submit(
+      {
+        identityId,
+        walletId: wallet.walletID,
+        formName: 'deleteTotp'
+      },
+      { method: 'post' }
+    )
+  }
 
   useEffect(() => {
     if (query === '') setFilteredCountries(countries)
@@ -104,6 +113,19 @@ export default function Page() {
     let walletCountry = countries.find((ctry) => ctry.id == wallet.countryCode)
     setCountry(walletCountry)
   }, [countries, wallet.countryCode])
+
+  useEffect(() => {
+    if (resetFetcher.state === 'idle' && resetFetcher.data?.success) {
+      setIsResetModalOpen(false)
+      setIsTotpEnabled(false)
+    }
+  }, [resetFetcher.state, resetFetcher.data])
+
+  useEffect(() => {
+    setIsTotpEnabled(hasTotpEnabled)
+  }, [hasTotpEnabled])
+
+  const isResetting = resetFetcher.state !== 'idle'
 
   return (
     <>
@@ -154,6 +176,69 @@ export default function Page() {
           errorMessage={fetcher.data?.errors?.country}
         />
       </div>
+      <div className='col-span-full flex h-max max-h-max w-full flex-col space-y-4 rounded-2xl bg-page p-4 lg:col-span-4'>
+        <div className='flex items-center justify-between'>
+          <div className='space-y-1'>
+            <h2 className='font-display text-lg font-medium'>Authenticator app (TOTP)</h2>
+            <p className='text-sm text-weak'>
+              {isTotpEnabled
+                ? 'User has an authenticator app configured for two-factor login.'
+                : 'No authenticator app is currently configured for this user.'}
+            </p>
+          </div>
+          <span
+            className={`rounded-full px-2 py-1 text-xs font-medium ${
+              isTotpEnabled ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
+            }`}
+          >
+            {isTotpEnabled ? 'Enabled' : 'Not enabled'}
+          </span>
+        </div>
+
+        {isTotpEnabled && (
+          <Button
+            type='button'
+            className='h-10 max-w-max rounded-xl bg-red-600 px-6 text-sm hover:enabled:bg-red-500'
+            onClick={() => setIsResetModalOpen(true)}
+          >
+            Reset authenticator
+          </Button>
+        )}
+      </div>
+
+      <Dialog open={isResetModalOpen} setOpen={setIsResetModalOpen}>
+        <h3 className='font-display text-lg font-medium'>
+          Reset authenticator for this wallet owner?
+        </h3>
+        <p className='text-sm text-medium'>
+          This will immediately invalidate the current TOTP secret. The user will be
+          prompted to set up their authenticator app again on next login.
+        </p>
+        <div className='rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900'>
+          The wallet owner will be notified by email, and this action is recorded in
+          the audit log.
+        </div>
+        {resetFetcher.data?.error && (
+          <p className='text-sm font-medium text-red-600'>{resetFetcher.data.error}</p>
+        )}
+        <div className='mt-2 flex justify-end space-x-3'>
+          <TextButton
+            type='button'
+            onClick={() => setIsResetModalOpen(false)}
+            disabled={isResetting}
+          >
+            Cancel
+          </TextButton>
+          <Button
+            type='button'
+            className='h-10 w-max rounded-xl bg-red-600 px-6 text-sm hover:enabled:bg-red-500'
+            onClick={_onConfirmResetAuthenticator}
+            disabled={isResetting}
+          >
+            {isResetting ? 'Resetting...' : 'Confirm reset'}
+          </Button>
+        </div>
+      </Dialog>
     </>
   )
 }
@@ -167,9 +252,9 @@ export async function action(args: ActionArgs) {
     return setWalletFeatureAction(args)
   }
 
-  // if (formName == 'deleteTotp') {
-  //   return deleteTotpAction(args)
-  // }
+  if (formName == 'deleteTotp') {
+    return deleteTotpAction(args)
+  }
 
   return setWalletCountryAction(args)
 }
@@ -199,16 +284,20 @@ async function setWalletCountryAction({ request, params }: ActionArgs) {
   return null
 }
 //
-// async function deleteTotpAction({ request }: ActionArgs) {
-//   const form = await request.formData()
-//   const walletId = form.get('walletId') as string
-//   const identityId = form.get('identityId') as string
-//
-//   if (!identityId) {
-//     return json({ error: 'Identity ID is required' }, { status: 400 })
-//   }
-//
-//   const deleteResponse = await DeleteUserTotp(request, identityId, walletId)
-//
-//   return json(deleteResponse)
-// }
+async function deleteTotpAction({ request }: ActionArgs) {
+  const form = await request.formData()
+  const walletId = form.get('walletId') as string
+  const identityId = form.get('identityId') as string
+
+  if (!identityId) {
+    return json({ success: false, error: 'Identity ID is required' }, { status: 400 })
+  }
+
+  if (!walletId) {
+    return json({ success: false, error: 'Wallet ID is required' }, { status: 400 })
+  }
+
+  await DeleteUserTotp(request, identityId, walletId)
+
+  return json({ success: true })
+}
