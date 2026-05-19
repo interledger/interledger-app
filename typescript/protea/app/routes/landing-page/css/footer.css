@@ -2,14 +2,13 @@
 :root {
   --color-footer: var(--color-neutral-150);
   --color-head: var(--color-neutral-0);
-  --color-links: var(--color-neutral-50);
+  --color-links: var(--color-footer-link);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --color-footer: var(--color-neutral-0);
     --color-head: var(--color-neutral-900);
-    --color-links: var(--color-neutral-150);
   }
 }
 
@@ -109,7 +108,7 @@
 }
 
 .footer-bottom p {
-  color: var(--color-neutral-0);
+  color: var(--color-white);
   font-size: 0.75rem;
   margin: 0;
 }
@@ -139,7 +138,15 @@
 @media (max-width: 900px) {
   .footer-top {
     flex-direction: column;
+    align-items: center;
+    text-align: center;
     gap: var(--spacing-4xl);
+  }
+
+  .footer-left {
+    align-items: center;
+    text-align: center;
+    max-width: 100%;
   }
 
   .footer-right {
@@ -150,17 +157,6 @@
 }
 
 @media (max-width: 640px) {
-  .footer-top {
-    align-items: center;
-    text-align: center;
-  }
-
-  .footer-left {
-    align-items: center;
-    text-align: center;
-    max-width: 100%;
-  }
-
   .footer-right {
     flex-direction: column;
     align-items: center;
@@ -174,5 +170,9 @@
 
   .footer-links {
     align-items: center;
+  }
+
+  .footer-cta {
+    width: 100%;
   }
 }
