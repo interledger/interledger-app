@@ -52,7 +52,7 @@ services:
       - MOCKXAGO_ENDPOINT=${PROTEA_MOCKXAGO_ENDPOINT:-https://mockxago.interledger.test}
 
       # Provider/runtime integrations
-      - PTI_CLIENT_ID=${PROTEA_PTI_CLIENT_ID:-}
+      - PTI_CLIENT_ID=${PROTEA_PTI_CLIENT_ID:-04d3e1b5-96d4-47e4-9eaa-13e9b4b0f219}
       - GOOGLE_MAPS_API_KEY=${PROTEA_GOOGLE_MAPS_API_KEY:-}
 
       # Observability and analytics
@@ -70,6 +70,12 @@ services:
       - CF_TURNSTILE_SITE_KEY=${PROTEA_CF_TURNSTILE_SITE_KEY:-}
       - CF_TURNSTILE_SECRET_KEY=${PROTEA_CF_TURNSTILE_SECRET_KEY:-}
       - GATE_SIGNUP=${PROTEA_GATE_SIGNUP:-false}
+
+      - PUBLIC_OP_AUTH_HOST=${PROTEA_PUBLIC_OP_AUTH_HOST:-auth.local.ilp.link}
+      - PTI_SDK_URL=${PROTEA_PTI_SDK_URL:-https://mockpti.interledger.test/sdk/index.js}
+      - PTI_FORMS_URL=${PROTEA_PTI_FORMS_URL:-https://mockpti.interledger.test/forms}
+      - TARGET_HOST=${PROTEA_TARGET_HOST:-https://interledger.app}
+      - SUPPORT_EMAIL=${PROTEA_SUPPORT_EMAIL:-support@interledger.app}
 
     depends_on:
       - backend
