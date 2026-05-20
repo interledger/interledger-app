@@ -12,6 +12,9 @@ th { background: #f0f0f0; }
 a { color: #0070f3; }
 dl { display: grid; grid-template-columns: max-content auto; gap: 0.25rem 1rem; }
 dt { font-weight: bold; }
+.btn { padding: 0.25rem 0.6rem; cursor: pointer; border: none; border-radius: 3px; font-size: 0.85rem; }
+.btn-complete { background: #16a34a; color: #fff; }
+.btn-fail { background: #dc2626; color: #fff; }
 </style>
 </head>
 <body>
@@ -59,7 +62,7 @@ dt { font-weight: bold; }
 {{range .Cards}}
 <h3>Card {{.Card.ID}} ({{.Card.MaskedPan}})</h3>
 <table>
-<thead><tr><th>Transaction ID</th><th>Numeric cardId</th><th>Amount</th><th>Currency</th><th>Status</th><th>Created</th></tr></thead>
+<thead><tr><th>Transaction ID</th><th>Numeric cardId</th><th>Amount</th><th>Currency</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead>
 <tbody>
 {{range .Transactions}}
 <tr>
@@ -69,9 +72,25 @@ dt { font-weight: bold; }
   <td>{{if .TransactionCurrency}}{{.TransactionCurrency}}{{else}}-{{end}}</td>
   <td>{{if .TxStatus}}{{.TxStatus}}{{else}}-{{end}}</td>
   <td>{{.CreatedAt}}</td>
+  <td>
+    {{if txEditable .TxStatus}}
+    <form method="POST" action="/ui/actions/card-transaction/status" style="display:inline">
+      <input type="hidden" name="txID" value="{{.TransactionID}}">
+      <input type="hidden" name="userID" value="{{$.User.ID}}">
+      <input type="hidden" name="status" value="COMPLETED">
+      <button type="submit" class="btn btn-complete">Complete</button>
+    </form>
+    <form method="POST" action="/ui/actions/card-transaction/status" style="display:inline">
+      <input type="hidden" name="txID" value="{{.TransactionID}}">
+      <input type="hidden" name="userID" value="{{$.User.ID}}">
+      <input type="hidden" name="status" value="FAILED">
+      <button type="submit" class="btn btn-fail">Fail</button>
+    </form>
+    {{else}}-{{end}}
+  </td>
 </tr>
 {{else}}
-<tr><td colspan="6">No card transactions for this card.</td></tr>
+<tr><td colspan="7">No card transactions for this card.</td></tr>
 {{end}}
 </tbody>
 </table>

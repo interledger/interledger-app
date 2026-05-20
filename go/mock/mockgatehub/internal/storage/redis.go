@@ -540,6 +540,33 @@ func (s *RedisStorage) GetCardTransaction(id string) (*models.CardTransaction, e
 	return &tx, nil
 }
 
+func (s *RedisStorage) UpdateCardTransactionStatus(txID string, status string) error {
+	tx, err := s.GetCardTransaction(txID)
+	if err != nil {
+		return err
+	}
+	tx.TxStatus = &status
+	data, err := json.Marshal(tx)
+	if err != nil {
+		return fmt.Errorf("failed to marshal card transaction: %w", err)
+	}
+	if err := s.client.Set(s.ctx, s.cardTransactionKey(txID), data, 0).Err(); err != nil {
+		return fmt.Errorf("failed to update card transaction: %w", err)
+	}
+
+	if rawData, err := s.GetRawCardTransaction(txID); err == nil {
+		var m map[string]interface{}
+		if err := json.Unmarshal(rawData, &m); err == nil {
+			m["txStatus"] = status
+			if updated, err := json.Marshal(m); err == nil {
+				_ = s.StoreRawCardTransaction(txID, updated)
+			}
+		}
+	}
+
+	return nil
+}
+
 func (s *RedisStorage) AddCardTransactionIndex(cardID string, transactionID string) error {
 	if cardID == "" || transactionID == "" {
 		return errors.New("cardID and transactionID are required")

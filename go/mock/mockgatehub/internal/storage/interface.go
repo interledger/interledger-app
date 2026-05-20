@@ -41,6 +41,7 @@ type Storage interface {
 	// Card Transactions
 	CreateCardTransaction(tx *models.CardTransaction) error
 	GetCardTransaction(id string) (*models.CardTransaction, error)
+	UpdateCardTransactionStatus(txID string, status string) error
 	AddCardTransactionIndex(cardID string, transactionID string) error
 	GetCardTransactionIDs(cardID string) ([]string, error)
 

@@ -415,6 +415,29 @@ func (s *MemoryStorage) GetCardTransaction(id string) (*models.CardTransaction, 
 	return tx, nil
 }
 
+func (s *MemoryStorage) UpdateCardTransactionStatus(txID string, status string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	tx, exists := s.cardTransactions[txID]
+	if !exists {
+		return fmt.Errorf("card transaction not found")
+	}
+	tx.TxStatus = &status
+
+	if raw, ok := s.rawCardTransactions[txID]; ok {
+		var m map[string]interface{}
+		if err := json.Unmarshal(raw, &m); err == nil {
+			m["txStatus"] = status
+			if updated, err := json.Marshal(m); err == nil {
+				s.rawCardTransactions[txID] = updated
+			}
+		}
+	}
+
+	return nil
+}
+
 func (s *MemoryStorage) AddCardTransactionIndex(cardID string, transactionID string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()

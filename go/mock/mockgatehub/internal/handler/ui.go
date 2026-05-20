@@ -145,7 +145,15 @@ func (h *Handler) UIUserDetail(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	tmpl, err := template.ParseFS(uiTemplateFS, "web/ui/user.html")
+	funcMap := template.FuncMap{
+		"txEditable": func(status *string) bool {
+			if status == nil {
+				return true
+			}
+			return *status != "COMPLETED" && *status != "FAILED"
+		},
+	}
+	tmpl, err := template.New("user.html").Funcs(funcMap).ParseFS(uiTemplateFS, "web/ui/user.html")
 	if err != nil {
 		logger.Error("ui: failed to parse user template", zap.Error(err))
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -473,4 +481,38 @@ func (h *Handler) UICardTxPreview(w http.ResponseWriter, r *http.Request) {
 		"transaction":       json.RawMessage(normalizedRaw),
 		"nextTransactionId": seqID,
 	})
+}
+
+func (h *Handler) UICardTxSetStatus(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		return
+	}
+
+	txID := r.FormValue("txID")
+	status := r.FormValue("status")
+	userID := r.FormValue("userID")
+
+	if txID == "" || status == "" || userID == "" {
+		http.Error(w, "txID, status, and userID are required", http.StatusBadRequest)
+		return
+	}
+	if status != "COMPLETED" && status != "FAILED" {
+		http.Error(w, "status must be COMPLETED or FAILED", http.StatusBadRequest)
+		return
+	}
+
+	if err := h.store.UpdateCardTransactionStatus(txID, status); err != nil {
+		logger.Error("ui: failed to update card transaction status", zap.Error(err))
+		http.Error(w, "Failed to update transaction status", http.StatusInternalServerError)
+		return
+	}
+
+	logger.Info("ui: card transaction status updated",
+		zap.String("tx_id", txID),
+		zap.String("status", status),
+		zap.String("user_id", userID),
+	)
+
+	http.Redirect(w, r, "/ui/users/"+userID, http.StatusSeeOther)
 }
