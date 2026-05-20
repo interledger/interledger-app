@@ -38,7 +38,7 @@ func (b backends) Twilio() twilio.Service {
 }
 
 func setupTest(t *testing.T) (context.Context, *backends) {
-	
+
 	ctx := context.Background()
 	db := db.MigrateTestDB(t, ctx)
 	b := &backends{
@@ -49,7 +49,7 @@ func setupTest(t *testing.T) (context.Context, *backends) {
 }
 
 func setupTestWithTwilio(t *testing.T) (context.Context, *backends) {
-	
+
 	ctx := context.Background()
 	db := db.MigrateTestDB(t, ctx)
 	tw := twilio.NewMockService(gomock.NewController(t))
@@ -66,10 +66,11 @@ func TestSetUserData(t *testing.T) {
 	ctx, b := setupTest(t)
 
 	id, err := ops.SetUserData(ctx, b, signup.UserDataArgs{
-		FirstName:   "FirstName",
-		LastName:    "LastName",
-		Email:       "test@interledger.test",
-		CountryCode: "ZA",
+		FirstName:    "FirstName",
+		LastName:     "LastName",
+		Email:        "test@interledger.test",
+		CountryCode:  "ZA",
+		MobileNumber: faker.E164PhoneNumber(),
 	})
 	require.NoError(t, err)
 
@@ -81,13 +82,16 @@ func TestSetUserData(t *testing.T) {
 	assert.Equal(t, "LastName", su.LastName)
 	assert.Equal(t, "test@interledger.test", su.Email)
 	assert.Equal(t, "ZA", su.CountryCode)
+	assert.NotEmpty(t, su.MobileNumber)
 
 	// Update
+	mobile := faker.E164PhoneNumber()
 	id, err = ops.SetUserData(ctx, b, signup.UserDataArgs{
-		FirstName:   "Jason",
-		LastName:    "Real Person",
-		Email:       "random@interledger.test",
-		CountryCode: "GB",
+		FirstName:    "Jason",
+		LastName:     "Real Person",
+		Email:        "random@interledger.test",
+		CountryCode:  "GB",
+		MobileNumber: mobile,
 	})
 	require.NoError(t, err)
 
@@ -99,16 +103,18 @@ func TestSetUserData(t *testing.T) {
 	assert.Equal(t, "Real Person", su.LastName)
 	assert.Equal(t, "random@interledger.test", su.Email)
 	assert.Equal(t, "GB", su.CountryCode)
+	assert.Equal(t, mobile, su.MobileNumber)
 }
 
 func TestSetMobileNumber(t *testing.T) {
 	ctx, b := setupTestWithTwilio(t)
 
 	id, err := ops.SetUserData(ctx, b, signup.UserDataArgs{
-		FirstName:   "FirstName",
-		LastName:    "LastName",
-		Email:       "test@interledger.test",
-		CountryCode: "ZA",
+		FirstName:    "FirstName",
+		LastName:     "LastName",
+		Email:        "test@interledger.test",
+		CountryCode:  "ZA",
+		MobileNumber: faker.E164PhoneNumber(),
 	})
 	require.NoError(t, err)
 
@@ -135,10 +141,11 @@ func TestFailsDuplicateCompleteMobileNumber(t *testing.T) {
 	ctx, b := setupTestWithTwilio(t)
 
 	id, err := ops.SetUserData(ctx, b, signup.UserDataArgs{
-		FirstName:   "FirstName",
-		LastName:    "LastName",
-		Email:       "test@interledger.test",
-		CountryCode: "ZA",
+		FirstName:    "FirstName",
+		LastName:     "LastName",
+		Email:        "test@interledger.test",
+		CountryCode:  "ZA",
+		MobileNumber: faker.E164PhoneNumber(),
 	})
 	require.NoError(t, err)
 
@@ -155,10 +162,11 @@ func TestFailsDuplicateCompleteMobileNumber(t *testing.T) {
 	require.NoError(t, err)
 
 	id1, err := ops.SetUserData(ctx, b, signup.UserDataArgs{
-		FirstName:   "FirstName1",
-		LastName:    "LastName1",
-		Email:       "test1@interledger.test",
-		CountryCode: "ZA",
+		FirstName:    "FirstName1",
+		LastName:     "LastName1",
+		Email:        "test1@interledger.test",
+		CountryCode:  "ZA",
+		MobileNumber: faker.E164PhoneNumber(),
 	})
 	require.NoError(t, err)
 
@@ -174,10 +182,11 @@ func TestComplete(t *testing.T) {
 	ctx, b := setupTestWithTwilio(t)
 
 	id, err := ops.SetUserData(ctx, b, signup.UserDataArgs{
-		FirstName:   "FirstName",
-		LastName:    "LastName",
-		Email:       "test@interledger.test",
-		CountryCode: "ZA",
+		FirstName:    "FirstName",
+		LastName:     "LastName",
+		Email:        "test@interledger.test",
+		CountryCode:  "ZA",
+		MobileNumber: faker.E164PhoneNumber(),
 	})
 	require.NoError(t, err)
 
@@ -220,10 +229,11 @@ func TestCompleteIdempotent(t *testing.T) {
 	ctx, b := setupTestWithTwilio(t)
 
 	id, err := ops.SetUserData(ctx, b, signup.UserDataArgs{
-		FirstName:   "FirstName",
-		LastName:    "LastName",
-		Email:       "test@interledger.test",
-		CountryCode: "ZA",
+		FirstName:    "FirstName",
+		LastName:     "LastName",
+		Email:        "test@interledger.test",
+		CountryCode:  "ZA",
+		MobileNumber: faker.E164PhoneNumber(),
 	})
 	require.NoError(t, err)
 

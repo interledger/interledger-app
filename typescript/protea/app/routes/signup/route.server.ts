@@ -2,7 +2,8 @@ import { Code } from '@bufbuild/connect'
 import type { SuccessfulNativeRegistration } from '@ory/client'
 import { data, href, redirect } from 'react-router'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
-import { error, isConnectError } from '~/lib/error.server'
+import { ErrorDescriptions } from '~/lib/error.constants'
+import { error, isConnectError, isOtpValidationError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import {
   buildHeadersWithCookies,
@@ -17,6 +18,7 @@ import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.server'
 import { kratosPublic } from '~/lib/kratos/kratos-client.server'
 import { requireNoUserSession } from '~/lib/kratos/session.server'
 import logger from '~/lib/logger.server'
+import { parseUserPhone } from '~/lib/phone.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { isEUCountry } from '~/routes/signup/About'
 import type { Route } from './+types/route'
@@ -79,10 +81,11 @@ export async function detailsAction({ request }: Route.ActionArgs) {
       firstName: '',
       lastName: '',
       country: '',
-      email: ''
+      email: '',
+      phone: ''
     }
   }
-  const mapping = { country: 'CountryOfResidence' }
+  const mapping = { country: 'CountryOfResidence', phone: 'To' }
 
   const firstName = form.get('firstName') as string
   const lastName = form.get('lastName') as string
@@ -103,26 +106,35 @@ export async function detailsAction({ request }: Route.ActionArgs) {
     )
   }
 
-  let response = await grpc.setSignupUserData(request, {
+  const parsedPhone = parseUserPhone(phone, country)
+  if (parsedPhone.error) {
+    actionData.errors.phone = parsedPhone.error
+    return error(request, actionData)
+  }
+
+  const signupResponse = await grpc.setSignupUserData(request, {
     firstName,
     lastName,
     countryCode: country,
-    email
+    email,
+    mobile: parsedPhone.phone
   })
 
-  if (isConnectError(response)) {
-    if (response.code == Code.InvalidArgument) {
-      return response.error(actionData, mapping)
+  if (isConnectError(signupResponse)) {
+    if (signupResponse.code == Code.InvalidArgument) {
+      return signupResponse.error(actionData, mapping)
     } else
-      return response.error(actionData, mapping, { action: 'Contact support' })
+      return signupResponse.error(actionData, mapping, {
+        action: 'Contact support'
+      })
   }
 
   return data({
-    id: response.id,
+    id: signupResponse.id,
     firstName,
     lastName,
     email,
-    phone,
+    phone: parsedPhone.phone,
     errors: actionData.errors
   })
 }
@@ -175,12 +187,15 @@ export async function otpAction({ request }: Route.ActionArgs) {
       'Failed to set mobile number'
     )
 
-    if (response.code == Code.InvalidArgument) {
+    if (isOtpValidationError(response)) {
+      actionData.errors.otp = ErrorDescriptions.INVALID_OTP
+      return error(request, actionData)
+    } else if (response.code == Code.InvalidArgument) {
       actionData.errors.phone = 'Mobile phone number is invalid.'
-      return response.error(actionData, mapping)
+      return error(request, actionData)
     } else if (response.code == Code.AlreadyExists) {
       actionData.errors.phone = 'Mobile phone number is already registered.'
-      return response.error(actionData)
+      return error(request, actionData)
     } else {
       return response.error(actionData, mapping, { action: 'Contact support' })
     }

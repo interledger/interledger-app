@@ -1955,6 +1955,10 @@ export interface SetSignupUserDataRequest {
      * @generated from protobuf field: string countryCode = 5;
      */
     countryCode: string;
+    /**
+     * @generated from protobuf field: string mobile = 6;
+     */
+    mobile: string;
 }
 /**
  * @generated from protobuf message backend.v1.SetSignupUserDataResponse
@@ -9429,11 +9433,12 @@ class SetSignupUserDataRequest$Type extends MessageType<SetSignupUserDataRequest
             { no: 2, name: "firstName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "lastName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 4, name: "email", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 5, name: "countryCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 5, name: "countryCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "mobile", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<SetSignupUserDataRequest>): SetSignupUserDataRequest {
-        const message = { firstName: "", lastName: "", email: "", countryCode: "" };
+        const message = { firstName: "", lastName: "", email: "", countryCode: "", mobile: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<SetSignupUserDataRequest>(this, message, value);
@@ -9458,6 +9463,9 @@ class SetSignupUserDataRequest$Type extends MessageType<SetSignupUserDataRequest
                     break;
                 case /* string countryCode */ 5:
                     message.countryCode = reader.string();
+                    break;
+                case /* string mobile */ 6:
+                    message.mobile = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -9486,6 +9494,9 @@ class SetSignupUserDataRequest$Type extends MessageType<SetSignupUserDataRequest
         /* string countryCode = 5; */
         if (message.countryCode !== "")
             writer.tag(5, WireType.LengthDelimited).string(message.countryCode);
+        /* string mobile = 6; */
+        if (message.mobile !== "")
+            writer.tag(6, WireType.LengthDelimited).string(message.mobile);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

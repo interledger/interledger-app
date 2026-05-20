@@ -897,6 +897,7 @@ message SetSignupUserDataRequest {
   string lastName = 3;
   string email = 4;
   string countryCode = 5;
+  string mobile = 6;
 }
 
 message SetSignupUserDataResponse {

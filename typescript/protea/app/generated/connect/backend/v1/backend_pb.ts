@@ -5608,6 +5608,11 @@ export class SetSignupUserDataRequest extends Message<SetSignupUserDataRequest> 
    */
   countryCode = "";
 
+  /**
+   * @generated from field: string mobile = 6;
+   */
+  mobile = "";
+
   constructor(data?: PartialMessage<SetSignupUserDataRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -5621,6 +5626,7 @@ export class SetSignupUserDataRequest extends Message<SetSignupUserDataRequest> 
     { no: 3, name: "lastName", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "email", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 5, name: "countryCode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "mobile", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SetSignupUserDataRequest {

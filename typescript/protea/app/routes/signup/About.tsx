@@ -222,8 +222,13 @@ export function About() {
             onInput={(event) => {
               setPhoneNumber(event.currentTarget.value)
             }}
+            aria-invalid={Boolean(details.data?.errors?.phone) || undefined}
+            aria-describedby={
+              details.data?.errors?.phone ? 'phone-error' : undefined
+            }
             data-testid='signup-phone'
             required
+            errorMessage={details.data?.errors?.phone}
           />
         )}
       </Card>

@@ -6855,6 +6855,7 @@ type SetSignupUserDataRequest struct {
 	LastName      string                 `protobuf:"bytes,3,opt,name=lastName,proto3" json:"lastName,omitempty"`
 	Email         string                 `protobuf:"bytes,4,opt,name=email,proto3" json:"email,omitempty"`
 	CountryCode   string                 `protobuf:"bytes,5,opt,name=countryCode,proto3" json:"countryCode,omitempty"`
+	Mobile        string                 `protobuf:"bytes,6,opt,name=mobile,proto3" json:"mobile,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -6920,6 +6921,13 @@ func (x *SetSignupUserDataRequest) GetEmail() string {
 func (x *SetSignupUserDataRequest) GetCountryCode() string {
 	if x != nil {
 		return x.CountryCode
+	}
+	return ""
+}
+
+func (x *SetSignupUserDataRequest) GetMobile() string {
+	if x != nil {
+		return x.Mobile
 	}
 	return ""
 }
@@ -10672,13 +10680,14 @@ const file_backend_v1_backend_proto_rawDesc = "" +
 	"\x05state\x18\x0f \x01(\tR\x05state\x12\x1c\n" +
 	"\tcreatedAt\x18\x10 \x01(\tR\tcreatedAt\"\"\n" +
 	"\x10GetSignupRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"\xa8\x01\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"\xc0\x01\n" +
 	"\x18SetSignupUserDataRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tH\x00R\x02id\x88\x01\x01\x12\x1c\n" +
 	"\tfirstName\x18\x02 \x01(\tR\tfirstName\x12\x1a\n" +
 	"\blastName\x18\x03 \x01(\tR\blastName\x12\x14\n" +
 	"\x05email\x18\x04 \x01(\tR\x05email\x12 \n" +
-	"\vcountryCode\x18\x05 \x01(\tR\vcountryCodeB\x05\n" +
+	"\vcountryCode\x18\x05 \x01(\tR\vcountryCode\x12\x16\n" +
+	"\x06mobile\x18\x06 \x01(\tR\x06mobileB\x05\n" +
 	"\x03_id\"+\n" +
 	"\x19SetSignupUserDataResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"X\n" +

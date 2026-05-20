@@ -25,10 +25,11 @@ func TestSetSignupUserData(t *testing.T) {
 
 	sID := uuid.NewString()
 	c.SignupService.EXPECT().SetUserData(gomock.Any(), signup.UserDataArgs{
-		FirstName:   "FirstName",
-		LastName:    "LastName",
-		Email:       "test@interledger.test",
-		CountryCode: "ZA",
+		FirstName:    "FirstName",
+		LastName:     "LastName",
+		Email:        "test@interledger.test",
+		CountryCode:  "ZA",
+		MobileNumber: "+27820001111",
 	}).Return(sID, nil).Times(1)
 
 	resp, err := client.SetSignupUserData(context.Background(), &pb.SetSignupUserDataRequest{
@@ -36,6 +37,7 @@ func TestSetSignupUserData(t *testing.T) {
 		LastName:    "LastName",
 		Email:       "test@interledger.test",
 		CountryCode: "ZA",
+		Mobile:      "+27820001111",
 	})
 
 	require.NoError(t, err)
