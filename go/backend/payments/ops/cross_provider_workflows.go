@@ -66,35 +66,16 @@ func crossProviderXagoToGatehubPayIn(ctx workflow.Context, a *Activity, paymentI
 // Waits for the GateHub webhook confirming EUR is in omnibus, executes Xago EUR→ZAR conversion,
 // polls for completion, and atomically posts all Pacioli transfers.
 func crossProviderGatehubToXagoPayOut(ctx, _ workflow.Context, a *Activity, paymentID, _ string) (string, bool, error) {
-	logger := workflow.GetLogger(ctx)
 
 	// Wait for GateHub webhook confirming sender's EUR reached omnibus.
-	var externalTransaction gatehub_external.Transaction
-	for {
-		logger.Info("crossProviderGatehubToXagoPayOut: waiting for GateHub webhook")
-		selector := workflow.NewSelector(ctx)
-		selector.AddFuture(workflow.NewTimer(ctx, 20*time.Minute), func(f workflow.Future) {
-			logger.Info("GateHub webhook timer fired")
-		})
-		selector.AddReceive(workflow.GetSignalChannel(ctx, gatehubNotifyChanName), func(c workflow.ReceiveChannel, more bool) {
-			c.Receive(ctx, nil)
-		})
-		selector.Select(ctx)
-
-		err := workflow.ExecuteActivity(ctx, a.GetGatehubTransfer, paymentID).Get(ctx, &externalTransaction)
-		if err != nil {
-			return "", false, err
-		}
-		if externalTransaction.Status == gatehub_external.TransactionStatusCompleted {
-			break
-		} else if externalTransaction.Status == gatehub_external.TransactionStatusFailed {
-			return "", false, nil
-		}
+	externalTransaction, ok, err := pollGatehubTransfer(ctx, a, paymentID)
+	if err != nil || !ok {
+		return "", false, err
 	}
 
 	// Generate stable UUIDs for the two new posted Pacioli transfers.
 	var clearingTxID string
-	err := workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
+	err = workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
 		return uuid.NewString()
 	}).Get(&clearingTxID)
 	if err != nil {
