@@ -243,13 +243,30 @@ func List(ctx context.Context, b Backends, userID string) ([]wallets.Wallet, err
 }
 
 func ListAll(ctx context.Context, b Backends, page db.Pagination) ([]wallets.Wallet, error) {
-	args := map[string]interface{}{}
-	query := "select id, name, country, exceeded_limits from wallets "
+	args := map[string]any{}
+	conditions := []string{}
+
 	if page.PageToken != "" {
-		query = query + " where (created_at, id) < ( select created_at, id from wallets where id = :id ) "
-		args["id"] = page.PageToken
+		conditions = append(conditions, "(created_at, id) < ( select created_at, id from wallets where id = :pagetoken )")
+		args["pagetoken"] = page.PageToken
 	}
-	query = query + " order by created_at DESC, id DESC %s"
+
+	if page.Search != "" {
+		args["search"] = "%" + page.Search + "%"
+		if _, err := uuid.Parse(page.Search); err == nil {
+			// Exact UUID match hits the primary-key index; also search by name.
+			conditions = append(conditions, "(id = :searchid OR name ILIKE :search)")
+			args["searchid"] = page.Search
+		} else {
+			conditions = append(conditions, "name ILIKE :search")
+		}
+	}
+
+	query := "select id, name, country, exceeded_limits from wallets"
+	if len(conditions) > 0 {
+		query += " where " + strings.Join(conditions, " AND ")
+	}
+	query += " order by created_at DESC, id DESC %s"
 
 	nstmt, err := b.DB().PrepareNamed(fmt.Sprintf(query, page.SQL()))
 	if err != nil {

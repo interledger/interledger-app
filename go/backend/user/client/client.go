@@ -103,3 +103,7 @@ func (c *client) SetPhoneVerified(ctx context.Context, userID string) error {
 func (c *client) UpdateUserPhone(ctx context.Context, userID string, phone string) error {
 	return ops.UpdateUserPhone(ctx, c.b, userID, phone)
 }
+
+func (c *client) FindWalletIDByEmail(ctx context.Context, email string) (string, error) {
+	return ops.FindWalletIDByEmail(ctx, c.b, email)
+}

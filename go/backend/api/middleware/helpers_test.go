@@ -48,4 +48,6 @@ func (s *stubUserClient) SetPhoneVerified(_ context.Context, _ string) error {
 func (s *stubUserClient) UpdateUserPhone(_ context.Context, _, _ string) error {
 	panic("unexpected")
 }
-
+func (s *stubUserClient) FindWalletIDByEmail(_ context.Context, _ string) (string, error) {
+	panic("unexpected")
+}

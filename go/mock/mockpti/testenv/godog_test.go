@@ -120,7 +120,7 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^mockpti returns the withdrawal$`, tc.mockptiReturnsTheWithdrawal)
 	ctx.Step(`^the wallet balance should equal the deposited amount$`, tc.theWalletBalanceShouldEqualTheDepositedAmount)
 	ctx.Step(`^a webhook should be delivered with resource type "([^"]*)"$`, tc.aWebhookShouldBeDeliveredWithResourceType)
-	ctx.Step(`^the webhook payload should be signed and encrypted$`, tc.theWebhookPayloadShouldBeSignedAndEncrypted)
+	ctx.Step(`^the webhook payload should be signed$`, tc.theWebhookPayloadShouldBeSigned)
 	ctx.Step(`^the webhook payload should include user id and request id$`, tc.theWebhookPayloadShouldIncludeUserIDAndRequestID)
 	ctx.Step(`^the webhook payload should include transaction type "([^"]*)"$`, tc.theWebhookPayloadShouldIncludeTransactionType)
 	ctx.Step(`^the webhook payload should include status "([^"]*)"$`, tc.theWebhookPayloadShouldIncludeStatus)

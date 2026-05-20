@@ -16,8 +16,6 @@ import { ChimoneyDepositPage } from './chimoney'
 import { FynbosDepositPage } from './fynbos'
 import { GatehubDepositPage } from './gatehub'
 import { KRATOS_URL } from '~/lib/kratos/kratos-client.server'
-import { getKycStatus } from '~/data/wallet.server'
-import { KycStatus } from '~/lib/types'
 import { chimoneyDepositLoader, fynbosDepositLoader, gatehubDepositLoader } from './loader.server';
 import { chimoneyAmountAction, fynbosDepositAction, xagoTestAccountDepositAction } from './action.server';
 
@@ -29,10 +27,6 @@ export async function loader(args: LoaderFunctionArgs) {
   if (session.status === 401) {
     return redirect('/login')
   }
-  const { kycStatus } = await getKycStatus(args.request)
-  if (kycStatus != KycStatus.Approved)
-    return redirect(href('/personal-details'))
-
   const providerResponse = await grpc.getOnOffRampProvider(args.request, {})
   if (isConnectError(providerResponse)) throw providerResponse.error
   if (providerResponse.provider == 'gatehub') {

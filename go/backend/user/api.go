@@ -16,4 +16,7 @@ type Client interface {
 	GetUserIDForWallet(ctx context.Context, walletID string) (string, error)
 	SetPhoneVerified(ctx context.Context, userID string) error
 	UpdateUserPhone(ctx context.Context, userID string, phone string) error
+	// FindWalletIDByEmail resolves a Kratos credential identifier (email) to a
+	// wallet ID via the user_wallets table. Returns "" if no match is found.
+	FindWalletIDByEmail(ctx context.Context, email string) (string, error)
 }

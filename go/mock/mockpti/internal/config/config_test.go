@@ -11,8 +11,7 @@ func TestLoad_Defaults(t *testing.T) {
 	_ = os.Unsetenv("MOCKPTI_REDIS_URL")
 	_ = os.Unsetenv("MOCKPTI_REDIS_DB")
 	_ = os.Unsetenv("MOCKPTI_CLIENT_ID")
-	_ = os.Unsetenv("MOCKPTI_WEBHOOK_SIGNING_JWK")
-	_ = os.Unsetenv("MOCKPTI_WEBHOOK_ENCRYPTION_JWK")
+	_ = os.Unsetenv("MOCKPTI_WEBHOOK_SIGNING_KEY")
 
 	cfg := Load()
 
@@ -31,11 +30,8 @@ func TestLoad_Defaults(t *testing.T) {
 	if cfg.ClientID != "test-client-id" {
 		t.Errorf("expected default ClientID test-client-id, got %s", cfg.ClientID)
 	}
-	if cfg.WebhookSigningJWK != "" {
-		t.Errorf("expected empty WebhookSigningJWK, got %s", cfg.WebhookSigningJWK)
-	}
-	if cfg.WebhookEncryptionJWK != "" {
-		t.Errorf("expected empty WebhookEncryptionJWK, got %s", cfg.WebhookEncryptionJWK)
+	if cfg.WebhookSigningKey != "" {
+		t.Errorf("expected empty WebhookSigningKey, got %s", cfg.WebhookSigningKey)
 	}
 }
 
@@ -43,8 +39,7 @@ func TestLoad_EnvOverrides(t *testing.T) {
 	t.Setenv("MOCKPTI_PORT", "9090")
 	t.Setenv("LOG_LEVEL", "debug")
 	t.Setenv("MOCKPTI_CLIENT_ID", "my-client")
-	t.Setenv("MOCKPTI_WEBHOOK_SIGNING_JWK", "signing-jwk")
-	t.Setenv("MOCKPTI_WEBHOOK_ENCRYPTION_JWK", "encryption-jwk")
+	t.Setenv("MOCKPTI_WEBHOOK_SIGNING_KEY", "signing-pem")
 
 	cfg := Load()
 
@@ -57,10 +52,7 @@ func TestLoad_EnvOverrides(t *testing.T) {
 	if cfg.ClientID != "my-client" {
 		t.Errorf("expected ClientID my-client, got %s", cfg.ClientID)
 	}
-	if cfg.WebhookSigningJWK != "signing-jwk" {
-		t.Errorf("expected WebhookSigningJWK signing-jwk, got %s", cfg.WebhookSigningJWK)
-	}
-	if cfg.WebhookEncryptionJWK != "encryption-jwk" {
-		t.Errorf("expected WebhookEncryptionJWK encryption-jwk, got %s", cfg.WebhookEncryptionJWK)
+	if cfg.WebhookSigningKey != "signing-pem" {
+		t.Errorf("expected WebhookSigningKey signing-pem, got %s", cfg.WebhookSigningKey)
 	}
 }

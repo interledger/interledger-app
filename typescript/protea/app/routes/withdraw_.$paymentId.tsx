@@ -6,7 +6,6 @@ import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Icon, Layouts } from '~/components'
 import { Label } from '~/components/Label'
-import { getKycStatus } from '~/data/wallet.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { ErrorDescriptions } from '~/lib/error.constants'
 import { isConnectError, isOtpValidationError } from '~/lib/error.server'
@@ -15,13 +14,9 @@ import { getClientIP } from '~/lib/ip.server'
 import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { usePTISdk } from '~/lib/usePTISdk'
-import { KycStatus, PaymentRequiredAction } from '~/lib/types'
+import { PaymentRequiredAction } from '~/lib/types'
 
 export async function loader({ request, params }: Route.LoaderArgs) {
-  const { kycStatus } = await getKycStatus(request)
-  if (kycStatus != KycStatus.Approved)
-    return redirect(href('/personal-details'))
-
   const payment = await grpc.getPayment(request, { id: params.paymentId })
 
   if (isConnectError(payment)) throw payment.errorResponse

@@ -1,0 +1,24 @@
+suite: Interledger App - Backend Server Deployment probes
+templates:
+  - configMap.backend.yaml
+  - deployment.backend.server.yaml
+set:
+  fullnameOverride: wallet
+release:
+  name: wallet
+tests:
+  - it: 'Should provide readinessProbe and livenessProbe on /healthz:8080'
+    template: deployment.backend.server.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.path
+          value: /healthz
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.port
+          value: 8080
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.path
+          value: /healthz
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.port
+          value: 8080

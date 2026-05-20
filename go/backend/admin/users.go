@@ -3,6 +3,7 @@ package admin
 import (
 	"context"
 	"errors"
+	"net/mail"
 	"sort"
 	"time"
 
@@ -21,9 +22,29 @@ import (
 
 func (s *AdminRpcService) ListWallets(ctx context.Context, req *adminv1.PaginationRequest) (*adminv1.ListWalletsResponse, error) {
 	page := db.FromAdminPB(req)
+
+	// Email addresses are stored in Kratos, not in the wallets table. When the
+	// search term parses as a valid RFC 5322 address, resolve it to a wallet ID
+	// first so that the normal name/ID filter path can handle it.
+	if _, err := mail.ParseAddress(page.Search); err == nil {
+		walletID, err := s.b.Users().FindWalletIDByEmail(ctx, page.Search)
+		if err != nil {
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+		if walletID == "" {
+			return &adminv1.ListWalletsResponse{}, nil
+		}
+		page.Search = walletID
+	}
+
 	wallets, err := s.b.Wallets().ListAll(ctx, page)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	hasNextPage := len(wallets) > page.PageSize
+	if hasNextPage {
+		wallets = wallets[:page.PageSize]
 	}
 
 	resp := make([]*adminv1.Wallet, len(wallets))
@@ -46,13 +67,13 @@ func (s *AdminRpcService) ListWallets(ctx context.Context, req *adminv1.Paginati
 	}
 
 	nextPageToken := ""
-	if len(resp) > 0 {
-		nextPageToken = resp[len(resp)-1].WalletID	
+	if hasNextPage && len(resp) > 0 {
+		nextPageToken = resp[len(resp)-1].WalletID
 	}
 
 	return &adminv1.ListWalletsResponse{
 		Wallets:       resp,
-		NextPageToken: nextPageToken, // TODO Need to actually populate this
+		NextPageToken: nextPageToken,
 	}, nil
 }
 
@@ -204,6 +225,13 @@ func (s *AdminRpcService) Delete2FATotpEnrollment(ctx context.Context, req *admi
 	err := s.b.Users().Delete2FATotpEnrollment(ctx, identityID)
 	if err != nil {
 		return nil, toGRPCError(err)
+	}
+	log.Info("admin reset TOTP enrollment", zap.String("identityID", identityID), zap.String("walletID", req.GetWalletID()))
+
+	walletID := req.GetWalletID()
+	if walletID != "" {
+		s.b.Email().SendAuthenticatorResetEmail(ctx, walletID)
+		log.Info("sent authenticator reset email", zap.String("walletID", walletID))
 	}
 
 	return &adminv1.Empty{}, nil

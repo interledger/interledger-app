@@ -1,0 +1,3 @@
+{{- if and .Values.frontend.enabled (lt (int .Values.frontend.server.replicaCount) 2) -}}
+{{- fail "frontend.server.replicaCount must be at least 2" -}}
+{{- end -}}

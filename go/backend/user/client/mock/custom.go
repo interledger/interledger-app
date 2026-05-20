@@ -166,6 +166,10 @@ func (mc *MockClient) UpdateUserPhone(_ context.Context, _ string, _ string) err
 	return nil
 }
 
+func (mc *MockClient) FindWalletIDByEmail(_ context.Context, _ string) (string, error) {
+	return "", nil
+}
+
 func (mc *MockClient) Cleanup() {
 	mc.WalletUser = map[string]string{}
 	mc.UserTotpURL = map[string]string{}

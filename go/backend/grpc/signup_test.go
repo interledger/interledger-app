@@ -147,7 +147,8 @@ func TestCompleteSignup_NoAgreementSigning(t *testing.T) {
 
 	sID := uuid.NewString()
 	userID := uuid.NewString()
-	t.Setenv("SIGNUP_AGREEMENT_IDS", "")
+	InitAgreementIDs(nil)
+	t.Cleanup(func() { InitAgreementIDs(nil) })
 
 	c.SignupService.EXPECT().Complete(gomock.Any(), sID, userID).Return(nil).Times(1)
 	// Agreements().Sign must not be called when SIGNUP_AGREEMENT_IDS is unset
@@ -166,8 +167,8 @@ func TestCompleteSignup_WithAgreementSigning(t *testing.T) {
 
 	sID := uuid.NewString()
 	userID := uuid.NewString()
-	agreementIDs := "privacy_policy-0.0.0,terms_of_service-0.0.0"
-	t.Setenv("SIGNUP_AGREEMENT_IDS", agreementIDs)
+	InitAgreementIDs([]string{"privacy_policy-0.0.0", "terms_of_service-0.0.0"})
+	t.Cleanup(func() { InitAgreementIDs(nil) })
 
 	c.SignupService.EXPECT().Complete(gomock.Any(), sID, userID).Return(nil).Times(1)
 	c.AgreementsService.EXPECT().Sign(gomock.Any(), &agreements.SignArgs{
@@ -189,7 +190,8 @@ func TestCompleteSignup_SignFailsStillSucceeds(t *testing.T) {
 
 	sID := uuid.NewString()
 	userID := uuid.NewString()
-	t.Setenv("SIGNUP_AGREEMENT_IDS", "privacy_policy-0.0.0")
+	InitAgreementIDs([]string{"privacy_policy-0.0.0"})
+	t.Cleanup(func() { InitAgreementIDs(nil) })
 
 	c.SignupService.EXPECT().Complete(gomock.Any(), sID, userID).Return(nil).Times(1)
 	c.AgreementsService.EXPECT().Sign(gomock.Any(), gomock.Any()).Return(agreements.ErrNotFound).Times(1)
