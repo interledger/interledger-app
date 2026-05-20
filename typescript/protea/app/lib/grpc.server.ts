@@ -14,8 +14,9 @@ import {
 } from '@bufbuild/protobuf'
 import { BackendService } from '~/generated/connect/backend/v1/backend_connect'
 import { ConnectError } from '~/lib/error.server'
+import { envValue } from '~/env.server';
 
-const BACKEND_GRPC_URL = process.env.BACKEND_GRPC_URL || 'http://0.0.0.0:8443'
+const BACKEND_GRPC_URL = envValue("BACKEND_GRPC_URL")
 
 let grpc: PromiseClient<typeof BackendService>
 
@@ -31,7 +32,7 @@ const transport = createGrpcTransport({
 // this is needed because in development we don't want to restart
 // the server with every change, but we want to make sure we don't
 // create a new connection to the Client with every change either.
-if (process.env.NODE_ENV === 'production') {
+if (envValue("NODE_ENV") === 'production') {
   grpc = createPromiseClient(BackendService, transport)
 } else {
   if (!global.__grpcClient) {
