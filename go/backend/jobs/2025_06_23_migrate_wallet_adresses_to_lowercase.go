@@ -2,7 +2,6 @@ package jobs
 
 import (
 	"context"
-	"os"
 	"time"
 
 	"gitlab.com/fynbos/log"
@@ -30,7 +29,7 @@ func MigrateWalletAddressesToLowercaseJob(ctx workflow.Context) error {
 }
 
 func (a *Activity) TransformWalletAddressesToLowerCase(ctx context.Context) error {
-	connString := os.Getenv("RAFIKI_DB_URL")
+	connString := a.cfg.RafikiDBURL
 	rafikiDB, err := DbConnection(connString)
 	if err != nil {
 		log.Error("Error establishing db connection: %v", zap.Error(err))

@@ -2,6 +2,7 @@ package cli
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -18,6 +19,8 @@ type MigrationArgs struct {
 	KratosUrl               string
 	LogLevel                string
 	LogOutputPath           string
+	SentryDSN               string
+	SentryRelease           string
 }
 
 func ParseMigrationArgs() (*MigrationArgs, error) {
@@ -50,12 +53,13 @@ func ParseMigrationArgs() (*MigrationArgs, error) {
 		LogLevel:                logLevel,
 		LogOutputPath:           logOutputPath,
 		PacioliConnectionString: pacDB,
+		SentryDSN:               os.Getenv("SENTRY_DSN"),
+		SentryRelease:           os.Getenv("SENTRY_RELEASE"),
 	}, nil
 }
 
 type StartArgs struct {
 	Port                          string
-	AuthorisationPort             string
 	DbConnectionString            string
 	PacioliDBConString            string
 	KratosUrl                     string
@@ -66,8 +70,6 @@ type StartArgs struct {
 	TwilioSid                     string
 	TwilioSecret                  string
 	TwilioServiceSid              string
-	ZendeskUser                   string
-	ZendeskToken                  string
 	AdminPolicyAud                string
 	AdminTeamDomain               string
 	EmailEnabled                  bool
@@ -117,7 +119,7 @@ type StartArgs struct {
 	PersonaBaseURL                string
 	PersonaToken                  string
 	PersonaWebhookToken           string
-	PersonaSandboxFakeZAID         bool
+	PersonaSandboxFakeZAID        bool
 	AppleAppID                    string
 	AndroidPackageName            string
 	AndroidSHA256                 string
@@ -147,6 +149,25 @@ func splitAndTrim(s, sep string) []string {
 		}
 	}
 	return out
+	SentryDSN                     string
+	SentryRelease                 string
+	SlackToken                    string
+	SlackClientID                 string
+	SlackClientSecret             string
+	SlackRedirectURL              string
+	SlackBotRedirectURL           string
+	SignupAgreementIDs            []string
+	VaultAddr                     string
+	VaultTransitEnginePath        string
+	VaultToken                    string
+	RafikiBackendGraphQLURL       string
+	RafikiAuthGraphQLURL          string
+	ChimoneyWebhookSecret         string
+	ChimoneyToken                 string
+	RafikiDBURL                   string
+	RafikiAuthDBURL               string
+	TempGatehubAppID              string
+	TempGatehubSecret             string
 }
 
 func ParseStartArgs() (*StartArgs, error) {
@@ -159,15 +180,49 @@ func ParseStartArgs() (*StartArgs, error) {
 		}
 	}
 
+	// Configure the env package before calling any env.Is* helpers below.
+	fynbosEnvValue := os.Getenv("FYNBOS_ENV")
+	switch fynbosEnvValue {
+	case "prod", "sandbox", "dev", "local", "test":
+		// valid
+	case "":
+		return nil, errors.New("FYNBOS_ENV is required; must be one of: prod, sandbox, dev, local, test")
+	default:
+		return nil, fmt.Errorf("FYNBOS_ENV=%q is invalid; must be one of: prod, sandbox, dev, local, test", fynbosEnvValue)
+	}
+	env.SetFynbosEnv(fynbosEnvValue)
+
+	allowedWalletIDsRaw := os.Getenv("ALLOWED_WALLET_IDS")
+	if allowedWalletIDsRaw != "" {
+		env.SetAllowedWalletIDs(parseList(allowedWalletIDsRaw))
+	}
+
+	blockedRegionsRaw := os.Getenv("BLOCKED_REGIONS")
+	if blockedRegionsRaw != "" {
+		env.SetBlockedRegions(parseList(blockedRegionsRaw))
+	}
+
+	if v := os.Getenv("OPEN_PAYMENTS_BASE_URL"); v != "" {
+		env.SetOpenPaymentsURL(v)
+	}
+	if v := os.Getenv("AUTH_BASE_URL"); v != "" {
+		env.SetAuthURL(v)
+	}
+	if v := os.Getenv("ADMIN_BASE_URL"); v != "" {
+		env.SetAdminURL(v)
+	}
+
+	applicationURL := os.Getenv("APPLICATION_URL")
+	if applicationURL == "" {
+		return nil, errors.New("APPLICATION_URL is required.")
+	}
+	env.SetApplicationURL(applicationURL)
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
 
-	authorisationPort := os.Getenv("AUTHORISATION_PORT")
-	if authorisationPort == "" {
-		authorisationPort = "8082"
-	}
 	dbUrl := os.Getenv("DB_URL")
 	if dbUrl == "" {
 		return nil, errors.New("DB_URL is required.")
@@ -180,11 +235,11 @@ func ParseStartArgs() (*StartArgs, error) {
 
 	kratosUrl := os.Getenv("KRATOS_URL")
 	if kratosUrl == "" {
-		kratosUrl = "http://localhost:4433"
+		return nil, errors.New("KRATOS_URL is required.")
 	}
 	kratosAdminUrl := os.Getenv("KRATOS_ADMIN_URL")
 	if kratosAdminUrl == "" {
-		kratosAdminUrl = "http://localhost:4433"
+		return nil, errors.New("KRATOS_ADMIN_URL is required.")
 	}
 
 	logLevel := os.Getenv("LOG_LEVEL")
@@ -216,19 +271,9 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, errors.New("TWILIO_SERVICE_SID is required.")
 	}
 
-	zendeskUser := os.Getenv("ZENDESK_USER")
-	if zendeskUser == "" {
-		return nil, errors.New("ZENDESK_USER is required, provide an email address")
-	}
-
-	zendeskToken := os.Getenv("ZENDESK_TOKEN")
-	if zendeskToken == "" {
-		return nil, errors.New("ZENDESK_TOKEN is required")
-	}
-
 	personaBaseURL := os.Getenv("PERSONA_BASE_URL")
 	if personaBaseURL == "" {
-		personaBaseURL = "https://api.withpersona.com/api/v1/"
+		return nil, errors.New("PERSONA_BASE_URL is required")
 	}
 
 	personaToken := os.Getenv("PERSONA_TOKEN")
@@ -254,25 +299,10 @@ func ParseStartArgs() (*StartArgs, error) {
 		}
 	}
 
-	twitterClientId := os.Getenv("TWITTER_CLIENT_ID")
-	if twitterClientId == "" && env.IsProd() {
-		return nil, errors.New("TWITTER_CLIENT_ID is required")
-	}
-
-	twitterClientSecret := os.Getenv("TWITTER_CLIENT_SECRET")
-	if twitterClientSecret == "" && env.IsProd() {
-		return nil, errors.New("TWITTER_CLIENT_SECRET is required")
-	}
-
-	twitterBearerToken := os.Getenv("TWITTER_BEARER_TOKEN")
-	if twitterBearerToken == "" && env.IsProd() {
-		return nil, errors.New("TWITTER_BEARER_TOKEN is required")
-	}
-
-	twitterRedirectURL := os.Getenv("TWITTER_REDIRECT_URL")
-	if twitterClientSecret == "" && env.IsProd() {
-		return nil, errors.New("TWITTER_REDIRECT_URL is required")
-	}
+	twitterClientID := "DEPRECATED"
+	twitterClientSecret := "DEPRECATED"
+	twitterBearerToken := "DEPRECATED"
+	twitterRedirectURL := "DEPRECATED"
 
 	adminPolicyAud := os.Getenv("ADMIN_POLICY_AUD")
 	if adminPolicyAud == "" {
@@ -517,6 +547,18 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, errors.New("SIGNATURE_VERSION is required")
 	}
 
+	rafikiBackendGraphQLURL := os.Getenv("RAFIKI_BACKEND_GRAPHQL_URL")
+	if rafikiBackendGraphQLURL == "" {
+		return nil, errors.New("RAFIKI_BACKEND_GRAPHQL_URL is required")
+	}
+
+	rafikiAuthGraphQLURL := os.Getenv("RAFIKI_AUTH_GRAPHQL_URL")
+	if rafikiAuthGraphQLURL == "" {
+		return nil, errors.New("RAFIKI_AUTH_GRAPHQL_URL is required")
+	}
+
+	signupAgreementIDs := parseSignupAgreementIDs(os.Getenv("SIGNUP_AGREEMENT_IDS"))
+
 	redisURL := os.Getenv("REDIS_URL")
 	if redisURL == "" {
 		redisURL = "redis://redis:6379/0"
@@ -562,7 +604,6 @@ func ParseStartArgs() (*StartArgs, error) {
 
 	return &StartArgs{
 		Port:                          port,
-		AuthorisationPort:             authorisationPort,
 		DbConnectionString:            dbUrl,
 		PacioliDBConString:            pacDB,
 		KratosUrl:                     kratosUrl,
@@ -573,9 +614,7 @@ func ParseStartArgs() (*StartArgs, error) {
 		TwilioSid:                     TwilioSid,
 		TwilioSecret:                  TwilioSecret,
 		TwilioServiceSid:              twilioServiceSid,
-		ZendeskUser:                   zendeskUser,
-		ZendeskToken:                  zendeskToken,
-		TwitterClientID:               twitterClientId,
+		TwitterClientID:               twitterClientID,
 		TwitterClientSecret:           twitterClientSecret,
 		TwitterRedirectURL:            twitterRedirectURL,
 		TwitterBearerToken:            twitterBearerToken,
@@ -624,13 +663,32 @@ func ParseStartArgs() (*StartArgs, error) {
 		PersonaBaseURL:                personaBaseURL,
 		PersonaToken:                  personaToken,
 		PersonaWebhookToken:           personaWebhook,
-		PersonaSandboxFakeZAID:         personaSandboxFakeZAID,
+		PersonaSandboxFakeZAID:        personaSandboxFakeZAID,
 		AppleAppID:                    appleAppID,
 		AndroidPackageName:            androidPackageName,
 		AndroidSHA256:                 androidSHA256,
 		OperatorTenantID:              operatorTenantID,
 		AdminAPISecret:                adminAPISecret,
 		SignatureVersion:              signatureVersion,
+		SentryDSN:                     os.Getenv("SENTRY_DSN"),
+		SentryRelease:                 os.Getenv("SENTRY_RELEASE"),
+		SlackToken:                    os.Getenv("SLACK_TOKEN"),
+		SlackClientID:                 os.Getenv("SLACK_CLIENT_ID"),
+		SlackClientSecret:             os.Getenv("SLACK_CLIENT_SECRET"),
+		SlackRedirectURL:              os.Getenv("SLACK_REDIRECT_URL"),
+		SlackBotRedirectURL:           os.Getenv("SLACK_BOT_REDIRECT_URL"),
+		SignupAgreementIDs:            signupAgreementIDs,
+		VaultAddr:                     os.Getenv("VAULT_ADDR"),
+		VaultTransitEnginePath:        os.Getenv("VAULT_TRANSIT_ENGINE_PATH"),
+		VaultToken:                    os.Getenv("VAULT_TOKEN"),
+		RafikiBackendGraphQLURL:       rafikiBackendGraphQLURL,
+		RafikiAuthGraphQLURL:          rafikiAuthGraphQLURL,
+		ChimoneyWebhookSecret:         os.Getenv("CHIMONEY_WEBHOOK_SECRET"),
+		ChimoneyToken:                 os.Getenv("CHIMONEY_TOKEN"),
+		RafikiDBURL:                   os.Getenv("RAFIKI_DB_URL"),
+		RafikiAuthDBURL:               os.Getenv("RAFIKI_AUTH_DB_URL"),
+		TempGatehubAppID:              os.Getenv("TEMP_GATEHUB_APP_ID"),
+		TempGatehubSecret:             os.Getenv("TEMP_GATEHUB_SECRET"),
 		PlaidEnabled:                  plaidEnabled,
 		PlaidClientID:                 plaidClientID,
 		PlaidSecret:                   plaidSecret,
@@ -640,4 +698,22 @@ func ParseStartArgs() (*StartArgs, error) {
 		PlaidProcessor:                plaidProcessor,
 		RedisURL:                      redisURL,
 	}, nil
+}
+
+func parseList(input string) []string {
+	input = strings.ReplaceAll(input, " ", "")
+	return strings.Split(input, ",")
+}
+
+func parseSignupAgreementIDs(raw string) []string {
+	if raw == "" {
+		return nil
+	}
+	var ids []string
+	for _, s := range strings.Split(raw, ",") {
+		if id := strings.TrimSpace(s); id != "" {
+			ids = append(ids, id)
+		}
+	}
+	return ids
 }

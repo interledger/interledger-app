@@ -18,6 +18,7 @@
 
 .fynbos/**
 
+/node_modules
 typescript/**/node_modules
 
 # test migrations
@@ -39,3 +40,4 @@ openspec
 CLAUDE.md
 
 documentation/*
+graphify-out/

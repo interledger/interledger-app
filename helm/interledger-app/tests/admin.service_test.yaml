@@ -1,0 +1,42 @@
+suite: Interledger App - Admin Service
+templates:
+  - service.admin.yaml
+set:
+  fullnameOverride: wallet
+release:
+  name: wallet
+tests:
+  - it: 'Should create a Service called wallet-admin-service'
+    documentSelector:
+      path: kind
+      value: Service
+    asserts:
+      - equal:
+          path: metadata.name
+          value: wallet-admin-service
+      - equal:
+          path: spec.type
+          value: ClusterIP
+      - equal:
+          path: spec.ports[0].port
+          value: 3000
+      - equal:
+          path: spec.ports[0].name
+          value: http
+
+  - it: 'Service selector should target the admin-server deployment'
+    asserts:
+      - equal:
+          path: spec.selector["app.kubernetes.io/name"]
+          value: wallet-admin-server
+      - equal:
+          path: spec.selector["app.kubernetes.io/instance"]
+          value: wallet
+
+  - it: 'Should produce no Service when admin is disabled'
+    set:
+      admin:
+        enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
