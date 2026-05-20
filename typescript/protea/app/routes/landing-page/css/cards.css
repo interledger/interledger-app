@@ -41,14 +41,12 @@
   transform: translate(-50%, -50%); 
 }
 
-/* Image scaling wrapper */
 .physical-card-layer {
   position: absolute;
   top: 50%;
   left: 50%;
 }
 
-/* Base image sizes scaled relatively */
 .physical-card-img {
   width: auto;
   height: auto;
@@ -80,7 +78,6 @@
   transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* Left Card */
 .physical-card-layer:nth-child(1) {
   transform: translate(calc(-50% - 129px), calc(-50% - 65.5px)) rotate(20deg) scale(1);
   transition-delay: 100ms;
@@ -89,7 +86,6 @@
   transform: translate(calc(-50% - 129px), calc(-50% - 65.5px)) rotate(0deg) scale(1);
 }
 
-/* Right Card */
 .physical-card-layer:nth-child(2) {
   transform: translate(calc(-50% + 129px), calc(-50% - 65.5px)) rotate(-20deg) scale(1);
   transition-delay: 250ms;
@@ -98,7 +94,6 @@
   transform: translate(calc(-50% + 129px), calc(-50% - 65.5px)) rotate(0deg) scale(1);
 }
 
-/* Center Card */
 .physical-card-layer:nth-child(3) {
   transform: translate(-50%, -50%) rotate(0deg) scale(1);
   transition-delay: 400ms;

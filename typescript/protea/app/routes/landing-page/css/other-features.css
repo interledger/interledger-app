@@ -165,7 +165,6 @@
   text-align: center;
 }
 
-/* Tablet/Mobile Overrides */
 @media (max-width: 900px) {
   .other-features-banner {
     padding: var(--padding-4xl) var(--padding-xl);

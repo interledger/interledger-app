@@ -1,65 +1,49 @@
-/* TYPOGRAPHY TOKENS (Font Shorthand Implementation) */
 :root {
-  /* Font Families */
   --font-family: 'Poppins', system-ui, sans-serif;
   --font-heading: var(--font-family);
   --font-body: var(--font-family);
 
-  /* Font Weights */
   --font-weight-regular: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
 
-  /* H1 Style */
   --text-h1: var(--font-weight-semibold) 100px/100px var(--font-heading);
   --text-h1-ls: -0.02em;
 
-  /* H2 Style */
   --text-h2: var(--font-weight-semibold) 56px/64px var(--font-heading);
   --text-h2-ls: -0.01em;
 
-  /* H3 Style */
   --text-h3: var(--font-weight-regular) 40px/56px var(--font-heading);
   --text-h3-ls: 0;
 
-  /* H4 Style */
   --text-h4: var(--font-weight-regular) 24px/34px var(--font-heading);
   --text-h4-ls: 0;
 
-  /* H5 Style */
   --text-h5: var(--font-weight-regular) 20px/30px var(--font-heading);
   --text-h5-ls: 0;
 
-  /* Body Lg Emphasis (Medium) */
   --text-body-lg-emphasis: var(--font-weight-medium) 16px/26px var(--font-body);
   --text-body-lg-emphasis-ls: 0;
 
-  /* Body Lg Standard (Regular) */
   --text-body-lg-standard: var(--font-weight-regular) 16px/26px var(--font-body);
   --text-body-lg-standard-ls: 0;
 
-  /* Body Default */
   --text-body: var(--font-weight-regular) 14px/24px var(--font-body);
   --text-body-ls: 0;
 
-  /* Body Sm Emphasis (Medium) */
   --text-body-sm-emphasis: var(--font-weight-medium) 14px/24px var(--font-body);
   --text-body-sm-emphasis-ls: 0;
 
-  /* Body Sm Standard (Regular) */
   --text-body-sm-standard: var(--font-weight-regular) 14px/24px var(--font-body);
   --text-body-sm-standard-ls: 0;
 
-  /* Caption Style */
   --text-caption: var(--font-weight-regular) 13px/16px var(--font-body);
   --text-caption-ls: 0;
 
-  /* Label Style */
   --text-label: var(--font-weight-semibold) 11px/11px var(--font-body);
   --text-label-ls: 0.05em;
 }
 
-/* MOBILE (approx < 900px) overrides */
 @media (max-width: 899px) {
   :root {
     --text-h1: var(--font-weight-semibold) 56px/68px var(--font-heading);
@@ -73,7 +57,6 @@
   }
 }
 
-/* SMALL MOBILE (approx < 480px) overrides */
 @media (max-width: 479px) {
   :root {
     --text-h1: var(--font-weight-semibold) 40px/48px var(--font-heading);
@@ -85,7 +68,6 @@
   }
 }
 
-/* TABLET (approx 900px - 1439px) overrides */
 @media (min-width: 900px) and (max-width: 1439px) {
   :root {
     --text-h1: var(--font-weight-semibold) 70px/76px var(--font-heading);

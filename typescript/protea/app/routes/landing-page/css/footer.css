@@ -119,7 +119,7 @@
   background-color: var(--color-forest-green-100);
   color: var(--color-head);
   border: none;
-  border-radius: var(--rounded-lg); /* 8px */
+  border-radius: var(--rounded-lg);
   display: flex;
   align-items: center;
   justify-content: center;

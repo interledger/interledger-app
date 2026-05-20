@@ -152,7 +152,6 @@
   --color-footer-link: #c9c9c9;                  /* fixed per Figma spec, same in light + dark */
 }
 
-/* ---- Layer 3: Dark Mode Overrides ---- */
 @media (prefers-color-scheme: dark) {
   :root {
     /* Invert neutral primitives to dark-theme Figma values */

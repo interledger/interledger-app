@@ -41,7 +41,6 @@
   display: block;
 }
 
-/* Responsive */
 @media (max-width: 1024px) {
   .built-with-change-header {
     padding-inline: var(--padding-xl);

@@ -237,7 +237,6 @@
   transform: scale(1);
 }
 
-/* Responsive Overrides */
 @media (max-width: 810px) {
   .hand-visual-container {
     width: 100%;

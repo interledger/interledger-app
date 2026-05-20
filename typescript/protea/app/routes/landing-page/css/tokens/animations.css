@@ -1,30 +1,24 @@
-/* ==========================================================================
-   Animation Tokens
-   Placeholder values — requires verification against Figma animation specs.
-   Source: design/tokens/animations.json (status: needs-verification)
-   ========================================================================== */
-
 :root {
   /* Enter effect (on-load hero/punch text animation) */
   --anim-enter-duration: 700ms;
-  --anim-enter-easing: cubic-bezier(0.16, 1, 0.3, 1); /* needs-verification: ease-out spring */
-  --anim-enter-offset: 24px;                           /* needs-verification */
+  --anim-enter-easing: cubic-bezier(0.16, 1, 0.3, 1);
+  --anim-enter-offset: 24px;
 
   /* Scroll-driven fade */
   --anim-scroll-duration: 350ms;
-  --anim-scroll-easing: cubic-bezier(0.16, 1, 0.3, 1); /* needs-verification */
+  --anim-scroll-easing: cubic-bezier(0.16, 1, 0.3, 1);
 
   /* Scroll-driven transform */
-  --anim-transform-start: 40px;  /* needs-verification */
+  --anim-transform-start: 40px;
   --anim-transform-end: 0px;
 
   /* Stagger */
-  --anim-stagger-delay: 150ms;   /* needs-verification */
+  --anim-stagger-delay: 150ms;
 
   /* Glow */
-  --glow-hero-color: radial-gradient(ellipse at center, rgba(200, 140, 90, 0.55) 0%, rgba(160, 100, 50, 0.2) 45%, transparent 70%); /* warm amber/brown — matches Framer reference */
-  --glow-default-color: radial-gradient(ellipse at center, rgba(34, 197, 94, 0.3) 0%, transparent 70%);   /* needs-verification */
-  --glow-type2-color: radial-gradient(ellipse at center, rgba(34, 197, 94, 0.2) 0%, transparent 70%);     /* needs-verification */
-  --glow-blur: 140px; /* confirmed: Figma node 220:61602 "Linear gradient + 140 Blur" */
-  --glow-opacity: 1; /* needs-verification */
+  --glow-hero-color: radial-gradient(ellipse at center, rgba(200, 140, 90, 0.55) 0%, rgba(160, 100, 50, 0.2) 45%, transparent 70%);
+  --glow-default-color: radial-gradient(ellipse at center, rgba(34, 197, 94, 0.3) 0%, transparent 70%);
+  --glow-type2-color: radial-gradient(ellipse at center, rgba(34, 197, 94, 0.2) 0%, transparent 70%);
+  --glow-blur: 140px;
+  --glow-opacity: 1;
 }
