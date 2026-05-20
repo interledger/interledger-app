@@ -10,7 +10,6 @@
   --color-neutral-150: #0d0d0d;
   --color-neutral-900: #000000;
 
-  /* Same hex in light and dark. Use shades: 50 (tint) · 100 (base) · 150 (dark) */
   --color-apricot-50: #ffe4c4;
   --color-apricot-100: #ffb259;
   --color-apricot-150: #ffa339;
@@ -107,15 +106,12 @@
   --color-wine-100: #790444;
   --color-wine-150: #4b042b;
 
-  /* Backgrounds */
   --color-bg-page: var(--color-neutral-0);
   --color-bg-surface: var(--color-neutral-0);
 
-  /* Text */
   --color-text-primary: var(--color-neutral-150);
   --color-text-secondary: var(--color-neutral-100);
 
-  /* Interactive / Brand */
   --color-brand-50: var(--color-forest-green-50);
   --color-brand-100: var(--color-forest-green-100);
   --color-brand-150: var(--color-forest-green-150);
@@ -123,14 +119,12 @@
   --color-interactive-primary: var(--color-brand-100);
   --color-interactive-primary-hover: var(--color-brand-50);
 
-  /* Section Backgrounds */
   --section-bg-hero: var(--color-bg-page);
   --section-bg-cards: var(--color-bg-page);
   --section-bg-other-features: var(--color-aqua-mint-100);
   --section-bg-send-receive: var(--color-bg-page);
   --section-bg-ecosystem: var(--color-bg-surface);
 
-  /* Component-scoped */
   --button-cta-bg: var(--color-forest-green-100);
   --button-cta-text: var(--color-neutral-0);
 
@@ -140,21 +134,18 @@
   --feature-screen-3-bg: var(--color-ocean-100);
   --feature-screen-4-bg: var(--color-orchid-100);
 
-  /* Nav */
   --nav-bg: rgba(255, 255, 255, 0.72);
-  --nav-text: var(--color-neutral-150);           /* dark text on light nav */
-  --nav-overlay-bg: rgba(248, 248, 248, 0.97);   /* light overlay */
-  --nav-overlay-text: var(--color-neutral-150);  /* dark text on light overlay */
+  --nav-text: var(--color-neutral-150);
+  --nav-overlay-bg: rgba(248, 248, 248, 0.97);
+  --nav-overlay-text: var(--color-neutral-150);
   --nav-overlay-border: rgba(0, 0, 0, 0.08);
-  --nav-mobile-link-color: #c9c9c9;              /* fixed per Figma spec, same in light + dark */
+  --nav-mobile-link-color: #c9c9c9;
 
-  /* Footer */
-  --color-footer-link: #c9c9c9;                  /* fixed per Figma spec, same in light + dark */
+  --color-footer-link: #c9c9c9;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    /* Invert neutral primitives to dark-theme Figma values */
     --color-neutral-0: #0D0D0D;
     --color-neutral-25: #000000;
     --color-neutral-50: #292929;
@@ -172,11 +163,10 @@
 
     --button-cta-text: var(--color-neutral-150);
 
-    /* Nav */
     --nav-bg: rgba(13, 13, 13, 0.82);
-    --nav-text: var(--color-neutral-900);           /* white text on dark nav */
-    --nav-overlay-bg: rgba(20, 20, 20, 0.97);      /* dark overlay */
-    --nav-overlay-text: var(--color-neutral-900);  /* white text on dark overlay */
+    --nav-text: var(--color-neutral-900);
+    --nav-overlay-bg: rgba(20, 20, 20, 0.97);
+    --nav-overlay-text: var(--color-neutral-900);
     --nav-overlay-border: rgba(255, 255, 255, 0.1);
   }
 }

@@ -6,10 +6,6 @@ import privateIcon from "../assets/send-receive-section/icon-private.svg"
 import sendReceiveIcon from "../assets/send-receive-section/icon-sendreceive.svg"
 import handHoldingPhone from "../assets/send-receive-section/hand-hodling-phone.svg"
 
-const CheckmarkIcon = () => (
-  <div className="checkmark-css" />
-)
-
 function StatusItem({ icon, text }: { icon: React.ReactNode, text: string }) {
   return (
     <div className="status-item">
@@ -18,7 +14,7 @@ function StatusItem({ icon, text }: { icon: React.ReactNode, text: string }) {
       </div>
       <span className="text-h5 status-text">{text}</span>
       <div className="status-check-container">
-        <CheckmarkIcon />
+        <div className="checkmark-css" />
       </div>
     </div>
   )
@@ -33,7 +29,6 @@ function HandAnimation() {
       <div className="hand-phone-frame">
         <img src={handHoldingPhone} alt="Hand holding phone" className="hand-svg-asset" loading="lazy" decoding="async" />
         
-        {/* Currency Circles */}
         <div className="currency-circle circle-dollar">
           <span className="currency-char">$</span>
         </div>
@@ -82,4 +77,3 @@ export function SendReceive() {
     </PageSection>
   )
 }
-

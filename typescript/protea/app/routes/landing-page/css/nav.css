@@ -1,6 +1,6 @@
 :root {
-  --nav-height: 104px; /* Space below the 72px floating navbar + 16px offset + padding */
-  --nav-mobile-link-size: 1.25rem; /* 20px per Figma spec */
+  --nav-height: 104px;
+  --nav-mobile-link-size: 1.25rem; 
 }
 
 .nav {

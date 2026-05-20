@@ -1,18 +1,16 @@
 :root {
-  /* Spacing scale — Figma variable names */
   --spacing-xs:  4px;
   --spacing-sm:  8px;
   --spacing-md:  12px;
   --spacing-lg:  16px;
   --spacing-xl:  24px;
   --spacing-2xl: 32px;
-  --spacing-3xl: 48px;  /* NOTE: padding-3xl differs here — padding uses 40px */
+  --spacing-3xl: 48px;
   --spacing-4xl: 60px;
   --spacing-5xl: 80px;
   --spacing-6xl: 120px;
   --spacing-7xl: 160px;
 
-  /* Padding scale — Figma variable names */
   --padding-xs:  4px;
   --padding-sm:  8px;
   --padding-md:  12px;
@@ -30,9 +28,9 @@
   --rounded-xl:   12px;
   --rounded-2xl:  16px;
   --rounded-3xl:  24px;
-  --rounded-full: 999px;  /* Figma spells "roundend-full" — corrected typo */
+  --rounded-full: 999px;
 
-  /* Section Padding Rules (layout.css consumes these) */
+  /* Section Padding Rules */
   /* Mobile */
   --section-pad-default: var(--padding-lg);  /* 16px — hero, features, send/receive */
   --section-pad-wide:    var(--padding-xl);  /* 24px — cards, ecosystem, editorial */
