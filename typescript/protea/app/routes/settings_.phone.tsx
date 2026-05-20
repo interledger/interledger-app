@@ -21,11 +21,11 @@ import { Label } from '~/components/Label'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { ErrorDescriptions } from '~/lib/error.constants'
 import type { TwillioError } from '~/lib/error.mappers'
-import { TwillioErrorMapper } from '~/lib/error.mappers'
-import { isConnectError, isTwilioError } from '~/lib/error.server'
+import { isConnectError, isOtpValidationError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { getSessionTraits, getUserSession } from '~/lib/kratos/session.server'
 import { mergeMeta } from '~/lib/meta'
+import { parseUserPhone } from '~/lib/phone.server'
 import { RateLimitKeys, getKey, rateLimit } from '~/lib/rateLimit.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { useCountdown } from '~/lib/useCountdown'
@@ -210,9 +210,15 @@ export async function action({ request }: Route.ActionArgs) {
 
   if (intent === 'updatePhone') {
     const newPhone = form.get('phone') as string
+    const country = form.get('country') as string
+    const parsedPhone = parseUserPhone(newPhone, country)
+
+    if (parsedPhone.error) {
+      return { errors: { phone: parsedPhone.error } }
+    }
 
     const updateResponse = await grpc.updateUserPhone(request, {
-      phone: newPhone
+      phone: parsedPhone.phone
     })
     if (isConnectError(updateResponse)) {
       if (updateResponse.code === Code.InvalidArgument) {
@@ -222,11 +228,11 @@ export async function action({ request }: Route.ActionArgs) {
     }
 
     const sendResponse = await grpc.sendPhoneVerification(request, {
-      to: newPhone
+      to: parsedPhone.phone
     })
     if (isConnectError(sendResponse)) throw sendResponse.errorResponse
 
-    return { codeSent: true, phone: newPhone }
+    return { codeSent: true, phone: parsedPhone.phone }
   }
 
   if (intent === 'resend') {
@@ -250,10 +256,10 @@ export async function action({ request }: Route.ActionArgs) {
   const response = await grpc.confirmUserPhone(request, { otp })
 
   if (isConnectError(response)) {
-    if (isTwilioError(response)) {
+    if (isOtpValidationError(response)) {
       return response.error(
         { errors },
-        { otp: TwillioErrorMapper.otp },
+        {},
         { action: 'Contact support', message: ErrorDescriptions.INVALID_OTP }
       )
     } else if (response.code === Code.InvalidArgument) {

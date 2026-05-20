@@ -334,8 +334,11 @@ func UpdateUserPhone(ctx context.Context, b Backends, userID string, phone strin
 	traits["phoneVerified"] = false
 
 	update := client.UpdateIdentityBody{Traits: traits}
-	_, _, err = b.Kratos().IdentityApi.UpdateIdentity(ctx, userID).UpdateIdentityBody(update).Execute()
+	_, response, err := b.Kratos().IdentityApi.UpdateIdentity(ctx, userID).UpdateIdentityBody(update).Execute()
 	if err != nil {
+		if response != nil && response.StatusCode == 400 {
+			return fmt.Errorf("%w %s", user.ErrInvalidArgument, err)
+		}
 		return fmt.Errorf("%w %s", user.ErrInternal, err)
 	}
 

@@ -117,9 +117,11 @@ func TestToGRPCError(t *testing.T) {
 			expectedAppCode errcodes.AppErrorCode
 		}{
 			{"user not found", user.ErrNoUserFound, codes.Unauthenticated, errcodes.ErrCodeUserNoUserFound},
+			{"user invalid argument", user.ErrInvalidArgument, codes.InvalidArgument, errcodes.ErrCodeValidation},
 			{"duplicate wallet", wallets.ErrDuplicateWallet, codes.AlreadyExists, errcodes.ErrCodeWalletsDuplicateWallet},
 			{"wallet conflict", wallets.ErrWalletConflict, codes.FailedPrecondition, errcodes.ErrCodeWalletsWalletConflict},
 			{"linked account not found", linkedaccounts.ErrNotFound, codes.NotFound, errcodes.ErrCodeLinkedAccNotFound},
+			{"signup invalid otp", signup.ErrInvalidOTP, codes.InvalidArgument, errcodes.ErrCodeTwilioInvalidOTP},
 			{"duplicate phone", signup.ErrDuplicatePhone, codes.AlreadyExists, errcodes.ErrCodeSignupDuplicatePhone},
 			{"identity already exists", identities.ErrAlreadyExists, codes.AlreadyExists, errcodes.ErrCodeIdentitiesAlreadyExists},
 			{"no wallet found", wallets.ErrNoWalletFound, codes.NotFound, errcodes.ErrCodeWalletsNoWalletFound},
@@ -127,6 +129,7 @@ func TestToGRPCError(t *testing.T) {
 			{"payments insufficient funds", payments.ErrInsufficientFunds, codes.FailedPrecondition, errcodes.ErrCodePaymentsInsufficientFunds},
 			{"kyc resubmission required", kyc.ErrKYCResubmissionRequired, codes.FailedPrecondition, errcodes.ErrCodeKYCResubmissionRequired},
 			{"twilio invalid otp", twilio.ErrInvalidOTP, codes.InvalidArgument, errcodes.ErrCodeTwilioInvalidOTP},
+			{"twilio invalid argument", twilio.ErrInvalidArgument, codes.InvalidArgument, errcodes.ErrCodeTwilioInvalidOTP},
 		}
 
 		for _, tc := range tests {
@@ -211,7 +214,32 @@ func TestNewTwilioError(t *testing.T) {
 
 	appErr := statusFindDetail[*pb.AppError](st)
 	require.NotNil(t, appErr)
-	assert.Equal(t, errcodes.ErrCodeValidation, appErr.ErrorCode)
+	assert.Equal(t, errcodes.ErrCodeTwilioInvalidOTP, appErr.ErrorCode)
+	require.Len(t, appErr.Fields, 1)
+	assert.Equal(t, "otp", appErr.Fields[0].Field)
+}
+
+func TestToGRPCError_TwilioValidationContainsBadRequestAndMetadata(t *testing.T) {
+	t.Parallel()
+
+	err := toGRPCError(signup.ErrInvalidOTP)
+	st, ok := status.FromError(err)
+	require.True(t, ok)
+	assert.Equal(t, codes.InvalidArgument, st.Code())
+
+	br := statusFindDetail[*errdetails.BadRequest](st)
+	require.NotNil(t, br)
+	require.Len(t, br.FieldViolations, 1)
+	assert.Equal(t, "otp", br.FieldViolations[0].Field)
+	assert.Equal(t, "Could not validate OTP", br.FieldViolations[0].Description)
+
+	errInfo := statusFindDetail[*errdetails.ErrorInfo](st)
+	require.NotNil(t, errInfo)
+	assert.Equal(t, "TwilioError", errInfo.Reason)
+
+	appErr := statusFindDetail[*pb.AppError](st)
+	require.NotNil(t, appErr)
+	assert.Equal(t, errcodes.ErrCodeTwilioInvalidOTP, appErr.ErrorCode)
 	require.Len(t, appErr.Fields, 1)
 	assert.Equal(t, "otp", appErr.Fields[0].Field)
 }

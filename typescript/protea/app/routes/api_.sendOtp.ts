@@ -1,12 +1,11 @@
-import type { Route } from './+types/api_.sendOtp'
 import { Code } from '@bufbuild/connect'
-import { data as rrData } from 'react-router';
-import type { CountryCode, ParseError } from 'libphonenumber-js'
-import { parsePhoneNumberWithError } from 'libphonenumber-js'
+import { data as rrData } from 'react-router'
 import { validateCSRFToken } from '~/lib/csrf.server'
 import { error, isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
-import { getUserSession, getSessionTraits } from '~/lib/kratos/session.server'
+import { getSessionTraits, getUserSession } from '~/lib/kratos/session.server'
+import { parseUserPhone } from '~/lib/phone.server'
+import type { Route } from './+types/api_.sendOtp'
 
 export async function action({ request }: Route.ActionArgs) {
   const form = await request.formData()
@@ -32,29 +31,13 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   if (validation) {
-    try {
-      data.phone = parsePhoneNumberWithError(
-        phone,
-        country as CountryCode
-      ).number
-    } catch (err) {
-      switch ((err as ParseError).message) {
-        case 'NOT_A_NUMBER':
-          data.errors.phone = 'Phone number is invalid.'
-          return error(request, data)
-        case 'INVALID_COUNTRY':
-          data.errors.phone = 'Country is invalid.'
-          return error(request, data)
-        case 'TOO_SHORT':
-          data.errors.phone = 'Phone number is too short.'
-          return error(request, data)
-        case 'TOO_LONG':
-          data.errors.phone = 'Phone number is too long.'
-          return error(request, data)
-        default:
-          throw err
-      }
+    const parsedPhone = parseUserPhone(phone, country)
+    if (parsedPhone.error) {
+      data.errors.phone = parsedPhone.error
+      return error(request, data)
     }
+
+    data.phone = parsedPhone.phone
   } else {
     data.phone = await getUserSession(request).then(
       (session) => getSessionTraits(session).phone

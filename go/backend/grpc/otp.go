@@ -2,7 +2,6 @@ package grpc
 
 import (
 	"context"
-	"errors"
 
 	"gitlab.com/fynbos/backend/twilio"
 
@@ -34,12 +33,6 @@ func (s *rpcService) ConfirmUserPhone(ctx context.Context, req *pb.ConfirmUserPh
 		Code:        req.GetOtp(),
 	})
 	if err != nil {
-		if errors.Is(err, twilio.ErrInvalidOTP) {
-			return nil, NewTwilioError("otp", "Invalid verification code")
-		}
-		if errors.Is(err, twilio.ErrInvalidArgument) {
-			return nil, NewTwilioError("otp", "Invalid OTP format")
-		}
 		return nil, toGRPCError(err)
 	}
 	if !vc.IsValid() {
@@ -59,7 +52,7 @@ func (s *rpcService) SendPhoneVerification(
 ) (*pb.Empty, error) {
 	err := s.b.Validator().VarCtx(ctx, req.To, "required,e164")
 	if err != nil {
-		return nil, NewValidationError("To", "Phone number is invalid.")
+		return nil, NewValidationError("phone", "Phone number is invalid.")
 	}
 
 	_, err = s.b.Twilio().SendVerificationCode(ctx, req.To)
@@ -76,7 +69,7 @@ func (s *rpcService) CheckPhoneVerification(
 ) (*pb.Empty, error) {
 	err := s.b.Validator().VarCtx(ctx, req.To, "required,e164")
 	if err != nil {
-		return nil, NewValidationError("To", "Phone number is invalid.")
+		return nil, NewValidationError("phone", "Phone number is invalid.")
 	}
 
 	vc, err := s.b.Twilio().CheckVerificationCode(ctx, &twilio.CheckVerificationCodeArgs{
@@ -84,12 +77,6 @@ func (s *rpcService) CheckPhoneVerification(
 		Code:        req.GetOtp(),
 	})
 	if err != nil {
-		if errors.Is(err, twilio.ErrInvalidOTP) {
-			return nil, NewTwilioError("Code", "Invalid verification code")
-		}
-		if errors.Is(err, twilio.ErrInvalidArgument) {
-			return nil, NewTwilioError("To", "Invalid phone number format")
-		}
 		return nil, toGRPCError(err)
 	}
 	if !vc.IsValid() {
