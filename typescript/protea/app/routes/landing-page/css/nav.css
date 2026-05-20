@@ -124,6 +124,18 @@
   }
 }
 
+.nav-cta--hero {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 640px) {
+  .nav-cta--hero {
+    width: 100%;
+  }
+}
+
 .menu-button {
   display: flex;
   align-items: center;

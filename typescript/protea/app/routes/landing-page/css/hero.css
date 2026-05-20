@@ -195,3 +195,17 @@
   z-index: 1;
 }
 
+.hero-signup-cta-wrap {
+  margin-top: 16px;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+/* Matches navbar width on mobile */
+@media (max-width: 640px) {
+  .hero-signup-cta-wrap {
+    width: calc(100vw - 2 * var(--padding-lg));
+  }
+}
+

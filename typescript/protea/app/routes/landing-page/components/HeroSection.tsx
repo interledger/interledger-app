@@ -1,4 +1,5 @@
 import { useRef } from "react"
+import { Link } from "react-router"
 import { motion } from "framer-motion"
 
 import { PhoneFrame } from "./PhoneFrame"
@@ -42,10 +43,10 @@ const FEATURES = [
     heading: "Designed to adopt. Easy to adopt.",
     body: "We are building the wallet in the open and want to participate from the start.",
     visual: (
-      <div style={{ marginTop: "16px", display: "flex", justifyContent: "center" }}>
-        <a href="/signup" className="nav-cta" style={{ display: "inline-flex" }}>
-          Sign up now <span style={{ marginLeft: "4px" }}>&rarr;</span>
-        </a>
+      <div className="hero-signup-cta-wrap">
+        <Link to="/signup" className="nav-cta nav-cta--hero">
+          Sign up now <span aria-hidden="true" style={{ marginLeft: "4px" }}>&rarr;</span>
+        </Link>
       </div>
     ),
   },
