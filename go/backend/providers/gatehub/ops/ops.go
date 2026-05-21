@@ -921,7 +921,7 @@ func GetPendingRealtimeCardTransactions(ctx context.Context, b Backends) ([]pend
 func getPendingCardTransactions(ctx context.Context, b Backends, sqlStmt string, sqlArgs []any) ([]pendingTransaction, error) {
 	var txs []pendingTransaction
 	if err := b.DB().SelectContext(ctx, &txs, sqlStmt, sqlArgs...); err != nil {
-		return []pendingTransaction{}, fmt.Errorf("%w %s", transactions.ErrInternal, err)
+		return nil, fmt.Errorf("%w %s", transactions.ErrInternal, err)
 	}
 	return txs, nil
 }

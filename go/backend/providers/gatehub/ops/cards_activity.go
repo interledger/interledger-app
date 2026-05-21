@@ -131,41 +131,23 @@ func (a *Activity) SaveGatehubCardTransaction(ctx context.Context, userID, cardI
 }
 
 func (a *Activity) FinalizeGatehubCardTransaction(ctx context.Context, cardTxID, internalTxID string) error {
-	err := FinaliseReserve(ctx, a.b, internalTxID)
-	if err != nil {
+	if err := FinaliseReserve(ctx, a.b, internalTxID); err != nil {
 		return err
 	}
-
-	err = a.b.Transactions().SetTransactionState(ctx, internalTxID, transactions.StateCompleted)
-	if err != nil {
+	if err := a.b.Transactions().SetTransactionState(ctx, internalTxID, transactions.StateCompleted); err != nil {
 		return err
 	}
-
-	err = updateCardTransactionStatus(ctx, a.b, cardTxID, external.CardTransactionStatusCompleted)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return updateCardTransactionStatus(ctx, a.b, cardTxID, external.CardTransactionStatusCompleted)
 }
 
 func (a *Activity) RollbackGatehubCardTransaction(ctx context.Context, cardTxID, internalTxID string) error {
-	err := RollbackReserve(ctx, a.b, internalTxID)
-	if err != nil {
+	if err := RollbackReserve(ctx, a.b, internalTxID); err != nil {
 		return err
 	}
-
-	err = a.b.Transactions().SetTransactionState(ctx, internalTxID, transactions.StateFailed)
-	if err != nil {
+	if err := a.b.Transactions().SetTransactionState(ctx, internalTxID, transactions.StateFailed); err != nil {
 		return err
 	}
-
-	err = updateCardTransactionStatus(ctx, a.b, cardTxID, external.CardTransactionStatusFailed)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return updateCardTransactionStatus(ctx, a.b, cardTxID, external.CardTransactionStatusFailed)
 }
 
 type CardTransactionMeta struct {

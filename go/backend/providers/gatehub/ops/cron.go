@@ -60,8 +60,7 @@ func GatehubClearingCardTransactionsPollWorkflow(ctx workflow.Context) error {
 
 	for _, tx := range txs {
 		var cardTx *external.CardTransaction
-		cardTxErr := workflow.ExecuteActivity(loopCtx, a.GetCardTransaction, tx.UserID, tx.ID).Get(loopCtx, &cardTx)
-		if cardTxErr != nil {
+		if err := workflow.ExecuteActivity(loopCtx, a.GetCardTransaction, tx.UserID, tx.ID).Get(loopCtx, &cardTx); err != nil {
 			slack.SendToChannel(context.Background(), slack.ChannelNotifyEvents, "wallet-info-bot", fmt.Sprintf("!!! Failed to fetch card transaction from GateHub\nGateHub TX ID: %s\nGateHub User ID: %s", tx.ID, tx.UserID))
 			continue
 		}
@@ -143,8 +142,7 @@ func GatehubRealtimeCardTransactionsPollWorkflow(ctx workflow.Context) error {
 
 	for _, tx := range txs {
 		var cardTx *external.CardTransaction
-		cardTxErr := workflow.ExecuteActivity(loopCtx, a.GetCardTransaction, tx.UserID, tx.ID).Get(loopCtx, &cardTx)
-		if cardTxErr != nil {
+		if err := workflow.ExecuteActivity(loopCtx, a.GetCardTransaction, tx.UserID, tx.ID).Get(loopCtx, &cardTx); err != nil {
 			slack.SendToChannel(context.Background(), slack.ChannelNotifyEvents, "wallet-info-bot", fmt.Sprintf("!!! Failed to fetch card transaction from GateHub\nGateHub TX ID: %s\nGateHub User ID: %s", tx.ID, tx.UserID))
 			continue
 		}
