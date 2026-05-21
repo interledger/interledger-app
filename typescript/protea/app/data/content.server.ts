@@ -482,46 +482,6 @@ export const getCurrentMarketingPage = async (
                                     ]
                                   }
                                 ]
-                              },
-                              {
-                                type: 'listItem',
-                                children: [
-                                  {
-                                    type: 'paragraph',
-                                    children: [
-                                      {
-                                        url: 'https://astrafi.com/terms/',
-                                        type: 'link',
-                                        children: [
-                                          {
-                                            type: 'span',
-                                            value: 'Astra Terms of Use'
-                                          }
-                                        ]
-                                      }
-                                    ]
-                                  }
-                                ]
-                              },
-                              {
-                                type: 'listItem',
-                                children: [
-                                  {
-                                    type: 'paragraph',
-                                    children: [
-                                      {
-                                        url: 'https://astrafi.com/privacy/',
-                                        type: 'link',
-                                        children: [
-                                          {
-                                            type: 'span',
-                                            value: 'Astra Privacy Policy'
-                                          }
-                                        ]
-                                      }
-                                    ]
-                                  }
-                                ]
                               }
                             ]
                           }
@@ -3063,21 +3023,6 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                                 type: 'span',
                                 value:
                                   'Xago  - for facilitating money transfers between users and across different financial institutions in South Africa'
-                              }
-                            ]
-                          }
-                        ]
-                      },
-                      {
-                        type: 'listItem',
-                        children: [
-                          {
-                            type: 'paragraph',
-                            children: [
-                              {
-                                type: 'span',
-                                value:
-                                  'Astra - for processing payment transactions and verifying payment card information'
                               }
                             ]
                           }
