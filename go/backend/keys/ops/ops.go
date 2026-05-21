@@ -38,8 +38,7 @@ func GeneratePrivateKey(ctx context.Context, b Backends, walletID string) error 
 		return nil
 	}
 
-	// Local env generate and store in DB
-	if env.IsLocal() || env.IsTest() {
+	if !env.FeatureUseVault() {
 		publicKey, privateKey, err := ed25519.GenerateKey(nil)
 		if err != nil {
 			return fmt.Errorf("%w %s", keys.ErrInternal, err)
@@ -174,7 +173,7 @@ func Sign(ctx context.Context, b Backends, keyID string, walletID string, messag
 		return nil, fmt.Errorf("%w can only sign with custodial keys", keys.ErrInternal)
 	}
 
-	if env.IsLocal() || env.IsTest() {
+	if !env.FeatureUseVault() {
 		refBytes, err := base64.StdEncoding.DecodeString(k.Reference.String)
 		if err != nil {
 			return nil, err
@@ -207,8 +206,7 @@ func Verify(ctx context.Context, b Backends, keyID string, walletID string, mess
 		return ed25519.Verify(refBytes, message, sig), nil
 	}
 
-	// If local we need to pull the private key out of reference
-	if env.IsLocal() || env.IsTest() {
+	if !env.FeatureUseVault() {
 		refBytes, err := base64.StdEncoding.DecodeString(k.Reference.String)
 		if err != nil {
 			return false, err

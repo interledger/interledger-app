@@ -21,6 +21,7 @@ type MigrationArgs struct {
 	LogOutputPath           string
 	SentryDSN               string
 	SentryRelease           string
+	SentryEnvLabel          string
 }
 
 func ParseMigrationArgs() (*MigrationArgs, error) {
@@ -55,6 +56,7 @@ func ParseMigrationArgs() (*MigrationArgs, error) {
 		PacioliConnectionString: pacDB,
 		SentryDSN:               os.Getenv("SENTRY_DSN"),
 		SentryRelease:           os.Getenv("SENTRY_RELEASE"),
+		SentryEnvLabel:          os.Getenv("SENTRY_ENV_LABEL"),
 	}, nil
 }
 
@@ -128,6 +130,7 @@ type StartArgs struct {
 	SignatureVersion              string
 	SentryDSN                     string
 	SentryRelease                 string
+	SentryEnvLabel                string
 	SlackToken                    string
 	SlackClientID                 string
 	SlackClientSecret             string
@@ -606,6 +609,7 @@ func ParseStartArgs() (*StartArgs, error) {
 		SignatureVersion:              signatureVersion,
 		SentryDSN:                     os.Getenv("SENTRY_DSN"),
 		SentryRelease:                 os.Getenv("SENTRY_RELEASE"),
+		SentryEnvLabel:                os.Getenv("SENTRY_ENV_LABEL"),
 		SlackToken:                    os.Getenv("SLACK_TOKEN"),
 		SlackClientID:                 os.Getenv("SLACK_CLIENT_ID"),
 		SlackClientSecret:             os.Getenv("SLACK_CLIENT_SECRET"),

@@ -1,4 +1,4 @@
-import { Form, useActionData, useLoaderData, useRouteLoaderData, useSearchParams } from 'react-router';
+import { Form, useActionData, useLoaderData, useSearchParams } from 'react-router';
 import type { ChangeEventHandler } from 'react'
 import { useCallback, useEffect, useState } from 'react'
 import { href } from 'react-router'
@@ -22,12 +22,11 @@ import type { FormattedLinkedAccount } from '~/data/accounts.server'
 
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { PaySelect } from '../pay_.$paymentId/PaySelect'
-import { RootLoaderData } from '~/root';
 import { fynbosDepositLoader } from './loader.server';
 
 
 export function FynbosDepositPage() {
-  const { depositDetails } = useLoaderData<typeof fynbosDepositLoader>()
+  const { depositDetails, showTestDeposit } = useLoaderData<typeof fynbosDepositLoader>()
 
   const [setLoading] = useScaffoldStore((state) => [state.setLoading])
 
@@ -201,9 +200,8 @@ const Amount = () => {
 }
 
 export function DepositDetails() {
-  const { depositDetails, csrfToken } =
+  const { depositDetails, csrfToken, showTestDeposit } =
     useLoaderData<typeof fynbosDepositLoader>()
-  const { env } = useRouteLoaderData('root') as RootLoaderData
 
   return (
     <>
@@ -233,7 +231,7 @@ export function DepositDetails() {
           </div>
         </CardContent>
       </Card>
-      {env.fynbosEnv !== 'prod' ? (
+      {showTestDeposit ? (
         <Form
           id='xago-test-account-deposit'
           action={href('/deposit')}

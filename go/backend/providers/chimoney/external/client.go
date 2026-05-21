@@ -36,7 +36,7 @@ type client struct {
 
 func New(apiKey string, transport *http.Client) Client {
 	baseURL := "https://api.chimoney.io/v0.2.4"
-	if !env.IsProd() {
+	if !env.FeatureChimoneyLive() {
 		baseURL = "https://api-v2-sandbox.chimoney.io/v0.2.4"
 	}
 

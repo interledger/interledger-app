@@ -41,15 +41,42 @@ tests:
           path: data.LOG_PRETTY
           value: "true"
 
-  - it: 'Should contain FYNBOS_ENV'
+  - it: 'Should contain PUBLIC_OP_AUTH_HOST'
     set:
       frontend:
         config:
-          environment: "production"
+          public_op_auth_host: "auth.example.ilp.link"
     asserts:
       - equal:
-          path: data.FYNBOS_ENV
-          value: "production"
+          path: data.PUBLIC_OP_AUTH_HOST
+          value: "auth.example.ilp.link"
+
+  - it: 'Should contain SENTRY_ENV_LABEL'
+    set:
+      frontend:
+        config:
+          sentry_env_label: "sandbox"
+    asserts:
+      - equal:
+          path: data.SENTRY_ENV_LABEL
+          value: "sandbox"
+
+  - it: 'Should contain FEATURE_FLAG_TESTING_DEPOSIT as false by default'
+    asserts:
+      - equal:
+          path: data.FEATURE_FLAG_TESTING_DEPOSIT
+          value: "false"
+
+  - it: 'Should contain FEATURE_FLAG_TESTING_DEPOSIT as true when set'
+    set:
+      frontend:
+        features:
+          testing:
+            test_deposits: true
+    asserts:
+      - equal:
+          path: data.FEATURE_FLAG_TESTING_DEPOSIT
+          value: "true"
 
   - it: 'Should contain BACKEND_GRPC_URL'
     asserts:

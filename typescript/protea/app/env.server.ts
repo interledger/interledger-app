@@ -23,14 +23,15 @@ const knownEnvKeysRequired: string[] = [
 const knownEnvKeysOptional: string[] = [
     "SENTRY_DSN",
     "SENTRY_RELEASE",
-    "FYNBOS_ENV",
+    "SENTRY_ENV_LABEL",
     "LOG_LEVEL",
     "LOG_PRETTY",
     "PUSHER_APP_KEY",
     "PUSHER_APP_CLUSTER",
     "DEFAULT_RATE_LIMIT_REQUESTS",
     "DEFAULT_RATE_LIMIT_TIME",
-    "GOOGLE_MAPS_API_KEY"
+    "GOOGLE_MAPS_API_KEY",
+    "FEATURE_FLAG_TESTING_DEPOSIT"
 ]
 
 const knownEnvKeysEnabled = {
@@ -44,6 +45,10 @@ const knownEnvKeysEnabled = {
 
 export function envVarValidation() {
     try {
+        if (process.env["FYNBOS_ENV"]) {
+            console.warn("WARNING: FYNBOS_ENV is set but no longer used. Remove it from your environment configuration.")
+        }
+
         const missingRequired: string[] = []
         const missingOptional: string[] = []
 

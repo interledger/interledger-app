@@ -25,7 +25,6 @@ services:
 
     environment:
       # Core runtime
-      - FYNBOS_ENV=${PROTEA_FYNBOS_ENV:-local}
       - LOG_LEVEL=${PROTEA_LOG_LEVEL:-debug}
       # Setting LOG_PRETTY to false will result in json logs
       - LOG_PRETTY=${PROTEA_LOG_PRETTY:-true}

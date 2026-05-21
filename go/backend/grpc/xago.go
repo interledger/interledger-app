@@ -250,7 +250,7 @@ func (s *rpcService) DepositTestXago(ctx context.Context, req *pb.Empty) (*pb.Em
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	if env.IsProd() {
+	if !env.FeatureTestingTestDeposits() {
 		log.Warn("received xago test deposit RPC call in non-testing environment", zap.String("userId", u.ID))
 		return nil, ForbiddenError("Forbidden.")
 	}

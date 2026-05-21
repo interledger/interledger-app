@@ -3,6 +3,7 @@ package slack
 import (
 	"context"
 	"fmt"
+	"os"
 	"sync"
 
 	"gitlab.com/fynbos/env"
@@ -33,7 +34,7 @@ func Init(token string) {
 }
 
 func SendToChannel(ctx context.Context, channel Channel, fromUser, message string) {
-	if channel == ChannelNotifyEvents && env.IsLocal() {
+	if !env.FeatureSlackNotifications() {
 		return
 	}
 
@@ -57,8 +58,8 @@ func SendToChannel(ctx context.Context, channel Channel, fromUser, message strin
 }
 
 func formatMessageForEnvironment(message string) string {
-	if !env.IsProd() {
-		return fmt.Sprintf("%s\n*[%s]*", message, env.GetEnv())
+	if label := os.Getenv("SENTRY_ENV_LABEL"); label != "" && label != "prod" {
+		return fmt.Sprintf("%s\n*[%s]*", message, label)
 	}
 	return message
 }

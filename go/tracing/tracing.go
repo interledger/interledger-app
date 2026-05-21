@@ -29,7 +29,7 @@ func InitTraceProvider(serviceName string) (func(context.Context) error, error) 
 
 	var traceExporter sdktrace.SpanExporter
 
-	if env.IsDev() || env.IsProd() {
+	if env.FeatureTracing() {
 		client := otlptracegrpc.NewClient()
 		traceExporter, err = otlptrace.New(ctx, client)
 		if err != nil {

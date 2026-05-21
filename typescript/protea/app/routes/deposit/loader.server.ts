@@ -5,6 +5,7 @@ import {
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { jsonWithCSRF } from '~/lib/csrf.server'
+import { envBool } from '~/env.server'
 import {
     getBalancesForTransfer,
     getLinkedAccountsForDeposit
@@ -83,6 +84,7 @@ export async function fynbosDepositLoader({ request }: LoaderFunctionArgs) {
         balance,
         balances,
         linkedAccounts,
-        depositDetails
+        depositDetails,
+        showTestDeposit: envBool("FEATURE_FLAG_TESTING_DEPOSIT")
     })
 }

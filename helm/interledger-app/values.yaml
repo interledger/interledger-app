@@ -253,6 +253,7 @@ backend:
 
     sentry:
       dsn_ref: "sentryDSN"
+      env_label: ""
 
     pti:
       enabled: "false"
@@ -266,6 +267,24 @@ backend:
     signup_agreement_ids: ""
 
     redis_url_ref: "redisURL"
+
+  features:
+    keys:
+      use_vault: false
+    security:
+      enforce_admin_auth: false
+      require_https: false
+    kyc:
+      enforce_credentials: false
+    providers:
+      chimoney_live: false
+    testing:
+      test_deposits: false
+    observability:
+      tracing: false
+      webhook_debug_logging: false
+    notifications:
+      slack: false
 
   server:
     enabled: true
@@ -790,6 +809,8 @@ backend:
           valueRef: backend.config.application_url
         - key: FYNBOS_ENV
           valueRef: backend.config.environment
+        - key: SENTRY_ENV_LABEL
+          valueRef: backend.config.sentry.env_label
         - key: KRATOS_URL
           valueRef: backend.config.kratos.url
         - key: KRATOS_ADMIN_URL
@@ -878,6 +899,24 @@ backend:
           valueRef: backend.config.persona.base_url
         - key: SIGNUP_AGREEMENT_IDS
           valueRef: backend.config.signup_agreement_ids
+        - key: FEATURE_KEYS_USE_VAULT
+          valueRef: backend.features.keys.use_vault
+        - key: FEATURE_SECURITY_ENFORCE_ADMIN_AUTH
+          valueRef: backend.features.security.enforce_admin_auth
+        - key: FEATURE_SECURITY_REQUIRE_HTTPS
+          valueRef: backend.features.security.require_https
+        - key: FEATURE_KYC_ENFORCE_CREDENTIALS
+          valueRef: backend.features.kyc.enforce_credentials
+        - key: FEATURE_PROVIDERS_CHIMONEY_LIVE
+          valueRef: backend.features.providers.chimoney_live
+        - key: FEATURE_TESTING_TEST_DEPOSITS
+          valueRef: backend.features.testing.test_deposits
+        - key: FEATURE_OBSERVABILITY_TRACING
+          valueRef: backend.features.observability.tracing
+        - key: FEATURE_OBSERVABILITY_WEBHOOK_DEBUG_LOGGING
+          valueRef: backend.features.observability.webhook_debug_logging
+        - key: FEATURE_NOTIFICATIONS_SLACK
+          valueRef: backend.features.notifications.slack
 
 # =============================================================================
 # FRONTEND — Protea user-facing wallet
@@ -934,7 +973,13 @@ frontend:
         endpoint: http://rafiki-auth-service:3009
         secret_ref: rafikiAuthSecret
 
-    environment: dev
+    public_op_auth_host: "auth.development.ilp.link"
+
+    sentry_env_label: ""
+
+  features:
+    testing:
+      test_deposits: false
 
   server:
     name: frontend-server
@@ -1050,8 +1095,12 @@ frontend:
           valueRef: frontend.config.rafiki.auth.endpoint
         - key: BACKEND_GRPC_URL
           valueRef: frontend.config.backend.grpc.url
-        - key: FYNBOS_ENV
-          valueRef: frontend.config.environment
+        - key: PUBLIC_OP_AUTH_HOST
+          valueRef: frontend.config.public_op_auth_host
+        - key: SENTRY_ENV_LABEL
+          valueRef: frontend.config.sentry_env_label
+        - key: FEATURE_FLAG_TESTING_DEPOSIT
+          valueRef: frontend.features.testing.test_deposits
         - key: LOG_LEVEL
           valueRef: frontend.config.log_level
         - key: LOG_PRETTY

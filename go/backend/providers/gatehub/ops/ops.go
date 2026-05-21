@@ -825,7 +825,7 @@ func getNameOnCard(walletAddress string) (string, error) {
 	// For the other environments (sandbox.ilp.link, local.ilp.link, etc...), this
 	// is going to be hard to manage. Therefore we generate a unique name
 	// that fulfills the requirements.
-	if !env.IsProd() {
+	if !env.FeatureRequireHTTPS() {
 		url := env.OpenPaymentsURL()
 		url = strings.Replace(url, "https://", "", 1)
 		url = gatehub.DollarSignPlaceholder + url + "/"
@@ -923,12 +923,14 @@ func UpdateOrganizationConfiguration(ctx context.Context, ec external.Client, ap
 		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
 	}
 
-	if !env.IsLocal() && baseURL.Scheme != "https" {
-		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, "api url must be https")
-	}
-
-	if env.IsLocal() && baseURL.Scheme != "http" && baseURL.Scheme != "https" {
-		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, "api url must be http or https")
+	if env.FeatureRequireHTTPS() {
+		if baseURL.Scheme != "https" {
+			return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, "api url must be https")
+		}
+	} else {
+		if baseURL.Scheme != "http" && baseURL.Scheme != "https" {
+			return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, "api url must be http or https")
+		}
 	}
 
 	t, err := external.ParseTwoFA(twoFAType)

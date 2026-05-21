@@ -22,8 +22,7 @@ type client struct {
 }
 
 func NewClient(cfg Config) (Client, error) {
-	// Only login to vault on non-local environments.
-	if !(env.IsLocal() || env.IsTest()) {
+	if env.FeatureUseVault() {
 		config := vault.DefaultConfig()
 		config.Address = cfg.Addr
 		config.HttpClient = otelhttp.DefaultClient

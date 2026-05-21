@@ -126,7 +126,7 @@ func main() {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		initSentry(args.SentryDSN, args.SentryRelease)
+		initSentry(args.SentryDSN, args.SentryRelease, args.SentryEnvLabel)
 		defer sentry.Flush(2 * time.Second)
 		migrate(args)
 	case "start":
@@ -134,7 +134,7 @@ func main() {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		initSentry(args.SentryDSN, args.SentryRelease)
+		initSentry(args.SentryDSN, args.SentryRelease, args.SentryEnvLabel)
 		defer sentry.Flush(2 * time.Second)
 		start(args)
 	case "worker":
@@ -142,7 +142,7 @@ func main() {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		initSentry(args.SentryDSN, args.SentryRelease)
+		initSentry(args.SentryDSN, args.SentryRelease, args.SentryEnvLabel)
 		defer sentry.Flush(2 * time.Second)
 		startWorker(args)
 	case "dev":
@@ -150,7 +150,7 @@ func main() {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		initSentry(args.SentryDSN, args.SentryRelease)
+		initSentry(args.SentryDSN, args.SentryRelease, args.SentryEnvLabel)
 		defer sentry.Flush(2 * time.Second)
 		go func() {
 			startWorker(args)
@@ -161,13 +161,14 @@ func main() {
 	}
 }
 
-func initSentry(dsn, release string) {
+func initSentry(dsn, release, envLabel string) {
 	if dsn == "" {
 		return
 	}
 	err := sentry.Init(sentry.ClientOptions{
 		Dsn:              dsn,
 		Release:          release,
+		Environment:      envLabel,
 		TracesSampleRate: 1.0,
 	})
 	if err != nil {

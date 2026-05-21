@@ -64,7 +64,7 @@ func EventWebhook(b Backends) http.HandlerFunc {
 			return
 		}
 
-		if !env.IsProd() {
+		if env.FeatureWebhookDebugLogging() {
 			log.Info("rafiki webhook dump", zap.String("json", string(raw)))
 		}
 

@@ -28,7 +28,7 @@ func MakeAuditInterceptor(db *sqlx.DB) grpc.ServerOption {
 
 		adminUser, ok := ctx.Value(userCtxKey).(*AdminUser)
 		if !ok || adminUser == nil {
-			if !env.IsLocal() {
+			if env.FeatureEnforceAdminAuth() {
 				return nil, ErrNoUserFound
 			}
 			adminUser = &AdminUser{

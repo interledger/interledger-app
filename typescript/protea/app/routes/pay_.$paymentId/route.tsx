@@ -119,7 +119,6 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     sendAccounts,
     phoneMask,
     publicWalletInfo,
-    fynbosEnv: envValue("FYNBOS_ENV"),
     payment,
     requiresOTP: payment.requiredActions.includes(PaymentRequiredAction.OTP),
     PTIClientId: envValue("PTI_CLIENT_ID")

@@ -227,3 +227,107 @@ tests:
       - equal:
           path: data.SIGNUP_AGREEMENT_IDS
           value: "privacy_policy-0.0.0,terms_of_service-0.0.0"
+
+  - it: 'Should contain SENTRY_ENV_LABEL from backend.config.sentry.env_label'
+    set:
+      backend:
+        config:
+          sentry:
+            env_label: "sandbox"
+    asserts:
+      - equal:
+          path: data.SENTRY_ENV_LABEL
+          value: "sandbox"
+
+  - it: 'Should contain FEATURE_KEYS_USE_VAULT defaulting to false'
+    asserts:
+      - equal:
+          path: data.FEATURE_KEYS_USE_VAULT
+          value: "false"
+
+  - it: 'Should contain FEATURE_SECURITY_ENFORCE_ADMIN_AUTH defaulting to false'
+    asserts:
+      - equal:
+          path: data.FEATURE_SECURITY_ENFORCE_ADMIN_AUTH
+          value: "false"
+
+  - it: 'Should contain FEATURE_SECURITY_REQUIRE_HTTPS defaulting to false'
+    asserts:
+      - equal:
+          path: data.FEATURE_SECURITY_REQUIRE_HTTPS
+          value: "false"
+
+  - it: 'Should contain FEATURE_KYC_ENFORCE_CREDENTIALS defaulting to false'
+    asserts:
+      - equal:
+          path: data.FEATURE_KYC_ENFORCE_CREDENTIALS
+          value: "false"
+
+  - it: 'Should contain FEATURE_PROVIDERS_CHIMONEY_LIVE defaulting to false'
+    asserts:
+      - equal:
+          path: data.FEATURE_PROVIDERS_CHIMONEY_LIVE
+          value: "false"
+
+  - it: 'Should contain FEATURE_TESTING_TEST_DEPOSITS defaulting to false'
+    asserts:
+      - equal:
+          path: data.FEATURE_TESTING_TEST_DEPOSITS
+          value: "false"
+
+  - it: 'Should contain FEATURE_OBSERVABILITY_TRACING defaulting to false'
+    asserts:
+      - equal:
+          path: data.FEATURE_OBSERVABILITY_TRACING
+          value: "false"
+
+  - it: 'Should contain FEATURE_OBSERVABILITY_WEBHOOK_DEBUG_LOGGING defaulting to false'
+    asserts:
+      - equal:
+          path: data.FEATURE_OBSERVABILITY_WEBHOOK_DEBUG_LOGGING
+          value: "false"
+
+  - it: 'Should contain FEATURE_NOTIFICATIONS_SLACK defaulting to false'
+    asserts:
+      - equal:
+          path: data.FEATURE_NOTIFICATIONS_SLACK
+          value: "false"
+
+  - it: 'Should set feature flags to true when overridden'
+    set:
+      backend:
+        features:
+          security:
+            enforce_admin_auth: true
+            require_https: true
+          kyc:
+            enforce_credentials: true
+          testing:
+            test_deposits: true
+          observability:
+            tracing: true
+            webhook_debug_logging: true
+          notifications:
+            slack: true
+    asserts:
+      - equal:
+          path: data.FEATURE_SECURITY_ENFORCE_ADMIN_AUTH
+          value: "true"
+      - equal:
+          path: data.FEATURE_SECURITY_REQUIRE_HTTPS
+          value: "true"
+      - equal:
+          path: data.FEATURE_KYC_ENFORCE_CREDENTIALS
+          value: "true"
+      - equal:
+          path: data.FEATURE_TESTING_TEST_DEPOSITS
+          value: "true"
+      - equal:
+          path: data.FEATURE_OBSERVABILITY_TRACING
+          value: "true"
+      - equal:
+          path: data.FEATURE_OBSERVABILITY_WEBHOOK_DEBUG_LOGGING
+          value: "true"
+      - equal:
+          path: data.FEATURE_NOTIFICATIONS_SLACK
+          value: "true"

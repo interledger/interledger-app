@@ -51,7 +51,7 @@ type service struct {
 
 func NewService(policyAud, teamDomain string, db *sqlx.DB) (Service, error) {
 
-	if !env.IsLocal() {
+	if env.FeatureEnforceAdminAuth() {
 		if policyAud == "" {
 			return nil, fmt.Errorf("%w %s", ErrInvalidArgument, "Policy audience required.")
 		}
@@ -134,7 +134,7 @@ func (s *service) MakeUnaryInterceptors() []grpc.ServerOption {
 			}
 
 			newCtx := ctx
-			if !env.IsLocal() {
+			if env.FeatureEnforceAdminAuth() {
 				token, err := s.verifyToken(ctx)
 				if err != nil {
 					return nil, status.Error(codes.Unauthenticated, "token not verified")

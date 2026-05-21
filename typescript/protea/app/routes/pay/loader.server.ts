@@ -47,7 +47,6 @@ export async function payLoader({ request }: LoaderFunctionArgs) {
     address,
     phoneMask,
     publicWalletInfo,
-    fynbosEnv: envValue("FYNBOS_ENV"),
     payment
   })
 }

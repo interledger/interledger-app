@@ -32,7 +32,7 @@ func New(b ops.Backends, smartyAuthID, smartyAuthToken string) (kyc.Client, erro
 
 func NewWithPersonaConfig(b ops.Backends, smartyAuthID, smartyAuthToken string, personaCfg persona.Config) (kyc.Client, error) {
 	if (smartyAuthID == "" || smartyAuthToken == "") &&
-		(env.IsSandbox() || env.IsProd()) {
+		env.FeatureEnforceKYCCredentials() {
 		return nil, errors.New("no auth information for smarty address verification")
 	}
 

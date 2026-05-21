@@ -198,7 +198,7 @@ func (s *rpcService) IsUSPSAddress(ctx context.Context, req *pb.Address) (*pb.Is
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	if env.IsLocal() {
+	if !env.FeatureEnforceKYCCredentials() {
 		return &pb.IsUSPSAddressResponse{
 			Valid: true,
 		}, nil
