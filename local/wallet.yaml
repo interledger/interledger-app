@@ -65,6 +65,11 @@ services:
       # application URL
       - APPLICATION_URL=${BACKEND_APPLICATION_URL:-https://interledger.test}
 
+      # Open Payments / Rafiki URLs
+      - OPEN_PAYMENTS_BASE_URL=${BACKEND_OPEN_PAYMENTS_BASE_URL:-https://local.ilp.link}
+      - AUTH_BASE_URL=${BACKEND_AUTH_BASE_URL:-https://auth.local.ilp.link}
+      - ADMIN_BASE_URL=${BACKEND_ADMIN_BASE_URL:-https://admin.mgnt.interledger.test}
+
       # Service ports
       - PORT=${BACKEND_PORT:-8080}
 
