@@ -3,6 +3,7 @@ import type {
   QueryLegalPageArgs,
   QueryMarketingPageArgs
 } from '~/generated/dato-cms-graphql'
+import { envValue } from '~/env.server'
 
 export const getContactRoute = async () => {
   return {
@@ -481,46 +482,6 @@ export const getCurrentMarketingPage = async (
                                     ]
                                   }
                                 ]
-                              },
-                              {
-                                type: 'listItem',
-                                children: [
-                                  {
-                                    type: 'paragraph',
-                                    children: [
-                                      {
-                                        url: 'https://astrafi.com/terms/',
-                                        type: 'link',
-                                        children: [
-                                          {
-                                            type: 'span',
-                                            value: 'Astra Terms of Use'
-                                          }
-                                        ]
-                                      }
-                                    ]
-                                  }
-                                ]
-                              },
-                              {
-                                type: 'listItem',
-                                children: [
-                                  {
-                                    type: 'paragraph',
-                                    children: [
-                                      {
-                                        url: 'https://astrafi.com/privacy/',
-                                        type: 'link',
-                                        children: [
-                                          {
-                                            type: 'span',
-                                            value: 'Astra Privacy Policy'
-                                          }
-                                        ]
-                                      }
-                                    ]
-                                  }
-                                ]
                               }
                             ]
                           }
@@ -792,6 +753,7 @@ export const getCurrentMarketingPage = async (
 }
 
 export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
+  const supportEmail = envValue("SUPPORT_EMAIL")
   switch (variables?.filter?.slug?.eq) {
     case 'terms-of-service':
       return {
@@ -831,10 +793,10 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                           'If you have any questions about these Terms or our Services, please contact us at '
                       },
                       {
-                        url: 'mailto:support@interledger.app',
+                        url: `mailto:${supportEmail}`,
                         type: 'link',
                         children: [
-                          { type: 'span', value: 'support@interledger.app' }
+                          { type: 'span', value: supportEmail  }
                         ]
                       },
                       {
@@ -1825,10 +1787,10 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                           'In accordance with the Digital Millennium Copyright Act and other applicable law, we have adopted a policy of terminating, in appropriate circumstances, the accounts of users who repeatedly infringe the intellectual property rights of others. If you believe that anything on our Services infringes any copyright that you own or control, you may notify Corporation’s designated agent as follows by sending an email to '
                       },
                       {
-                        url: 'mailto:support@interledger.app',
+                        url: `mailto:${supportEmail}`,
                         type: 'link',
                         children: [
-                          { type: 'span', value: 'support@interledger.app' }
+                          { type: 'span', value: supportEmail  }
                         ]
                       },
                       { type: 'span', value: '.' }
@@ -2098,12 +2060,12 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                                 value: '”) to Corporation by email at '
                               },
                               {
-                                url: 'mailto:support@interledger.app',
+                                url: `mailto:${supportEmail}`,
                                 type: 'link',
                                 children: [
                                   {
                                     type: 'span',
-                                    value: 'support@interledger.app'
+                                    value: supportEmail 
                                   }
                                 ]
                               },
@@ -2236,12 +2198,12 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                                   'You have the right to opt out of binding arbitration within 30 days of the date you first accepted the terms of this Section 17 by sending a written notice to the Corporation by email at '
                               },
                               {
-                                url: 'mailto:support@interledger.app',
+                                url: `mailto:${supportEmail}`,
                                 type: 'link',
                                 children: [
                                   {
                                     type: 'span',
-                                    value: 'support@interledger.app'
+                                    value: supportEmail 
                                   }
                                 ]
                               },
@@ -3075,21 +3037,6 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                               {
                                 type: 'span',
                                 value:
-                                  'Astra - for processing payment transactions and verifying payment card information'
-                              }
-                            ]
-                          }
-                        ]
-                      },
-                      {
-                        type: 'listItem',
-                        children: [
-                          {
-                            type: 'paragraph',
-                            children: [
-                              {
-                                type: 'span',
-                                value:
                                   'Persona - for identity verification, fraud prevention, and compliance with regulatory requirements'
                               }
                             ]
@@ -3736,10 +3683,10 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                           'If you have any questions or concerns about this Policy or our data practices, please contact us at '
                       },
                       {
-                        url: 'mailto:support@interledger.app',
+                        url: `mailto:${supportEmail}`,
                         type: 'link',
                         children: [
-                          { type: 'span', value: 'support@interledger.app' }
+                          { type: 'span', value: supportEmail  }
                         ]
                       },
                       { type: 'span', value: '.' }
@@ -4885,10 +4832,10 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                           'We appreciate feedback from our users to help us improve the accessibility of our website. If you use assistive technologies and encounter any difficulties when accessing our website, please do not hesitate to contact us at '
                       },
                       {
-                        url: 'mailto:support@interledger.app',
+                        url: `mailto:${supportEmail}`,
                         type: 'link',
                         children: [
-                          { type: 'span', value: 'support@interledger.app' }
+                          { type: 'span', value: supportEmail  }
                         ]
                       },
                       {
@@ -5465,13 +5412,13 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                           'You may withdraw your consent to receive electronic Communications at any time, by sending an email to '
                       },
                       {
-                        url: 'mailto:support@interledger.app',
+                        url: `mailto:${supportEmail}`,
                         type: 'link',
                         children: [
                           {
                             type: 'span',
                             marks: ['strong'],
-                            value: 'support@interldger.app'
+                            value: supportEmail 
                           }
                         ]
                       },
@@ -5565,13 +5512,13 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                           'You can change your email address by sending an email to '
                       },
                       {
-                        url: 'mailto:support@interledger.app',
+                        url: `mailto:${supportEmail}`,
                         type: 'link',
                         children: [
                           {
                             type: 'span',
                             marks: ['strong'],
-                            value: 'support@interledger.app'
+                            value: supportEmail 
                           }
                         ]
                       },
@@ -5601,13 +5548,13 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                           'If you have any questions or concerns about this Agreement, please contact us at '
                       },
                       {
-                        url: 'mailto:support@interledger.app',
+                        url: `mailto:${supportEmail}`,
                         type: 'link',
                         children: [
                           {
                             type: 'span',
                             marks: ['strong'],
-                            value: 'support@interledger.app'
+                            value: supportEmail 
                           }
                         ]
                       },

@@ -14,6 +14,7 @@ import { handleFlowError, mapFlowToFieldErrors } from '~/lib/kratos/error.server
 import { requireNoUserSession } from '~/lib/kratos/session.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { isEUCountry } from '~/routes/signup/About'
+import { envValue } from '~/env.server'
 
 export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url)
@@ -46,7 +47,7 @@ export async function loader({ request }: Route.LoaderArgs) {
       countries,
       kratosFlowId: flowResponse.data.id,
       kratosCsrfToken: getCsrfTokenFromFlow(flowResponse.data),
-      fynbosEnv: process.env.FYNBOS_ENV
+      fynbosEnv: envValue("FYNBOS_ENV")
     },
     {
       headers: buildHeadersWithCookies(flowResponse)

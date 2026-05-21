@@ -15,6 +15,7 @@ import { getUserSession } from '~/lib/kratos/session.server'
 import { mergeMeta } from '~/lib/meta'
 import type { Amount } from '~/lib/rafikiauth.server'
 import { consent, getInteraction } from '~/lib/rafikiauth.server'
+import { envValue } from '~/env.server'
 
 export async function loader({ request }: Route.LoaderArgs) {
   await getUserSession(request)
@@ -205,12 +206,7 @@ export async function action({ request }: Route.ActionArgs) {
   await consent(interactId, nonce, userDecision)
 
   // TODO: Move to environment variables
-  let publicOpenPaymentsAuthHost = 'auth.ilp.link'
-  if (process.env.FYNBOS_ENV == 'dev') {
-    publicOpenPaymentsAuthHost = 'auth.sandbox.ilp.link'
-  } else if (process.env.FYNBOS_ENV == 'local') {
-    publicOpenPaymentsAuthHost = 'auth.local.ilp.link'
-  }
+  const publicOpenPaymentsAuthHost = envValue("PUBLIC_OP_AUTH_HOST")
 
   return redirect(
     `https://${publicOpenPaymentsAuthHost}/interact/${interactId}/${nonce}/finish`
