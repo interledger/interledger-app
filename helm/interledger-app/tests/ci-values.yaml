@@ -20,3 +20,9 @@ backend:
       enabled: "false"
     pti:
       enabled: "false"
+
+frontend:
+  config:
+    target_host: "https://ci.interledger.example"
+    support_email: "support@ci.interledger.example"
+    public_op_auth_host: "auth.ci.ilp.link"

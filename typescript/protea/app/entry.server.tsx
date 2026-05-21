@@ -25,7 +25,7 @@ if (envValue("SENTRY_DSN")) {
     dsn: envValue("SENTRY_DSN"),
     release: envValue("SENTRY_RELEASE"),
     tracesSampleRate: 1,
-    environment: envValue("FYNBOS_ENV"),
+    environment: envValue("SENTRY_ENV_LABEL"),
     integrations: [
       Sentry.requestDataIntegration({
         include: {
