@@ -29,6 +29,13 @@ import (
 
 const testingConnectionString = "postgres://postgres:password@127.0.0.1:55432/%s?sslmode=disable"
 
+const (
+	testingOpenPaymentsBaseURL = "https://local.ilp.link"
+	testingAuthBaseURL         = "https://auth.local.ilp.link"
+	testingAdminBaseURL        = "https://admin.mgnt.interledger.test"
+	testingPersonaDashboardURL = "https://app.withpersona.com/dashboard"
+)
+
 func Migrate(ctx context.Context, connString string) error {
 	_, moduleDir, _, ok := runtime.Caller(0)
 	if !ok {
@@ -118,6 +125,30 @@ func CreateExpIndex(ctx context.Context, db *sqlx.DB) error {
 }
 
 func MigrateTestDB(t *testing.T, ctx context.Context) *sqlx.DB {
+	if os.Getenv("OPEN_PAYMENTS_BASE_URL") != "" {
+		env.SetOpenPaymentsURL(os.Getenv("OPEN_PAYMENTS_BASE_URL"))
+	} else {
+		env.SetOpenPaymentsURL(testingOpenPaymentsBaseURL)
+	}
+
+	if os.Getenv("AUTH_BASE_URL") != "" {
+		env.SetAuthURL(os.Getenv("AUTH_BASE_URL"))
+	} else {
+		env.SetAuthURL(testingAuthBaseURL)
+	}
+
+	if os.Getenv("ADMIN_BASE_URL") != "" {
+		env.SetAdminURL(os.Getenv("ADMIN_BASE_URL"))
+	} else {
+		env.SetAdminURL(testingAdminBaseURL)
+	}
+
+	if os.Getenv("PERSONA_DASHBOARD_URL") != "" {
+		env.SetPersonaDashboardURL(os.Getenv("PERSONA_DASHBOARD_URL"))
+	} else {
+		env.SetPersonaDashboardURL(testingPersonaDashboardURL)
+	}
+
 	_, moduleDir, _, ok := runtime.Caller(0)
 	if !ok {
 		t.Fatal("Could not get directory path for utils/testing.")
