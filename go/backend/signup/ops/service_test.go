@@ -257,10 +257,11 @@ func TestCompleteFailsAnotherUser(t *testing.T) {
 	ctx, b := setupTestWithTwilio(t)
 
 	id, err := ops.SetUserData(ctx, b, signup.UserDataArgs{
-		FirstName:   "FirstName",
-		LastName:    "LastName",
-		Email:       "test@interledger.test",
-		CountryCode: "ZA",
+		FirstName:    "FirstName",
+		LastName:     "LastName",
+		Email:        "test@interledger.test",
+		CountryCode:  "ZA",
+		MobileNumber: faker.E164PhoneNumber(),
 	})
 	require.NoError(t, err)
 
