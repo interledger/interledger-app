@@ -895,7 +895,7 @@ type pendingTransaction struct {
 }
 
 func GetPendingClearingCardTransactions(ctx context.Context, b Backends) ([]pendingTransaction, error) {
-	sqlStmt := "SELECT id, user_id FROM gatehub_card_transactions WHERE status NOT IN ($1, $2) AND type NOT IN ($3, $4) AND raw_transaction ->> 'transactionClassification' != $5 AND created_at::date < CURRENT_DATE ORDER BY created_at ASC"
+	sqlStmt := "SELECT id, user_id FROM gatehub_card_transactions WHERE status NOT IN ($1, $2) AND type NOT IN ($3, $4) AND raw_transaction ->> 'transactionClassification' != $5 AND (raw_transaction ->> 'createdAt')::timestamptz::date < CURRENT_DATE ORDER BY created_at ASC"
 	sqlArgs := []any{
 		external.CardTransactionStatusCompleted,
 		external.CardTransactionStatusFailed,
