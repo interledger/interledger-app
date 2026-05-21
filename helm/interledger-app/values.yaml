@@ -955,8 +955,6 @@ frontend:
     # appended at runtime). Empty string disables the Xago iframe flow and falls
     # back to the Persona SDK flow. Not required in environments that use Persona
     # SDK directly.
-    # NOTE: env.server.ts lists this in knownEnvKeysRequired but the code treats
-    # it as optional — the Xago iframe path is skipped when this is empty.
     mockxago_endpoint: ""
 
   server:
