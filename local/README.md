@@ -214,11 +214,11 @@ docker compose down -v
 
 Sentry is **disabled by default** in the local environment. The `SENTRY_DSN` variable defaults to empty, so no events will be reported unless you explicitly set `PROTEA_SENTRY_DSN` in your `.env`.
 
-If you do enable Sentry locally, set `PROTEA_SENTRY_ENVIRONMENT` to label the events (e.g. `local` or your username) so they are clearly identifiable in the Sentry dashboard:
+If you do enable Sentry locally, set `PROTEA_SENTRY_ENV_LABEL` to label the events (e.g. `local` or your username) so they are clearly identifiable in the Sentry dashboard:
 
 ```sh
 PROTEA_SENTRY_DSN=https://...@sentry.io/...
-PROTEA_SENTRY_ENVIRONMENT=local
+PROTEA_SENTRY_ENV_LABEL=local
 ```
 
 ---
