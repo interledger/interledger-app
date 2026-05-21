@@ -35,17 +35,20 @@ func (a *Activity) CheckCrossProviderType(ctx context.Context, paymentID string)
 	}
 
 	if p.Type != payments.TypePeer2Peer || p.SenderAccount == "" {
+		// TODO check if this this the correct thing to return
 		return CrossProviderNone, nil
 	}
 
 	senderAcc, err := a.b.LinkedAccounts().Get(ctx, p.SenderAccount)
 	if err != nil {
+		// TODO check if this this the correct thing to return
 		return CrossProviderNone, err
 	}
 
 	if p.ReceiverAccount != "" {
 		receiverAcc, err := a.b.LinkedAccounts().Get(ctx, p.ReceiverAccount)
 		if err != nil {
+			// TODO check if this this the correct thing to return
 			return CrossProviderNone, err
 		}
 		if senderAcc.Provider == gatehub.ProviderName && receiverAcc.Provider == xago.ProviderName {
@@ -57,6 +60,7 @@ func (a *Activity) CheckCrossProviderType(ctx context.Context, paymentID string)
 		return CrossProviderNone, nil
 	}
 
+	// TODO check if this logic is what we want
 	// Fall back to currency check when receiver account not yet resolved.
 	receiverCurrency := p.ReceiverAmount.Currency
 	if senderAcc.Provider == gatehub.ProviderName && receiverCurrency == currency.ZAR {
