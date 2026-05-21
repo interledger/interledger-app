@@ -19,7 +19,8 @@ export const handle: ApplicationProps = {
 
 export default function PageCardID() {
   const navigate = useNavigate()
-  const { features } = useRouteLoaderData('root') as RootLoaderData
+  const { features, env } = useRouteLoaderData('root') as RootLoaderData
+  const supportEmail = env.supportEmail
   const { cards, areCardsFetched } = useCardsStore()
   const { cardId } = useParams<{ cardId: string }>()
   const card = useMemo(
@@ -41,5 +42,5 @@ export default function PageCardID() {
 
   if (!card) return null
 
-  return <CardView card={card} />
+  return <CardView card={card} supportEmail={supportEmail} />
 }

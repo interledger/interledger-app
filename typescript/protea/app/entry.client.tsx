@@ -7,6 +7,7 @@ if (
   typeof window.ENV !== 'undefined' &&
   window.ENV.sentryDsn
 ) {
+  const tracePropagationTargets = window.ENV.targetHost || ""
   Sentry.init({
     tunnel: '/api/fern',
     dsn: window.ENV.sentryDsn,
@@ -16,7 +17,7 @@ if (
       Sentry.replayIntegration()
     ],
     tracesSampleRate: 1.0,
-    tracePropagationTargets: ['https://interledger.app'],
+    tracePropagationTargets: [tracePropagationTargets],
     replaysSessionSampleRate: 0,
     replaysOnErrorSampleRate: 1.0
   })

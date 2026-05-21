@@ -288,3 +288,179 @@ func (sc *E2EContext) theWalletsListShouldHaveMoreThanOneResult() error {
 	debugPrintf("✓ Unfiltered list has %d wallet rows\n", count)
 	return nil
 }
+
+func (sc *E2EContext) iNavigateToMyWalletProfileInAdminPortal() error {
+	email, err := sc.getCurrentUserEmail()
+	if err != nil {
+		return fmt.Errorf("cannot resolve current user email: %w", err)
+	}
+
+	kratosID := sc.getKratosUserIDByEmail(email)
+	if kratosID == "" {
+		return fmt.Errorf("cannot resolve kratos ID for email %q", email)
+	}
+
+	details, err := sc.getWalletDetailsForUser(kratosID)
+	if err != nil {
+		return fmt.Errorf("cannot get wallet details for user %q: %w", email, err)
+	}
+
+	profileURL := sc.botanistBaseURL + "/wallet/" + details.ID + "/profile"
+	debugPrintf("\n🌐 Navigating to botanist wallet profile page: %s\n", profileURL)
+
+	_, err = sc.page.Goto(profileURL, playwright.PageGotoOptions{
+		Timeout:   playwright.Float(30000),
+		WaitUntil: playwright.WaitUntilStateNetworkidle,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to navigate to wallet profile page: %w", err)
+	}
+
+	if err = sc.page.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
+		State:   playwright.LoadStateNetworkidle,
+		Timeout: playwright.Float(15000),
+	}); err != nil {
+		return fmt.Errorf("wallet profile page did not reach network idle: %w", err)
+	}
+
+	debugPrintf("✓ On botanist wallet profile page\n")
+	return nil
+}
+
+func (sc *E2EContext) theResetAuthenticatorButtonShouldBeVisible() error {
+	btn := sc.page.Locator("button:has-text('Reset authenticator')").First()
+	if err := btn.WaitFor(playwright.LocatorWaitForOptions{
+		State:   playwright.WaitForSelectorStateVisible,
+		Timeout: playwright.Float(5000),
+	}); err != nil {
+		_ = sc.iTakeAScreenshot("reset-authenticator-not-visible")
+		return fmt.Errorf("reset authenticator button not visible: %w", err)
+	}
+
+	debugPrintln("✓ Reset authenticator button is visible")
+	return nil
+}
+
+func (sc *E2EContext) theResetAuthenticatorButtonShouldNotBeVisible() error {
+	btn := sc.page.Locator("button:has-text('Reset authenticator')").First()
+
+	count, err := btn.Count()
+	if err != nil {
+		return fmt.Errorf("failed to inspect reset authenticator button: %w", err)
+	}
+
+	if count == 0 {
+		debugPrintln("✓ Reset authenticator button is hidden")
+		return nil
+	}
+
+	isVisible, err := btn.IsVisible()
+	if err != nil {
+		return fmt.Errorf("failed to check reset authenticator visibility: %w", err)
+	}
+
+	if isVisible {
+		_ = sc.iTakeAScreenshot("reset-authenticator-still-visible")
+		return fmt.Errorf("reset authenticator button should be hidden after reset")
+	}
+
+	debugPrintln("✓ Reset authenticator button is hidden")
+	return nil
+}
+
+func (sc *E2EContext) iClickTheResetAuthenticatorButton() error {
+	btn := sc.page.Locator("button:has-text('Reset authenticator')").First()
+	if err := btn.Click(); err != nil {
+		return fmt.Errorf("failed to click reset authenticator button: %w", err)
+	}
+
+	debugPrintln("✓ Clicked reset authenticator button")
+	return nil
+}
+
+func (sc *E2EContext) theAuthenticatorResetConfirmationModalShouldBeVisible() error {
+	modalTitle := sc.page.Locator("text=Reset authenticator for this wallet owner?").First()
+	if err := modalTitle.WaitFor(playwright.LocatorWaitForOptions{
+		State:   playwright.WaitForSelectorStateVisible,
+		Timeout: playwright.Float(5000),
+	}); err != nil {
+		_ = sc.iTakeAScreenshot("reset-authenticator-modal-not-visible")
+		return fmt.Errorf("confirmation modal not visible: %w", err)
+	}
+
+	debugPrintln("✓ Reset authenticator confirmation modal is visible")
+	return nil
+}
+
+func (sc *E2EContext) iConfirmTheAuthenticatorReset() error {
+	confirmButton := sc.page.Locator("button:has-text('Confirm reset')").First()
+	if err := confirmButton.Click(); err != nil {
+		return fmt.Errorf("failed to click confirm reset button: %w", err)
+	}
+
+	modalTitle := sc.page.Locator("text=Reset authenticator for this wallet owner?").First()
+	if err := modalTitle.WaitFor(playwright.LocatorWaitForOptions{
+		State:   playwright.WaitForSelectorStateHidden,
+		Timeout: playwright.Float(20000),
+	}); err != nil {
+		_ = sc.iTakeAScreenshot("reset-authenticator-modal-stuck")
+		return fmt.Errorf("confirmation modal did not close after reset: %w", err)
+	}
+
+	debugPrintln("✓ Confirmed authenticator reset")
+	return nil
+}
+
+func (sc *E2EContext) myTotpShouldBeDisabled() error {
+	email, err := sc.getCurrentUserEmail()
+	if err != nil {
+		return fmt.Errorf("cannot resolve current user email: %w", err)
+	}
+
+	_, err = sc.getTOTPSecretForEmail(email)
+	if err == nil {
+		return fmt.Errorf("expected TOTP to be disabled for %q but secret is still present", email)
+	}
+
+	debugPrintf("✓ TOTP credentials are removed for %q\n", email)
+	return nil
+}
+
+func (sc *E2EContext) anAuthenticatorResetAuditLogEntryShouldExist() error {
+	if err := sc.ensureDB(); err != nil {
+		return fmt.Errorf("audit assertion: %w", err)
+	}
+
+	email, err := sc.getCurrentUserEmail()
+	if err != nil {
+		return fmt.Errorf("cannot resolve current user email: %w", err)
+	}
+
+	kratosID := sc.getKratosUserIDByEmail(email)
+	if kratosID == "" {
+		return fmt.Errorf("cannot resolve kratos ID for email %q", email)
+	}
+
+	details, err := sc.getWalletDetailsForUser(kratosID)
+	if err != nil {
+		return fmt.Errorf("cannot get wallet details for user %q: %w", email, err)
+	}
+
+	var count int
+	err = sc.db.QueryRow(`
+		SELECT COUNT(*)
+		FROM admin_audit_log
+		WHERE wallet_id = $1
+		AND operation LIKE '%Delete2FATotpEnrollment'
+	`, details.ID).Scan(&count)
+	if err != nil {
+		return fmt.Errorf("failed to query admin audit log: %w", err)
+	}
+
+	if count < 1 {
+		return fmt.Errorf("expected at least one authenticator reset audit log entry for wallet %s", details.ID)
+	}
+
+	debugPrintf("✓ Found %d authenticator reset audit log entry(ies) for wallet %s\n", count, details.ID)
+	return nil
+}

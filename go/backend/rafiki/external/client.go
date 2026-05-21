@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"os"
 	"strconv"
 	"sync"
 
@@ -47,24 +46,16 @@ type client struct {
 }
 
 type AdminSigningConfig struct {
-	OperatorTenantID string
-	AdminAPISecret   string
-	SignatureVersion string
+	OperatorTenantID    string
+	AdminAPISecret      string
+	SignatureVersion    string
+	BackendGraphQLURL   string
+	AuthGraphQLURL      string
 }
 
 func New(signingConfig AdminSigningConfig) Client {
-	backendGraphql := "http://localhost:3001/graphql"
-	if os.Getenv("RAFIKI_BACKEND_GRAPHQL_URL") != "" {
-		backendGraphql = os.Getenv("RAFIKI_BACKEND_GRAPHQL_URL")
-	}
-	cl := graphql.NewClient(backendGraphql, newSignedAdminHTTPClient(signingConfig))
-
-	authGraphql := "http://localhost:3003/graphql"
-	if os.Getenv("RAFIKI_AUTH_GRAPHQL_URL") != "" {
-		authGraphql = os.Getenv("RAFIKI_AUTH_GRAPHQL_URL")
-	}
-	authCl := graphql.NewClient(authGraphql, newSignedAdminHTTPClient(signingConfig))
-
+	cl := graphql.NewClient(signingConfig.BackendGraphQLURL, newSignedAdminHTTPClient(signingConfig))
+	authCl := graphql.NewClient(signingConfig.AuthGraphQLURL, newSignedAdminHTTPClient(signingConfig))
 	return &client{backendClient: cl, authClient: authCl, a: &assets{data: nil}}
 }
 

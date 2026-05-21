@@ -9,6 +9,9 @@ import { renderToPipeableStream } from 'react-dom/server'
 import { PassThrough } from 'stream'
 import logger, { addRequestId } from './lib/logger.server'
 import { extractOrGenerateRequestId } from './lib/requestContext.server'
+import { envValue, envVarValidation } from './env.server'
+
+envVarValidation()
 
 export const streamTimeout = 5_000
 
@@ -17,12 +20,12 @@ function getResponseTime(startTime: number): number {
   return Date.now() - startTime
 }
 
-if (process.env.SENTRY_DSN) {
+if (envValue("SENTRY_DSN")) {
   Sentry.init({
-    dsn: process.env.SENTRY_DSN,
-    release: process.env.SENTRY_RELEASE,
+    dsn: envValue("SENTRY_DSN"),
+    release: envValue("SENTRY_RELEASE"),
     tracesSampleRate: 1,
-    environment: process.env.FYNBOS_ENV,
+    environment: envValue("FYNBOS_ENV"),
     integrations: [
       Sentry.requestDataIntegration({
         include: {

@@ -36,6 +36,7 @@ import styles from '~/styles/flags.css?url'
 import { Amount } from './Amount'
 import { Confirm } from './Confirm'
 import { confirmPaymentAction, updatePaymentAction } from './action.server';
+import { envValue } from '~/env.server';
 
 const IDENTITY_TYPE_TO_PLATFORM: Record<number, string> = {
   [PaymentIdentityType.Twitter]: 'twitter',
@@ -113,10 +114,10 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     sendAccounts,
     phoneMask,
     publicWalletInfo,
-    fynbosEnv: process.env.FYNBOS_ENV,
+    fynbosEnv: envValue("FYNBOS_ENV"),
     payment,
     requiresOTP: payment.requiredActions.includes(PaymentRequiredAction.OTP),
-    PTIClientId: process.env.PTI_CLIENT_ID || ''
+    PTIClientId: envValue("PTI_CLIENT_ID")
   })
 }
 

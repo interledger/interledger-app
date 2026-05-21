@@ -34,8 +34,8 @@ type client struct {
 	b ops.Backends
 }
 
-func New(b Backends) (slack.Client, error) {
-	se, err := external.New()
+func New(b Backends, cfg external.Config) (slack.Client, error) {
+	se, err := external.New(cfg)
 	if err != nil {
 		return nil, err
 	}

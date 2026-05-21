@@ -226,6 +226,13 @@ func (s *AdminRpcService) Delete2FATotpEnrollment(ctx context.Context, req *admi
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
+	log.Info("admin reset TOTP enrollment", zap.String("identityID", identityID), zap.String("walletID", req.GetWalletID()))
+
+	walletID := req.GetWalletID()
+	if walletID != "" {
+		s.b.Email().SendAuthenticatorResetEmail(ctx, walletID)
+		log.Info("sent authenticator reset email", zap.String("walletID", walletID))
+	}
 
 	return &adminv1.Empty{}, nil
 }
