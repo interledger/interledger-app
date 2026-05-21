@@ -96,12 +96,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     params.paymentId as string
   )
 
-  if (payment.senderAccount) {
-    const accountId = payment.senderAccount
-    account = sendAccounts.find((acc) => acc.id == accountId)!
-  } else {
-    account = sendAccounts[0]
-  }
+  account = sendAccounts.find((acc) => acc.id == payment.senderAccount) ?? sendAccounts[0]
 
   // Only load the phone mask if we require otp
   if (payment.requiredActions.includes(7)) {

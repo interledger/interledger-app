@@ -7,8 +7,6 @@ import {
   Button,
   Card,
   CardContent,
-  Icon,
-  SelectRouter,
   TextField
 } from '~/components'
 import { PayStep, usePayStore } from '~/lib/usePayStore'
@@ -280,11 +278,6 @@ export const Amount = () => {
           linkedAccount={localPayment.linkedAccount}
           linkedAccountOptions={sendAccounts || []}
           onChangeLinkedAccount={_onChangeLinkedAccount}
-          selectButton={
-            <SelectRouter to={href('/accounts')}>
-              <span>Connect new account</span> <Icon>add</Icon>
-            </SelectRouter>
-          }
           placeholder='0.00'
           prefixIcon={
             <div
