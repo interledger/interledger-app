@@ -134,21 +134,6 @@ type StartArgs struct {
 	PlaidCountryCodes             []string
 	PlaidProcessor                string
 	RedisURL                      string
-}
-
-func splitAndTrim(s, sep string) []string {
-	if s == "" {
-		return nil
-	}
-	parts := strings.Split(s, sep)
-	out := make([]string, 0, len(parts))
-	for _, p := range parts {
-		p = strings.TrimSpace(p)
-		if p != "" {
-			out = append(out, p)
-		}
-	}
-	return out
 	SentryDSN                     string
 	SentryRelease                 string
 	SlackToken                    string
@@ -168,6 +153,21 @@ func splitAndTrim(s, sep string) []string {
 	RafikiAuthDBURL               string
 	TempGatehubAppID              string
 	TempGatehubSecret             string
+}
+
+func splitAndTrim(s, sep string) []string {
+	if s == "" {
+		return nil
+	}
+	parts := strings.Split(s, sep)
+	out := make([]string, 0, len(parts))
+	for _, p := range parts {
+		p = strings.TrimSpace(p)
+		if p != "" {
+			out = append(out, p)
+		}
+	}
+	return out
 }
 
 func ParseStartArgs() (*StartArgs, error) {
