@@ -1,3 +1,4 @@
+import { envValue } from '~/env.server'
 import logger from './logger.server'
 import { redisClient } from './redis.server'
 
@@ -6,8 +7,8 @@ interface RateLimitOptions {
   ttlSeconds: number
 }
 function getRateLimitDefaults(): RateLimitOptions {
-  const limit = Number(process.env.DEFAULT_RATE_LIMIT_REQUESTS) || 4
-  const ttlSeconds = Number(process.env.DEFAULT_RATE_LIMIT_TIME) || 3600
+  const limit = Number(envValue('DEFAULT_RATE_LIMIT_REQUESTS')) || 4
+  const ttlSeconds = Number(envValue('DEFAULT_RATE_LIMIT_TIME')) || 3600
 
   return { limit, ttlSeconds }
 }

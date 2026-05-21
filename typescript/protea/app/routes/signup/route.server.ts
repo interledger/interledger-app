@@ -1,6 +1,7 @@
 import { Code } from '@bufbuild/connect'
 import type { SuccessfulNativeRegistration } from '@ory/client'
 import { data, href, redirect } from 'react-router'
+import { envValue } from '~/env.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { ErrorDescriptions } from '~/lib/error.constants'
 import { error, isConnectError, isOtpValidationError } from '~/lib/error.server'
@@ -57,7 +58,7 @@ export async function loader({ request }: Route.LoaderArgs) {
       countries,
       kratosFlowId: flowResponse.data.id,
       kratosCsrfToken: getCsrfTokenFromFlow(flowResponse.data),
-      fynbosEnv: process.env.FYNBOS_ENV
+      fynbosEnv: envValue('FYNBOS_ENV')
     },
     {
       headers: buildHeadersWithCookies(flowResponse)

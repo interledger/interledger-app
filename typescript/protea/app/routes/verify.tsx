@@ -1,6 +1,7 @@
 import type { Route } from './+types/verify'
+import { RootLoaderData } from '~/root'
 import { data, redirect, href } from 'react-router'
-import { useFetcher, useLoaderData } from 'react-router'
+import { useFetcher, useLoaderData, useRouteLoaderData } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   Button,
@@ -97,6 +98,8 @@ export const meta = mergeMeta(() => [
 export default function Page() {
   const { flow, email, csrfToken } = useLoaderData()
   const fetcher = useFetcher<ActionData>()
+  const { env } = useRouteLoaderData('root') as RootLoaderData
+  const supportEmail = env.supportEmail
 
   const withDebounce = useDebounceAction(RESEND_DELAY)
   const { start, isActive, remainingSeconds } = useCountdown()
@@ -150,8 +153,8 @@ export default function Page() {
         <p className='mt-2 text-sm text-error'>
           Could not send email verification. Please try again or contact support
           at{' '}
-          <a href='mailto:support@interledger.app'>
-            <b>support@interledger.app</b>
+          <a href={`mailto:${supportEmail}`}>
+            <b>{supportEmail}</b>
           </a>
           .
         </p>

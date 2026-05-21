@@ -2,6 +2,7 @@ import type { Logger as PinoLogger, LoggerOptions } from 'pino';
 import pino from 'pino'
 import { createRequire } from 'node:module'
 import { getRequestId, getCorrelationId } from './requestContext.server'
+import { envValue } from '~/env.server'
 
 let logger: PinoLogger
 
@@ -15,7 +16,7 @@ const VALID_LOG_LEVELS = ['fatal', 'error', 'warn', 'info', 'debug', 'trace']
 // Get LOG_LEVEL from environment, default to 'warn'
 // This runs once at module load time
 function getLogLevel(): { level: string; wasDefaulted: boolean } {
-  const envLogLevel = process.env.LOG_LEVEL
+  const envLogLevel = envValue("LOG_LEVEL")
   const logLevel = envLogLevel || 'warn'
   const wasDefaulted = !envLogLevel
 
@@ -41,7 +42,7 @@ function getLogLevel(): { level: string; wasDefaulted: boolean } {
 // Pino configuration following the logging policy
 function getPinoConfig(): { config: LoggerOptions; wasDefaulted: boolean } {
   const { level: logLevel, wasDefaulted } = getLogLevel()
-  const isDevelopment = process.env.NODE_ENV === 'development'
+  const isDevelopment = envValue("NODE_ENV") === 'development'
 
   const pinoPrettyTarget = resolvePinoPrettyTarget()
 
@@ -50,7 +51,7 @@ function getPinoConfig(): { config: LoggerOptions; wasDefaulted: boolean } {
     timestamp: pino.stdTimeFunctions.isoTime, // ISO format timestamp
     // Use different transports for different log levels as per policy
     transport:
-      isDevelopment && process.env.LOG_PRETTY !== 'false' && pinoPrettyTarget
+      isDevelopment && envValue("LOG_PRETTY") !== 'false' && pinoPrettyTarget
         ? {
             target: pinoPrettyTarget,
             options: {
@@ -94,7 +95,7 @@ function resolvePinoPrettyTarget(): string | undefined {
 // create a new logger instance with every change either.
 const { config: pinoConfig, wasDefaulted } = getPinoConfig()
 
-if (process.env.NODE_ENV === 'production') {
+if (envValue("NODE_ENV") === 'production') {
   logger = pino(pinoConfig)
 } else {
   if (!global.__logger) {

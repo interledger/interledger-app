@@ -7,6 +7,8 @@ interface Window {
   ENV?: {
     sentryDsn?: string
     sentryRelease?: string
+    targetHost?: string
+    supportEmail?: string
   }
   /** Cloudflare Turnstile CAPTCHA widget API */
   turnstile?: {
