@@ -17,6 +17,18 @@ import (
 	"go.temporal.io/sdk/temporal"
 )
 
+func (a *Activity) GetPendingClearingCardTransactions(ctx context.Context) ([]pendingTransaction, error) {
+	return GetPendingClearingCardTransactions(ctx, a.b)
+}
+
+func (a *Activity) GetPendingRealtimeCardTransactions(ctx context.Context) ([]pendingTransaction, error) {
+	return GetPendingRealtimeCardTransactions(ctx, a.b)
+}
+
+func (a *Activity) GetWalletID(ctx context.Context, externalUserID string) (string, error) {
+	return getWalletID(ctx, a.b, externalUserID)
+}
+
 func (a *Activity) CreateNewDeliveryAddress(ctx context.Context, userID, customerID string, args external.CreateCustomerDeliveryAddressArgs) (string, error) {
 	id, err := a.external.CreateCustomerDeliveryAddress(ctx, userID, customerID, args)
 	if err != nil {
@@ -122,18 +134,6 @@ func (a *Activity) FinalizeGatehubCardTransaction(ctx context.Context, cardTxID,
 	err := FinaliseReserve(ctx, a.b, internalTxID)
 	if err != nil {
 		return err
-	}
-
-	// This can be removed - no more storing transfers in wallet_backend for card transactions
-	transfers, err := a.b.Transactions().ListTransfers(ctx, internalTxID)
-	if err != nil {
-		return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
-	}
-	for _, t := range transfers {
-		err = a.b.Transactions().SetTransferState(ctx, t.ID, transactions.StateCompleted)
-		if err != nil {
-			return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
-		}
 	}
 
 	err = a.b.Transactions().SetTransactionState(ctx, internalTxID, transactions.StateCompleted)
@@ -376,12 +376,12 @@ func (a *Activity) RecordGatehubCardInformational(ctx context.Context, txID stri
 	return nil
 }
 
-func (a *Activity) GetInternalTransactionByForeignID(ctx context.Context, walletID, foreignID string) (string, error) {
+func (a *Activity) GetCardTransactionByForeignID(ctx context.Context, walletID, foreignID string) (*transactions.Transaction, error) {
 	tx, err := a.b.Transactions().GetTransactionByForeignID(ctx, walletID, foreignID)
 	if err != nil {
-		return "", fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
 	}
-	return tx.ID, nil
+	return tx, nil
 }
 
 type SendCardTransactionFXEmailArgs struct {

@@ -148,6 +148,10 @@ func (ct *CardType) Scan(value any) error {
 	return nil
 }
 
+func (ct CardType) String() string {
+	return string(ct)
+}
+
 type CreateTransactionArgs struct {
 	ID                      string          `validate:"omitempty,uuid"`
 	WalletID                string          `validate:"uuid"` // Fynbos wallet ID

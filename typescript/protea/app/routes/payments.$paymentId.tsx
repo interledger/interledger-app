@@ -29,7 +29,7 @@ import {
 } from '~/components'
 import { Label } from '~/components/Label'
 import { type PublicWalletInfo } from '~/generated/connect/backend/v1/backend_pb'
-import { computeCardSubtotalStyles } from '~/lib/cards/utils'
+import { computeCardPaymentLabel, computeCardSubtotalStyles } from '~/lib/cards/utils'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
@@ -901,7 +901,7 @@ function CardTransaction() {
         )}
         <CardContent>
           <div className='mt-2 flex w-full justify-between'>
-            <span className='text-weak'>Payment from</span>
+            <span className='text-weak'>{computeCardPaymentLabel(transaction.cardTransactionDetails)}</span>
             <span className='text-medium'>{transaction.accountTitle}</span>
           </div>
           <div className='mt-2 flex w-full justify-between'>

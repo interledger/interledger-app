@@ -194,7 +194,7 @@ func transformTransaction(tx transactions.Transaction, transfers []transactions.
 		details := pb.CardTransactionDetails{
 			CardId:         tx.CardTransactionDetails.CardID,
 			CardMaskedPan:  tx.CardTransactionDetails.CardMaskedPan,
-			Type:           string(tx.CardTransactionDetails.Type),
+			Type:           tx.CardTransactionDetails.Type.String(),
 			Operation:      cardOperationToProto(tx.CardTransactionDetails.Operation),
 			Classification: tx.CardTransactionDetails.Classification,
 		}
