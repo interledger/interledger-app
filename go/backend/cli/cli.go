@@ -181,13 +181,24 @@ func ParseStartArgs() (*StartArgs, error) {
 
 	if v := os.Getenv("OPEN_PAYMENTS_BASE_URL"); v != "" {
 		env.SetOpenPaymentsURL(v)
+	} else {
+		return nil, errors.New("OPEN_PAYMENTS_BASE_URL is required")
 	}
 	if v := os.Getenv("AUTH_BASE_URL"); v != "" {
 		env.SetAuthURL(v)
+	} else {
+		return nil, errors.New("AUTH_BASE_URL is required")
 	}
 	if v := os.Getenv("ADMIN_BASE_URL"); v != "" {
 		env.SetAdminURL(v)
+	} else {
+		return nil, errors.New("ADMIN_BASE_URL is required")
 	}
+	personaDashboardURL := os.Getenv("PERSONA_DASHBOARD_URL")
+	if personaDashboardURL == "" {
+		personaDashboardURL = "https://app.withpersona.com/dashboard"
+	}
+	env.SetPersonaDashboardURL(personaDashboardURL)
 
 	applicationURL := os.Getenv("APPLICATION_URL")
 	if applicationURL == "" {

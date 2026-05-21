@@ -1,4 +1,6 @@
 {{- $requiredFields := list
+  (dict "path" "backend.config.auth_base_url" "value" .Values.backend.config.auth_base_url)
+  (dict "path" "backend.config.admin_base_url" "value" .Values.backend.config.admin_base_url)
   (dict "path" "backend.config.xago.api_base_url" "value" .Values.backend.config.xago.api_base_url)
   (dict "path" "backend.config.xago.identity_base_url" "value" .Values.backend.config.xago.identity_base_url)
   (dict "path" "backend.config.xago.policy_id" "value" .Values.backend.config.xago.policy_id)

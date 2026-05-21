@@ -103,6 +103,8 @@ The Go backend is the core of the wallet, handling payments, provider integratio
 | `OTEL_EXPORTER_OTLP_HEADERS` | Auth headers for the OTLP endpoint | Yes | Local default: `x-honeycomb-team=7Qskhns7Dc7wgazrDe6yZD` |
 | `SENTRY_DSN` | Sentry DSN for server-side error reporting | Yes | Not set locally |
 | `SENTRY_RELEASE` | Sentry release identifier | No | Not set locally; deployed values TBD |
+| `AUTH_BASE_URL` | Public Open Payments auth server URL used when building wallet auth links | No | Prod: `https://auth.ilp.link`; Sandbox: `https://auth.sandbox.ilp.link`; Dev: `https://auth.development.ilp.link`; Local: `https://auth.local.ilp.link` |
+| `ADMIN_BASE_URL` | Public wallet admin portal URL used in notification links and admin deep-links | No | Prod: `https://admin.interledger.app`; Sandbox: `https://admin.sandbox.interledger.app`; Dev: `https://admin.development.interledger.app`; Local: `https://admin.mgnt.interledger.test` |
 
 ### Database
 

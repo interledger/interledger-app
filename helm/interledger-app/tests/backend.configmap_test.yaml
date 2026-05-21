@@ -15,6 +15,26 @@ tests:
           path: metadata.name
           value: wallet-backend-config
 
+  - it: 'Should contain AUTH_BASE_URL'
+    set:
+      backend:
+        config:
+          auth_base_url: "https://auth.development.ilp.link"
+    asserts:
+      - equal:
+          path: data.AUTH_BASE_URL
+          value: "https://auth.development.ilp.link"
+
+  - it: 'Should contain ADMIN_BASE_URL'
+    set:
+      backend:
+        config:
+          admin_base_url: "https://admin.development.interledger.app"
+    asserts:
+      - equal:
+          path: data.ADMIN_BASE_URL
+          value: "https://admin.development.interledger.app"
+
   - it: 'Should contain empty BLOCKED_REGIONS by default'
     asserts:
       - equal:

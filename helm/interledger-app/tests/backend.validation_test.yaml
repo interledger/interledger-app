@@ -3,6 +3,10 @@ templates:
   - validation.backend.yaml
 set:
   fullnameOverride: wallet
+  backend:
+    config:
+      auth_base_url: "https://auth.development.ilp.link"
+      admin_base_url: "https://admin.development.interledger.app"
 release:
   name: wallet
 # NOTE: Helm-unittest can only test successful template rendering.
@@ -89,3 +93,24 @@ tests:
     asserts:
       - failedTemplate:
           errorMessage: "The following required values are empty: backend.config.gatehub.api_base_url"
+
+  - it: 'Should fail when auth/admin base URLs are empty'
+    set:
+      backend:
+        config:
+          auth_base_url: ""
+          admin_base_url: ""
+          apple_app_id: "123456789"
+          android_package_name: "network.interledger.wallet"
+          android_sha256: "AA:BB:CC:DD"
+          xago:
+            api_base_url: "https://api.xago.io"
+            identity_base_url: "https://identity.xago.io"
+            policy_id: "policy-1"
+          pti:
+            enabled: "false"
+          gatehub:
+            enabled: "false"
+    asserts:
+      - failedTemplate:
+          errorMessage: "The following required values are empty: backend.config.auth_base_url, backend.config.admin_base_url"

@@ -11,6 +11,7 @@ import (
 
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/kyc/persona"
+	"gitlab.com/fynbos/env"
 )
 
 func GetPersonaInquiry(ctx context.Context, b Backends, cl persona.Client, walletID, idempotencyKey string) (*kyc.PersonaInquiry, error) {
@@ -100,7 +101,7 @@ func GetPersonaInquiry(ctx context.Context, b Backends, cl persona.Client, walle
 }
 
 func GetApprovedPersonaInquiryURL(ctx context.Context, b Backends, walletID string) (string, error) {
-	urlFormat := "https://app.withpersona.com/dashboard/inquiries/%s"
+	urlFormat := env.PersonaDashboardURL() + "/inquiries/%s"
 
 	var inquiryID string
 	err := b.DB().GetContext(ctx, &inquiryID, "SELECT external_id FROM kyc_persona_inquiries WHERE wallet_id=$1 AND state=$2;", walletID, persona.InquiryApproved)

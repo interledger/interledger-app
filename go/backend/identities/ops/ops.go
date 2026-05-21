@@ -103,9 +103,8 @@ func Add(ctx context.Context, b Backends, args identities.AddArgs) (*identities.
 	if err != nil {
 		log.Error("error notifying wallet", zap.Error(err), zap.String("type", notify.NotificationTypeIdentity))
 	}
-	// TODO discuss with DEVOPS what will be the new admin url
 	if args.Platform == identities.PlatformSlack {
-		slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "Fynbot", fmt.Sprintf(":troll: *New identity created*\n*Identifier:* %s\n*Platform:* %s\n*Wallet:* https://admin.interledger.tech/wallet/%s/profile", args.Identifier, args.Platform, args.WalletID))
+		slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "Fynbot", fmt.Sprintf(":troll: *New identity created*\n*Identifier:* %s\n*Platform:* %s\n*Wallet:* %s/wallet/%s/profile", args.Identifier, args.Platform, env.AdminURL(), args.WalletID))
 	}
 
 	return &identity, nil

@@ -113,17 +113,10 @@ func SetOpenPaymentsURL(url string) {
 }
 
 func OpenPaymentsURL() string {
-	if openPaymentsURL != "" {
-		return openPaymentsURL
+	if openPaymentsURL == "" {
+		panic("Open Payments URL is not set")
 	}
-	if IsProd() {
-		return "https://ilp.link"
-	} else if IsDev() {
-		return "https://sandbox.ilp.link"
-	} else if IsLocal() || IsTest() {
-		return "https://local.ilp.link"
-	}
-	return "https://sandbox.ilp.link"
+	return openPaymentsURL
 }
 
 var authURL string
@@ -132,19 +125,11 @@ func SetAuthURL(url string) {
 	authURL = url
 }
 
-// TODO -  is this used?
 func AuthURL() string {
-	if authURL != "" {
-		return authURL
+	if authURL == "" {
+		panic("Auth URL is not set")
 	}
-	if IsProd() {
-		return "https://auth.ilp.link"
-	} else if IsDev() {
-		return "https://auth.sandbox.ilp.link"
-	} else if IsLocal() || IsTest() {
-		return "https://auth.local.ilp.link"
-	}
-	return "https://auth.ilp.link"
+	return authURL
 }
 
 var adminURL string
@@ -153,16 +138,22 @@ func SetAdminURL(url string) {
 	adminURL = url
 }
 
+var personaDashboardURL string
+
+func SetPersonaDashboardURL(url string) {
+	personaDashboardURL = url
+}
+
+func PersonaDashboardURL() string {
+	if personaDashboardURL == "" {
+		panic("Persona dashboard URL is not set")
+	}
+	return personaDashboardURL
+}
+
 func AdminURL() string {
-	if adminURL != "" {
-		return adminURL
+	if adminURL == "" {
+		panic("Admin URL is not set")
 	}
-	if IsProd() {
-		return "https://admin.interledger.tech"
-	} else if IsDev() {
-		return "https://admin.sandbox.interledger.tech"
-	} else if IsLocal() || IsTest() {
-		return "https://admin.interledger.test"
-	}
-	return "https://admin.sandbox.interledger.tech"
+	return adminURL
 }

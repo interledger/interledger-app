@@ -140,6 +140,8 @@ backend:
 
   config:
     application_url: ""
+    auth_base_url: ""
+    admin_base_url: ""
     environment: dev
     log_level: "info"
     port: "8080"
@@ -788,6 +790,10 @@ backend:
       contentMap:
         - key: APPLICATION_URL
           valueRef: backend.config.application_url
+        - key: AUTH_BASE_URL
+          valueRef: backend.config.auth_base_url
+        - key: ADMIN_BASE_URL
+          valueRef: backend.config.admin_base_url
         - key: FYNBOS_ENV
           valueRef: backend.config.environment
         - key: KRATOS_URL
