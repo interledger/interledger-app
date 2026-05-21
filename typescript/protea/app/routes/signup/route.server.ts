@@ -107,7 +107,7 @@ export async function detailsAction({ request }: Route.ActionArgs) {
   }
 
   const parsedPhone = parseUserPhone(phone, country)
-  if (parsedPhone.error) {
+  if (!parsedPhone.success) {
     actionData.errors.phone = parsedPhone.error
     return error(request, actionData)
   }

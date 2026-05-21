@@ -213,7 +213,7 @@ export async function action({ request }: Route.ActionArgs) {
     const country = form.get('country') as string
     const parsedPhone = parseUserPhone(newPhone, country)
 
-    if (parsedPhone.error) {
+    if (!parsedPhone.success) {
       return { errors: { phone: parsedPhone.error } }
     }
 

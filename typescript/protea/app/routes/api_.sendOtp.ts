@@ -32,16 +32,22 @@ export async function action({ request }: Route.ActionArgs) {
 
   if (validation) {
     const parsedPhone = parseUserPhone(phone, country)
-    if (parsedPhone.error) {
+    if (!parsedPhone.success) {
       data.errors.phone = parsedPhone.error
       return error(request, data)
     }
 
     data.phone = parsedPhone.phone
   } else {
-    data.phone = await getUserSession(request).then(
-      (session) => getSessionTraits(session).phone
-    )
+    const session = await getUserSession(request)
+    const sessionPhone = getSessionTraits(session).phone
+
+    if (!sessionPhone) {
+      data.errors.phone = 'Phone number is required.'
+      return error(request, data)
+    }
+
+    data.phone = sessionPhone
   }
 
   let response = await grpc.sendPhoneVerification(request, {
