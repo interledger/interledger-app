@@ -23,6 +23,7 @@ const knownEnvKeysRequired: string[] = [
 const knownEnvKeysOptional: string[] = [
     "SENTRY_DSN",
     "SENTRY_RELEASE",
+    "SENTRY_ENV_LABEL",
     "FYNBOS_ENV",
     "LOG_LEVEL",
     "LOG_PRETTY",

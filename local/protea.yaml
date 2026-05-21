@@ -56,8 +56,10 @@ services:
       - GOOGLE_MAPS_API_KEY=${PROTEA_GOOGLE_MAPS_API_KEY:-}
 
       # Observability and analytics
+      # Sentry is disabled by default in local (no SENTRY_DSN set)
       - SENTRY_DSN=${PROTEA_SENTRY_DSN:-}
       - SENTRY_RELEASE=${PROTEA_SENTRY_RELEASE:-}
+      - SENTRY_ENV_LABEL=${PROTEA_SENTRY_ENV_LABEL:-}
       - SEGMENT_API_KEY=${PROTEA_SEGMENT_API_KEY:-}
 
       # Rate limiting
@@ -74,7 +76,7 @@ services:
       - PUBLIC_OP_AUTH_HOST=${PROTEA_PUBLIC_OP_AUTH_HOST:-auth.local.ilp.link}
       - PTI_SDK_URL=${PROTEA_PTI_SDK_URL:-https://mockpti.interledger.test/sdk/index.js}
       - PTI_FORMS_URL=${PROTEA_PTI_FORMS_URL:-https://mockpti.interledger.test/forms}
-      - TARGET_HOST=${PROTEA_TARGET_HOST:-https://interledger.app}
+      - TARGET_HOST=${PROTEA_TARGET_HOST:-https://interledger.test}
       - SUPPORT_EMAIL=${PROTEA_SUPPORT_EMAIL:-support@interledger.app}
 
     depends_on:
