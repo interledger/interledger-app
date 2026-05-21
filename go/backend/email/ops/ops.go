@@ -594,3 +594,34 @@ func SendAccountDeletionRequestedEmail(ctx context.Context, b Backends, userID s
 	}
 	return nil
 }
+
+func SendAuthenticatorResetEmail(ctx context.Context, b Backends, walletID string) {
+	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
+	if err != nil {
+		log.Error("Failed to retrieve email and greeting when sending authenticator reset email.", zap.Error(err), zap.String("walletID", walletID))
+		return
+	}
+
+	securityURL, err := url.JoinPath(env.GetUrl(), "settings")
+	if err != nil {
+		log.Error("Failed to build settings URL for authenticator reset email.", zap.Error(err), zap.String("walletID", walletID))
+		return
+	}
+
+	err = b.External().SendTemplate(ctx, "Your authenticator app was reset", sendTo, b.OneTemplateID(), map[string]interface{}{
+		"subject": "Your authenticator app was reset",
+		"data": []map[string]interface{}{
+			{"paragraph": greeting},
+			{"heading": "Authenticator reset completed"},
+			{"paragraph": "Your authenticator app setup has been reset by support. For your security, you will be asked to scan a new QR code and re-enroll your authenticator app on your next login."},
+			{"paragraph": "If you did not request this action, please contact support immediately."},
+		},
+		"cta": map[string]interface{}{
+			"text": "Review security settings",
+			"url":  securityURL,
+		},
+	}, nil)
+	if err != nil {
+		log.Error("Failed to send authenticator reset email.", zap.Error(err), zap.String("walletID", walletID))
+	}
+}

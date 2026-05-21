@@ -31,8 +31,9 @@ type Activity struct {
 	external external.Client
 }
 
-func NewActivity(b Backends) *Activity {
+func NewActivity(b Backends, apiKey string) *Activity {
 	ec := external.New(
+		apiKey,
 		&http.Client{
 			Transport: otelhttp.NewTransport(
 				httplogger.NewTransport(http.DefaultTransport, b, external.Redact),

@@ -75,3 +75,7 @@ func (n *noopClient) SendAccountDeletionRequested(_ context.Context, userID stri
 	log.Info("NOT SENDING: account deletion notification to support", zap.String("userID", userID))
 	return nil
 }
+
+func (n *noopClient) SendAuthenticatorResetEmail(_ context.Context, walletID string) {
+	log.Info("NOT SENDING: authenticator reset email", zap.String("walletID", walletID))
+}

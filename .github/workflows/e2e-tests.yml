@@ -2,8 +2,16 @@ name: E2E Tests (PR)
 
 on:
   pull_request:
-    paths-ignore:
-      - 'documentation/**'
+    paths:
+      - 'go/**'
+      - 'typescript/**'
+      - 'e2e/**'
+      - 'local/**'
+      - 'proto/**'
+      - 'go.work'
+      - 'go.work.sum'
+      - '.github/workflows/e2e-tests.yml'
+      - '.github/workflows/e2e-runner-scaler.yml'
 
 permissions:
   contents: read
@@ -15,6 +23,7 @@ jobs:
     runs-on: e2e-tester-dynamic
     timeout-minutes: 90
     environment: e2e-tester
+    if: github.event.pull_request.head.repo.full_name == github.repository
     env:
       PROTEA_BUILD_TARGET: runner
       BOTANIST_BUILD_TARGET: runner

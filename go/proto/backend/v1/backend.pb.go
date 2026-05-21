@@ -5545,6 +5545,7 @@ type Features struct {
 	ZarBalanceEnabled        bool                   `protobuf:"varint,10,opt,name=zarBalanceEnabled,proto3" json:"zarBalanceEnabled,omitempty"`
 	ManageWalletCardsEnabled bool                   `protobuf:"varint,11,opt,name=manageWalletCardsEnabled,proto3" json:"manageWalletCardsEnabled,omitempty"`
 	AccountEnabled           bool                   `protobuf:"varint,12,opt,name=accountEnabled,proto3" json:"accountEnabled,omitempty"`
+	AccountsTabEnabled       bool                   `protobuf:"varint,13,opt,name=accountsTabEnabled,proto3" json:"accountsTabEnabled,omitempty"`
 	unknownFields            protoimpl.UnknownFields
 	sizeCache                protoimpl.SizeCache
 }
@@ -5659,6 +5660,13 @@ func (x *Features) GetManageWalletCardsEnabled() bool {
 func (x *Features) GetAccountEnabled() bool {
 	if x != nil {
 		return x.AccountEnabled
+	}
+	return false
+}
+
+func (x *Features) GetAccountsTabEnabled() bool {
+	if x != nil {
+		return x.AccountsTabEnabled
 	}
 	return false
 }
@@ -6657,6 +6665,7 @@ type LinkedAccount struct {
 	DefaultSend                bool   `protobuf:"varint,13,opt,name=defaultSend,proto3" json:"defaultSend,omitempty"`
 	DefaultReceive             bool   `protobuf:"varint,14,opt,name=defaultReceive,proto3" json:"defaultReceive,omitempty"`
 	State                      string `protobuf:"bytes,15,opt,name=state,proto3" json:"state,omitempty"`
+	CreatedAt                  string `protobuf:"bytes,16,opt,name=createdAt,proto3" json:"createdAt,omitempty"`
 	unknownFields              protoimpl.UnknownFields
 	sizeCache                  protoimpl.SizeCache
 }
@@ -6792,6 +6801,13 @@ func (x *LinkedAccount) GetDefaultReceive() bool {
 func (x *LinkedAccount) GetState() string {
 	if x != nil {
 		return x.State
+	}
+	return ""
+}
+
+func (x *LinkedAccount) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
 	}
 	return ""
 }
@@ -10054,6 +10070,126 @@ func (x *VerifyIdentityRequest) GetId() string {
 	return ""
 }
 
+type AppError struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ErrorCode     string                 `protobuf:"bytes,1,opt,name=errorCode,proto3" json:"errorCode,omitempty"` // See errcodes.go for all possible values
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	Fields        []*AppErrorField       `protobuf:"bytes,3,rep,name=fields,proto3" json:"fields,omitempty"`
+	ReqId         string                 `protobuf:"bytes,4,opt,name=reqId,proto3" json:"reqId,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AppError) Reset() {
+	*x = AppError{}
+	mi := &file_backend_v1_backend_proto_msgTypes[161]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AppError) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AppError) ProtoMessage() {}
+
+func (x *AppError) ProtoReflect() protoreflect.Message {
+	mi := &file_backend_v1_backend_proto_msgTypes[161]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AppError.ProtoReflect.Descriptor instead.
+func (*AppError) Descriptor() ([]byte, []int) {
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{161}
+}
+
+func (x *AppError) GetErrorCode() string {
+	if x != nil {
+		return x.ErrorCode
+	}
+	return ""
+}
+
+func (x *AppError) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *AppError) GetFields() []*AppErrorField {
+	if x != nil {
+		return x.Fields
+	}
+	return nil
+}
+
+func (x *AppError) GetReqId() string {
+	if x != nil {
+		return x.ReqId
+	}
+	return ""
+}
+
+type AppErrorField struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Field         string                 `protobuf:"bytes,1,opt,name=field,proto3" json:"field,omitempty"`
+	Error         string                 `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AppErrorField) Reset() {
+	*x = AppErrorField{}
+	mi := &file_backend_v1_backend_proto_msgTypes[162]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AppErrorField) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AppErrorField) ProtoMessage() {}
+
+func (x *AppErrorField) ProtoReflect() protoreflect.Message {
+	mi := &file_backend_v1_backend_proto_msgTypes[162]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AppErrorField.ProtoReflect.Descriptor instead.
+func (*AppErrorField) Descriptor() ([]byte, []int) {
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{162}
+}
+
+func (x *AppErrorField) GetField() string {
+	if x != nil {
+		return x.Field
+	}
+	return ""
+}
+
+func (x *AppErrorField) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
 var File_backend_v1_backend_proto protoreflect.FileDescriptor
 
 const file_backend_v1_backend_proto_rawDesc = "" +
@@ -10470,7 +10606,7 @@ const file_backend_v1_backend_proto_rawDesc = "" +
 	"\vhasBalances\x18\t \x01(\bR\vhasBalances\x12&\n" +
 	"\x0eexceededLimits\x18\n" +
 	" \x01(\bR\x0eexceededLimits\x12\x18\n" +
-	"\acountry\x18\v \x01(\tR\acountry\"\x8c\x04\n" +
+	"\acountry\x18\v \x01(\tR\acountry\"\xbc\x04\n" +
 	"\bFeatures\x12 \n" +
 	"\vsendEnabled\x18\x01 \x01(\bR\vsendEnabled\x12&\n" +
 	"\x0ereceiveEnabled\x18\x02 \x01(\bR\x0ereceiveEnabled\x124\n" +
@@ -10484,7 +10620,8 @@ const file_backend_v1_backend_proto_rawDesc = "" +
 	"\x11zarBalanceEnabled\x18\n" +
 	" \x01(\bR\x11zarBalanceEnabled\x12:\n" +
 	"\x18manageWalletCardsEnabled\x18\v \x01(\bR\x18manageWalletCardsEnabled\x12&\n" +
-	"\x0eaccountEnabled\x18\f \x01(\bR\x0eaccountEnabled\"-\n" +
+	"\x0eaccountEnabled\x18\f \x01(\bR\x0eaccountEnabled\x12.\n" +
+	"\x12accountsTabEnabled\x18\r \x01(\bR\x12accountsTabEnabled\"-\n" +
 	"\x11CreateCardRequest\x12\x18\n" +
 	"\atokenID\x18\x01 \x01(\tR\atokenID\"/\n" +
 	"\x13InitQuote3DSRequest\x12\x18\n" +
@@ -10579,7 +10716,7 @@ const file_backend_v1_backend_proto_rawDesc = "" +
 	"memberGuid\x18\x02 \x01(\tR\n" +
 	"memberGuid\"B\n" +
 	"\x16AddBankAccountResponse\x12(\n" +
-	"\x0ffundingsourceId\x18\x01 \x01(\tR\x0ffundingsourceId\"\xff\x03\n" +
+	"\x0ffundingsourceId\x18\x01 \x01(\tR\x0ffundingsourceId\"\x9d\x04\n" +
 	"\rLinkedAccount\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04type\x18\x02 \x01(\tR\x04type\x12\x12\n" +
@@ -10598,7 +10735,8 @@ const file_backend_v1_backend_proto_rawDesc = "" +
 	"\x1areceiveCurrencyCountryCode\x18\f \x01(\tR\x1areceiveCurrencyCountryCode\x12 \n" +
 	"\vdefaultSend\x18\r \x01(\bR\vdefaultSend\x12&\n" +
 	"\x0edefaultReceive\x18\x0e \x01(\bR\x0edefaultReceive\x12\x14\n" +
-	"\x05state\x18\x0f \x01(\tR\x05state\"\"\n" +
+	"\x05state\x18\x0f \x01(\tR\x05state\x12\x1c\n" +
+	"\tcreatedAt\x18\x10 \x01(\tR\tcreatedAt\"\"\n" +
 	"\x10GetSignupRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\xa8\x01\n" +
 	"\x18SetSignupUserDataRequest\x12\x13\n" +
@@ -10818,7 +10956,15 @@ const file_backend_v1_backend_proto_rawDesc = "" +
 	"\x1cCreateDomainIdentityResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"'\n" +
 	"\x15VerifyIdentityRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id*\xe0\x01\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"\x8b\x01\n" +
+	"\bAppError\x12\x1c\n" +
+	"\terrorCode\x18\x01 \x01(\tR\terrorCode\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\x121\n" +
+	"\x06fields\x18\x03 \x03(\v2\x19.backend.v1.AppErrorFieldR\x06fields\x12\x14\n" +
+	"\x05reqId\x18\x04 \x01(\tR\x05reqId\";\n" +
+	"\rAppErrorField\x12\x14\n" +
+	"\x05field\x18\x01 \x01(\tR\x05field\x12\x14\n" +
+	"\x05error\x18\x02 \x01(\tR\x05error*\xe0\x01\n" +
 	"\rCardTokenType\x12\x17\n" +
 	"\x13CARD_TOKEN_TYPE_PIN\x10\x00\x12\x1e\n" +
 	"\x1aCARD_TOKEN_TYPE_PIN_CHANGE\x10\x01\x12\x1d\n" +
@@ -10997,7 +11143,7 @@ func file_backend_v1_backend_proto_rawDescGZIP() []byte {
 }
 
 var file_backend_v1_backend_proto_enumTypes = make([]protoimpl.EnumInfo, 7)
-var file_backend_v1_backend_proto_msgTypes = make([]protoimpl.MessageInfo, 161)
+var file_backend_v1_backend_proto_msgTypes = make([]protoimpl.MessageInfo, 163)
 var file_backend_v1_backend_proto_goTypes = []any{
 	(CardTokenType)(0),                             // 0: backend.v1.CardTokenType
 	(CustomerDeliveryAddressType)(0),               // 1: backend.v1.CustomerDeliveryAddressType
@@ -11167,7 +11313,9 @@ var file_backend_v1_backend_proto_goTypes = []any{
 	(*CreateDomainIdentityRequest)(nil),            // 165: backend.v1.CreateDomainIdentityRequest
 	(*CreateDomainIdentityResponse)(nil),           // 166: backend.v1.CreateDomainIdentityResponse
 	(*VerifyIdentityRequest)(nil),                  // 167: backend.v1.VerifyIdentityRequest
-	(*timestamppb.Timestamp)(nil),                  // 168: google.protobuf.Timestamp
+	(*AppError)(nil),                               // 168: backend.v1.AppError
+	(*AppErrorField)(nil),                          // 169: backend.v1.AppErrorField
+	(*timestamppb.Timestamp)(nil),                  // 170: google.protobuf.Timestamp
 }
 var file_backend_v1_backend_proto_depIdxs = []int32{
 	11,  // 0: backend.v1.GetPendingThreeDSConfirmationsResponse.confirmations:type_name -> backend.v1.PendingThreeDSConfirmation
@@ -11207,7 +11355,7 @@ var file_backend_v1_backend_proto_depIdxs = []int32{
 	70,  // 34: backend.v1.XagoBalance.available:type_name -> backend.v1.Amount
 	70,  // 35: backend.v1.WithdrawXagoBalanceRequest.amount:type_name -> backend.v1.Amount
 	70,  // 36: backend.v1.Transaction.amount:type_name -> backend.v1.Amount
-	168, // 37: backend.v1.Transaction.timestamp:type_name -> google.protobuf.Timestamp
+	170, // 37: backend.v1.Transaction.timestamp:type_name -> google.protobuf.Timestamp
 	71,  // 38: backend.v1.Transaction.cardTransactionDetails:type_name -> backend.v1.CardTransactionDetails
 	72,  // 39: backend.v1.ListTransactionsResponse.transactions:type_name -> backend.v1.Transaction
 	70,  // 40: backend.v1.UpdatePaymentRequest.senderAmount:type_name -> backend.v1.Amount
@@ -11221,15 +11369,15 @@ var file_backend_v1_backend_proto_depIdxs = []int32{
 	84,  // 48: backend.v1.SearchResult.subResults:type_name -> backend.v1.SearchResult
 	149, // 49: backend.v1.PublicWalletInfo.identities:type_name -> backend.v1.Identity
 	91,  // 50: backend.v1.ListConnectionsResponse.keys:type_name -> backend.v1.Connection
-	168, // 51: backend.v1.Transfer.timestamp:type_name -> google.protobuf.Timestamp
+	170, // 51: backend.v1.Transfer.timestamp:type_name -> google.protobuf.Timestamp
 	70,  // 52: backend.v1.Transfer.amount:type_name -> backend.v1.Amount
-	168, // 53: backend.v1.IndividualKYCResponse.dateOfBirth:type_name -> google.protobuf.Timestamp
+	170, // 53: backend.v1.IndividualKYCResponse.dateOfBirth:type_name -> google.protobuf.Timestamp
 	99,  // 54: backend.v1.IndividualKYCResponse.address:type_name -> backend.v1.Address
-	168, // 55: backend.v1.UpdateIndividualKYCRequest.dateOfBirth:type_name -> google.protobuf.Timestamp
+	170, // 55: backend.v1.UpdateIndividualKYCRequest.dateOfBirth:type_name -> google.protobuf.Timestamp
 	99,  // 56: backend.v1.UpdateIndividualKYCRequest.address:type_name -> backend.v1.Address
 	6,   // 57: backend.v1.AccountDeletionStatus.status:type_name -> backend.v1.AccountDeletionRequestStatus
-	168, // 58: backend.v1.AccountDeletionStatus.created_at:type_name -> google.protobuf.Timestamp
-	168, // 59: backend.v1.AccountDeletionStatus.updated_at:type_name -> google.protobuf.Timestamp
+	170, // 58: backend.v1.AccountDeletionStatus.created_at:type_name -> google.protobuf.Timestamp
+	170, // 59: backend.v1.AccountDeletionStatus.updated_at:type_name -> google.protobuf.Timestamp
 	105, // 60: backend.v1.GetLinkedAccountsResponse.linkedAccounts:type_name -> backend.v1.LinkedAccount
 	128, // 61: backend.v1.GetCountriesResponse.countries:type_name -> backend.v1.Country
 	136, // 62: backend.v1.Limit.Annual:type_name -> backend.v1.LimitAmount
@@ -11241,227 +11389,228 @@ var file_backend_v1_backend_proto_depIdxs = []int32{
 	70,  // 68: backend.v1.ConfiguredLimit.overall:type_name -> backend.v1.Amount
 	144, // 69: backend.v1.ListContactsResponse.contacts:type_name -> backend.v1.Contact
 	149, // 70: backend.v1.ListIdentitiesResponse.identities:type_name -> backend.v1.Identity
-	168, // 71: backend.v1.Identity.verified_at:type_name -> google.protobuf.Timestamp
+	170, // 71: backend.v1.Identity.verified_at:type_name -> google.protobuf.Timestamp
 	149, // 72: backend.v1.GetIdentityResponse.identity:type_name -> backend.v1.Identity
-	98,  // 73: backend.v1.BackendService.UpdateIndividualKYC:input_type -> backend.v1.UpdateIndividualKYCRequest
-	8,   // 74: backend.v1.BackendService.GetIndividualKYC:input_type -> backend.v1.Empty
-	99,  // 75: backend.v1.BackendService.IsUSPSAddress:input_type -> backend.v1.Address
-	107, // 76: backend.v1.BackendService.SetSignupUserData:input_type -> backend.v1.SetSignupUserDataRequest
-	109, // 77: backend.v1.BackendService.SetSignupMobileNumber:input_type -> backend.v1.SetSignupMobileNumberRequest
-	106, // 78: backend.v1.BackendService.GetSignup:input_type -> backend.v1.GetSignupRequest
-	112, // 79: backend.v1.BackendService.CompleteSignup:input_type -> backend.v1.CompleteSignupRequest
-	113, // 80: backend.v1.BackendService.CreateUserDefaultWallet:input_type -> backend.v1.CreateUserDefaultWalletRequest
-	139, // 81: backend.v1.BackendService.CreateWalletAddress:input_type -> backend.v1.CreateWalletAddressRequest
-	137, // 82: backend.v1.BackendService.WalletAddressValid:input_type -> backend.v1.WalletAddressValidRequest
-	140, // 83: backend.v1.BackendService.SetWalletName:input_type -> backend.v1.SetWalletNameRequest
-	8,   // 84: backend.v1.BackendService.GetWalletInfo:input_type -> backend.v1.Empty
-	85,  // 85: backend.v1.BackendService.GetPublicWalletInfo:input_type -> backend.v1.GetPublicWalletInfoRequest
-	114, // 86: backend.v1.BackendService.SendPhoneVerification:input_type -> backend.v1.SendPhoneVerificationRequest
-	115, // 87: backend.v1.BackendService.CheckPhoneVerification:input_type -> backend.v1.CheckPhoneVerificationRequest
-	8,   // 88: backend.v1.BackendService.SendOTP:input_type -> backend.v1.Empty
-	116, // 89: backend.v1.BackendService.GetAgreement:input_type -> backend.v1.GetAgreementRequest
-	118, // 90: backend.v1.BackendService.SignAgreements:input_type -> backend.v1.SignAgreementsRequest
-	8,   // 91: backend.v1.BackendService.GetLinkedAccounts:input_type -> backend.v1.Empty
-	125, // 92: backend.v1.BackendService.GetLinkedAccount:input_type -> backend.v1.GetLinkedAccountRequest
-	66,  // 93: backend.v1.BackendService.SetDefaultReceiveLinkedAccount:input_type -> backend.v1.SetDefaultReceiveLinkedAccountRequest
-	65,  // 94: backend.v1.BackendService.SetDefaultSendLinkedAccount:input_type -> backend.v1.SetDefaultSendLinkedAccountRequest
-	126, // 95: backend.v1.BackendService.SetNicknameLinkedAccount:input_type -> backend.v1.SetNicknameLinkedAccountRequest
-	127, // 96: backend.v1.BackendService.DeleteLinkedAccount:input_type -> backend.v1.DeleteLinkedAccountRequest
-	8,   // 97: backend.v1.BackendService.GetCountries:input_type -> backend.v1.Empty
-	8,   // 98: backend.v1.BackendService.GetCurrentWallet:input_type -> backend.v1.Empty
-	120, // 99: backend.v1.BackendService.JoinWaitlist:input_type -> backend.v1.JoinWaitlistRequest
-	130, // 100: backend.v1.BackendService.CanSignup:input_type -> backend.v1.CanSignupRequest
-	132, // 101: backend.v1.BackendService.SetSignupComplete:input_type -> backend.v1.SetSignupCompleteRequest
-	122, // 102: backend.v1.BackendService.IsMugAvailable:input_type -> backend.v1.IsMugAvailableRequest
-	7,   // 103: backend.v1.BackendService.ListTransactions:input_type -> backend.v1.PaginationRequest
-	7,   // 104: backend.v1.BackendService.ListTransactionsCompleted:input_type -> backend.v1.PaginationRequest
-	7,   // 105: backend.v1.BackendService.ListTransactionsWithPending:input_type -> backend.v1.PaginationRequest
-	133, // 106: backend.v1.BackendService.LookupTransaction:input_type -> backend.v1.LookupTransactionRequest
-	8,   // 107: backend.v1.BackendService.ListPendingWebMonetization:input_type -> backend.v1.Empty
-	92,  // 108: backend.v1.BackendService.CreateConnection:input_type -> backend.v1.CreateConnectionRequest
-	8,   // 109: backend.v1.BackendService.ListConnections:input_type -> backend.v1.Empty
-	93,  // 110: backend.v1.BackendService.GetConnection:input_type -> backend.v1.GetConnectionRequest
-	94,  // 111: backend.v1.BackendService.DeleteConnection:input_type -> backend.v1.DeleteConnectionRequest
-	141, // 112: backend.v1.BackendService.GetPublicWalletDetails:input_type -> backend.v1.GetPublicWalletDetailsRequest
-	147, // 113: backend.v1.BackendService.CreateContact:input_type -> backend.v1.CreateContactRequest
-	145, // 114: backend.v1.BackendService.ListContacts:input_type -> backend.v1.ListContactsRequest
-	8,   // 115: backend.v1.BackendService.ListIdentities:input_type -> backend.v1.Empty
-	153, // 116: backend.v1.BackendService.ListPublicIdentities:input_type -> backend.v1.ListPublicIdentitiesRequest
-	151, // 117: backend.v1.BackendService.DeleteIdentity:input_type -> backend.v1.DeleteIdentityRequest
-	152, // 118: backend.v1.BackendService.SetIdentityPublic:input_type -> backend.v1.SetIdentityPublicRequest
-	160, // 119: backend.v1.BackendService.GetIdentity:input_type -> backend.v1.GetIdentityRequest
-	162, // 120: backend.v1.BackendService.GetIdentityBySignatureHash:input_type -> backend.v1.GetIdentityBySignatureHashRequest
-	167, // 121: backend.v1.BackendService.VerifyIdentity:input_type -> backend.v1.VerifyIdentityRequest
-	8,   // 122: backend.v1.BackendService.KYCStatus:input_type -> backend.v1.Empty
-	8,   // 123: backend.v1.BackendService.SetKYCStatusPending:input_type -> backend.v1.Empty
-	155, // 124: backend.v1.BackendService.GetPersonaInquiry:input_type -> backend.v1.KYCPersonaInquiryRequest
-	38,  // 125: backend.v1.BackendService.GetKYCProviderWidget:input_type -> backend.v1.GetKYCProviderWidgetRequest
-	80,  // 126: backend.v1.BackendService.GetCardDetails:input_type -> backend.v1.GetCardDetailsRequest
-	8,   // 127: backend.v1.BackendService.ListFeatures:input_type -> backend.v1.Empty
-	8,   // 128: backend.v1.BackendService.CreateTwitterAuthURL:input_type -> backend.v1.Empty
-	158, // 129: backend.v1.BackendService.TwitterCallback:input_type -> backend.v1.TwitterCallbackRequest
-	165, // 130: backend.v1.BackendService.CreateDomainIdentity:input_type -> backend.v1.CreateDomainIdentityRequest
-	163, // 131: backend.v1.BackendService.GetPaymentAddress:input_type -> backend.v1.GetPaymentAddressRequest
-	78,  // 132: backend.v1.BackendService.CreatePayment:input_type -> backend.v1.CreatePaymentRequest
-	76,  // 133: backend.v1.BackendService.UpdatePayment:input_type -> backend.v1.UpdatePaymentRequest
-	75,  // 134: backend.v1.BackendService.GetPayment:input_type -> backend.v1.GetPaymentRequest
-	74,  // 135: backend.v1.BackendService.ConfirmPayment:input_type -> backend.v1.ConfirmPaymentRequest
-	49,  // 136: backend.v1.BackendService.GetLinkedAccountsForPayment:input_type -> backend.v1.GetLinkedAccountsForPaymentRequest
-	8,   // 137: backend.v1.BackendService.GetBalances:input_type -> backend.v1.Empty
-	48,  // 138: backend.v1.BackendService.GetLinkedAccountsForWithdraw:input_type -> backend.v1.GetLinkedAccountsForTransferRequest
-	79,  // 139: backend.v1.BackendService.WithdrawBalance:input_type -> backend.v1.TransferBalanceRequest
-	48,  // 140: backend.v1.BackendService.GetLinkedAccountsForDeposit:input_type -> backend.v1.GetLinkedAccountsForTransferRequest
-	79,  // 141: backend.v1.BackendService.DepositBalance:input_type -> backend.v1.TransferBalanceRequest
-	82,  // 142: backend.v1.BackendService.SearchWallets:input_type -> backend.v1.SearchWalletsRequest
-	8,   // 143: backend.v1.BackendService.CreateSlackAuthURL:input_type -> backend.v1.Empty
-	67,  // 144: backend.v1.BackendService.SlackCallback:input_type -> backend.v1.SlackCallbackRequest
-	64,  // 145: backend.v1.BackendService.AddXagoBankAccount:input_type -> backend.v1.AddXagoBankAccountRequest
-	63,  // 146: backend.v1.BackendService.AddXagoBalanceAccount:input_type -> backend.v1.AddXagoBalanceAccountRequest
-	62,  // 147: backend.v1.BackendService.WithdrawXagoBalance:input_type -> backend.v1.WithdrawXagoBalanceRequest
-	8,   // 148: backend.v1.BackendService.GetXagoBalances:input_type -> backend.v1.Empty
-	52,  // 149: backend.v1.BackendService.GetXagoDepositDetails:input_type -> backend.v1.GetXagoDepositDetailsRequest
-	8,   // 150: backend.v1.BackendService.DepositTestXago:input_type -> backend.v1.Empty
-	8,   // 151: backend.v1.BackendService.GetPtiBalances:input_type -> backend.v1.Empty
-	28,  // 152: backend.v1.BackendService.CreatePtiToken:input_type -> backend.v1.PtiTokenRequest
-	89,  // 153: backend.v1.BackendService.CreateCard:input_type -> backend.v1.CreateCardRequest
-	27,  // 154: backend.v1.BackendService.CreatePtiBankAccount:input_type -> backend.v1.CreatePtiBankAccountRequest
-	59,  // 155: backend.v1.BackendService.PtiCreateDeposit:input_type -> backend.v1.PtiCreateDepositRequest
-	35,  // 156: backend.v1.BackendService.CreatePTIWithdrawal:input_type -> backend.v1.CreatePTIWithdrawalRequest
-	8,   // 157: backend.v1.BackendService.ListRafikiGrants:input_type -> backend.v1.Empty
-	43,  // 158: backend.v1.BackendService.GetRafikiGrant:input_type -> backend.v1.GetRafikiGrantRequest
-	42,  // 159: backend.v1.BackendService.RevokeRafikiGrant:input_type -> backend.v1.RevokeRafikiGrantRequest
-	8,   // 160: backend.v1.BackendService.GetGatehubOnboardingWidget:input_type -> backend.v1.Empty
-	8,   // 161: backend.v1.BackendService.GetOnOffRampProvider:input_type -> backend.v1.Empty
-	8,   // 162: backend.v1.BackendService.GetGatehubDepositWidget:input_type -> backend.v1.Empty
-	8,   // 163: backend.v1.BackendService.GetGatehubWithdrawalWidget:input_type -> backend.v1.Empty
-	33,  // 164: backend.v1.BackendService.CreateGatehubWithdrawal:input_type -> backend.v1.CreateGatehubWithdrawalRequest
-	32,  // 165: backend.v1.BackendService.SetChimoneyInterlocEmail:input_type -> backend.v1.SetChimoneyInterlocEmailRequest
-	8,   // 166: backend.v1.BackendService.GetChimoneyInterlocEmail:input_type -> backend.v1.Empty
-	8,   // 167: backend.v1.BackendService.CreateChimoneyWallet:input_type -> backend.v1.Empty
-	70,  // 168: backend.v1.BackendService.GetChimoneyDepositLink:input_type -> backend.v1.Amount
-	8,   // 169: backend.v1.BackendService.ListCards:input_type -> backend.v1.Empty
-	8,   // 170: backend.v1.BackendService.GetCardOrderOptions:input_type -> backend.v1.Empty
-	20,  // 171: backend.v1.BackendService.OrderCard:input_type -> backend.v1.OrderCardRequest
-	17,  // 172: backend.v1.BackendService.GetCardToken:input_type -> backend.v1.GetCardTokenRequest
-	13,  // 173: backend.v1.BackendService.FreezeCard:input_type -> backend.v1.FreezeCardRequest
-	14,  // 174: backend.v1.BackendService.UnfreezeCard:input_type -> backend.v1.UnfreezeCardRequest
-	15,  // 175: backend.v1.BackendService.BlockCard:input_type -> backend.v1.BlockCardRequest
-	8,   // 176: backend.v1.BackendService.GetPendingThreeDSConfirmations:input_type -> backend.v1.Empty
-	10,  // 177: backend.v1.BackendService.ThreeDSPaymentConfirmation:input_type -> backend.v1.ThreeDSPaymentConfirmationRequest
-	9,   // 178: backend.v1.BackendService.RequestAccountDeletion:input_type -> backend.v1.RequestAccountDeletionRequest
-	8,   // 179: backend.v1.BackendService.GetAccountDeletionStatus:input_type -> backend.v1.Empty
-	8,   // 180: backend.v1.BackendService.UpdateIndividualKYC:output_type -> backend.v1.Empty
-	97,  // 181: backend.v1.BackendService.GetIndividualKYC:output_type -> backend.v1.IndividualKYCResponse
-	100, // 182: backend.v1.BackendService.IsUSPSAddress:output_type -> backend.v1.IsUSPSAddressResponse
-	108, // 183: backend.v1.BackendService.SetSignupUserData:output_type -> backend.v1.SetSignupUserDataResponse
-	8,   // 184: backend.v1.BackendService.SetSignupMobileNumber:output_type -> backend.v1.Empty
-	110, // 185: backend.v1.BackendService.GetSignup:output_type -> backend.v1.Signup
-	8,   // 186: backend.v1.BackendService.CompleteSignup:output_type -> backend.v1.Empty
-	8,   // 187: backend.v1.BackendService.CreateUserDefaultWallet:output_type -> backend.v1.Empty
-	8,   // 188: backend.v1.BackendService.CreateWalletAddress:output_type -> backend.v1.Empty
-	138, // 189: backend.v1.BackendService.WalletAddressValid:output_type -> backend.v1.WalletAddressValidResponse
-	8,   // 190: backend.v1.BackendService.SetWalletName:output_type -> backend.v1.Empty
-	87,  // 191: backend.v1.BackendService.GetWalletInfo:output_type -> backend.v1.WalletInfo
-	86,  // 192: backend.v1.BackendService.GetPublicWalletInfo:output_type -> backend.v1.PublicWalletInfo
-	8,   // 193: backend.v1.BackendService.SendPhoneVerification:output_type -> backend.v1.Empty
-	8,   // 194: backend.v1.BackendService.CheckPhoneVerification:output_type -> backend.v1.Empty
-	8,   // 195: backend.v1.BackendService.SendOTP:output_type -> backend.v1.Empty
-	117, // 196: backend.v1.BackendService.GetAgreement:output_type -> backend.v1.Agreement
-	119, // 197: backend.v1.BackendService.SignAgreements:output_type -> backend.v1.SignAgreementsResponse
-	124, // 198: backend.v1.BackendService.GetLinkedAccounts:output_type -> backend.v1.GetLinkedAccountsResponse
-	105, // 199: backend.v1.BackendService.GetLinkedAccount:output_type -> backend.v1.LinkedAccount
-	105, // 200: backend.v1.BackendService.SetDefaultReceiveLinkedAccount:output_type -> backend.v1.LinkedAccount
-	105, // 201: backend.v1.BackendService.SetDefaultSendLinkedAccount:output_type -> backend.v1.LinkedAccount
-	105, // 202: backend.v1.BackendService.SetNicknameLinkedAccount:output_type -> backend.v1.LinkedAccount
-	8,   // 203: backend.v1.BackendService.DeleteLinkedAccount:output_type -> backend.v1.Empty
-	129, // 204: backend.v1.BackendService.GetCountries:output_type -> backend.v1.GetCountriesResponse
-	134, // 205: backend.v1.BackendService.GetCurrentWallet:output_type -> backend.v1.GetCurrentWalletResponse
-	121, // 206: backend.v1.BackendService.JoinWaitlist:output_type -> backend.v1.JoinWaitlistResponse
-	131, // 207: backend.v1.BackendService.CanSignup:output_type -> backend.v1.CanSignupResponse
-	8,   // 208: backend.v1.BackendService.SetSignupComplete:output_type -> backend.v1.Empty
-	123, // 209: backend.v1.BackendService.IsMugAvailable:output_type -> backend.v1.IsMugAvailableResponse
-	73,  // 210: backend.v1.BackendService.ListTransactions:output_type -> backend.v1.ListTransactionsResponse
-	73,  // 211: backend.v1.BackendService.ListTransactionsCompleted:output_type -> backend.v1.ListTransactionsResponse
-	73,  // 212: backend.v1.BackendService.ListTransactionsWithPending:output_type -> backend.v1.ListTransactionsResponse
-	72,  // 213: backend.v1.BackendService.LookupTransaction:output_type -> backend.v1.Transaction
-	73,  // 214: backend.v1.BackendService.ListPendingWebMonetization:output_type -> backend.v1.ListTransactionsResponse
-	8,   // 215: backend.v1.BackendService.CreateConnection:output_type -> backend.v1.Empty
-	95,  // 216: backend.v1.BackendService.ListConnections:output_type -> backend.v1.ListConnectionsResponse
-	91,  // 217: backend.v1.BackendService.GetConnection:output_type -> backend.v1.Connection
-	8,   // 218: backend.v1.BackendService.DeleteConnection:output_type -> backend.v1.Empty
-	142, // 219: backend.v1.BackendService.GetPublicWalletDetails:output_type -> backend.v1.GetPublicWalletDetailsResponse
-	144, // 220: backend.v1.BackendService.CreateContact:output_type -> backend.v1.Contact
-	146, // 221: backend.v1.BackendService.ListContacts:output_type -> backend.v1.ListContactsResponse
-	148, // 222: backend.v1.BackendService.ListIdentities:output_type -> backend.v1.ListIdentitiesResponse
-	148, // 223: backend.v1.BackendService.ListPublicIdentities:output_type -> backend.v1.ListIdentitiesResponse
-	8,   // 224: backend.v1.BackendService.DeleteIdentity:output_type -> backend.v1.Empty
-	149, // 225: backend.v1.BackendService.SetIdentityPublic:output_type -> backend.v1.Identity
-	161, // 226: backend.v1.BackendService.GetIdentity:output_type -> backend.v1.GetIdentityResponse
-	161, // 227: backend.v1.BackendService.GetIdentityBySignatureHash:output_type -> backend.v1.GetIdentityResponse
-	8,   // 228: backend.v1.BackendService.VerifyIdentity:output_type -> backend.v1.Empty
-	154, // 229: backend.v1.BackendService.KYCStatus:output_type -> backend.v1.KYCStatusResponse
-	8,   // 230: backend.v1.BackendService.SetKYCStatusPending:output_type -> backend.v1.Empty
-	156, // 231: backend.v1.BackendService.GetPersonaInquiry:output_type -> backend.v1.KYCPersonaInquiryResponse
-	39,  // 232: backend.v1.BackendService.GetKYCProviderWidget:output_type -> backend.v1.KYCProviderWidget
-	81,  // 233: backend.v1.BackendService.GetCardDetails:output_type -> backend.v1.CardDetails
-	88,  // 234: backend.v1.BackendService.ListFeatures:output_type -> backend.v1.Features
-	157, // 235: backend.v1.BackendService.CreateTwitterAuthURL:output_type -> backend.v1.CreateTwitterAuthURLResponse
-	159, // 236: backend.v1.BackendService.TwitterCallback:output_type -> backend.v1.TwitterCallbackResponse
-	166, // 237: backend.v1.BackendService.CreateDomainIdentity:output_type -> backend.v1.CreateDomainIdentityResponse
-	164, // 238: backend.v1.BackendService.GetPaymentAddress:output_type -> backend.v1.GetPaymentAddressResponse
-	77,  // 239: backend.v1.BackendService.CreatePayment:output_type -> backend.v1.Payment
-	77,  // 240: backend.v1.BackendService.UpdatePayment:output_type -> backend.v1.Payment
-	77,  // 241: backend.v1.BackendService.GetPayment:output_type -> backend.v1.Payment
-	77,  // 242: backend.v1.BackendService.ConfirmPayment:output_type -> backend.v1.Payment
-	50,  // 243: backend.v1.BackendService.GetLinkedAccountsForPayment:output_type -> backend.v1.GetLinkedAccountsForPaymentResponse
-	55,  // 244: backend.v1.BackendService.GetBalances:output_type -> backend.v1.GetBalancesResponse
-	50,  // 245: backend.v1.BackendService.GetLinkedAccountsForWithdraw:output_type -> backend.v1.GetLinkedAccountsForPaymentResponse
-	77,  // 246: backend.v1.BackendService.WithdrawBalance:output_type -> backend.v1.Payment
-	50,  // 247: backend.v1.BackendService.GetLinkedAccountsForDeposit:output_type -> backend.v1.GetLinkedAccountsForPaymentResponse
-	77,  // 248: backend.v1.BackendService.DepositBalance:output_type -> backend.v1.Payment
-	83,  // 249: backend.v1.BackendService.SearchWallets:output_type -> backend.v1.SearchWalletsResponse
-	69,  // 250: backend.v1.BackendService.CreateSlackAuthURL:output_type -> backend.v1.CreateSlackAuthURLResponse
-	68,  // 251: backend.v1.BackendService.SlackCallback:output_type -> backend.v1.SlackCallbackResponse
-	105, // 252: backend.v1.BackendService.AddXagoBankAccount:output_type -> backend.v1.LinkedAccount
-	105, // 253: backend.v1.BackendService.AddXagoBalanceAccount:output_type -> backend.v1.LinkedAccount
-	77,  // 254: backend.v1.BackendService.WithdrawXagoBalance:output_type -> backend.v1.Payment
-	60,  // 255: backend.v1.BackendService.GetXagoBalances:output_type -> backend.v1.GetXagoBalanceResponse
-	53,  // 256: backend.v1.BackendService.GetXagoDepositDetails:output_type -> backend.v1.GetXagoDepositDetailsResponse
-	8,   // 257: backend.v1.BackendService.DepositTestXago:output_type -> backend.v1.Empty
-	57,  // 258: backend.v1.BackendService.GetPtiBalances:output_type -> backend.v1.GetPtiBalancesResponse
-	29,  // 259: backend.v1.BackendService.CreatePtiToken:output_type -> backend.v1.PtiTokenResponse
-	105, // 260: backend.v1.BackendService.CreateCard:output_type -> backend.v1.LinkedAccount
-	105, // 261: backend.v1.BackendService.CreatePtiBankAccount:output_type -> backend.v1.LinkedAccount
-	8,   // 262: backend.v1.BackendService.PtiCreateDeposit:output_type -> backend.v1.Empty
-	36,  // 263: backend.v1.BackendService.CreatePTIWithdrawal:output_type -> backend.v1.CreatePTIWithdrawalResponse
-	44,  // 264: backend.v1.BackendService.ListRafikiGrants:output_type -> backend.v1.ListRafikiGrantsResponse
-	45,  // 265: backend.v1.BackendService.GetRafikiGrant:output_type -> backend.v1.RafikiGrant
-	8,   // 266: backend.v1.BackendService.RevokeRafikiGrant:output_type -> backend.v1.Empty
-	41,  // 267: backend.v1.BackendService.GetGatehubOnboardingWidget:output_type -> backend.v1.GatehubWidget
-	37,  // 268: backend.v1.BackendService.GetOnOffRampProvider:output_type -> backend.v1.GetOnOffRampProviderResponse
-	41,  // 269: backend.v1.BackendService.GetGatehubDepositWidget:output_type -> backend.v1.GatehubWidget
-	41,  // 270: backend.v1.BackendService.GetGatehubWithdrawalWidget:output_type -> backend.v1.GatehubWidget
-	34,  // 271: backend.v1.BackendService.CreateGatehubWithdrawal:output_type -> backend.v1.CreateGatehubWithdrawalResponse
-	31,  // 272: backend.v1.BackendService.SetChimoneyInterlocEmail:output_type -> backend.v1.ChimoneyInterlocEmail
-	31,  // 273: backend.v1.BackendService.GetChimoneyInterlocEmail:output_type -> backend.v1.ChimoneyInterlocEmail
-	8,   // 274: backend.v1.BackendService.CreateChimoneyWallet:output_type -> backend.v1.Empty
-	30,  // 275: backend.v1.BackendService.GetChimoneyDepositLink:output_type -> backend.v1.GetChimoneyDepositLinkResponse
-	26,  // 276: backend.v1.BackendService.ListCards:output_type -> backend.v1.ListCardsResponse
-	19,  // 277: backend.v1.BackendService.GetCardOrderOptions:output_type -> backend.v1.GetCardOrderOptionsResponse
-	8,   // 278: backend.v1.BackendService.OrderCard:output_type -> backend.v1.Empty
-	18,  // 279: backend.v1.BackendService.GetCardToken:output_type -> backend.v1.GetCardTokenResponse
-	8,   // 280: backend.v1.BackendService.FreezeCard:output_type -> backend.v1.Empty
-	8,   // 281: backend.v1.BackendService.UnfreezeCard:output_type -> backend.v1.Empty
-	8,   // 282: backend.v1.BackendService.BlockCard:output_type -> backend.v1.Empty
-	12,  // 283: backend.v1.BackendService.GetPendingThreeDSConfirmations:output_type -> backend.v1.GetPendingThreeDSConfirmationsResponse
-	8,   // 284: backend.v1.BackendService.ThreeDSPaymentConfirmation:output_type -> backend.v1.Empty
-	8,   // 285: backend.v1.BackendService.RequestAccountDeletion:output_type -> backend.v1.Empty
-	111, // 286: backend.v1.BackendService.GetAccountDeletionStatus:output_type -> backend.v1.AccountDeletionStatus
-	180, // [180:287] is the sub-list for method output_type
-	73,  // [73:180] is the sub-list for method input_type
-	73,  // [73:73] is the sub-list for extension type_name
-	73,  // [73:73] is the sub-list for extension extendee
-	0,   // [0:73] is the sub-list for field type_name
+	169, // 73: backend.v1.AppError.fields:type_name -> backend.v1.AppErrorField
+	98,  // 74: backend.v1.BackendService.UpdateIndividualKYC:input_type -> backend.v1.UpdateIndividualKYCRequest
+	8,   // 75: backend.v1.BackendService.GetIndividualKYC:input_type -> backend.v1.Empty
+	99,  // 76: backend.v1.BackendService.IsUSPSAddress:input_type -> backend.v1.Address
+	107, // 77: backend.v1.BackendService.SetSignupUserData:input_type -> backend.v1.SetSignupUserDataRequest
+	109, // 78: backend.v1.BackendService.SetSignupMobileNumber:input_type -> backend.v1.SetSignupMobileNumberRequest
+	106, // 79: backend.v1.BackendService.GetSignup:input_type -> backend.v1.GetSignupRequest
+	112, // 80: backend.v1.BackendService.CompleteSignup:input_type -> backend.v1.CompleteSignupRequest
+	113, // 81: backend.v1.BackendService.CreateUserDefaultWallet:input_type -> backend.v1.CreateUserDefaultWalletRequest
+	139, // 82: backend.v1.BackendService.CreateWalletAddress:input_type -> backend.v1.CreateWalletAddressRequest
+	137, // 83: backend.v1.BackendService.WalletAddressValid:input_type -> backend.v1.WalletAddressValidRequest
+	140, // 84: backend.v1.BackendService.SetWalletName:input_type -> backend.v1.SetWalletNameRequest
+	8,   // 85: backend.v1.BackendService.GetWalletInfo:input_type -> backend.v1.Empty
+	85,  // 86: backend.v1.BackendService.GetPublicWalletInfo:input_type -> backend.v1.GetPublicWalletInfoRequest
+	114, // 87: backend.v1.BackendService.SendPhoneVerification:input_type -> backend.v1.SendPhoneVerificationRequest
+	115, // 88: backend.v1.BackendService.CheckPhoneVerification:input_type -> backend.v1.CheckPhoneVerificationRequest
+	8,   // 89: backend.v1.BackendService.SendOTP:input_type -> backend.v1.Empty
+	116, // 90: backend.v1.BackendService.GetAgreement:input_type -> backend.v1.GetAgreementRequest
+	118, // 91: backend.v1.BackendService.SignAgreements:input_type -> backend.v1.SignAgreementsRequest
+	8,   // 92: backend.v1.BackendService.GetLinkedAccounts:input_type -> backend.v1.Empty
+	125, // 93: backend.v1.BackendService.GetLinkedAccount:input_type -> backend.v1.GetLinkedAccountRequest
+	66,  // 94: backend.v1.BackendService.SetDefaultReceiveLinkedAccount:input_type -> backend.v1.SetDefaultReceiveLinkedAccountRequest
+	65,  // 95: backend.v1.BackendService.SetDefaultSendLinkedAccount:input_type -> backend.v1.SetDefaultSendLinkedAccountRequest
+	126, // 96: backend.v1.BackendService.SetNicknameLinkedAccount:input_type -> backend.v1.SetNicknameLinkedAccountRequest
+	127, // 97: backend.v1.BackendService.DeleteLinkedAccount:input_type -> backend.v1.DeleteLinkedAccountRequest
+	8,   // 98: backend.v1.BackendService.GetCountries:input_type -> backend.v1.Empty
+	8,   // 99: backend.v1.BackendService.GetCurrentWallet:input_type -> backend.v1.Empty
+	120, // 100: backend.v1.BackendService.JoinWaitlist:input_type -> backend.v1.JoinWaitlistRequest
+	130, // 101: backend.v1.BackendService.CanSignup:input_type -> backend.v1.CanSignupRequest
+	132, // 102: backend.v1.BackendService.SetSignupComplete:input_type -> backend.v1.SetSignupCompleteRequest
+	122, // 103: backend.v1.BackendService.IsMugAvailable:input_type -> backend.v1.IsMugAvailableRequest
+	7,   // 104: backend.v1.BackendService.ListTransactions:input_type -> backend.v1.PaginationRequest
+	7,   // 105: backend.v1.BackendService.ListTransactionsCompleted:input_type -> backend.v1.PaginationRequest
+	7,   // 106: backend.v1.BackendService.ListTransactionsWithPending:input_type -> backend.v1.PaginationRequest
+	133, // 107: backend.v1.BackendService.LookupTransaction:input_type -> backend.v1.LookupTransactionRequest
+	8,   // 108: backend.v1.BackendService.ListPendingWebMonetization:input_type -> backend.v1.Empty
+	92,  // 109: backend.v1.BackendService.CreateConnection:input_type -> backend.v1.CreateConnectionRequest
+	8,   // 110: backend.v1.BackendService.ListConnections:input_type -> backend.v1.Empty
+	93,  // 111: backend.v1.BackendService.GetConnection:input_type -> backend.v1.GetConnectionRequest
+	94,  // 112: backend.v1.BackendService.DeleteConnection:input_type -> backend.v1.DeleteConnectionRequest
+	141, // 113: backend.v1.BackendService.GetPublicWalletDetails:input_type -> backend.v1.GetPublicWalletDetailsRequest
+	147, // 114: backend.v1.BackendService.CreateContact:input_type -> backend.v1.CreateContactRequest
+	145, // 115: backend.v1.BackendService.ListContacts:input_type -> backend.v1.ListContactsRequest
+	8,   // 116: backend.v1.BackendService.ListIdentities:input_type -> backend.v1.Empty
+	153, // 117: backend.v1.BackendService.ListPublicIdentities:input_type -> backend.v1.ListPublicIdentitiesRequest
+	151, // 118: backend.v1.BackendService.DeleteIdentity:input_type -> backend.v1.DeleteIdentityRequest
+	152, // 119: backend.v1.BackendService.SetIdentityPublic:input_type -> backend.v1.SetIdentityPublicRequest
+	160, // 120: backend.v1.BackendService.GetIdentity:input_type -> backend.v1.GetIdentityRequest
+	162, // 121: backend.v1.BackendService.GetIdentityBySignatureHash:input_type -> backend.v1.GetIdentityBySignatureHashRequest
+	167, // 122: backend.v1.BackendService.VerifyIdentity:input_type -> backend.v1.VerifyIdentityRequest
+	8,   // 123: backend.v1.BackendService.KYCStatus:input_type -> backend.v1.Empty
+	8,   // 124: backend.v1.BackendService.SetKYCStatusPending:input_type -> backend.v1.Empty
+	155, // 125: backend.v1.BackendService.GetPersonaInquiry:input_type -> backend.v1.KYCPersonaInquiryRequest
+	38,  // 126: backend.v1.BackendService.GetKYCProviderWidget:input_type -> backend.v1.GetKYCProviderWidgetRequest
+	80,  // 127: backend.v1.BackendService.GetCardDetails:input_type -> backend.v1.GetCardDetailsRequest
+	8,   // 128: backend.v1.BackendService.ListFeatures:input_type -> backend.v1.Empty
+	8,   // 129: backend.v1.BackendService.CreateTwitterAuthURL:input_type -> backend.v1.Empty
+	158, // 130: backend.v1.BackendService.TwitterCallback:input_type -> backend.v1.TwitterCallbackRequest
+	165, // 131: backend.v1.BackendService.CreateDomainIdentity:input_type -> backend.v1.CreateDomainIdentityRequest
+	163, // 132: backend.v1.BackendService.GetPaymentAddress:input_type -> backend.v1.GetPaymentAddressRequest
+	78,  // 133: backend.v1.BackendService.CreatePayment:input_type -> backend.v1.CreatePaymentRequest
+	76,  // 134: backend.v1.BackendService.UpdatePayment:input_type -> backend.v1.UpdatePaymentRequest
+	75,  // 135: backend.v1.BackendService.GetPayment:input_type -> backend.v1.GetPaymentRequest
+	74,  // 136: backend.v1.BackendService.ConfirmPayment:input_type -> backend.v1.ConfirmPaymentRequest
+	49,  // 137: backend.v1.BackendService.GetLinkedAccountsForPayment:input_type -> backend.v1.GetLinkedAccountsForPaymentRequest
+	8,   // 138: backend.v1.BackendService.GetBalances:input_type -> backend.v1.Empty
+	48,  // 139: backend.v1.BackendService.GetLinkedAccountsForWithdraw:input_type -> backend.v1.GetLinkedAccountsForTransferRequest
+	79,  // 140: backend.v1.BackendService.WithdrawBalance:input_type -> backend.v1.TransferBalanceRequest
+	48,  // 141: backend.v1.BackendService.GetLinkedAccountsForDeposit:input_type -> backend.v1.GetLinkedAccountsForTransferRequest
+	79,  // 142: backend.v1.BackendService.DepositBalance:input_type -> backend.v1.TransferBalanceRequest
+	82,  // 143: backend.v1.BackendService.SearchWallets:input_type -> backend.v1.SearchWalletsRequest
+	8,   // 144: backend.v1.BackendService.CreateSlackAuthURL:input_type -> backend.v1.Empty
+	67,  // 145: backend.v1.BackendService.SlackCallback:input_type -> backend.v1.SlackCallbackRequest
+	64,  // 146: backend.v1.BackendService.AddXagoBankAccount:input_type -> backend.v1.AddXagoBankAccountRequest
+	63,  // 147: backend.v1.BackendService.AddXagoBalanceAccount:input_type -> backend.v1.AddXagoBalanceAccountRequest
+	62,  // 148: backend.v1.BackendService.WithdrawXagoBalance:input_type -> backend.v1.WithdrawXagoBalanceRequest
+	8,   // 149: backend.v1.BackendService.GetXagoBalances:input_type -> backend.v1.Empty
+	52,  // 150: backend.v1.BackendService.GetXagoDepositDetails:input_type -> backend.v1.GetXagoDepositDetailsRequest
+	8,   // 151: backend.v1.BackendService.DepositTestXago:input_type -> backend.v1.Empty
+	8,   // 152: backend.v1.BackendService.GetPtiBalances:input_type -> backend.v1.Empty
+	28,  // 153: backend.v1.BackendService.CreatePtiToken:input_type -> backend.v1.PtiTokenRequest
+	89,  // 154: backend.v1.BackendService.CreateCard:input_type -> backend.v1.CreateCardRequest
+	27,  // 155: backend.v1.BackendService.CreatePtiBankAccount:input_type -> backend.v1.CreatePtiBankAccountRequest
+	59,  // 156: backend.v1.BackendService.PtiCreateDeposit:input_type -> backend.v1.PtiCreateDepositRequest
+	35,  // 157: backend.v1.BackendService.CreatePTIWithdrawal:input_type -> backend.v1.CreatePTIWithdrawalRequest
+	8,   // 158: backend.v1.BackendService.ListRafikiGrants:input_type -> backend.v1.Empty
+	43,  // 159: backend.v1.BackendService.GetRafikiGrant:input_type -> backend.v1.GetRafikiGrantRequest
+	42,  // 160: backend.v1.BackendService.RevokeRafikiGrant:input_type -> backend.v1.RevokeRafikiGrantRequest
+	8,   // 161: backend.v1.BackendService.GetGatehubOnboardingWidget:input_type -> backend.v1.Empty
+	8,   // 162: backend.v1.BackendService.GetOnOffRampProvider:input_type -> backend.v1.Empty
+	8,   // 163: backend.v1.BackendService.GetGatehubDepositWidget:input_type -> backend.v1.Empty
+	8,   // 164: backend.v1.BackendService.GetGatehubWithdrawalWidget:input_type -> backend.v1.Empty
+	33,  // 165: backend.v1.BackendService.CreateGatehubWithdrawal:input_type -> backend.v1.CreateGatehubWithdrawalRequest
+	32,  // 166: backend.v1.BackendService.SetChimoneyInterlocEmail:input_type -> backend.v1.SetChimoneyInterlocEmailRequest
+	8,   // 167: backend.v1.BackendService.GetChimoneyInterlocEmail:input_type -> backend.v1.Empty
+	8,   // 168: backend.v1.BackendService.CreateChimoneyWallet:input_type -> backend.v1.Empty
+	70,  // 169: backend.v1.BackendService.GetChimoneyDepositLink:input_type -> backend.v1.Amount
+	8,   // 170: backend.v1.BackendService.ListCards:input_type -> backend.v1.Empty
+	8,   // 171: backend.v1.BackendService.GetCardOrderOptions:input_type -> backend.v1.Empty
+	20,  // 172: backend.v1.BackendService.OrderCard:input_type -> backend.v1.OrderCardRequest
+	17,  // 173: backend.v1.BackendService.GetCardToken:input_type -> backend.v1.GetCardTokenRequest
+	13,  // 174: backend.v1.BackendService.FreezeCard:input_type -> backend.v1.FreezeCardRequest
+	14,  // 175: backend.v1.BackendService.UnfreezeCard:input_type -> backend.v1.UnfreezeCardRequest
+	15,  // 176: backend.v1.BackendService.BlockCard:input_type -> backend.v1.BlockCardRequest
+	8,   // 177: backend.v1.BackendService.GetPendingThreeDSConfirmations:input_type -> backend.v1.Empty
+	10,  // 178: backend.v1.BackendService.ThreeDSPaymentConfirmation:input_type -> backend.v1.ThreeDSPaymentConfirmationRequest
+	9,   // 179: backend.v1.BackendService.RequestAccountDeletion:input_type -> backend.v1.RequestAccountDeletionRequest
+	8,   // 180: backend.v1.BackendService.GetAccountDeletionStatus:input_type -> backend.v1.Empty
+	8,   // 181: backend.v1.BackendService.UpdateIndividualKYC:output_type -> backend.v1.Empty
+	97,  // 182: backend.v1.BackendService.GetIndividualKYC:output_type -> backend.v1.IndividualKYCResponse
+	100, // 183: backend.v1.BackendService.IsUSPSAddress:output_type -> backend.v1.IsUSPSAddressResponse
+	108, // 184: backend.v1.BackendService.SetSignupUserData:output_type -> backend.v1.SetSignupUserDataResponse
+	8,   // 185: backend.v1.BackendService.SetSignupMobileNumber:output_type -> backend.v1.Empty
+	110, // 186: backend.v1.BackendService.GetSignup:output_type -> backend.v1.Signup
+	8,   // 187: backend.v1.BackendService.CompleteSignup:output_type -> backend.v1.Empty
+	8,   // 188: backend.v1.BackendService.CreateUserDefaultWallet:output_type -> backend.v1.Empty
+	8,   // 189: backend.v1.BackendService.CreateWalletAddress:output_type -> backend.v1.Empty
+	138, // 190: backend.v1.BackendService.WalletAddressValid:output_type -> backend.v1.WalletAddressValidResponse
+	8,   // 191: backend.v1.BackendService.SetWalletName:output_type -> backend.v1.Empty
+	87,  // 192: backend.v1.BackendService.GetWalletInfo:output_type -> backend.v1.WalletInfo
+	86,  // 193: backend.v1.BackendService.GetPublicWalletInfo:output_type -> backend.v1.PublicWalletInfo
+	8,   // 194: backend.v1.BackendService.SendPhoneVerification:output_type -> backend.v1.Empty
+	8,   // 195: backend.v1.BackendService.CheckPhoneVerification:output_type -> backend.v1.Empty
+	8,   // 196: backend.v1.BackendService.SendOTP:output_type -> backend.v1.Empty
+	117, // 197: backend.v1.BackendService.GetAgreement:output_type -> backend.v1.Agreement
+	119, // 198: backend.v1.BackendService.SignAgreements:output_type -> backend.v1.SignAgreementsResponse
+	124, // 199: backend.v1.BackendService.GetLinkedAccounts:output_type -> backend.v1.GetLinkedAccountsResponse
+	105, // 200: backend.v1.BackendService.GetLinkedAccount:output_type -> backend.v1.LinkedAccount
+	105, // 201: backend.v1.BackendService.SetDefaultReceiveLinkedAccount:output_type -> backend.v1.LinkedAccount
+	105, // 202: backend.v1.BackendService.SetDefaultSendLinkedAccount:output_type -> backend.v1.LinkedAccount
+	105, // 203: backend.v1.BackendService.SetNicknameLinkedAccount:output_type -> backend.v1.LinkedAccount
+	8,   // 204: backend.v1.BackendService.DeleteLinkedAccount:output_type -> backend.v1.Empty
+	129, // 205: backend.v1.BackendService.GetCountries:output_type -> backend.v1.GetCountriesResponse
+	134, // 206: backend.v1.BackendService.GetCurrentWallet:output_type -> backend.v1.GetCurrentWalletResponse
+	121, // 207: backend.v1.BackendService.JoinWaitlist:output_type -> backend.v1.JoinWaitlistResponse
+	131, // 208: backend.v1.BackendService.CanSignup:output_type -> backend.v1.CanSignupResponse
+	8,   // 209: backend.v1.BackendService.SetSignupComplete:output_type -> backend.v1.Empty
+	123, // 210: backend.v1.BackendService.IsMugAvailable:output_type -> backend.v1.IsMugAvailableResponse
+	73,  // 211: backend.v1.BackendService.ListTransactions:output_type -> backend.v1.ListTransactionsResponse
+	73,  // 212: backend.v1.BackendService.ListTransactionsCompleted:output_type -> backend.v1.ListTransactionsResponse
+	73,  // 213: backend.v1.BackendService.ListTransactionsWithPending:output_type -> backend.v1.ListTransactionsResponse
+	72,  // 214: backend.v1.BackendService.LookupTransaction:output_type -> backend.v1.Transaction
+	73,  // 215: backend.v1.BackendService.ListPendingWebMonetization:output_type -> backend.v1.ListTransactionsResponse
+	8,   // 216: backend.v1.BackendService.CreateConnection:output_type -> backend.v1.Empty
+	95,  // 217: backend.v1.BackendService.ListConnections:output_type -> backend.v1.ListConnectionsResponse
+	91,  // 218: backend.v1.BackendService.GetConnection:output_type -> backend.v1.Connection
+	8,   // 219: backend.v1.BackendService.DeleteConnection:output_type -> backend.v1.Empty
+	142, // 220: backend.v1.BackendService.GetPublicWalletDetails:output_type -> backend.v1.GetPublicWalletDetailsResponse
+	144, // 221: backend.v1.BackendService.CreateContact:output_type -> backend.v1.Contact
+	146, // 222: backend.v1.BackendService.ListContacts:output_type -> backend.v1.ListContactsResponse
+	148, // 223: backend.v1.BackendService.ListIdentities:output_type -> backend.v1.ListIdentitiesResponse
+	148, // 224: backend.v1.BackendService.ListPublicIdentities:output_type -> backend.v1.ListIdentitiesResponse
+	8,   // 225: backend.v1.BackendService.DeleteIdentity:output_type -> backend.v1.Empty
+	149, // 226: backend.v1.BackendService.SetIdentityPublic:output_type -> backend.v1.Identity
+	161, // 227: backend.v1.BackendService.GetIdentity:output_type -> backend.v1.GetIdentityResponse
+	161, // 228: backend.v1.BackendService.GetIdentityBySignatureHash:output_type -> backend.v1.GetIdentityResponse
+	8,   // 229: backend.v1.BackendService.VerifyIdentity:output_type -> backend.v1.Empty
+	154, // 230: backend.v1.BackendService.KYCStatus:output_type -> backend.v1.KYCStatusResponse
+	8,   // 231: backend.v1.BackendService.SetKYCStatusPending:output_type -> backend.v1.Empty
+	156, // 232: backend.v1.BackendService.GetPersonaInquiry:output_type -> backend.v1.KYCPersonaInquiryResponse
+	39,  // 233: backend.v1.BackendService.GetKYCProviderWidget:output_type -> backend.v1.KYCProviderWidget
+	81,  // 234: backend.v1.BackendService.GetCardDetails:output_type -> backend.v1.CardDetails
+	88,  // 235: backend.v1.BackendService.ListFeatures:output_type -> backend.v1.Features
+	157, // 236: backend.v1.BackendService.CreateTwitterAuthURL:output_type -> backend.v1.CreateTwitterAuthURLResponse
+	159, // 237: backend.v1.BackendService.TwitterCallback:output_type -> backend.v1.TwitterCallbackResponse
+	166, // 238: backend.v1.BackendService.CreateDomainIdentity:output_type -> backend.v1.CreateDomainIdentityResponse
+	164, // 239: backend.v1.BackendService.GetPaymentAddress:output_type -> backend.v1.GetPaymentAddressResponse
+	77,  // 240: backend.v1.BackendService.CreatePayment:output_type -> backend.v1.Payment
+	77,  // 241: backend.v1.BackendService.UpdatePayment:output_type -> backend.v1.Payment
+	77,  // 242: backend.v1.BackendService.GetPayment:output_type -> backend.v1.Payment
+	77,  // 243: backend.v1.BackendService.ConfirmPayment:output_type -> backend.v1.Payment
+	50,  // 244: backend.v1.BackendService.GetLinkedAccountsForPayment:output_type -> backend.v1.GetLinkedAccountsForPaymentResponse
+	55,  // 245: backend.v1.BackendService.GetBalances:output_type -> backend.v1.GetBalancesResponse
+	50,  // 246: backend.v1.BackendService.GetLinkedAccountsForWithdraw:output_type -> backend.v1.GetLinkedAccountsForPaymentResponse
+	77,  // 247: backend.v1.BackendService.WithdrawBalance:output_type -> backend.v1.Payment
+	50,  // 248: backend.v1.BackendService.GetLinkedAccountsForDeposit:output_type -> backend.v1.GetLinkedAccountsForPaymentResponse
+	77,  // 249: backend.v1.BackendService.DepositBalance:output_type -> backend.v1.Payment
+	83,  // 250: backend.v1.BackendService.SearchWallets:output_type -> backend.v1.SearchWalletsResponse
+	69,  // 251: backend.v1.BackendService.CreateSlackAuthURL:output_type -> backend.v1.CreateSlackAuthURLResponse
+	68,  // 252: backend.v1.BackendService.SlackCallback:output_type -> backend.v1.SlackCallbackResponse
+	105, // 253: backend.v1.BackendService.AddXagoBankAccount:output_type -> backend.v1.LinkedAccount
+	105, // 254: backend.v1.BackendService.AddXagoBalanceAccount:output_type -> backend.v1.LinkedAccount
+	77,  // 255: backend.v1.BackendService.WithdrawXagoBalance:output_type -> backend.v1.Payment
+	60,  // 256: backend.v1.BackendService.GetXagoBalances:output_type -> backend.v1.GetXagoBalanceResponse
+	53,  // 257: backend.v1.BackendService.GetXagoDepositDetails:output_type -> backend.v1.GetXagoDepositDetailsResponse
+	8,   // 258: backend.v1.BackendService.DepositTestXago:output_type -> backend.v1.Empty
+	57,  // 259: backend.v1.BackendService.GetPtiBalances:output_type -> backend.v1.GetPtiBalancesResponse
+	29,  // 260: backend.v1.BackendService.CreatePtiToken:output_type -> backend.v1.PtiTokenResponse
+	105, // 261: backend.v1.BackendService.CreateCard:output_type -> backend.v1.LinkedAccount
+	105, // 262: backend.v1.BackendService.CreatePtiBankAccount:output_type -> backend.v1.LinkedAccount
+	8,   // 263: backend.v1.BackendService.PtiCreateDeposit:output_type -> backend.v1.Empty
+	36,  // 264: backend.v1.BackendService.CreatePTIWithdrawal:output_type -> backend.v1.CreatePTIWithdrawalResponse
+	44,  // 265: backend.v1.BackendService.ListRafikiGrants:output_type -> backend.v1.ListRafikiGrantsResponse
+	45,  // 266: backend.v1.BackendService.GetRafikiGrant:output_type -> backend.v1.RafikiGrant
+	8,   // 267: backend.v1.BackendService.RevokeRafikiGrant:output_type -> backend.v1.Empty
+	41,  // 268: backend.v1.BackendService.GetGatehubOnboardingWidget:output_type -> backend.v1.GatehubWidget
+	37,  // 269: backend.v1.BackendService.GetOnOffRampProvider:output_type -> backend.v1.GetOnOffRampProviderResponse
+	41,  // 270: backend.v1.BackendService.GetGatehubDepositWidget:output_type -> backend.v1.GatehubWidget
+	41,  // 271: backend.v1.BackendService.GetGatehubWithdrawalWidget:output_type -> backend.v1.GatehubWidget
+	34,  // 272: backend.v1.BackendService.CreateGatehubWithdrawal:output_type -> backend.v1.CreateGatehubWithdrawalResponse
+	31,  // 273: backend.v1.BackendService.SetChimoneyInterlocEmail:output_type -> backend.v1.ChimoneyInterlocEmail
+	31,  // 274: backend.v1.BackendService.GetChimoneyInterlocEmail:output_type -> backend.v1.ChimoneyInterlocEmail
+	8,   // 275: backend.v1.BackendService.CreateChimoneyWallet:output_type -> backend.v1.Empty
+	30,  // 276: backend.v1.BackendService.GetChimoneyDepositLink:output_type -> backend.v1.GetChimoneyDepositLinkResponse
+	26,  // 277: backend.v1.BackendService.ListCards:output_type -> backend.v1.ListCardsResponse
+	19,  // 278: backend.v1.BackendService.GetCardOrderOptions:output_type -> backend.v1.GetCardOrderOptionsResponse
+	8,   // 279: backend.v1.BackendService.OrderCard:output_type -> backend.v1.Empty
+	18,  // 280: backend.v1.BackendService.GetCardToken:output_type -> backend.v1.GetCardTokenResponse
+	8,   // 281: backend.v1.BackendService.FreezeCard:output_type -> backend.v1.Empty
+	8,   // 282: backend.v1.BackendService.UnfreezeCard:output_type -> backend.v1.Empty
+	8,   // 283: backend.v1.BackendService.BlockCard:output_type -> backend.v1.Empty
+	12,  // 284: backend.v1.BackendService.GetPendingThreeDSConfirmations:output_type -> backend.v1.GetPendingThreeDSConfirmationsResponse
+	8,   // 285: backend.v1.BackendService.ThreeDSPaymentConfirmation:output_type -> backend.v1.Empty
+	8,   // 286: backend.v1.BackendService.RequestAccountDeletion:output_type -> backend.v1.Empty
+	111, // 287: backend.v1.BackendService.GetAccountDeletionStatus:output_type -> backend.v1.AccountDeletionStatus
+	181, // [181:288] is the sub-list for method output_type
+	74,  // [74:181] is the sub-list for method input_type
+	74,  // [74:74] is the sub-list for extension type_name
+	74,  // [74:74] is the sub-list for extension extendee
+	0,   // [0:74] is the sub-list for field type_name
 }
 
 func init() { file_backend_v1_backend_proto_init() }
@@ -11495,7 +11644,7 @@ func file_backend_v1_backend_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_backend_v1_backend_proto_rawDesc), len(file_backend_v1_backend_proto_rawDesc)),
 			NumEnums:      7,
-			NumMessages:   161,
+			NumMessages:   163,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

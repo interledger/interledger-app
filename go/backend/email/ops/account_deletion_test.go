@@ -74,6 +74,9 @@ func (t *testUsersClient) ValidateTotpCode(_ context.Context, _, _ string, _ tim
 func (t *testUsersClient) GetUserIDForWallet(_ context.Context, _ string) (string, error) {
 	return "", errors.New("not implemented")
 }
+func (t *testUsersClient) FindWalletIDByEmail(_ context.Context, _ string) (string, error) {
+	return "", errors.New("not implemented")
+}
 
 type testWalletsClient struct {
 	list func(ctx context.Context, userID string) ([]wallets.Wallet, error)

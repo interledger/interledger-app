@@ -2,9 +2,10 @@ package main
 
 import (
 	"context"
+	"crypto/ed25519"
 	"crypto/rand"
-	"crypto/rsa"
-	"encoding/json"
+	"crypto/x509"
+	"encoding/pem"
 	"flag"
 	"fmt"
 	"io"
@@ -17,7 +18,6 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/lestrrat-go/jwx/v2/jwk"
 	"go.uber.org/zap"
 
 	"gitlab.com/fynbos/mock/mockpti/internal/config"
@@ -119,8 +119,8 @@ func handleCLI(args []string, stdout, stderr io.Writer) (bool, int) {
 		return true, 0
 	case "gen-webhook-settings":
 		return true, runGenerateWebhookSettings(args[1:], stdout, stderr)
-	case "derive-public-jwk":
-		return true, runDerivePublicJWK(args[1:], stdout, stderr)
+	case "derive-public-pem":
+		return true, runDerivePublicPEM(args[1:], stdout, stderr)
 	default:
 		return false, 0
 	}
@@ -130,139 +130,118 @@ func printCLIHelp(w io.Writer) {
 	_, _ = fmt.Fprintln(w, "MockPTI CLI")
 	_, _ = fmt.Fprintln(w, "")
 	_, _ = fmt.Fprintln(w, "Commands:")
-	_, _ = fmt.Fprintln(w, "  gen-webhook-settings   Generate local webhook JWK settings for wallet/backend + mockpti")
-	_, _ = fmt.Fprintln(w, "  derive-public-jwk      Read private JWK from stdin and print matching public JWK")
+	_, _ = fmt.Fprintln(w, "  gen-webhook-settings   Generate Ed25519 webhook key pair for wallet/backend + mockpti")
+	_, _ = fmt.Fprintln(w, "  derive-public-pem      Read Ed25519 private key PEM from stdin and print matching public key PEM")
 	_, _ = fmt.Fprintln(w, "")
 	_, _ = fmt.Fprintln(w, "Examples:")
 	_, _ = fmt.Fprintln(w, "  mockpti gen-webhook-settings")
-	_, _ = fmt.Fprintln(w, "  cat private.jwk.json | mockpti derive-public-jwk")
+	_, _ = fmt.Fprintln(w, "  cat private.pem | mockpti derive-public-pem")
 }
 
 func runGenerateWebhookSettings(args []string, stdout, stderr io.Writer) int {
 	fs := flag.NewFlagSet("gen-webhook-settings", flag.ContinueOnError)
 	fs.SetOutput(stderr)
-	bits := fs.Int("bits", 2048, "RSA key size")
 	if err := fs.Parse(args); err != nil {
 		return 2
 	}
 
-	if *bits < 2048 {
-		_, _ = fmt.Fprintln(stderr, "error: --bits must be >= 2048")
-		return 2
-	}
-
-	backendDecryptKey, err := rsa.GenerateKey(rand.Reader, *bits)
+	pub, priv, err := ed25519.GenerateKey(rand.Reader)
 	if err != nil {
-		_, _ = fmt.Fprintf(stderr, "error generating backend decrypt key: %v\n", err)
+		_, _ = fmt.Fprintf(stderr, "error generating Ed25519 key: %v\n", err)
 		return 1
 	}
 
-	webhookSigningKey, err := rsa.GenerateKey(rand.Reader, *bits)
+	privPEM, err := marshalPrivateKeyPEM(priv)
 	if err != nil {
-		_, _ = fmt.Fprintf(stderr, "error generating webhook signing key: %v\n", err)
+		_, _ = fmt.Fprintf(stderr, "error marshaling private key: %v\n", err)
 		return 1
 	}
 
-	backendDecryptJWK, err := marshalPrivateJWK(backendDecryptKey)
+	pubPEM, err := marshalPublicKeyPEM(pub)
 	if err != nil {
-		_, _ = fmt.Fprintf(stderr, "error marshaling backend decrypt JWK: %v\n", err)
+		_, _ = fmt.Fprintf(stderr, "error marshaling public key: %v\n", err)
 		return 1
 	}
 
-	webhookSigningPrivateJWK, err := marshalPrivateJWK(webhookSigningKey)
-	if err != nil {
-		_, _ = fmt.Fprintf(stderr, "error marshaling webhook signing JWK: %v\n", err)
-		return 1
-	}
+	privOneLine := strings.ReplaceAll(strings.TrimSpace(privPEM), "\n", `\n`)
+	pubOneLine := strings.ReplaceAll(strings.TrimSpace(pubPEM), "\n", `\n`)
 
-	webhookSigningPublicJWK, err := marshalPublicJWK(&webhookSigningKey.PublicKey)
-	if err != nil {
-		_, _ = fmt.Fprintf(stderr, "error marshaling webhook signing public JWK: %v\n", err)
-		return 1
-	}
+	_, _ = fmt.Fprintln(stdout, "# Private key (for mockpti) — keep secret")
+	_, _ = fmt.Fprintln(stdout, privPEM)
+	_, _ = fmt.Fprintln(stdout, "# Public key (for backend wallet)")
+	_, _ = fmt.Fprintln(stdout, pubPEM)
 
-	_, _ = fmt.Fprintln(stdout, "# .env values")
-	_, _ = fmt.Fprintf(stdout, "BACKEND_PTI_JWK=%s\n", backendDecryptJWK)
-	_, _ = fmt.Fprintf(stdout, "BACKEND_PTI_PUBLIC_KEY_JWK=%s\n", webhookSigningPublicJWK)
-	_, _ = fmt.Fprintf(stdout, "MOCKPTI_WEBHOOK_SIGNING_JWK=%s\n", webhookSigningPrivateJWK)
-	_, _ = fmt.Fprintf(stdout, "MOCKPTI_WEBHOOK_ENCRYPTION_JWK=%s\n", backendDecryptJWK)
+	_, _ = fmt.Fprintln(stdout, "# local/wallet.yaml (backend service env) — \\n will be expanded by the backend")
+	_, _ = fmt.Fprintf(stdout, "- PTI_PUBLIC_KEY_JWK=${BACKEND_PTI_PUBLIC_KEY_JWK:-%s}\n", pubOneLine)
 
 	_, _ = fmt.Fprintln(stdout, "")
-	_, _ = fmt.Fprintln(stdout, "# wallet.yaml (backend service env)")
-	_, _ = fmt.Fprintf(stdout, "- PTI_JWK=${BACKEND_PTI_JWK:-%s}\n", backendDecryptJWK)
-	_, _ = fmt.Fprintf(stdout, "- PTI_PUBLIC_KEY_JWK=${BACKEND_PTI_PUBLIC_KEY_JWK:-%s}\n", webhookSigningPublicJWK)
-
-	_, _ = fmt.Fprintln(stdout, "")
-	_, _ = fmt.Fprintln(stdout, "# mockpti.yaml (mockpti service env)")
-	_, _ = fmt.Fprintf(stdout, "MOCKPTI_WEBHOOK_SIGNING_JWK: ${MOCKPTI_WEBHOOK_SIGNING_JWK:-%s}\n", webhookSigningPrivateJWK)
-	_, _ = fmt.Fprintf(stdout, "MOCKPTI_WEBHOOK_ENCRYPTION_JWK: ${MOCKPTI_WEBHOOK_ENCRYPTION_JWK:-%s}\n", backendDecryptJWK)
+	_, _ = fmt.Fprintln(stdout, "# local/mockpti.yaml (mockpti service env) — \\n will be expanded by mockpti")
+	_, _ = fmt.Fprintf(stdout, "MOCKPTI_WEBHOOK_SIGNING_KEY: ${MOCKPTI_WEBHOOK_SIGNING_KEY:-%s}\n", privOneLine)
 
 	return 0
 }
 
-func runDerivePublicJWK(args []string, stdout, stderr io.Writer) int {
-	fs := flag.NewFlagSet("derive-public-jwk", flag.ContinueOnError)
+func runDerivePublicPEM(args []string, stdout, stderr io.Writer) int {
+	fs := flag.NewFlagSet("derive-public-pem", flag.ContinueOnError)
 	fs.SetOutput(stderr)
 	if err := fs.Parse(args); err != nil {
 		return 2
 	}
 
-	privateJWKRaw, err := io.ReadAll(os.Stdin)
+	privPEMRaw, err := io.ReadAll(os.Stdin)
 	if err != nil {
 		_, _ = fmt.Fprintf(stderr, "error reading stdin: %v\n", err)
 		return 1
 	}
 
-	privateJWKText := strings.TrimSpace(string(privateJWKRaw))
-	if privateJWKText == "" {
-		_, _ = fmt.Fprintln(stderr, "error: provide private JWK JSON on stdin")
+	privPEMText := strings.TrimSpace(string(privPEMRaw))
+	if privPEMText == "" {
+		_, _ = fmt.Fprintln(stderr, "error: provide Ed25519 private key PEM on stdin")
 		return 2
 	}
 
-	privateKey, err := jwk.ParseKey([]byte(privateJWKText))
-	if err != nil {
-		_, _ = fmt.Fprintf(stderr, "error parsing private JWK: %v\n", err)
+	block, _ := pem.Decode([]byte(privPEMText))
+	if block == nil {
+		_, _ = fmt.Fprintln(stderr, "error: failed to decode PEM block")
 		return 1
 	}
 
-	publicKey, err := jwk.PublicKeyOf(privateKey)
+	key, err := x509.ParsePKCS8PrivateKey(block.Bytes)
 	if err != nil {
-		_, _ = fmt.Fprintf(stderr, "error deriving public JWK: %v\n", err)
+		_, _ = fmt.Fprintf(stderr, "error parsing private key: %v\n", err)
 		return 1
 	}
 
-	b, err := json.Marshal(publicKey)
-	if err != nil {
-		_, _ = fmt.Fprintf(stderr, "error marshaling public JWK: %v\n", err)
+	edKey, ok := key.(ed25519.PrivateKey)
+	if !ok {
+		_, _ = fmt.Fprintln(stderr, "error: key is not Ed25519")
 		return 1
 	}
 
-	_, _ = fmt.Fprintln(stdout, string(b))
+	pubPEM, err := marshalPublicKeyPEM(edKey.Public().(ed25519.PublicKey))
+	if err != nil {
+		_, _ = fmt.Fprintf(stderr, "error marshaling public key: %v\n", err)
+		return 1
+	}
+
+	_, _ = fmt.Fprint(stdout, pubPEM)
 	return 0
 }
 
-func marshalPrivateJWK(key *rsa.PrivateKey) (string, error) {
-	jwkKey, err := jwk.FromRaw(key)
+func marshalPrivateKeyPEM(key ed25519.PrivateKey) (string, error) {
+	b, err := x509.MarshalPKCS8PrivateKey(key)
 	if err != nil {
 		return "", err
 	}
-	b, err := json.Marshal(jwkKey)
-	if err != nil {
-		return "", err
-	}
-	return string(b), nil
+	return string(pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: b})), nil
 }
 
-func marshalPublicJWK(key *rsa.PublicKey) (string, error) {
-	jwkKey, err := jwk.FromRaw(key)
+func marshalPublicKeyPEM(key ed25519.PublicKey) (string, error) {
+	b, err := x509.MarshalPKIXPublicKey(key)
 	if err != nil {
 		return "", err
 	}
-	b, err := json.Marshal(jwkKey)
-	if err != nil {
-		return "", err
-	}
-	return string(b), nil
+	return string(pem.EncodeToMemory(&pem.Block{Type: "PUBLIC KEY", Bytes: b})), nil
 }
 
 func setupRoutes(router *chi.Mux, h *handler.Handler) {

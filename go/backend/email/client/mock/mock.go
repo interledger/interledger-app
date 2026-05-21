@@ -87,6 +87,18 @@ func (mr *MockClientMockRecorder) SendApplicationPendingEmail(ctx, walletID inte
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendApplicationPendingEmail", reflect.TypeOf((*MockClient)(nil).SendApplicationPendingEmail), ctx, walletID)
 }
 
+// SendAuthenticatorResetEmail mocks base method.
+func (m *MockClient) SendAuthenticatorResetEmail(ctx context.Context, walletID string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SendAuthenticatorResetEmail", ctx, walletID)
+}
+
+// SendAuthenticatorResetEmail indicates an expected call of SendAuthenticatorResetEmail.
+func (mr *MockClientMockRecorder) SendAuthenticatorResetEmail(ctx, walletID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendAuthenticatorResetEmail", reflect.TypeOf((*MockClient)(nil).SendAuthenticatorResetEmail), ctx, walletID)
+}
+
 // SendCardCreatedEmail mocks base method.
 func (m *MockClient) SendCardCreatedEmail(ctx context.Context, walletID, cardID string) {
 	m.ctrl.T.Helper()

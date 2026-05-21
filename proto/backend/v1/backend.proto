@@ -763,6 +763,7 @@ message Features {
   bool zarBalanceEnabled = 10;
   bool manageWalletCardsEnabled = 11;
   bool accountEnabled = 12;
+  bool accountsTabEnabled = 13;
 }
 
 message CreateCardRequest {
@@ -881,6 +882,7 @@ message LinkedAccount {
   bool defaultSend = 13;
   bool defaultReceive = 14;
   string state = 15;
+  string createdAt = 16;
 }
 
 message GetSignupRequest {
@@ -1204,3 +1206,14 @@ message VerifyIdentityRequest {
   string id = 1;
 }
 
+message AppError {
+  string errorCode = 1; // See errcodes.go for all possible values
+  string message = 2;
+  repeated AppErrorField fields = 3;
+  string reqId = 4;
+}
+
+message AppErrorField {
+  string field = 1;
+  string error = 2;
+}

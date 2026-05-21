@@ -14,6 +14,7 @@ import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { useScript } from '~/lib/useScript'
 import logger from '~/lib/logger.server'
+import { envValue } from '~/env.server'
 
 const KYCErrors: KYCErrorsType = {
   UnableToPars: 'KYC: unable to parse message data'
@@ -36,7 +37,6 @@ export async function loader({ request }: Route.LoaderArgs) {
     hasGatehubWidget: !!response.gatehubWidget,
     gatehubWidgetUrl: response.gatehubWidget?.widgetUrl,
     hasPersonaWidget: !!response.personaInquiry,
-    hasChimoneyWidget: !!response.chimoneyWidget,
     hasPtiWidget: !!response.ptiWidget,
     flow: 'kyc'
   }, '[KYC] Personal details page loaded')
@@ -51,12 +51,10 @@ export async function loader({ request }: Route.LoaderArgs) {
     provider: response.provider,
     gatehubWidget: response.gatehubWidget,
     personaWidget: response.personaInquiry,
-    chimoneyWidget: response.chimoneyWidget,
     ptiWidget: response.ptiWidget,
     personaSdkUrl:
-      process.env.PERSONA_SDK_URL ||
-      'https://cdn.withpersona.com/dist/persona-v4.8.0-alpha.js',
-    mockxagoEndpoint: process.env.MOCKXAGO_ENDPOINT || ''
+      envValue("PERSONA_SDK_URL"),
+    mockxagoEndpoint: envValue("MOCKXAGO_ENDPOINT")
   })
 }
 
@@ -75,41 +73,6 @@ export const meta = mergeMeta(() => [
     title: 'Activate wallet'
   }
 ])
-
-function ChimoneyPage() {
-  const submit = useSubmit()
-  const { chimoneyWidget } = useLoaderData()
-
-  useEffect(() => {
-    const onKYCComplete = (e: MessageEvent) => {
-      if (!e.data) return
-
-      if (e.data.kyc) {
-        submit(null, {
-          action: '/personal-details',
-          method: 'post'
-        })
-      }
-    }
-
-    window.addEventListener('message', onKYCComplete)
-
-    return () => {
-      window.removeEventListener('message', onKYCComplete)
-    }
-  }, [submit])
-
-  return (
-    <iframe
-      title='Activate wallet'
-      src={chimoneyWidget}
-      sandbox='allow-top-navigation allow-forms allow-same-origin allow-popups allow-scripts'
-      scrolling='yes'
-      allow='camera;microphone'
-      className='h-[750px] sm:min-w-[400px] md:min-w-[400px]'
-    />
-  )
-}
 
 function PersonaPage() {
   const submit = useSubmit()
@@ -422,8 +385,6 @@ export default function Page() {
 
   if (provider == 'persona') {
     return <PersonaPage />
-  } else if (provider == 'chimoney') {
-    return <ChimoneyPage />
   } else if (provider == 'pti') {
     return <PtiPage />
   } else return <GatehubPage />

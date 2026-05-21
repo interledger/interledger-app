@@ -1,0 +1,44 @@
+{{- $requiredFields := list
+  (dict "path" "backend.config.xago.api_base_url" "value" .Values.backend.config.xago.api_base_url)
+  (dict "path" "backend.config.xago.identity_base_url" "value" .Values.backend.config.xago.identity_base_url)
+  (dict "path" "backend.config.xago.policy_id" "value" .Values.backend.config.xago.policy_id)
+  (dict "path" "backend.config.apple_app_id" "value" .Values.backend.config.apple_app_id)
+  (dict "path" "backend.config.android_package_name" "value" .Values.backend.config.android_package_name)
+  (dict "path" "backend.config.android_sha256" "value" .Values.backend.config.android_sha256)
+-}}
+
+{{- if eq (toString .Values.backend.config.gatehub.enabled) "true" -}}
+  {{- $requiredFields = concat $requiredFields (list
+    (dict "path" "backend.config.gatehub.api_base_url" "value" .Values.backend.config.gatehub.api_base_url)
+    (dict "path" "backend.config.gatehub.onboarding_base_url" "value" .Values.backend.config.gatehub.onboarding_base_url)
+    (dict "path" "backend.config.gatehub.on_off_ramp_base_url" "value" .Values.backend.config.gatehub.on_off_ramp_base_url)
+    (dict "path" "backend.config.gatehub.organization_id" "value" .Values.backend.config.gatehub.organization_id)
+    (dict "path" "backend.config.gatehub.sending_user_id" "value" .Values.backend.config.gatehub.sending_user_id)
+    (dict "path" "backend.config.gatehub.sending_user_address" "value" .Values.backend.config.gatehub.sending_user_address)
+    (dict "path" "backend.config.gatehub.eur_ops_account" "value" .Values.backend.config.gatehub.eur_ops_account)
+    (dict "path" "backend.config.gatehub.eur_ops_ledger_id" "value" .Values.backend.config.gatehub.eur_ops_ledger_id)
+    (dict "path" "backend.config.gatehub.on_off_ramp_client_id" "value" .Values.backend.config.gatehub.on_off_ramp_client_id)
+    (dict "path" "backend.config.gatehub.onboarding_client_id" "value" .Values.backend.config.gatehub.onboarding_client_id)
+    (dict "path" "backend.config.gatehub.exchange_client_id" "value" .Values.backend.config.gatehub.exchange_client_id)
+    (dict "path" "backend.config.gatehub.card_account_product_code" "value" .Values.backend.config.gatehub.card_account_product_code)
+  ) -}}
+{{- end -}}
+
+{{- if eq (toString .Values.backend.config.pti.enabled) "true" -}}
+  {{- $requiredFields = concat $requiredFields (list
+    (dict "path" "backend.config.pti.base_url" "value" .Values.backend.config.pti.base_url)
+    (dict "path" "backend.config.pti.sdk_url" "value" .Values.backend.config.pti.sdk_url)
+    (dict "path" "backend.config.pti.forms_url" "value" .Values.backend.config.pti.forms_url)
+  ) -}}
+{{- end -}}
+
+{{- $missingFields := list -}}
+{{- range $requiredFields -}}
+  {{- if eq (trim (default "" .value)) "" -}}
+    {{- $missingFields = append $missingFields .path -}}
+  {{- end -}}
+{{- end -}}
+
+{{- if gt (len $missingFields) 0 -}}
+  {{- fail (printf "The following required values are empty: %s" (join ", " $missingFields)) -}}
+{{- end -}}

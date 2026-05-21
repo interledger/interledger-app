@@ -2,8 +2,6 @@ package grpc
 
 import (
 	"context"
-	"os"
-	"strings"
 
 	"gitlab.com/fynbos/backend/agreements"
 	"gitlab.com/fynbos/backend/signup"
@@ -11,6 +9,12 @@ import (
 	pb "gitlab.com/fynbos/proto/backend/v1"
 	"go.uber.org/zap"
 )
+
+var signupAgreementIDs []string
+
+func InitAgreementIDs(ids []string) {
+	signupAgreementIDs = ids
+}
 
 func (s *rpcService) SetSignupUserData(ctx context.Context, req *pb.SetSignupUserDataRequest) (*pb.SetSignupUserDataResponse, error) {
 	id := ""
@@ -96,16 +100,5 @@ func (s *rpcService) CompleteSignup(ctx context.Context, req *pb.CompleteSignupR
 }
 
 func getSignupAgreementIDs() []string {
-	// SIGNUP_AGREEMENT_IDS is comma-separated (e.g. "privacy_policy-0.0.0,terms_of_service-0.0.0")
-	raw := os.Getenv("SIGNUP_AGREEMENT_IDS")
-	if raw == "" {
-		return nil
-	}
-	var ids []string
-	for _, s := range strings.Split(raw, ",") {
-		if id := strings.TrimSpace(s); id != "" {
-			ids = append(ids, id)
-		}
-	}
-	return ids
+	return signupAgreementIDs
 }

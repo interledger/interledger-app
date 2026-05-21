@@ -28,10 +28,6 @@ func (h *Handler) SimulateTestDeposit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate required fields
-	if strings.TrimSpace(req.AccountID) == "" {
-		h.sendError(w, http.StatusBadRequest, "invalid_request", "accountId is required")
-		return
-	}
 	if req.Amount < 0 {
 		h.sendError(w, http.StatusBadRequest, "invalid_request", "amount must be positive")
 		return
@@ -44,12 +40,28 @@ func (h *Handler) SimulateTestDeposit(w http.ResponseWriter, r *http.Request) {
 		h.sendError(w, http.StatusBadRequest, "invalid_request", "currencyCode is required")
 		return
 	}
-
-	// Verify account exists
-	_, err := h.store.GetSubAccount(r.Context(), req.AccountID)
-	if err != nil {
-		h.sendError(w, http.StatusBadRequest, "invalid_request", "account not found")
+	if strings.TrimSpace(req.AccountID) == "" && strings.TrimSpace(req.DepositReference) == "" {
+		h.sendError(w, http.StatusBadRequest, "invalid_request", "accountId or depositReference is required")
 		return
+	}
+
+	// Resolve account: prefer accountId, fall back to depositReference lookup
+	// (the real Xago API identifies the target account by depositReference)
+	ctx := r.Context()
+	var resolvedAccountID string
+	if strings.TrimSpace(req.AccountID) != "" {
+		if _, err := h.store.GetSubAccount(ctx, req.AccountID); err != nil {
+			h.sendError(w, http.StatusBadRequest, "invalid_request", "account not found")
+			return
+		}
+		resolvedAccountID = req.AccountID
+	} else {
+		subAccount, err := h.store.GetSubAccountByDepositReference(ctx, strings.TrimSpace(req.DepositReference))
+		if err != nil {
+			h.sendError(w, http.StatusBadRequest, "invalid_request", "account not found for depositReference")
+			return
+		}
+		resolvedAccountID = subAccount.AccountID
 	}
 
 	// Generate transaction ID
@@ -64,7 +76,7 @@ func (h *Handler) SimulateTestDeposit(w http.ResponseWriter, r *http.Request) {
 	// Create deposit record with pending status
 	deposit := &models.Deposit{
 		ID:               transactionID,
-		AccountID:        req.AccountID,
+		AccountID:        resolvedAccountID,
 		Amount:           req.Amount,
 		Currency:         req.CurrencyCode,
 		DepositReference: depositReference,
@@ -73,7 +85,7 @@ func (h *Handler) SimulateTestDeposit(w http.ResponseWriter, r *http.Request) {
 		CreatedAt:        time.Now(),
 	}
 
-	if err := h.store.SaveDeposit(r.Context(), deposit); err != nil {
+	if err := h.store.SaveDeposit(ctx, deposit); err != nil {
 		logger.Errorf("Failed to save deposit: %v", err)
 		h.sendError(w, http.StatusInternalServerError, "internal_error", "Failed to create deposit")
 		return
@@ -87,12 +99,12 @@ func (h *Handler) SimulateTestDeposit(w http.ResponseWriter, r *http.Request) {
 	h.sendJSON(w, http.StatusOK, resp)
 
 	logger.Infof("Test deposit created: %s for account %s: %f %s (ref: %s)",
-		transactionID, req.AccountID, req.Amount, req.CurrencyCode, depositReference)
+		transactionID, resolvedAccountID, req.Amount, req.CurrencyCode, depositReference)
 
 	// Enqueue deposit processing job (will be picked up by the worker)
 	jobData := map[string]interface{}{
 		"transaction_id":    transactionID,
-		"account_id":        req.AccountID,
+		"account_id":        resolvedAccountID,
 		"amount":            req.Amount,
 		"currency":          req.CurrencyCode,
 		"deposit_reference": depositReference,

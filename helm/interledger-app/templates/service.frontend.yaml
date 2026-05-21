@@ -1,0 +1,6 @@
+{{- define "interledger-app.frontend.service" -}}
+{{- $top := first . -}}
+{{- end }}
+{{- if .Values.frontend.enabled }}
+{{- include "common.svc" (list . .Values.frontend.server.service .Values.frontend.server "interledger-app.frontend.service") }}
+{{- end }}

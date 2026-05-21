@@ -1,0 +1,44 @@
+suite: Interledger App - Backend Worker PodDisruptionBudget
+templates:
+  - pdb.backend.worker.yaml
+set:
+  fullnameOverride: wallet
+release:
+  name: wallet
+tests:
+  - it: 'Should create a PodDisruptionBudget'
+    documentSelector:
+      path: kind
+      value: PodDisruptionBudget
+    asserts:
+      - equal:
+          path: metadata.name
+          value: wallet-backend-worker
+      - equal:
+          path: spec.selector.matchLabels["app.kubernetes.io/instance"]
+          value: wallet
+      - equal:
+          path: spec.selector.matchLabels["app.kubernetes.io/name"]
+          value: wallet-backend-worker
+      - equal:
+          path: spec.minAvailable
+          value: 1
+
+  - it: 'Should produce no PDB when disabled'
+    set:
+      backend:
+        worker:
+          podDisruptionBudget:
+            enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: 'Should produce no PDB when backend worker is disabled'
+    set:
+      backend:
+        worker:
+          enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0

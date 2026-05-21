@@ -28,4 +28,5 @@ type Client interface {
 	SendPending3DSConfirmation(ctx context.Context, walletID, confirmationID string)
 	SendKYCDocumentsRequiredEmail(ctx context.Context, walletID string)
 	SendAccountDeletionRequested(ctx context.Context, userID string) error
+	SendAuthenticatorResetEmail(ctx context.Context, walletID string)
 }

@@ -1719,6 +1719,11 @@ table "wallet_features" {
     type = boolean
     default = false
   }
+  column "accounts_tab_enabled" {
+    null = false
+    type = boolean
+    default = true
+  }
   column "created_at" {
     null    = false
     type    = timestamp

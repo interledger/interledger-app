@@ -108,3 +108,7 @@ func (c *client) SendKYCDocumentsRequiredEmail(ctx context.Context, walletID str
 func (c *client) SendAccountDeletionRequested(ctx context.Context, userID string) error {
 	return ops.SendAccountDeletionRequestedEmail(ctx, c.b, userID)
 }
+
+func (c *client) SendAuthenticatorResetEmail(ctx context.Context, walletID string) {
+	ops.SendAuthenticatorResetEmail(ctx, c.b, walletID)
+}

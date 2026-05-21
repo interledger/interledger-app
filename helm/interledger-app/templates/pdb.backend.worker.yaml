@@ -1,0 +1,5 @@
+{{- define "interledger-app.backend.worker.pdb" -}}
+{{- end }}
+{{- if and .Values.backend.worker.enabled .Values.backend.worker.podDisruptionBudget.enabled }}
+{{- include "common.pdb" (list . .Values.backend.worker "interledger-app.backend.worker.pdb") }}
+{{- end }}
