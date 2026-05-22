@@ -3,8 +3,6 @@ import type { RequestConfig } from "./types.server";
 type ResponseWithCookies = {
     headers?: {
         'set-cookie'?: string | string[]
-        // AxiosHeaders (axios ≥1.14) exposes a typed .get() method
-        get?: (name: string) => string | string[] | null | undefined
         [key: string]: unknown
     }
 }
@@ -28,9 +26,12 @@ export function extractSetCookieHeaders(
 
     // axios ≥1.14 wraps headers in AxiosHeaders where bracket access is unreliable;
     // use .get() when present, fall back to bracket notation for plain objects.
-    const raw = headers.get?.('set-cookie') ?? headers['set-cookie']
+    const getMethod = headers['get']
+    const raw: unknown = typeof getMethod === 'function'
+        ? getMethod.call(headers, 'set-cookie')
+        : headers['set-cookie']
     if (!raw) return []
-    if (Array.isArray(raw)) return raw
+    if (Array.isArray(raw)) return raw as string[]
     return typeof raw === 'string' ? [raw] : []
 }
 
