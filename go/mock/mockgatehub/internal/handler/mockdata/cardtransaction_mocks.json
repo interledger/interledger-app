@@ -191,19 +191,117 @@
         }
       },
       {
-        "case": "Transfer from Account"
+        "case": "Transfer from Account",
+        "payload": {
+          "operation": 0,
+          "transactionClassification": "Authorization",
+          "type": 108,
+          "isTrxAmountConverted": false,
+          "txStatus": "PROCESSING",
+          "ghResponseCode": "OK",
+          "responseCode": "OK",
+          "MastercardConversion": null,
+          "transactionAmount": "10.00",
+          "transactionCurrency": "EUR",
+          "billingAmount": "10.00",
+          "billingCurrency": "EUR",
+          "vaultId": 1,
+          "cardId": 277,
+          "transactionId": "TX_TRANSFER_FROM_ACC",
+          "refTransactionId": null,
+          "ghResponseDescription": "Approved",
+          "terminalId": "C0A17138",
+          "cardScheme": 3,
+          "source": "P",
+          "mcc": null,
+          "merchantName": null,
+          "merchantCountry": null,
+          "merchantCity": null,
+          "merchantZip": null,
+          "merchantStreet": null,
+          "merchantId": null,
+          "transactionDateTime": "2024-12-19T13:15:38.000Z",
+          "processDateTime": "2024-12-19T13:15:38.000Z",
+          "createdAt": "2024-12-19T13:15:38.000Z",
+          "spendExchangeRate": null,
+          "spendCurrency": null
+        }
       },
       {
-        "case": "Preauthorization Incremental (no refTransactioId)"
+        "case": "Preauthorization Incremental (no refTransactioId)",
+        "payload": {
+          "operation": 0,
+          "transactionClassification": "Authorization",
+          "type": 102,
+          "isTrxAmountConverted": false,
+          "txStatus": "PROCESSING",
+          "ghResponseCode": "OK",
+          "responseCode": "OK",
+          "MastercardConversion": null,
+          "transactionAmount": "5.00",
+          "transactionCurrency": "EUR",
+          "billingAmount": "5.00",
+          "billingCurrency": "EUR",
+          "vaultId": 1,
+          "cardId": 277,
+          "transactionId": "TX_PREAUTH_INCREMENTAL",
+          "refTransactionId": null,
+          "ghResponseDescription": "Approved",
+          "terminalId": "C0A17138",
+          "cardScheme": 3,
+          "source": "P",
+          "mcc": "5399",
+          "merchantName": "SPAR IVANCNA GORICA",
+          "merchantCountry": "SVN",
+          "merchantCity": "IVANCNA GORIC",
+          "merchantZip": "1295",
+          "merchantStreet": "STANTETOVA ULICA 1A",
+          "merchantId": "002295628",
+          "transactionDateTime": "2024-12-19T13:15:38.000Z",
+          "processDateTime": "2024-12-19T13:15:38.000Z",
+          "createdAt": "2024-12-19T13:15:38.000Z",
+          "spendExchangeRate": null,
+          "spendCurrency": null
+        }
       },
       {
-        "case": "Preauthorization Incremental (with refTransactionId)"
-      },
-      {
-        "case": "Preauthorization Completion"
+        "case": "Preauthorization Incremental (with refTransactionId)",
+        "payload": {
+          "operation": 0,
+          "transactionClassification": "Authorization",
+          "type": 102,
+          "isTrxAmountConverted": false,
+          "txStatus": "PROCESSING",
+          "ghResponseCode": "OK",
+          "responseCode": "OK",
+          "MastercardConversion": null,
+          "transactionAmount": "5.00",
+          "transactionCurrency": "EUR",
+          "billingAmount": "5.00",
+          "billingCurrency": "EUR",
+          "vaultId": 1,
+          "cardId": 277,
+          "transactionId": "TX_PREAUTH_INCREMENTAL_REF",
+          "refTransactionId": "CHANGE_WITH_ID_OF_PREAUTH_TX",
+          "ghResponseDescription": "Approved",
+          "terminalId": "C0A17138",
+          "cardScheme": 3,
+          "source": "P",
+          "mcc": "5399",
+          "merchantName": "SPAR IVANCNA GORICA",
+          "merchantCountry": "SVN",
+          "merchantCity": "IVANCNA GORIC",
+          "merchantZip": "1295",
+          "merchantStreet": "STANTETOVA ULICA 1A",
+          "merchantId": "002295628",
+          "transactionDateTime": "2024-12-19T13:15:38.000Z",
+          "processDateTime": "2024-12-19T13:15:38.000Z",
+          "createdAt": "2024-12-19T13:15:38.000Z",
+          "spendExchangeRate": null,
+          "spendCurrency": null
+        }
       }
-    ],
-    "Transaction Classification - Reversal": []
+    ]
   },
   "Operation - Deposit": {
     "Transaction Classification - Authorization": [
@@ -264,7 +362,7 @@
           "vaultId": 1,
           "cardId": 277,
           "transactionId": "TX_PURCHASE_REVERSAL",
-          "refTransactionId": "ID OF TX_PURHCASE",
+          "refTransactionId": "CHANGE_WITH_ID_OF_PURHCASE_TX",
           "ghResponseDescription": "Approved",
           "terminalId": "C0A17138",
           "cardScheme": 3,
@@ -284,19 +382,41 @@
         }
       },
       {
-        "case": "ATM Withdrawal"
-      },
-      {
-        "case": "Cash Advanced"
-      },
-      {
-        "case": "Preauthorization"
-      },
-      {
-        "case": "Preauthorization Incremental"
-      },
-      {
-        "case": "Preauthorization Completion"
+        "case": "ATM Withdrawal",
+        "payload": {
+          "operation": 1,
+          "transactionClassification": "Reversal",
+          "type": 1,
+          "isTrxAmountConverted": false,
+          "txStatus": "PROCESSING",
+          "ghResponseCode": "OK",
+          "responseCode": "OK",
+          "MastercardConversion": null,
+          "transactionAmount": "50.00",
+          "transactionCurrency": "EUR",
+          "billingAmount": "50.00",
+          "billingCurrency": "EUR",
+          "vaultId": 1,
+          "cardId": 277,
+          "transactionId": "TX_ATM_REVERSAL",
+          "refTransactionId": "CHANGE_WITH_ID_OF_ATM_TX",
+          "ghResponseDescription": "Approved",
+          "terminalId": "ATM17138",
+          "cardScheme": 3,
+          "source": "P",
+          "mcc": "6011",
+          "merchantName": "RAIFFEISEN ATM",
+          "merchantCountry": "SVN",
+          "merchantCity": "LJUBLJANA",
+          "merchantZip": "1000",
+          "merchantStreet": "SLOVENSKA 1",
+          "merchantId": "ATM0001",
+          "transactionDateTime": "2024-12-19T13:15:38.000Z",
+          "processDateTime": "2024-12-19T13:15:38.000Z",
+          "createdAt": "2024-12-19T13:15:38.000Z",
+          "spendExchangeRate": null,
+          "spendCurrency": null
+        }
       }
     ]
   },
