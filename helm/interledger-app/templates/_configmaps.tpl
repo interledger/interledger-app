@@ -19,6 +19,12 @@ data:
   PTI_SDK_URL: {{ .Values.frontend.config.pti.sdk_url | quote }}
   PTI_FORMS_URL: {{ .Values.frontend.config.pti.forms_url | quote }}
   BACKEND_HTTP_URL: {{ default (printf "http://%s-backend-service-http:8080" (include "common.fullname" .)) .Values.frontend.config.backend.http.url | quote }}
+  TARGET_HOST: {{ .Values.frontend.config.target_host | quote }}
+  SUPPORT_EMAIL: {{ .Values.frontend.config.support_email | quote }}
+  PUBLIC_OP_AUTH_HOST: {{ .Values.frontend.config.public_op_auth_host | quote }}
+  PERSONA_SDK_URL: {{ .Values.frontend.config.persona_sdk_url | quote }}
+  MOCKXAGO_ENDPOINT: {{ .Values.frontend.config.mockxago_endpoint | quote }}
+  SENTRY_ENV_LABEL: {{ .Values.frontend.config.sentry_env_label | quote }}
 {{- end }}
 
 {{- define "interledger-app.admin.configMap" -}}

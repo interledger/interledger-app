@@ -13,7 +13,6 @@ const knownEnvKeysRequired: string[] = [
     "PTI_FORMS_URL",
     "PTI_SDK_URL",
     "PERSONA_SDK_URL",
-    "MOCKXAGO_ENDPOINT",
     "TARGET_HOST",
     "SUPPORT_EMAIL",
     "PAYMENT_POINTER_BASE",
@@ -23,7 +22,9 @@ const knownEnvKeysRequired: string[] = [
 const knownEnvKeysOptional: string[] = [
     "SENTRY_DSN",
     "SENTRY_RELEASE",
+    "SENTRY_ENV_LABEL",
     "FYNBOS_ENV",
+    "MOCKXAGO_ENDPOINT",
     "LOG_LEVEL",
     "LOG_PRETTY",
     "PUSHER_APP_KEY",
