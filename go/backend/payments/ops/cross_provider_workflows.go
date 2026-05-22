@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
 	gatehub_external "gitlab.com/fynbos/backend/providers/gatehub/external"
 	"go.temporal.io/sdk/workflow"
 )
@@ -46,16 +45,12 @@ func crossProviderGatehubToXagoPayIn(ctx workflow.Context, a *Activity, paymentI
 // crossProviderXagoToGatehubPayIn handles Scenario 2 pay-in (ZAR→EUR, Xago sender).
 // Reserves ZAR pending to the liquidity account.
 func crossProviderXagoToGatehubPayIn(ctx workflow.Context, a *Activity, paymentID string) (string, bool, error) {
-	var txID string
-	err := workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
-		return uuid.NewString()
-	}).Get(&txID)
+	txID, err := sideEffectUUID(ctx)
 	if err != nil {
 		return "", false, err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.CrossProviderXagoZARReserve, paymentID).Get(ctx, nil)
-	if err != nil {
+	if err = workflow.ExecuteActivity(ctx, a.CrossProviderXagoZARReserve, paymentID).Get(ctx, nil); err != nil {
 		return "", false, err
 	}
 
@@ -74,17 +69,11 @@ func crossProviderGatehubToXagoPayOut(ctx, _ workflow.Context, a *Activity, paym
 	}
 
 	// Generate stable UUIDs for the two new posted Pacioli transfers.
-	var clearingTxID string
-	err = workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
-		return uuid.NewString()
-	}).Get(&clearingTxID)
+	clearingTxID, err := sideEffectUUID(ctx)
 	if err != nil {
 		return "", false, err
 	}
-	var receiverTxID string
-	err = workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
-		return uuid.NewString()
-	}).Get(&receiverTxID)
+	receiverTxID, err := sideEffectUUID(ctx)
 	if err != nil {
 		return "", false, err
 	}
@@ -129,17 +118,11 @@ func crossProviderXagoToGatehubPayOut(ctx, _ workflow.Context, a *Activity, paym
 	logger := workflow.GetLogger(ctx)
 
 	// Generate stable UUIDs for the two new posted Pacioli transfers.
-	var xagoOpsTxID string
-	err := workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
-		return uuid.NewString()
-	}).Get(&xagoOpsTxID)
+	xagoOpsTxID, err := sideEffectUUID(ctx)
 	if err != nil {
 		return "", false, err
 	}
-	var receiverTxID string
-	err = workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
-		return uuid.NewString()
-	}).Get(&receiverTxID)
+	receiverTxID, err := sideEffectUUID(ctx)
 	if err != nil {
 		return "", false, err
 	}

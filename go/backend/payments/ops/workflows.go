@@ -7,8 +7,6 @@ import (
 
 	"gitlab.com/fynbos/backend/providers/chimoney"
 
-	"github.com/google/uuid"
-
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/gatehub"
@@ -297,10 +295,7 @@ func chimoneyPayIn(ctx workflow.Context, a *Activity, paymentID, walletID string
 		return "", false, temporal.NewNonRetryableApplicationError("incorrect payment type for chimoney pay in flow", "InvalidArgument", chimoney.ErrInternal, "paymentID", paymentID, "type", pt)
 	}
 
-	var txID string
-	err = workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
-		return uuid.NewString()
-	}).Get(&txID)
+	txID, err := sideEffectUUID(ctx)
 	if err != nil {
 		return "", false, err
 	}
@@ -330,10 +325,7 @@ func chimoneyPayOut(ctx workflow.Context, a *Activity, paymentID, trxID, walletI
 		return "", false, temporal.NewNonRetryableApplicationError("incorrect payment type for chimoney pay in flow", "InvalidArgument", gatehub.ErrInternal, "paymentID", paymentID, "type", pt)
 	}
 
-	var txID string
-	err = workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
-		return uuid.NewString()
-	}).Get(&txID)
+	txID, err := sideEffectUUID(ctx)
 	if err != nil {
 		return "", false, err
 	}
@@ -494,10 +486,7 @@ func ptiPayIn(ctx workflow.Context, a *Activity, ptiA *pti_ops.Activity, payment
 
 		// Webmonetization is assumed to be Interledger to Interledger
 	} else if pt == payments.TypePeer2Peer || pt == payments.TypeWebMonetization || pt == payments.TypeRafikiPeer2Peer {
-		var txID string
-		err = workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
-			return uuid.NewString()
-		}).Get(&txID)
+		txID, err := sideEffectUUID(ctx)
 		if err != nil {
 			return "", false, err
 		}
@@ -560,10 +549,7 @@ func ptiPayIn(ctx workflow.Context, a *Activity, ptiA *pti_ops.Activity, payment
 }
 
 func xagoPayIn(ctx workflow.Context, a *Activity, paymentID string) (string, bool, error) {
-	var txID string
-	err := workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
-		return uuid.NewString()
-	}).Get(&txID)
+	txID, err := sideEffectUUID(ctx)
 	if err != nil {
 		return "", false, err
 	}
@@ -664,10 +650,7 @@ func PayoutWorkflow(ctx workflow.Context, paymentID string) error {
 	}
 
 	// Generate the transactionID used for transactions service as well as Xago
-	var txID string
-	err = workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
-		return uuid.NewString()
-	}).Get(&txID)
+	txID, err := sideEffectUUID(ctx)
 	if err != nil {
 		return err
 	}
