@@ -78,6 +78,7 @@ func crossProviderGatehubToXagoPayOut(ctx workflow.Context, a *Activity, payment
 		return "", false, err
 	}
 
+	// TODO business decision whether we should do the conversion closer to the estimation (before Gatehub)
 	// Execute Xago EUR→ZAR conversion (non-retryable; moves real money).
 	var convertID string
 	err = workflow.ExecuteActivity(ctx, a.XagoConvertCurrencyActivity, paymentID).Get(ctx, &convertID)
@@ -85,6 +86,7 @@ func crossProviderGatehubToXagoPayOut(ctx workflow.Context, a *Activity, payment
 		return "", false, err
 	}
 
+	// TODO There is probably no need for polling
 	// Poll until conversion completes.
 	for {
 		var details XagoConvertDetails
@@ -103,7 +105,7 @@ func crossProviderGatehubToXagoPayOut(ctx workflow.Context, a *Activity, payment
 	}
 
 	// Atomically post all Pacioli transfers.
-	err = workflow.ExecuteActivity(ctx, a.PostCrossProviderS1Transfers, paymentID, clearingTxID, receiverTxID).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.PostGatehubToXagoTransfers, paymentID, clearingTxID, receiverTxID).Get(ctx, nil)
 	if err != nil {
 		return "", false, err
 	}
@@ -190,7 +192,7 @@ func crossProviderXagoToGatehubPayOut(ctx workflow.Context, a *Activity, payment
 	}
 
 	// Atomically post all Pacioli transfers.
-	err = workflow.ExecuteActivity(ctx, a.PostCrossProviderS2Transfers, paymentID, xagoOpsTxID, receiverTxID).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.PostXagoToGatehubTransfers, paymentID, xagoOpsTxID, receiverTxID).Get(ctx, nil)
 	if err != nil {
 		return "", false, err
 	}

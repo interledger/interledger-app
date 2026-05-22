@@ -224,6 +224,7 @@ func (a *Activity) XagoConvertCurrencyActivity(ctx context.Context, paymentID st
 		pair = xago_external.ZARtoEUR
 	}
 
+	// TODO maybe retry a few times
 	resp, err := a.b.Xago().ConvertCurrency(ctx, pair, p.SenderAmount.Float64())
 	if err != nil {
 		return "", temporal.NewNonRetryableApplicationError(
@@ -290,11 +291,11 @@ func (a *Activity) StoreActualFXRateAndAmount(ctx context.Context, paymentID str
 	return err
 }
 
-// PostCrossProviderS1Transfers atomically settles a Scenario 1 (EUR→ZAR) payment:
+// PostGatehubToXagoTransfers atomically settles a Scenario 1 (EUR→ZAR) payment:
 //  1. Posts the pending EUR reserve (p.SendTransactionID): user.EUR → gatehub.EURClearingAccount
 //  2. Creates a posted transfer: xago.EURClearingAccount → xago.EUROpsAccount
 //  3. Creates a posted transfer: xago.ZAROpsAccount → user.ZAR (using receiverTxID)
-func (a *Activity) PostCrossProviderS1Transfers(ctx context.Context, paymentID, clearingTxID, receiverTxID string) error {
+func (a *Activity) PostGatehubToXagoTransfers(ctx context.Context, paymentID, clearingTxID, receiverTxID string) error {
 	p, err := Lookup(ctx, a.b, paymentID)
 	if err != nil {
 		return err
@@ -314,6 +315,8 @@ func (a *Activity) PostCrossProviderS1Transfers(ctx context.Context, paymentID, 
 		return fmt.Errorf("%w non-success code posting reserve (%s)", payments.ErrInternal, postRes[0].Code.String())
 	}
 
+	// TODO check against the design doc
+	// TODO Should we do this as pending true in the beginning and do PostTransfers here?
 	createRes, err := a.b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
 		{
 			ID:              clearingTxID,
@@ -335,23 +338,24 @@ func (a *Activity) PostCrossProviderS1Transfers(ctx context.Context, paymentID, 
 		},
 	})
 	if err != nil {
-		return fmt.Errorf("%w creating S1 posted transfers: %s", payments.ErrInternal, err)
+		return fmt.Errorf("%w creating GatehubToXago posted transfers: %s", payments.ErrInternal, err)
 	}
 	for _, r := range createRes {
+		// TODO maybe create a function with a clearer description
 		if r.Code != 0 &&
 			r.Code != pacioli.TransferExistsWithDifferentDebitAccountId &&
 			r.Code != pacioli.TransferExistsWithDifferentCreditAccountId {
-			return fmt.Errorf("%w non-success code on S1 posted transfer (%s)", payments.ErrInternal, r.Code.String())
+			return fmt.Errorf("%w non-success code on GatehubToXago posted transfer (%s)", payments.ErrInternal, r.Code.String())
 		}
 	}
 	return nil
 }
 
-// PostCrossProviderS2Transfers atomically settles a Scenario 2 (ZAR→EUR) payment:
+// PostXagoToGatehubTransfers atomically settles a Scenario 2 (ZAR→EUR) payment:
 //  1. Posts the pending ZAR reserve (p.SendTransactionID): user.ZAR → xago.ZARLiquidityAccount
 //  2. Creates a posted transfer: xago.EUROpsAccount → xago.EURClearingAccount
 //  3. Creates a posted transfer: gatehub.EURClearingAccount → user.EUR (using receiverTxID)
-func (a *Activity) PostCrossProviderS2Transfers(ctx context.Context, paymentID, xagoOpsTxID, receiverTxID string) error {
+func (a *Activity) PostXagoToGatehubTransfers(ctx context.Context, paymentID, xagoOpsTxID, receiverTxID string) error {
 	p, err := Lookup(ctx, a.b, paymentID)
 	if err != nil {
 		return err
