@@ -60,7 +60,7 @@ func crossProviderXagoToGatehubPayIn(ctx workflow.Context, a *Activity, paymentI
 // crossProviderGatehubToXagoPayOut handles Scenario 1 pay-out (EUR→ZAR, Xago ZAR receiver).
 // Waits for the GateHub webhook confirming EUR is in omnibus, executes Xago EUR→ZAR conversion,
 // polls for completion, and atomically posts all Pacioli transfers.
-func crossProviderGatehubToXagoPayOut(ctx, _ workflow.Context, a *Activity, paymentID, _ string) (string, bool, error) {
+func crossProviderGatehubToXagoPayOut(ctx workflow.Context, a *Activity, paymentID string) (string, bool, error) {
 
 	// Wait for GateHub webhook confirming sender's EUR reached omnibus.
 	externalTransaction, ok, err := pollGatehubTransfer(ctx, a, paymentID)
@@ -114,7 +114,7 @@ func crossProviderGatehubToXagoPayOut(ctx, _ workflow.Context, a *Activity, paym
 // crossProviderXagoToGatehubPayOut handles Scenario 2 pay-out (ZAR→EUR, GateHub EUR receiver).
 // Transfers EUR from GateHub omnibus to the receiver, waits for the webhook confirming delivery,
 // executes Xago ZAR→EUR conversion, and atomically posts all Pacioli transfers.
-func crossProviderXagoToGatehubPayOut(ctx, _ workflow.Context, a *Activity, paymentID, _, receiverLinkedAccountID string) (string, bool, error) {
+func crossProviderXagoToGatehubPayOut(ctx workflow.Context, a *Activity, paymentID, receiverLinkedAccountID string) (string, bool, error) {
 	logger := workflow.GetLogger(ctx)
 
 	// Generate stable UUIDs for the two new posted Pacioli transfers.

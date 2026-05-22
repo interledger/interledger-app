@@ -675,7 +675,7 @@ func PayoutWorkflow(ctx workflow.Context, paymentID string) error {
 	switch la.Provider {
 	case xago.ProviderName:
 		if cpType == CrossProviderGatehubToXago {
-			externalTXID, success, err = crossProviderGatehubToXagoPayOut(ctx, accountsCtx, a, paymentID, txID)
+			externalTXID, success, err = crossProviderGatehubToXagoPayOut(ctx, a, paymentID)
 		} else {
 			externalTXID, success, err = xagoPayOut(ctx, accountsCtx, a, paymentID, txID)
 		}
@@ -683,7 +683,7 @@ func PayoutWorkflow(ctx workflow.Context, paymentID string) error {
 		externalTXID, success, err = ptiPayOut(ctx, accountsCtx, a, ptiActivity, paymentID, txID, la.WalletID)
 	case gatehub.ProviderName:
 		if cpType == CrossProviderXagoToGatehub {
-			externalTXID, success, err = crossProviderXagoToGatehubPayOut(ctx, accountsCtx, a, paymentID, txID, la.ID)
+			externalTXID, success, err = crossProviderXagoToGatehubPayOut(ctx, a, paymentID, la.ID)
 		} else {
 			externalTXID, success, err = gatehubPayOut(ctx, a, paymentID, txID, la.WalletID)
 		}
