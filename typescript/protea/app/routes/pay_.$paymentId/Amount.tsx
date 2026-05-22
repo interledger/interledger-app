@@ -96,7 +96,7 @@ function reducer(state: AmountState, action: Action): AmountState {
 }
 
 export const Amount = () => {
-  const { account, sendAccounts, payment, csrfToken } =
+  const { account, sendAccounts, payment, features, csrfToken } =
     useLoaderData<typeof loader>()
 
   const [localPayment, dispatchPayment] = useReducer(
@@ -278,6 +278,7 @@ export const Amount = () => {
           linkedAccount={localPayment.linkedAccount}
           linkedAccountOptions={sendAccounts || []}
           onChangeLinkedAccount={_onChangeLinkedAccount}
+          showConnectAccount={features.accountsTabEnabled}
           placeholder='0.00'
           prefixIcon={
             <div
