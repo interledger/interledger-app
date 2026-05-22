@@ -591,16 +591,16 @@ func TransferUserToOmnibus(ctx context.Context, b Backends, ec external.Client, 
 	return externalTx, nil
 }
 
-func TransferOmnibusToUser(ctx context.Context, b Backends, ec external.Client, receiverLinkedAccountID string, amount currency.Amount, sendingUserID, omnibusAddress, vaultID string) (*external.Transaction, error) {
-	la, err := b.LinkedAccounts().Get(ctx, receiverLinkedAccountID)
+func TransferOmnibusToUser(ctx context.Context, b Backends, ec external.Client, receiverLinkedAccountID string, amount currency.Amount, senderUserID, omnibusAddress, vaultID string) (*external.Transaction, error) {
+	receiverLA, err := b.LinkedAccounts().Get(ctx, receiverLinkedAccountID)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
 	}
 
 	externalTx, err := ec.CreateTransaction(ctx, external.CreateTransactionRequest{
-		SendingUserID:    sendingUserID,
+		SendingUserID:    senderUserID,
 		SendingAddress:   omnibusAddress,
-		ReceivingAddress: la.ProviderID,
+		ReceivingAddress: receiverLA.ProviderID,
 		Amount:           amount.Float64(),
 		Type:             external.TransactionTypeHosted,
 		VaultID:          vaultID,

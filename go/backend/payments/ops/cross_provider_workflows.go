@@ -142,6 +142,7 @@ func crossProviderXagoToGatehubPayOut(ctx workflow.Context, a *Activity, payment
 		return "", false, err
 	}
 
+	// TODO maybe extract in a function or reuse if possible
 	// Wait for GateHub webhook confirming EUR reached the receiver.
 	var externalTransaction gatehub_external.Transaction
 	for {
@@ -166,6 +167,8 @@ func crossProviderXagoToGatehubPayOut(ctx workflow.Context, a *Activity, payment
 		}
 	}
 
+	// TODO maybe extract and reuse this part of the code in GatehubToXagoPayOut
+	// TODO is this the right order of operations or should we do conversion before gatehub part?
 	// Execute Xago ZAR→EUR conversion (non-retryable; moves real money).
 	var convertID string
 	err = workflow.ExecuteActivity(ctx, a.XagoConvertCurrencyActivity, paymentID).Get(ctx, &convertID)

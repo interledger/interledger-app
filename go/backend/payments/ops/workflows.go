@@ -658,8 +658,8 @@ func PayoutWorkflow(ctx workflow.Context, paymentID string) error {
 	// Funding was a success, the receiver has all the relevant information, now payout
 
 	// Switch here on provider of the receiver linkedAcc
-	var la linkedaccounts.LinkedAccount
-	err = workflow.ExecuteActivity(accountsCtx, a.LookupPayOutAccount, paymentID).Get(ctx, &la)
+	var receiverLA linkedaccounts.LinkedAccount
+	err = workflow.ExecuteActivity(accountsCtx, a.LookupPayOutAccount, paymentID).Get(ctx, &receiverLA)
 	if err != nil {
 		return err
 	}
@@ -672,7 +672,7 @@ func PayoutWorkflow(ctx workflow.Context, paymentID string) error {
 
 	var success bool
 	var externalTXID string
-	switch la.Provider {
+	switch receiverLA.Provider {
 	case xago.ProviderName:
 		if cpType == CrossProviderGatehubToXago {
 			externalTXID, success, err = crossProviderGatehubToXagoPayOut(ctx, a, paymentID)
@@ -680,17 +680,17 @@ func PayoutWorkflow(ctx workflow.Context, paymentID string) error {
 			externalTXID, success, err = xagoPayOut(ctx, accountsCtx, a, paymentID, txID)
 		}
 	case pti.ProviderName:
-		externalTXID, success, err = ptiPayOut(ctx, accountsCtx, a, ptiActivity, paymentID, txID, la.WalletID)
+		externalTXID, success, err = ptiPayOut(ctx, accountsCtx, a, ptiActivity, paymentID, txID, receiverLA.WalletID)
 	case gatehub.ProviderName:
 		if cpType == CrossProviderXagoToGatehub {
-			externalTXID, success, err = crossProviderXagoToGatehubPayOut(ctx, a, paymentID, la.ID)
+			externalTXID, success, err = crossProviderXagoToGatehubPayOut(ctx, a, paymentID, receiverLA.ID)
 		} else {
-			externalTXID, success, err = gatehubPayOut(ctx, a, paymentID, txID, la.WalletID)
+			externalTXID, success, err = gatehubPayOut(ctx, a, paymentID, txID, receiverLA.WalletID)
 		}
 	case chimoney.ProviderName:
-		externalTXID, success, err = chimoneyPayOut(ctx, a, paymentID, txID, la.WalletID)
+		externalTXID, success, err = chimoneyPayOut(ctx, a, paymentID, txID, receiverLA.WalletID)
 	default:
-		return temporal.NewNonRetryableApplicationError("unsupported linked account provider", "InvalidArgument", nil, "provider", la.Provider)
+		return temporal.NewNonRetryableApplicationError("unsupported linked account provider", "InvalidArgument", nil, "provider", receiverLA.Provider)
 	}
 
 	if temporal_utils.IsNonRetryableError(err) || temporal_utils.IsMaxRetryError(err) {

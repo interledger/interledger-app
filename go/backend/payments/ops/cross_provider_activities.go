@@ -134,7 +134,9 @@ func (a *Activity) CrossProviderXagoZARReserve(ctx context.Context, paymentID st
 		return err
 	}
 
+	// TODO what value should we use for timeout?
 	timeout := time.Hour * 24 * 365
+	// TODO confirm whether we should create all transfers from the start (e.g. the clearing transfer)
 	tx, err := a.b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
 		{
 			ID:              p.SendTransactionID,
@@ -150,6 +152,8 @@ func (a *Activity) CrossProviderXagoZARReserve(ctx context.Context, paymentID st
 	if err != nil {
 		return fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
+
+	// TODO maybe extract into a function
 	if len(tx) > 0 {
 		if tx[0].Code == pacioli.TransferExistsWithDifferentDebitAccountId ||
 			tx[0].Code == pacioli.TransferExistsWithDifferentCreditAccountId {
@@ -162,6 +166,7 @@ func (a *Activity) CrossProviderXagoZARReserve(ctx context.Context, paymentID st
 			return fmt.Errorf("%w non-success Pacioli code (%s)", payments.ErrInternal, tx[0].Code.String())
 		}
 	}
+
 	return nil
 }
 
@@ -182,20 +187,13 @@ func (a *Activity) CrossProviderGatehubTransferToOmnibus(ctx context.Context, pa
 
 // CrossProviderGatehubTransferFromOmnibus moves EUR from the GateHub omnibus to the given linked account.
 // Used for Scenario 2 payout (omnibus → receiver) and Scenario 1 rollback (omnibus → sender).
-func (a *Activity) CrossProviderGatehubTransferFromOmnibus(ctx context.Context, paymentID, linkedAccountID string) (string, error) {
+func (a *Activity) CrossProviderGatehubTransferFromOmnibus(ctx context.Context, paymentID, receiverLinkedAccountID string) (string, error) {
 	p, err := Lookup(ctx, a.b, paymentID)
 	if err != nil {
 		return "", err
 	}
 
-	var amount currency.Amount
-	if p.SenderAccount == linkedAccountID {
-		amount = p.SenderAmount
-	} else {
-		amount = p.ReceiverAmount
-	}
-
-	externalTx, err := a.b.Gatehub().TransferOmnibusToUser(ctx, linkedAccountID, amount)
+	externalTx, err := a.b.Gatehub().TransferOmnibusToUser(ctx, receiverLinkedAccountID, p.ReceiverAmount)
 	if err != nil {
 		return "", fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
@@ -371,10 +369,12 @@ func (a *Activity) PostXagoToGatehubTransfers(ctx context.Context, paymentID, xa
 	if err != nil {
 		return fmt.Errorf("%w posting ZAR reserve: %s", payments.ErrInternal, err)
 	}
+	// TODO extract and reuse logic for failed transactions
 	if len(postRes) > 0 && postRes[0].Code != 0 && postRes[0].Code != pacioli.TransferPendingTransferAlreadyPosted {
 		return fmt.Errorf("%w non-success code posting reserve (%s)", payments.ErrInternal, postRes[0].Code.String())
 	}
 
+	// TODO should the transactions be created at the beginning of the workflow?
 	createRes, err := a.b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
 		{
 			ID:              xagoOpsTxID,
@@ -396,17 +396,20 @@ func (a *Activity) PostXagoToGatehubTransfers(ctx context.Context, paymentID, xa
 		},
 	})
 	if err != nil {
-		return fmt.Errorf("%w creating S2 posted transfers: %s", payments.ErrInternal, err)
+		return fmt.Errorf("%w creating XagoToGatehub posted transfers: %s", payments.ErrInternal, err)
 	}
 	for _, r := range createRes {
+		// TODO extract and reuse logic for failed transactions
 		if r.Code != 0 &&
 			r.Code != pacioli.TransferExistsWithDifferentDebitAccountId &&
 			r.Code != pacioli.TransferExistsWithDifferentCreditAccountId {
-			return fmt.Errorf("%w non-success code on S2 posted transfer (%s)", payments.ErrInternal, r.Code.String())
+			return fmt.Errorf("%w non-success code on XagoToGatehub posted transfer (%s)", payments.ErrInternal, r.Code.String())
 		}
 	}
 	return nil
 }
+
+// TODO review this CrossProviderGatehubRollbackTransfer
 
 // CrossProviderGatehubRollbackTransfer moves EUR from the GateHub omnibus back to the sender.
 // Called during rollback if the GateHub API transfer already happened (tracked via gatehub_transactions).
