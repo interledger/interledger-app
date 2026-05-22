@@ -46,8 +46,9 @@ export async function loader({ request }: Route.LoaderArgs) {
 
     if (flowId) {
       // If ?flow=.. was in the URL, we fetch it
-      const { data: flowData } = await kratosPublic.getLoginFlow({ id: flowId, cookie })
-      flow = flowData
+      const response = await kratosPublic.getLoginFlow({ id: flowId, cookie })
+      flow = response.data
+      responseHeaders = buildHeadersWithCookies(response)
     } else {
       // Otherwise we initialize it
       const returnTo = safeReturnTo(url.searchParams.get('returnTo'))
@@ -248,6 +249,11 @@ export async function action({ request }: Route.ActionArgs) {
         `${href('/totp/challenge')}?${searchParams.toString()}`,
         { headers }
       )
+    }
+
+    // CSRF cookie missing or expired — redirect to get a fresh flow
+    if (errResponse?.status === 403) {
+      return redirect(`/login?returnTo=${encodeURIComponent(returnTo)}`)
     }
 
     logger.error({ error: err, route: 'login' }, 'Failed to submit login')
