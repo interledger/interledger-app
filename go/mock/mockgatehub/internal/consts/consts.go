@@ -137,4 +137,9 @@ const (
 	TestUser1Email = "testuser1@mockgatehub.local"
 	TestUser2ID    = "00000000-0000-0000-0000-000000000002"
 	TestUser2Email = "testuser2@mockgatehub.local"
+
+	// TODO omnibus instead of sending
+	// TestSendingUserID must match gatehub.TestSendingUserID in the backend package
+	TestSendingUserID    = "test-sending-user-id"
+	TestSendingUserEmail = "sendinguser@mockgatehub.local"
 )

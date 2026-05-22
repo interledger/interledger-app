@@ -28,12 +28,15 @@ const (
 )
 
 // CheckCrossProviderType determines whether a payment is a cross-provider transfer.
+// TODO check only what we need (CrossProviderGatehubToXago or CrossProviderXagoToGatehub)
 func (a *Activity) CheckCrossProviderType(ctx context.Context, paymentID string) (CrossProviderType, error) {
 	p, err := Lookup(ctx, a.b, paymentID)
 	if err != nil {
 		return CrossProviderNone, err
 	}
 
+	// TODO What are the payment types allowed for cross provider?
+	// TODO What does p.SenderAccount == "" mean? How do we determine if it's an error?
 	if p.Type != payments.TypePeer2Peer || p.SenderAccount == "" {
 		// TODO check if this this the correct thing to return
 		return CrossProviderNone, nil

@@ -62,6 +62,31 @@ func SeedTestUsersWithOrgID(store Storage, defaultOrgID string) error {
 		}
 	}
 
+	// TODO omnibus instead of SendingUser
+	// Sending/omnibus user: used as the source in TransferOmnibusToUser
+	sendingUser := &models.User{
+		ID:        consts.TestSendingUserID,
+		Email:     consts.TestSendingUserEmail,
+		Activated: true,
+		Managed:   true,
+		Role:      "user",
+		Features:  []string{"wallet"},
+		KYCState:  consts.KYCStateAccepted,
+		RiskLevel: consts.RiskLevelLow,
+	}
+
+	if err := store.CreateUser(sendingUser); err != nil {
+		// User might already exist, ignore error
+	}
+
+	for _, currency := range []string{"EUR"} {
+		if bal, _ := store.GetBalance(sendingUser.ID, currency); bal == 0 {
+			if err := store.AddBalance(sendingUser.ID, currency, 10000.00); err != nil {
+				return err
+			}
+		}
+	}
+
 	// Create default organization
 	now := time.Now()
 	defaultOrg := &models.Organization{

@@ -16,8 +16,8 @@ import (
 	"gitlab.com/fynbos/backend/providers/chimoney"
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	"gitlab.com/fynbos/backend/providers/pti"
-	"gitlab.com/fynbos/backend/rafiki"
 	xago_external "gitlab.com/fynbos/backend/providers/xago/external"
+	"gitlab.com/fynbos/backend/rafiki"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
 
@@ -1294,7 +1294,16 @@ func SignalGatehubTransferComplete(ctx context.Context, b Backends, externalTran
 		return err
 	}
 
+	// TODO maybe ignore the serviceerror.NotFound error (workflow already completed)
 	return b.Temporal().SignalWorkflow(ctx, fmt.Sprintf(payoutWorkflowFmt, paymentID), "", gatehubNotifyChanName, nil)
+
+	// err = b.Temporal().SignalWorkflow(ctx, fmt.Sprintf(payoutWorkflowFmt, paymentID), "", gatehubNotifyChanName, nil)
+	// if _, ok := err.(*serviceerror.NotFound); ok {
+	// 	// Workflow already completed before the webhook arrived — signal is no longer needed.
+	//  // TODO log that the error was swallowed and the reason
+	// 	return nil
+	// }
+	// return err
 }
 
 func ListAwaitingSignal(ctx context.Context, b Backends) ([]payments.Payment, error) {

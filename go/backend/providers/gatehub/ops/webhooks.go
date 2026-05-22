@@ -179,23 +179,27 @@ func NewWebhook(b Backends, cfg gatehub.Config) http.HandlerFunc {
 			return
 		}
 
-		if _, err := getWalletID(r.Context(), b, wh.UserID); err != nil {
-			log.Info("Wallet not found for Gatehub user; attempting cards fallback",
-				zap.String("external_user_uuid", wh.UserID),
-				zap.Error(err),
-			)
-
-			if err := forwardWebhookToFallback(r.Context(), body, r.Header, cfg.FallbackWebhookURL); err != nil {
-				log.Error("failed to forward webhook to cards fallback",
-					zap.Error(err),
+		// TODO some omnibus user id instead of SendingUserID
+		// TODO ask whether we will have a wallet for the Omnibus user
+		if wh.UserID != cfg.SendingUserID {
+			if _, err := getWalletID(r.Context(), b, wh.UserID); err != nil {
+				log.Info("Wallet not found for Gatehub user; attempting cards fallback",
 					zap.String("external_user_uuid", wh.UserID),
+					zap.Error(err),
 				)
-				http.Error(w, "Failed to forward webhook", http.StatusInternalServerError)
+
+				if err := forwardWebhookToFallback(r.Context(), body, r.Header, cfg.FallbackWebhookURL); err != nil {
+					log.Error("failed to forward webhook to cards fallback",
+						zap.Error(err),
+						zap.String("external_user_uuid", wh.UserID),
+					)
+					http.Error(w, "Failed to forward webhook", http.StatusInternalServerError)
+					return
+				}
+
+				w.WriteHeader(http.StatusOK)
 				return
 			}
-
-			w.WriteHeader(http.StatusOK)
-			return
 		}
 
 		switch wh.EventType {
