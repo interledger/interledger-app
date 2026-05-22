@@ -23,6 +23,7 @@ import {
   WalletGrid
 } from '~/components'
 import { Label } from '~/components/Label'
+import { computeCardSubtotalStyles } from '~/lib/cards/utils'
 import { usePendingConfirmations } from '~/lib/cards/usePendingConfirmations'
 import { usePusher } from '~/lib/usePusher'
 import type { loader, AppLoaderData } from './route'
@@ -248,49 +249,65 @@ export function AppPage() {
                   })}
                   className='justify-between'
                 >
-                  <div className='flex space-x-1'>
-                    {transaction.state == 'Pending' && <Icon>schedule</Icon>}
-                    {transaction.state == 'Failed' && (
-                      <Icon className='text-error'>exclamation</Icon>
-                    )}
-                    {transaction.state != 'Pending' &&
-                      transaction.state != 'Failed' && (
-                        <>
-                          {transaction.destinationIdentityType == 'wallet' && (
+                  <div className='flex w-7/12 items-center space-x-2'>
+                    {transaction.type === 'card_transaction' ? (
+                      <>
+                        {transaction.state === 'Failed' ? (
+                          <Icon>credit_card_off</Icon>
+                        ) : transaction.state === 'Pending' ? (
+                          <Icon>schedule</Icon>
+                        ) : transaction.cardTransactionDetails?.classification === 'Reversal' ? (
+                          <Icon>undo</Icon>
+                        ) : (
+                          <Icon>credit_card</Icon>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        {transaction.state == 'Pending' && <Icon>schedule</Icon>}
+                        {transaction.state == 'Failed' && (
+                          <Icon className='text-error'>exclamation</Icon>
+                        )}
+                        {transaction.state != 'Pending' &&
+                          transaction.state != 'Failed' && (
                             <>
-                              {transaction.type != 'withdrawal' &&
-                                transaction.type != 'deposit' && (
-                                  <InterledgerIcon />
-                                )}
-                              {transaction.type == 'withdrawal' && (
-                                <Icon>south_west</Icon>
+                              {transaction.destinationIdentityType == 'wallet' && (
+                                <>
+                                  {transaction.type != 'withdrawal' &&
+                                    transaction.type != 'deposit' && (
+                                      <InterledgerIcon />
+                                    )}
+                                  {transaction.type == 'withdrawal' && (
+                                    <Icon>south_west</Icon>
+                                  )}
+                                  {transaction.type == 'deposit' && (
+                                    <Icon>north_east</Icon>
+                                  )}
+                                </>
                               )}
-                              {transaction.type == 'deposit' && (
-                                <Icon>north_east</Icon>
+                              {transaction.destinationIdentityType == 'Twitter' && (
+                                <TwitterIcon />
+                              )}
+                              {transaction.destinationIdentityType == 'Slack' && (
+                                <SlackIcon />
                               )}
                             </>
                           )}
-                          {transaction.destinationIdentityType == 'Twitter' && (
-                            <TwitterIcon />
+                        {transaction.state != 'Pending' &&
+                          transaction.state != 'Failed' &&
+                          transaction.destinationIdentityType == 'Unknown' && (
+                            <Icon>account_circle</Icon>
                           )}
-                          {transaction.destinationIdentityType == 'Slack' && (
-                            <SlackIcon />
-                          )}
-                          {transaction.type == 'card_transaction' && (
-                            <Icon>credit_card</Icon>
-                          )}
-                        </>
-                      )}
-                    {transaction.state != 'Pending' &&
-                      transaction.state != 'Failed' &&
-                      transaction.destinationIdentityType == 'Unknown' && (
-                        <Icon>account_circle</Icon>
-                      )}
-                    <div className='flex flex-col space-y-1'>
-                      <span className='text-medium'>{transaction.title}</span>
+                      </>
+                    )}
+                    <div className='flex w-full flex-col space-y-1'>
+                      <span className='truncate text-medium'>{transaction.title}</span>
                       <span className='text-xs text-weak'>
                         {transaction.formattedDate} -{' '}
                         {transaction.formattedTime}
+                        {transaction.type === 'card_transaction' &&
+                          transaction.reference &&
+                          `, ${transaction.reference}`}
                       </span>
                     </div>
                   </div>
@@ -298,18 +315,17 @@ export function AppPage() {
                     <span
                       className={clsx(
                         'font-medium',
-                        transaction.type == 'sent' ||
-                          (transaction.type == 'card_transaction' &&
-                            transaction.state === 'Completed')
+                        transaction.type === 'card_transaction'
+                          ? computeCardSubtotalStyles(
+                              transaction.cardTransactionDetails
+                            )
+                          : transaction.type === 'sent' ||
+                            transaction.type === 'web_monetization_outgoing'
                           ? 'text-error'
                           : 'text-medium'
                       )}
                     >
-                      {transaction.type == 'sent' && '- '}
-                      {transaction.type == 'card_transaction' &&
-                        transaction.state == 'Completed' &&
-                        '- '}
-                      {transaction.formattedAmount}
+                      {transaction.subtotal}
                     </span>
                     <Icon>navigate_next</Icon>
                   </div>

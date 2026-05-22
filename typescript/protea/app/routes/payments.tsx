@@ -380,7 +380,8 @@ export default function Page() {
 
                         <span className='text-xs text-weak'>
                           {transaction.formattedTime}
-                          {transaction.reference &&
+                          {transaction.type === 'card_transaction' &&
+                            transaction.reference &&
                             `, ${transaction.reference}`}
                         </span>
                       </div>
