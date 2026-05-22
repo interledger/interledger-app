@@ -13,13 +13,12 @@ import {
 } from '~/data/wallet.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
+import plaid, { isPlaidError } from '~/lib/plaid.server'
 import { hasUserSession } from '~/lib/kratos/session.server'
 import { getPusherArgs } from '~/lib/pusher.server'
 import flagStyles from '~/styles/flags.css?url'
 import { AppPage } from './app'
 import { MarketingPage } from './marketing'
-
-
 
 export const links: LinksFunction = () => {
   return [{ rel: 'stylesheet', href: flagStyles }]
@@ -57,6 +56,13 @@ async function appLoader({ request }: LoaderFunctionArgs) {
   ])
   if (isConnectError(balanceResponse)) throw balanceResponse.error
 
+  // Plaid is US-only — only fetch state for US wallets to avoid unnecessary
+  // HTTP calls for every other jurisdiction.
+  const plaidState =
+    walletInfo.country === 'US' ? await plaid.getState(request) : null
+  // TODO: remove — temp log to verify country gate
+  console.log('[F14] country=%s plaidState=%s', walletInfo.country, plaidState === null ? 'skipped' : isPlaidError(plaidState) ? 'error' : `linked=${plaidState.linked}`)
+
   return data({
     isUser: true,
     walletInfo,
@@ -64,7 +70,9 @@ async function appLoader({ request }: LoaderFunctionArgs) {
     kycStatus: kycStatus.kycStatus,
     pusherArgs,
     features,
-    balances: balanceResponse.balances
+    balances: balanceResponse.balances,
+    plaidLinked:
+      plaidState !== null && !isPlaidError(plaidState) && plaidState.linked
   })
 }
 
