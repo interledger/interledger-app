@@ -8,7 +8,7 @@ import { useState } from 'react'
 import { mergeMeta } from '~/lib/meta'
 import { AmountDisplay } from '~/components/QuickPay/Dialpad'
 import { formatAmount, formatDate, requestPaymentSchema, routeAllowed } from '~/lib/utils.server'
-import { useDialPadContext } from '~/lib/context/dialpad'
+import { useDialPadStore } from '~/lib/useDialPadStore'
 import { QuickPaySession } from '~/lib/types'
 import { Icon } from '~/components/Icon'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
@@ -21,8 +21,8 @@ export async function loader({ request }: Route.LoaderArgs) {
   routeAllowed('OP_INTPAY_ENABLED')
   const session = await getSession(request.headers.get('Cookie'))
   const sessionData = session.get('quickPay')
-  const walletAddressInfo = sessionData?.validWalletAddress
-  const assetCode = walletAddressInfo?.validWalletAddress?.assetCode
+  const walletAddressInfo = sessionData?.senderAddress
+  const assetCode = walletAddressInfo?.senderAddress?.assetCode
 
   const incomingPayment = sessionData?.request
   const showGeneratedRequest = !!incomingPayment
@@ -74,7 +74,7 @@ export const meta: MetaFunction = mergeMeta(() => [
 export default function Page() {
   const { walletAddress, assetCode, incomingPaymentData, showGeneratedRequest } = useLoaderData<typeof loader>()
   const actionData = useActionData<typeof action>()
-  const { amountValue } = useDialPadContext()
+  const { amountValue } = useDialPadStore()
   const errors = actionData?.errors
   const [copied, setCopied] = useState(false)
   const pushSnackbar = useScaffoldStore((state) => state.pushSnackbar)

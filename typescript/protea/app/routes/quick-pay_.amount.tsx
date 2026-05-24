@@ -8,7 +8,7 @@ import type { ApplicationProps } from '~/components'
 import { Button, GridColumn, Layouts, WalletGrid } from '~/components'
 import { BackButton } from '~/components/QuickPay'
 import { DialPad, DialPadIds } from '~/components/QuickPay/Dialpad'
-import { useDialPadContext } from '~/lib/context/dialpad'
+import { useDialPadStore } from '~/lib/useDialPadStore'
 import { mergeMeta } from '~/lib/meta'
 import { getSession } from '~/session.server'
 import { routeAllowed } from '~/lib/utils.server'
@@ -17,7 +17,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   routeAllowed('OP_INTPAY_ENABLED')
   const session = await getSession(request.headers.get('Cookie'))
   const walletAddressInfo = session.get('quickPay')
-  const assetCode = walletAddressInfo?.validWalletAddress?.assetCode
+  const assetCode = walletAddressInfo?.senderAddress?.assetCode
 
   if (walletAddressInfo === undefined || assetCode === undefined) {
     throw data(
@@ -49,7 +49,7 @@ export const meta: MetaFunction = mergeMeta(() => [
 export default function Page() {
   const navigate = useNavigate()
   const { assetCode } = useLoaderData<typeof loader>()
-  const { amountValue, setAmountValue, setAssetCode } = useDialPadContext()
+  const { amountValue, setAmountValue, setAssetCode } = useDialPadStore()
 
   useEffect(() => {
     setAssetCode(assetCode)
@@ -80,7 +80,7 @@ export default function Page() {
       <GridColumn
         className='col-span-full mt-20 mx-auto'
       >
-        <BackButton title="Back" to="/quick-pay" resetAmount/>
+        <BackButton title="Back" to="/quick-pay"/>
         <DialPad />
         <div className="flex justify-center gap-2 mt-12 w-64">
           <Button

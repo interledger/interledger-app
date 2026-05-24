@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { useEffect, useState } from 'react'
-import { useDialPadContext } from '~/lib/context/dialpad'
+import { useDialPadStore } from '~/lib/useDialPadStore'
 import { getCurrencySymbol } from '~/lib/helpers'
 
 export enum DialPadIds {
@@ -45,7 +45,7 @@ const handleDialPadInputs = (id: string, amountValue: string, setAmountValue: (a
 }
 
 export const DialPad = () => {
-  const { amountValue, setAmountValue } = useDialPadContext()
+  const { amountValue, setAmountValue } = useDialPadStore()
   const [activeKey, setActiveKey] = useState<string | null>(null)
 
   const triggerKey = (key: string) => {
@@ -134,7 +134,7 @@ type DialPadKeyProps = {
   activeKey: string | null
 }
 const DialPadKey = ({ label, id, activeKey }: DialPadKeyProps) => {
-  const { amountValue, setAmountValue } = useDialPadContext()
+  const { amountValue, setAmountValue } = useDialPadStore()
   const isActive = id == activeKey
 
   return (
@@ -161,7 +161,7 @@ type AmountDisplayProps = {
 }
 
 export const AmountDisplay = (args: AmountDisplayProps) => {
-  const { amountValue, assetCode } = useDialPadContext()
+  const { amountValue, assetCode } = useDialPadStore()
 
   const value = args.displayAmount
     ? `${getCurrencySymbol(args?.assetCode ?? 'usd')} ${args.displayAmount}`

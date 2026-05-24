@@ -1,3 +1,5 @@
+import { Grant, IncomingPayment, Quote, type WalletAddress } from '@interledger/open-payments'
+
 export type IframeMessageType = 'WithdrawalCompleted' | 'StripeDepositCompleted';
 
 export interface IframeMessage {
@@ -21,24 +23,16 @@ export interface Amount {
   assetScale: number
 }
 
-export interface WalletAddressType {
-  id: string
-  assetScale: number
-  assetCode: string
-  authServer: string
-  resourceServer: string
-}
-
 export type FormatAmountArgs = Amount & {
   value: string
 }
 
 export type QuickPaySession = {
-  validWalletAddress?: any
-  receiverAddress?: any
-  quote?: any
-  grants?: any
-  request?: any
+  senderAddress?: WalletAddress
+  receiverAddress?: WalletAddress
+  quote?: Quote
+  grants?: Record<string, Grant>
+  request?: IncomingPayment
 }
 
 export type ActionData = {

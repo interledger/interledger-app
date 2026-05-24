@@ -6,10 +6,10 @@ import { useEffect, useState } from 'react'
 import { z } from 'zod'
 import { ActionMessage, type ApplicationProps, Button, GridColumn, Layouts, TextField, WalletGrid } from '~/components'
 import { AmountDisplay, QuoteDialog, PayWithInterledgerMark } from '~/components/QuickPay/'
-import { useDialPadContext } from '~/lib/context/dialpad'
+import { useDialPadStore } from '~/lib/useDialPadStore'
 import { mergeMeta } from '~/lib/meta'
 import { fetchQuote, getValidWalletAddress, initializePayment } from '~/lib/open-payments.server'
-import { paymentSchema, formatAmount, createError, handleSessionUpdate, routeAllowed } from '~/lib/utils.server'
+import { paymentSchema, formatAmount, createError, routeAllowed } from '~/lib/utils.server'
 import { commitSession, getSession } from '~/session.server'
 import { type ActionData, QuickPaySession } from '~/lib/types'
 import { formatError } from '~/lib/helpers'
@@ -22,7 +22,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   const isQuote = searchParams.get('quote') || false
   const session = await getSession(request.headers.get('Cookie'))
   const sessionData = session.get('quickPay')
-  const walletAddressInfo = sessionData?.validWalletAddress
+  const walletAddressInfo = sessionData?.senderAddress
 
   let receiverName = ''
   let receiveAmount = null
@@ -94,7 +94,7 @@ export default function Page() {
   const actionData = useActionData<ActionData>()
   const navigation = useNavigation()
   const isSubmitting = navigation.state === "submitting"
-  const { amountValue } = useDialPadContext()
+  const { amountValue } = useDialPadStore()
   const [modalOpen, setModalOpen] = useState(false)
   const errors = actionData?.errors
   const clearSessionKeys: Array<keyof QuickPaySession>  = ['receiverAddress']
@@ -174,13 +174,10 @@ export default function Page() {
 export async function action({ request }: Route.ActionArgs) {
   const session = await getSession(request.headers.get('Cookie'))
   const sessionData: QuickPaySession = session.get('quickPay') || {}
-  const walletAddressInfo = sessionData.validWalletAddress
+  const walletAddressInfo = sessionData.senderAddress
 
   const formData = Object.fromEntries(await request.formData())
   const intent = formData.intent
-
-  //Used by BackButton logic
-  await handleSessionUpdate(session, formData)
 
   if (intent !== 'pay' && intent !== 'confirm') {
     sessionData.quote = undefined
@@ -223,7 +220,17 @@ export async function action({ request }: Route.ActionArgs) {
     })
   }
 
-  const quote = sessionData?.quote
+if (sessionData?.quote === undefined) {
+    throw data(
+      {
+        code: "QUICKPAY_SESSION_ERROR",
+        title: "Payment session expired."
+      },
+      { status: 400 }
+    )
+  }
+
+  const quote = sessionData.quote
   if (intent === 'confirm') {
     if (quote === undefined || walletAddressInfo === undefined) {
       throw data(
@@ -237,7 +244,7 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   const { paymentId, outgoingPaymentGrant } = await initializePayment({
-    walletAddress: walletAddressInfo.id,
+    walletAddress: String(walletAddressInfo?.id),
     quote
   })
   sessionData.grants = { ...(sessionData?.grants || {}), [paymentId]: outgoingPaymentGrant }
