@@ -44,6 +44,9 @@ type E2EContext struct {
 	userDetails map[string]*UserDetails
 	currentUser string // Currently impersonated user
 
+	// Botanist admin portal
+	botanistBaseURL string
+
 	// Payment flow state
 	receiverWalletAddress string // Wallet address/identifier for payment receiver
 	ptiDepositRequestID   string // PTI deposit requestId, captured from /deposit/:id URL
@@ -156,6 +159,7 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 
 	// Login steps
 	ctx.Step(`^I clear the browser session$`, func() error { return sc.iClearTheBrowserSession() })
+	ctx.Step(`^I start a new browser session$`, func() error { return sc.iStartANewBrowserSession() })
 	ctx.Step(`^I navigate to (https?://.+)$`, func(url string) error { return sc.iNavigateToURL(url) })
 	ctx.Step(`^I navigate to the login page$`, func() error { return sc.iNavigateToTheLoginPage() })
 	ctx.Step(`^I fill in my login credentials$`, func() error { return sc.iFillInMyLoginCredentials() })
@@ -185,6 +189,7 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 		return sc.iDepositViaPTIDepositForm(amount, currency)
 	})
 	ctx.Step(`^mockpti returns the deposit$`, func() error { return sc.iMockptiReturnsTheDeposit() })
+	ctx.Step(`^I fill and submit the mockxago KYC iframe$`, func() error { return sc.iFillAndSubmitTheMockxagoiframe() })
 	ctx.Step(`^I wait for the KYC completion$`, func() error { return sc.iWaitForTheKYCCompletion() })
 
 	// Wallet address creation steps
@@ -208,6 +213,26 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	})
 	ctx.Step(`^that Gatehub charges my user a ([0-9.]+)% deposit fee$`, func(feePercent string) error {
 		return sc.thatGatehubChargesDepositFee(feePercent)
+	})
+
+	// Xago deposit steps
+	ctx.Step(`^I simulate a Xago test deposit of "([^"]*)" "([^"]*)"$`, func(amount, currency string) error {
+		return sc.iSimulateXagoTestDeposit(amount, currency)
+	})
+	ctx.Step(`^I initiate a deposit for my Xago linked account$`, func() error {
+		return sc.iInitiateDepositForXagoLinkedAccount()
+	})
+	ctx.Step(`^my Xago specific deposit instructions should be displayed to me$`, func() error {
+		return sc.myXagoSpecificDepositInstructionsShouldBeDisplayedToMe()
+	})
+	ctx.Step(`^I click the Test Deposit button$`, func() error {
+		return sc.iClickTheXagoTestDepositButton()
+	})
+	ctx.Step(`^I simulate a "([^"]*)" "ZAR" EFT payment to Xago$`, func(amount string) error {
+		return sc.iSimulateXagoTestDeposit(amount, "ZAR")
+	})
+	ctx.Step(`^I wait "([^"]*)" seconds for the webhook to be processed$`, func(seconds string) error {
+		return sc.iWaitSeconds(seconds)
 	})
 
 	// Withdrawal steps
@@ -256,6 +281,157 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	})
 	ctx.Step(`^I should see the payment in my transaction history$`, func() error {
 		return sc.iShouldSeeThePaymentInMyTransactionHistory()
+	})
+	ctx.Step(`^I should see text "([^"]*)" on the page$`, func(text string) error {
+		return sc.iShouldSeeTextOnThePage(text)
+	})
+
+	// Bank account linking steps (Xago ZA)
+	ctx.Step(`^I navigate to the dashboard (\w+)$`, func(page string) error {
+		return sc.iNavigateToTheDashboardPage(page)
+	})
+	ctx.Step(`^I press on "([^"]*)"$`, func(text string) error {
+		return sc.iPressOn(text)
+	})
+	ctx.Step(`^I should see the "([^"]*)" form$`, func(formTitle string) error {
+		return sc.iShouldSeeTheForm(formTitle)
+	})
+	ctx.Step(`^I fill in "([^"]*)" with "([^"]*)"$`, func(fieldLabel, value string) error {
+		return sc.iFillInFieldWith(fieldLabel, value)
+	})
+	ctx.Step(`^select Bank option "([^"]*)"$`, func(bankName string) error {
+		return sc.selectBankOption(bankName)
+	})
+	ctx.Step(`^I should be navigated to dashboard "([^"]*)"$`, func(dashboardName string) error {
+		return sc.iShouldBeNavigatedToDashboard(dashboardName)
+	})
+	ctx.Step(`^the linked account should be shown as "([^"]*)"$`, func(displayText string) error {
+		return sc.theLinkedAccountShouldBeShownAs(displayText)
+	})
+	ctx.Step(`^the "([^"]*)" label should be shown for the account$`, func(label string) error {
+		return sc.theLabelShouldBeShownForTheAccount(label)
+	})
+	ctx.Step(`^I give the linked account the nickname "([^"]*)"$`, func(nickname string) error {
+		return sc.iGiveTheLinkedAccountTheNickname(nickname)
+	})
+
+	// Xago withdrawal steps
+	ctx.Step(`^I linked a SA bank account with "([^"]*)" and account number "([^"]*)"$`, func(bankName, accountNumber string) error {
+		return sc.iLinkedASABankAccount(bankName, accountNumber)
+	})
+	ctx.Step(`^I deposited "([^"]*)" "([^"]*)" into my xago backed wallet$`, func(amount, currency string) error {
+		return sc.iDepositedIntoMyXagoBackedWallet(amount, currency)
+	})
+	ctx.Step(`^I set the withdraw amount to "([^"]*)"$`, func(amount string) error {
+		return sc.iSetTheWithdrawAmountTo(amount)
+	})
+	ctx.Step(`^I select the first available linked account to withdraw to$`, func() error {
+		return sc.iSelectFirstAvailableLinkedAccountToWithdrawTo()
+	})
+	ctx.Step(`^I set the withdraw note to "([^"]*)"$`, func(note string) error {
+		return sc.iSetTheWithdrawNoteTo(note)
+	})
+
+	// Card ordering steps
+	ctx.Step(`^I complete the signup workflow for '([^']*)'$`, func(userName string) error {
+		return sc.iCompleteSignupWorkflowFor(userName)
+	})
+	ctx.Step(`^the "([^"]*)" navigation item should not be visible$`, func(label string) error {
+		return sc.theNavItemShouldNotBeVisible(label)
+	})
+	ctx.Step(`^I navigate to "([^"]*)"$`, func(path string) error {
+		return sc.iNavigateToPath(path)
+	})
+	ctx.Step(`^I should be redirected to "([^"]*)"$`, func(path string) error {
+		return sc.iShouldBeRedirectedTo(path)
+	})
+	ctx.Step(`^I navigate to the cards page$`, func() error {
+		return sc.iNavigateToTheCardsPage()
+	})
+	ctx.Step(`^I should see the cards page with an "([^"]*)" button$`, func(buttonText string) error {
+		return sc.iShouldSeeTheCardsPageWithButton(buttonText)
+	})
+	ctx.Step(`^I should be on the card order page$`, func() error {
+		return sc.iShouldBeOnTheCardOrderPage()
+	})
+	ctx.Step(`^I select the first available card product$`, func() error {
+		return sc.iSelectTheFirstAvailableCardProduct()
+	})
+	ctx.Step(`^I should be on the delivery address step$`, func() error {
+		return sc.iShouldBeOnTheDeliveryAddressStep()
+	})
+	ctx.Step(`^I select the existing delivery address$`, func() error {
+		return sc.iSelectTheExistingDeliveryAddress()
+	})
+	ctx.Step(`^I should be on the card order confirmation step$`, func() error {
+		return sc.iShouldBeOnTheCardOrderConfirmationStep()
+	})
+	ctx.Step(`^I confirm the card order$`, func() error {
+		return sc.iConfirmTheCardOrder()
+	})
+	ctx.Step(`^I should see the snackbar "([^"]*)"$`, func(message string) error {
+		return sc.iShouldSeeTheSnackbar(message)
+	})
+
+	// Botanist admin portal steps
+	ctx.Step(`^the admin portal is running at "([^"]*)"$`, func(url string) error {
+		return sc.theAdminPortalIsRunningAt(url)
+	})
+	ctx.Step(`^I navigate to the admin portal$`, func() error {
+		return sc.iNavigateToTheAdminPortal()
+	})
+	ctx.Step(`^the navigation menu should be visible$`, func() error {
+		return sc.theNavigationMenuShouldBeVisible()
+	})
+	ctx.Step(`^the "([^"]*)" menu item should be visible$`, func(label string) error {
+		return sc.theMenuItemShouldBeVisible(label)
+	})
+	ctx.Step(`^the page title should be "([^"]*)"$`, func(title string) error {
+		return sc.thePageTitleShouldBe(title)
+	})
+
+	// Botanist wallets filter steps
+	ctx.Step(`^I navigate to the botanist wallets page$`, func() error {
+		return sc.iNavigateToTheBotanistWalletsPage()
+	})
+	ctx.Step(`^I filter the wallets list by "([^"]*)"$`, func(term string) error {
+		return sc.iFilterTheWalletsListBy(term)
+	})
+	ctx.Step(`^I filter the wallets list by my wallet name$`, func() error {
+		return sc.iFilterTheWalletsListByMyWalletName()
+	})
+	ctx.Step(`^my wallet should appear in the wallets list$`, func() error {
+		return sc.myWalletShouldAppearInTheWalletsList()
+	})
+	ctx.Step(`^the wallets list should show exactly 1 result$`, func() error {
+		return sc.theWalletsListShouldShowExactlyOneResult()
+	})
+	ctx.Step(`^the wallets list should have more than 1 result$`, func() error {
+		return sc.theWalletsListShouldHaveMoreThanOneResult()
+	})
+	ctx.Step(`^I navigate to my wallet profile page in the admin portal$`, func() error {
+		return sc.iNavigateToMyWalletProfileInAdminPortal()
+	})
+	ctx.Step(`^the reset authenticator button should be visible$`, func() error {
+		return sc.theResetAuthenticatorButtonShouldBeVisible()
+	})
+	ctx.Step(`^I click the reset authenticator button$`, func() error {
+		return sc.iClickTheResetAuthenticatorButton()
+	})
+	ctx.Step(`^the authenticator reset confirmation modal should be visible$`, func() error {
+		return sc.theAuthenticatorResetConfirmationModalShouldBeVisible()
+	})
+	ctx.Step(`^I confirm the authenticator reset$`, func() error {
+		return sc.iConfirmTheAuthenticatorReset()
+	})
+	ctx.Step(`^the reset authenticator button should not be visible$`, func() error {
+		return sc.theResetAuthenticatorButtonShouldNotBeVisible()
+	})
+	ctx.Step(`^my TOTP should be disabled$`, func() error {
+		return sc.myTotpShouldBeDisabled()
+	})
+	ctx.Step(`^an authenticator reset audit log entry should exist$`, func() error {
+		return sc.anAuthenticatorResetAuditLogEntryShouldExist()
 	})
 }
 

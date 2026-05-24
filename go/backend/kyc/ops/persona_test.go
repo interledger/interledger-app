@@ -114,3 +114,53 @@ func TestGetApprovedPersonaInquiryURL(t *testing.T) {
 	_, err = ops.GetApprovedPersonaInquiryURL(context.Background(), b, uuid.NewString())
 	assert.ErrorIs(t, err, kyc.ErrNoKYCInfo)
 }
+
+func TestGetZAIDNumber(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+
+	ctrl := gomock.NewController(t)
+	uc := user_mock.NewMock()
+	wc := wallet_mock.NewMockClient(ctrl)
+	sc := signup_mock.NewMockClient(ctrl)
+	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx), nil, uc, sc, nil, nil, wc)
+	pc := persona_mock.NewMockClient(ctrl)
+
+	t.Run("returns ErrNoKYCInfo when no persona account record exists", func(t *testing.T) {
+		_, err := ops.GetZAIDNumber(ctx, b, pc, uuid.NewString())
+		assert.ErrorIs(t, err, kyc.ErrNoKYCInfo)
+	})
+
+	t.Run("returns ZA ID fetched from Persona account", func(t *testing.T) {
+		walletID, accID := uuid.NewString(), uuid.NewString()
+		b.DB().MustExec("INSERT INTO kyc_persona_accounts (external_id, wallet_id, updated_at) VALUES ($1,$2,now())", accID, walletID)
+
+		pc.EXPECT().GetAccount(ctx, accID).Return(&persona.AccountData{
+			Attributes: persona.IndividualAttributes{
+				IdentificationNumbers: map[string][]persona.IdentificationNumber{
+					"pp": {{IssuingCountry: "ZA", IdentificationNumber: "8406270000087"}},
+				},
+			},
+		}, nil)
+
+		idNum, err := ops.GetZAIDNumber(ctx, b, pc, walletID)
+		require.NoError(t, err)
+		assert.Equal(t, "8406270000087", idNum)
+	})
+
+	t.Run("returns ErrNoKYCInfo when Persona account has no ZA ID", func(t *testing.T) {
+		walletID, accID := uuid.NewString(), uuid.NewString()
+		b.DB().MustExec("INSERT INTO kyc_persona_accounts (external_id, wallet_id, updated_at) VALUES ($1,$2,now())", accID, walletID)
+
+		pc.EXPECT().GetAccount(ctx, accID).Return(&persona.AccountData{
+			Attributes: persona.IndividualAttributes{
+				IdentificationNumbers: map[string][]persona.IdentificationNumber{
+					"pp": {{IssuingCountry: "US", IdentificationNumber: "123456789"}},
+				},
+			},
+		}, nil)
+
+		_, err := ops.GetZAIDNumber(ctx, b, pc, walletID)
+		assert.ErrorIs(t, err, kyc.ErrNoKYCInfo)
+	})
+}

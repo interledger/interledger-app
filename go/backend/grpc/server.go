@@ -17,6 +17,8 @@ type rpcService struct {
 func NewServer(b Backends) (*grpc.Server, error) {
 	server := grpc.NewServer(
 		grpc.UnaryInterceptor(otelgrpc.UnaryServerInterceptor()),
+		MakeUnaryInterceptorRequestId(),
+		MakeUnaryInterceptorAppError(),
 		user_middleware.MakeUnaryInterceptor(b.Users()),
 		wallets_middleware.MakeUnaryInterceptor(b.Users(), b.Wallets()),
 	)

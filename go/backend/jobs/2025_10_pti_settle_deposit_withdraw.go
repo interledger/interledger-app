@@ -3,7 +3,6 @@ package jobs
 import (
 	"context"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/lestrrat-go/jwx/v3/jwk"
@@ -49,15 +48,15 @@ func (a *Activity) GetPTIPendingTransactions(ctx context.Context, walletID strin
 }
 
 func (a *Activity) GetAndPtiSettleTransactions(ctx context.Context, transactions []string, walletID string) error {
-	ptiPrivateKey, err := jwk.ParseKey([]byte(os.Getenv("PTI_JWK")))
+	ptiPrivateKey, err := jwk.ParseKey([]byte(a.cfg.PTIJWK))
 	if err != nil {
 		log.Fatalln(err)
 	}
 
 	ptiExternal, err := external.NewWithOptions(
-		external.WithBaseURL(os.Getenv("PTI_BASE_URL")),
+		external.WithBaseURL(a.cfg.PTIBaseURL),
 		external.WithOTELLHTTPClient(),
-		external.WithClientID(os.Getenv("PTI_CLIENT_ID")),
+		external.WithClientID(a.cfg.PTIClientID),
 		external.WithDerivedKeys(ptiPrivateKey),
 	)
 	if err != nil {

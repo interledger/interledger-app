@@ -30,6 +30,8 @@ DO NOT SUPPRESS TEST OUTPUT EVER
   + The `/withdraw` page loads a MockGatehub iframe widget similar to deposits
 - `iShouldSeeMyAccountBalanceWith` calls `getUserIDFromSignup` for diagnostics. If it logs `User NOT found in signups table: ...converting NULL to string...`, it means the signup row exists but `user_id` is NULL — a race condition where the Kratos user hasn't been linked yet. This is informational only; the actual balance check runs on the page.
 - `WaitForLoadState(networkidle)` without a timeout will block indefinitely if the page never settles. Always pass `Timeout: playwright.Float(10000)` when calling it inside retry loops.
+- `WaitForLoadState(networkidle)` without a timeout will block indefinitely if the page never settles. Always pass `Timeout: playwright.Float(10000)` when calling it.
+- **`wallets` table schema**: The `wallets` table does NOT have a `wallet_address` column. Wallet addresses are stored in the `wallet_addresses` table (`wallet_id`, `url`). Use a subquery: `(SELECT url FROM wallet_addresses WHERE wallet_id = w.id LIMIT 1)`.
 
 ## Maintain
 It is the job of the agent to add, update or remove relevant information to this file.

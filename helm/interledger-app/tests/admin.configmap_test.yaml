@@ -1,0 +1,42 @@
+suite: Interledger App - Admin ConfigMap
+templates:
+  - configMap.admin.yaml
+set:
+  fullnameOverride: wallet
+release:
+  name: wallet
+tests:
+  - it: 'Should create a ConfigMap with the correct name'
+    documentSelector:
+      path: kind
+      value: ConfigMap
+    asserts:
+      - equal:
+          path: metadata.name
+          value: wallet-admin-config
+
+  - it: 'Should include BACKEND_GRPC_URL in the ConfigMap data'
+    asserts:
+      - equal:
+          path: data.BACKEND_GRPC_URL
+          value: "http://wallet-backend-service-grpc:8448"
+
+  - it: 'Should include KRATOS_ADMIN_URL in the ConfigMap data'
+    asserts:
+      - equal:
+          path: data.KRATOS_ADMIN_URL
+          value: "http://kratos-admin:4434"
+
+  - it: 'Should include PAYMENT_POINTER_BASE in the ConfigMap data'
+    asserts:
+      - equal:
+          path: data.PAYMENT_POINTER_BASE
+          value: "development.ilp.link"
+
+  - it: 'Should produce no ConfigMap when admin is disabled'
+    set:
+      admin:
+        enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0

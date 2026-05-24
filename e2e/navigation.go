@@ -103,12 +103,20 @@ func (sc *E2EContext) iNavigateToTheSignupPage() error {
 
 	// Navigate directly to the signup page
 	signupURL := sc.baseURL + "/signup"
-	_, err = sc.page.Goto(signupURL, playwright.PageGotoOptions{
-		Timeout:   playwright.Float(30000),
-		WaitUntil: playwright.WaitUntilStateNetworkidle,
-	})
-	if err != nil {
-		return fmt.Errorf("failed to navigate to signup: %w", err)
+	var navErr error
+	for attempt := 0; attempt < 3; attempt++ {
+		_, navErr = sc.page.Goto(signupURL, playwright.PageGotoOptions{
+			Timeout:   playwright.Float(30000),
+			WaitUntil: playwright.WaitUntilStateNetworkidle,
+		})
+		if navErr == nil {
+			break
+		}
+		debugPrintf("   ⚠️  Navigation attempt %d failed: %v — retrying\n", attempt+1, navErr)
+		time.Sleep(2 * time.Second)
+	}
+	if navErr != nil {
+		return fmt.Errorf("failed to navigate to signup: %w", navErr)
 	}
 
 	// Ensure page is fully loaded by waiting for network
@@ -137,6 +145,8 @@ func (sc *E2EContext) iClickTheButton(buttonText string) error {
 		selector = "button:has-text('Continue'), button:has-text('Next'), button[type='submit']"
 	case "confirm", "submit":
 		selector = "button:has-text('Confirm'), button:has-text('Submit'), button[type='submit']"
+	case "order card":
+		selector = "a:has-text('Order card'), button:has-text('Order card')"
 	default:
 		selector = fmt.Sprintf("button:has-text('%s')", buttonText)
 	}
@@ -242,5 +252,45 @@ func (sc *E2EContext) iNavigateToTheLoginPage() error {
 		return fmt.Errorf("failed to navigate to login: %w", err)
 	}
 
+	return nil
+}
+
+func (sc *E2EContext) iStartANewBrowserSession() error {
+	if sc.browser == nil {
+		pw, err := playwright.Run()
+		if err != nil {
+			return fmt.Errorf("failed to start playwright: %w", err)
+		}
+		sc.pw = pw
+
+		browser, err := pw.Chromium.Launch()
+		if err != nil {
+			return fmt.Errorf("failed to launch browser: %w", err)
+		}
+		sc.browser = browser
+	}
+
+	if sc.page != nil {
+		_ = sc.page.Close()
+	}
+	if sc.context != nil {
+		_ = sc.context.Close()
+	}
+
+	context, err := sc.browser.NewContext(playwright.BrowserNewContextOptions{
+		IgnoreHttpsErrors: playwright.Bool(true),
+	})
+	if err != nil {
+		return fmt.Errorf("failed to create browser context: %w", err)
+	}
+	sc.context = context
+
+	page, err := context.NewPage()
+	if err != nil {
+		return fmt.Errorf("failed to create page: %w", err)
+	}
+	sc.page = page
+
+	debugPrintln("✓ Started a new browser session")
 	return nil
 }

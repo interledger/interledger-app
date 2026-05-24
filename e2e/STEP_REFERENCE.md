@@ -75,6 +75,31 @@ And I deposit "100" "EUR" via the deposit iframe
 Then I should see my balance updated with "100" "EUR"
 ```
 
+### Card Ordering
+```gherkin
+Given I complete the signup workflow for 'no-kyc-user'
+Then the "Cards" navigation item should not be visible
+When I navigate to "/cards"
+Then I should be redirected to "/"
+When I navigate to the cards page
+Then I should see the cards page with an "Order card" button
+Then I should be on the card order page
+When I select the first available card product
+Then I should be on the delivery address step
+When I select the existing delivery address
+Then I should be on the card order confirmation step
+When I confirm the card order
+Then I should see the snackbar "Your card in the making! We'll notify you as soon as it's ready to go."
+```
+
+### Botanist Admin — Wallet Filtering
+```gherkin
+When I navigate to the botanist wallets page
+When I filter the wallets list by "anna@example.com"
+When I filter the wallets list by my email
+Then my wallet should appear in the wallets list
+```
+
 ### Screenshots
 ```gherkin
 And I take a screenshot "kyc-completed-dashboard"
@@ -497,6 +522,107 @@ Feature: Signup Form Validation
 - Database queries are fast (< 1 second)
 - Waits for network idle add 2-3 seconds per page load
 - Total test should complete in 2-3 minutes
+
+---
+
+## Botanist Admin — Wallet Filtering
+
+Steps for the botanist admin wallet filter flow (`@botanist` tag). Requires the botanist admin app to be running.
+
+### Navigate to Botanist Wallets Page
+```gherkin
+When I navigate to the botanist wallets page
+```
+- Navigates to the botanist admin app's `/wallets` route
+- **Use for:** Admin wallet management scenarios
+
+### Filter Wallets by Search Term
+```gherkin
+When I filter the wallets list by "anna@example.com"
+```
+- Types the given string into the wallets filter input
+- Triggers client-side filtering of the displayed wallet rows
+- **Use for:** Verifying the search/filter input narrows results
+
+### Filter Wallets by the Test User's Email
+```gherkin
+When I filter the wallets list by my email
+```
+- Uses the current test user's email (set during signup) as the filter term
+- Equivalent to `I filter the wallets list by "..."` with the dynamic email
+- **Use for:** End-to-end filter scenarios that start from a signup
+
+### Assert Own Wallet Appears in the List
+```gherkin
+Then my wallet should appear in the wallets list
+```
+- Asserts that at least one row in the filtered wallets table is visible
+- **Requires:** A filter step that narrows results to the test user's wallet
+
+---
+
+## Card Ordering
+
+Steps for the card ordering flow (`@card-order` tag). Requires KYC to be completed — the `I complete the minimal KYC flow` step is a prerequisite for all ordering scenarios.
+
+### Signup Without KYC
+```gherkin
+Given I complete the signup workflow for 'no-kyc-user'
+```
+- Runs signup + email verification + TOTP + wallet address setup
+- Does **not** complete KYC
+- **Use for:** testing pre-KYC access restrictions
+
+### Nav Visibility Assertion
+```gherkin
+Then the "Cards" navigation item should not be visible
+```
+- Asserts a nav link with the given label is absent or hidden
+- **Use for:** verifying feature flags / capability gates
+
+### Path Navigation and Redirect
+```gherkin
+When I navigate to "/cards"
+Then I should be redirected to "/"
+```
+- `I navigate to "<path>"` — goes to base URL + path, waits for networkidle
+- `I should be redirected to "<path>"` — asserts current URL ends with the given path
+- **Use for:** testing unauthorized access redirects
+
+### Cards Page
+```gherkin
+When I navigate to the cards page
+Then I should see the cards page with an "Order card" button
+```
+- Navigates to `/cards` and asserts the "Order card" button is visible
+- **Requires:** KYC completed (`manageWalletCardsEnabled = true`)
+
+### Card Order Flow (multi-step)
+```gherkin
+When I click the "Order card" button
+Then I should be on the card order page
+
+When I select the first available card product
+And I click the "Physical" button
+Then I should be on the delivery address step
+
+When I select the existing delivery address
+And I click the "Confirm" button
+Then I should be on the card order confirmation step
+
+When I confirm the card order
+Then I should be redirected to "/cards"
+And I should see the snackbar "Your card in the making! We'll notify you as soon as it's ready to go."
+```
+
+Step details:
+- `I should be on the card order page` — waits for `/cards/order` URL + product images
+- `I select the first available card product` — clicks first `img[src*='cards/']`
+- `I should be on the delivery address step` — asserts radio group is visible
+- `I select the existing delivery address` — clicks first `[role='radio']` (KYC address)
+- `I should be on the card order confirmation step` — asserts submit/confirm button visible
+- `I confirm the card order` — submits the order form
+- `I should see the snackbar "<message>"` — waits for snackbar text; handles straight vs curly apostrophe mismatch
 
 ### Common Mistakes to Avoid
 - ❌ Forgetting `Given the frontend is running at` → Tests will fail with no base URL

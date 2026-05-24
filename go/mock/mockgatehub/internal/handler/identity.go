@@ -299,11 +299,7 @@ func (h *Handler) KYCIframeSubmit(w http.ResponseWriter, r *http.Request) {
 	// If user_id is not in form, try to extract from bearer token
 	if userID == "" {
 		token := r.FormValue("token")
-		tokenShort := token
-		if len(token) > 20 {
-			tokenShort = token[:20]
-		}
-		logger.Warn("user id missing from form, attempting to extract from token", zap.String("token_prefix", tokenShort))
+		logger.Warn("user id missing from form, attempting to extract from token", zap.String("token_prefix", tokenPrefix(token)))
 		// Try to look up user from token in our map
 		if uuid, ok := h.tokenToUser.Load(token); ok {
 			if u, ok := uuid.(string); ok {
@@ -360,12 +356,41 @@ func (h *Handler) KYCIframeSubmit(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	user.KYCState = consts.KYCStateAccepted
+	// Determine KYC outcome from form (defaults to accepted for backward compatibility)
+	kycOutcome := r.FormValue("kyc_outcome")
+	if kycOutcome == "" {
+		kycOutcome = consts.KYCStateAccepted
+	}
+
 	riskLevel := r.FormValue("risk_level")
 	if riskLevel == "" {
 		riskLevel = consts.RiskLevelLow
 	}
 	user.RiskLevel = riskLevel
+
+	var webhookEvent string
+	var responseMessage string
+
+	switch kycOutcome {
+	case consts.KYCStateRejected:
+		user.KYCState = consts.KYCStateRejected
+		webhookEvent = consts.WebhookEventKYCRejected
+		responseMessage = "KYC verification rejected"
+	case consts.KYCStateActionRequired:
+		user.KYCState = consts.KYCStateActionRequired
+		webhookEvent = consts.WebhookEventKYCActionRequired
+		responseMessage = "KYC verification requires additional action"
+	default:
+		user.KYCState = consts.KYCStateAccepted
+		webhookEvent = consts.WebhookEventKYCAccepted
+		responseMessage = "KYC verification completed successfully"
+	}
+
+	logger.Info("kyc outcome selected",
+		zap.String("user_id", userID),
+		zap.String("outcome", kycOutcome),
+		zap.String("webhook_event", webhookEvent),
+	)
 
 	if err := h.store.UpdateUser(user); err != nil {
 		logger.Error("failed to update user after kyc submission", zap.String("user_id", userID), zap.Error(err))
@@ -373,13 +398,13 @@ func (h *Handler) KYCIframeSubmit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go h.webhookManager.SendAsync(consts.WebhookEventKYCAccepted, userID, map[string]interface{}{
-		"message": "User verification accepted",
+	go h.webhookManager.SendAsync(webhookEvent, userID, map[string]interface{}{
+		"message": responseMessage,
 	}, 2.0)
 
 	h.sendJSON(w, http.StatusOK, map[string]string{
-		"status":  consts.KYCStateAccepted,
-		"message": "KYC verification completed successfully",
+		"status":  user.KYCState,
+		"message": responseMessage,
 	})
 }
 

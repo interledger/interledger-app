@@ -15,7 +15,6 @@ import {
   CardTitle,
   Chip,
   ChipColor,
-  DiscordIcon,
   Fab,
   GridColumn,
   Icon,
@@ -344,8 +343,6 @@ export default function Page() {
                             )}
                             {transaction.destinationIdentityType ==
                               'Twitter' && <TwitterIcon />}
-                            {transaction.destinationIdentityType ==
-                              'Discord' && <DiscordIcon />}
                             {transaction.destinationIdentityType == 'Slack' && (
                               <SlackIcon />
                             )}

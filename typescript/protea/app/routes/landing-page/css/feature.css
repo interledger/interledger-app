@@ -1,0 +1,268 @@
+.feature-panel {
+  position: absolute;
+  inset: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: none;
+  height: 100vh;
+}
+
+.feature-panel.is-visible {
+  pointer-events: auto;
+}
+
+/* Transparent gap that mirrors the phone width so columns flank the phone. */
+
+.feature-phone-spacer {
+  flex: 0 0 var(--phone-width);
+}
+
+.feature-col {
+  flex: 1;
+  min-width: 0;
+  max-width: 30%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.feature-col--left {
+  text-align: left;
+  align-items: flex-start;
+}
+
+.feature-col--right {
+  transition-delay: var(--anim-stagger-delay, 120ms);
+  text-align: right;
+  align-items: flex-end;
+}
+
+.feature-heading {
+  color: var(--color-neutral-900);
+  font: var(--text-h2);
+  letter-spacing: var(--text-h2-ls);
+  margin: 0;
+}
+
+.feature-body {
+  color: var(--color-neutral-900);
+  margin: 0 0 20px;
+}
+
+.feature-widget {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  background: var(--color-white);
+  border: 1px solid var(--color-neutral-50);
+  border-radius: var(--rounded-2xl);
+  padding: var(--padding-lg);
+  width: 100%;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: opacity 0.8s cubic-bezier(0.34, 1.56, 0.64, 1),
+    transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition-delay: 0.8s;
+}
+
+.feature-widget-bob.is-visible .feature-widget {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.feature-widget__avatar {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.feature-widget__body {
+  min-width: 0;
+  flex: 1;
+}
+
+.feature-widget__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+@media (max-width: 899px) {
+  .feature-widget__row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.feature-widget__name {
+  font: var(--text-body);
+  font-weight: 500;
+  color: var(--color-black);
+  white-space: nowrap;
+}
+
+.feature-widget__amount {
+  font: var(--text-body);
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--color-interactive-primary, #22c55e);
+}
+
+.feature-widget__note {
+  margin: 0;
+  font: var(--text-body-sm-standard);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.feature-widget__timestamp {
+  margin: 0;
+  font: var(--text-caption);
+  color: var(--color-text-secondary);
+  opacity: 0.7;
+}
+
+@media (max-width: 1199px) {
+  .feature-widget__timestamp {
+    display: none;
+  }
+}
+
+.animated-hero {
+  transition: background-color 600ms ease, color 600ms ease;
+}
+
+.animated-hero[data-screen='2'] {
+  background: var(--feature-screen-1-bg);
+}
+
+.animated-hero[data-screen='3'] {
+  background: var(--feature-screen-2-bg);
+}
+
+.animated-hero[data-screen='4'] {
+  background: var(--feature-screen-3-bg);
+}
+
+.animated-hero[data-screen='5'] {
+  background: var(--feature-screen-4-bg);
+}
+
+/* Feature 1 has two zones: enter (160px) + dwell (320px) */
+.scroll-step--feature-enter {
+  height: 160px;
+}
+
+.scroll-step--feature-dwell {
+  height: 200px;
+}
+
+@media (max-width: 899px) {
+  .feature-panel {
+    flex-direction: column;
+    justify-content: flex-start;
+    padding: calc(var(--nav-height, 72px) + min(10vh, 40px)) 0px 40px;
+    gap: min(24px, 3vh);
+    overflow: visible;
+  }
+
+  .feature-phone-spacer {
+    display: block;
+    flex: 0 0 min(360px, 40vh);
+    width: 100%;
+    order: 1;
+  }
+
+  .feature-col {
+    padding: 0;
+    text-align: center;
+    width: 100%;
+    max-width: 340px;
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  /* Adjustments for short screens (iPhone SE, small mobile) */
+  @media (max-height: 720px) {
+    .feature-panel {
+      padding-top: calc(var(--nav-height, 72px) + 12px);
+      gap: 12px;
+    }
+    .feature-phone-spacer {
+      flex-basis: min(330px, 40vh);
+    }
+    .feature-col {
+      gap: 8px;
+    }
+  }
+
+  .feature-col--left {
+    text-align: center;
+    align-items: center;
+    order: 2;
+  }
+
+  .feature-col--right {
+    text-align: center;
+    align-items: center;
+    order: 3;
+  }
+}
+
+@keyframes feature-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(20px);
+  }
+}
+
+.feature-widget-bob {
+  width: 100%;
+  animation: feature-bob 2s cubic-bezier(0.54, 0.01, 0.51, 1) infinite;
+}
+
+.feature-widget-bob:not(.is-visible) {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .feature-widget-bob {
+    animation: none;
+  }
+}
+
+@media (max-width: 899px) {
+  .feature-panel--first .feature-widget-bob {
+    animation: none;
+  }
+
+  /* Force instant visibility for the first panel's content on mobile to skip staggered animations */
+  .feature-panel--first .feature-widget,
+  .feature-panel--first .feature-heading,
+  .feature-panel--first .feature-body {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}

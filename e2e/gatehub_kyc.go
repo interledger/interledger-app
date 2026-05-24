@@ -136,7 +136,9 @@ func (sc *E2EContext) iFillAndSubmitTheMockgatehubiframe() error {
 		// Look for submit button
 		if strings.Contains(strings.ToLower(buttonText), "submit") {
 			debugPrintf("   ✓ Clicking submit button: %s\n", buttonText)
-			_ = button.Click()
+			if err := button.Click(); err != nil {
+				return fmt.Errorf("failed to click submit button: %w", err)
+			}
 			buttonClicked = true
 			time.Sleep(500 * time.Millisecond)
 			break
@@ -239,21 +241,31 @@ func (sc *E2EContext) iCompletedTheKYCFlowFor(email string) error {
 		return fmt.Errorf("navigate to personal details failed: %w", err)
 	}
 
-	if err := sc.iShouldSeeTheActivateWalletButton(); err != nil {
-		return fmt.Errorf("activate wallet button check failed: %w", err)
-	}
+	// South Africa/MockXago opens the KYC iframe directly and does not show a
+	// separate "Continue" activation button.
+	if !strings.EqualFold(sc.country, "south africa") {
+		if err := sc.iShouldSeeTheActivateWalletButton(); err != nil {
+			return fmt.Errorf("activate wallet button check failed: %w", err)
+		}
 
-	// 6. Trigger KYC flow and fill iframe
-	if err := sc.iClickTheButton("Continue"); err != nil {
-		return fmt.Errorf("click Continue button failed: %w", err)
+		// 6. Trigger KYC flow and fill iframe
+		if err := sc.iClickTheButton("Continue"); err != nil {
+			return fmt.Errorf("click Continue button failed: %w", err)
+		}
 	}
 
 	if err := sc.iWaitForTheKYCIframeToLoad(); err != nil {
 		return fmt.Errorf("KYC iframe load failed: %w", err)
 	}
 
-	if err := sc.iFillAndSubmitTheMockgatehubiframe(); err != nil {
-		return fmt.Errorf("fill KYC iframe failed: %w", err)
+	if strings.EqualFold(sc.country, "south africa") {
+		if err := sc.iFillAndSubmitTheMockxagoiframe(); err != nil {
+			return fmt.Errorf("fill MockXago KYC iframe failed: %w", err)
+		}
+	} else {
+		if err := sc.iFillAndSubmitTheMockgatehubiframe(); err != nil {
+			return fmt.Errorf("fill KYC iframe failed: %w", err)
+		}
 	}
 
 	if err := sc.iWaitForTheKYCCompletion(); err != nil {

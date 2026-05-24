@@ -51,7 +51,8 @@ export enum Layouts {
   Focus = 'Focus',
   Docs = 'Docs',
   Wallet = 'Wallet',
-  Marketing = 'Marketing'
+  Marketing = 'Marketing',
+  LandingPage = 'LandingPage'
 }
 
 export enum Fab {
@@ -181,6 +182,10 @@ export function Scaffold() {
     // }
   }
 
+  if (layout === Layouts.LandingPage) {
+    return <Outlet />
+  }
+
   return (
     <div
       className={clsx(
@@ -207,13 +212,11 @@ export function Scaffold() {
               </button>
             )}
             <NavDrawer.ListItem to={href('/')}>Home</NavDrawer.ListItem>
-            {showQuickPay &&
-              <NavDrawer.ListItem to={href('/quick-pay')}>
-                Quick Pay
-              </NavDrawer.ListItem>}
-            <NavDrawer.ListItem to={href('/accounts')}>
-              Accounts
-            </NavDrawer.ListItem>
+            {features.accountsTabEnabled && (
+              <NavDrawer.ListItem to={href('/accounts')}>
+                Accounts
+              </NavDrawer.ListItem>
+            )}
             {features.manageWalletCardsEnabled && (
               <NavDrawer.ListItem to={href('/cards')}>
                 Cards
@@ -541,12 +544,6 @@ export function Scaffold() {
                   </Router>
                 </div>
                 <NavDrawer.ListItem to={href('/')}>Home</NavDrawer.ListItem>
-                {
-                  showQuickPay &&
-                  <NavDrawer.ListItem to={href('/quick-pay')}>
-                    Quick Pay
-                  </NavDrawer.ListItem>
-                }
                 <NavDrawer.ListItem to={href('/accounts')}>
                   Accounts
                 </NavDrawer.ListItem>

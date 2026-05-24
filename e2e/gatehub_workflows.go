@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"github.com/playwright-community/playwright-go"
 )
 
 // thatMyFieldIs dynamically sets a field value for the current user
@@ -136,9 +138,26 @@ func (sc *E2EContext) iFinishedTheWalletAddressCreationWorkflow() error {
 			// Don't fail the workflow for screenshot failure
 		}
 
-		// Click save button
+		// Click save button — retry once if a transient error (e.g. Bad Gateway) replaced the page
 		if err := sc.iClickTheButtonOnTheWalletAddressForm("save"); err != nil {
-			return fmt.Errorf("failed to click save button: %w", err)
+			debugPrintf("⚠️  First save attempt failed: %v — reloading and retrying\n", err)
+			sc.iTakeAScreenshot("wallet-address-save-retry")
+
+			if _, reloadErr := sc.page.Reload(playwright.PageReloadOptions{
+				Timeout: playwright.Float(15000),
+			}); reloadErr != nil {
+				return fmt.Errorf("failed to reload page after save failure: %w", reloadErr)
+			}
+			time.Sleep(2 * time.Second)
+
+			// Re-fill form on the reloaded page
+			if fillErr := sc.iFillInAndSubmitTheWalletAddressFormWithAUniqueAddress(); fillErr != nil {
+				return fmt.Errorf("failed to refill wallet address form after reload: %w", fillErr)
+			}
+
+			if retryErr := sc.iClickTheButtonOnTheWalletAddressForm("save"); retryErr != nil {
+				return fmt.Errorf("failed to click save button after retry: %w", retryErr)
+			}
 		}
 	}
 
@@ -167,9 +186,21 @@ func (sc *E2EContext) iShouldBeShownTheActivateWalletPromptForm(promptText strin
 		return fmt.Errorf("failed to navigate to personal details page: %w", err)
 	}
 
-	// Verify the activate wallet button is visible
-	if err := sc.iShouldSeeTheActivateWalletButton(); err != nil {
-		return fmt.Errorf("activate wallet button not visible: %w", err)
+	// South Africa/MockXago renders the iframe directly without a separate
+	// "Continue" button prompt.
+	if strings.EqualFold(sc.country, "south africa") {
+		iframe := sc.page.Locator("iframe[title='Activate wallet'], iframe")
+		if err := iframe.First().WaitFor(playwright.LocatorWaitForOptions{
+			State:   playwright.WaitForSelectorStateVisible,
+			Timeout: playwright.Float(10000),
+		}); err != nil {
+			return fmt.Errorf("activate wallet prompt not visible for south africa flow: %w", err)
+		}
+	} else {
+		// Verify the activate wallet button is visible for non-Xago providers.
+		if err := sc.iShouldSeeTheActivateWalletButton(); err != nil {
+			return fmt.Errorf("activate wallet button not visible: %w", err)
+		}
 	}
 
 	// Take screenshot for debugging

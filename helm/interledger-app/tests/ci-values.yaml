@@ -1,0 +1,28 @@
+# Minimal stub values for CI helm template + kubeconform validation.
+# Not for production use — values are placeholders only.
+admin:
+  config:
+    backend:
+      grpcUrl: "http://ci-backend-grpc:8448"
+    kratos:
+      adminUrl: "http://ci-kratos-admin:4434"
+
+backend:
+  config:
+    xago:
+      api_base_url: "https://ci.xago.example.com"
+      identity_base_url: "https://ci-id.xago.example.com"
+      policy_id: "ci-policy-id"
+    apple_app_id: "com.ci.example"
+    android_package_name: "com.ci.example"
+    android_sha256: "ci-sha256"
+    gatehub:
+      enabled: "false"
+    pti:
+      enabled: "false"
+
+frontend:
+  config:
+    target_host: "https://ci.interledger.example"
+    support_email: "support@ci.interledger.example"
+    public_op_auth_host: "auth.ci.ilp.link"

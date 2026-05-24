@@ -1,0 +1,24 @@
+{{- if .Values.frontend.enabled -}}
+
+{{- if lt (int .Values.frontend.server.replicaCount) 2 -}}
+  {{- fail "frontend.server.replicaCount must be at least 2" -}}
+{{- end -}}
+
+{{- $requiredFields := list
+  (dict "path" "frontend.config.target_host"       "value" .Values.frontend.config.target_host)
+  (dict "path" "frontend.config.support_email"     "value" .Values.frontend.config.support_email)
+  (dict "path" "frontend.config.public_op_auth_host" "value" .Values.frontend.config.public_op_auth_host)
+-}}
+
+{{- $missingFields := list -}}
+{{- range $requiredFields -}}
+  {{- if eq (trim (default "" .value)) "" -}}
+    {{- $missingFields = append $missingFields .path -}}
+  {{- end -}}
+{{- end -}}
+
+{{- if gt (len $missingFields) 0 -}}
+  {{- fail (printf "The following required frontend values are empty: %s" (join ", " $missingFields)) -}}
+{{- end -}}
+
+{{- end -}}

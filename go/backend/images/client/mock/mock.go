@@ -34,36 +34,6 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
 }
 
-// GenerateDiscordIdentity mocks base method.
-func (m *MockClient) GenerateDiscordIdentity(ctx context.Context, walletUrl, identifier string) ([]byte, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GenerateDiscordIdentity", ctx, walletUrl, identifier)
-	ret0, _ := ret[0].([]byte)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GenerateDiscordIdentity indicates an expected call of GenerateDiscordIdentity.
-func (mr *MockClientMockRecorder) GenerateDiscordIdentity(ctx, walletUrl, identifier interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateDiscordIdentity", reflect.TypeOf((*MockClient)(nil).GenerateDiscordIdentity), ctx, walletUrl, identifier)
-}
-
-// GenerateDiscordIdentityOG mocks base method.
-func (m *MockClient) GenerateDiscordIdentityOG(ctx context.Context, walletUrl, identifier string) ([]byte, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GenerateDiscordIdentityOG", ctx, walletUrl, identifier)
-	ret0, _ := ret[0].([]byte)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GenerateDiscordIdentityOG indicates an expected call of GenerateDiscordIdentityOG.
-func (mr *MockClientMockRecorder) GenerateDiscordIdentityOG(ctx, walletUrl, identifier interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateDiscordIdentityOG", reflect.TypeOf((*MockClient)(nil).GenerateDiscordIdentityOG), ctx, walletUrl, identifier)
-}
-
 // GenerateDomainIdentity mocks base method.
 func (m *MockClient) GenerateDomainIdentity(ctx context.Context, walletUrl, identifier string) ([]byte, error) {
 	m.ctrl.T.Helper()

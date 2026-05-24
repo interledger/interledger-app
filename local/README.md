@@ -48,6 +48,8 @@ application|app         Wallet application, backends + frontends (requires infra
 backend|back            Just backends services
 frontend|front          Just frontends services
 all                     All services (infra, svc, app)
+unit-test-db-up         Start isolated Postgres for Go unit tests (localhost:55432)
+unit-test-db-down       Stop isolated Postgres for Go unit tests
 
 build                   Build all images
 pull                    Pull all images
@@ -126,6 +128,30 @@ To pull all images without starting any services:
 make pull
 ```
 
+### Dedicated Unit-Test Postgres
+
+To avoid mutating your normal local environment databases (`backend`, `pacioli`, `kratos`, etc.), use the dedicated unit-test Postgres service:
+
+```sh
+make unit-test-db-up
+```
+
+This starts an isolated Postgres instance on `localhost:55432` with credentials `postgres/password`.
+The database directory is mounted as Docker `tmpfs` (RAM-backed, ephemeral) to speed up tests and avoid persisting unit-test data to disk.
+
+Recommended test environment variables:
+
+```sh
+export DB_URL=postgres://postgres:password@127.0.0.1:55432/%s?sslmode=disable
+export ATLAS_DEV_URL=postgres://postgres:password@127.0.0.1:55432/atlas_dev_tmp?sslmode=disable
+```
+
+When done:
+
+```sh
+make unit-test-db-down
+```
+
 ### Docker compose interface
 If you prefer using plain docker compose here's some tips.
 
@@ -181,6 +207,21 @@ docker compose down -v
 | https://mockxago.interledger.test         | MockXago API (local Xago replacement)       |
 | https://mockpti.interledger.test          | MockPTI API and SDK stub                    |
 
+
+## Observability
+
+### Sentry
+
+Sentry is **disabled by default** in the local environment. The `SENTRY_DSN` variable defaults to empty, so no events will be reported unless you explicitly set `PROTEA_SENTRY_DSN` in your `.env`.
+
+If you do enable Sentry locally, set `PROTEA_SENTRY_ENV_LABEL` to label the events (e.g. `local` or your username) so they are clearly identifiable in the Sentry dashboard:
+
+```sh
+PROTEA_SENTRY_DSN=https://...@sentry.io/...
+PROTEA_SENTRY_ENV_LABEL=local
+```
+
+---
 
 ## Debugging the backend with Delve
 

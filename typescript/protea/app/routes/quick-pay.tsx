@@ -5,6 +5,7 @@ import type { MetaFunction } from 'react-router'
 import { z } from 'zod'
 import { type ApplicationProps, Layouts, WalletGrid, GridColumn, TextField, Button } from '~/components'
 import { mergeMeta } from '~/lib/meta'
+import { BackButton } from '~/components/QuickPay'
 import { getSession, commitSession } from '~/session.server'
 import { createError, routeAllowed, walletSchema } from '~/lib/utils.server'
 import type { RootLoaderData } from '~/root'
@@ -36,8 +37,8 @@ export default function Page() {
   return (
     <WalletGrid>
       <GridColumn className="col-span-full mt-20 mx-auto">
+        <BackButton title="Home" to="/" />
         <div className="text-3xl">Pay anyone, anywhere in the world.</div>
-
         <Form method="POST" id="ilpay-form" className="mt-16 max-w-96">
           <TextField
             type="text"

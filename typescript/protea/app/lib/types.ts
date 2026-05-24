@@ -79,6 +79,5 @@ export enum PaymentIdentityType {
   WalletID,
   WalletURL,
   Slack,
-  Discord,
   Sentinel // End of range value must be last, no need to public
 }

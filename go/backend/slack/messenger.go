@@ -3,7 +3,6 @@ package slack
 import (
 	"context"
 	"fmt"
-	"os"
 	"sync"
 
 	"gitlab.com/fynbos/env"
@@ -17,6 +16,7 @@ import (
 
 var api *ext_slack.Client
 var initOnce sync.Once
+var slackToken string
 
 type Channel string
 
@@ -28,13 +28,17 @@ const (
 	ChannelNotifyErrors Channel = "C091T8JD0DS"
 )
 
+func Init(token string) {
+	slackToken = token
+}
+
 func SendToChannel(ctx context.Context, channel Channel, fromUser, message string) {
 	if channel == ChannelNotifyEvents && env.IsLocal() {
 		return
 	}
 
 	initOnce.Do(func() {
-		api = ext_slack.New(os.Getenv("SLACK_TOKEN"), ext_slack.OptionHTTPClient(otelhttp.DefaultClient))
+		api = ext_slack.New(slackToken, ext_slack.OptionHTTPClient(otelhttp.DefaultClient))
 	})
 	if api == nil {
 		return
@@ -54,7 +58,7 @@ func SendToChannel(ctx context.Context, channel Channel, fromUser, message strin
 
 func formatMessageForEnvironment(message string) string {
 	if !env.IsProd() {
-		return fmt.Sprintf("%s\n*[%s]*", message, os.Getenv("FYNBOS_ENV"))
+		return fmt.Sprintf("%s\n*[%s]*", message, env.GetEnv())
 	}
 	return message
 }
