@@ -49,6 +49,7 @@ services:
       - OP_INTPAY_KEY_ID=${PROTEA_OP_INTPAY_KEY_ID:-}
       - OP_INTPAY_PRIVATE_KEY=${PROTEA_OP_INTPAY_PRIVATE_KEY:-}
       - OP_INTPAY_WALLET_ADDRESS=${PROTEA_OP_INTPAY_WALLET_ADDRESS:-}
+      - OP_INTPAY_HOST=${PROTEA_OP_INTPAY_HOST:-https://interledger.test/}
       - OP_INTPAY_REDIRECT_URL=${PROTEA_OP_INTPAY_REDIRECT_URL:-https://interledger.test/quick-pay/finish}
       - REDIS_URL=${PROTEA_REDIS_URL:-redis://redis:6379/2}
       
