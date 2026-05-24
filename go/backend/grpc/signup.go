@@ -3,9 +3,18 @@ package grpc
 import (
 	"context"
 
+	"gitlab.com/fynbos/backend/agreements"
 	"gitlab.com/fynbos/backend/signup"
+	"gitlab.com/fynbos/log"
+	"go.uber.org/zap"
 	pb "gitlab.com/fynbos/proto/backend/v1"
 )
+
+var signupAgreementIDs []string
+
+func InitAgreementIDs(ids []string) {
+	signupAgreementIDs = ids
+}
 
 func (s *rpcService) SetSignupUserData(ctx context.Context, req *pb.SetSignupUserDataRequest) (*pb.SetSignupUserDataResponse, error) {
 	id := ""
@@ -76,5 +85,20 @@ func (s *rpcService) CompleteSignup(ctx context.Context, req *pb.CompleteSignupR
 		return nil, toGRPCError(err)
 	}
 
+	agreementIDs := getSignupAgreementIDs()
+	if len(agreementIDs) > 0 {
+		signErr := s.b.Agreements().Sign(ctx, &agreements.SignArgs{
+			AgreementIDs: agreementIDs,
+			UserID:       req.UserId,
+		})
+		if signErr != nil {
+			log.Warn("complete_signup: failed to record agreement signatures", zap.Error(signErr), zap.String("userId", req.UserId))
+		}
+	}
+
 	return &pb.Empty{}, nil
+}
+
+func getSignupAgreementIDs() []string {
+	return signupAgreementIDs
 }

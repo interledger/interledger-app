@@ -614,6 +614,10 @@ export interface Features {
      * @generated from protobuf field: bool accountEnabled = 12;
      */
     accountEnabled: boolean;
+    /**
+     * @generated from protobuf field: bool accountsTabEnabled = 13;
+     */
+    accountsTabEnabled: boolean;
 }
 /**
  * @generated from protobuf message backend.admin.v1.ListAuditRequest
@@ -979,6 +983,10 @@ export interface PaginationRequest {
      * @generated from protobuf field: optional string pageToken = 2;
      */
     pageToken?: string;
+    /**
+     * @generated from protobuf field: optional string search = 3;
+     */
+    search?: string;
 }
 /**
  * @generated from protobuf message backend.admin.v1.Wallet
@@ -2965,11 +2973,12 @@ class Features$Type extends MessageType<Features> {
             { no: 9, name: "addCardsEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 10, name: "zarBalanceEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 11, name: "manageWalletCardsEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 12, name: "accountEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+            { no: 12, name: "accountEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 13, name: "accountsTabEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
         ]);
     }
     create(value?: PartialMessage<Features>): Features {
-        const message = { sendEnabled: false, receiveEnabled: false, linkedAccountsEnabled: false, cardsEnabled: false, banksEnabled: false, identitiesEnabled: false, twitterEnabled: false, walletID: "", addCardsEnabled: false, zarBalanceEnabled: false, manageWalletCardsEnabled: false, accountEnabled: false };
+        const message = { sendEnabled: false, receiveEnabled: false, linkedAccountsEnabled: false, cardsEnabled: false, banksEnabled: false, identitiesEnabled: false, twitterEnabled: false, walletID: "", addCardsEnabled: false, zarBalanceEnabled: false, manageWalletCardsEnabled: false, accountEnabled: false, accountsTabEnabled: false };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Features>(this, message, value);
@@ -3015,6 +3024,9 @@ class Features$Type extends MessageType<Features> {
                     break;
                 case /* bool accountEnabled */ 12:
                     message.accountEnabled = reader.bool();
+                    break;
+                case /* bool accountsTabEnabled */ 13:
+                    message.accountsTabEnabled = reader.bool();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -3064,6 +3076,9 @@ class Features$Type extends MessageType<Features> {
         /* bool accountEnabled = 12; */
         if (message.accountEnabled !== false)
             writer.tag(12, WireType.Varint).bool(message.accountEnabled);
+        /* bool accountsTabEnabled = 13; */
+        if (message.accountsTabEnabled !== false)
+            writer.tag(13, WireType.Varint).bool(message.accountsTabEnabled);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -4195,7 +4210,8 @@ class PaginationRequest$Type extends MessageType<PaginationRequest> {
     constructor() {
         super("backend.admin.v1.PaginationRequest", [
             { no: 1, name: "pageSize", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
-            { no: 2, name: "pageToken", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ }
+            { no: 2, name: "pageToken", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "search", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<PaginationRequest>): PaginationRequest {
@@ -4216,6 +4232,9 @@ class PaginationRequest$Type extends MessageType<PaginationRequest> {
                 case /* optional string pageToken */ 2:
                     message.pageToken = reader.string();
                     break;
+                case /* optional string search */ 3:
+                    message.search = reader.string();
+                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -4234,6 +4253,9 @@ class PaginationRequest$Type extends MessageType<PaginationRequest> {
         /* optional string pageToken = 2; */
         if (message.pageToken !== undefined)
             writer.tag(2, WireType.LengthDelimited).string(message.pageToken);
+        /* optional string search = 3; */
+        if (message.search !== undefined)
+            writer.tag(3, WireType.LengthDelimited).string(message.search);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

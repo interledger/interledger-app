@@ -23,6 +23,7 @@ import (
 // Config holds Rafiki API configuration
 type Config struct {
 	GraphQLEndpoint       string
+	OperatorTenantID      string
 	AdminAPISecret        string
 	AdminSignatureVersion string
 }
@@ -152,17 +153,32 @@ func LoadConfig() Config {
 	envPath := filepath.Join("..", ".env")
 	_ = godotenv.Load(envPath)
 
-	getEnv := func(key, fallback string) string {
-		if value := os.Getenv(key); value != "" {
-			return value
+	getEnvFirst := func(keys []string, fallback string) string {
+		for _, key := range keys {
+			if value := os.Getenv(key); value != "" {
+				return value
+			}
 		}
 		return fallback
 	}
 
 	return Config{
-		GraphQLEndpoint:       getEnv("GRAPHQL_ENDPOINT", "http://localhost:3001/graphql"),
-		AdminAPISecret:        getEnv("ADMIN_API_SECRET", "your_signature_secret"),
-		AdminSignatureVersion: getEnv("ADMIN_SIGNATURE_VERSION", "1"),
+		GraphQLEndpoint: getEnvFirst([]string{
+			"GRAPHQL_ENDPOINT",
+		}, "http://localhost:3001/graphql"),
+		OperatorTenantID: getEnvFirst([]string{
+			"OPERATOR_TENANT_ID",
+			"BACKEND_OPERATOR_TENANT_ID",
+		}, "6b1f9f73-3d4b-4f52-9f2a-9f6a8d0a7c5e"),
+		AdminAPISecret: getEnvFirst([]string{
+			"ADMIN_API_SECRET",
+			"BACKEND_ADMIN_API_SECRET",
+		}, "test-admin-api-key"),
+		AdminSignatureVersion: getEnvFirst([]string{
+			"ADMIN_SIGNATURE_VERSION",
+			"SIGNATURE_VERSION",
+			"BACKEND_SIGNATURE_VERSION",
+		}, "1"),
 	}
 }
 
@@ -201,17 +217,15 @@ func canonicalizeAndStringify(v interface{}) (string, error) {
 	return string(data), nil
 }
 
-func signRequest(req GraphQLRequest, cfg Config, timestamp int64) (string, error) {
-	requestData := map[string]interface{}{
-		"query":         req.Query,
-		"variables":     req.Variables,
-		"operationName": req.OperationName,
-	}
-	if req.Variables == nil {
-		requestData["variables"] = map[string]interface{}{}
+func signBody(body []byte, cfg Config, timestamp int64) (string, error) {
+	var parsed interface{}
+	if len(body) > 0 {
+		if err := json.Unmarshal(body, &parsed); err != nil {
+			return "", fmt.Errorf("failed to parse body for signing: %w", err)
+		}
 	}
 
-	canonical, err := canonicalizeAndStringify(requestData)
+	canonical, err := canonicalizeAndStringify(parsed)
 	if err != nil {
 		return "", err
 	}
@@ -225,16 +239,25 @@ func signRequest(req GraphQLRequest, cfg Config, timestamp int64) (string, error
 	return fmt.Sprintf("t=%d, v%s=%s", timestamp, cfg.AdminSignatureVersion, digest), nil
 }
 
-func graphqlRequest(req GraphQLRequest, cfg Config) (json.RawMessage, error) {
-	timestamp := time.Now().UnixMilli()
-	signature, err := signRequest(req, cfg, timestamp)
-	if err != nil {
-		return nil, fmt.Errorf("failed to sign request: %w", err)
-	}
 
+func signRequest(req GraphQLRequest, cfg Config, timestamp int64) (string, error) {
+	body, err := json.Marshal(req)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal request: %w", err)
+	}
+	return signBody(body, cfg, timestamp)
+}
+
+func graphqlRequest(req GraphQLRequest, cfg Config) (json.RawMessage, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
+	}
+
+	timestamp := time.Now().UnixMilli()
+	signature, err := signBody(body, cfg, timestamp)
+	if err != nil {
+		return nil, fmt.Errorf("failed to sign request: %w", err)
 	}
 
 	httpReq, err := http.NewRequest("POST", cfg.GraphQLEndpoint, bytes.NewReader(body))
@@ -244,6 +267,7 @@ func graphqlRequest(req GraphQLRequest, cfg Config) (json.RawMessage, error) {
 
 	httpReq.Header.Set("Content-Type", "application/json")
 	httpReq.Header.Set("signature", signature)
+	httpReq.Header.Set("tenant-id", cfg.OperatorTenantID)
 
 	client := &http.Client{Timeout: 30 * time.Second}
 	resp, err := client.Do(httpReq)
@@ -259,7 +283,11 @@ func graphqlRequest(req GraphQLRequest, cfg Config) (json.RawMessage, error) {
 
 	var gqlResp GraphQLResponse
 	if err := json.Unmarshal(bodyBytes, &gqlResp); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
+		snippet := strings.TrimSpace(string(bodyBytes))
+		if len(snippet) > 256 {
+			snippet = snippet[:256] + "..."
+		}
+		return nil, fmt.Errorf("unexpected non-JSON response (HTTP %d): %q", resp.StatusCode, snippet)
 	}
 
 	if len(gqlResp.Errors) > 0 {

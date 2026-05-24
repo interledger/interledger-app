@@ -1,0 +1,15 @@
+{{- define "interledger-app.admin.deployment" -}}
+{{- $top := first . }}
+{{- if $top.Values.admin.enabled }}
+{{- $cfgObj := include "interledger-app.admin.configMap" $top | fromYaml -}}
+{{- $dataHash := $cfgObj.data | toJson | sha256sum -}}
+spec:
+  template:
+    metadata:
+      annotations:
+        ilf-configmap-admin-sha256: {{ $dataHash | quote }}
+{{- end }}
+{{- end }}
+{{- if .Values.admin.enabled }}
+{{- include "common.deployment" (list . .Values.admin.server .Values.admin.server.autoscaling .Values.admin.server.serviceAccount "interledger-app.admin.deployment") }}
+{{- end }}

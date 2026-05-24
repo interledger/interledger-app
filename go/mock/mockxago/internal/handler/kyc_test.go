@@ -31,9 +31,8 @@ func TestKYCIframe_Success(t *testing.T) {
 
 	h.KYCIframe(w, req)
 
-	// Handler will try to find template and return 500 if not found in test env
-	// This is expected behavior for unit tests without template files
-	assert.True(t, w.Code >= 200 && w.Code < 500 || w.Code >= 500)
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Contains(t, w.Body.String(), `action="/kyc/submit"`)
 }
 
 func TestKYCIframe_MissingToken(t *testing.T) {
@@ -147,6 +146,7 @@ func TestKYCIframeSubmit_UpdatesExistingSubAccount(t *testing.T) {
 		"user_id":    {walletID},
 		"first_name": {"Updated"},
 		"last_name":  {"Account"},
+		"dob":        {"1992-10-11"},
 		"address":    {"789 New Rd"},
 	}
 
@@ -165,6 +165,7 @@ func TestKYCIframeSubmit_UpdatesExistingSubAccount(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "Updated", updated.FirstName)
 	assert.Equal(t, "Account", updated.LastName)
+	assert.Equal(t, "1992-10-11", updated.DateOfBirth)
 	assert.Equal(t, "789 New Rd", updated.PhysicalAddress)
 }
 
@@ -176,6 +177,7 @@ func TestKYCIframeSubmit_MissingWalletID(t *testing.T) {
 	formData := url.Values{
 		"first_name": {"John"},
 		"last_name":  {"Doe"},
+		"dob":        {"1990-01-01"},
 	}
 
 	body := strings.NewReader(formData.Encode())
@@ -195,6 +197,7 @@ func TestKYCIframeSubmit_MissingFirstName(t *testing.T) {
 	formData := url.Values{
 		"user_id":   {"wallet_123"},
 		"last_name": {"Doe"},
+		"dob":       {"1990-01-01"},
 	}
 
 	body := strings.NewReader(formData.Encode())
@@ -214,6 +217,7 @@ func TestKYCIframeSubmit_MissingLastName(t *testing.T) {
 	formData := url.Values{
 		"user_id":    {"wallet_123"},
 		"first_name": {"John"},
+		"dob":        {"1990-01-01"},
 	}
 
 	body := strings.NewReader(formData.Encode())
@@ -259,6 +263,9 @@ func TestKYCIframeSubmit_MultipartForm(t *testing.T) {
 	fmt.Fprintf(body, "Content-Disposition: form-data; name=\"last_name\"\r\n\r\n")
 	fmt.Fprintf(body, "Part\r\n")
 	fmt.Fprintf(body, "--%s\r\n", boundary)
+	fmt.Fprintf(body, "Content-Disposition: form-data; name=\"dob\"\r\n\r\n")
+	fmt.Fprintf(body, "1991-04-17\r\n")
+	fmt.Fprintf(body, "--%s\r\n", boundary)
 	fmt.Fprintf(body, "Content-Disposition: form-data; name=\"address\"\r\n\r\n")
 	fmt.Fprintf(body, "Test Address\r\n")
 	fmt.Fprintf(body, "--%s--\r\n", boundary)
@@ -276,6 +283,7 @@ func TestKYCIframeSubmit_MultipartForm(t *testing.T) {
 	subAccount, err := store.GetSubAccountByWalletID(context.Background(), "wallet_multipart")
 	require.NoError(t, err)
 	assert.Equal(t, "Multi", subAccount.FirstName)
+	assert.Equal(t, "1991-04-17", subAccount.DateOfBirth)
 }
 
 func TestKYCIframeSubmit_WithDOB(t *testing.T) {
@@ -298,11 +306,12 @@ func TestKYCIframeSubmit_WithDOB(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, w.Code)
 
-	// Verify sub-account was created (DOB is parsed but not stored in current implementation)
+	// Verify sub-account was created and DOB was stored
 	time.Sleep(100 * time.Millisecond)
 	subAccount, err := store.GetSubAccountByWalletID(context.Background(), "wallet_dob")
 	require.NoError(t, err)
 	assert.Equal(t, "Bob", subAccount.FirstName)
+	assert.Equal(t, "1980-03-10", subAccount.DateOfBirth)
 }
 
 func TestKYCIframeSubmit_WhitespaceHandling(t *testing.T) {
@@ -314,6 +323,7 @@ func TestKYCIframeSubmit_WhitespaceHandling(t *testing.T) {
 		"user_id":    {"wallet_spaces"},
 		"first_name": {"  John  "},
 		"last_name":  {"  Doe  "},
+		"dob":        {"1990-01-01"},
 	}
 
 	body := strings.NewReader(formData.Encode())

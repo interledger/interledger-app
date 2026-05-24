@@ -1,0 +1,20 @@
+services:
+  postgres-unit-tests:
+    image: postgres:17-alpine
+    profiles:
+      - unit-tests
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: postgres
+    ports:
+      - "55432:5432"
+    # Use a tmpfs volume to speed up tests
+    tmpfs:
+      - /var/lib/postgresql/data:size=512m
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5

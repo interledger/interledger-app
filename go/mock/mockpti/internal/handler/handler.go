@@ -26,7 +26,7 @@ type Handler struct {
 // Call SetQueue to enable async webhook delivery.
 func NewHandler(store storage.Storage, cfg *config.Config) *Handler {
 	sender := webhooks.NewSender(cfg.WebhookURL)
-	if err := sender.ConfigureSecurity(cfg.WebhookSigningJWK, cfg.WebhookEncryptionJWK); err != nil {
+	if err := sender.ConfigureSecurity(cfg.WebhookSigningKey); err != nil {
 		logger.Warn(fmt.Sprintf("Webhook crypto configuration disabled: %v", err))
 	}
 

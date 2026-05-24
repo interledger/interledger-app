@@ -1,0 +1,91 @@
+suite: Interledger App - Backend validation
+templates:
+  - validation.backend.yaml
+set:
+  fullnameOverride: wallet
+release:
+  name: wallet
+# NOTE: Helm-unittest can only test successful template rendering.
+# Failure cases are verified by the failedTemplate assertion below.
+tests:
+  - it: 'Should succeed when gatehub and pti are enabled with all required fields'
+    set:
+      backend:
+        config:
+          apple_app_id: "123456789"
+          android_package_name: "network.interledger.wallet"
+          android_sha256: "AA:BB:CC:DD"
+          xago:
+            api_base_url: "https://api.xago.io"
+            identity_base_url: "https://identity.xago.io"
+            policy_id: "policy-1"
+          pti:
+            enabled: "true"
+            base_url: "https://pti-base-url.com"
+            sdk_url: "https://sdk.staging.fiant.io/latest/index.js"
+            forms_url: "https://forms.staging.fiant.io"
+          gatehub:
+            enabled: "true"
+            api_base_url: "https://api.gatehub.net"
+            onboarding_base_url: "https://onboarding.gatehub.net"
+            on_off_ramp_base_url: "https://ramp.gatehub.net"
+            organization_id: "org-123"
+            sending_user_id: "user-123"
+            sending_user_address: "$rafiki.example/user-123"
+            eur_ops_account: "ops-account-1"
+            eur_ops_ledger_id: "42"
+            on_off_ramp_client_id: "client-1"
+            onboarding_client_id: "client-2"
+            exchange_client_id: "client-3"
+            card_account_product_code: "CARD-001"
+    asserts:
+      - isNull:
+          path: spec
+
+  - it: 'Should succeed when gatehub and pti are disabled and fields are empty'
+    set:
+      backend:
+        config:
+          apple_app_id: "123456789"
+          android_package_name: "network.interledger.wallet"
+          android_sha256: "AA:BB:CC:DD"
+          xago:
+            api_base_url: "https://api.xago.io"
+            identity_base_url: "https://identity.xago.io"
+            policy_id: "policy-1"
+          pti:
+            enabled: "false"
+          gatehub:
+            enabled: "false"
+    asserts:
+      - isNull:
+          path: spec
+
+  - it: 'Should fail when gatehub is enabled but api_base_url is empty'
+    set:
+      backend:
+        config:
+          apple_app_id: "123456789"
+          android_package_name: "network.interledger.wallet"
+          android_sha256: "AA:BB:CC:DD"
+          xago:
+            api_base_url: "https://api.xago.io"
+            identity_base_url: "https://identity.xago.io"
+            policy_id: "policy-1"
+          gatehub:
+            enabled: "true"
+            api_base_url: ""
+            onboarding_base_url: "https://onboarding.gatehub.net"
+            on_off_ramp_base_url: "https://ramp.gatehub.net"
+            organization_id: "org-123"
+            sending_user_id: "user-123"
+            sending_user_address: "$rafiki.example/user-123"
+            eur_ops_account: "ops-account-1"
+            eur_ops_ledger_id: "42"
+            on_off_ramp_client_id: "client-1"
+            onboarding_client_id: "client-2"
+            exchange_client_id: "client-3"
+            card_account_product_code: "CARD-001"
+    asserts:
+      - failedTemplate:
+          errorMessage: "The following required values are empty: backend.config.gatehub.api_base_url"

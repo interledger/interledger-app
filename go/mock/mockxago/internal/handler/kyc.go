@@ -2,22 +2,24 @@ package handler
 
 import (
 	"bytes"
+	"context"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"html/template"
 	"io"
 	"net/http"
 	"os"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"gitlab.com/fynbos/mock/mockxago/internal/logger"
 	"gitlab.com/fynbos/mock/mockxago/internal/models"
+	"gitlab.com/fynbos/mock/mockxago/internal/storage"
+	"gitlab.com/fynbos/mock/mockxago/web"
 )
 
 // KYCIframe serves the KYC verification iframe
@@ -29,29 +31,7 @@ func (h *Handler) KYCIframe(w http.ResponseWriter, r *http.Request) {
 
 	logger.Infof("Serving KYC iframe - token: %s, user_id: %s, wallet_id: %s", token, userID, walletID)
 
-	// Try to find the KYC iframe template
-	possiblePaths := []string{
-		"web/kyc-iframe.html",
-		"./web/kyc-iframe.html",
-		"../../web/kyc-iframe.html",
-		"../../../web/kyc-iframe.html",
-	}
-
-	var templatePath string
-	for _, path := range possiblePaths {
-		if _, err := os.Stat(path); err == nil {
-			templatePath = path
-			break
-		}
-	}
-
-	if templatePath == "" {
-		logger.Errorf("Could not find KYC iframe template, tried: %v", possiblePaths)
-		h.sendError(w, http.StatusInternalServerError, "template_not_found", "KYC template not found")
-		return
-	}
-
-	tmpl, err := template.ParseFiles(templatePath)
+	tmpl, err := template.ParseFS(web.Assets, "kyc-iframe.html")
 	if err != nil {
 		logger.Errorf("Failed to parse KYC iframe template: %v", err)
 		h.sendError(w, http.StatusInternalServerError, "template_error", "Failed to parse template")
@@ -59,8 +39,9 @@ func (h *Handler) KYCIframe(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := map[string]string{
-		"Token":  token,
-		"UserID": userID,
+		"Token":      token,
+		"UserID":     userID,
+		"SubmitPath": "/kyc/submit",
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -91,8 +72,6 @@ func (h *Handler) KYCIframeSubmit(w http.ResponseWriter, r *http.Request) {
 	firstName := r.FormValue("first_name")
 	lastName := r.FormValue("last_name")
 	address := r.FormValue("address")
-	_ = r.FormValue("city")    // city not currently stored in sub-account
-	_ = r.FormValue("country") // country not currently stored in sub-account
 	dob := r.FormValue("dob")
 
 	logger.Infof("KYC submitted - wallet_id: %s, name: %s %s", walletID, firstName, lastName)
@@ -109,12 +88,44 @@ func (h *Handler) KYCIframeSubmit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get or create sub-account for this wallet
-	ctx := r.Context()
+	if dob == "" {
+		logger.Errorf("date of birth is required")
+		h.sendError(w, http.StatusBadRequest, "missing_dob", "Date of birth is required")
+		return
+	}
+
+	if _, err := time.Parse("2006-01-02", dob); err != nil {
+		logger.Errorf("invalid dob format: %v", err)
+		h.sendError(w, http.StatusBadRequest, "invalid_dob", "Date of birth must be in YYYY-MM-DD format")
+		return
+	}
+
+	if address == "" {
+		address = "123 Main Street"
+	}
+
+	if err := h.saveKYCAndFireWebhooks(r.Context(), walletID, firstName, lastName, dob, address); err != nil {
+		logger.Errorf("Failed to save KYC for wallet %s: %v", walletID, err)
+		h.sendError(w, http.StatusInternalServerError, "save_error", "Failed to save account")
+		return
+	}
+
+	logger.Infof("KYC submission successful for wallet %s", walletID)
+
+	// Return success response
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprint(w, `{"status":"accepted","message":"KYC verification submitted successfully"}`)
+}
+
+// saveKYCAndFireWebhooks persists KYC data for a wallet and fires the Persona webhook
+// chain (inquiry.approved → account.tag-added) that triggers SetKYCStatusWorkflow.
+func (h *Handler) saveKYCAndFireWebhooks(ctx context.Context, walletID, firstName, lastName, dob, address string) error {
 	subAccount, err := h.store.GetSubAccountByWalletID(ctx, walletID)
 	if err != nil {
-		logger.Infof("SubAccount not found for wallet %s, creating new one", walletID)
-		// Create a new sub-account
+		if !errors.Is(err, storage.ErrSubAccountNotFound) {
+			return fmt.Errorf("failed to look up sub-account for wallet %s: %w", walletID, err)
+		}
 		subAccount = &models.SubAccount{
 			ID:        generateID(),
 			WalletID:  walletID,
@@ -122,38 +133,17 @@ func (h *Handler) KYCIframeSubmit(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Update sub-account with KYC information
 	subAccount.FirstName = firstName
 	subAccount.LastName = lastName
+	subAccount.DateOfBirth = dob
 	subAccount.PhysicalAddress = address
 
-	// Parse date of birth
-	if dob != "" {
-		parts := strings.Split(dob, "-")
-		if len(parts) == 3 {
-			if year, err := strconv.Atoi(parts[0]); err == nil {
-				logger.Infof("Parsed birth year: %d", year)
-			}
-		}
-	}
-
-	// Save or update sub-account
 	if err := h.store.SaveSubAccount(ctx, subAccount); err != nil {
-		logger.Errorf("Failed to save sub-account: %v", err)
-		h.sendError(w, http.StatusInternalServerError, "save_error", "Failed to save account")
-		return
+		return fmt.Errorf("failed to save sub-account for wallet %s: %w", walletID, err)
 	}
 
-	logger.Infof("KYC submission successful for wallet %s", walletID)
-
-	// Send webhook to backend notifying of KYC completion
-	// This triggers the backend's Temporal workflow for Xago onboarding
 	go h.sendPersonaInquiryApproved(walletID)
-
-	// Return success response
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprint(w, `{"status":"accepted","message":"KYC verification submitted successfully"}`)
+	return nil
 }
 
 func (h *Handler) sendPersonaInquiryApproved(walletID string) {

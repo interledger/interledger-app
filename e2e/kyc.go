@@ -105,8 +105,8 @@ func (sc *E2EContext) iWaitForTheKYCIframeToLoad() error {
 	return fmt.Errorf("KYC iframe did not load after 10 seconds")
 }
 
-// iWaitForTheKYCCompletion waits for KYC to complete and return to dashboard.
-// Used by both GateHub and PTI flows — checks both window.kycCompleted and window.ptiKycCompleted.
+// iWaitForTheKYCCompletion waits for a provider completion signal and/or navigation.
+// Provider behavior differs: some flows navigate immediately, others may stay/reload on personal-details.
 func (sc *E2EContext) iWaitForTheKYCCompletion() error {
 	debugPrintln("\n⏳ Waiting for KYC completion...")
 
@@ -114,20 +114,24 @@ func (sc *E2EContext) iWaitForTheKYCCompletion() error {
 	// The backend should receive the webhook and update KYC status
 	time.Sleep(1 * time.Second)
 
-	// Check if the message was received by the parent (GateHub or PTI)
-	messageReceived, _ := sc.page.Evaluate(`() => {
-		return window.kycCompleted === true || window.ptiKycCompleted === true;
-	}`)
-
-	if messageReceived != nil && messageReceived.(bool) {
-		debugPrintf("   ✓ KYC completion message received by parent\n")
-	}
+	completionMessageSeen := false
+	loginRecovered := false
 
 	// After KYC submission, we should return to dashboard (not login!)
 	// The page will navigate away from personal-details
 	// Wait for that navigation to happen and validate we don't end up on login
 	for i := 0; i < 60; i++ { // 30 seconds timeout
 		currentURL := sc.page.URL()
+
+		// Poll known completion flags set by e2e iframe helpers.
+		messageReceived, _ := sc.page.Evaluate(`() => {
+			return window.kycCompleted === true || window.ptiKycCompleted === true;
+		}`)
+		if messageReceived != nil {
+			if completed, ok := messageReceived.(bool); ok && completed {
+				completionMessageSeen = true
+			}
+		}
 
 		// Log less frequently for clarity
 		if i%10 == 0 {
@@ -137,16 +141,29 @@ func (sc *E2EContext) iWaitForTheKYCCompletion() error {
 		// Under concurrency, session cookies may briefly desync after iframe completion.
 		// Attempt one login recovery before failing.
 		if strings.Contains(currentURL, "/login") {
-			debugPrintf("   ⚠️  Redirected to login during KYC completion, retrying login...\n")
-			if err := sc.iLogInAsMyself(); err != nil {
-				return fmt.Errorf("KYC completed but redirected to login - user session was lost: %s", currentURL)
+			if !loginRecovered {
+				debugPrintf("   ⚠️  Redirected to login during KYC completion, retrying login...\n")
+				if err := sc.iLogInAsMyself(); err != nil {
+					return fmt.Errorf("KYC completed but redirected to login - user session was lost: %s", currentURL)
+				}
+				loginRecovered = true
+				currentURL = sc.page.URL()
+			} else {
+				return fmt.Errorf("KYC completion stuck on login page after recovery attempt: %s", currentURL)
 			}
-			currentURL = sc.page.URL()
 		}
 
-		// We should navigate away from personal-details
+		// Fast path: provider redirected user away from KYC route.
 		if !strings.Contains(currentURL, "/personal-details") {
 			debugPrintf("   ✓ KYC completed, navigated away from personal-details\n")
+			time.Sleep(500 * time.Millisecond)
+			return nil
+		}
+
+		// Some providers (for example MockXago) may complete KYC without immediate
+		// route transition. Let the next assertion validate approved state.
+		if completionMessageSeen {
+			debugPrintf("   ✓ KYC completion message received while still on personal-details\n")
 			time.Sleep(500 * time.Millisecond)
 			return nil
 		}
@@ -155,7 +172,7 @@ func (sc *E2EContext) iWaitForTheKYCCompletion() error {
 		time.Sleep(500 * time.Millisecond)
 	}
 
-	return fmt.Errorf("KYC did not complete within 30 seconds, still on personal-details")
+	return fmt.Errorf("KYC did not complete within 30 seconds: no completion signal and still on personal-details")
 }
 
 // iShouldBeNavigatedBackToTheDashboardWithApprovedKYCStatus verifies KYC approved and shows balance
