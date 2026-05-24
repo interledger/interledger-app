@@ -227,7 +227,7 @@ export async function action({ request }: Route.ActionArgs) {
         let senderAddress
         try {
             senderAddress = await getValidWalletAddress(result.data.senderAddress)
-            sessionData.validWalletAddress = senderAddress
+            sessionData.senderAddress = senderAddress
             session.set('quickPay', sessionData)
         } catch (err) {
             return data({ errors: createError("senderAddress", "Your wallet address is not valid.") })
@@ -249,7 +249,7 @@ export async function action({ request }: Route.ActionArgs) {
     }
 
     if (intent === 'confirm') {
-        if (sessionData.quote === undefined || sessionData.validWalletAddress === undefined) {
+        if (sessionData.quote === undefined || sessionData.senderAddress === undefined) {
             throw data(
                 {
                     code: "QUICKPAY_SESSION_ERROR",
@@ -259,7 +259,7 @@ export async function action({ request }: Route.ActionArgs) {
             )
         }
         const { paymentId, outgoingPaymentGrant } = await initializePayment({
-            walletAddress: sessionData.validWalletAddress.id,
+            walletAddress: sessionData.senderAddress.id,
             quote: sessionData.quote
         })
         sessionData.grants = { ...(sessionData?.grants || {}), [paymentId]: outgoingPaymentGrant }
