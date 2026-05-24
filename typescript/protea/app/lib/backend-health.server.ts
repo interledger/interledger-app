@@ -5,17 +5,6 @@ import { HealthCheckResponse_ServingStatus } from '~/generated/connect/grpc/heal
 import logger from './logger.server'
 import { envValue } from '~/env.server'
 
-//This duplicates env.server functionality. 
-//Should not be needed.
-
-/*function requireEnv(name: string): string {
-  const value = process.env[name]
-  if (!value) {
-    throw new Error(`${name} environment variable is required`)
-  }
-  return value
-}*/
-
 const BACKEND_GRPC_URL = envValue('BACKEND_GRPC_URL')
 
 const transport = createGrpcTransport({

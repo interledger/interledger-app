@@ -9,12 +9,13 @@ import {
 } from '@interledger/open-payments'
 import { createId } from '@paralleldrive/cuid2'
 import { randomUUID } from 'crypto'
+import { envValue } from '~/env.server'
 
 export async function createClient() {
   return await createAuthenticatedClient({
-    keyId: process.env.OP_INTPAY_KEY_ID!,
-    privateKey: Buffer.from(process.env.OP_INTPAY_PRIVATE_KEY!, 'base64'),
-    walletAddressUrl: process.env.OP_INTPAY_WALLET_ADDRESS!,
+    keyId: envValue("OP_INTPAY_KEY_ID")!,
+    privateKey: Buffer.from(envValue("OP_INTPAY_PRIVATE_KEY")!, 'base64'),
+    walletAddressUrl: envValue("OP_INTPAY_WALLET_ADDRESS")!,
     validateResponses: false
   })
 }
@@ -274,7 +275,7 @@ async function createOutgoingPaymentGrant(
           start: ['redirect'],
           finish: {
             method: 'redirect',
-            uri: `${process.env.OP_INTPAY_REDIRECT_URL}?paymentId=${paymentId}`,
+            uri: `${envValue("OP_INTPAY_REDIRECT_URL")}?paymentId=${paymentId}`,
             nonce: nonce || ''
           }
         }
