@@ -2,7 +2,6 @@ import { PageSection } from "../components/PageSection"
 import { Glow } from "../components/Glow"
 import fiantLogo from "../assets/providers/fiant.png"
 import gatehubLogo from "../assets/providers/gatehub.png"
-import chimoneyLogo from "../assets/providers/chimoney.png"
 import xagoLogo from "../assets/providers/xago.png"
 
 interface PartnerProps {
@@ -28,7 +27,6 @@ export function OurEcosystem() {
   const partners = [
     { name: "FIANT", region: "USA", logo: fiantLogo },
     { name: "GATEHUB", region: "EU", logo: gatehubLogo },
-    { name: "CHIMONEY", region: "Canada", logo: chimoneyLogo },
     { name: "XAGO", region: "South Africa", logo: xagoLogo }
   ]
 
