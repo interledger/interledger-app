@@ -225,7 +225,7 @@ func Get(ctx context.Context, b Backends, id string) (*linkedaccounts.LinkedAcco
 }
 
 func Delete(ctx context.Context, b Backends, id string) error {
-	_, err := b.DB().ExecContext(ctx, "UPDATE linked_accounts SET deleted_at=now(), default_send=false, default_receive=false WHERE id=$1", id)
+	_, err := b.DB().ExecContext(ctx, "UPDATE linked_accounts SET deleted_at=now(), default_send=false, default_receive=false, plaid_account_id=NULL WHERE id=$1", id)
 	if err != nil {
 		return fmt.Errorf("%w %s", linkedaccounts.ErrInternal, err.Error())
 	}

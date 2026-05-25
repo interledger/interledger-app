@@ -47,10 +47,7 @@ import { getUserSession } from '~/lib/kratos/session.server'
 import { mergeMeta } from '~/lib/meta'
 import plaid, { isPlaidError, type PlaidError, type PlaidState } from '~/lib/plaid.server'
 import { usePlaidStore, type PlaidProduct } from '~/lib/usePlaidStore'
-
 import type { Route } from './+types/plaid'
-
-/* ─── handle / meta ──────────────────────────────────────────────────── */
 
 export const handle: ApplicationProps = {
   layout: Layouts.Wallet,
@@ -60,8 +57,6 @@ export const handle: ApplicationProps = {
 }
 
 export const meta = mergeMeta(() => [{ title: 'Plaid (POC)' }])
-
-/* ─── loader ─────────────────────────────────────────────────────────── */
 
 interface LoaderData {
   state: PlaidState
@@ -115,6 +110,13 @@ interface ActionExchangeResult {
   institutionName: string
 }
 
+interface ActionExchangeAndLinkResult {
+  intent: 'exchange_and_link'
+  ok: true
+  linkedAccountId: string
+  alreadyLinked: boolean
+}
+
 interface ActionProductResult {
   intent: 'fetch_product'
   ok: true
@@ -138,6 +140,7 @@ interface ActionError {
 export type ActionDataPayload =
   | ActionLinkTokenResult
   | ActionExchangeResult
+  | ActionExchangeAndLinkResult
   | ActionProductResult
   | ActionDisconnectResult
 
@@ -165,11 +168,11 @@ export async function action({ request }: Route.ActionArgs): Promise<ActionData 
       }
     }
 
-      case 'exchange': {
-        const publicToken = String(form.get('public_token') || '')
-        if (!publicToken) {
-          return ErrorHandler(request, UserFacingError('public_token is required', 400)) as any
-        }
+    case 'exchange': {
+      const publicToken = String(form.get('public_token') || '')
+      if (!publicToken) {
+        return ErrorHandler(request, UserFacingError('public_token is required', 400)) as any
+      }
       const result = await plaid.exchangePublicToken(
         request,
         publicToken
@@ -188,46 +191,75 @@ export async function action({ request }: Route.ActionArgs): Promise<ActionData 
       }
     }
 
-      case 'fetch_product': {
-        const product = String(form.get('product') || '')
-        if (!isPlaidProduct(product)) {
-          return ErrorHandler(request, UserFacingError(`unknown product: ${product}`, 400)) as any
-        }
-        let response: unknown
-        switch (product) {
-          case 'accounts':
-            response = await plaid.getAccounts(request)
-            break
-          case 'auth':
-            response = await plaid.getAuth(request)
-            break
-          case 'balance':
-            response = await plaid.getBalance(request)
-            break
-          case 'identity':
-            response = await plaid.getIdentity(request)
-            break
-          case 'transactions':
-            response = await plaid.getTransactions(request)
-            break
-        }
-        
-        if (isPlaidError(response)) {
-          return ErrorHandler(request, ErrorMapper.plaid.toUserFacingError(response)) as any
-        }
-
-        return {
-          success: true,
-          data: {
-            intent: 'fetch_product',
-            ok: true,
-            product,
-            response
-          }
+    case 'exchange_and_link': {
+      const publicToken = String(form.get('public_token') || '')
+      const accountId = String(form.get('account_id') || '')
+      if (!publicToken || !accountId) {
+        return ErrorHandler(request, UserFacingError('public_token and account_id are required', 400)) as any
+      }
+      const exchanged = await plaid.exchangePublicToken(request, publicToken)
+      if (isPlaidError(exchanged)) {
+        return ErrorHandler(request, ErrorMapper.plaid.toUserFacingError(exchanged)) as any
+      }
+      const linked = await plaid.linkToFiant(request, {
+        account_id: accountId,
+        account_name: String(form.get('account_name') || '') || undefined,
+        account_mask: String(form.get('account_mask') || '') || undefined
+      })
+      if (isPlaidError(linked)) {
+        return ErrorHandler(request, ErrorMapper.plaid.toUserFacingError(linked)) as any
+      }
+      return {
+        success: true,
+        data: {
+          intent: 'exchange_and_link' as const,
+          ok: true,
+          linkedAccountId: linked.linked_account_id,
+          alreadyLinked: linked.already_linked
         }
       }
+    }
 
-      case 'disconnect': {
+    case 'fetch_product': {
+      const product = String(form.get('product') || '')
+      if (!isPlaidProduct(product)) {
+        return ErrorHandler(request, UserFacingError(`unknown product: ${product}`, 400)) as any
+      }
+      let response: unknown
+      switch (product) {
+        case 'accounts':
+          response = await plaid.getAccounts(request)
+          break
+        case 'auth':
+          response = await plaid.getAuth(request)
+          break
+        case 'balance':
+          response = await plaid.getBalance(request)
+          break
+        case 'identity':
+          response = await plaid.getIdentity(request)
+          break
+        case 'transactions':
+          response = await plaid.getTransactions(request)
+          break
+      }
+
+      if (isPlaidError(response)) {
+        return ErrorHandler(request, ErrorMapper.plaid.toUserFacingError(response)) as any
+      }
+
+      return {
+        success: true,
+        data: {
+          intent: 'fetch_product',
+          ok: true,
+          product,
+          response
+        }
+      }
+    }
+
+    case 'disconnect': {
       const result = await plaid.disconnect(request)
       if (isPlaidError(result)) {
         return ErrorHandler(request, ErrorMapper.plaid.toUserFacingError(result)) as any

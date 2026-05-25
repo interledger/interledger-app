@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { useLoaderData } from 'react-router';
 import clsx from 'clsx'
 import { href } from 'react-router'
@@ -18,6 +17,7 @@ import {
   Icon,
   InterledgerIcon,
   MasterCardLogo,
+  PlaidLinkButton,
   Router,
   SlackIcon,
   TwitterIcon,
@@ -29,7 +29,6 @@ import { usePusher } from '~/lib/usePusher'
 import type { loader, AppLoaderData } from './route'
 import { KycStatus } from '~/lib/types'
 
-import { BankSourceModal } from './BankSourceModal'
 
 export function AppPage() {
   const {
@@ -331,39 +330,10 @@ export function AppPage() {
 
 function CTACards() {
   const { features, walletInfo } = useLoaderData<typeof loader>() as AppLoaderData
-  const [bankSourceModalOpen, setBankSourceModalOpen] = useState(false)
 
   return (
     <>
-      {features.banksEnabled &&
-        features.cardsEnabled &&
-        !walletInfo.hasCard &&
-        !walletInfo.hasBank && (
-          <Card>
-            <CardContent>
-              <div className='flex items-start space-x-4'>
-                <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
-                  <Icon>account_balance</Icon>
-                </div>
-                <div className='flex flex-col space-y-4'>
-                  <p className='text-sm text-medium'>
-                    Connect bank accounts and cards to easily send and receive
-                    payments.
-                  </p>
-                  <Router
-                    className='text-sm font-medium text-primary'
-                    to={href('/accounts')}
-                  >
-                    Connect a bank or card
-                  </Router>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-      {features.cardsEnabled &&
-        !walletInfo.hasCard &&
-        (walletInfo.hasBank || !features.banksEnabled) && (
+      {features.cardsEnabled && !walletInfo.hasCard && (
           <Card>
             <CardContent>
               <div className='flex items-start space-x-4'>
@@ -385,9 +355,7 @@ function CTACards() {
             </CardContent>
           </Card>
         )}
-      {features.banksEnabled &&
-        !walletInfo.hasBank &&
-        (walletInfo.hasCard || !features.cardsEnabled) && (
+      {features.banksEnabled && (
           <Card>
             <CardContent>
               <div className='flex items-start space-x-4'>
@@ -399,13 +367,7 @@ function CTACards() {
                     Connect bank accounts to easily add or withdraw from your
                     balance.
                   </p>
-                  <button
-                    type='button'
-                    onClick={() => setBankSourceModalOpen(true)}
-                    className='self-start rounded text-sm font-medium text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-500'
-                  >
-                    Connect a bank account
-                  </button>
+                  <PlaidLinkButton />
                 </div>
               </div>
             </CardContent>
@@ -434,11 +396,6 @@ function CTACards() {
           </CardContent>
         </Card>
       )}
-      <BankSourceModal
-        open={bankSourceModalOpen}
-        setOpen={setBankSourceModalOpen}
-        country={walletInfo.country}
-      />
     </>
   )
 }

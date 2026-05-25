@@ -176,8 +176,9 @@ function InteracDetailsPage() {
 }
 
 function BankDetailsPage() {
-  const { account } = useLoaderData<typeof bankLoader>()
+  const { account, csrfToken } = useLoaderData<typeof bankLoader>()
   const params = useParams()
+  const [showDeleteDialog, setShowDeleteDialog] = useState<boolean>(false)
   return (
     <>
       <Card>
@@ -203,6 +204,55 @@ function BankDetailsPage() {
           <Icon>navigate_next</Icon>
         </CardLink>
       </Card>
+      <Card>
+        <CardContent>
+          <TextButton
+            type='button'
+            className='!text-error'
+            onClick={() => setShowDeleteDialog(true)}
+          >
+            Remove bank account
+          </TextButton>
+        </CardContent>
+      </Card>
+      <Form
+        id='bank-delete'
+        action={href('/accounts/:accountId', {
+          accountId: params.accountId as string
+        })}
+        method='post'
+        className='hidden'
+      >
+        <input type='hidden' name='formName' value='delete' />
+        <input type='hidden' name='csrfToken' value={csrfToken} />
+      </Form>
+      <Dialog open={showDeleteDialog} setOpen={setShowDeleteDialog}>
+        <CardHeader>
+          <CardTitle>Remove bank account?</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <span className='text-medium'>
+            Are you sure you want to remove this bank account? This action
+            cannot be undone.
+          </span>
+          <div className='flex w-full justify-end space-x-6 pt-4'>
+            <TextButton
+              type='button'
+              className='!text-medium'
+              onClick={() => setShowDeleteDialog(false)}
+            >
+              Cancel
+            </TextButton>
+            <TextButton
+              className='!text-error'
+              form='bank-delete'
+              type='submit'
+            >
+              Remove
+            </TextButton>
+          </div>
+        </CardContent>
+      </Dialog>
     </>
   )
 }

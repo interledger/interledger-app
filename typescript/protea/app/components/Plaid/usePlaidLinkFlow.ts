@@ -69,12 +69,13 @@ export function usePlaidLinkFlow() {
     token: linkToken,
     onLoad: () => setPlaidInstanceReady(true),
     onSuccess: (publicToken, metadata) => {
-      console.log('Plaid Link onSuccess', publicToken, metadata)
-      const accountId = metadata.accounts[0]?.id ?? ''
+      const account = metadata.accounts[0]
       const fd = new FormData()
-      fd.append('intent', 'exchange')
+      fd.append('intent', 'exchange_and_link')
       fd.append('public_token', publicToken)
-      fd.append('account_id', accountId)
+      fd.append('account_id', account?.id ?? '')
+      fd.append('account_name', account?.name ?? '')
+      fd.append('account_mask', account?.mask ?? '')
       exchangeFetcher.submit(fd, { method: 'POST', action: PLAID_ACTION_PATH })
     },
     onExit: (err) => {
@@ -106,14 +107,18 @@ export function usePlaidLinkFlow() {
     open()
   }, [linkToken, plaidInstanceReady, open])
 
-  // (5) exchange result → React Router will revalidate the loader on its own,
-  //     which kicks the /plaid useEffect → setLinked. Here we just clean up.
+  // (5) exchange_and_link result → clean up + push snackbar for success /
+  //     already-linked / error. React Router revalidates the loader on its own.
   useEffect(() => {
     const data = exchangeFetcher.data
     if (!data) return
-    if (data.success && data.data.intent === 'exchange') {
+    if (data.success && data.data.intent === 'exchange_and_link') {
       setLinkToken(null)
       setIsLinking(false)
+      const msg = data.data.alreadyLinked
+        ? 'Account already linked'
+        : 'Bank account linked'
+      pushSnackbar({ id: v4(), message: msg, icon: 'check' })
       return
     }
     if (!data.success) {
