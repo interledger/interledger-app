@@ -5,48 +5,91 @@ import { kratosPublic, KRATOS_SESSION_COOKIE } from './kratos-client.server'
 import { getCookie } from './cookie.server'
 import type { KratosTraits } from './types.server'
 
+const sessionPromiseCache = new WeakMap<
+  Request,
+  ReturnType<typeof kratosPublic.toSession>
+>()
 
-/**
- * getUserSession allows fetching a user's kratos session.
- * @param request Request received in a loader function.
- * @returns Promise<Session | null> - the user's Kratos session, or null if no valid session is available and AAL1 is allowed.
- */
+const WhoamiStatus = {
+  SESSION_INVALID: 401,
+  AAL_FORBIDDEN: 403,
+  AAL_UNPROCESSABLE: 422,
+} as const
+
+function getCachedToSession(request: Request) {
+  let cached = sessionPromiseCache.get(request)
+  if (!cached) {
+    cached = kratosPublic.toSession({ cookie: getCookie(request) })
+    sessionPromiseCache.set(request, cached)
+  }
+  return cached
+}
+
+function buildLoginRedirectUrl(request: Request): string {
+  const { pathname, search } = new URL(request.url)
+  const target = `${pathname}${search}`
+  const returnTo = safeReturnTo(target)
+  return `${href('/login')}?${new URLSearchParams({ returnTo })}`
+}
+
+// TODO: migrate the remaining cookie-only callers (`_index/route.tsx`,
+// `me_.$.tsx`, `confirmations.tsx`, `recovery_.password.tsx`) to this
+// function, then rename `hasUserSession` -> `hasSessionCookie`.
+export async function isAuthenticated(request: Request): Promise<boolean> {
+  if (!String(request.headers.get('cookie')).includes(KRATOS_SESSION_COOKIE)) {
+    return false
+  }
+  try {
+    await getCachedToSession(request)
+    return true
+  } catch (err: any) {
+    const status = err.response?.status
+    if (
+      status === WhoamiStatus.AAL_FORBIDDEN ||
+      status === WhoamiStatus.AAL_UNPROCESSABLE
+    ) {
+      return true
+    }
+    if (status === WhoamiStatus.SESSION_INVALID) {
+      throw redirect(buildLoginRedirectUrl(request), {
+        headers: { 'Clear-Site-Data': '"cookies"' }
+      })
+    }
+    return false
+  }
+}
+
 export async function getUserSession(
   request: Request,
   allowAal1 = false
 ): Promise<Session | null> {
-  const cookie = getCookie(request)
-  const requestUrl = new URL(request.url)
-  const returnTo = safeReturnTo(requestUrl.pathname + requestUrl.search)
-  const searchParams = new URLSearchParams()
-  searchParams.set('returnTo', returnTo)
+  const loginUrl = buildLoginRedirectUrl(request)
 
   try {
-    const { data } = await kratosPublic.toSession({ cookie })
+    const { data } = await getCachedToSession(request)
     return data
   } catch (err: any) {
     const status = err.response?.status
 
     switch (status) {
-      case 401:
-      case 500:
-        throw redirect(`${href('/login')}?${searchParams.toString()}`)
-      case 403:
-      case 422: // Need to complete 2FA.
+      case WhoamiStatus.SESSION_INVALID:
+        // TODO: emit a Sentry/log event here — a 401 with cookie present
+        // is the canary for stale sessions in prod.
+        throw redirect(loginUrl, {
+          headers: { 'Clear-Site-Data': '"cookies"' }
+        })
+      case WhoamiStatus.AAL_FORBIDDEN:
+      case WhoamiStatus.AAL_UNPROCESSABLE:
         if (!allowAal1) {
-          throw redirect(`${href('/login')}?${searchParams.toString()}`)
+          throw redirect(loginUrl)
         }
         return null
       default:
-        throw redirect(`${href('/login')}?${searchParams.toString()}`)
+        throw redirect(loginUrl)
     }
   }
 }
 
-/**
- * Extracts typed traits from a Kratos session.
- * Throws redirect to login if session or identity is missing.
- */
 export function getSessionTraits(session: Session | null): KratosTraits {
   if (!session?.identity) {
     throw redirect(href('/login'))
@@ -54,43 +97,37 @@ export function getSessionTraits(session: Session | null): KratosTraits {
   return session.identity.traits as KratosTraits
 }
 
-/**
- * hasUserSession allows determining whether the user has a valid kratos session cookie.
- * @param request Request received in a loader function.
- * @returns boolean - if the user has a session cookie.
- */
+// TODO: misleading name — rename to `hasSessionCookie` once `_index/route.tsx`,
+// `me_.$.tsx`, `confirmations.tsx`, `recovery_.password.tsx` migrate to
+// `isAuthenticated`.
 export function hasUserSession(request: Request): boolean {
   return String(request.headers.get('cookie')).includes(KRATOS_SESSION_COOKIE)
 }
 
-/**
- * requireNoUserSession  will ensure the user doesn't already have a session.
- * @param request Request received in a loader function.
- * @returns void
- */
 export async function requireNoUserSession(request: Request): Promise<void> {
-  // Can immediately assume no session if there's no cookie
   if (!hasUserSession(request)) return
 
-  const cookie = getCookie(request)
+  const { pathname, search } = new URL(request.url)
+  const target = `${pathname}${search}`
 
   try {
-    await kratosPublic.toSession({ cookie })
-    // Session is valid — user is already logged in
+    await getCachedToSession(request)
     throw redirect(href('/'))
   } catch (err: any) {
-    // Re-throw redirects
     if (err instanceof Response) throw err
 
     const status = err.response?.status
 
     switch (status) {
-      case 403:
-      case 422: // Need to complete 2FA.
+      case WhoamiStatus.AAL_FORBIDDEN:
+      case WhoamiStatus.AAL_UNPROCESSABLE:
         throw redirect(href('/totp/challenge'))
-      case 401:
-        // No valid session — this is expected, continue
-        return
+
+      case WhoamiStatus.SESSION_INVALID:
+      default:
+        throw redirect(target, {
+          headers: { 'Clear-Site-Data': '"cookies"' }
+        })
     }
   }
 }
