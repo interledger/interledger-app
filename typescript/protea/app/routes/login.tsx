@@ -206,10 +206,10 @@ export async function action({ request }: Route.ActionArgs) {
 
     return redirect(returnTo, { headers })
   } catch (err) {
-    const errResponse = (err as KratosError).response
+    const errResponse = (err as KratosError)?.response
 
     // Handle validation errors
-    if (errResponse.status === 400) {
+    if (errResponse?.status === 400) {
       const flowData = errResponse.data
       const fieldErrors = {
         form: '',
@@ -243,7 +243,7 @@ export async function action({ request }: Route.ActionArgs) {
     }
 
     // Handle AAL2 required
-    if (errResponse.status === 422) {
+    if (errResponse?.status === 422) {
       const headers = buildHeadersWithCookies(errResponse)
       return redirect(
         `${href('/totp/challenge')}?${searchParams.toString()}`,
