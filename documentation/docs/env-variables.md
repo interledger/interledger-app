@@ -32,11 +32,15 @@ Protea is a Remix application serving the user-facing wallet UI.
 
 | Variable | Description | Secret | Notes |
 |---|---|---|---|
-| `FYNBOS_ENV` | Runtime environment tag used for feature flags and logging context | No | Prod: `prod`; Sandbox/Dev: `dev`; Local: `local` |
+| `NODE_ENV` | Node.js runtime mode | No | Deployed: `production`; Local: `development` |
+| `FYNBOS_ENV` | Runtime environment tag used for feature flags (e.g. Xago test-deposit gate) | No | Prod: `prod`; Sandbox/Dev: `dev`; Local: `local` |
 | `LOG_LEVEL` | Log verbosity (`debug`, `info`, `warn`, `error`) | No | Deployed: `info`; Local: `debug` |
 | `LOG_PRETTY` | Human-readable log formatting. Set `false` for JSON in deployed environments | No | Deployed: `false`; Local: `true` |
+| `TARGET_HOST` | Base URL of the app itself (scheme + host). Used to build self-referential links in legal and contact pages | No | Prod: `https://interledger.app`; Sandbox/Dev: environment URL; Local: `https://interledger.test` |
+| `SUPPORT_EMAIL` | Support email address shown to users in error messages, legal pages, and notifications | No | Prod/Sandbox/Dev: `support@interledger.app`; Local: `support@interledger.app` |
 | `KRATOS_URL` | Internal URL for the Ory Kratos public API (session/login flows) | No | Deployed: `http://kratos-public`; Local: `http://kratos:4433` |
 | `RAFIKI_AUTH_ENDPOINT` | Internal URL for the Rafiki auth gRPC/GraphQL endpoint | No | Deployed: `http://rafiki-auth-service:3009`; Local: `http://rafiki_auth:3009` |
+| `PUBLIC_OP_AUTH_HOST` | Public-facing hostname for the Open Payments auth server (used by the Rafiki auth flow) | No | Prod: `auth.ilp.link`; Sandbox: `auth.sandbox.ilp.link`; Dev: `auth.development.ilp.link`; Local: `auth.local.ilp.link` |
 | `PAYMENT_POINTER_BASE` | Domain used to build Open Payments payment pointer addresses | No | Prod: `ilp.link`; Sandbox: `sandbox.ilp.link`; Dev: `development.ilp.link`; Local: `local.ilp.link` |
 | `BACKEND_GRPC_URL` | Internal URL for the wallet backend gRPC server | No | Deployed: `http://wallet-backend-service-grpc:8443`; Local: `http://backend:8443` |
 | `BACKEND_HTTP_URL` | Internal URL for the wallet backend HTTP server | No | Deployed: `http://wallet-backend-service:8080`; Local: `http://backend:8080` |
@@ -45,15 +49,17 @@ Protea is a Remix application serving the user-facing wallet UI.
 | `PTI_CLIENT_ID` | PTI/Fiant payment provider client UUID, passed to the browser for payment widget initialisation | No | Local default: `''` (code default); deployed values TBD |
 | `PTI_SDK_URL` | URL to the Fiant Web SDK JavaScript bundle loaded by the PTI payment widget. Value pattern documented in [Fiant Front-End SDK usage](https://developers.platform.fiant.io/docs/front-end-sdk-usage) as `https://sdk.{env}.fiant.io/latest/index.js` | No | Prod: `https://sdk.platform.fiant.io/0.0.23/index.js`; Sandbox/Dev: `https://sdk.staging.fiant.io/latest/index.js`; Local: `https://mockpti.interledger.test/sdk/index.js` |
 | `PTI_FORMS_URL` | URL to the Fiant hosted forms (Elements) used for KYC, onboarding, and payment collection widgets. Derived from the `ptiDomain` init parameter documented in [Fiant Front-End SDK usage](https://developers.platform.fiant.io/docs/front-end-sdk-usage): `https://forms.{ptiDomain}` | No | Prod: `https://forms.platform.fiant.io`; Sandbox/Dev: `https://forms.staging.fiant.io`; Local: `https://mockpti.interledger.test/forms` |
-| `MOCKXAGO_ENDPOINT` | Base URL for the MockXago iframe used by the South Africa local KYC flow | No | Local default: `https://mockxago.interledger.test`; not set in deployed environments |
+| `PERSONA_SDK_URL` | URL to the Persona identity verification JavaScript SDK loaded by the KYC flow | No | Prod/Sandbox: `https://cdn.withpersona.com/dist/persona-v4.8.0-alpha.js`; Local: `https://mockxago.interledger.test/v1/persona-sdk.js` |
+| `MOCKXAGO_ENDPOINT` | Base URL for the Xago/Persona KYC iframe (`/v1/inquiries/<id>/iframe` appended at runtime). When set, the Xago iframe flow is used; when empty, the Persona SDK flow is used instead. Optional. | No | Local: `https://mockxago.interledger.test`; not set in deployed environments (Persona SDK used instead) |
 | `SENTRY_RELEASE` | Identifies the deployed version in Sentry error reports | No | Not set by default; deployed values TBD |
+| `SENTRY_ENV_LABEL` | Environment label sent to Sentry with every event (e.g. `prod`, `dev`, `local`). Only relevant when `SENTRY_DSN` is set. **Sentry is disabled by default in local.** | No | Prod: `prod`; Sandbox: `sandbox`; Dev: `dev`; Local: not set (Sentry off) |
 | `CHOKIDAR_USEPOLLING` | Enable filesystem polling for hot-reload in containers (dev only) | No | Local only: `true`; not applicable in deployed environments |
 | `COOKIE_SECRETS` | JSON array of strings used to sign session cookies. Rotate periodically. | Yes | Local default: `["localsecret"]` |
 | `RAFIKI_AUTH_SECRET` | Shared secret between Protea and the Rafiki auth service | Yes | Local default: `my-super-secret-identity-key` |
 | `PUSHER_APP_KEY` | Pusher application key for real-time push notifications (public-facing) | Yes | Local default: `91988d6075551d29760a` |
 | `PUSHER_APP_CLUSTER` | Pusher cluster region for the application | Yes | Local default: `eu` |
 | `REDIS_URL` | Redis connection URL used for session storage and caching | Yes | Local default: `redis://redis:6379/2` |
-| `SENTRY_DSN` | Sentry DSN for client-side and server-side error reporting | Yes | Not set locally |
+| `SENTRY_DSN` | Sentry DSN for client-side and server-side error reporting. **Not set in local** — Sentry is disabled when this is empty. | Yes | Not set locally; required in deployed environments |
 | `SEGMENT_API_KEY` | Segment analytics write key for event tracking | Yes | Not set locally |
 | `GOOGLE_MAPS_API_KEY` | Google Maps API key for geocoding and places autocomplete endpoints used during onboarding | Yes | Not set locally |
 
