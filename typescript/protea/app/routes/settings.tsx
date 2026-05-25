@@ -18,11 +18,12 @@ import {
   Layouts,
   WalletGrid
 } from '~/components'
-import { getKycStatus } from '~/data/wallet.server'
+import { getFeatures, getKycStatus } from '~/data/wallet.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
 import { KycStatus } from '~/lib/types'
+import { AccountDeletionRequestStatus } from '~/generated/connect/backend/v1/backend_pb'
 import type { Route } from './+types/settings'
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -31,9 +32,10 @@ export async function loader({ request }: Route.LoaderArgs) {
   const flowId = url.searchParams.get('flow')
   if (flowId) return redirect(`${href('/recovery/password')}?flow=${flowId}`)
 
-  const [{ kycStatus }, linkedAccountsResponse] = await Promise.all([
+  const [{ kycStatus }, linkedAccountsResponse, features] = await Promise.all([
     getKycStatus(request),
-    grpc.getLinkedAccounts(request, {})
+    grpc.getLinkedAccounts(request, {}),
+    getFeatures(request)
   ])
 
   const eurBalanceAccount = isConnectError(linkedAccountsResponse)
@@ -42,9 +44,20 @@ export async function loader({ request }: Route.LoaderArgs) {
         (la) => la.type === 'balance' && la.receiveCurrencyCode === 'EUR'
       )
 
+  const deletionStatusResponse = features.deleteAccountEnabled
+    ? await grpc.getAccountDeletionStatus(request, {})
+    : null
+
+  const accountDeletionStatus =
+    deletionStatusResponse && !isConnectError(deletionStatusResponse)
+      ? deletionStatusResponse.status
+      : undefined
+
   return data({
     kycStatus,
-    eurBalanceAccount
+    eurBalanceAccount,
+    deleteAccountEnabled: features.deleteAccountEnabled,
+    accountDeletionStatus
   })
 }
 
@@ -72,7 +85,12 @@ export function useSettingsContext() {
 }
 
 export default function Page() {
-  const { kycStatus, eurBalanceAccount } = useLoaderData<typeof loader>()
+  const {
+    kycStatus,
+    eurBalanceAccount,
+    deleteAccountEnabled,
+    accountDeletionStatus
+  } = useLoaderData<typeof loader>()
   const location = useLocation()
   const pathSegments = location.pathname.split('/').filter(Boolean)
 
@@ -167,6 +185,9 @@ export default function Page() {
               <Icon>navigate_next</Icon>
             </CardLink>
           )}
+          {deleteAccountEnabled && (
+            <AccountDeletionRow status={accountDeletionStatus} />
+          )}
         </Card>
         <Card>
           <CardHeader>
@@ -220,5 +241,63 @@ export default function Page() {
         />
       </GridColumn>
     </WalletGrid>
+  )
+}
+
+// A COMPLETED deletion means the account is gone, so the user can't be logged
+// in to see this row at all. Only the in-flight states need a label.
+const inFlightAccountDeletionRow: Partial<
+  Record<AccountDeletionRequestStatus, { icon: string; label: string }>
+> = {
+  [AccountDeletionRequestStatus.PENDING]: {
+    icon: 'schedule',
+    label: 'Account deletion pending'
+  },
+  [AccountDeletionRequestStatus.IN_PROGRESS]: {
+    icon: 'autorenew',
+    label: 'Account deletion in progress'
+  }
+}
+
+function AccountDeletionRow({
+  status
+}: {
+  status: AccountDeletionRequestStatus | undefined
+}) {
+  if (status === undefined) {
+    return (
+      <div className='my-1 flex rounded-xl p-3 text-medium'>
+        <div className='mr-auto flex space-x-3'>
+          <Icon>warning</Icon>
+          <span>Could not load account deletion status. Try again later.</span>
+        </div>
+      </div>
+    )
+  }
+  if (status === AccountDeletionRequestStatus.UNSPECIFIED) {
+    return (
+      <CardLink
+        end
+        preventScrollReset
+        prefetch='intent'
+        to={href('/settings/delete-account')}
+      >
+        <div className='mr-auto flex space-x-3 text-error'>
+          <Icon>delete</Icon>
+          <span>Delete account</span>
+        </div>
+        <Icon>navigate_next</Icon>
+      </CardLink>
+    )
+  }
+  const row = inFlightAccountDeletionRow[status]
+  if (!row) return null
+  return (
+    <div className='my-1 flex rounded-xl p-3 text-medium'>
+      <div className='mr-auto flex space-x-3'>
+        <Icon>{row.icon}</Icon>
+        <span>{row.label}</span>
+      </div>
+    </div>
   )
 }
