@@ -32,8 +32,7 @@ function buildLoginRedirectUrl(request: Request): string {
   return `${href('/login')}?${new URLSearchParams({ returnTo })}`
 }
 
-// TODO: migrate the remaining cookie-only callers (`_index/route.tsx`,
-// `me_.$.tsx`, `confirmations.tsx`, `recovery_.password.tsx`) to this
+// TODO: migrate the remaining cookie-only callers routes to this
 // function, then rename `hasUserSession` -> `hasSessionCookie`.
 export async function isAuthenticated(request: Request): Promise<boolean> {
   if (!String(request.headers.get('cookie')).includes(KRATOS_SESSION_COOKIE)) {
@@ -97,9 +96,8 @@ export function getSessionTraits(session: Session | null): KratosTraits {
   return session.identity.traits as KratosTraits
 }
 
-// TODO: misleading name — rename to `hasSessionCookie` once `_index/route.tsx`,
-// `me_.$.tsx`, `confirmations.tsx`, `recovery_.password.tsx` migrate to
-// `isAuthenticated`.
+// TODO: misleading name — rename to `hasSessionCookie`
+// once routes using this migrate to `isAuthenticated`
 export function hasUserSession(request: Request): boolean {
   return String(request.headers.get('cookie')).includes(KRATOS_SESSION_COOKIE)
 }
