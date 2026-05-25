@@ -427,7 +427,7 @@ func pollGatehubTransfer(ctx workflow.Context, a *Activity, paymentID string) (g
 		selector.Select(ctx)
 		logger.Info("Selector completed - checking transaction status", workflow.Now(ctx))
 
-		err := workflow.ExecuteActivity(ctx, a.GetGatehubTransfer, paymentID).Get(ctx, &externalTransaction)
+		err := workflow.ExecuteActivity(ctx, a.GetGatehubSenderTransfer, paymentID).Get(ctx, &externalTransaction)
 		if err != nil {
 			logger.Error("GetGatehubTransfer activity failed", "error", err)
 			return gatehub_external.Transaction{}, false, err
@@ -872,6 +872,7 @@ func RollbackPayInWorkflow(ctx workflow.Context, paymentID string) error {
 		return err
 	}
 
+	// TODO check if this voids the Xago->Gatehub cross provider payIn transfer in pacioli
 	err = workflow.ExecuteActivity(ctx, a.RollbackBalance, paymentID).Get(ctx, nil)
 	if err != nil {
 		logger.Error("error rolling back balance reserve", "Error", err)

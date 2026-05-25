@@ -11,7 +11,6 @@ import (
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/gatehub"
-	gatehub_external "gitlab.com/fynbos/backend/providers/gatehub/external"
 	"gitlab.com/fynbos/backend/providers/xago"
 	xago_external "gitlab.com/fynbos/backend/providers/xago/external"
 	"gitlab.com/fynbos/pacioli"
@@ -416,6 +415,7 @@ func (a *Activity) PostXagoToGatehubTransfers(ctx context.Context, paymentID, xa
 func (a *Activity) CrossProviderGatehubRollbackTransfer(ctx context.Context, paymentID string) error {
 	// Check if GateHub API transfer was already made.
 	var externalID sql.NullString
+	// TODO check if possible to be here but the table is not filled yet
 	err := a.b.DB().GetContext(ctx, &externalID, "SELECT external_id FROM gatehub_transactions WHERE payment_id = $1", paymentID)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return fmt.Errorf("%w querying gatehub_transactions: %s", payments.ErrInternal, err)
@@ -423,6 +423,7 @@ func (a *Activity) CrossProviderGatehubRollbackTransfer(ctx context.Context, pay
 
 	if !externalID.Valid || externalID.String == "" {
 		// GateHub API transfer was not made, nothing to reverse.
+		// TODO check if possible to be here but the table is not filled yet, and if so, maybe return error here to retry
 		return nil
 	}
 
@@ -438,30 +439,4 @@ func (a *Activity) CrossProviderGatehubRollbackTransfer(ctx context.Context, pay
 	}
 
 	return nil
-}
-
-// GetGatehubS2ReceiverTransfer looks up the stored GateHub omnibus→receiver transaction for Scenario 2 payout.
-// Unlike GetGatehubTransfer (which uses the sender's wallet ID), this uses the receiver's wallet ID
-// since the transaction originates from the GateHub omnibus, not the ZAR sender.
-func (a *Activity) GetGatehubS2ReceiverTransfer(ctx context.Context, paymentID string) (*gatehub_external.Transaction, error) {
-	var externalID string
-	err := a.b.DB().GetContext(ctx, &externalID, "SELECT external_id FROM gatehub_transactions WHERE payment_id = $1;", paymentID)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, temporal.NewNonRetryableApplicationError("Payment not mapped to Gatehub transaction.", "ErrInternal", fmt.Errorf("%w Payment not mapped to Gatehub transaction.", payments.ErrInternal))
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	p, err := Lookup(ctx, a.b, paymentID)
-	if err != nil {
-		return nil, err
-	}
-
-	externalTrx, err := a.b.Gatehub().GetTransaction(ctx, p.Receiver.WalletID, externalID)
-	if err != nil {
-		return nil, err
-	}
-
-	return externalTrx, nil
 }

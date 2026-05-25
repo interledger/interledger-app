@@ -144,7 +144,7 @@ func crossProviderXagoToGatehubPayOut(ctx workflow.Context, a *Activity, payment
 		})
 		selector.Select(ctx)
 
-		err = workflow.ExecuteActivity(ctx, a.GetGatehubS2ReceiverTransfer, paymentID).Get(ctx, &externalTransaction)
+		err = workflow.ExecuteActivity(ctx, a.GetGatehubReceiverTransfer, paymentID).Get(ctx, &externalTransaction)
 		if err != nil {
 			return "", false, err
 		}
