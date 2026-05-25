@@ -600,6 +600,7 @@ jobs:
           exit 1
 
       - name: Refresh and sync development in Argo CD
+        if: steps.update_chart.outputs.skip != 'true'
         uses: ./.github/actions/argocd-refresh-sync
         with:
           argocd-endpoint: ${{ vars.ARGOCD_ENDPOINT }}

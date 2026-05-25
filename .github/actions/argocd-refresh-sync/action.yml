@@ -1,5 +1,5 @@
 name: Argo CD Refresh and Sync
-description: Refresh a root Argo CD app, wait for it to become healthy, then refresh and sync a target app.
+description: Refresh a root Argo CD app via the Argo CD HTTP API, wait for it to become healthy, then refresh and sync a target app.
 
 inputs:
   argocd-endpoint:
