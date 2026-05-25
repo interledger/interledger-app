@@ -3,16 +3,14 @@ package grpc
 import (
 	"context"
 	"errors"
-	"fmt"
 	"testing"
 	"time"
 
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
-	"github.com/pquerna/otp"
-	"github.com/pquerna/otp/totp"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/accountdeletion"
+	"gitlab.com/fynbos/backend/errcodes"
 	"gitlab.com/fynbos/backend/user"
 	user_mock "gitlab.com/fynbos/backend/user/client/mock"
 	"gitlab.com/fynbos/backend/wallets"
@@ -29,23 +27,13 @@ func TestRequestAccountDeletion_Success(t *testing.T) {
 	_, _, client := startTestServer(t, c)
 
 	u := &user.User{ID: uuid.NewString()}
+	c.UserService.EnrollTotp(u.ID)
 
 	c.walletImpl.EXPECT().List(gomock.Any(), u.ID).Return([]wallets.Wallet{{ID: uuid.NewString(), Name: "test-wallet"}}, nil).AnyTimes()
-
-	totpURL := fmt.Sprintf("otpauth://totp/test:%s?algorithm=SHA1&digits=6&issuer=test&period=30&secret=EGO3DEBFSF6Q3RKNRENIQ7XT7JO76MFA", u.ID)
-	userMock := c.UserService.(*user_mock.MockClient)
-	userMock.MapUserTotpURL(context.Background(), u.ID, totpURL)
-
-	now := time.Now()
-	key, err := otp.NewKeyFromURL(totpURL)
-	require.NoError(t, err)
-	code, err := totp.GenerateCode(key.Secret(), now)
-	require.NoError(t, err)
-
 	c.AccountDeletionClient.EXPECT().Request(gomock.Any(), u.ID).Return(nil)
 	c.EmailClient.EXPECT().SendAccountDeletionRequested(gomock.Any(), u.ID).Return(nil)
 
-	_, err = client.RequestAccountDeletion(user_mock.ActingAsContext(t, context.Background(), u), &pb.RequestAccountDeletionRequest{TotpCode: code})
+	_, err := client.RequestAccountDeletion(user_mock.ActingAsContext(t, context.Background(), u), &pb.RequestAccountDeletionRequest{})
 	require.NoError(t, err)
 }
 
@@ -57,23 +45,12 @@ func TestRequestAccountDeletion_AlreadyRequested(t *testing.T) {
 	_, _, client := startTestServer(t, c)
 
 	u := &user.User{ID: uuid.NewString()}
+	c.UserService.EnrollTotp(u.ID)
 
 	c.walletImpl.EXPECT().List(gomock.Any(), u.ID).Return([]wallets.Wallet{{ID: uuid.NewString(), Name: "test-wallet"}}, nil).AnyTimes()
-
-	totpURL := fmt.Sprintf("otpauth://totp/test:%s?algorithm=SHA1&digits=6&issuer=test&period=30&secret=EGO3DEBFSF6Q3RKNRENIQ7XT7JO76MFA", u.ID)
-	userMock := c.UserService.(*user_mock.MockClient)
-	userMock.MapUserTotpURL(context.Background(), u.ID, totpURL)
-
-	now := time.Now()
-	key, err := otp.NewKeyFromURL(totpURL)
-	require.NoError(t, err)
-	code, err := totp.GenerateCode(key.Secret(), now)
-	require.NoError(t, err)
-
 	c.AccountDeletionClient.EXPECT().Request(gomock.Any(), u.ID).Return(accountdeletion.ErrAlreadyRequested)
-	// No EXPECT for SendAccountDeletionRequested — gomock fails the test if it is called.
 
-	_, err = client.RequestAccountDeletion(user_mock.ActingAsContext(t, context.Background(), u), &pb.RequestAccountDeletionRequest{TotpCode: code})
+	_, err := client.RequestAccountDeletion(user_mock.ActingAsContext(t, context.Background(), u), &pb.RequestAccountDeletionRequest{})
 	require.Error(t, err)
 
 	st, ok := status.FromError(err)
@@ -90,24 +67,14 @@ func TestRequestAccountDeletion_SupportEmailFailureRollsBack(t *testing.T) {
 	_, _, client := startTestServer(t, c)
 
 	u := &user.User{ID: uuid.NewString()}
+	c.UserService.EnrollTotp(u.ID)
 
 	c.walletImpl.EXPECT().List(gomock.Any(), u.ID).Return([]wallets.Wallet{{ID: uuid.NewString(), Name: "test-wallet"}}, nil).AnyTimes()
-
-	totpURL := fmt.Sprintf("otpauth://totp/test:%s?algorithm=SHA1&digits=6&issuer=test&period=30&secret=EGO3DEBFSF6Q3RKNRENIQ7XT7JO76MFA", u.ID)
-	userMock := c.UserService.(*user_mock.MockClient)
-	userMock.MapUserTotpURL(context.Background(), u.ID, totpURL)
-
-	now := time.Now()
-	key, err := otp.NewKeyFromURL(totpURL)
-	require.NoError(t, err)
-	code, err := totp.GenerateCode(key.Secret(), now)
-	require.NoError(t, err)
-
 	c.AccountDeletionClient.EXPECT().Request(gomock.Any(), u.ID).Return(nil)
 	c.EmailClient.EXPECT().SendAccountDeletionRequested(gomock.Any(), u.ID).Return(errors.New("sendgrid unavailable"))
 	c.AccountDeletionClient.EXPECT().Delete(gomock.Any(), u.ID).Return(nil)
 
-	_, err = client.RequestAccountDeletion(user_mock.ActingAsContext(t, context.Background(), u), &pb.RequestAccountDeletionRequest{TotpCode: code})
+	_, err := client.RequestAccountDeletion(user_mock.ActingAsContext(t, context.Background(), u), &pb.RequestAccountDeletionRequest{})
 	require.Error(t, err)
 
 	st, ok := status.FromError(err)
@@ -123,27 +90,17 @@ func TestRequestAccountDeletion_SlackLookupFailureDoesNotFailRequest(t *testing.
 	_, _, client := startTestServer(t, c)
 
 	u := &user.User{ID: uuid.NewString()}
+	c.UserService.EnrollTotp(u.ID)
 
 	c.walletImpl.EXPECT().List(gomock.Any(), u.ID).Return(nil, errors.New("wallets unavailable")).AnyTimes()
-
-	totpURL := fmt.Sprintf("otpauth://totp/test:%s?algorithm=SHA1&digits=6&issuer=test&period=30&secret=EGO3DEBFSF6Q3RKNRENIQ7XT7JO76MFA", u.ID)
-	userMock := c.UserService.(*user_mock.MockClient)
-	userMock.MapUserTotpURL(context.Background(), u.ID, totpURL)
-
-	now := time.Now()
-	key, err := otp.NewKeyFromURL(totpURL)
-	require.NoError(t, err)
-	code, err := totp.GenerateCode(key.Secret(), now)
-	require.NoError(t, err)
-
 	c.AccountDeletionClient.EXPECT().Request(gomock.Any(), u.ID).Return(nil)
 	c.EmailClient.EXPECT().SendAccountDeletionRequested(gomock.Any(), u.ID).Return(nil)
 
-	_, err = client.RequestAccountDeletion(user_mock.ActingAsContext(t, context.Background(), u), &pb.RequestAccountDeletionRequest{TotpCode: code})
+	_, err := client.RequestAccountDeletion(user_mock.ActingAsContext(t, context.Background(), u), &pb.RequestAccountDeletionRequest{})
 	require.NoError(t, err)
 }
 
-func TestRequestAccountDeletion_InvalidTotp(t *testing.T) {
+func TestRequestAccountDeletion_TotpNotEnrolled(t *testing.T) {
 	t.Parallel()
 
 	ctrl := gomock.NewController(t)
@@ -154,19 +111,15 @@ func TestRequestAccountDeletion_InvalidTotp(t *testing.T) {
 
 	c.walletImpl.EXPECT().List(gomock.Any(), u.ID).Return([]wallets.Wallet{{ID: uuid.NewString(), Name: "test-wallet"}}, nil).AnyTimes()
 
-	totpURL := fmt.Sprintf("otpauth://totp/test:%s?algorithm=SHA1&digits=6&issuer=test&period=30&secret=EGO3DEBFSF6Q3RKNRENIQ7XT7JO76MFA", u.ID)
-	userMock := c.UserService.(*user_mock.MockClient)
-	userMock.MapUserTotpURL(context.Background(), u.ID, totpURL)
-
-	// No EXPECTs for AccountDeletionClient or EmailClient — gomock fails the test
-	// if the handler reaches them despite TOTP validation failing.
-
-	_, err := client.RequestAccountDeletion(user_mock.ActingAsContext(t, context.Background(), u), &pb.RequestAccountDeletionRequest{TotpCode: "000000"})
+	_, err := client.RequestAccountDeletion(user_mock.ActingAsContext(t, context.Background(), u), &pb.RequestAccountDeletionRequest{})
 	require.Error(t, err)
 
 	st, ok := status.FromError(err)
 	require.True(t, ok)
-	require.Equal(t, codes.InvalidArgument, st.Code())
+	require.Equal(t, codes.FailedPrecondition, st.Code())
+	appErr := statusFindDetail[*pb.AppError](st)
+	require.NotNil(t, appErr)
+	require.Equal(t, errcodes.ErrCodeUserTotpNotConfigured, appErr.ErrorCode)
 }
 
 func TestGetAccountDeletionStatus_NoPending(t *testing.T) {

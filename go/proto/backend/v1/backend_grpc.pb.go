@@ -263,8 +263,7 @@ type BackendServiceClient interface {
 	BlockCard(ctx context.Context, in *BlockCardRequest, opts ...grpc.CallOption) (*Empty, error)
 	GetPendingThreeDSConfirmations(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetPendingThreeDSConfirmationsResponse, error)
 	ThreeDSPaymentConfirmation(ctx context.Context, in *ThreeDSPaymentConfirmationRequest, opts ...grpc.CallOption) (*Empty, error)
-	// Records a pending account-deletion request and notifies support. Actual
-	// data deletion is performed manually for now. Requires a valid TOTP code.
+	// Records a pending account-deletion request; requires AAL2 + TOTP enrolled.
 	RequestAccountDeletion(ctx context.Context, in *RequestAccountDeletionRequest, opts ...grpc.CallOption) (*Empty, error)
 	// Returns whether the authenticated user has a pending account deletion request.
 	GetAccountDeletionStatus(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*AccountDeletionStatus, error)
@@ -1483,8 +1482,7 @@ type BackendServiceServer interface {
 	BlockCard(context.Context, *BlockCardRequest) (*Empty, error)
 	GetPendingThreeDSConfirmations(context.Context, *Empty) (*GetPendingThreeDSConfirmationsResponse, error)
 	ThreeDSPaymentConfirmation(context.Context, *ThreeDSPaymentConfirmationRequest) (*Empty, error)
-	// Records a pending account-deletion request and notifies support. Actual
-	// data deletion is performed manually for now. Requires a valid TOTP code.
+	// Records a pending account-deletion request; requires AAL2 + TOTP enrolled.
 	RequestAccountDeletion(context.Context, *RequestAccountDeletionRequest) (*Empty, error)
 	// Returns whether the authenticated user has a pending account deletion request.
 	GetAccountDeletionStatus(context.Context, *Empty) (*AccountDeletionStatus, error)

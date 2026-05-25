@@ -4,31 +4,31 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/getsentry/sentry-go"
 	"gitlab.com/fynbos/backend/accountdeletion"
 	"gitlab.com/fynbos/backend/slack"
+	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/log"
 	pb "gitlab.com/fynbos/proto/backend/v1"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func (s *rpcService) RequestAccountDeletion(ctx context.Context, req *pb.RequestAccountDeletionRequest) (*pb.Empty, error) {
+func (s *rpcService) RequestAccountDeletion(ctx context.Context, _ *pb.RequestAccountDeletionRequest) (*pb.Empty, error) {
 	u, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	code := strings.TrimSpace(req.GetTotpCode())
-	if code == "" {
-		return nil, NewValidationError("totp_code", "Enter your authenticator code.")
-	}
-
-	err = s.b.Users().ValidateTotpCode(ctx, u.ID, code, time.Now())
+	// Kratos highest_available AAL lets non-enrolled users through on AAL1;
+	// this guard ensures destructive deletion always requires TOTP.
+	hasTotp, err := s.b.Users().CheckUserTotpEnabled(ctx, u.ID)
 	if err != nil {
 		return nil, toGRPCError(err)
+	}
+	if !hasTotp {
+		return nil, toGRPCError(user.ErrTotpNotConfigured)
 	}
 
 	// Persist before notifying so duplicates are deduped before support is paged.

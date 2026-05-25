@@ -404,11 +404,6 @@ export class Empty extends Message<Empty> {
  * @generated from message backend.v1.RequestAccountDeletionRequest
  */
 export class RequestAccountDeletionRequest extends Message<RequestAccountDeletionRequest> {
-  /**
-   * @generated from field: string totp_code = 1;
-   */
-  totpCode = "";
-
   constructor(data?: PartialMessage<RequestAccountDeletionRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -417,7 +412,6 @@ export class RequestAccountDeletionRequest extends Message<RequestAccountDeletio
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "backend.v1.RequestAccountDeletionRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "totp_code", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RequestAccountDeletionRequest {

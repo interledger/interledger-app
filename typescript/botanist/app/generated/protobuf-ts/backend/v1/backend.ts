@@ -35,10 +35,6 @@ export interface Empty {
  * @generated from protobuf message backend.v1.RequestAccountDeletionRequest
  */
 export interface RequestAccountDeletionRequest {
-    /**
-     * @generated from protobuf field: string totp_code = 1;
-     */
-    totpCode: string;
 }
 /**
  * @generated from protobuf message backend.v1.ThreeDSPaymentConfirmationRequest
@@ -3064,40 +3060,19 @@ export const Empty = new Empty$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class RequestAccountDeletionRequest$Type extends MessageType<RequestAccountDeletionRequest> {
     constructor() {
-        super("backend.v1.RequestAccountDeletionRequest", [
-            { no: 1, name: "totp_code", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
-        ]);
+        super("backend.v1.RequestAccountDeletionRequest", []);
     }
     create(value?: PartialMessage<RequestAccountDeletionRequest>): RequestAccountDeletionRequest {
-        const message = { totpCode: "" };
+        const message = {};
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<RequestAccountDeletionRequest>(this, message, value);
         return message;
     }
     internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: RequestAccountDeletionRequest): RequestAccountDeletionRequest {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string totp_code */ 1:
-                    message.totpCode = reader.string();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
+        return target ?? this.create();
     }
     internalBinaryWrite(message: RequestAccountDeletionRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string totp_code = 1; */
-        if (message.totpCode !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.totpCode);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

@@ -582,7 +582,7 @@ func SendAccountDeletionRequestedEmail(ctx context.Context, b Backends, userID s
 	userData := []map[string]interface{}{
 		{"paragraph": "We've received your request to delete your account."},
 		{"paragraph": "If you still have funds in your account, please withdraw them within the next 2–3 days."},
-		{"paragraph": "Our support team will contact you if anything else is needed."},
+		{"paragraph": "Our support team will let you know when the process starts."},
 	}
 	if err := b.External().SendTemplate(ctx, confirmSubject, confirmTo, b.OneTemplateID(), map[string]interface{}{
 		"subject": confirmSubject,

@@ -527,7 +527,6 @@ func (*Empty) Descriptor() ([]byte, []int) {
 
 type RequestAccountDeletionRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	TotpCode      string                 `protobuf:"bytes,1,opt,name=totp_code,json=totpCode,proto3" json:"totp_code,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -560,13 +559,6 @@ func (x *RequestAccountDeletionRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use RequestAccountDeletionRequest.ProtoReflect.Descriptor instead.
 func (*RequestAccountDeletionRequest) Descriptor() ([]byte, []int) {
 	return file_backend_v1_backend_proto_rawDescGZIP(), []int{2}
-}
-
-func (x *RequestAccountDeletionRequest) GetTotpCode() string {
-	if x != nil {
-		return x.TotpCode
-	}
-	return ""
 }
 
 type ThreeDSPaymentConfirmationRequest struct {
@@ -10201,9 +10193,8 @@ const file_backend_v1_backend_proto_rawDesc = "" +
 	"\tpageToken\x18\x02 \x01(\tH\x00R\tpageToken\x88\x01\x01B\f\n" +
 	"\n" +
 	"_pageToken\"\a\n" +
-	"\x05Empty\"<\n" +
-	"\x1dRequestAccountDeletionRequest\x12\x1b\n" +
-	"\ttotp_code\x18\x01 \x01(\tR\btotpCode\"g\n" +
+	"\x05Empty\"\x1f\n" +
+	"\x1dRequestAccountDeletionRequest\"g\n" +
 	"!ThreeDSPaymentConfirmationRequest\x12$\n" +
 	"\rtransactionId\x18\x01 \x01(\tR\rtransactionId\x12\x1c\n" +
 	"\tconfirmed\x18\x02 \x01(\bR\tconfirmed\"\xf8\x01\n" +

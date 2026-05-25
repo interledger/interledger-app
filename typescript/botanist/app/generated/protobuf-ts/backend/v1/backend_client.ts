@@ -617,8 +617,7 @@ export interface IBackendServiceClient {
      */
     threeDSPaymentConfirmation(input: ThreeDSPaymentConfirmationRequest, options?: RpcOptions): UnaryCall<ThreeDSPaymentConfirmationRequest, Empty>;
     /**
-     * Records a pending account-deletion request and notifies support. Actual
-     * data deletion is performed manually for now. Requires a valid TOTP code.
+     * Records a pending account-deletion request; requires AAL2 + TOTP enrolled.
      *
      * @generated from protobuf rpc: RequestAccountDeletion(backend.v1.RequestAccountDeletionRequest) returns (backend.v1.Empty);
      */
@@ -1427,8 +1426,7 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
         return stackIntercept<ThreeDSPaymentConfirmationRequest, Empty>("unary", this._transport, method, opt, input);
     }
     /**
-     * Records a pending account-deletion request and notifies support. Actual
-     * data deletion is performed manually for now. Requires a valid TOTP code.
+     * Records a pending account-deletion request; requires AAL2 + TOTP enrolled.
      *
      * @generated from protobuf rpc: RequestAccountDeletion(backend.v1.RequestAccountDeletionRequest) returns (backend.v1.Empty);
      */

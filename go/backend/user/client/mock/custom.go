@@ -3,6 +3,7 @@ package mock
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"testing"
@@ -18,6 +19,13 @@ import (
 
 var _ user.Client = &MockClient{}
 
+// DefaultTestTotpURL returns a canonical otpauth URL for the given userID.
+// The secret is deterministic so callers that also need to generate codes
+// against it (e.g. sca_handler_test) can do so.
+func DefaultTestTotpURL(userID string) string {
+	return fmt.Sprintf("otpauth://totp/test:%s?algorithm=SHA1&digits=6&issuer=test&period=30&secret=EGO3DEBFSF6Q3RKNRENIQ7XT7JO76MFA", userID)
+}
+
 type MockClient struct {
 	WalletUser  map[string]string
 	UserTotpURL map[string]string
@@ -29,6 +37,10 @@ func (mc *MockClient) MapUserWallet(_ context.Context, userID, walletID string) 
 
 func (mc *MockClient) MapUserTotpURL(_ context.Context, userID, totpURL string) {
 	mc.UserTotpURL[userID] = totpURL
+}
+
+func (mc *MockClient) EnrollTotp(userID string) {
+	mc.UserTotpURL[userID] = DefaultTestTotpURL(userID)
 }
 
 func (mc *MockClient) GetUser(_ context.Context, userID string) (*user.User, error) {
@@ -89,8 +101,9 @@ func (mc MockClient) UserForToken(ctx context.Context, token string) (*user.User
 	return &usr, nil
 }
 
-func (mc MockClient) CheckUserTotpEnabled(ctx context.Context, token string) (bool, error) {
-	return false, nil
+func (mc MockClient) CheckUserTotpEnabled(_ context.Context, userID string) (bool, error) {
+	_, ok := mc.UserTotpURL[userID]
+	return ok, nil
 }
 
 func (mc MockClient) Delete2FATotpEnrollment(ctx context.Context, token string) error {

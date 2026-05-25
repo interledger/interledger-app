@@ -59,7 +59,6 @@ import (
 	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
 	"gitlab.com/fynbos/backend/twilio"
 	twitter_mock "gitlab.com/fynbos/backend/twitter/client/mock"
-	"gitlab.com/fynbos/backend/user"
 	_user "gitlab.com/fynbos/backend/user"
 	user_mock "gitlab.com/fynbos/backend/user/client/mock"
 	test_utils "gitlab.com/fynbos/backend/utils"
@@ -76,7 +75,7 @@ type TestContainer struct {
 	HealthService         healthcheck.Service
 	AgreementsService     *agreements_mock.MockClient
 	AdminAuthService      auth.Service
-	UserService           user.Client
+	UserService           *user_mock.MockClient
 	linkedaccounts        *linked_accounts_mock.MockClient
 	TwilioService         *twilio.MockService
 	SignupService         *signup_mock.MockClient

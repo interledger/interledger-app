@@ -1010,8 +1010,7 @@ export const BackendService = {
       kind: MethodKind.Unary,
     },
     /**
-     * Records a pending account-deletion request and notifies support. Actual
-     * data deletion is performed manually for now. Requires a valid TOTP code.
+     * Records a pending account-deletion request; requires AAL2 + TOTP enrolled.
      *
      * @generated from rpc backend.v1.BackendService.RequestAccountDeletion
      */
