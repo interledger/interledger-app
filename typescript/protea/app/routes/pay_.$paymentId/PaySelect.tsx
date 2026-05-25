@@ -3,7 +3,8 @@ import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { InputHTMLAttributes, ReactNode } from 'react'
 import { Fragment, forwardRef, useImperativeHandle, useRef } from 'react'
-import { Icon } from '~/components'
+import { href } from 'react-router'
+import { Icon, SelectRouter } from '~/components'
 import type { FormattedLinkedAccount } from '~/data/accounts.server'
 
 interface PayTextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
@@ -15,7 +16,7 @@ interface PayTextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   errorMessage?: string
 
   prefixIcon?: ReactNode
-  selectButton?: ReactNode
+  showConnectAccount?: boolean
 
   linkedAccount?: FormattedLinkedAccount
   linkedAccountOptions: FormattedLinkedAccount[]
@@ -40,7 +41,7 @@ export const PaySelect = forwardRef<HTMLInputElement, PayTextFieldProps>(
       linkedAccount,
       linkedAccountOptions,
       onChangeLinkedAccount,
-      selectButton,
+      showConnectAccount,
       ...inputProps
     },
     ref
@@ -142,7 +143,11 @@ export const PaySelect = forwardRef<HTMLInputElement, PayTextFieldProps>(
                       )}
                     </Listbox.Option>
                   ))}
-                {selectButton && selectButton}
+                {showConnectAccount && (
+                  <SelectRouter to={href('/accounts')}>
+                    <span>Connect new account</span> <Icon>add</Icon>
+                  </SelectRouter>
+                )}
               </Listbox.Options>
             </Transition>
           </div>
