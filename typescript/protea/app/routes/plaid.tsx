@@ -209,15 +209,23 @@ export async function action({ request }: Route.ActionArgs): Promise<ActionData 
       if (isPlaidError(linked)) {
         return ErrorHandler(request, ErrorMapper.plaid.toUserFacingError(linked)) as any
       }
-      return {
-        success: true,
-        data: {
-          intent: 'exchange_and_link' as const,
-          ok: true,
-          linkedAccountId: linked.linked_account_id,
-          alreadyLinked: linked.already_linked
+      // Already linked → stay on page, inline snackbar via hook
+      if (linked.already_linked) {
+        return {
+          success: true,
+          data: {
+            intent: 'exchange_and_link' as const,
+            ok: true,
+            linkedAccountId: linked.linked_account_id,
+            alreadyLinked: true
+          }
         }
       }
+      // New link → redirect to /accounts so user sees the row immediately
+      return redirectWithSnackbar(request, href('/accounts'), {
+        message: 'Bank account linked',
+        icon: 'check'
+      })
     }
 
     case 'fetch_product': {

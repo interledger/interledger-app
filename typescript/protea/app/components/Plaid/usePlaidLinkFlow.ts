@@ -107,18 +107,18 @@ export function usePlaidLinkFlow() {
     open()
   }, [linkToken, plaidInstanceReady, open])
 
-  // (5) exchange_and_link result → clean up + push snackbar for success /
-  //     already-linked / error. React Router revalidates the loader on its own.
+  // (5) exchange_and_link result.
+  //   - New link → action returns redirect → fetcher navigates to /accounts;
+  //     data is never set, this effect doesn't fire. Flash snackbar shown there.
+  //   - Already linked → action returns JSON → push inline snackbar, clean up.
+  //   - Error → push inline snackbar, clean up.
   useEffect(() => {
     const data = exchangeFetcher.data
     if (!data) return
-    if (data.success && data.data.intent === 'exchange_and_link') {
+    if (data.success && data.data.intent === 'exchange_and_link' && data.data.alreadyLinked) {
       setLinkToken(null)
       setIsLinking(false)
-      const msg = data.data.alreadyLinked
-        ? 'Account already linked'
-        : 'Bank account linked'
-      pushSnackbar({ id: v4(), message: msg, icon: 'check' })
+      pushSnackbar({ id: v4(), message: 'Account already linked', icon: 'check' })
       return
     }
     if (!data.success) {
