@@ -1,7 +1,7 @@
 import type { Session } from '@ory/client'
 import { redirect, href } from 'react-router'
 import { safeReturnTo } from '../url.server'
-import { kratosPublic, KRATOS_SESSION_COOKIE } from './kratos-client.server'
+import { kratosPublic, KRATOS_SESSION_COOKIE, CLEAR_SESSION_COOKIE_HEADER } from './kratos-client.server'
 import { getCookie } from './cookie.server'
 import type { KratosTraits } from './types.server'
 
@@ -16,7 +16,7 @@ const WhoamiStatus = {
   AAL_UNPROCESSABLE: 422,
 } as const
 
-function getCachedToSession(request: Request) {
+function getCachedWhoamiSession(request: Request) {
   let cached = sessionPromiseCache.get(request)
   if (!cached) {
     cached = kratosPublic.toSession({ cookie: getCookie(request) })
@@ -38,8 +38,9 @@ export async function isAuthenticated(request: Request): Promise<boolean> {
   if (!String(request.headers.get('cookie')).includes(KRATOS_SESSION_COOKIE)) {
     return false
   }
+
   try {
-    await getCachedToSession(request)
+    await getCachedWhoamiSession(request)
     return true
   } catch (err: any) {
     const status = err.response?.status
@@ -51,7 +52,7 @@ export async function isAuthenticated(request: Request): Promise<boolean> {
     }
     if (status === WhoamiStatus.SESSION_INVALID) {
       throw redirect(buildLoginRedirectUrl(request), {
-        headers: { 'Clear-Site-Data': '"cookies"' }
+        headers: { 'Set-Cookie': CLEAR_SESSION_COOKIE_HEADER }
       })
     }
     return false
@@ -65,17 +66,17 @@ export async function getUserSession(
   const loginUrl = buildLoginRedirectUrl(request)
 
   try {
-    const { data } = await getCachedToSession(request)
+    const { data } = await getCachedWhoamiSession(request)
     return data
   } catch (err: any) {
     const status = err.response?.status
 
     switch (status) {
       case WhoamiStatus.SESSION_INVALID:
-        // TODO: emit a Sentry/log event here — a 401 with cookie present
-        // is the canary for stale sessions in prod.
+        // TODO: possibly emit a sentry warning when this fires.
+        // this path means a kratos cookie was present but rejected
         throw redirect(loginUrl, {
-          headers: { 'Clear-Site-Data': '"cookies"' }
+          headers: { 'Set-Cookie': CLEAR_SESSION_COOKIE_HEADER }
         })
       case WhoamiStatus.AAL_FORBIDDEN:
       case WhoamiStatus.AAL_UNPROCESSABLE:
@@ -109,7 +110,7 @@ export async function requireNoUserSession(request: Request): Promise<void> {
   const target = `${pathname}${search}`
 
   try {
-    await getCachedToSession(request)
+    await getCachedWhoamiSession(request)
     throw redirect(href('/'))
   } catch (err: any) {
     if (err instanceof Response) throw err
@@ -124,7 +125,7 @@ export async function requireNoUserSession(request: Request): Promise<void> {
       case WhoamiStatus.SESSION_INVALID:
       default:
         throw redirect(target, {
-          headers: { 'Clear-Site-Data': '"cookies"' }
+          headers: { 'Set-Cookie': CLEAR_SESSION_COOKIE_HEADER }
         })
     }
   }
