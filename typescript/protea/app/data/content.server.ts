@@ -6,6 +6,7 @@ import type {
 import { envValue } from '~/env.server'
 
 export const getContactRoute = async () => {
+  const targetHost = envValue("TARGET_HOST")
   return {
     contactRoute: {
       id: '125075088',
@@ -152,7 +153,7 @@ export const getContactRoute = async () => {
         {
           id: '125075096',
           displayText: 'Contact',
-          url: 'https://interledger.app/contact',
+          url: `${targetHost}/contact`,
           __typename: 'LinkRecord'
         }
       ],
@@ -182,7 +183,7 @@ export const getContactRoute = async () => {
         {
           id: '121270067',
           displayText: 'Legal Agreements',
-          url: 'https://interledger.app/legal',
+          url: `${targetHost}/legal`,
           __typename: 'LinkRecord'
         }
       ],
@@ -298,6 +299,7 @@ export const getContactRoute = async () => {
 export const getCurrentMarketingPage = async (
   variables: QueryMarketingPageArgs
 ) => {
+  const targetHost = envValue("TARGET_HOST")
   switch (variables?.filter?.slug?.eq) {
     case 'legal': {
       return {
@@ -375,7 +377,7 @@ export const getCurrentMarketingPage = async (
                                     type: 'paragraph',
                                     children: [
                                       {
-                                        url: 'https://interledger.app/legal/terms-of-service',
+                                        url: `${targetHost}/legal/terms-of-service`,
                                         type: 'link',
                                         children: [
                                           {
@@ -395,7 +397,7 @@ export const getCurrentMarketingPage = async (
                                     type: 'paragraph',
                                     children: [
                                       {
-                                        url: 'https://interledger.app/legal/privacy-policy',
+                                        url: `${targetHost}/legal/privacy-policy`,
                                         type: 'link',
                                         children: [
                                           {
@@ -415,7 +417,7 @@ export const getCurrentMarketingPage = async (
                                     type: 'paragraph',
                                     children: [
                                       {
-                                        url: 'https://interledger.app/legal/wallet-license',
+                                        url: `${targetHost}/legal/wallet-license`,
                                         type: 'link',
                                         children: [
                                           {
@@ -435,7 +437,7 @@ export const getCurrentMarketingPage = async (
                                     type: 'paragraph',
                                     children: [
                                       {
-                                        url: 'https://interledger.app/legal/accessibility-statement',
+                                        url: `${targetHost}/legal/accessibility-statement`,
                                         type: 'link',
                                         children: [
                                           {
@@ -470,52 +472,12 @@ export const getCurrentMarketingPage = async (
                                     type: 'paragraph',
                                     children: [
                                       {
-                                        url: 'https://interledger.app/legal/us/e-sign-agreement',
+                                        url: `${targetHost}/legal/us/e-sign-agreement`,
                                         type: 'link',
                                         children: [
                                           {
                                             type: 'span',
                                             value: 'eSign Agreement'
-                                          }
-                                        ]
-                                      }
-                                    ]
-                                  }
-                                ]
-                              },
-                              {
-                                type: 'listItem',
-                                children: [
-                                  {
-                                    type: 'paragraph',
-                                    children: [
-                                      {
-                                        url: 'https://astrafi.com/terms/',
-                                        type: 'link',
-                                        children: [
-                                          {
-                                            type: 'span',
-                                            value: 'Astra Terms of Use'
-                                          }
-                                        ]
-                                      }
-                                    ]
-                                  }
-                                ]
-                              },
-                              {
-                                type: 'listItem',
-                                children: [
-                                  {
-                                    type: 'paragraph',
-                                    children: [
-                                      {
-                                        url: 'https://astrafi.com/privacy/',
-                                        type: 'link',
-                                        children: [
-                                          {
-                                            type: 'span',
-                                            value: 'Astra Privacy Policy'
                                           }
                                         ]
                                       }
@@ -641,7 +603,7 @@ export const getCurrentMarketingPage = async (
             {
               id: '125075096',
               displayText: 'Contact',
-              url: 'https://interledger.app/contact',
+              url: `${targetHost}/contact`,
               __typename: 'LinkRecord'
             }
           ],
@@ -671,7 +633,7 @@ export const getCurrentMarketingPage = async (
             {
               id: '121270067',
               displayText: 'Legal Agreements',
-              url: 'https://interledger.app/legal',
+              url: `${targetHost}/legal`,
               __typename: 'LinkRecord'
             }
           ],
@@ -794,6 +756,7 @@ export const getCurrentMarketingPage = async (
 
 export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
   const supportEmail = envValue("SUPPORT_EMAIL")
+  const targetHost = envValue("TARGET_HOST")
   switch (variables?.filter?.slug?.eq) {
     case 'terms-of-service':
       return {
@@ -869,7 +832,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                           'Corporation has developed a digital wallet that is accessible through the Corporation\'s website (the "'
                       },
                       { type: 'span', marks: ['emphasis'], value: 'Platform' },
-                      { type: 'span', value: '”) at https://interledger.app. ' }
+                      { type: 'span', value: `”) at ${targetHost}. ` }
                     ]
                   },
                   {
@@ -2366,12 +2329,12 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                                   'The current version of the license terms for wallet addresses may be found at '
                               },
                               {
-                                url: 'https://interledger.app/legal',
+                                url: `${targetHost}/legal`,
                                 type: 'link',
                                 children: [
                                   {
                                     type: 'span',
-                                    value: 'https://interledger.app/legal'
+                                    value: `${targetHost}/legal`
                                   }
                                 ]
                               },
@@ -2524,7 +2487,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
             {
               id: '125075096',
               displayText: 'Contact',
-              url: 'https://interledger.app/contact',
+              url: `${targetHost}/contact`,
               __typename: 'LinkRecord'
             }
           ],
@@ -2554,7 +2517,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
             {
               id: '121270067',
               displayText: 'Legal Agreements',
-              url: 'https://interledger.app/legal',
+              url: `${targetHost}/legal`,
               __typename: 'LinkRecord'
             }
           ],
@@ -3063,21 +3026,6 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                                 type: 'span',
                                 value:
                                   'Xago  - for facilitating money transfers between users and across different financial institutions in South Africa'
-                              }
-                            ]
-                          }
-                        ]
-                      },
-                      {
-                        type: 'listItem',
-                        children: [
-                          {
-                            type: 'paragraph',
-                            children: [
-                              {
-                                type: 'span',
-                                value:
-                                  'Astra - for processing payment transactions and verifying payment card information'
                               }
                             ]
                           }
@@ -3862,7 +3810,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
             {
               id: '125075096',
               displayText: 'Contact',
-              url: 'https://interledger.app/contact',
+              url: `${targetHost}/contact`,
               __typename: 'LinkRecord'
             }
           ],
@@ -3892,7 +3840,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
             {
               id: '121270067',
               displayText: 'Legal Agreements',
-              url: 'https://interledger.app/legal',
+              url: `${targetHost}/legal`,
               __typename: 'LinkRecord'
             }
           ],
@@ -4579,7 +4527,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                                   'Part of Terms of Service. These License Terms form part of the interledger.app Terms of Service which may be found at '
                               },
                               {
-                                url: 'https://interledger.app/legal',
+                                url: `${targetHost}/legal`,
                                 type: 'link',
                                 children: [
                                   {
@@ -4704,7 +4652,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
             {
               id: '125075096',
               displayText: 'Contact',
-              url: 'https://interledger.app/contact',
+              url: `${targetHost}/contact`,
               __typename: 'LinkRecord'
             }
           ],
@@ -4734,7 +4682,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
             {
               id: '121270067',
               displayText: 'Legal Agreements',
-              url: 'https://interledger.app/legal',
+              url: `${targetHost}/legal`,
               __typename: 'LinkRecord'
             }
           ],
@@ -5011,7 +4959,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
             {
               id: '125075096',
               displayText: 'Contact',
-              url: 'https://interledger.app/contact',
+              url: `${targetHost}/contact`,
               __typename: 'LinkRecord'
             }
           ],
@@ -5041,7 +4989,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
             {
               id: '121270067',
               displayText: 'Legal Agreements',
-              url: 'https://interledger.app/legal',
+              url: `${targetHost}/legal`,
               __typename: 'LinkRecord'
             }
           ],
@@ -5724,7 +5672,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
             {
               id: '125075096',
               displayText: 'Contact',
-              url: 'https://interledger.app/contact',
+              url: `${targetHost}/contact`,
               __typename: 'LinkRecord'
             }
           ],
@@ -5754,7 +5702,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
             {
               id: '121270067',
               displayText: 'Legal Agreements',
-              url: 'https://interledger.app/legal',
+              url: `${targetHost}/legal`,
               __typename: 'LinkRecord'
             }
           ],
