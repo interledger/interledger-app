@@ -31,6 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       release_tag: ${{ steps.compute.outputs.release_tag }}
+      sha: ${{ steps.compute.outputs.sha }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -48,9 +49,12 @@ jobs:
             exit 1
           fi
           BUILD_TAG="${LATEST}-build.${{ github.run_number }}"
+          SHA=$(git rev-parse HEAD)
           echo "Latest tag:    $LATEST"
           echo "Build version: $BUILD_TAG"
+          echo "SHA:           $SHA"
           echo "release_tag=${BUILD_TAG}" >> "$GITHUB_OUTPUT"
+          echo "sha=${SHA}" >> "$GITHUB_OUTPUT"
 
   release:
     name: Semantic Release
@@ -121,6 +125,6 @@ jobs:
     uses: ./.github/workflows/build-and-publish.yml
     with:
       release_tag: ${{ needs.release.outputs.release_tag || needs.manual_release.outputs.release_tag }}
-      ref: ${{ needs.manual_release.outputs.release_tag != '' && 'refs/heads/main' || '' }}
+      ref: ${{ needs.manual_release.outputs.sha || '' }}
       skip_deploy_bump: ${{ needs.manual_release.outputs.release_tag != '' }}
     secrets: inherit
