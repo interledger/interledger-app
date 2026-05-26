@@ -1100,18 +1100,38 @@ frontend:
 
 # =============================================================================
 # MOCKPTI — Mock PTI (fiant) service for non-production environments
+#
+# When mockpti.enabled is true, three resources are rendered:
+#   - ConfigMap   <fullname>-mockpti-config  (non-secret env vars)
+#   - Deployment  <fullname>-mockpti-server  (single replica)
+#   - Service     <fullname>-mockpti-service (ClusterIP :8080)
+#
+# The Deployment sources MOCKPTI_WEBHOOK_SIGNING_KEY from a Secret named
+# <fullname>-mockpti, key "mockptiWebhookSigningKey" (configurable via
+# config.webhook_signing_key_ref).
+#
+# enabled MUST be a boolean (true/false). A string value of "false" would
+# be treated as truthy by a bare `if` check and silently deploy the service.
+# The templates use `kindIs "bool"` to reject any non-boolean value, so a
+# string "true" or "false" will produce no resources.
 # =============================================================================
 mockpti:
+  # Boolean — must be true or false, not a quoted string.
   enabled: false
 
   config:
     log_level: "debug"
     redis_url: ""
     redis_db: "5"
+    # client_id enforced against the x-pti-client-id header on every API call.
+    # Leave empty to accept any client ID (suitable for development).
     client_id: ""
+    # webhook_url is the backend endpoint mockpti calls for async events.
     # Defaults to http://<fullname>-backend-service-http:8080/webhooks/pti when unset.
     webhook_url: ""
     webhook_min_delay_sec: "0.2"
+    # Name of the key inside the <fullname>-mockpti Secret that holds the
+    # Ed25519 private key PEM used to sign outbound webhook payloads.
     webhook_signing_key_ref: "mockptiWebhookSigningKey"
 
   configMaps:
