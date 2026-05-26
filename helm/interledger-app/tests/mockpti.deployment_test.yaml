@@ -60,18 +60,18 @@ tests:
           path: spec.template.spec.containers[0].envFrom[0].configMapRef.name
           value: wallet-mockpti-config
 
-  - it: 'Should source MOCKPTI_WEBHOOK_SIGNING_KEY from the mockpti secret'
+  - it: 'Should source MOCKPTI_WEBHOOK_SIGNING_KEY_B64 from the mockpti secret'
     template: deployment.mockpti.yaml
     asserts:
       - equal:
           path: spec.template.spec.containers[0].env[0].name
-          value: MOCKPTI_WEBHOOK_SIGNING_KEY
+          value: MOCKPTI_WEBHOOK_SIGNING_KEY_B64
       - equal:
           path: spec.template.spec.containers[0].env[0].valueFrom.secretKeyRef.name
           value: wallet-mockpti
       - equal:
           path: spec.template.spec.containers[0].env[0].valueFrom.secretKeyRef.key
-          value: mockptiWebhookSigningKey
+          value: mockptiWebhookSigningKeyB64
 
   - it: 'Should provide readinessProbe and livenessProbe on /health'
     template: deployment.mockpti.yaml

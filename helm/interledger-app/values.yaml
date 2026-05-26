@@ -1106,9 +1106,11 @@ frontend:
 #   - Deployment  <fullname>-mockpti-server  (single replica)
 #   - Service     <fullname>-mockpti-service (ClusterIP :8080)
 #
-# The Deployment sources MOCKPTI_WEBHOOK_SIGNING_KEY from a Secret named
-# <fullname>-mockpti, key "mockptiWebhookSigningKey" (configurable via
-# config.webhook_signing_key_ref).
+# The Deployment sources MOCKPTI_WEBHOOK_SIGNING_KEY_B64 from a Secret named
+# <fullname>-mockpti, key "mockptiWebhookSigningKeyB64" (configurable via
+# config.webhook_signing_key_ref). The value must be a base64-encoded Ed25519
+# private key PEM; the service refuses to start if the variable is absent or
+# not valid base64.
 #
 # enabled MUST be a boolean (true/false). A string value of "false" would
 # be treated as truthy by a bare `if` check and silently deploy the service.
@@ -1131,8 +1133,8 @@ mockpti:
     webhook_url: ""
     webhook_min_delay_sec: "0.2"
     # Name of the key inside the <fullname>-mockpti Secret that holds the
-    # Ed25519 private key PEM used to sign outbound webhook payloads.
-    webhook_signing_key_ref: "mockptiWebhookSigningKey"
+    # base64-encoded Ed25519 private key PEM used to sign outbound webhook payloads.
+    webhook_signing_key_ref: "mockptiWebhookSigningKeyB64"
 
   configMaps:
     config:
@@ -1179,7 +1181,7 @@ mockpti:
       - configMapRef:
           name: '{{ include "common.fullname" . }}-mockpti-config'
     env:
-      - name: MOCKPTI_WEBHOOK_SIGNING_KEY
+      - name: MOCKPTI_WEBHOOK_SIGNING_KEY_B64
         valueFrom:
           secretKeyRef:
             name: '{{ include "common.fullname" . }}-mockpti'
