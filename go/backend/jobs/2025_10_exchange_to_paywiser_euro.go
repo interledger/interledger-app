@@ -3,7 +3,6 @@ package jobs
 import (
 	"context"
 	"net/http"
-	"os"
 	"time"
 
 	"gitlab.com/fynbos/backend/providers/gatehub"
@@ -43,8 +42,8 @@ func BackfillPaywiserAccountsJob(ctx workflow.Context) (string, error) {
 
 func (a *Activity) BackfillPaywiserBalance(ctx context.Context, gatehubWallets []string) error {
 	// Check for temporary override env vars for this migration job
-	tempAppID := os.Getenv("TEMP_GATEHUB_APP_ID")
-	tempSecret := os.Getenv("TEMP_GATEHUB_SECRET")
+	tempAppID := a.cfg.TempGatehubAppID
+	tempSecret := a.cfg.TempGatehubSecret
 
 	appID := a.gatehubConfig.AppID
 	secret := a.gatehubConfig.Secret

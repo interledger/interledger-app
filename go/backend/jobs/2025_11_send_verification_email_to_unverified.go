@@ -3,7 +3,6 @@ package jobs
 import (
 	"context"
 	"errors"
-	"os"
 	"time"
 
 	kratos "github.com/ory/kratos-client-go"
@@ -40,8 +39,8 @@ func EnableSendVerificationEmailToUnverifiedUserJob(ctx workflow.Context, email 
 }
 
 func (a *Activity) EnableSendVerificationEmails(ctx context.Context, email string) ([]string, error) {
-	kratosURL := os.Getenv("KRATOS_URL")
-	kratosAdminURL := os.Getenv("KRATOS_ADMIN_URL")
+	kratosURL := a.cfg.KratosURL
+	kratosAdminURL := a.cfg.KratosAdminURL
 	if kratosURL == "" || kratosAdminURL == "" {
 		return nil, errors.New("kratos URLs are not set")
 	}

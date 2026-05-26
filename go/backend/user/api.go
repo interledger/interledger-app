@@ -14,4 +14,7 @@ type Client interface {
 	Delete2FATotpEnrollment(ctx context.Context, identityID string) error
 	GetTotpURL(ctx context.Context, userID string) (string, error)
 	GetUserIDForWallet(ctx context.Context, walletID string) (string, error)
+	// FindWalletIDByEmail resolves a Kratos credential identifier (email) to a
+	// wallet ID via the user_wallets table. Returns "" if no match is found.
+	FindWalletIDByEmail(ctx context.Context, email string) (string, error)
 }

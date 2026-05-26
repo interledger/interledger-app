@@ -70,3 +70,7 @@ func (n *noopClient) SendPending3DSConfirmation(_ context.Context, walletID, con
 func (n *noopClient) SendKYCDocumentsRequiredEmail(_ context.Context, walletID string) {
 	log.Info("NOT SENDING: KYC documents required email", zap.String("walletID", walletID))
 }
+
+func (n *noopClient) SendAuthenticatorResetEmail(_ context.Context, walletID string) {
+	log.Info("NOT SENDING: authenticator reset email", zap.String("walletID", walletID))
+}
