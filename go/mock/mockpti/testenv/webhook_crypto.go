@@ -17,7 +17,6 @@ import (
 type cryptoState struct {
 	signingPrivateKey ed25519.PrivateKey
 	signingPublicKey  ed25519.PublicKey
-	signingPrivatePEM string
 }
 
 var webhookCryptoState cryptoState
@@ -40,17 +39,16 @@ func webhookCryptoComposeEnv() ([]string, error) {
 	}
 	pubPEM := string(pem.EncodeToMemory(&pem.Block{Type: "PUBLIC KEY", Bytes: pubBytes}))
 
-	privOneLine := strings.ReplaceAll(strings.TrimSpace(privPEM), "\n", `\n`)
+	privB64 := base64.StdEncoding.EncodeToString([]byte(privPEM))
 	pubOneLine := strings.ReplaceAll(strings.TrimSpace(pubPEM), "\n", `\n`)
 
 	webhookCryptoState = cryptoState{
 		signingPrivateKey: priv,
 		signingPublicKey:  pub,
-		signingPrivatePEM: privOneLine,
 	}
 
 	return []string{
-		"MOCKPTI_WEBHOOK_SIGNING_KEY=" + privOneLine,
+		"MOCKPTI_WEBHOOK_SIGNING_KEY_B64=" + privB64,
 		"PTI_PUBLIC_KEY_JWK=" + pubOneLine,
 	}, nil
 }
