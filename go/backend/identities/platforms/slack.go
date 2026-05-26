@@ -3,12 +3,10 @@ package platforms
 import (
 	"context"
 	"crypto"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"time"
 
-	"gitlab.com/fynbos/backend/cdn"
 	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/keys"
 )
@@ -80,34 +78,6 @@ func (s *slackPlatform) VerifyInstructions(_ context.Context, _ *VerifyInstructi
 	return "Successful", nil
 }
 
-func (s *slackPlatform) GenerateImages(ctx context.Context, args *GenerateImagesArgs) error {
-	sigHashBase64 := base64.URLEncoding.EncodeToString(args.SignatureHash)
-
-	img, err := s.b.Images().GenerateSlackIdentity(ctx, args.WalletURL, args.Identifier)
-	if err != nil {
-		return err
-	}
-	err = cdn.Put(ctx, cdn.PutArgs{
-		Data:        img,
-		ContentType: "image/png",
-		Path:        "identities/" + sigHashBase64 + "/slack.png",
-	})
-	if err != nil {
-		return err
-	}
-
-	imgOG, err := s.b.Images().GenerateSlackIdentityOG(ctx, args.WalletURL, args.Identifier)
-	if err != nil {
-		return err
-	}
-	err = cdn.Put(ctx, cdn.PutArgs{
-		Data:        imgOG,
-		ContentType: "image/png",
-		Path:        "identities/" + sigHashBase64 + "/slack-og.png",
-	})
-	if err != nil {
-		return err
-	}
-
+func (s *slackPlatform) GenerateImages(_ context.Context, _ *GenerateImagesArgs) error {
 	return nil
 }

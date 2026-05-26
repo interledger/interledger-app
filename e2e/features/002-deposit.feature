@@ -97,7 +97,7 @@ Feature: Deposit Funds
   @deposit @xago
   Scenario: Successfully deposit 1000 ZAR into Xago wallet
     Given the details of 'xago-deposit-user' are
-      | field           | value                        |
+      | field           | value              k          |
       | emailSuffix     | xago-deposit@example.com     |
       | password        | InterlEdger2025!TestPassword |
       | country         | South Africa                 |

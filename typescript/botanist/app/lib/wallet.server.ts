@@ -730,7 +730,6 @@ export async function DeleteUserTotp(
   identityId: string,
   walletId: string
 ): Promise<any> {
-  console.log('Deleting TOTP enrollment for identity:', identityId)
   const cookie = String(request.headers.get('cookie'))
   let response = await grpcClient
     .delete2FATotpEnrollment(

@@ -244,9 +244,6 @@ backend:
       token_ref: "personaToken"
       webhook_token_ref: "personaWebhookToken"
 
-    cdn:
-      key_ref: "cdnKey"
-
     xago:
       api_base_url: ""
       identity_base_url: ""
@@ -376,12 +373,6 @@ backend:
           secretKeyRef:
             name: '{{ include "common.fullname" . }}-backend'
             key: "{{ .Values.backend.config.persona.webhook_token_ref }}"
-      # DEPRECATED
-      - name: CDN_KEY
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.cdn.key_ref }}"
       - name: SENTRY_DSN
         valueFrom:
           secretKeyRef:
@@ -650,11 +641,6 @@ backend:
           secretKeyRef:
             name: '{{ include "common.fullname" . }}-backend'
             key: "{{ .Values.backend.config.persona.webhook_token_ref }}"
-      - name: CDN_KEY
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.cdn.key_ref }}"
       - name: SENTRY_DSN
         valueFrom:
           secretKeyRef:
@@ -935,6 +921,7 @@ frontend:
     payment_pointer_base: development.ilp.link
 
     sentry_dsn_ref: sentryDSN
+    sentry_env_label: ""
 
     segment_api_key_ref: segmentAPIKey
 
@@ -949,6 +936,26 @@ frontend:
         secret_ref: rafikiAuthSecret
 
     environment: dev
+
+    # Base URL of the app itself (scheme + host). Used to build self-referential
+    # links in legal and contact pages. Required.
+    target_host: ""
+
+    # Support email address shown in error messages and legal pages. Required.
+    support_email: ""
+
+    # Public hostname for the Open Payments auth server. Required.
+    public_op_auth_host: ""
+
+    # URL to the Persona identity verification SDK script. Defaults to the
+    # current production Persona CDN URL; override per environment if needed.
+    persona_sdk_url: "https://cdn.withpersona.com/dist/persona-v4.8.0-alpha.js"
+
+    # Base URL for the Xago/Persona KYC iframe (`/v1/inquiries/<id>/iframe` is
+    # appended at runtime). Empty string disables the Xago iframe flow and falls
+    # back to the Persona SDK flow. Not required in environments that use Persona
+    # SDK directly.
+    mockxago_endpoint: ""
 
   server:
     name: frontend-server
@@ -1078,3 +1085,15 @@ frontend:
           valueRef: frontend.config.pti.forms_url
         - key: BACKEND_HTTP_URL
           valueRef: frontend.config.backend.http.url
+        - key: TARGET_HOST
+          valueRef: frontend.config.target_host
+        - key: SUPPORT_EMAIL
+          valueRef: frontend.config.support_email
+        - key: PUBLIC_OP_AUTH_HOST
+          valueRef: frontend.config.public_op_auth_host
+        - key: PERSONA_SDK_URL
+          valueRef: frontend.config.persona_sdk_url
+        - key: MOCKXAGO_ENDPOINT
+          valueRef: frontend.config.mockxago_endpoint
+        - key: SENTRY_ENV_LABEL
+          valueRef: frontend.config.sentry_env_label

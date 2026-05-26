@@ -3,16 +3,20 @@ import { createGrpcTransport } from '@bufbuild/connect-node'
 import { Health } from '~/generated/connect/grpc/health/v1/health_connect'
 import { HealthCheckResponse_ServingStatus } from '~/generated/connect/grpc/health/v1/health_pb'
 import logger from './logger.server'
+import { envValue } from '~/env.server'
 
-function requireEnv(name: string): string {
+//This duplicates env.server functionality. 
+//Should not be needed.
+
+/*function requireEnv(name: string): string {
   const value = process.env[name]
   if (!value) {
     throw new Error(`${name} environment variable is required`)
   }
   return value
-}
+}*/
 
-const BACKEND_GRPC_URL = requireEnv('BACKEND_GRPC_URL')
+const BACKEND_GRPC_URL = envValue('BACKEND_GRPC_URL')
 
 const transport = createGrpcTransport({
   baseUrl: BACKEND_GRPC_URL,

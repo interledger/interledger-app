@@ -1,7 +1,7 @@
 package temporal
 
 import (
-	"os"
+	"fmt"
 
 	"github.com/lestrrat-go/jwx/v3/jwk"
 	"gitlab.com/fynbos/log"
@@ -21,7 +21,7 @@ import (
 	"go.temporal.io/sdk/worker"
 )
 
-func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago_external.Config) (worker.Worker, error) {
+func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago_external.Config, ptiJWK, ptiBaseURL, ptiClientID, chimoneyToken string, jobsCfg jobs.Config) (worker.Worker, error) {
 	w := worker.New(b.Temporal(), "backend", worker.Options{})
 
 	w.RegisterActivity(kyc_workflows.NewActivity(b))
@@ -38,7 +38,7 @@ func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago
 	w.RegisterWorkflow(twitter_workflows.PublishTwitterProofWorkflow)
 
 	// Jobs
-	w.RegisterActivity(jobs.NewActivity(b, gatehubConfig))
+	w.RegisterActivity(jobs.NewActivity(b, gatehubConfig, jobsCfg))
 	w.RegisterWorkflow(jobs.AddWalletPrivateKeysWorkflow)
 	w.RegisterWorkflow(jobs.FixWalletPublicKeysWorkflow)
 	w.RegisterWorkflow(jobs.MigratePaymentPointers)
@@ -90,37 +90,31 @@ func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago
 	xago_workflows.StartDepositsPolling(b)
 
 	// PTI
-	w.RegisterWorkflow(pti_workflows.DepositWorkflow)
-	w.RegisterWorkflow(pti_workflows.SettleDepositWorkflow)
-	w.RegisterWorkflow(pti_workflows.MarkTransactionStateWorkflow)
-	w.RegisterWorkflow(pti_workflows.ReservePtiBalance)
-	w.RegisterWorkflow(pti_workflows.SettleWithdrawWorkflow)
-	w.RegisterWorkflow(pti_workflows.RevertWithdrawWorkflow)
-	w.RegisterWorkflow(pti_workflows.ReturnedWorkflow)
-	var ptiPrivateKey jwk.Key
-	// if env.IsLocal() {
-	// 	privateKey, err := rsa.GenerateKey(rand.Reader, 4096)
-	// 	if err != nil {
-	// 		log.Fatalln(err)
-	// 	}
-	// 	// ptiPrivateKey, err = jwk.FromRaw(privateKey)
-	// 	ptiPrivateKey, err = jwk.Import(privateKey)
-	// 	if err != nil {
-	// 		log.Fatalln(err)
-	// 	}
-	// } else {
-	var err error
-	ptiPrivateKey, err = jwk.ParseKey([]byte(os.Getenv("PTI_JWK")))
-	if err != nil {
-		log.Fatalln(err)
+	if ptiJWK == "" {
+		if ptiBaseURL != "" || ptiClientID != "" {
+			return nil, fmt.Errorf("PTI_JWK is required when PTI is configured")
+		}
+		log.Warn("PTI not configured: skipping PTI workflow/activity registration")
+	} else {
+		w.RegisterWorkflow(pti_workflows.DepositWorkflow)
+		w.RegisterWorkflow(pti_workflows.SettleDepositWorkflow)
+		w.RegisterWorkflow(pti_workflows.MarkTransactionStateWorkflow)
+		w.RegisterWorkflow(pti_workflows.ReservePtiBalance)
+		w.RegisterWorkflow(pti_workflows.SettleWithdrawWorkflow)
+		w.RegisterWorkflow(pti_workflows.RevertWithdrawWorkflow)
+		w.RegisterWorkflow(pti_workflows.ReturnedWorkflow)
+
+		ptiPrivateKey, err := jwk.ParseKey([]byte(ptiJWK))
+		if err != nil {
+			return nil, fmt.Errorf("invalid PTI_JWK: %w", err)
+		}
+
+		w.RegisterActivity(pti_workflows.NewActivity(b, ptiPrivateKey, ptiBaseURL, ptiClientID))
+		w.RegisterWorkflow(pti_workflows.CreateWalletWorkflow)
+		w.RegisterWorkflow(pti_workflows.CreateUserWorkflow)
+		w.RegisterWorkflow(pti_workflows.CreateCardWorkflow)
+		w.RegisterWorkflow(pti_workflows.CreatePtiBankAccountWorkflow)
 	}
-
-	w.RegisterActivity(pti_workflows.NewActivity(b, ptiPrivateKey))
-	w.RegisterWorkflow(pti_workflows.CreateWalletWorkflow)
-
-	w.RegisterWorkflow(pti_workflows.CreateUserWorkflow)
-	w.RegisterWorkflow(pti_workflows.CreateCardWorkflow)
-	w.RegisterWorkflow(pti_workflows.CreatePtiBankAccountWorkflow)
 
 	// Gatehub
 	w.RegisterActivity(gatehub_workflows.NewActivity(b, gatehubConfig))
@@ -138,7 +132,7 @@ func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago
 	gatehub_workflows.StartCardTransactionsPooling(b)
 
 	// Chimoney
-	w.RegisterActivity(chimoney_workflows.NewActivity(b))
+	w.RegisterActivity(chimoney_workflows.NewActivity(b, chimoneyToken))
 	w.RegisterWorkflow(chimoney_workflows.CreateChimoneyUserWorkflow)
 	w.RegisterWorkflow(chimoney_workflows.ChimomeyCompleteKYC)
 	w.RegisterWorkflow(chimoney_workflows.CreateChimoneyDepositWorkflow)

@@ -36,10 +36,12 @@ import { Features } from './generated/connect/backend/v1/backend_pb'
 import { isConnectError } from './lib/error.server'
 import { grpc } from './lib/grpc.server'
 import { getPusherArgs } from './lib/pusher.server'
+import { kycApprovedGuard } from './lib/kyc.server'
 import { emailVerificationGuard, recoveryLinkSessionInvalidationGuard, withAAL2Guard } from './lib/totp.server'
 import { usePusher } from './lib/usePusher'
 import { PtiConfigProvider } from './lib/pti-context'
 import { Route } from './+types/root';
+import { envValue } from './env.server'
 
 export const shouldRevalidate: ShouldRevalidateFunction = ({
   actionResult,
@@ -135,10 +137,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
   let isDisabled = false
   let walletAddress = ''
   const env = {
-    fynbosEnv: process.env.FYNBOS_ENV || '',
-    sentryDsn: process.env.SENTRY_DSN || '',
-    sentryRelease: process.env.SENTRY_RELEASE || '',
-    segmentApiKey: process.env.SEGMENT_API_KEY || ''
+    fynbosEnv: envValue("FYNBOS_ENV"),
+    sentryDsn: envValue("SENTRY_DSN"),
+    sentryRelease: envValue("SENTRY_RELEASE"),
+    targetHost: envValue("TARGET_HOST"),
+    supportEmail: envValue("SUPPORT_EMAIL")
   }
 
   if (!isUser) {
@@ -156,6 +159,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   await recoveryLinkSessionInvalidationGuard(pathname, request)
   await emailVerificationGuard(pathname, request)
   await withAAL2Guard(pathname, request, async () => {
+    await kycApprovedGuard(pathname, request)
     features = await getFeatures(request)
     if (
       features &&
