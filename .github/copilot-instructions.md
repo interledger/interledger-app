@@ -28,22 +28,29 @@ docker --version
 # 2. Install Atlas CLI (database migrations)
 curl -sSf https://atlasgo.sh | sh
 
-# 3. Start Postgres for Go tests
-docker run -d --name ilf-postgres -e POSTGRES_USER=postgres \
-  -e POSTGRES_PASSWORD=password -p 5432:5432 postgres:17
+# 3. Start Postgres for Go unit tests (local dev only — CI spins up its own)
+cd local && make unit-test-db-up && cd ..
+# Starts a dedicated ephemeral Postgres on localhost:55432 (tmpfs-backed).
+# Skip if already running: docker ps | grep unit-test
 ```
 
 ### Go Backend Testing
 
-**CRITICAL**: Always generate test migrations before running tests:
+**CRITICAL**: Always generate test migrations before running tests.
+
+The test harness connects to `postgres://postgres:password@127.0.0.1:55432/%s?sslmode=disable`
+by default (hardcoded in `go/backend/db/migrate.go`). **Do not set `DB_URL`** unless you are
+using a different Postgres instance — the default already targets the local unit-test container.
+
+Atlas requires a scratch database as its dev URL (it applies and rolls back migrations internally).
+Run from `go/backend`:
 
 ```bash
-cd go/backend  # or go/pacioli
-export DB_URL=postgres://postgres:password@127.0.0.1:5432?sslmode=disable
+cd go/backend
 atlas migrate diff create_all \
   --dir "file://db/testmigrations" \
   --to "file://db/schema.hcl" \
-  --dev-url "${DB_URL}"
+  --dev-url "postgres://postgres:password@127.0.0.1:55432/postgres?sslmode=disable"
 ```
 
 Then run tests:
@@ -302,7 +309,7 @@ cd go && make lint
 cd go/backend
 atlas migrate diff create_all --dir "file://db/testmigrations" \
   --to "file://db/schema.hcl" \
-  --dev-url "postgres://postgres:password@127.0.0.1:5432?sslmode=disable"
+  --dev-url "postgres://postgres:password@127.0.0.1:55432/postgres?sslmode=disable"
 go test -coverprofile=coverage.out ./...
 
 # 3. Check coverage thresholds
@@ -322,14 +329,14 @@ cd ../../e2e && go test -v -timeout 20m
 
 **Symptom**: `go test` fails with "migration not found" or schema errors
 
-**Fix**: Always regenerate test migrations before running tests:
+**Fix**: Regenerate test migrations from `go/backend` using the local unit-test Postgres as the dev URL:
 
 ```bash
-export DB_URL=postgres://postgres:password@127.0.0.1:5432?sslmode=disable
+cd go/backend
 atlas migrate diff create_all \
   --dir "file://db/testmigrations" \
   --to "file://db/schema.hcl" \
-  --dev-url "${DB_URL}"
+  --dev-url "postgres://postgres:password@127.0.0.1:55432/postgres?sslmode=disable"
 ```
 
 ### Issue: golangci-lint Version Mismatch

@@ -20,7 +20,7 @@ import { CardViewFront } from './CardViewFront'
 import { StatusPopup } from './StatusPopup'
 import { TimedPinPopup } from './TimedPinPopup'
 
-export const CardView = ({ card }: { card: StorableCard }) => {
+export const CardView = ({ card, supportEmail }: { card: StorableCard, supportEmail?: string }) => {
   const {
     flip,
     showBack,
@@ -134,10 +134,10 @@ export const CardView = ({ card }: { card: StorableCard }) => {
               <div className='mt-4 flex items-center space-x-2 text-medium'>
                 <Icon>mail</Icon>
                 <AnchorRouter
-                  to='mailto:support@interledger.app'
+                  to={`mailto:${supportEmail}`}
                   className='text-sm text-primary'
                 >
-                  support@interledger.app
+                  {supportEmail}
                 </AnchorRouter>
               </div>
             </AlertBody>
