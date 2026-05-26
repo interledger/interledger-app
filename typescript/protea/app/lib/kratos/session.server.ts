@@ -123,10 +123,11 @@ export async function requireNoUserSession(request: Request): Promise<void> {
         throw redirect(href('/totp/challenge'))
 
       case WhoamiStatus.SESSION_INVALID:
-      default:
         throw redirect(target, {
           headers: { 'Set-Cookie': CLEAR_SESSION_COOKIE_HEADER }
         })
+      default:
+        throw redirect(target)
     }
   }
 }
