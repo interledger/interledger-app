@@ -1,0 +1,44 @@
+suite: Interledger App - MockPTI Service
+templates:
+  - service.mockpti.yaml
+set:
+  fullnameOverride: wallet
+  release:
+    name: wallet
+  mockpti:
+    enabled: true
+tests:
+  - it: 'Should produce no Service when mockpti is disabled'
+    set:
+      mockpti:
+        enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: 'Should create a Service called wallet-mockpti-service'
+    documentSelector:
+      path: kind
+      value: Service
+    asserts:
+      - equal:
+          path: metadata.name
+          value: wallet-mockpti-service
+      - equal:
+          path: spec.type
+          value: ClusterIP
+      - equal:
+          path: spec.ports[0].port
+          value: 8080
+      - equal:
+          path: spec.ports[0].name
+          value: http
+
+  - it: 'Service selector should target the mockpti-server deployment'
+    asserts:
+      - equal:
+          path: spec.selector["app.kubernetes.io/name"]
+          value: wallet-mockpti-server
+      - equal:
+          path: spec.selector["app.kubernetes.io/instance"]
+          value: wallet
