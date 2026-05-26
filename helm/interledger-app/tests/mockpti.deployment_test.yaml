@@ -7,9 +7,9 @@ set:
   release:
     name: wallet
   mockpti:
-    enabled: true
+    enabled: true  # boolean true — must not be a quoted string
 tests:
-  - it: 'Should produce no Deployment when mockpti is disabled'
+  - it: 'Should produce no Deployment when mockpti.enabled is boolean false'
     template: deployment.mockpti.yaml
     set:
       mockpti:
@@ -18,7 +18,25 @@ tests:
       - hasDocuments:
           count: 0
 
-  - it: 'Should create a Deployment called wallet-mockpti-server'
+  - it: 'Should produce no Deployment when mockpti.enabled is the string "false" (guards against truthy-string bug)'
+    template: deployment.mockpti.yaml
+    set:
+      mockpti:
+        enabled: "false"
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: 'Should produce no Deployment when mockpti.enabled is the string "true" (only boolean true is accepted)'
+    template: deployment.mockpti.yaml
+    set:
+      mockpti:
+        enabled: "true"
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: 'Should create a Deployment when mockpti.enabled is boolean true'
     template: deployment.mockpti.yaml
     documentSelector:
       path: kind
