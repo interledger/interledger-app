@@ -6,6 +6,12 @@ on:
       - main
     paths-ignore:
       - 'documentation/**'
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reason for manual build (for run log only)'
+        required: false
+        default: 'Manual pipeline test'
 
 permissions:
   contents: read
@@ -17,8 +23,38 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Runs only on workflow_dispatch: reads the latest tag and appends
+  # -build.<run_number> so the artifact is clearly not a real release.
+  manual_release:
+    name: Compute Manual Build Version
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    outputs:
+      release_tag: ${{ steps.compute.outputs.release_tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Fetch tags
+        run: git fetch --force --tags origin
+      - name: Compute build version
+        id: compute
+        run: |
+          LATEST=$(git tag --sort=-v:refname | head -n 1)
+          if [[ -z "$LATEST" ]]; then
+            echo "::error::No existing tags found; cannot compute build version."
+            exit 1
+          fi
+          BUILD_TAG="${LATEST}-build.${{ github.run_number }}"
+          echo "Latest tag:    $LATEST"
+          echo "Build version: $BUILD_TAG"
+          echo "release_tag=${BUILD_TAG}" >> "$GITHUB_OUTPUT"
+
   release:
     name: Semantic Release
+    if: github.event_name != 'workflow_dispatch'
     runs-on: ubuntu-latest
     outputs:
       release_tag: ${{ steps.tags_after.outputs.latest != steps.tags_before.outputs.latest && steps.tags_after.outputs.latest || '' }}
@@ -72,13 +108,19 @@ jobs:
         run: echo "latest=$(git tag --sort=-v:refname | head -n 1)" >> "$GITHUB_OUTPUT"
 
   publish_release_artifacts:
-    needs: release
-    if: needs.release.outputs.release_tag != ''
+    needs: [release, manual_release]
+    if: >-
+      always() && (
+        (needs.release.result == 'success' && needs.release.outputs.release_tag != '') ||
+        (needs.manual_release.result == 'success' && needs.manual_release.outputs.release_tag != '')
+      )
     permissions:
       contents: write
       packages: write
       id-token: write
     uses: ./.github/workflows/build-and-publish.yml
     with:
-      release_tag: ${{ needs.release.outputs.release_tag }}
+      release_tag: ${{ needs.release.outputs.release_tag || needs.manual_release.outputs.release_tag }}
+      ref: ${{ needs.manual_release.outputs.release_tag != '' && 'refs/heads/main' || '' }}
+      skip_deploy_bump: ${{ needs.manual_release.outputs.release_tag != '' }}
     secrets: inherit
