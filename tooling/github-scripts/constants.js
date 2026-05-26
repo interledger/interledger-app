@@ -12,19 +12,19 @@ export const GO_PACKAGES = [
   {
     name: "mockgatehub",
     type: "go",
-    context: "./go",
+    context: ".",
     file: "./go/mock/mockgatehub/Dockerfile",
   },
   {
     name: "mockpti",
     type: "go",
-    context: "./go",
+    context: ".",
     file: "./go/mock/mockpti/Dockerfile",
   },
   {
     name: "mockxago",
     type: "go",
-    context: "./go",
+    context: ".",
     file: "./go/mock/mockxago/Dockerfile",
   },
 ];
