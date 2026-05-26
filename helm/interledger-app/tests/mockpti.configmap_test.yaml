@@ -6,9 +6,9 @@ set:
   release:
     name: wallet
   mockpti:
-    enabled: true
+    enabled: true  # boolean true — must not be a quoted string
 tests:
-  - it: 'Should produce no ConfigMap when mockpti is disabled'
+  - it: 'Should produce no ConfigMap when mockpti.enabled is boolean false'
     set:
       mockpti:
         enabled: false
@@ -16,7 +16,23 @@ tests:
       - hasDocuments:
           count: 0
 
-  - it: 'Should create a ConfigMap with the correct name'
+  - it: 'Should produce no ConfigMap when mockpti.enabled is the string "false" (guards against truthy-string bug)'
+    set:
+      mockpti:
+        enabled: "false"
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: 'Should produce no ConfigMap when mockpti.enabled is the string "true" (only boolean true is accepted)'
+    set:
+      mockpti:
+        enabled: "true"
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: 'Should create a ConfigMap when mockpti.enabled is boolean true'
     documentSelector:
       path: kind
       value: ConfigMap
