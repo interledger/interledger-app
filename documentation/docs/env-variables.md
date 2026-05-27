@@ -168,6 +168,12 @@ The Go backend is the core of the wallet, handling payments, provider integratio
 |---|---|---|---|
 | `SEGMENT_KEY` | Segment write key for server-side event tracking | Yes | Local default: `test-segment-key` |
 
+### Backend Feature Flags
+
+| Variable | Description | Secret | Notes |
+|---|---|---|---|
+| `RAFIKI_NODE_ENABLED` | Enables Rafiki full-node event orchestration flows (incoming finalized and outgoing lifecycle workflows with GateHub signal handshake). When disabled, legacy non-node payment flow is preserved. | No | Default: `false`; set `true` only in environments where node flow rollout is intended |
+
 ### Persona (Identity Verification)
 
 | Variable | Description | Secret | Notes |

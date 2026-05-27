@@ -90,6 +90,7 @@ services:
       # Wallet rules and ledger controls
       - ALLOWED_WALLET_IDS=${BACKEND_ALLOWED_WALLET_IDS:-}
       - BLOCKED_REGIONS=${BACKEND_BLOCKED_REGIONS:-}
+      - RAFIKI_NODE_ENABLED=${BACKEND_RAFIKI_NODE_ENABLED:-false}
       - SIGNUP_AGREEMENT_IDS=${BACKEND_SIGNUP_AGREEMENT_IDS:-privacy_policy-0.0.0}
 
       # Providers: GateHub
