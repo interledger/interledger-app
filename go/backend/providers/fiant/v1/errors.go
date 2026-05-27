@@ -3,7 +3,6 @@ package v1
 import "errors"
 
 var (
-	ErrInvalidURL      = errors.New("fiant: invalid base URL")
 	ErrMissingClientID = errors.New("fiant: missing client ID")
 
 	ErrMissingPrivateKey         = errors.New("fiant: missing private key")
