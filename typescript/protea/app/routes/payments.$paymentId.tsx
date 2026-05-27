@@ -55,16 +55,12 @@ export async function loader({ request, params }: Route.LoaderArgs) {
       (account) => account.id == transaction.receiverAccountId
     )?.title
 
-    const account = linkedAccountsResponse.linkedAccounts.find(
+    statement = linkedAccountsResponse.linkedAccounts.some(
       (la) =>
         la.type === 'balance' &&
         la.receiveCurrencyCode === 'EUR' &&
         la.sendCurrencyCode === 'EUR'
     )
-
-    if (account) {
-      statement = true
-    }
   }
 
   const walletUrl =
