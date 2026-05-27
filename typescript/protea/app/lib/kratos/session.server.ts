@@ -26,10 +26,16 @@ function getCachedWhoamiSession(request: Request) {
 }
 
 function buildLoginRedirectUrl(request: Request): string {
-  const { pathname, search } = new URL(request.url)
-  const target = `${pathname}${search}`
-  const returnTo = safeReturnTo(target)
-  return `${href('/login')}?${new URLSearchParams({ returnTo })}`
+  const loginPath = href('/login')
+  const url = new URL(request.url)
+  const { pathname, search, searchParams } = url
+
+  const isAlreadyOnLoginPage = pathname === loginPath
+  const existingReturnTo = searchParams.get('returnTo') ?? '/'
+  const destination = isAlreadyOnLoginPage ? existingReturnTo : `${pathname}${search}`
+
+  const returnTo = safeReturnTo(destination)
+  return `${loginPath}?${new URLSearchParams({ returnTo })}`
 }
 
 // TODO: migrate the remaining cookie-only callers routes to this
