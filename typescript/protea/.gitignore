@@ -24,6 +24,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# TypeScript cache
+*.tsbuildinfo
+
 # local env files
 .env
 .env.local
