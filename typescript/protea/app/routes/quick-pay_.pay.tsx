@@ -108,7 +108,7 @@ export default function Page() {
       <GridColumn
         className='col-span-full mt-20 mx-auto'
       >
-        <BackButton title="Back" to="/quick-pay/amount" clearSessionKeys={clearSessionKeys}/>
+        <BackButton title="Back" to="/quick-pay/amount"/>
         <AmountDisplay />
         <div className="mx-auto w-full max-w-sm">
           <Form method="POST">

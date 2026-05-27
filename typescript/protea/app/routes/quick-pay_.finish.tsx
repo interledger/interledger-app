@@ -68,7 +68,7 @@ export default function Page() {
   const fetcherData = fetcher.data as unknown as FinishActionData
   const [loading, setLoading] = useState(true)
   const [statusAndMessage, setStatusAndMessage] = useState({ error: false, message: '' })
-  const clearSessionKeys: Array<keyof QuickPaySession>  = ['receiverAddress', 'quote']
+  const clearSessionKeys: Array<keyof QuickPaySession> = ['receiverAddress', 'quote']
 
   useEffect(() => {
     if (fetcherData && fetcherData.message) {
@@ -150,7 +150,8 @@ export async function action({ request }: Route.ActionArgs) {
     const interactRef = formData.interactRef as string
     const walletAddressInfo = sessionData?.senderAddress
     const paymentId = String(formData?.paymentId) || ''
-    const grant = sessionData?.grants[paymentId]
+    const grants = sessionData?.grants || {}
+    const grant = grants[paymentId]
     const quote = sessionData.quote
     const isRequestPayment = !!sessionData?.request
 
