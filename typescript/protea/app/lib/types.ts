@@ -27,7 +27,7 @@ export type FormatAmountArgs = Amount & {
   value: string
 }
 export type QuoteResponse = Quote & {
-  incomingPaymentGrantToken: string
+  incomingPaymentGrantToken?: string
 }
 
 export type QuickPaySession = {

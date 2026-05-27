@@ -175,7 +175,7 @@ export async function action({ request }: Route.ActionArgs) {
       const result = await checkOutgoingPayment(
         finishPaymentResponse.url,
         finishPaymentResponse.accessToken,
-        quote.incomingPaymentGrantToken,
+        String(quote.incomingPaymentGrantToken),
         quote.receiver,
         isRequestPayment
       )
