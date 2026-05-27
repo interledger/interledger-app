@@ -303,6 +303,21 @@ func (mr *MockClientMockRecorder) GetTransaction(ctx, userID, id interface{}) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTransaction", reflect.TypeOf((*MockClient)(nil).GetTransaction), ctx, userID, id)
 }
 
+// GetTransferConfirmation mocks base method.
+func (m *MockClient) GetTransferConfirmation(ctx context.Context, userID, txID string) (io.ReadCloser, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetTransferConfirmation", ctx, userID, txID)
+	ret0, _ := ret[0].(io.ReadCloser)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetTransferConfirmation indicates an expected call of GetTransferConfirmation.
+func (mr *MockClientMockRecorder) GetTransferConfirmation(ctx, userID, txID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTransferConfirmation", reflect.TypeOf((*MockClient)(nil).GetTransferConfirmation), ctx, userID, txID)
+}
+
 // GetUser mocks base method.
 func (m *MockClient) GetUser(ctx context.Context, userID string) (*external.User, error) {
 	m.ctrl.T.Helper()
