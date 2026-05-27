@@ -65,7 +65,8 @@ export async function getLinkedAccountsForPayment(
       if (a.type != b.type && b.type == 'balance') return -1
       return 0
     })
-    .filter((acc) => acc.canSend)
+    // Temporary: restrict P2P PAYMENT source to balance accounts.
+    .filter((acc) => acc.canSend && acc.type == 'balance')
 }
 
 export async function getLinkedAccountsForWithdraw(

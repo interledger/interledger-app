@@ -6,6 +6,16 @@ on:
       release_tag:
         required: true
         type: string
+      ref:
+        description: 'Git ref to check out (overrides release_tag for checkout; use for build versions that are not real git tags)'
+        required: false
+        type: string
+        default: ''
+      skip_deploy_bump:
+        description: 'Skip the bump-deploy-dev job (set true for manual/test builds)'
+        required: false
+        type: boolean
+        default: false
   pull_request:
     branches:
       - "**"
@@ -28,7 +38,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.release_tag || github.ref }}
+          ref: ${{ inputs.ref || inputs.release_tag || github.ref }}
       - name: Select packages
         id: select_packages
         uses: actions/github-script@v9
@@ -45,7 +55,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.release_tag || github.ref }}
+          ref: ${{ inputs.ref || inputs.release_tag || github.ref }}
       - name: Determine version
         id: version
         uses: actions/github-script@v9
@@ -67,7 +77,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.release_tag || github.ref }}
+          ref: ${{ inputs.ref || inputs.release_tag || github.ref }}
       - name: Build Go Docker image
         if: matrix.package.type == 'go'
         uses: docker/build-push-action@v7
@@ -141,7 +151,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.release_tag || github.ref }}
+          ref: ${{ inputs.ref || inputs.release_tag || github.ref }}
 
       - name: Load Docker image
         run: |
@@ -202,7 +212,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.release_tag || github.ref }}
+          ref: ${{ inputs.ref || inputs.release_tag || github.ref }}
 
       - name: Load Docker image
         run: |
@@ -250,13 +260,22 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.release_tag || github.ref }}
+          ref: ${{ inputs.ref || inputs.release_tag || github.ref }}
 
       - name: Install Helm
         uses: azure/setup-helm@v5
 
       - name: Update Helm dependencies
         run: helm dependency update helm/interledger-app
+
+      - name: Override chart version for manual build
+        if: inputs.ref != ''
+        run: |
+          VERSION="${{ inputs.release_tag }}"
+          CHART_VER="${VERSION#v}"
+          sed -i "s/^version:.*/version: ${CHART_VER}/" helm/interledger-app/Chart.yaml
+          sed -i "s/^appVersion:.*/appVersion: ${VERSION}/" helm/interledger-app/Chart.yaml
+          echo "Patched Chart.yaml → version: ${CHART_VER}, appVersion: ${VERSION}"
 
       - name: Package chart
         run: helm package helm/interledger-app
@@ -338,6 +357,7 @@ jobs:
     if: >-
       inputs.release_tag != ''
       && needs.determine_version.outputs.dockerPush == 'true'
+      && !inputs.skip_deploy_bump
     runs-on: ubuntu-latest
     environment: development
     # No write access needed on THIS repo — all writes go through the App

@@ -5,6 +5,7 @@ import (
 	"crypto/ed25519"
 	"crypto/rand"
 	"crypto/x509"
+	"encoding/base64"
 	"encoding/pem"
 	"flag"
 	"fmt"
@@ -36,6 +37,16 @@ func main() {
 }
 
 func runServer() {
+	b64Key := os.Getenv("MOCKPTI_WEBHOOK_SIGNING_KEY_B64")
+	if b64Key == "" {
+		fmt.Fprintln(os.Stderr, "fatal: MOCKPTI_WEBHOOK_SIGNING_KEY_B64 is required")
+		os.Exit(1)
+	}
+	if _, err := base64.StdEncoding.DecodeString(b64Key); err != nil {
+		fmt.Fprintf(os.Stderr, "fatal: MOCKPTI_WEBHOOK_SIGNING_KEY_B64 is not valid base64: %v\n", err)
+		os.Exit(1)
+	}
+
 	cfg := config.Load()
 
 	if err := logger.Initialize(cfg.LogLevel); err != nil {
@@ -163,8 +174,8 @@ func runGenerateWebhookSettings(args []string, stdout, stderr io.Writer) int {
 		return 1
 	}
 
-	privOneLine := strings.ReplaceAll(strings.TrimSpace(privPEM), "\n", `\n`)
 	pubOneLine := strings.ReplaceAll(strings.TrimSpace(pubPEM), "\n", `\n`)
+	privB64 := base64.StdEncoding.EncodeToString([]byte(privPEM))
 
 	_, _ = fmt.Fprintln(stdout, "# Private key (for mockpti) — keep secret")
 	_, _ = fmt.Fprintln(stdout, privPEM)
@@ -175,8 +186,8 @@ func runGenerateWebhookSettings(args []string, stdout, stderr io.Writer) int {
 	_, _ = fmt.Fprintf(stdout, "- PTI_PUBLIC_KEY_JWK=${BACKEND_PTI_PUBLIC_KEY_JWK:-%s}\n", pubOneLine)
 
 	_, _ = fmt.Fprintln(stdout, "")
-	_, _ = fmt.Fprintln(stdout, "# local/mockpti.yaml (mockpti service env) — \\n will be expanded by mockpti")
-	_, _ = fmt.Fprintf(stdout, "MOCKPTI_WEBHOOK_SIGNING_KEY: ${MOCKPTI_WEBHOOK_SIGNING_KEY:-%s}\n", privOneLine)
+	_, _ = fmt.Fprintln(stdout, "# local/mockpti.yaml (mockpti service env) — base64-encoded PEM")
+	_, _ = fmt.Fprintf(stdout, "MOCKPTI_WEBHOOK_SIGNING_KEY_B64: ${MOCKPTI_WEBHOOK_SIGNING_KEY_B64:-%s}\n", privB64)
 
 	return 0
 }

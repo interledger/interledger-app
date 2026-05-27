@@ -1,0 +1,6 @@
+{{- define "interledger-app.mockpti.service" -}}
+{{- $top := first . -}}
+{{- end }}
+{{- if and (kindIs "bool" .Values.mockpti.enabled) .Values.mockpti.enabled }}
+{{- include "common.svc" (list . .Values.mockpti.server.service .Values.mockpti.server "interledger-app.mockpti.service") }}
+{{- end }}

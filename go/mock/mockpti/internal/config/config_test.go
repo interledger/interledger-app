@@ -1,6 +1,7 @@
 package config
 
 import (
+	"encoding/base64"
 	"os"
 	"testing"
 )
@@ -11,7 +12,7 @@ func TestLoad_Defaults(t *testing.T) {
 	_ = os.Unsetenv("MOCKPTI_REDIS_URL")
 	_ = os.Unsetenv("MOCKPTI_REDIS_DB")
 	_ = os.Unsetenv("MOCKPTI_CLIENT_ID")
-	_ = os.Unsetenv("MOCKPTI_WEBHOOK_SIGNING_KEY")
+	_ = os.Unsetenv("MOCKPTI_WEBHOOK_SIGNING_KEY_B64")
 
 	cfg := Load()
 
@@ -39,7 +40,7 @@ func TestLoad_EnvOverrides(t *testing.T) {
 	t.Setenv("MOCKPTI_PORT", "9090")
 	t.Setenv("LOG_LEVEL", "debug")
 	t.Setenv("MOCKPTI_CLIENT_ID", "my-client")
-	t.Setenv("MOCKPTI_WEBHOOK_SIGNING_KEY", "signing-pem")
+	t.Setenv("MOCKPTI_WEBHOOK_SIGNING_KEY_B64", base64.StdEncoding.EncodeToString([]byte("signing-pem")))
 
 	cfg := Load()
 
@@ -54,5 +55,15 @@ func TestLoad_EnvOverrides(t *testing.T) {
 	}
 	if cfg.WebhookSigningKey != "signing-pem" {
 		t.Errorf("expected WebhookSigningKey signing-pem, got %s", cfg.WebhookSigningKey)
+	}
+}
+
+func TestLoad_InvalidB64_YieldsEmptySigningKey(t *testing.T) {
+	t.Setenv("MOCKPTI_WEBHOOK_SIGNING_KEY_B64", "not-valid-base64!!!")
+
+	cfg := Load()
+
+	if cfg.WebhookSigningKey != "" {
+		t.Errorf("expected empty WebhookSigningKey for invalid b64, got %s", cfg.WebhookSigningKey)
 	}
 }
