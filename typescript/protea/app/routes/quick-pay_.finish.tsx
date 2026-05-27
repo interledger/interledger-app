@@ -9,7 +9,7 @@ import { type ApplicationProps, Button, GridColumn, Layouts, WalletGrid } from '
 import { mergeMeta } from '~/lib/meta'
 import { BackButton, FinishCheck, FinishError } from '~/components/QuickPay'
 import logger from '~/lib/logger.server'
-import { handleSessionUpdate, routeAllowed } from '~/lib/utils.server'
+import { routeAllowed } from '~/lib/utils.server'
 import { QuickPaySession } from '~/lib/types'
 
 export type FinishActionData = {
@@ -68,7 +68,7 @@ export default function Page() {
   const fetcherData = fetcher.data as unknown as FinishActionData
   const [loading, setLoading] = useState(true)
   const [statusAndMessage, setStatusAndMessage] = useState({ error: false, message: '' })
-  const clearSessionKeys: Array<keyof QuickPaySession>  = ['receiverAddress', 'quote']
+  const clearSessionKeys: Array<keyof QuickPaySession> = ['receiverAddress', 'quote']
 
   useEffect(() => {
     if (fetcherData && fetcherData.message) {
@@ -124,7 +124,7 @@ export default function Page() {
               </>
             ) : (
               <>
-                <BackButton title="Back" to="/quick-pay/pay" clearSessionKeys={clearSessionKeys}/>
+                <BackButton title="Back" to="/quick-pay/pay" />
                 <div className="flex justify-center mb-6"><FinishError className="w-16 h-16" /></div>
                 <div className="text-3xl mb-4 text-red-600">Payment failed</div>
                 <div className="mb-10">
@@ -146,16 +146,14 @@ export async function action({ request }: Route.ActionArgs) {
   const formData = Object.fromEntries(await request.formData())
   const intent = formData.intent
 
-  //Used by BackButton logic
-    await handleSessionUpdate(session, formData)
-
   if (intent === 'checkIncomingPayment') {
     const interactRef = formData.interactRef as string
-    const walletAddressInfo = sessionData?.validWalletAddress
+    const walletAddressInfo = sessionData?.senderAddress
     const paymentId = String(formData?.paymentId) || ''
-    const grant = sessionData?.grants[paymentId]
+    const grants = sessionData?.grants || {}
+    const grant = grants[paymentId]
     const quote = sessionData.quote
-    const isRequestPayment = sessionData?.isRequestPayment
+    const isRequestPayment = !!sessionData?.request
 
     if (!quote || !grant || !walletAddressInfo) {
       throw data(

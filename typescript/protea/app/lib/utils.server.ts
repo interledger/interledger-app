@@ -1,9 +1,8 @@
 import { z } from 'zod'
-import { Errors, FormattedAmount, FormatAmountArgs, WalletAddressType } from './types'
-import { redirect, type Session } from 'react-router'
+import { type WalletAddress } from '@interledger/open-payments'
+import { Errors, FormattedAmount, FormatAmountArgs } from './types'
+import { redirect } from 'react-router'
 import { getCurrencySymbol } from '~/lib/helpers'
-import type { QuickPaySession } from '~/lib/types'
-import { commitSession } from '~/session.server'
 import { envBool } from '~/env.server'
 
 export class WalletAddressFormatError extends Error { }
@@ -41,6 +40,10 @@ export const paymentSchema = z.object({
   amount: z.coerce.number(),
   note: z.string().optional()
 })
+
+export const requestPaymentSchema = paymentSchema.extend({
+  senderAddress: paymentSchema.shape.senderAddress.optional(),
+});
 
 function checkHrefFormat(href: string): void {
   let url: URL
@@ -108,8 +111,8 @@ export function createError(key: string, message: string): Errors {
 }
 
 export const isWalletAddress = (
-  o: WalletAddressType
-): o is WalletAddressType => {
+  o: WalletAddress
+): o is WalletAddress => {
   return !!(
     o.id &&
     typeof o.id === 'string' &&
@@ -126,6 +129,24 @@ export const isWalletAddress = (
 
 export function toWalletAddressUrl(s: string): string {
   return s.startsWith('$') ? s.replace('$', 'https://') : s
+}
+
+type FormatDateArgs = {
+  date: string
+  time?: boolean
+  month?: Intl.DateTimeFormatOptions['month']
+}
+export const formatDate = ({
+  date,
+  time = true,
+  month = 'short'
+}: FormatDateArgs): string => {
+  return new Date(date).toLocaleDateString('default', {
+    day: '2-digit',
+    month,
+    year: 'numeric',
+    ...(time && { hour: '2-digit', minute: '2-digit' })
+  })
 }
 
 export const formatAmount = (args: FormatAmountArgs): FormattedAmount => {
@@ -161,24 +182,3 @@ export const routeAllowed = (featureName: string) => {
 }
 
 type FormDataObject = Record<string, FormDataEntryValue>
-
-export const handleSessionUpdate = async (session: Session, formData: FormDataObject) => {
-  const intent = String(formData?.intent)
-
-  if (intent === 'updateSession') {
-    const to = formData?.to ? String(formData.to) : '/'
-    const clearSessionKeys: string | string[] = String(formData.clearSessionKeys) == 'all' ? 'all' : String(formData.clearSessionKeys).split(',')
-    let sessionData = session.get('quickPay')
-    
-    if (clearSessionKeys === 'all') {
-      sessionData = undefined
-    } else {
-      for (const key of clearSessionKeys) { sessionData[key] = undefined }
-    }
-    session.set('quickPay', sessionData)
-
-    throw redirect(to, {
-      headers: { 'Set-Cookie': await commitSession(session) }
-    })
-  }
-}
