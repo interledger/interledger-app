@@ -56,6 +56,7 @@ import (
 	linkedaccount_client "gitlab.com/fynbos/backend/linkedaccounts/client"
 	"gitlab.com/fynbos/backend/notify"
 	notify_client "gitlab.com/fynbos/backend/notify/client"
+	"gitlab.com/fynbos/backend/features"
 	"gitlab.com/fynbos/backend/payments/ops"
 	"gitlab.com/fynbos/backend/signup"
 	temporal_mock "gitlab.com/fynbos/backend/temporal/mock"
@@ -343,5 +344,9 @@ func (b *TestBackends) Payments() payments.Client {
 
 func (b *TestBackends) PTI() pti.Client {
 	// return pti_client.New(b)
+	return nil
+}
+
+func (b *TestBackends) Features() features.Client {
 	return nil
 }

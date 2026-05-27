@@ -1851,22 +1851,23 @@ func (x *GetWalletFeaturesRequest) GetWalletID() string {
 }
 
 type Features struct {
-	state                    protoimpl.MessageState `protogen:"open.v1"`
-	SendEnabled              bool                   `protobuf:"varint,1,opt,name=sendEnabled,proto3" json:"sendEnabled,omitempty"`
-	ReceiveEnabled           bool                   `protobuf:"varint,2,opt,name=receiveEnabled,proto3" json:"receiveEnabled,omitempty"`
-	LinkedAccountsEnabled    bool                   `protobuf:"varint,3,opt,name=linkedAccountsEnabled,proto3" json:"linkedAccountsEnabled,omitempty"`
-	CardsEnabled             bool                   `protobuf:"varint,4,opt,name=cardsEnabled,proto3" json:"cardsEnabled,omitempty"`
-	BanksEnabled             bool                   `protobuf:"varint,5,opt,name=banksEnabled,proto3" json:"banksEnabled,omitempty"`
-	IdentitiesEnabled        bool                   `protobuf:"varint,6,opt,name=identitiesEnabled,proto3" json:"identitiesEnabled,omitempty"`
-	TwitterEnabled           bool                   `protobuf:"varint,7,opt,name=twitterEnabled,proto3" json:"twitterEnabled,omitempty"`
-	WalletID                 string                 `protobuf:"bytes,8,opt,name=walletID,proto3" json:"walletID,omitempty"`
-	AddCardsEnabled          bool                   `protobuf:"varint,9,opt,name=addCardsEnabled,proto3" json:"addCardsEnabled,omitempty"`
-	ZarBalanceEnabled        bool                   `protobuf:"varint,10,opt,name=zarBalanceEnabled,proto3" json:"zarBalanceEnabled,omitempty"`
-	ManageWalletCardsEnabled bool                   `protobuf:"varint,11,opt,name=manageWalletCardsEnabled,proto3" json:"manageWalletCardsEnabled,omitempty"`
-	AccountEnabled           bool                   `protobuf:"varint,12,opt,name=accountEnabled,proto3" json:"accountEnabled,omitempty"`
-	AccountsTabEnabled       bool                   `protobuf:"varint,13,opt,name=accountsTabEnabled,proto3" json:"accountsTabEnabled,omitempty"`
-	unknownFields            protoimpl.UnknownFields
-	sizeCache                protoimpl.SizeCache
+	state                      protoimpl.MessageState `protogen:"open.v1"`
+	SendEnabled                bool                   `protobuf:"varint,1,opt,name=sendEnabled,proto3" json:"sendEnabled,omitempty"`
+	ReceiveEnabled             bool                   `protobuf:"varint,2,opt,name=receiveEnabled,proto3" json:"receiveEnabled,omitempty"`
+	LinkedAccountsEnabled      bool                   `protobuf:"varint,3,opt,name=linkedAccountsEnabled,proto3" json:"linkedAccountsEnabled,omitempty"`
+	CardsEnabled               bool                   `protobuf:"varint,4,opt,name=cardsEnabled,proto3" json:"cardsEnabled,omitempty"`
+	BanksEnabled               bool                   `protobuf:"varint,5,opt,name=banksEnabled,proto3" json:"banksEnabled,omitempty"`
+	IdentitiesEnabled          bool                   `protobuf:"varint,6,opt,name=identitiesEnabled,proto3" json:"identitiesEnabled,omitempty"`
+	TwitterEnabled             bool                   `protobuf:"varint,7,opt,name=twitterEnabled,proto3" json:"twitterEnabled,omitempty"`
+	WalletID                   string                 `protobuf:"bytes,8,opt,name=walletID,proto3" json:"walletID,omitempty"`
+	AddCardsEnabled            bool                   `protobuf:"varint,9,opt,name=addCardsEnabled,proto3" json:"addCardsEnabled,omitempty"`
+	ZarBalanceEnabled          bool                   `protobuf:"varint,10,opt,name=zarBalanceEnabled,proto3" json:"zarBalanceEnabled,omitempty"`
+	ManageWalletCardsEnabled   bool                   `protobuf:"varint,11,opt,name=manageWalletCardsEnabled,proto3" json:"manageWalletCardsEnabled,omitempty"`
+	AccountEnabled             bool                   `protobuf:"varint,12,opt,name=accountEnabled,proto3" json:"accountEnabled,omitempty"`
+	AccountsTabEnabled         bool                   `protobuf:"varint,13,opt,name=accountsTabEnabled,proto3" json:"accountsTabEnabled,omitempty"`
+	XagoGatehubPaymentsEnabled bool                   `protobuf:"varint,14,opt,name=xagoGatehubPaymentsEnabled,proto3" json:"xagoGatehubPaymentsEnabled,omitempty"`
+	unknownFields              protoimpl.UnknownFields
+	sizeCache                  protoimpl.SizeCache
 }
 
 func (x *Features) Reset() {
@@ -1986,6 +1987,13 @@ func (x *Features) GetAccountEnabled() bool {
 func (x *Features) GetAccountsTabEnabled() bool {
 	if x != nil {
 		return x.AccountsTabEnabled
+	}
+	return false
+}
+
+func (x *Features) GetXagoGatehubPaymentsEnabled() bool {
+	if x != nil {
+		return x.XagoGatehubPaymentsEnabled
 	}
 	return false
 }
@@ -3884,7 +3892,7 @@ const file_backend_admin_v1_backend_proto_rawDesc = "" +
 	"\x06reason\x18\x02 \x01(\tR\x06reason\x12\x1a\n" +
 	"\bnewState\x18\x03 \x01(\tR\bnewState\"6\n" +
 	"\x18GetWalletFeaturesRequest\x12\x1a\n" +
-	"\bwalletID\x18\x01 \x01(\tR\bwalletID\"\xb0\x04\n" +
+	"\bwalletID\x18\x01 \x01(\tR\bwalletID\"\xf0\x04\n" +
 	"\bFeatures\x12 \n" +
 	"\vsendEnabled\x18\x01 \x01(\bR\vsendEnabled\x12&\n" +
 	"\x0ereceiveEnabled\x18\x02 \x01(\bR\x0ereceiveEnabled\x124\n" +
@@ -3899,7 +3907,8 @@ const file_backend_admin_v1_backend_proto_rawDesc = "" +
 	" \x01(\bR\x11zarBalanceEnabled\x12:\n" +
 	"\x18manageWalletCardsEnabled\x18\v \x01(\bR\x18manageWalletCardsEnabled\x12&\n" +
 	"\x0eaccountEnabled\x18\f \x01(\bR\x0eaccountEnabled\x12.\n" +
-	"\x12accountsTabEnabled\x18\r \x01(\bR\x12accountsTabEnabled\".\n" +
+	"\x12accountsTabEnabled\x18\r \x01(\bR\x12accountsTabEnabled\x12>\n" +
+	"\x1axagoGatehubPaymentsEnabled\x18\x0e \x01(\bR\x1axagoGatehubPaymentsEnabled\".\n" +
 	"\x10ListAuditRequest\x12\x1a\n" +
 	"\bwalletID\x18\x01 \x01(\tR\bwalletID\"U\n" +
 	"\x11ListAuditResponse\x12@\n" +

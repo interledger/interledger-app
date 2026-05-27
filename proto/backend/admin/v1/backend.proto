@@ -246,6 +246,7 @@ message Features {
   bool manageWalletCardsEnabled = 11;
   bool accountEnabled = 12;
   bool accountsTabEnabled = 13;
+  bool xagoGatehubPaymentsEnabled = 14;
 }
 
 message ListAuditRequest {

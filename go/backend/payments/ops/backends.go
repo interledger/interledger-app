@@ -20,6 +20,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/email"
 	email_mock "gitlab.com/fynbos/backend/email/client/mock"
+	"gitlab.com/fynbos/backend/features"
 	"gitlab.com/fynbos/backend/identities"
 	id_mock "gitlab.com/fynbos/backend/identities/client/mock"
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -51,6 +52,7 @@ type Backends interface {
 	Gatehub() gatehub.Client
 	Chimoney() chimoney.Client
 	Pacioli() pacioli.Client
+	Features() features.Client
 }
 
 type TestBackends struct {
@@ -135,6 +137,10 @@ func (t TestBackends) Wallets() wallets.Client {
 }
 
 func (t TestBackends) Pacioli() pacioli.Client {
+	return nil
+}
+
+func (t TestBackends) Features() features.Client {
 	return nil
 }
 

@@ -356,7 +356,8 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 
 		for _, sendLA := range sendBalances {
 			for _, recvLA := range recvBalances {
-				crossProvider := isCrossProviderPair(sendLA.Provider, recvLA.Provider) &&
+				// TODO check if we can find a better way
+				crossProvider := isXagoGatehubPair(sendLA.Provider, recvLA.Provider) &&
 					recvLA.CanReceive && recvLA.State == linkedaccounts.Verified
 				if sendLA.CanPay(recvLA) || crossProvider {
 					p.SenderAccount = sendLA.ID
@@ -581,9 +582,42 @@ func validateWithdrawal(ctx context.Context, b Backends, typ payments.Type, send
 	return nil
 }
 
-func isCrossProviderPair(senderProvider, receiverProvider string) bool {
-	return (senderProvider == gatehub.ProviderName && receiverProvider == xago.ProviderName) ||
+func isXagoGatehubPair(senderProvider, receiverProvider string) bool {
+	isXagoGatehubPair := (senderProvider == gatehub.ProviderName && receiverProvider == xago.ProviderName) ||
 		(senderProvider == xago.ProviderName && receiverProvider == gatehub.ProviderName)
+
+	return isXagoGatehubPair
+}
+
+// Allow cross-provider transfers only for supported provider pair and only if the feature is enabled for both wallets
+func validateCrossProviderSenderReceiver(ctx context.Context, b Backends, senderAcc, receiverAcc *linkedaccounts.LinkedAccount) error {
+	// Supported provider pair only
+	if !isXagoGatehubPair(senderAcc.Provider, receiverAcc.Provider) {
+		return payments.ErrIncompatibleAccounts
+	}
+
+	// Check feature flag enabled for both wallets
+	senderFeats, err := b.Features().Features(ctx, senderAcc.WalletID)
+	if err != nil {
+		return err
+	}
+	receiverFeats, err := b.Features().Features(ctx, receiverAcc.WalletID)
+	if err != nil {
+		return err
+	}
+	if !senderFeats.XagoGatehubPaymentsEnabled || !receiverFeats.XagoGatehubPaymentsEnabled {
+		return payments.ErrIncompatibleAccounts
+	}
+
+	// Check account type
+	if senderAcc.Provider == xago.ProviderName && senderAcc.Type != xago.AccTypeBalance {
+		return payments.ErrIncompatibleAccounts
+	}
+	if receiverAcc.Provider == xago.ProviderName && receiverAcc.Type != xago.AccTypeBalance {
+		return payments.ErrIncompatibleAccounts
+	}
+
+	return nil
 }
 
 func validateSenderReceiver(ctx context.Context, b Backends, typ payments.Type, senderAccID, receiverAccID string) error {
@@ -602,11 +636,7 @@ func validateSenderReceiver(ctx context.Context, b Backends, typ payments.Type, 
 	}
 
 	if senderAcc.Provider != receiverAcc.Provider {
-		// Allow GateHub <-> Xago cross-provider transfers
-		if !isCrossProviderPair(senderAcc.Provider, receiverAcc.Provider) {
-			return payments.ErrIncompatibleAccounts
-		}
-		return nil
+		return validateCrossProviderSenderReceiver(ctx, b, senderAcc, receiverAcc)
 	}
 
 	if senderAcc.Provider == xago.ProviderName && (senderAcc.Type != xago.AccTypeBalance || receiverAcc.Type != xago.AccTypeBalance) {
@@ -652,8 +682,9 @@ func applyFXCreate(ctx context.Context, b Backends, args payments.CreateArgs) (p
 		return args, 0, 0, nil
 	}
 
+	// TODO maybe extract this into a separate function, maybe reuse in both applyFXCreate and applyFXUpdate
 	// Cross-provider GateHub <-> Xago FX
-	if isCrossProviderPair(senderAcc.Provider, receiverAcc.Provider) {
+	if isXagoGatehubPair(senderAcc.Provider, receiverAcc.Provider) {
 		var pair xago_external.ConvertCurrencyPairEnum
 		var receiverCurrency currency.Currency
 		if senderAcc.Provider == gatehub.ProviderName {
@@ -1179,8 +1210,9 @@ func applyFXUpdate(ctx context.Context, b Backends, existing *dbPayment, receive
 		return existing, nil
 	}
 
+	// TODO maybe extract this into a separate function, maybe reuse in both applyFXCreate and applyFXUpdate
 	// Cross-provider GateHub <-> Xago FX
-	if isCrossProviderPair(senderAcc.Provider, receiverAcc.Provider) {
+	if isXagoGatehubPair(senderAcc.Provider, receiverAcc.Provider) {
 		var pair xago_external.ConvertCurrencyPairEnum
 		var receiverCurrency currency.Currency
 		if senderAcc.Provider == gatehub.ProviderName {
