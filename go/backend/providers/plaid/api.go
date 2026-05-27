@@ -2,7 +2,6 @@ package plaid
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	plaidsdk "github.com/plaid/plaid-go/v42/plaid"
@@ -16,9 +15,6 @@ type Config struct {
 	Env          string
 	Products     []string
 	CountryCodes []string
-	// Processor is the Plaid processor partner identifier passed to
-	// `/processor/token/create` (Phase 2). Validated in cli.go to one of
-	// `fiant` or `zero_hash`.
 	Processor string
 }
 
@@ -30,9 +26,6 @@ type TokenSet struct {
 	InstitutionName string
 	LinkedAt        time.Time
 }
-
-// State is the public view of a user's current Plaid linkage. Never includes
-// the raw access token.
 type State struct {
 	Linked          bool       `json:"linked"`
 	ItemID          string     `json:"item_id,omitempty"`
@@ -49,8 +42,6 @@ type TransactionsSyncResult struct {
 	NextCursor string                        `json:"next_cursor"`
 }
 
-// Client is the surface our HTTP handlers consume. Tests mock this; the
-// production implementation in providers/plaid/client wraps the Plaid SDK.
 type Client interface {
 	CreateLinkToken(ctx context.Context, userID string) (linkToken string, expiration time.Time, err error)
 	ExchangePublicToken(ctx context.Context, publicToken string) (accessToken, itemID string, err error)
@@ -61,27 +52,12 @@ type Client interface {
 	GetIdentity(ctx context.Context, accessToken string) (*plaidsdk.IdentityGetResponse, error)
 	SyncTransactions(ctx context.Context, accessToken string) (*TransactionsSyncResult, error)
 	RemoveItem(ctx context.Context, accessToken string) error
-	// CreateProcessorToken mints a Plaid processor token bound to a single
-	// account, scoped to a partner processor (e.g. "fiant", "zero_hash").
-	// Phase 2 uses this to hand a one-shot credential to Fiant via
-	// /users/{externalId}/payment-information.
 	CreateProcessorToken(ctx context.Context, accessToken, accountID, processor string) (string, error)
 }
 
-// TokenStore persists TokenSets keyed by user ID. POC uses Redis (see
-// providers/plaid/store/redis.go); an in-memory implementation is kept for
-// tests. Production path is encrypted Postgres — see
-// documentation/poc/plaid/architecture.md §7.
 type TokenStore interface {
 	Get(ctx context.Context, userID string) (TokenSet, bool, error)
 	Put(ctx context.Context, userID string, t TokenSet) error
 	Delete(ctx context.Context, userID string) error
 }
 
-// ErrNotImplemented is returned by scaffolded methods until their owning
-// task (B5*) fills them in.
-var ErrNotImplemented = errors.New("plaid: not implemented")
-
-// ErrNoLinkedItem indicates the caller looked up a user that has no stored
-// TokenSet. Handlers translate this to HTTP 404.
-var ErrNoLinkedItem = errors.New("plaid: no linked item for user")

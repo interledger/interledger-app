@@ -4,14 +4,7 @@ import { create } from 'zustand'
 // token, the live link summary echoed back from the backend, the last raw
 // response from a product call, and the most recent error string for the
 // debug panel.
-//
-// Convention mirrors useScaffoldStore.ts: a State + Actions split with a
-// frozen `initialState` constant so `reset()` is a one-liner.
 
-/**
- * Mirror of the server-side PlaidProduct union (intentionally duplicated to
- * avoid pulling a `.server.ts` import into client-bundled code).
- */
 export type PlaidProduct =
   | 'accounts'
   | 'auth'

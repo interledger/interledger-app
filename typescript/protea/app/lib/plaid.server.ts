@@ -1,10 +1,3 @@
-// Server-side HTTP client for the backend's /plaid/* surface.
-//
-// Mirrors the cookie-forwarding pattern used by grpc.server.ts and the
-// existing fetch-based routes (e.g. api_.statements_.*) — loaders/actions
-// pass the inbound Request so we can lift the Kratos session cookie onto the
-// backend call.
-
 import { redirect } from 'react-router'
 import { href } from 'react-router'
 import { captureMessage } from '@sentry/react-router'
@@ -13,10 +6,6 @@ import { CLEAR_SESSION_COOKIE_HEADER } from './kratos/kratos-client.server'
 const BACKEND_HTTP_URL = process.env.BACKEND_HTTP_URL || 'http://backend:8080'
 const PLAID_API_PATH = '/api/plaid'
 
-/**
- * PlaidError is the shape returned to callers on a non-2xx backend response.
- * It mirrors the BFF ConnectError pattern.
- */
 export class PlaidError {
   public readonly _request: Request
   public readonly status: number
@@ -60,7 +49,6 @@ export class PlaidError {
   }
 }
 
-/** Type guard for PlaidError */
 export function isPlaidError(response: unknown): response is PlaidError {
   return (
     response !== null &&
@@ -104,12 +92,12 @@ export interface PlaidDisconnectResult {
   disconnected: boolean
 }
 
-/** Shape returned by GET /plaid/registered (Phase 2). */
+/** Shape returned by GET /plaid/registered */
 export interface PlaidRegisteredResult {
   plaid_account_ids: string[]
 }
 
-/** Shape returned by POST /plaid/link-to-fiant (Phase 2). */
+/** Shape returned by POST /plaid/link-to-fiant */
 export interface PlaidLinkToFiantResult {
   linked_account_id: string
   payment_information_id: string
@@ -187,7 +175,6 @@ async function plaidFetch<T>(
   return body as T
 }
 
-/* ─── typed wrappers ─────────────────────────────────────────────────── */
 
 function getState(request: Request): Promise<PlaidState | PlaidError> {
   return plaidFetch<PlaidState>(request, `${PLAID_API_PATH}/state`)

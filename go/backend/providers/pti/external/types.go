@@ -369,9 +369,7 @@ type (
 		BankRoutingCheckDigit string `json:"bankRoutingCheckDigit,omitempty"`
 		AccountBankName       string `json:"accountBankName,omitempty"`
 		// PlaidProcessorToken is set when the bank account is linked via Plaid
-		// (see Plaid POC Phase 2). Fiant uses it server-side to call Plaid and
-		// hydrate the bank-account fields above; we only ever post this field,
-		// never read it back. Mutually exclusive with the raw ACH fields.
+		// Fiant uses it server-side to call Plaid and hydrate the bank-account fields above
 		PlaidProcessorToken string `json:"plaidProcessorToken,omitempty"`
 	}
 

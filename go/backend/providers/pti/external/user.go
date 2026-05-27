@@ -420,10 +420,6 @@ func (c client) GetUsersPaymentInformation(ctx context.Context, userID, id strin
 	return body, nil
 }
 
-// CreateBankAccountFromPlaid registers a bank account on Fiant using a Plaid
-// processor token. Posts only `{type, plaidProcessorToken}` — Fiant resolves
-// the rest server-side via Plaid. See documentation/poc/plaid/architecture.md
-// §7 (Phase 2 — Plaid → Fiant).
 func (c client) CreateBankAccountFromPlaid(ctx context.Context, userID, processorToken string) (*BankAccountPaymentInformation, error) {
 	args := BankAccountPaymentInformation{
 		Type:                "BANK_ACCOUNT",

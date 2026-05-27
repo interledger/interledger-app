@@ -1,7 +1,3 @@
-// Package ops contains the HTTP handler layer for the Plaid POC provider.
-// Handlers are thin: they extract the user from request context, delegate to
-// plaid.Client + plaid.TokenStore, and marshal the response. No SDK or
-// persistence concerns belong here.
 package ops
 
 import (
@@ -17,10 +13,6 @@ import (
 	"go.uber.org/zap"
 )
 
-// Handlers groups the chi handler funcs that make up the /plaid HTTP surface.
-// Each method is filled in by tasks B5a–B5f; B4 mounts them. Phase 2 adds
-// `linker` + `processor` for /plaid/link-to-fiant; both may be nil/empty when
-// the Phase-2 wiring is absent (router conditionally registers the route).
 type Handlers struct {
 	client    plaid.Client
 	store     plaid.TokenStore
@@ -28,15 +20,10 @@ type Handlers struct {
 	processor string
 }
 
-// New wires a Handlers with its collaborators. `linker` and `processor` are
-// optional and only required for the Phase-2 /plaid/link-to-fiant route.
 func New(client plaid.Client, store plaid.TokenStore, linker FiantLinker, processor string) *Handlers {
 	return &Handlers{client: client, store: store, linker: linker, processor: processor}
 }
 
-// CreateLinkToken — POST /plaid/link-token. Calls Plaid /link/token/create
-// using the current Kratos user as client_user_id and returns the link token
-// the frontend hands to react-plaid-link.
 func (h *Handlers) CreateLinkToken(w http.ResponseWriter, r *http.Request) {
 	u, err := ops.UserForContext(r.Context())
 	if err != nil {
@@ -72,9 +59,6 @@ func writeJSON(w http.ResponseWriter, status int, body any) {
 	}
 }
 
-// ExchangePublicToken — POST /plaid/exchange. Body: {"public_token": "..."}.
-// Exchanges with Plaid, fetches institution metadata, stores TokenSet keyed by
-// the current Kratos user. Never leaks tokens to logs.
 func (h *Handlers) ExchangePublicToken(w http.ResponseWriter, r *http.Request) {
 	u, err := ops.UserForContext(r.Context())
 	if err != nil {
@@ -102,7 +86,6 @@ func (h *Handlers) ExchangePublicToken(w http.ResponseWriter, r *http.Request) {
 
 	institutionID, institutionName, err := h.client.GetInstitutionForItem(r.Context(), accessToken)
 	if err != nil {
-		// Soft-fail: token exchange succeeded; institution lookup is decoration.
 		log.Warn("plaid: GetInstitutionForItem failed (continuing)",
 			zap.String("user_id", u.ID),
 			zap.String("item_id", itemID),
@@ -138,8 +121,6 @@ func (h *Handlers) ExchangePublicToken(w http.ResponseWriter, r *http.Request) {
 	}{ItemID: itemID, InstitutionName: institutionName})
 }
 
-// GetState — GET /plaid/state. Returns a non-sensitive view of the current
-// user's Plaid link: linked? what institution? when? Never includes tokens.
 func (h *Handlers) GetState(w http.ResponseWriter, r *http.Request) {
 	u, err := ops.UserForContext(r.Context())
 	if err != nil {
@@ -169,9 +150,6 @@ func (h *Handlers) GetState(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// requireLinkedUser resolves the Kratos user and their stored TokenSet.
-// Writes the appropriate HTTP error and returns ok=false if either is missing
-// or the store call failed; caller short-circuits on ok=false.
 func (h *Handlers) requireLinkedUser(w http.ResponseWriter, r *http.Request) (userID, accessToken string, ok bool) {
 	u, err := ops.UserForContext(r.Context())
 	if err != nil {
@@ -194,7 +172,6 @@ func (h *Handlers) requireLinkedUser(w http.ResponseWriter, r *http.Request) (us
 	return u.ID, t.AccessToken, true
 }
 
-// onPlaidErr logs and writes a 502 with no token detail.
 func (h *Handlers) onPlaidErr(w http.ResponseWriter, r *http.Request, endpoint, userID string, err error) {
 	log.Error("plaid: SDK call failed",
 		zap.String("endpoint", endpoint),
@@ -204,7 +181,6 @@ func (h *Handlers) onPlaidErr(w http.ResponseWriter, r *http.Request, endpoint, 
 	apperrors.WriteAppError(w, r, http.StatusBadGateway, errcodes.ErrCodeInternal, "plaid request failed")
 }
 
-// GetAccounts — GET /plaid/accounts. Returns Plaid `/accounts/get` verbatim.
 func (h *Handlers) GetAccounts(w http.ResponseWriter, r *http.Request) {
 	userID, accessToken, ok := h.requireLinkedUser(w, r)
 	if !ok {
@@ -218,9 +194,6 @@ func (h *Handlers) GetAccounts(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, resp)
 }
 
-// GetAuth — GET /plaid/auth. Returns Plaid `/auth/get` verbatim. Includes ACH
-// routing + account numbers — sensitive but Plaid's own surface, so we don't
-// add extra masking.
 func (h *Handlers) GetAuth(w http.ResponseWriter, r *http.Request) {
 	userID, accessToken, ok := h.requireLinkedUser(w, r)
 	if !ok {
@@ -234,8 +207,6 @@ func (h *Handlers) GetAuth(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, resp)
 }
 
-// GetBalance — GET /plaid/balance. Returns Plaid `/accounts/balance/get`
-// verbatim (forces a fresh balance refresh).
 func (h *Handlers) GetBalance(w http.ResponseWriter, r *http.Request) {
 	userID, accessToken, ok := h.requireLinkedUser(w, r)
 	if !ok {
@@ -249,7 +220,6 @@ func (h *Handlers) GetBalance(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, resp)
 }
 
-// GetIdentity — GET /plaid/identity. Returns Plaid `/identity/get` verbatim.
 func (h *Handlers) GetIdentity(w http.ResponseWriter, r *http.Request) {
 	userID, accessToken, ok := h.requireLinkedUser(w, r)
 	if !ok {
@@ -263,10 +233,6 @@ func (h *Handlers) GetIdentity(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, resp)
 }
 
-// GetTransactions — GET /plaid/transactions. Drives `/transactions/sync` from
-// cursor=0 and returns the full added/modified/removed roll-up plus the final
-// next_cursor. Sandbox needs a few seconds after item creation to populate;
-// an empty array with a cursor is the normal early response.
 func (h *Handlers) GetTransactions(w http.ResponseWriter, r *http.Request) {
 	userID, accessToken, ok := h.requireLinkedUser(w, r)
 	if !ok {
@@ -281,14 +247,11 @@ func (h *Handlers) GetTransactions(w http.ResponseWriter, r *http.Request) {
 }
 
 // LinkToFiant — POST /plaid/link-to-fiant. Body:
-//
 //	{ "account_id": "...", "account_name": "...", "account_mask": "..." }
 //
-// Phase 2 of the Plaid POC. Registers a Plaid-authorised account with Fiant by
+// Registers a Plaid-authorised account with Fiant by
 // minting a `processor/token` and forwarding it via Fiant's payment-information
-// endpoint. Idempotent on `(wallet_id, plaid_account_id)` — see B13's partial
-// unique index. Returns:
-//
+// endpoint.Returns:
 //	{ "linked_account_id": "...", "payment_information_id": "...", "already_linked": bool }
 //
 // `already_linked: true` means the row existed; no Plaid or Fiant calls were
@@ -315,7 +278,6 @@ func (h *Handlers) LinkToFiant(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// (a) Dedupe first — cheapest path, no Plaid/Fiant network calls.
 	existing, err := h.linker.ExistingLink(r.Context(), u.ID, body.AccountID)
 	if err != nil {
 		log.Error("plaid: ExistingLink lookup failed",
@@ -336,13 +298,11 @@ func (h *Handlers) LinkToFiant(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// (b) Need the access_token. 404 cleanly if the user hasn't done Phase 1.
 	_, accessToken, ok := h.requireLinkedUser(w, r)
 	if !ok {
 		return
 	}
 
-	// (c) Mint a processor token. Long-lived, bound to (item, account, processor).
 	processorToken, err := h.client.CreateProcessorToken(r.Context(), accessToken, body.AccountID, h.processor)
 	if err != nil {
 		log.Error("plaid: CreateProcessorToken failed",
@@ -355,9 +315,6 @@ func (h *Handlers) LinkToFiant(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// (d) Cross-system write: Fiant POST + linked_account persist. Idempotency
-	//     guard at the DB layer via the partial unique index — duplicate inserts
-	//     surface as ErrInternal here but should be rare given (a).
 	ids, err := h.linker.Register(r.Context(), LinkPlaidArgs{
 		UserID:         u.ID,
 		PlaidAccountID: body.AccountID,
@@ -389,10 +346,7 @@ type linkToFiantResponse struct {
 	AlreadyLinked bool `json:"already_linked"`
 }
 
-// GetRegistered — GET /plaid/registered. Returns the Plaid account_ids the
-// current user has already linked to Fiant via /plaid/link-to-fiant. Drives
-// the "Linked" tag on the /connect/plaid/{country} selector. Always returns
-// 200 with a (possibly empty) array; never reveals counts of other users.
+// Returns the Plaid account_ids the current user has already linked
 func (h *Handlers) GetRegistered(w http.ResponseWriter, r *http.Request) {
 	if h.linker == nil {
 		apperrors.WriteAppError(w, r, http.StatusServiceUnavailable, errcodes.ErrCodeInternal, "plaid/fiant linker not configured")
@@ -422,9 +376,8 @@ func (h *Handlers) GetRegistered(w http.ResponseWriter, r *http.Request) {
 	}{PlaidAccountIDs: ids})
 }
 
-// Disconnect — DELETE /plaid/disconnect. Removes the Item on Plaid's side
-// (best-effort) and always deletes the local TokenStore entry. Returns
-// `{"disconnected": true}` once the store is clean even if Plaid returned an
+// Removes the Item on Plaid's side and always deletes the local TokenStore entry. 
+// TODO: Returns `{"disconnected": true}` once the store is clean even if Plaid returned an
 // error, so a partial failure can never leave a user permanently stuck.
 func (h *Handlers) Disconnect(w http.ResponseWriter, r *http.Request) {
 	u, err := ops.UserForContext(r.Context())
@@ -463,6 +416,9 @@ func (h *Handlers) Disconnect(w http.ResponseWriter, r *http.Request) {
 		apperrors.WriteAppError(w, r, http.StatusInternalServerError, errcodes.ErrCodeInternal, "failed to clear plaid link")
 		return
 	}
+
+
+	// todo: Inform Fiant about the token removal : thus maybe this method should live in plaid-fiant client
 
 	log.Info("plaid item disconnected",
 		zap.String("user_id", u.ID),

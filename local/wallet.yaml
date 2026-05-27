@@ -137,7 +137,7 @@ services:
       #- PTI_PUBLIC_KEY_JWK=${BACKEND_PTI_PUBLIC_KEY_JWK:-{"kty":"RSA","e":"AQAB","n":"olHy4zW7X7SA1m-cbePYKYbK3sk5HgREzXzoDZNhi47vcfk6uPb4KOptvrDdcS_K_LvupOf3sP34oTWsVwqVqt0s8DFbKA6wYAojEP2_RoyjVuhlUkjbyWc4Gqi5td0DWk1gVO0qheDjMuEIXNCplIwXRhJX3UFBulK6Rznsvp57bFIsZwMnbkneK4W3G-oDQhnnft9OpfUJRZZTIHzBvjBaDUhB_K9cB34jYBQ98AqEAECVCyR-Me7v-jnvsPTr4t96FgM57rZBOtXk29QaIKp-YeOKrg5lD_jFkwaSpsSIiePcMKt1t4hA5pZqQiOJKtwKf5OYQ74MQcxYQUCmEQ"}}
       - FYNBOS_BACKEND_HOST=${BACKEND_FYNBOS_BACKEND_HOST:-}
 
-      # Providers: Plaid (POC — disabled by default; set BACKEND_PLAID_ENABLED=true in your .env to opt in)
+      # Provider/Integrator: Plaid
       - PLAID_ENABLED=${BACKEND_PLAID_ENABLED:-false}
       - PLAID_CLIENT_ID=${BACKEND_PLAID_CLIENT_ID:-}
       - PLAID_SECRET=${BACKEND_PLAID_SECRET:-}

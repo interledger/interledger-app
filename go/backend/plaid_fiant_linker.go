@@ -19,24 +19,12 @@ import (
 	plaid_ops "gitlab.com/fynbos/backend/providers/plaid/ops"
 )
 
-// plaidFiantLinker is the adapter that the Plaid HTTP layer calls into for
-// Phase 2's `/api/plaid/link-to-fiant` route. It hides the cross-package
-// orchestration (wallet + PTI user resolution, Fiant external call, linked-
-// account persistence) so that `providers/plaid/ops` does not need to import
-// pti / linkedaccounts / wallets directly.
-//
-// Lifetime: one per backend boot. The PTI external client inside is a long-
-// lived HTTP client identical in shape to the one wired into the temporal
-// Activity — we build a fresh instance here rather than reach into the worker
-// to avoid coupling the HTTP path to temporal startup ordering.
 type plaidFiantLinker struct {
 	b        *backends
 	external pti_external.Client
 }
 
-// newPlaidFiantLinker constructs the adapter using the same PTI key + URLs as
-// the temporal Activity. Returns nil when PTI is disabled (caller treats nil
-// as "do not register the /link-to-fiant route").
+
 func newPlaidFiantLinker(b *backends, ptiBaseURL, ptiClientID, ptiJWK string) (*plaidFiantLinker, error) {
 	if ptiJWK == "" {
 		return nil, nil
@@ -57,9 +45,8 @@ func newPlaidFiantLinker(b *backends, ptiBaseURL, ptiClientID, ptiJWK string) (*
 	return &plaidFiantLinker{b: b, external: ext}, nil
 }
 
-// ExistingLink — see plaid_ops.FiantLinker. Returns nil on absence.
 func (l *plaidFiantLinker) ExistingLink(ctx context.Context, userID, plaidAccountID string) (*plaid_ops.LinkedIDs, error) {
-	walletID, err := l.walletForUser(ctx, userID)
+	walletID, err := l.getWalletIdByUserId(ctx, userID)
 	if err != nil {
 		// User without a wallet can never have a linked Plaid account; treat as "no dupe".
 		if errors.Is(err, sql.ErrNoRows) {
@@ -81,9 +68,8 @@ func (l *plaidFiantLinker) ExistingLink(ctx context.Context, userID, plaidAccoun
 	}, nil
 }
 
-// Register — see plaid_ops.FiantLinker. Posts to Fiant then persists.
 func (l *plaidFiantLinker) Register(ctx context.Context, args plaid_ops.LinkPlaidArgs) (*plaid_ops.LinkedIDs, error) {
-	walletID, err := l.walletForUser(ctx, args.UserID)
+	walletID, err := l.getWalletIdByUserId(ctx, args.UserID)
 	if err != nil {
 		return nil, fmt.Errorf("plaid/fiant linker: resolve wallet: %w", err)
 	}
@@ -140,9 +126,8 @@ func (l *plaidFiantLinker) Register(ctx context.Context, args plaid_ops.LinkPlai
 	}, nil
 }
 
-// ListLinkedPlaidAccountIDs — see plaid_ops.FiantLinker.
 func (l *plaidFiantLinker) ListLinkedPlaidAccountIDs(ctx context.Context, userID string) ([]string, error) {
-	walletID, err := l.walletForUser(ctx, userID)
+	walletID, err := l.getWalletIdByUserId(ctx, userID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
@@ -165,10 +150,8 @@ func (l *plaidFiantLinker) ListLinkedPlaidAccountIDs(ctx context.Context, userID
 	return ids, nil
 }
 
-// walletForUser returns the first wallet attached to a Kratos user. Mirrors
-// the convention in wallets/middleware which also "picks a default" when the
-// user has more than one.
-func (l *plaidFiantLinker) walletForUser(ctx context.Context, userID string) (string, error) {
+// Returns the first wallet attached to a Kratos user
+func (l *plaidFiantLinker) getWalletIdByUserId(ctx context.Context, userID string) (string, error) {
 	var id string
 	err := l.b.DB().GetContext(ctx, &id, "SELECT wallet_id FROM user_wallets WHERE user_id = $1 LIMIT 1;", userID)
 	return id, err

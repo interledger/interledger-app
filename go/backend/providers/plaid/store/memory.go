@@ -1,6 +1,7 @@
 // Package store provides TokenStore implementations.
 //
-// Production path uses Redis (see redis.go). The in-memory Memory store is
+// Production path uses Redis (see redis.go). 
+// The in-memory Memory store is
 // kept around for unit tests of handler logic where wiring a real Redis would
 // be overkill.
 package store
@@ -18,7 +19,6 @@ type Memory struct {
 	tokens map[string]plaid.TokenSet
 }
 
-// NewMemory returns a ready-to-use in-memory TokenStore.
 func NewMemory() *Memory {
 	return &Memory{tokens: make(map[string]plaid.TokenSet)}
 }

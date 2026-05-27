@@ -273,10 +273,8 @@ func GetByProviderID(ctx context.Context, b Backends, args linkedaccounts.GetByP
 }
 
 // GetByPlaidAccountID returns the linked_account row a wallet provisioned from
-// the given Plaid account_id, if any. Used by /plaid/link-to-fiant (Phase 2) to
-// short-circuit duplicate Fiant registrations — see the partial unique index
-// on `(wallet_id, plaid_account_id)` in schema.hcl. Returns ErrNotFound when
-// the wallet has not linked this Plaid account yet.
+// the given Plaid account_id, if any. Used to short-circuit duplicate 
+// Fiant registrations Returns ErrNotFound when the wallet has not linked this Plaid account yet.
 func GetByPlaidAccountID(ctx context.Context, b Backends, walletID, plaidAccountID string) (*linkedaccounts.LinkedAccount, error) {
 	if walletID == "" || plaidAccountID == "" {
 		return nil, fmt.Errorf("%w wallet_id and plaid_account_id are required", linkedaccounts.ErrInvalidArgument)

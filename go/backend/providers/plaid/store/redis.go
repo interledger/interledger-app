@@ -16,16 +16,10 @@ import (
 // as JSON-encoded TokenSet under keys of the form `plaid:token:{userID}` with
 // no expiry — access tokens are long-lived and a missing key drives the user
 // back through Link, which is the desired behaviour after Redis wipes.
-//
-// POC limitation: tokens are written in plaintext. Production path (locked in
-// the plan §4) is encrypted Postgres.
 type Redis struct {
 	client *redis.Client
 }
 
-// NewRedis parses a Redis connection URL (redis://[user:pass@]host:port/db)
-// and verifies the connection with a 5s PING. Returns an error if the URL is
-// malformed or the server is unreachable so backend startup can fail loudly.
 func NewRedis(redisURL string) (*Redis, error) {
 	opts, err := redis.ParseURL(redisURL)
 	if err != nil {
@@ -41,7 +35,6 @@ func NewRedis(redisURL string) (*Redis, error) {
 	return &Redis{client: client}, nil
 }
 
-// Close releases the underlying connection pool. Called by CloseBackends.
 func (redisStore *Redis) Close() error { return redisStore.client.Close() }
 
 func tokenKey(userID string) string {

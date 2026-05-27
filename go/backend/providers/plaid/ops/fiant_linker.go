@@ -21,23 +21,17 @@ type LinkPlaidArgs struct {
 }
 
 // FiantLinker is the cross-package seam between the Plaid HTTP handler and the
-// PTI/Fiant + linked_accounts machinery. The plaid handler does not import
-// pti / linkedaccounts / wallets directly — main.go wires a real impl that
-// does.
+// PTI/Fiant + linked_accounts machinery. 
 type FiantLinker interface {
 	// ExistingLink returns the linked-account row already provisioned for this
 	// (userID, plaidAccountID), if any. nil result + nil error means "no dupe".
-	// Used by /plaid/link-to-fiant to short-circuit before minting a processor
-	// token or posting to Fiant — see the partial unique index in schema.hcl.
 	ExistingLink(ctx context.Context, userID, plaidAccountID string) (*LinkedIDs, error)
 
 	// Register completes the cross-system write: it posts the processor token
-	// to Fiant via /users/{externalId}/payment-information and persists a
-	// linked_account row stamped with `plaid_account_id` for future dedupe.
+	// to Fiant and persists a linked_account row stamped with `plaid_account_id` for future dedupe.
 	Register(ctx context.Context, args LinkPlaidArgs) (*LinkedIDs, error)
 
 	// ListLinkedPlaidAccountIDs returns the Plaid account_ids that the user
-	// has already registered with Fiant via this flow. Drives the "Linked"
-	// tag on /connect/plaid/{country}. Empty slice for never-linked users.
+	// has already registered with Fiant via this flow
 	ListLinkedPlaidAccountIDs(ctx context.Context, userID string) ([]string, error)
 }

@@ -1,6 +1,3 @@
-// ORPHANED FROM UI — as of Phase 3, Plaid is the only bank-link path on Home.
-// Still reachable by direct URL and still driven by e2e (e2e/xago_withdrawal.go).
-// Full removal tracked in BACKLOG-Bx.
 import type { Route } from './+types/connect_.bank_.za'
 import { Code } from '@bufbuild/connect'
 import { redirect } from 'react-router';

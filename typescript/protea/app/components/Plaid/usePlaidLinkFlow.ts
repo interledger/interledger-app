@@ -23,10 +23,7 @@ const PLAID_ACTION_PATH = '/plaid'
 //      the /plaid route's useEffect flips the store into the "linked" state.
 //
 // On any exit or error path the store's `isLinking` flag is cleared and
-// `lastError` is populated for the snackbar/debug card (F6 will surface).
-//
-// See documentation/poc/plaid/plaid-link-explained.md for the full SDK
-// architecture (iframe, postMessage, CSP).
+// `lastError` is populated for the snackbar/debug card
 export function usePlaidLinkFlow() {
   const linkFetcher = useFetcher<SerializedActionData>()
   const exchangeFetcher = useFetcher<SerializedActionData>()
@@ -64,7 +61,6 @@ export function usePlaidLinkFlow() {
     }
   }, [linkFetcher.data, setLinkToken, setLastError, setIsLinking, pushSnackbar])
 
-  // Plaid Link binding (see plaid-link-explained.md).
   const { open, ready, error: scriptError } = usePlaidLink({
     token: linkToken,
     onLoad: () => setPlaidInstanceReady(true),
@@ -128,8 +124,7 @@ export function usePlaidLinkFlow() {
     }
   }, [exchangeFetcher.data, setLinkToken, setIsLinking, setLastError, pushSnackbar])
 
-  // Surface SDK-level load failures (CDN unreachable, blocked by extension,
-  // …) — see plaid-link-explained.md §10.
+  // Surface SDK-level load failures (CDN unreachable, blocked by extension, etc)
   useEffect(() => {
     if (scriptError) {
       const msg = `Plaid SDK failed to load: ${scriptError.message ?? 'unknown error'}`

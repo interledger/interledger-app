@@ -27,7 +27,6 @@ type Client interface {
 	CreateBankAccount(ctx context.Context, userID string, args BankAccountPaymentInformation) (*BankAccountPaymentInformation, error)
 	// CreateBankAccountFromPlaid registers a bank account on Fiant using a
 	// Plaid processor token instead of raw ACH fields. Fiant calls Plaid
-	// server-side to resolve the underlying account details. Phase 2 of the
-	// Plaid POC — see documentation/poc/plaid/architecture.md §7.
+	// server-side to resolve the underlying account details
 	CreateBankAccountFromPlaid(ctx context.Context, userID, processorToken string) (*BankAccountPaymentInformation, error)
 }
