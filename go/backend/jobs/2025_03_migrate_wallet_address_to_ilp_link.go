@@ -3,7 +3,6 @@ package jobs
 import (
 	"context"
 	"fmt"
-	"os"
 	"time"
 
 	"gitlab.com/fynbos/env"
@@ -89,7 +88,6 @@ func (a *Activity) UpdateBackendWalletRootToIlpActivity(ctx context.Context, dom
 
 		{"UPDATE payments SET receiver_id = replace(receiver_id, $1, $2) WHERE receiver_id ILIKE '%' || $1 || '%';", []interface{}{domainInfo.CurrentWalletAddress, domainInfo.NewWalletAddress}},
 		{"UPDATE contacts SET payment_pointer = replace(payment_pointer, $1, $2) WHERE payment_pointer ILIKE '%' || $1 || '%';", []interface{}{domainInfo.CurrentWalletAddress, domainInfo.NewWalletAddress}},
-		{"UPDATE discord_authorizations SET redirect_url = replace(redirect_url, $1, $2) WHERE redirect_url ILIKE '%' || $1 || '%';", []interface{}{domainInfo.CurrentWalletAddress, domainInfo.NewWalletAddress}},
 
 		{"UPDATE transactions SET source = replace(source, $1, $2) WHERE source ILIKE '%' || $1 || '%';", []interface{}{domainInfo.CurrentWalletAddress, domainInfo.NewWalletAddress}},
 		{"UPDATE transactions SET destination_identity = replace(destination_identity, $1, $2) WHERE destination_identity ILIKE '%' || $1 || '%';", []interface{}{domainInfo.CurrentWalletAddress, domainInfo.NewWalletAddress}},
@@ -99,7 +97,6 @@ func (a *Activity) UpdateBackendWalletRootToIlpActivity(ctx context.Context, dom
 		{"UPDATE wallet_addresses SET url = replace(url, $1, $2) WHERE url ILIKE '%' || $1 || '%';", []interface{}{domainInfo.CurrentWalletAddress, domainInfo.NewWalletAddress}},
 		{"UPDATE wallet_keys SET name = replace(name, $1, $2);", []interface{}{domainInfo.CurrentNamespace, domainInfo.NewNamespace}},
 
-		{"UPDATE discord_authorizations SET redirect_url = replace(redirect_url, $1, $2) WHERE redirect_url ILIKE '%' || $1 || '%';", []interface{}{domainInfo.CurrentAppDomain, domainInfo.NewAppDomain}},
 		{"UPDATE slack_authorizations SET redirect_url = replace(redirect_url, $1, $2) WHERE redirect_url ILIKE '%' || $1 || '%';", []interface{}{domainInfo.CurrentAppDomain, domainInfo.NewAppDomain}},
 		{"UPDATE twitter_authorizations SET redirect_url = replace(redirect_url, $1, $2) WHERE redirect_url ILIKE '%' || $1 || '%';", []interface{}{domainInfo.CurrentAppDomain, domainInfo.NewAppDomain}},
 	}
@@ -113,10 +110,7 @@ func (a *Activity) UpdateBackendWalletRootToIlpActivity(ctx context.Context, dom
 
 func (a *Activity) UpdateRafikiWalletRootToIlpActivity(ctx context.Context, domainInfo MigrationParams) error {
 	log.Info(fmt.Sprintf("Starting [rafiki] wallet update to %s", domainInfo.NewWalletAddress))
-	connString := os.Getenv("RAFIKI_DB_URL")
-	log.Info(fmt.Sprintf("Connection string: %s", connString))
-
-	db, err := DbConnection(connString)
+	db, err := DbConnection(a.cfg.RafikiDBURL)
 	if err != nil {
 		log.Error("Error establishing db connection: %v", zap.Error(err))
 		return err
@@ -143,9 +137,7 @@ func (a *Activity) UpdateRafikiWalletRootToIlpActivity(ctx context.Context, doma
 
 func (a *Activity) UpdateRafikiAuthWalletRootToIlpActivity(ctx context.Context, domainInfo MigrationParams) error {
 	log.Info(fmt.Sprintf("Starting [rafiki auth] wallet update to %s", domainInfo.NewWalletAddress))
-	connString := os.Getenv("RAFIKI_AUTH_DB_URL")
-
-	db, err := DbConnection(connString)
+	db, err := DbConnection(a.cfg.RafikiAuthDBURL)
 	if err != nil {
 		log.Error("Error establishing db connection: %v", zap.Error(err))
 		return err

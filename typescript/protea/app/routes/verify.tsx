@@ -1,7 +1,7 @@
 import type { Route } from './+types/verify'
-import { data, redirect } from 'react-router';
-import { useFetcher, useLoaderData } from 'react-router';
-import { href } from 'react-router'
+import { RootLoaderData } from '~/root'
+import { data, redirect, href } from 'react-router'
+import { useFetcher, useLoaderData, useRouteLoaderData } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   Button,
@@ -10,14 +10,14 @@ import {
   Layouts,
   OutlineButtonRouter
 } from '~/components'
-import { trimHeaders } from '~/lib/headers.server'
-import {
-  KRATOS_URL,
-  getCsrfTokenFromFlow,
-  getUserSession,
-  handleFlowError
-} from '~/lib/kratos.server'
+import { kratosPublic } from '~/lib/kratos/kratos-client.server'
+import { getCookie, withCookie, buildHeadersWithCookies } from '~/lib/kratos/cookie.server'
+import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.server'
+import { handleFlowError } from '~/lib/kratos/error.server'
+import logger from '~/lib/logger.server'
+import { getUserSession } from '~/lib/kratos/session.server'
 import { mergeMeta } from '~/lib/meta'
+import { safeReturnTo } from '~/lib/url.server'
 import { RateLimitKeys, getKey, rateLimit } from '~/lib/rateLimit.server'
 import { useCountdown } from '~/lib/useCountdown'
 import { useDebounceAction } from '~/lib/useDebounceAction'
@@ -31,50 +31,51 @@ type ActionData = {
 export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
-  const cookie = String(request.headers.get('cookie'))
-
-    // getUserSession handles all error cases (401, 403, 422, 500) with appropriate redirects
+  const cookie = getCookie(request)
   const userSession = await getUserSession(request, true)
-  
+
+  if (!userSession) {
+    // Session requires AAL2 upgrade — redirect to TOTP challenge
+    throw redirect(href('/totp/challenge'))
+  }
+
   // We currently only allow one email per user.
   if (userSession.identity?.verifiable_addresses?.[0]?.verified) {
     return redirect(href('/'))
   }
 
-  // Ensure any redirects are thrown
-  if (userSession instanceof Response) return userSession
-
-  let flow
   if (flowId) {
-    // If ?flow=.. was in the URL, we fetch it
-    const flowRes = await fetch(
-      `${KRATOS_URL}/self-service/verification/flows?id=${flowId}`,
-      {
-        headers: {
-          cookie: cookie,
-          Accept: 'application/json'
-        }
-      }
-    )
-    flow = await flowRes.json()
-    if (flowRes.status >= 400) handleFlowError(flow, 'verify')
-  } else {
-    // Otherwise we initialize it
-    const flowRes = await fetch(
-      `${KRATOS_URL}/self-service/verification/browser?${url.searchParams}`,
-      { headers: { cookie: cookie, Accept: 'application/json' } }
-    )
-    flow = await flowRes.json()
-    if (flowRes.status >= 400) handleFlowError(flow, 'verify')
-    return redirect(`/verify?flow=${flow.id}`, {
-      headers: trimHeaders(flowRes.headers, ['set-cookie'])
-    })
+    try {
+      const { data: flow } = await kratosPublic.getVerificationFlow(
+        { id: flowId },
+        withCookie(cookie)
+      )
+      return data({
+        flow,
+        email: userSession.identity?.verifiable_addresses?.[0]?.value ?? '',
+        csrfToken: getCsrfTokenFromFlow(flow)
+      })
+    } catch (err: any) {
+      handleFlowError(err, 'verify')
+      logger.error({ error: err, route: 'verify' }, 'Failed to load verification flow')
+      throw new Error('Failed to load verification flow')
+    }
   }
-  return data({
-    flow,
-    email: userSession.identity?.verifiable_addresses?.[0]?.value,
-    csrfToken: getCsrfTokenFromFlow(flow)
-  })
+
+  // Initialize new verification flow
+  try {
+    const response = await kratosPublic.createBrowserVerificationFlow(
+      { returnTo: safeReturnTo(url.searchParams.get('returnTo')) },
+      withCookie(cookie)
+    )
+    return redirect(`/verify?flow=${response.data.id}`, {
+      headers: buildHeadersWithCookies(response)
+    })
+  } catch (err: any) {
+    handleFlowError(err, 'verify')
+    logger.error({ error: err, route: 'verify' }, 'Failed to initialize verification flow')
+    throw new Error('Failed to initialize verification flow')
+  }
 }
 
 export const handle: ApplicationProps = {
@@ -95,6 +96,8 @@ export const meta = mergeMeta(() => [
 export default function Page() {
   const { flow, email, csrfToken } = useLoaderData()
   const fetcher = useFetcher<ActionData>()
+  const { env } = useRouteLoaderData('root') as RootLoaderData
+  const supportEmail = env.supportEmail
 
   const withDebounce = useDebounceAction(RESEND_DELAY)
   const { start, isActive, remainingSeconds } = useCountdown()
@@ -102,8 +105,8 @@ export default function Page() {
   const handleResend = () => {
     withDebounce(() => {
       const formData = new FormData()
-      formData.append('csrf_token', csrfToken ?? '')
-      formData.append('email', email ?? '')
+      formData.append('csrf_token', csrfToken)
+      formData.append('email', email)
 
       fetcher.submit(formData, {
         method: 'post',
@@ -136,8 +139,8 @@ export default function Page() {
         {isActive
           ? `Resend in ${remainingSeconds}s`
           : fetcher.state !== 'idle'
-          ? 'Sending...'
-          : 'Resend verification'}
+            ? 'Sending...'
+            : 'Resend verification'}
       </Button>
 
       <OutlineButtonRouter to={href('/logout')} className='mt-4'>
@@ -148,8 +151,8 @@ export default function Page() {
         <p className='mt-2 text-sm text-error'>
           Could not send email verification. Please try again or contact support
           at{' '}
-          <a href='mailto:support@interledger.app'>
-            <b>support@interledger.app</b>
+          <a href={`mailto:${supportEmail}`}>
+            <b>{supportEmail}</b>
           </a>
           .
         </p>
@@ -164,11 +167,12 @@ export default function Page() {
   )
 }
 
-export async function action({
-  request
-}: Route.ActionArgs): Promise<ReturnType<typeof data<ActionData>>> {
+export async function action({ request }: Route.ActionArgs) {
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
+  if (!flowId) {
+    throw redirect("/verify")
+  }
 
   const form = await request.formData()
   const csrfToken = form.get('csrf_token') as string
@@ -185,26 +189,22 @@ export async function action({
     )
   }
 
-  const verificationResponse = await fetch(
-    `${KRATOS_URL}/self-service/verification?flow=${flowId}`,
-    {
-      method: 'POST',
-      redirect: 'manual',
-      body: JSON.stringify({
-        method: 'link',
-        email,
-        csrf_token: csrfToken
-      }),
-      headers: {
-        'Content-type': 'application/json',
-        cookie: String(request.headers.get('cookie'))
-      }
-    }
-  )
+  const cookie = getCookie(request)
 
-  if (verificationResponse.status >= 400) {
-    throw new Error('Could not send verification email')
+  try {
+    await kratosPublic.updateVerificationFlow(
+      {
+        flow: flowId,
+        updateVerificationFlowBody: {
+          method: 'link',
+          email,
+          csrf_token: csrfToken
+        }
+      },
+      withCookie(cookie)
+    )
+    return data<ActionData>({ success: true }, { status: 200 })
+  } catch (_: any) {
+    return data<ActionData>({ success: false }, { status: 400 })
   }
-
-  return data<ActionData>({ success: true }, { status: 200 })
 }

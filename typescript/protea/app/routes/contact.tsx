@@ -1,6 +1,7 @@
 import type { Route } from './+types/contact'
 import type { UIMatch } from 'react-router';
-import { useLoaderData } from 'react-router';
+import { RootLoaderData } from '~/root'
+import { useLoaderData, useRouteLoaderData } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { AnchorRouter, Icon, Layouts } from '~/components'
 import { MarketingPageWithSections } from '~/components/Content'
@@ -24,6 +25,8 @@ export const handle: ApplicationProps = {
 
 export default function Page() {
   const { contactRoute } = useLoaderData()
+  const { env } = useRouteLoaderData('root') as RootLoaderData
+  const supportEmail = env.supportEmail
 
   return (
     <>
@@ -43,10 +46,10 @@ export default function Page() {
               <div className='mt-2 flex items-center space-x-2 text-medium'>
                 <Icon>mail</Icon>
                 <AnchorRouter
-                  to='mailto:support@interledger.app'
+                  to={`mailto:${supportEmail}`}
                   className='text-sm text-primary'
                 >
-                  support@interledger.app
+                  {supportEmail}
                 </AnchorRouter>
               </div>
             </div>

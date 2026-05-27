@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"os"
 	"strings"
 	"time"
 
@@ -34,11 +33,11 @@ type Activity struct {
 	external external.Client
 }
 
-func NewActivity(b Backends, privateKey jwk.Key) *Activity {
+func NewActivity(b Backends, privateKey jwk.Key, baseURL, clientID string) *Activity {
 	ptiExternalClient, err := external.NewWithOptions(
-		external.WithBaseURL(os.Getenv("PTI_BASE_URL")),
+		external.WithBaseURL(baseURL),
 		external.WithOTELLHTTPClient(),
-		external.WithClientID(os.Getenv("PTI_CLIENT_ID")),
+		external.WithClientID(clientID),
 		external.WithDerivedKeys(privateKey),
 	)
 	if err != nil {
@@ -473,7 +472,7 @@ func (a *Activity) CreatePtiBankAccount(ctx context.Context, args pti.CreateBank
 		AccountBankName: args.Bank,
 	})
 	if err != nil {
-		return nil, err
+		return nil, temporal.NewNonRetryableApplicationError("create pti bank account fail, invalid bank account numbers", "ErrBankAccountInvalid", err)
 	}
 
 	return bank, nil

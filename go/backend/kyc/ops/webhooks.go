@@ -20,8 +20,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func NewHandlePersonaWebhook(b Backends) http.HandlerFunc {
-	pc := persona.New()
+func NewHandlePersonaWebhook(b Backends, pc persona.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusOK)

@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/fynbos/mock/mockxago/internal/logger"
+	"gitlab.com/fynbos/mock/mockxago/web"
 )
 
 type personaCreateInquiryRequest struct {
@@ -139,29 +139,7 @@ func (h *Handler) PersonaGetInquiryIframe(w http.ResponseWriter, r *http.Request
 	// Use inquiry ID as the wallet identifier for mock Persona flows.
 	userID := inquiryID
 
-	// Load and serve the KYC iframe template (same pattern as KYCIframe in kyc.go)
-	possiblePaths := []string{
-		"web/kyc-iframe.html",
-		"./web/kyc-iframe.html",
-		"../../web/kyc-iframe.html",
-		"../../../web/kyc-iframe.html",
-	}
-
-	var templatePath string
-	for _, path := range possiblePaths {
-		if _, err := os.Stat(path); err == nil {
-			templatePath = path
-			break
-		}
-	}
-
-	if templatePath == "" {
-		logger.Errorf("Could not find KYC iframe template, tried: %v", possiblePaths)
-		h.sendError(w, http.StatusInternalServerError, "template_not_found", "KYC template not found")
-		return
-	}
-
-	tmpl, err := template.ParseFiles(templatePath)
+	tmpl, err := template.ParseFS(web.Assets, "kyc-iframe.html")
 	if err != nil {
 		logger.Errorf("Failed to parse KYC iframe template: %v", err)
 		h.sendError(w, http.StatusInternalServerError, "template_error", "Failed to parse template")
@@ -169,8 +147,9 @@ func (h *Handler) PersonaGetInquiryIframe(w http.ResponseWriter, r *http.Request
 	}
 
 	data := map[string]string{
-		"Token":  r.URL.Query().Get("token"),
-		"UserID": userID,
+		"Token":      r.URL.Query().Get("token"),
+		"UserID":     userID,
+		"SubmitPath": fmt.Sprintf("/v1/inquiries/%s/submit", inquiryID),
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -180,6 +159,19 @@ func (h *Handler) PersonaGetInquiryIframe(w http.ResponseWriter, r *http.Request
 		h.sendError(w, http.StatusInternalServerError, "template_execution_error", "Failed to execute template")
 		return
 	}
+}
+
+// PersonaSDK handles GET /persona-sdk.js - Serves a Persona-compatible SDK mock
+func (h *Handler) PersonaSDK(w http.ResponseWriter, r *http.Request) {
+	data, err := web.Assets.ReadFile("persona-sdk.js")
+	if err != nil {
+		logger.Errorf("Failed to read embedded persona-sdk.js: %v", err)
+		h.sendError(w, http.StatusInternalServerError, "script_not_found", "Persona SDK script not found")
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/javascript; charset=utf-8")
+	w.Write(data)
 }
 
 // PersonaInquirySubmit handles POST /inquiries/{id}/submit - Form submission callback
@@ -205,12 +197,34 @@ func (h *Handler) PersonaInquirySubmit(w http.ResponseWriter, r *http.Request) {
 	firstName := r.FormValue("first_name")
 	lastName := r.FormValue("last_name")
 	dob := r.FormValue("dob")
+	address := r.FormValue("address")
 
 	logger.Infof("KYC submitted for inquiry %s: %s %s (DOB: %s)", inquiryID, firstName, lastName, dob)
 
-	// Update inquiry status to approved
-	// In a real implementation, this would trigger background verification
-	// For testing, we mark it as approved immediately
+	if firstName == "" || lastName == "" {
+		h.sendError(w, http.StatusBadRequest, "missing_name", "First and last name are required")
+		return
+	}
+
+	if dob == "" {
+		h.sendError(w, http.StatusBadRequest, "missing_dob", "Date of birth is required")
+		return
+	}
+
+	if _, err := time.Parse("2006-01-02", dob); err != nil {
+		h.sendError(w, http.StatusBadRequest, "invalid_dob", "Date of birth must be in YYYY-MM-DD format")
+		return
+	}
+
+	if address == "" {
+		address = "123 Main Street"
+	}
+
+	if err := h.saveKYCAndFireWebhooks(r.Context(), inquiryID, firstName, lastName, dob, address); err != nil {
+		logger.Errorf("Failed to save KYC for inquiry %s: %v", inquiryID, err)
+		h.sendError(w, http.StatusInternalServerError, "save_error", "Failed to save account")
+		return
+	}
 
 	// Return success response
 	h.sendJSON(w, http.StatusOK, map[string]string{
@@ -231,16 +245,28 @@ func (h *Handler) PersonaGetAccount(w http.ResponseWriter, r *http.Request) {
 
 	logger.Infof("Getting Persona account: %s", accountID)
 
-	// The account ID is the wallet ID in our mock
-	walletID := accountID
-
-	// Try to get sub-account data for name fields
-	var nameFirst, nameLast, physicalAddress string
-	subAccount, err := h.store.GetSubAccountByWalletID(r.Context(), walletID)
-	if err == nil && subAccount != nil {
-		nameFirst = subAccount.FirstName
-		nameLast = subAccount.LastName
-		physicalAddress = subAccount.PhysicalAddress
+	// Resolve wallet and profile data from stored sub-account.
+	// For Xago-style records, accountID is a distinct sub-account ID.
+	// For older mock/persona flows, accountID may equal walletID.
+	var walletID, nameFirst, nameLast, dateOfBirth, physicalAddress string
+	subAccount, err := h.store.GetSubAccount(r.Context(), accountID)
+	if err != nil {
+		subAccount, err = h.store.GetSubAccountByWalletID(r.Context(), accountID)
+	}
+	if err != nil || subAccount == nil {
+		logger.Errorf("account not found: %s", accountID)
+		h.sendError(w, http.StatusNotFound, "account_not_found", "Account not found")
+		return
+	}
+	walletID = subAccount.WalletID
+	nameFirst = subAccount.FirstName
+	nameLast = subAccount.LastName
+	dateOfBirth = subAccount.DateOfBirth
+	physicalAddress = subAccount.PhysicalAddress
+	if dateOfBirth == "" {
+		logger.Errorf("date of birth missing for wallet %s", walletID)
+		h.sendError(w, http.StatusBadRequest, "missing_dob", "Date of birth not found for account")
+		return
 	}
 	if physicalAddress == "" {
 		physicalAddress = "123 Main Street"
@@ -267,7 +293,7 @@ func (h *Handler) PersonaGetAccount(w http.ResponseWriter, r *http.Request) {
 				"name-first":             nameFirst,
 				"name-last":              nameLast,
 				"country-code":           "ZA",
-				"birthdate":              "1984-06-27",
+				"birthdate":              dateOfBirth,
 				"address-street-1":       physicalAddress,
 				"address-city":           "Johannesburg",
 				"address-postal-code":    "2000",

@@ -12,7 +12,7 @@ import {
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { useSignupStore } from '~/lib/useSignupStore'
 import type { loader } from './route'
-import { passwordAction } from './route.server';
+import type { passwordAction } from './route.server';
 
 export function Password() {
   const passwordFetcher = useFetcher<typeof passwordAction>()
@@ -171,7 +171,7 @@ export function Password() {
             </Router>
             ,&nbsp;
             <Router className='text-primary' to='/legal/terms-of-service'>
-              Terms of Use
+              Terms of Use&nbsp;
             </Router>
             and &nbsp;
             <Router className='text-primary' to='/legal/us/e-sign-agreement'>

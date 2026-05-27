@@ -166,6 +166,42 @@ func GetUserIDForWallet(ctx context.Context, b Backends, walletID string) (strin
 	return userID, nil
 }
 
+// FindWalletIDByEmail looks up a Kratos identity by credential identifier (email)
+// and returns the associated wallet ID from user_wallets. Returns "" when no match.
+func FindWalletIDByEmail(ctx context.Context, b Backends, email string) (string, error) {
+	ctx, cancel := context.WithTimeout(ctx, kratosTimeout)
+	defer cancel()
+
+	// Kratos admin API is at server index 1.
+	kratosCtx := context.WithValue(ctx, client.ContextServerIndex, 1)
+	identities, _, err := b.Kratos().IdentityApi.ListIdentities(kratosCtx).CredentialsIdentifier(email).Execute()
+	if err != nil {
+		return "", fmt.Errorf("%w %s", user.ErrInternal, err)
+	}
+	if len(identities) == 0 {
+		return "", nil
+	}
+
+	// A Kratos identity can be linked to more than one wallet. Return the most
+	// recently created one so the result is deterministic.
+	var walletID string
+	err = b.DB().GetContext(ctx, &walletID,
+		`SELECT uw.wallet_id FROM user_wallets uw
+		 JOIN wallets w ON w.id = uw.wallet_id
+		 WHERE uw.user_id = $1
+		 ORDER BY w.created_at DESC
+		 LIMIT 1`,
+		identities[0].Id,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", nil
+		}
+		return "", fmt.Errorf("%w %s", user.ErrInternal, err)
+	}
+	return walletID, nil
+}
+
 // TODO: Modify?
 func ListUsers(ctx context.Context, b Backends, walletID string) ([]user.User, error) {
 	if walletID == wallets.WebMonetizationWalletID {

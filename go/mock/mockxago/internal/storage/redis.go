@@ -60,6 +60,10 @@ func tokenAccountKey(tokenValue string) string {
 	return fmt.Sprintf("token:account:%s", tokenValue)
 }
 
+func subAccountDepositRefKey(reference string) string {
+	return fmt.Sprintf("subaccount:depositref:%s", reference)
+}
+
 func subAccountKey(accountID string) string {
 	return fmt.Sprintf("subaccount:%s", accountID)
 }
@@ -187,8 +191,25 @@ func (r *RedisStorage) SaveSubAccount(ctx context.Context, account *models.SubAc
 	pipe := r.client.Pipeline()
 	pipe.Set(ctx, subAccountKey(account.AccountID), data, 0)
 	pipe.Set(ctx, subAccountWalletKey(account.WalletID), account.AccountID, 0)
+	if account.DepositReferenceZAR != "" {
+		pipe.Set(ctx, subAccountDepositRefKey(account.DepositReferenceZAR), account.AccountID, 0)
+	}
+	if account.DepositReferenceUSD != "" {
+		pipe.Set(ctx, subAccountDepositRefKey(account.DepositReferenceUSD), account.AccountID, 0)
+	}
 	_, err = pipe.Exec(ctx)
 	return err
+}
+
+func (r *RedisStorage) GetSubAccountByDepositReference(ctx context.Context, depositReference string) (*models.SubAccount, error) {
+	accountID, err := r.client.Get(ctx, subAccountDepositRefKey(depositReference)).Result()
+	if err != nil {
+		if err == redis.Nil {
+			return nil, ErrSubAccountNotFound
+		}
+		return nil, err
+	}
+	return r.GetSubAccount(ctx, accountID)
 }
 
 func (r *RedisStorage) GetSubAccount(ctx context.Context, accountID string) (*models.SubAccount, error) {

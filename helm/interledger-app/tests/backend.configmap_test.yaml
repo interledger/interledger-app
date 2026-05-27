@@ -1,0 +1,229 @@
+suite: Interledger App - Backend ConfigMap
+templates:
+  - configMap.backend.yaml
+set:
+  fullnameOverride: wallet
+release:
+  name: wallet
+tests:
+  - it: 'Should create a ConfigMap called wallet-backend-config'
+    documentSelector:
+      path: kind
+      value: ConfigMap
+    asserts:
+      - equal:
+          path: metadata.name
+          value: wallet-backend-config
+
+  - it: 'Should contain empty BLOCKED_REGIONS by default'
+    asserts:
+      - equal:
+          path: data.BLOCKED_REGIONS
+          value: ""
+
+  - it: 'Should contain non-empty BLOCKED_REGIONS when set'
+    set:
+      backend:
+        config:
+          region_blocking:
+            blocked_regions: "ZA,US,CA"
+            allowed_wallet_ids: "wallet1,wallet2"
+    asserts:
+      - equal:
+          path: data.BLOCKED_REGIONS
+          value: "ZA,US,CA"
+      - equal:
+          path: data.ALLOWED_WALLET_IDS
+          value: "wallet1,wallet2"
+
+  - it: 'Should contain GATEHUB_API_BASE_URL'
+    set:
+      backend:
+        config:
+          gatehub:
+            api_base_url: "http://mockgatehub:8080"
+    asserts:
+      - equal:
+          path: data.GATEHUB_API_BASE_URL
+          value: "http://mockgatehub:8080"
+
+  - it: 'Should contain GATEHUB_ON_OFF_RAMP_CLIENT_ID'
+    set:
+      backend:
+        config:
+          gatehub:
+            on_off_ramp_client_id: "f8119dfd-e563-44ee-9ae2-1e60a4fce74f"
+    asserts:
+      - equal:
+          path: data.GATEHUB_ON_OFF_RAMP_CLIENT_ID
+          value: "f8119dfd-e563-44ee-9ae2-1e60a4fce74f"
+
+  - it: 'Should contain GATEHUB_ONBOARDING_CLIENT_ID'
+    set:
+      backend:
+        config:
+          gatehub:
+            onboarding_client_id: "4df24d1b-5796-4eec-951b-21699d61b970"
+    asserts:
+      - equal:
+          path: data.GATEHUB_ONBOARDING_CLIENT_ID
+          value: "4df24d1b-5796-4eec-951b-21699d61b970"
+
+  - it: 'Should contain GATEHUB_EXCHANGE_CLIENT_ID'
+    set:
+      backend:
+        config:
+          gatehub:
+            exchange_client_id: "4e28d4df-22d7-414c-97a3-d71956df29ba"
+    asserts:
+      - equal:
+          path: data.GATEHUB_EXCHANGE_CLIENT_ID
+          value: "4e28d4df-22d7-414c-97a3-d71956df29ba"
+
+  - it: 'Should contain GATEHUB_CARD_ACCOUNT_PRODUCT_CODE'
+    set:
+      backend:
+        config:
+          gatehub:
+            card_account_product_code: "PWSR_DEBP_2404"
+    asserts:
+      - equal:
+          path: data.GATEHUB_CARD_ACCOUNT_PRODUCT_CODE
+          value: "PWSR_DEBP_2404"
+
+  - it: 'Should contain PTI_BASE_URL'
+    set:
+      backend:
+        config:
+          pti:
+            base_url: "https://pti-base-url.com"
+    asserts:
+      - equal:
+          path: data.PTI_BASE_URL
+          value: "https://pti-base-url.com"
+
+  - it: 'Should contain PTI_SDK_URL'
+    set:
+      backend:
+        config:
+          pti:
+            sdk_url: "https://sdk.staging.fiant.io/latest/index.js"
+    asserts:
+      - equal:
+          path: data.PTI_SDK_URL
+          value: "https://sdk.staging.fiant.io/latest/index.js"
+
+  - it: 'Should contain PTI_FORMS_URL'
+    set:
+      backend:
+        config:
+          pti:
+            forms_url: "https://forms.staging.fiant.io"
+    asserts:
+      - equal:
+          path: data.PTI_FORMS_URL
+          value: "https://forms.staging.fiant.io"
+
+  - it: 'Should contain PORT'
+    set:
+      backend:
+        config:
+          port: "8080"
+    asserts:
+      - equal:
+          path: data.PORT
+          value: "8080"
+
+  - it: 'Should contain GATEHUB_ORGANIZATION_ID'
+    set:
+      backend:
+        config:
+          gatehub:
+            organization_id: "SOME ORG ID"
+    asserts:
+      - equal:
+          path: data.GATEHUB_ORGANIZATION_ID
+          value: "SOME ORG ID"
+
+  - it: 'Should contain EMAIL_ENABLED=false by default'
+    asserts:
+      - equal:
+          path: data.EMAIL_ENABLED
+          value: "false"
+
+  - it: 'Should allow disabling email via EMAIL_ENABLED'
+    set:
+      backend:
+        config:
+          email:
+            enabled: "false"
+    asserts:
+      - equal:
+          path: data.EMAIL_ENABLED
+          value: "false"
+
+  - it: 'Should contain SENDGRID_FROM_NAME'
+    set:
+      backend:
+        config:
+          sendgrid:
+            from_name: "Interledger Wallet"
+    asserts:
+      - equal:
+          path: data.SENDGRID_FROM_NAME
+          value: "Interledger Wallet"
+
+  - it: 'Should contain SENDGRID_FROM_EMAIL'
+    set:
+      backend:
+        config:
+          sendgrid:
+            from_email: "support@interledger.app"
+    asserts:
+      - equal:
+          path: data.SENDGRID_FROM_EMAIL
+          value: "support@interledger.app"
+
+  - it: 'Should contain SENDGRID_ONE_TEMPLATE_ID'
+    set:
+      backend:
+        config:
+          sendgrid:
+            one_template_id: "d-12030774d225454ea91720034b9adb97"
+    asserts:
+      - equal:
+          path: data.SENDGRID_ONE_TEMPLATE_ID
+          value: "d-12030774d225454ea91720034b9adb97"
+
+  - it: 'Should contain PERSONA_BASE_URL with default value'
+    asserts:
+      - equal:
+          path: data.PERSONA_BASE_URL
+          value: "https://api.withpersona.com/api/v1/"
+
+  - it: 'Should allow overriding PERSONA_BASE_URL'
+    set:
+      backend:
+        config:
+          persona:
+            base_url: "http://mockpersona:8080/v1/"
+    asserts:
+      - equal:
+          path: data.PERSONA_BASE_URL
+          value: "http://mockpersona:8080/v1/"
+
+  - it: 'Should contain empty SIGNUP_AGREEMENT_IDS by default'
+    asserts:
+      - equal:
+          path: data.SIGNUP_AGREEMENT_IDS
+          value: ""
+
+  - it: 'Should contain SIGNUP_AGREEMENT_IDS when set'
+    set:
+      backend:
+        config:
+          signup_agreement_ids: "privacy_policy-0.0.0,terms_of_service-0.0.0"
+    asserts:
+      - equal:
+          path: data.SIGNUP_AGREEMENT_IDS
+          value: "privacy_policy-0.0.0,terms_of_service-0.0.0"

@@ -1,9 +1,10 @@
 import { Code } from '@bufbuild/connect'
 import type { ConnectError as BufConnectError } from '@bufbuild/connect'
 import type { PlainMessage } from '@bufbuild/protobuf'
-import { data as rrData, redirect, UNSAFE_DataWithResponseInit as DataWithResponseInit } from 'react-router';
+import { data as rrData, redirect, UNSAFE_DataWithResponseInit as DataWithResponseInit } from 'react-router'
 import { captureMessage } from '@sentry/react-router'
 import { href } from 'react-router'
+import { CLEAR_SESSION_COOKIE_HEADER } from './kratos/kratos-client.server'
 import type {
   BadRequest_FieldViolation,
   PreconditionFailure_Violation
@@ -165,7 +166,7 @@ export class ConnectError {
       throw redirect(href('/login') + url.search, {
         headers: {
           'Set-Cookie':
-            'ory_kratos_session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT'
+            CLEAR_SESSION_COOKIE_HEADER
         }
       })
     }

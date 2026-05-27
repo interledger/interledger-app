@@ -65,7 +65,7 @@ func TestSimulateTestDeposit(t *testing.T) {
 				"currencyCode": "ZAR",
 			},
 			wantStatus:      http.StatusBadRequest,
-			wantErrContains: "accountId is required",
+			wantErrContains: "accountId or depositReference is required",
 		},
 		{
 			name:         "zero amount returns 400",

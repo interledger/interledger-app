@@ -61,7 +61,6 @@ type Card struct {
 	Status                     string    `json:"status"`
 	StatusReasonCode           *string   `json:"statusReasonCode"`
 	LockLevel                  *string   `json:"lockLevel"`
-	ExpiryDate                 string    `json:"expiryDate"`
 	RelationType               string    `json:"relationType"`
 	MembershipFeeEffectiveDate *string   `json:"membershipFeeEffectiveDate"`
 	IsFirstTimeLock            bool      `json:"isFirstTimeLock"`
@@ -238,8 +237,8 @@ type PendingThreeDSConfirmation struct {
 }
 
 type ThreeDSPaymentConfirmationArgs struct {
-	TransactionID string `json:"-"`         // URL param
-	Confirmed     bool   `json:"confirmed"` // true = approve, false = decline
+	TransactionID string `json:"-"`          // URL param
+	Confirmed     bool   `json:"confirmed"`  // true = approve, false = decline
 	AuthMethod    string `json:"authMethod"` // "biometric" | "pin" | "password"
 }
 

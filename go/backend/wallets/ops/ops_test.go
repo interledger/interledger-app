@@ -22,7 +22,7 @@ import (
 func ensureTestDBURL(t *testing.T) {
 	// Default to the local docker-compose credentials when DB_URL is unset.
 	if os.Getenv("DB_URL") == "" {
-		t.Setenv("DB_URL", "postgres://postgres:password@0.0.0.0:5432/%s?sslmode=disable")
+		t.Setenv("DB_URL", "postgres://postgres:password@127.0.0.1:55432/%s?sslmode=disable")
 	}
 }
 
@@ -409,4 +409,67 @@ func TestAddAddress(t *testing.T) {
 			assert.Equal(t, tc.url, w.AddressString())
 		})
 	}
+}
+
+func TestListAllSearch(t *testing.T) {
+	ctx := context.Background()
+
+	ensureTestDBURL(t)
+	dbc := db.MigrateTestDB(t, ctx)
+
+	ctrl := gomock.NewController(t)
+	km := keys_mock.NewMockClient(ctrl)
+	km.EXPECT().ProvisionPrivateKey(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+	b := ops.NewTestBackends(t, dbc, km, users_mock.NewMock())
+
+	userID := uuid.NewString()
+
+	alpha, err := ops.Create(ctx, b, wallets.CreateArgs{UserID: userID, Name: "alpha"})
+	require.NoError(t, err)
+
+	_, err = ops.Create(ctx, b, wallets.CreateArgs{UserID: userID, Name: "beta", Country: country.ZA})
+	require.NoError(t, err)
+
+	_, err = ops.Create(ctx, b, wallets.CreateArgs{UserID: userID, Name: "gamma", Country: country.GB})
+	require.NoError(t, err)
+
+	t.Run("no search returns all wallets", func(t *testing.T) {
+		result, err := ops.ListAll(ctx, b, db.Pagination{PageSize: 50})
+		require.NoError(t, err)
+		require.GreaterOrEqual(t, len(result), 3)
+	})
+
+	t.Run("search by exact name", func(t *testing.T) {
+		result, err := ops.ListAll(ctx, b, db.Pagination{PageSize: 50, Search: "alpha"})
+		require.NoError(t, err)
+		require.Len(t, result, 1)
+		assert.Equal(t, "alpha", result[0].Name)
+	})
+
+	t.Run("search by partial name case-insensitive", func(t *testing.T) {
+		result, err := ops.ListAll(ctx, b, db.Pagination{PageSize: 50, Search: "ALph"})
+		require.NoError(t, err)
+		require.Len(t, result, 1)
+		assert.Equal(t, "alpha", result[0].Name)
+	})
+
+	t.Run("search by wallet id", func(t *testing.T) {
+		result, err := ops.ListAll(ctx, b, db.Pagination{PageSize: 50, Search: alpha.ID})
+		require.NoError(t, err)
+		require.Len(t, result, 1)
+		assert.Equal(t, alpha.ID, result[0].ID)
+	})
+
+	t.Run("search with no matches returns empty", func(t *testing.T) {
+		result, err := ops.ListAll(ctx, b, db.Pagination{PageSize: 50, Search: "zzznomatch"})
+		require.NoError(t, err)
+		assert.Empty(t, result)
+	})
+
+	t.Run("search respects pagination", func(t *testing.T) {
+		result, err := ops.ListAll(ctx, b, db.Pagination{PageSize: 1, Search: "a"})
+		require.NoError(t, err)
+		// pageSize+1 fetched — exactly 1 returned (the extra one is stripped by the handler, but here we test the raw DB layer)
+		require.LessOrEqual(t, len(result), 2)
+	})
 }

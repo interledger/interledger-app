@@ -95,3 +95,7 @@ func (c *client) GetTotpURL(ctx context.Context, userID string) (string, error) 
 func (c *client) GetUserIDForWallet(ctx context.Context, walletID string) (string, error) {
 	return ops.GetUserIDForWallet(ctx, c.b, walletID)
 }
+
+func (c *client) FindWalletIDByEmail(ctx context.Context, email string) (string, error) {
+	return ops.FindWalletIDByEmail(ctx, c.b, email)
+}

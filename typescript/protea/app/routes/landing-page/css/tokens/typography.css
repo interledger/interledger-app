@@ -1,0 +1,79 @@
+:root {
+  --font-family: 'Poppins', system-ui, sans-serif;
+  --font-heading: var(--font-family);
+  --font-body: var(--font-family);
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+
+  --text-h1: var(--font-weight-semibold) 100px/100px var(--font-heading);
+  --text-h1-ls: -0.02em;
+
+  --text-h2: var(--font-weight-semibold) 56px/64px var(--font-heading);
+  --text-h2-ls: -0.01em;
+
+  --text-h3: var(--font-weight-regular) 40px/56px var(--font-heading);
+  --text-h3-ls: 0;
+
+  --text-h4: var(--font-weight-regular) 24px/34px var(--font-heading);
+  --text-h4-ls: 0;
+
+  --text-h5: var(--font-weight-regular) 20px/30px var(--font-heading);
+  --text-h5-ls: 0;
+
+  --text-body-lg-emphasis: var(--font-weight-medium) 16px/26px var(--font-body);
+  --text-body-lg-emphasis-ls: 0;
+
+  --text-body-lg-standard: var(--font-weight-regular) 16px/26px var(--font-body);
+  --text-body-lg-standard-ls: 0;
+
+  --text-body: var(--font-weight-regular) 14px/24px var(--font-body);
+  --text-body-ls: 0;
+
+  --text-body-sm-emphasis: var(--font-weight-medium) 14px/24px var(--font-body);
+  --text-body-sm-emphasis-ls: 0;
+
+  --text-body-sm-standard: var(--font-weight-regular) 14px/24px var(--font-body);
+  --text-body-sm-standard-ls: 0;
+
+  --text-caption: var(--font-weight-regular) 13px/16px var(--font-body);
+  --text-caption-ls: 0;
+
+  --text-label: var(--font-weight-semibold) 11px/11px var(--font-body);
+  --text-label-ls: 0.05em;
+}
+
+@media (max-width: 899px) {
+  :root {
+    --text-h1: var(--font-weight-semibold) 56px/68px var(--font-heading);
+    --text-h2: var(--font-weight-semibold) 32px/40px var(--font-heading);
+    --text-h3: var(--font-weight-medium) 20px/28px var(--font-heading);
+    --text-h4: var(--font-weight-regular) 18px/28px var(--font-heading);
+    --text-h5: var(--font-weight-regular) 16px/26px var(--font-heading);
+
+    --text-body-lg-standard: var(--font-weight-regular) 15px/24px var(--font-body);
+    --text-body-lg-emphasis: var(--font-weight-medium) 15px/24px var(--font-body);
+  }
+}
+
+@media (max-width: 479px) {
+  :root {
+    --text-h1: var(--font-weight-semibold) 40px/48px var(--font-heading);
+    --text-h2: var(--font-weight-semibold) 24px/32px var(--font-heading);
+    --text-h3: var(--font-weight-medium) 18px/24px var(--font-heading);
+    --text-body-lg-standard: var(--font-weight-regular) 14px/22px var(--font-body);
+    --text-body-lg-emphasis: var(--font-weight-medium) 14px/22px var(--font-body);
+    --text-body: var(--font-weight-regular) 13px/20px var(--font-body);
+  }
+}
+
+@media (min-width: 900px) and (max-width: 1439px) {
+  :root {
+    --text-h1: var(--font-weight-semibold) 70px/76px var(--font-heading);
+    --text-h2: var(--font-weight-semibold) 36px/48px var(--font-heading);
+    --text-h3: var(--font-weight-regular) 28px/36px var(--font-heading);
+    --text-h4: var(--font-weight-regular) 20px/30px var(--font-heading);
+    --text-h5: var(--font-weight-regular) 18px/28px var(--font-heading);
+  }
+}

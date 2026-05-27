@@ -31,6 +31,7 @@ type Storage interface {
 	SaveSubAccount(ctx context.Context, account *models.SubAccount) error
 	GetSubAccount(ctx context.Context, accountID string) (*models.SubAccount, error)
 	GetSubAccountByWalletID(ctx context.Context, walletID string) (*models.SubAccount, error)
+	GetSubAccountByDepositReference(ctx context.Context, depositReference string) (*models.SubAccount, error)
 	UpdateSubAccount(ctx context.Context, account *models.SubAccount) error
 
 	// Beneficiary operations

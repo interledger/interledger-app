@@ -2,6 +2,7 @@ include:
   # profile: infrastructure
   - traefik.yaml
   - postgres.yaml
+  - postgres-unit-tests.yaml
   - redis.yaml
   - mkdocs.yaml
 

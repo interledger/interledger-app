@@ -10,7 +10,7 @@ import (
 )
 
 func TestClient_ValidateWebhook(t *testing.T) {
-	pc := persona.New()
+	pc := persona.New(persona.Config{})
 
 	req, err := http.NewRequest(http.MethodPost, "some_url", bytes.NewReader([]byte("this is content")))
 	require.NoError(t, err)

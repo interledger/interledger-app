@@ -1,15 +1,11 @@
 name: Build and Publish
 
 on:
-  workflow_dispatch:
-  schedule:
-    - cron: "0 21 * * *"
-  push:
-    branches:
-      - main
-      - 'release/v*'
-    tags:
-      - 'v*'
+  workflow_call:
+    inputs:
+      release_tag:
+        required: true
+        type: string
   pull_request:
     branches:
       - "**"
@@ -30,58 +26,57 @@ jobs:
     outputs:
       builds: ${{ steps.select_packages.outputs.builds }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.release_tag || github.ref }}
       - name: Select packages
         id: select_packages
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const { default: selectPackages } = await import('${{ github.workspace }}/tooling/github-scripts/select-packages.js')
             await selectPackages({ github, core, context })
 
-  version_generator:
+  determine_version:
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ steps.version_generator.outputs.NEW_VERSION }}
-      tagPushed: ${{ steps.version_generator.outputs.SHOULD_PUSH_TAG }}
-      dockerPush: ${{ steps.version_generator.outputs.PUSH_DOCKER_IMAGE }}
-      generateRelease: ${{ steps.version_generator.outputs.GENERATE_RELEASE }}
+      version: ${{ steps.version.outputs.version }}
+      dockerPush: ${{ steps.version.outputs.docker_push }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
-          fetch-depth: 0
-          fetch-tags: true
-      - name: Configure git
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-      - name: Generate version properties
-        id: version_generator
-        uses: actions/github-script@v7
+          ref: ${{ inputs.release_tag || github.ref }}
+      - name: Determine version
+        id: version
+        uses: actions/github-script@v9
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
         with:
           script: |
-            const { default: versionGenerator } = await import('${{ github.workspace }}/tooling/github-scripts/version-generator.js')
-            await versionGenerator({ github, core, context })
+            const { default: determineVersion } = await import('${{ github.workspace }}/tooling/github-scripts/determine-version.js')
+            await determineVersion({ github, core, context })
 
   builds:
-    needs: [select_packages, version_generator]
+    needs: [select_packages, determine_version]
     runs-on: ubuntu-latest
     strategy:
       matrix: ${{fromJson(needs.select_packages.outputs.builds)}}
     steps:
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.release_tag || github.ref }}
       - name: Build Go Docker image
         if: matrix.package.type == 'go'
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           push: false
           platforms: ${{ matrix.platform.os }}/${{ matrix.platform.arch }}
           context: ${{ matrix.package.context }}
           file: ${{ matrix.package.file }}
-          tags: interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}:${{ needs.version_generator.outputs.version }}
+          tags: interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}:${{ needs.determine_version.outputs.version }}
           build-args: |
             GOLANG_VERSION=1.25.1
             BUILDARCH=${{ matrix.platform.arch }}
@@ -96,60 +91,62 @@ jobs:
           sha256sum ./gsa-key.json
       - name: Build TypeScript Docker image
         if: matrix.package.type == 'ts'
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           push: false
           platforms: ${{ matrix.platform.os }}/${{ matrix.platform.arch }}
           context: ${{ matrix.package.context }}
           file: ${{ matrix.package.file }}
-          tags: interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}:${{ needs.version_generator.outputs.version }}
+          tags: interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}:${{ needs.determine_version.outputs.version }}
           build-args: |
-            IMAGE_HASH=${{ needs.version_generator.outputs.version }}
+            IMAGE_HASH=${{ needs.determine_version.outputs.version }}
             BUILDARCH=${{ matrix.platform.arch }}
             BUILDOS=${{ matrix.platform.os }}
-            UPLOAD_SOURCEMAPS=${{ needs.version_generator.outputs.dockerPush }}
+            UPLOAD_SOURCEMAPS=${{ needs.determine_version.outputs.dockerPush }}
             SENTRY_ORG=${{ secrets.SENTRY_ORG }}
             SENTRY_PROJECT=${{ matrix.package.sentry_project }}
             SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
-            SENTRY_RELEASE=${{ needs.version_generator.outputs.version }}
+            SENTRY_RELEASE=${{ needs.determine_version.outputs.version }}
             REMIX_PUBLIC_PATH=${{ matrix.package.cdn_public_path }}
             CDN_BUCKET_NAME=${{ matrix.package.cdn_bucket }}
           outputs: type=docker,dest=/tmp/${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}.tar
       - name: List Docker images
         run: docker images
       - name: Save docker image to cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: /tmp/${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}.tar
           key: ${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}
 
   push-image-gcp-artifact-registry:
     name: Prod images push
-    needs: [builds, version_generator, select_packages]
+    needs: [builds, determine_version, select_packages]
     runs-on: ubuntu-latest
     env:
       # We use Artifact Repository, GCR references are legacy as GCR has been deprecated.
       GCR_PROJECT: ${{ secrets.GCR_PROJECT }}
       GSA_EMAIL: ${{ secrets.GSA_EMAIL }}
       GCR_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCR_WORKLOAD_IDENTITY_PROVIDER }}
-    if: needs.version_generator.outputs.dockerPush == 'true'
+    if: needs.determine_version.outputs.dockerPush == 'true'
     strategy:
       matrix: ${{fromJson(needs.select_packages.outputs.builds)}}
     steps:
       - name: Load cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: /tmp/${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}.tar
           key: ${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}
           fail-on-cache-miss: true
 
       - name: Checkout code
-        uses: actions/checkout@v4
-      
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.release_tag || github.ref }}
+
       - name: Load Docker image
         run: |
           docker load -i /tmp/${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}.tar
-    
+
       - name: List Docker images
         run: docker images
 
@@ -157,11 +154,11 @@ jobs:
         run: |
           IMAGE_ID=$(docker images interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }} --format "{{.ID}}" | head -n 1)
           # Tag appropriately for our GCP project
-          PUSH_IMAGE=europe-west4-docker.pkg.dev/${{ env.GCR_PROJECT }}/interledger-app/${{ matrix.package.name }}:${{ needs.version_generator.outputs.version }}
+          PUSH_IMAGE=europe-west4-docker.pkg.dev/${{ env.GCR_PROJECT }}/interledger-app/${{ matrix.package.name }}:${{ needs.determine_version.outputs.version }}
           docker tag $IMAGE_ID $PUSH_IMAGE
-          echo "PUSH_IMAGE=$PUSH_IMAGE" >> $GITHUB_ENV 
+          echo "PUSH_IMAGE=$PUSH_IMAGE" >> $GITHUB_ENV
 
-      - uses: 'google-github-actions/auth@v2'
+      - uses: 'google-github-actions/auth@v3'
         with:
             service_account: ${{ env.GSA_EMAIL }}
             workload_identity_provider: ${{ env.GCR_WORKLOAD_IDENTITY_PROVIDER}}
@@ -185,30 +182,32 @@ jobs:
 
   push-dev-image-gcp-artifact-registry:
     name: DEV Images push
-    needs: [builds, version_generator, select_packages]
+    needs: [builds, determine_version, select_packages]
     runs-on: ubuntu-latest
     env:
       GCR_PROJECT: ${{ secrets.GCR_DEV_PROJECT }}
       GSA_EMAIL: ${{ secrets.GSA_DEV_EMAIL }}
       GCR_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCR_DEV_WORKLOAD_IDENTITY_PROVIDER }}
-    if: needs.version_generator.outputs.dockerPush == 'true'
+    if: needs.determine_version.outputs.dockerPush == 'true'
     strategy:
       matrix: ${{fromJson(needs.select_packages.outputs.builds)}}
     steps:
       - name: Load cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: /tmp/${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}.tar
           key: ${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}
           fail-on-cache-miss: true
 
       - name: Checkout code
-        uses: actions/checkout@v4
-      
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.release_tag || github.ref }}
+
       - name: Load Docker image
         run: |
           docker load -i /tmp/${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}.tar
-    
+
       - name: List Docker images
         run: docker images
 
@@ -216,11 +215,11 @@ jobs:
         run: |
           IMAGE_ID=$(docker images interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }} --format "{{.ID}}" | head -n 1)
           # Tag appropriately for our GCP project
-          PUSH_IMAGE=europe-west4-docker.pkg.dev/${{ env.GCR_PROJECT }}/interledger-app/${{ matrix.package.name }}:${{ needs.version_generator.outputs.version }}
+          PUSH_IMAGE=europe-west4-docker.pkg.dev/${{ env.GCR_PROJECT }}/interledger-app/${{ matrix.package.name }}:${{ needs.determine_version.outputs.version }}
           docker tag $IMAGE_ID $PUSH_IMAGE
-          echo "PUSH_IMAGE=$PUSH_IMAGE" >> $GITHUB_ENV 
+          echo "PUSH_IMAGE=$PUSH_IMAGE" >> $GITHUB_ENV
 
-      - uses: 'google-github-actions/auth@v2'
+      - uses: 'google-github-actions/auth@v3'
         with:
             service_account: ${{ env.GSA_EMAIL }}
             workload_identity_provider: ${{ env.GCR_WORKLOAD_IDENTITY_PROVIDER}}
@@ -240,3 +239,316 @@ jobs:
         run: |
           echo "Pushing $PUSH_IMAGE"
           docker push $PUSH_IMAGE
+
+
+  publish-helm-chart:
+    name: Publish Helm chart
+    needs: [determine_version, push-image-gcp-artifact-registry, push-dev-image-gcp-artifact-registry]
+    runs-on: ubuntu-latest
+    if: needs.determine_version.outputs.dockerPush == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.release_tag || github.ref }}
+
+      - name: Install Helm
+        uses: azure/setup-helm@v5
+
+      - name: Update Helm dependencies
+        run: helm dependency update helm/interledger-app
+
+      - name: Package chart
+        run: helm package helm/interledger-app
+
+      - name: Authenticate to prod GCP
+        uses: google-github-actions/auth@v3
+        with:
+          service_account: ${{ secrets.GSA_EMAIL }}
+          workload_identity_provider: ${{ secrets.GCR_WORKLOAD_IDENTITY_PROVIDER }}
+          export_environment_variables: true
+
+      - name: Push chart to prod Artifact Registry
+        run: |
+          gcloud auth print-access-token \
+            | helm registry login europe-west4-docker.pkg.dev --username oauth2accesstoken --password-stdin
+          helm push interledger-app-*.tgz \
+            oci://europe-west4-docker.pkg.dev/${{ secrets.GCR_PROJECT }}/interledger-helm-charts
+
+      - name: Authenticate to dev GCP
+        uses: google-github-actions/auth@v3
+        with:
+          service_account: ${{ secrets.GSA_DEV_EMAIL }}
+          workload_identity_provider: ${{ secrets.GCR_DEV_WORKLOAD_IDENTITY_PROVIDER }}
+          export_environment_variables: true
+
+      - name: Push chart to dev Artifact Registry
+        run: |
+          gcloud auth print-access-token \
+            | helm registry login europe-west4-docker.pkg.dev --username oauth2accesstoken --password-stdin
+          helm push interledger-app-*.tgz \
+            oci://europe-west4-docker.pkg.dev/${{ secrets.GCR_DEV_PROJECT }}/interledger-helm-charts
+
+
+  # --------------------------------------------------------------------------
+  # bump-deploy-dev
+  #
+  # After a successful release (semantic-release tag -> images pushed -> OCI
+  # chart published), this job opens an auto-merge PR in
+  # interledger/interledger-app-deploy that updates the `chartVersion` for the
+  # `interledger-app` entry in env/development/appsets/wallet-appset.yaml.
+  #
+  # Why this job exists:
+  #   - The deploy repo's ArgoCD ApplicationSet pins a specific chartVersion
+  #     per environment. Without this automation, every release requires a
+  #     manual PR in the deploy repo before ArgoCD picks up the new chart.
+  #   - Only `development` is bumped automatically. `sandbox` and `production`
+  #     remain manual / promotion-based (intentional gate).
+  #
+  # Why it runs after publish-helm-chart:
+  #   - publish-helm-chart already `needs` both image-push jobs, so by the
+  #     time we get here all release artifacts (images + chart) are live in
+  #     GCP Artifact Registry. Bumping any earlier would race ArgoCD against
+  #     a chart version that doesn't exist yet.
+  #
+  # Authentication model:
+  #   - Uses the same GitHub App as release.yml (RELEASE_APP_ID /
+  #     RELEASE_APP_PRIVATE_KEY) but mints a NEW token scoped only to the
+  #     deploy repo via `owner` + `repositories` inputs. This means the App
+  #     must be installed on BOTH interledger-app AND interledger-app-deploy
+  #     with Contents:write + Pull requests:write on the deploy side.
+  #   - If the App is not installed on the deploy repo, the verification
+  #     step below fails the job loudly (by design — silent skips would
+  #     leave the deploy repo drifting from releases).
+  # --------------------------------------------------------------------------
+  bump-deploy-dev:
+    name: Bump interledger-app-deploy (development)
+    # publish-helm-chart transitively depends on both image-push jobs, so a
+    # successful run here guarantees images + chart are both published.
+    needs: [determine_version, publish-helm-chart]
+    # Gate on signals that are unambiguous inside a reusable workflow:
+    #   - `inputs.release_tag` is only set when this workflow is invoked via
+    #     `workflow_call` from release.yml with a real tag.
+    #   - `dockerPush` is the same signal publish-helm-chart and the image
+    #     push jobs use to confirm a real release artifact was produced.
+    # NOTE: do NOT gate on `github.event_name == 'workflow_call'` — for
+    # reusable workflows, GitHub propagates the *caller's* event name (e.g.
+    # `push`), so that check would always be false. See the comment in
+    # tooling/github-scripts/determine-version.js for the same gotcha.
+    if: >-
+      inputs.release_tag != ''
+      && needs.determine_version.outputs.dockerPush == 'true'
+    runs-on: ubuntu-latest
+    # No write access needed on THIS repo — all writes go through the App
+    # token against the deploy repo.
+    permissions:
+      contents: read
+    env:
+      DEPLOY_REPO: interledger/interledger-app-deploy
+      APPSET_FILE: env/development/appsets/wallet-appset.yaml
+      CHART_NAME: interledger-app
+      RELEASE_TAG: ${{ inputs.release_tag }}
+      # determine_version returns the tag verbatim (e.g. "v1.11.4"). The
+      # appset and Chart.yaml use the version WITHOUT the leading "v", so
+      # we strip it later before writing.
+      VERSION: ${{ needs.determine_version.outputs.version }}
+      # Pin yq version + sha256 in one place. The checksum is taken from
+      # https://github.com/mikefarah/yq/releases/download/<VERSION>/checksums
+      # (column 18 / SHA-256 per checksums_hashes_order).
+      YQ_VERSION: v4.44.3
+      YQ_SHA256: a2c097180dd884a8d50c956ee16a9cec070f30a7947cf4ebf87d5f36213e9ed7
+    steps:
+      # Mint an installation token scoped narrowly to the deploy repo only.
+      # `owner` + `repositories` ensures the token cannot accidentally modify
+      # this repo or any other repo the App happens to be installed on.
+      - name: Generate GitHub App token for interledger-app-deploy
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          owner: interledger
+          repositories: interledger-app-deploy
+
+      # Fail fast with a clear message if the App is not installed on the
+      # deploy repo yet. Without this, a missing installation surfaces as a
+      # cryptic 404 deep inside `gh pr create`.
+      - name: Verify App is installed on deploy repo
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          set -euo pipefail
+          if ! gh api "repos/${DEPLOY_REPO}" --silent >/dev/null 2>&1; then
+            echo "::error::App token cannot access ${DEPLOY_REPO}. Install the App on that repo with Contents:write and Pull requests:write."
+            exit 1
+          fi
+
+      # Clone the deploy repo into a subdirectory so the workspace root
+      # remains the source repo (avoids confusing relative paths if more
+      # steps are added later). Pinned to v6 to match every other checkout
+      # step in this workflow file.
+      - name: Checkout interledger-app-deploy
+        uses: actions/checkout@v6
+        with:
+          repository: ${{ env.DEPLOY_REPO }}
+          token: ${{ steps.app-token.outputs.token }}
+          path: deploy
+          fetch-depth: 1
+
+      # Pin a known-good yq build rather than relying on whatever the runner
+      # image happens to ship. The select()-based update below depends on
+      # mikefarah/yq v4 syntax (not python-yq / jq-style). Supply-chain
+      # safety: verify the downloaded artifact matches the pinned SHA-256
+      # before allowing it on PATH.
+      - name: Install yq
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp)"
+          curl -fsSL -o "${tmp}" \
+            "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64"
+          echo "${YQ_SHA256}  ${tmp}" | sha256sum --check --status
+          sudo install -m 0755 "${tmp}" /usr/local/bin/yq
+          rm -f "${tmp}"
+          yq --version
+
+      # Surgically update ONLY the `interledger-app` element of the
+      # ApplicationSet list. A naive find/replace would risk colliding with
+      # other entries (e.g. if the same version string appeared elsewhere).
+      # If the file is already at the target version, set skip=true and let
+      # the next step short-circuit — this makes manual reruns idempotent.
+      - name: Update chartVersion in development appset
+        working-directory: deploy
+        env:
+          CHART: ${{ env.CHART_NAME }}
+          FILE: ${{ env.APPSET_FILE }}
+        run: |
+          set -euo pipefail
+          # Chart.yaml versions and the appset chartVersion are stored without a
+          # leading "v"; the release tag (and determine_version output) has one.
+          NEW_VERSION="${VERSION#v}"
+          # Export for the next step (which reads $chart_version from env).
+          echo "chart_version=${NEW_VERSION}" >> "$GITHUB_ENV"
+
+          CURRENT=$(yq -r \
+            ".spec.generators[].list.elements[] | select(.name == \"${CHART}\") | .chartVersion" \
+            "${FILE}")
+          # Fail loudly if the target element disappears or the appset
+          # structure changes upstream. Without this, yq -i below would be
+          # a no-op and `git commit` would later fail with the misleading
+          # "nothing to commit" error.
+          if [[ -z "${CURRENT}" || "${CURRENT}" == "null" ]]; then
+            echo "::error::Could not find chartVersion for ${CHART} in ${FILE}. The appset structure may have changed."
+            exit 1
+          fi
+          echo "Current chartVersion: ${CURRENT}"
+          echo "New chartVersion:     ${NEW_VERSION}"
+          # Idempotency guard: someone may have already bumped the deploy
+          # repo manually (e.g. during incident response or a re-release).
+          if [[ "${CURRENT}" == "${NEW_VERSION}" ]]; then
+            echo "Already at ${NEW_VERSION}; nothing to do."
+            echo "skip=true" >> "$GITHUB_ENV"
+            exit 0
+          fi
+          # In-place update of just the matching element.
+          yq -i \
+            "(.spec.generators[].list.elements[] | select(.name == \"${CHART}\")).chartVersion = \"${NEW_VERSION}\"" \
+            "${FILE}"
+          # Belt-and-braces: confirm the file actually changed before we try
+          # to commit it. Protects against a yq query that silently matches
+          # nothing.
+          if git diff --quiet -- "${FILE}"; then
+            echo "::error::yq update produced no diff in ${FILE}. Refusing to continue."
+            exit 1
+          fi
+          # Print the resulting diff for easy debugging from the Actions log.
+          git --no-pager diff -- "${FILE}"
+
+      # Branch -> commit -> push -> open PR -> enable auto-merge.
+      # Auto-merge causes GitHub to merge as soon as the deploy repo's
+      # required checks (conform.yaml: helm_kubeconform + manifest_kubeconform)
+      # pass. If checks fail, the PR stays open for a human to investigate.
+      #
+      # Idempotency: the branch name is deterministic for a given release
+      # tag, so a re-run of this workflow for the same tag must NOT try to
+      # recreate an existing branch/PR. We detect both cases and reuse what
+      # already exists (force-pushing the latest contents and re-enabling
+      # auto-merge in case it was disabled).
+      - name: Open auto-merge PR
+        if: env.skip != 'true'
+        working-directory: deploy
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          # Branch name is deterministic per release tag (one bump PR per
+          # release). Re-running the workflow updates the existing branch
+          # in place rather than creating a parallel PR.
+          BRANCH: chore/bump-interledger-app-${{ env.RELEASE_TAG }}
+        run: |
+          set -euo pipefail
+          # $chart_version was exported by the previous step.
+          CHART_VERSION="${chart_version}"
+
+          # Commit as the App's bot user so the audit trail is clear and
+          # branch protection rules can target the bot actor specifically.
+          git config user.name  "${{ steps.app-token.outputs.app-slug }}[bot]"
+          git config user.email "${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com"
+
+          git checkout -b "${BRANCH}"
+          git add "${APPSET_FILE}"
+          git commit \
+            -m "chore: bump interledger-app chart to ${CHART_VERSION} in development" \
+            -m "Triggered by release ${RELEASE_TAG} of interledger/interledger-app."
+          # --force handles the rerun case where the branch already exists
+          # remotely (e.g. a previous run pushed the branch but failed
+          # before opening or auto-merging the PR). The branch namespace
+          # `chore/bump-interledger-app-<tag>` is unique to this job, so a
+          # force push here cannot stomp on unrelated work.
+          git push --force --set-upstream origin "${BRANCH}"
+
+          # PR body is written via heredoc to a file (rather than --body
+          # inline) to dodge shell-quoting headaches with backticks and
+          # multi-line markdown. The heredoc preserves YAML indentation
+          # which we strip out afterwards.
+          cat > /tmp/pr-body.md <<EOF
+          Automated bump triggered by [interledger-app ${RELEASE_TAG}](https://github.com/${GITHUB_REPOSITORY}/releases/tag/${RELEASE_TAG}).
+
+          Updates \`${APPSET_FILE}\` chartVersion for \`${CHART_NAME}\` to \`${CHART_VERSION}\`.
+
+          Auto-merge is enabled; will merge once \`conform.yaml\` checks pass.
+          EOF
+          # Strip the leading indentation introduced by the YAML block.
+          sed -i 's/^          //' /tmp/pr-body.md
+
+          # If a PR for this branch already exists (open), reuse it.
+          # Otherwise create a new one. `gh pr list` filters by head branch
+          # and returns at most one match for our deterministic name.
+          PR_URL=$(gh pr list \
+            --repo "${DEPLOY_REPO}" \
+            --head "${BRANCH}" \
+            --state open \
+            --json url \
+            --jq '.[0].url // ""')
+
+          if [[ -z "${PR_URL}" ]]; then
+            PR_URL=$(gh pr create \
+              --repo "${DEPLOY_REPO}" \
+              --base main \
+              --head "${BRANCH}" \
+              --title "chore: bump interledger-app chart to ${CHART_VERSION} in development" \
+              --body-file /tmp/pr-body.md \
+              --label automated \
+              --label chart-bump)
+            echo "Opened ${PR_URL}"
+          else
+            echo "Reusing existing PR ${PR_URL}"
+            # Refresh the body in case the chart version changed since the
+            # earlier rerun (rare, but cheap to handle).
+            gh pr edit "${PR_URL}" --repo "${DEPLOY_REPO}" \
+              --title "chore: bump interledger-app chart to ${CHART_VERSION} in development" \
+              --body-file /tmp/pr-body.md
+          fi
+
+          # --auto requires auto-merge to be enabled in the deploy repo
+          # settings AND a passing required-status-checks config; otherwise
+          # `gh pr merge --auto` returns a non-zero exit and fails this job.
+          # Safe to re-run on an already-auto-merging PR (idempotent).
+          gh pr merge "${PR_URL}" --repo "${DEPLOY_REPO}" --squash --auto

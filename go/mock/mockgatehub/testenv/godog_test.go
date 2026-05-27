@@ -69,6 +69,7 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 
 	// KYC 2FA steps
 	ctx.Step(`^I submit the KYC form for user \{userId\} without 2FA$`, tc.submitKYCFormWithout2FA)
+	ctx.Step(`^I submit the KYC form for user \{userId\} with outcome "([^"]*)"$`, tc.submitKYCFormWithOutcome)
 	ctx.Step(`^I submit the KYC form for user \{userId\} with 2FA and code "([^"]*)"$`, tc.submitKYCFormWith2FA)
 
 	// Signature auth steps
@@ -123,10 +124,10 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I POST (.+) with managed user UUID header, nameOnCard "([^"]*)", account productCode "([^"]*)", currency "([^"]*)", and card productCode "([^"]*)"$`, tc.postCardCustomerFromString)
 	ctx.Step(`^the response contains a customer with id, sourceId, type "([^"]*)", and kycStatus "([^"]*)"$`, tc.responseHasCustomer)
 	ctx.Step(`^the customer has one account with currency "([^"]*)", status "([^"]*)", and type "([^"]*)"$`, tc.customerHasAccount)
-	ctx.Step(`^the account has one card with status "([^"]*)", nameOnCard "([^"]*)", and expiryDate in the future$`, tc.accountHasCardHelper)
+	ctx.Step(`^the account has one card with status "([^"]*)" and nameOnCard "([^"]*)"$`, tc.accountHasCardHelper)
 	ctx.Step(`^I GET (.+) with managed user UUID header$`, tc.getWithManagedUserHeader)
 	ctx.Step(`^the response has a data array with at least one card$`, tc.responseHasCardData)
-	ctx.Step(`^each card has id, accountId, customerId, nameOnCard, maskedPan, status, expiryDate, and productCode$`, tc.eachCardHasFields)
+	ctx.Step(`^each card has id, accountId, customerId, nameOnCard, maskedPan, status, and productCode$`, tc.eachCardHasFields)
 	ctx.Step(`^the response includes pagination with pageNumber, pageSize, and totalPages$`, tc.responsePaginated)
 	ctx.Step(`^the response contains the card object with all required fields$`, tc.responseHasCardObject)
 	ctx.Step(`^the card status is "([^"]*)"$`, tc.cardStatusIs)
@@ -143,6 +144,16 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	// Card token and transaction steps
 	ctx.Step(`^I POST (.+) with cardId and managed user UUID header$`, tc.postCardTokenWithManagedUser)
 	ctx.Step(`^the response contains a links array with at least one entry$`, tc.responseContainsLinksArray)
+
+	// Card-data token + browser-fetch steps
+	ctx.Step(`^I POST (.+) with cardId, RSA publicKey and managed user UUID header$`, tc.postCardTokenWithPublicKey)
+	ctx.Step(`^the response contains a JWT token carrying the cardId and publicKey$`, tc.responseContainsJWT)
+	ctx.Step(`^the first link href is an absolute URL to "([^"]*)"$`, tc.firstLinkHrefIsAbsoluteURLTo)
+	ctx.Step(`^a card-data token has been issued for the card with an RSA publicKey$`, tc.cardDataTokenIssuedForCard)
+	ctx.Step(`^the browser GETs the card-data link with the token as a Bearer header \(no HMAC headers\)$`, tc.browserGetCardDataWithBearer)
+	ctx.Step(`^the browser GETs (.+) with an invalid Bearer token \(no HMAC headers\)$`, tc.browserGetCardDataWithInvalidToken)
+	ctx.Step(`^the response contains a "cypher" field$`, tc.responseContainsCypherField)
+	ctx.Step(`^the cypher decrypts with the matching private key to a JSON object with Pan, ExpiryDate and Cvc2$`, tc.cypherDecryptsToSensitiveData)
 	ctx.Step(`^I PUT (.+) with managed user UUID header and updated dailyOverall limit (\d+)$`, tc.putCardLimitsWithUpdate)
 	ctx.Step(`^I POST (.+) with cardId, amount "([^"]*)", currency "([^"]*)", and managed user UUID header$`, tc.postCardTransaction)
 	ctx.Step(`^the response contains a card transaction with transactionId and ghResponseCode "([^"]*)"$`, tc.responseContainsCardTransactionWithGH)
@@ -184,6 +195,12 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^fields amount, total_amount, and fee are string formatted with two decimals$`, tc.fieldsAreStringFormatted)
 	ctx.Step(`^status is integer (\d+)$`, tc.statusIsInteger)
 	ctx.Step(`^the transaction can be retrieved via GET \/core\/v(\d+)\/transactions\/{id} with the same format$`, tc.transactionCanBeRetrievedFormatted)
+
+	// Hosted transfer debit/credit steps
+	ctx.Step(`^the user has a funded (\w+) wallet with balance (\d+)\.(\d+)$`, tc.userHasFundedWallet)
+	ctx.Step(`^I POST /core/v1/transactions with sending_address as "?([^",]*)"?, receiving_address as "?([^",]*)"?, amount (\d+)\.(\d+), currency "([^"]*)", type (\d+), deposit_type "([^"]*)"$`, tc.postHostedWithSendingAddress)
+	ctx.Step(`^I POST /core/v1/transactions with receiving_address as "?([^",]*)"?, sending_address as "?([^",]*)"?, amount (\d+)\.(\d+), currency "([^"]*)", type (\d+), deposit_type "([^"]*)"$`, tc.postHostedWithReceivingAddress)
+	ctx.Step(`^the user balance for (\w+) is (\d+)\.(\d+)$`, tc.userBalanceForCurrencyIs)
 
 	// Fee configuration steps
 	ctx.Step(`^deposit fee is configured to ([\d.]+)%$`, tc.depositFeeConfigured)

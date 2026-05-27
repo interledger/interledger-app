@@ -8,8 +8,7 @@ services:
       - frontend
     restart: always
     volumes:
-      - ../typescript/protea:/app:rw
-      - /app/node_modules
+      - ../typescript/protea/app:/app/app:rw
     ports:
       - "3000:3000" # http port
       - "8002:8002" # websocket port
@@ -36,6 +35,7 @@ services:
       - KRATOS_URL=${PROTEA_KRATOS_URL:-http://kratos:4433}
       - RAFIKI_AUTH_ENDPOINT=${PROTEA_RAFIKI_AUTH_ENDPOINT:-http://rafiki_auth:3009}
       - BACKEND_GRPC_URL=${PROTEA_BACKEND_GRPC_URL:-http://backend:8443}
+      - BACKEND_HTTP_URL=${PROTEA_BACKEND_HTTP_URL:-http://backend:8080}
       - REDIS_URL=${PROTEA_REDIS_URL:-redis://redis:6379/2}
       - PAYMENT_POINTER_BASE=${PROTEA_PAYMENT_POINTER_BASE:-local.ilp.link} # todo find a way to figure the name
 
@@ -54,13 +54,21 @@ services:
 
       - REDIS_URL=${PROTEA_REDIS_URL:-redis://redis:6379/2}
       
+      # Persona SDK URL override (MockXago serves Persona-compatible SDK in local)
+      - PERSONA_SDK_URL=${PROTEA_PERSONA_SDK_URL:-https://mockxago.interledger.test/v1/persona-sdk.js}
+
+      # MockXago endpoint (browser-accessible URL via Traefik for Persona iframe)
+      - MOCKXAGO_ENDPOINT=${PROTEA_MOCKXAGO_ENDPOINT:-https://mockxago.interledger.test}
+
       # Provider/runtime integrations
-      - PTI_CLIENT_ID=${PROTEA_PTI_CLIENT_ID:-}
+      - PTI_CLIENT_ID=${PROTEA_PTI_CLIENT_ID:-04d3e1b5-96d4-47e4-9eaa-13e9b4b0f219}
       - GOOGLE_MAPS_API_KEY=${PROTEA_GOOGLE_MAPS_API_KEY:-}
 
       # Observability and analytics
+      # Sentry is disabled by default in local (no SENTRY_DSN set)
       - SENTRY_DSN=${PROTEA_SENTRY_DSN:-}
       - SENTRY_RELEASE=${PROTEA_SENTRY_RELEASE:-}
+      - SENTRY_ENV_LABEL=${PROTEA_SENTRY_ENV_LABEL:-}
       - SEGMENT_API_KEY=${PROTEA_SEGMENT_API_KEY:-}
 
       # Rate limiting
@@ -73,6 +81,12 @@ services:
       - CF_TURNSTILE_SITE_KEY=${PROTEA_CF_TURNSTILE_SITE_KEY:-}
       - CF_TURNSTILE_SECRET_KEY=${PROTEA_CF_TURNSTILE_SECRET_KEY:-}
       - GATE_SIGNUP=${PROTEA_GATE_SIGNUP:-false}
+
+      - PUBLIC_OP_AUTH_HOST=${PROTEA_PUBLIC_OP_AUTH_HOST:-auth.local.ilp.link}
+      - PTI_SDK_URL=${PROTEA_PTI_SDK_URL:-https://mockpti.interledger.test/sdk/index.js}
+      - PTI_FORMS_URL=${PROTEA_PTI_FORMS_URL:-https://mockpti.interledger.test/forms}
+      - TARGET_HOST=${PROTEA_TARGET_HOST:-https://interledger.test}
+      - SUPPORT_EMAIL=${PROTEA_SUPPORT_EMAIL:-support@interledger.app}
 
     depends_on:
       - backend

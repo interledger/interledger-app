@@ -9,11 +9,11 @@
 # Scale DOWN: if no queued/active e2e jobs → delete idle spot instances (keep MIN_SPOTS)
 # Cleanup:   remove offline GitHub runners matching our naming pattern
 #
-# Required secrets in the "e2e-tester" environment:
+# Required secrets in the "e2e-scaler-system" environment:
 #   GSA_E2E          – GCP service account JSON (compute.instances.create/delete/list)
 #   RUNNER_ADMIN_TOKEN – GitHub PAT with "Administration" repo permission (write)
 #
-# Required variables in the "e2e-tester" environment:
+# Required variables in the "e2e-scaler-system" environment:
 #   PROJECT_ID – GCP project ID
 #   ZONE       – GCP zone for spot instances
 #
@@ -21,8 +21,14 @@ name: E2E Runner Scaler
 
 on:
   pull_request:
-    paths-ignore:
-      - 'documentation/**'
+    paths:
+      - 'go/**'
+      - 'typescript/**'
+      - 'e2e/**'
+      - 'local/**'
+      - 'proto/**'
+      - '.github/workflows/e2e-tests.yml'
+      - '.github/workflows/e2e-runner-scaler.yml'
   schedule:
     - cron: '0 * * * *'
   workflow_dispatch:
@@ -34,8 +40,9 @@ permissions:
 jobs:
   scale:
     runs-on: ubuntu-latest
-    environment: e2e-tester
+    environment: e2e-scaler-system
     timeout-minutes: 10
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     concurrency:
       group: e2e-runner-scaler
       cancel-in-progress: false
@@ -62,7 +69,8 @@ jobs:
           RUNNER_ADMIN_TOKEN: ${{ secrets.RUNNER_ADMIN_TOKEN }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MACHINE_IMAGE: e2e-tester-dynamic-20260310
-          MACHINE_TYPE: n2-standard-8
+          # Should have 16 cores and 64MB of RAM
+          MACHINE_TYPE: n2-standard-16
           MAX_SPOTS: "5"
           MIN_SPOTS: "1"
           SPOT_PREFIX: e2e-spot

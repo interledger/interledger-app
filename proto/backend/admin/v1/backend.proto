@@ -245,6 +245,7 @@ message Features {
   bool zarBalanceEnabled = 10;
   bool manageWalletCardsEnabled = 11;
   bool accountEnabled = 12;
+  bool accountsTabEnabled = 13;
 }
 
 message ListAuditRequest {
@@ -365,6 +366,7 @@ message WalletDetails {
 message PaginationRequest {
   int32 pageSize = 1;
   optional string pageToken = 2;
+  optional string search = 3;
 }
 
 message Wallet {

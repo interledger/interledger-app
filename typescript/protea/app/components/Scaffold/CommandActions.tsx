@@ -9,7 +9,6 @@ import {
   Card,
   CardButton,
   CardContent,
-  DiscordIcon,
   Icon,
   InterledgerIcon,
   TextField,
@@ -89,6 +88,7 @@ export function CommandActions() {
     (value: PlainMessage<SearchResult> | Action) => void
   >(
     (event) => {
+      setCommandPaletteOpen(false)
       if (isAction(event)) {
         navigate(event.route)
       } else {
@@ -101,7 +101,7 @@ export function CommandActions() {
         )
       }
     },
-    [navigate, submit]
+    [navigate, setCommandPaletteOpen, submit]
   )
   useEffect(() => {
     return () => setCommandPaletteOpen(false)
@@ -171,7 +171,6 @@ export function CommandActions() {
                       <InterledgerIcon />
                     )}
                   {result.identifierType == 'twitter' && <TwitterIcon />}
-                  {result.identifierType == 'discord' && <DiscordIcon />}
                   {result.identifierType == 'domain' && (
                     <Icon>captive_portal</Icon>
                   )}

@@ -1552,6 +1552,11 @@ export class Features extends Message<Features> {
    */
   accountEnabled = false;
 
+  /**
+   * @generated from field: bool accountsTabEnabled = 13;
+   */
+  accountsTabEnabled = false;
+
   constructor(data?: PartialMessage<Features>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1572,6 +1577,7 @@ export class Features extends Message<Features> {
     { no: 10, name: "zarBalanceEnabled", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 11, name: "manageWalletCardsEnabled", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 12, name: "accountEnabled", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 13, name: "accountsTabEnabled", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Features {
@@ -2515,6 +2521,11 @@ export class PaginationRequest extends Message<PaginationRequest> {
    */
   pageToken?: string;
 
+  /**
+   * @generated from field: optional string search = 3;
+   */
+  search?: string;
+
   constructor(data?: PartialMessage<PaginationRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -2525,6 +2536,7 @@ export class PaginationRequest extends Message<PaginationRequest> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "pageSize", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
     { no: 2, name: "pageToken", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 3, name: "search", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PaginationRequest {

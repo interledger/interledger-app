@@ -32,7 +32,6 @@ func (s *rpcService) GetAgreement(
 type validateSignAgreements struct {
 	AgreementIDs []string `validate:"required,min=1"`
 	UserID       string   `validate:"required,uuid"`
-	IPAddress    string   `validate:"required,ip_addr"`
 }
 
 func (s *rpcService) SignAgreements(
@@ -42,7 +41,6 @@ func (s *rpcService) SignAgreements(
 	if err := s.b.Validator().StructCtx(ctx, &validateSignAgreements{
 		AgreementIDs: req.GetAgreementIds(),
 		UserID:       req.UserId,
-		IPAddress:    req.GetIpAddress(),
 	}); err != nil {
 		return nil, toGRPCError(err)
 	}
@@ -50,7 +48,6 @@ func (s *rpcService) SignAgreements(
 	err := s.b.Agreements().Sign(ctx, &agreements.SignArgs{
 		AgreementIDs: req.GetAgreementIds(),
 		UserID:       req.UserId,
-		IPAddress:    req.GetIpAddress(),
 	})
 	if err != nil {
 		if errors.Is(err, agreements.ErrNotFound) {

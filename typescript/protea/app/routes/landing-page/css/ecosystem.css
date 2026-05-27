@@ -1,0 +1,103 @@
+.ecosystem-section {
+  padding-block: var(--padding-5xl);
+  background-color: var(--color-bg-page);
+}
+
+.ecosystem-container {
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4xl);
+  align-items: center;
+}
+
+.ecosystem-title {
+  text-align: center;
+  color: var(--color-neutral-900);
+  margin: 0;
+}
+
+.ecosystem-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--spacing-sm);
+  width: 100%;
+}
+
+.open-world-card {
+  height: 200px;
+  border-radius: var(--rounded-2xl);
+  padding: var(--padding-2xl);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: left;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.open-world-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+}
+
+.open-world-card p {
+  color: var(--color-text-primary);
+  margin: 0;
+  max-width: 240px;
+}
+
+.card-lavender {
+  background-color: var(--color-lavander-100);
+}
+
+.card-aqua {
+  background-color: var(--color-aqua-mint-100);
+}
+
+.card-pistachio {
+  background-color: var(--color-pistachio-100);
+}
+
+.card-blush {
+  background-color: var(--color-blush-100);
+}
+
+@media (prefers-color-scheme: dark) {
+  .card-lavender {
+    background-color: var(--color-royal-purple-100);
+  }
+
+  .card-aqua {
+    background-color: var(--color-periwikinle-100);
+  }
+
+  .card-pistachio {
+    background-color: var(--color-ocean-100);
+  }
+
+  .card-blush {
+    background-color: var(--color-wine-100);
+  }
+}
+
+@media (max-width: 1024px) {
+  .ecosystem-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .ecosystem-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .ecosystem-section {
+    padding-block: var(--spacing-4xl);
+  }
+
+  .open-world-card {
+    height: 160px;
+  }
+}

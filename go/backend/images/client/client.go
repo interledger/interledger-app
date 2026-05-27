@@ -50,14 +50,6 @@ func (c client) GenerateDomainIdentityOG(ctx context.Context, walletUrl, identif
 	return ops.GenerateDomainOGImage(ctx, c.a, c.b, walletUrl, identifier)
 }
 
-func (c client) GenerateDiscordIdentity(ctx context.Context, walletUrl, identifier string) ([]byte, error) {
-	return ops.GenerateDiscordImage(ctx, c.a, c.b, walletUrl, identifier)
-}
-
-func (c client) GenerateDiscordIdentityOG(ctx context.Context, walletUrl, identifier string) ([]byte, error) {
-	return ops.GenerateDiscordOGImage(ctx, c.a, c.b, walletUrl, identifier)
-}
-
 func (c client) GenerateSlackIdentity(ctx context.Context, walletUrl, identifier string) ([]byte, error) {
 	return ops.GenerateSlackImage(ctx, c.a, c.b, walletUrl, identifier)
 }
@@ -80,15 +72,6 @@ func loadAssets() (*images.Assets, error) {
 		return nil, err
 	}
 	domainImgOG, err := loadImageFromURL("https://cdn.fynbos.app/identities/domain/v2/og-template.png")
-	if err != nil {
-		return nil, err
-	}
-
-	discordImg, err := loadImageFromURL("https://cdn.fynbos.app/identities/discord/template.png")
-	if err != nil {
-		return nil, err
-	}
-	discordImgOG, err := loadImageFromURL("https://cdn.fynbos.app/identities/discord/og-template.png")
 	if err != nil {
 		return nil, err
 	}
@@ -117,8 +100,6 @@ func loadAssets() (*images.Assets, error) {
 		TwitterOG:    twitterImgOG,
 		Domain:       domainImg,
 		DomainOG:     domainImgOG,
-		Discord:      discordImg,
-		DiscordOG:    discordImgOG,
 		InterMedium:  fontMedium,
 		InterRegular: fontRegular,
 		Slack:        slackImg,

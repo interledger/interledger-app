@@ -21,10 +21,11 @@ type Client struct {
 	external external.Client
 }
 
-func New(b ops.Backends) chimoney.Client {
+func New(b ops.Backends, apiKey string) chimoney.Client {
 	return &Client{
 		b: b,
 		external: external.New(
+			apiKey,
 			&http.Client{
 				Transport: otelhttp.NewTransport(
 					httplogger.NewTransport(http.DefaultTransport, b, external.Redact),

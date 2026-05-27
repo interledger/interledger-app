@@ -2,19 +2,17 @@ package webhooks
 
 import (
 	"context"
+	"crypto/ed25519"
 	"crypto/rand"
-	"crypto/rsa"
-	"encoding/json"
+	"crypto/x509"
+	"encoding/base64"
+	"encoding/pem"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
-	"github.com/lestrrat-go/jwx/v2/jwa"
-	"github.com/lestrrat-go/jwx/v2/jwe"
-	"github.com/lestrrat-go/jwx/v2/jwk"
-	"github.com/lestrrat-go/jwx/v2/jws"
 	"gitlab.com/fynbos/mock/mockpti/internal/models"
 )
 
@@ -101,31 +99,27 @@ func TestSender_ReceiverError_ReturnsError(t *testing.T) {
 	}
 }
 
-func TestSender_SendUserAssessment_WithJWKSignEncrypt_RoundTrip(t *testing.T) {
+func TestSender_SendUserAssessment_WithEd25519Sign_RoundTrip(t *testing.T) {
 	ctx := context.Background()
 
-	signingPriv, err := rsa.GenerateKey(rand.Reader, 2048)
+	pub, priv, err := ed25519.GenerateKey(rand.Reader)
 	if err != nil {
-		t.Fatalf("generate signing key: %v", err)
-	}
-	encryptionPriv, err := rsa.GenerateKey(rand.Reader, 2048)
-	if err != nil {
-		t.Fatalf("generate encryption key: %v", err)
+		t.Fatalf("generate key: %v", err)
 	}
 
-	signingJWKJSON := mustMarshalPrivateJWK(t, signingPriv)
-	encryptionJWKJSON := mustMarshalPrivateJWK(t, encryptionPriv)
+	privPEM := mustMarshalPrivateKeyPEM(t, priv)
 
-	var encryptedBody []byte
+	var capturedBody []byte
+	var capturedSig string
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		b, _ := io.ReadAll(r.Body)
-		encryptedBody = b
+		capturedBody, _ = io.ReadAll(r.Body)
+		capturedSig = r.Header.Get("X-Signature")
 		w.WriteHeader(http.StatusOK)
 	}))
 	defer srv.Close()
 
 	s := NewSender(srv.URL)
-	if err := s.ConfigureSecurity(signingJWKJSON, encryptionJWKJSON); err != nil {
+	if err := s.ConfigureSecurity(privPEM); err != nil {
 		t.Fatalf("configure security: %v", err)
 	}
 
@@ -139,57 +133,37 @@ func TestSender_SendUserAssessment_WithJWKSignEncrypt_RoundTrip(t *testing.T) {
 	}
 
 	if err := s.SendUserAssessment(ctx, assessment); err != nil {
-		t.Fatalf("send encrypted webhook: %v", err)
+		t.Fatalf("send webhook: %v", err)
 	}
 
-	if len(encryptedBody) == 0 {
-		t.Fatal("expected encrypted body to be delivered")
+	if len(capturedBody) == 0 {
+		t.Fatal("expected body to be delivered")
 	}
-	if strings.Contains(string(encryptedBody), "USER_ASSESSMENT") {
-		t.Fatal("expected encrypted payload, found plaintext marker")
+	if !strings.Contains(string(capturedBody), "USER_ASSESSMENT") {
+		t.Fatalf("expected plaintext payload, got: %s", string(capturedBody))
 	}
 
-	decrypted, err := jwe.Decrypt(encryptedBody, jwe.WithKey(jwa.RSA_OAEP_256, encryptionPriv))
+	if !strings.HasPrefix(capturedSig, "v1=") {
+		t.Fatalf("expected X-Signature header with v1= prefix, got: %q", capturedSig)
+	}
+
+	sigBytes, err := base64.StdEncoding.DecodeString(strings.TrimPrefix(capturedSig, "v1="))
 	if err != nil {
-		t.Fatalf("decrypt webhook payload: %v", err)
+		t.Fatalf("decode signature: %v", err)
 	}
 
-	verified, err := jws.Verify(decrypted, jws.WithKey(jwa.RS512, &signingPriv.PublicKey))
-	if err != nil {
-		t.Fatalf("verify webhook signature: %v", err)
-	}
-
-	var got UserAssessmentPayload
-	if err := json.Unmarshal(verified, &got); err != nil {
-		t.Fatalf("unmarshal verified payload: %v", err)
-	}
-
-	if got.ResourceType != "USER_ASSESSMENT" {
-		t.Fatalf("expected USER_ASSESSMENT resource type, got %q", got.ResourceType)
-	}
-	if got.RequestID != assessment.RequestID {
-		t.Fatalf("expected request id %q, got %q", assessment.RequestID, got.RequestID)
-	}
-	if got.UserID != assessment.UserID {
-		t.Fatalf("expected user id %q, got %q", assessment.UserID, got.UserID)
-	}
-	if got.Assessment != assessment.Assessment {
-		t.Fatalf("expected assessment %q, got %q", assessment.Assessment, got.Assessment)
+	if !ed25519.Verify(pub, capturedBody, sigBytes) {
+		t.Fatal("signature verification failed")
 	}
 }
 
-func mustMarshalPrivateJWK(t *testing.T, key *rsa.PrivateKey) string {
+func mustMarshalPrivateKeyPEM(t *testing.T, key ed25519.PrivateKey) string {
 	t.Helper()
 
-	jwkKey, err := jwk.FromRaw(key)
+	b, err := x509.MarshalPKCS8PrivateKey(key)
 	if err != nil {
-		t.Fatalf("create jwk from private key: %v", err)
+		t.Fatalf("marshal private key: %v", err)
 	}
 
-	b, err := json.Marshal(jwkKey)
-	if err != nil {
-		t.Fatalf("marshal jwk: %v", err)
-	}
-
-	return string(b)
+	return string(pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: b}))
 }
