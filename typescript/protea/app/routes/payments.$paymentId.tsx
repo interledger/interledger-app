@@ -36,7 +36,6 @@ import { mergeMeta } from '~/lib/meta'
 import { getPusherArgs } from '~/lib/pusher.server'
 import { usePusher } from '~/lib/usePusher'
 import type { Route } from './+types/payments.$paymentId'
-import Page, { meta } from '~/root'
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   let statement = false
@@ -114,7 +113,6 @@ export const handle: ApplicationProps = {
       actions: (match: UIMatch<Route.ComponentProps['loaderData']>) => {
         if (!match.loaderData) return null
         const { transaction } = match.loaderData
-        if (transaction.refundState == TransactionRefundState.PENDING) {
         if (transaction.refundState == TransactionRefundState.PENDING) {
           return {
             key: 'Pending refund',
