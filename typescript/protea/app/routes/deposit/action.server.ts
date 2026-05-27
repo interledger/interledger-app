@@ -21,22 +21,6 @@ function stringToBigInt(amount: string) {
 }
 
 
-export async function chimoneyAmountAction({ request }: ActionFunctionArgs) {
-    const form = await request.formData()
-    const depositAmount = String(form.get('depositAmount') || '')
-
-    const response = await grpc.getChimoneyDepositLink(request, {
-        amount: stringToBigInt(depositAmount),
-        asset: 'CAD',
-        assetScale: 2
-    })
-    if (isConnectError(response)) throw response.error
-
-    return data({
-        chimoneyWidget: response.link
-    })
-}
-
 export async function fynbosDepositAction({ request }: ActionFunctionArgs) {
     const form = await request.formData()
     const depositAmount = String(form.get('depositAmount') || '')

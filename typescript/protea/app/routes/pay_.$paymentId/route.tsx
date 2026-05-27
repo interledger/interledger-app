@@ -36,6 +36,7 @@ import styles from '~/styles/flags.css?url'
 import { Amount } from './Amount'
 import { Confirm } from './Confirm'
 import { confirmPaymentAction, updatePaymentAction } from './action.server';
+import { envValue } from '~/env.server';
 
 const IDENTITY_TYPE_TO_PLATFORM: Record<number, string> = {
   [PaymentIdentityType.Twitter]: 'twitter',
@@ -96,12 +97,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     params.paymentId as string
   )
 
-  if (payment.senderAccount) {
-    const accountId = payment.senderAccount
-    account = sendAccounts.find((acc) => acc.id == accountId)!
-  } else {
-    account = sendAccounts[0]
-  }
+  const senderAccountId = payment.senderAccount
+  account = sendAccounts.find((acc) => acc.id == senderAccountId) ?? sendAccounts[0]
 
   // Only load the phone mask if we require otp
   if (payment.requiredActions.includes(7)) {
@@ -118,10 +115,10 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     sendAccounts,
     phoneMask,
     publicWalletInfo,
-    fynbosEnv: process.env.FYNBOS_ENV,
+    fynbosEnv: envValue("FYNBOS_ENV"),
     payment,
     requiresOTP: payment.requiredActions.includes(PaymentRequiredAction.OTP),
-    PTIClientId: process.env.PTI_CLIENT_ID || ''
+    PTIClientId: envValue("PTI_CLIENT_ID")
   })
 }
 

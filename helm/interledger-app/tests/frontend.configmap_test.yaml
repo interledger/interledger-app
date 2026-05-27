@@ -108,6 +108,64 @@ tests:
           path: data.PTI_FORMS_URL
           value: "https://forms.staging.fiant.io"
 
+  - it: 'Should contain TARGET_HOST'
+    set:
+      frontend:
+        config:
+          target_host: "https://interledger.app"
+    asserts:
+      - equal:
+          path: data.TARGET_HOST
+          value: "https://interledger.app"
+
+  - it: 'Should contain SUPPORT_EMAIL'
+    set:
+      frontend:
+        config:
+          support_email: "support@interledger.app"
+    asserts:
+      - equal:
+          path: data.SUPPORT_EMAIL
+          value: "support@interledger.app"
+
+  - it: 'Should contain PUBLIC_OP_AUTH_HOST'
+    set:
+      frontend:
+        config:
+          public_op_auth_host: "auth.ilp.link"
+    asserts:
+      - equal:
+          path: data.PUBLIC_OP_AUTH_HOST
+          value: "auth.ilp.link"
+
+  - it: 'Should contain PERSONA_SDK_URL defaulting to Persona CDN'
+    asserts:
+      - equal:
+          path: data.PERSONA_SDK_URL
+          value: "https://cdn.withpersona.com/dist/persona-v4.8.0-alpha.js"
+
+  - it: 'Should contain MOCKXAGO_ENDPOINT as empty by default'
+    asserts:
+      - equal:
+          path: data.MOCKXAGO_ENDPOINT
+          value: ""
+
+  - it: 'Should contain SENTRY_ENV_LABEL as empty by default'
+    asserts:
+      - equal:
+          path: data.SENTRY_ENV_LABEL
+          value: ""
+
+  - it: 'Should contain SENTRY_ENV_LABEL when set'
+    set:
+      frontend:
+        config:
+          sentry_env_label: "prod"
+    asserts:
+      - equal:
+          path: data.SENTRY_ENV_LABEL
+          value: "prod"
+
   - it: 'Should produce no ConfigMap when frontend is disabled'
     set:
       frontend:

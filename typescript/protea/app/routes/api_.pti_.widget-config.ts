@@ -14,9 +14,11 @@ function resolvePtiWidgetConfig() {
   //   formsUrl = process.env.PTI_FORMS_URL || 'https://mockpti.interledger.test/forms'
   // }
 
+  // todo: check main changes on this file
+
   return { sdkUrl, formsUrl }
 }
 
-export async function loader({}: Route.LoaderArgs) {
+export async function loader({ }: Route.LoaderArgs) {
   return Response.json(resolvePtiWidgetConfig())
 }
