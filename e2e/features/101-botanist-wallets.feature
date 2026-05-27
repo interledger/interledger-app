@@ -66,3 +66,17 @@ Feature: Botanist Wallets Filter
     And I submit the login
     Then I should be navigated to the TOTP page
     And I take a screenshot "totp-reenrollment-after-admin-reset"
+
+  @botanist @wallets-features-toggle @gatehub
+  Scenario: Admin can toggle the deleteAccountEnabled feature for a wallet
+    Given that my "country" is "germany"
+    And I completed the signup workflow
+    And I completed the account verification workflow
+    And I finished the TOTP registration workflow
+    And I finished the wallet address creation workflow
+    When I navigate to the admin portal
+    And I navigate to my wallet profile page in the admin portal
+    Then the "deleteAccountEnabled" feature toggle should be off
+    When I toggle the "deleteAccountEnabled" feature on
+    Then the "deleteAccountEnabled" feature should be enabled in the database for my wallet
+    And I take a screenshot "delete-account-feature-toggled-on"

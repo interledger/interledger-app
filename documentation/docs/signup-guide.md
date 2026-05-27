@@ -8,6 +8,7 @@
 - [KYC Explainer](kyc-guide.md) — Identity verification flows per provider
 - [Wallets vs Accounts](wallets-accounts-addresses-guide.md) — Wallet activation architecture
 - [Payments Guide](payments-guide.md) — How KYC and wallet setup enable transactions
+- [Account Deletion Flow](account-deletion-guide.md) — Self-service account closure (offboarding counterpart)
 - [Logging Policy](logging-reference.md) — What information can be safely logged during signup
 - [Environment Variables](env-variables.md) — Signup/auth runtime configuration (Kratos, Twilio, and related settings)
 

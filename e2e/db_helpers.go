@@ -579,3 +579,90 @@ func (sc *E2EContext) getKYCStatusByWalletID(walletID string) (int, error) {
 	debugPrintf("   📋 KYC status for wallet %s: %d\n", walletID, status)
 	return status, nil
 }
+
+// EU wallets only. The INSERT branch mirrors features/ops.Features()'s EU
+// defaults verbatim — once any wallet_features row exists the backend reads
+// from it and skips country defaults, so a sparse row would erase the
+// wallet's other capabilities.
+func (sc *E2EContext) enableDeleteAccountForWallet(walletID string) error {
+	if err := sc.ensureDB(); err != nil {
+		return fmt.Errorf("enableDeleteAccountForWallet: %w", err)
+	}
+
+	_, err := sc.db.Exec(`
+		INSERT INTO wallet_features (
+			wallet_id, send_enabled, receive_enabled, linked_accounts_enabled,
+			cards_enabled, banks_enabled, identities_enabled, twitter_enabled,
+			add_cards_enabled, interac_enabled, manage_wallet_cards_enabled,
+			accounts_tab_enabled, delete_account_enabled
+		) VALUES ($1, true, true, false, false, false, true, true, false, false, true, false, true)
+		ON CONFLICT (wallet_id) DO UPDATE SET
+			delete_account_enabled = true,
+			updated_at = now()
+	`, walletID)
+	if err != nil {
+		return fmt.Errorf("enableDeleteAccountForWallet: %w", err)
+	}
+
+	debugPrintf("   ✓ Enabled delete_account_enabled for wallet %s\n", walletID)
+	return nil
+}
+
+func (sc *E2EContext) getAccountDeletionStatus(kratosUserID string) (string, error) {
+	if err := sc.ensureDB(); err != nil {
+		return "", fmt.Errorf("getAccountDeletionStatus: %w", err)
+	}
+
+	var status string
+	err := sc.db.QueryRow(
+		`SELECT status FROM account_deletion_requests WHERE user_id = $1`,
+		kratosUserID,
+	).Scan(&status)
+	if err != nil {
+		return "", err
+	}
+	return status, nil
+}
+
+func (sc *E2EContext) seedAccountDeletionRequest(kratosUserID, status string) error {
+	if err := sc.ensureDB(); err != nil {
+		return fmt.Errorf("seedAccountDeletionRequest: %w", err)
+	}
+
+	_, err := sc.db.Exec(`
+		INSERT INTO account_deletion_requests (user_id, status) VALUES ($1, $2)
+		ON CONFLICT (user_id) DO UPDATE SET status = EXCLUDED.status, updated_at = now()
+	`, kratosUserID, status)
+	if err != nil {
+		return fmt.Errorf("seedAccountDeletionRequest: %w", err)
+	}
+	return nil
+}
+
+// Returns false + nil if no row exists (country defaults apply).
+func (sc *E2EContext) getWalletFeatureBool(walletID, column string) (bool, error) {
+	if err := sc.ensureDB(); err != nil {
+		return false, fmt.Errorf("getWalletFeatureBool: %w", err)
+	}
+
+	// SQL-injection defense: the column name is interpolated, not bound.
+	allowed := map[string]bool{
+		"delete_account_enabled": true,
+	}
+	if !allowed[column] {
+		return false, fmt.Errorf("getWalletFeatureBool: column %q not allowed", column)
+	}
+
+	var val bool
+	err := sc.db.QueryRow(
+		"SELECT "+column+" FROM wallet_features WHERE wallet_id = $1",
+		walletID,
+	).Scan(&val)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+		return false, fmt.Errorf("getWalletFeatureBool: %w", err)
+	}
+	return val, nil
+}
