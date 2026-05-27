@@ -103,8 +103,6 @@ export function getSessionTraits(session: Session | null): KratosTraits {
   return session.identity.traits as KratosTraits
 }
 
-// TODO: misleading name — rename to `hasSessionCookie`
-// once routes using this migrate to `isAuthenticated`
 export function hasUserSession(request: Request): boolean {
   return String(request.headers.get('cookie')).includes(KRATOS_SESSION_COOKIE)
 }
@@ -132,8 +130,11 @@ export async function requireNoUserSession(request: Request): Promise<void> {
         throw redirect(target, {
           headers: { 'Set-Cookie': CLEAR_SESSION_COOKIE_HEADER }
         })
+
       default:
-        throw redirect(target)
+        // unknown/transient (5xx, network failure, undefined status).
+        // don't redirect — just let the page render
+        return
     }
   }
 }
