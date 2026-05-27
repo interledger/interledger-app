@@ -19,6 +19,12 @@ data:
   PTI_SDK_URL: {{ .Values.frontend.config.pti.sdk_url | quote }}
   PTI_FORMS_URL: {{ .Values.frontend.config.pti.forms_url | quote }}
   BACKEND_HTTP_URL: {{ default (printf "http://%s-backend-service-http:8080" (include "common.fullname" .)) .Values.frontend.config.backend.http.url | quote }}
+  TARGET_HOST: {{ .Values.frontend.config.target_host | quote }}
+  SUPPORT_EMAIL: {{ .Values.frontend.config.support_email | quote }}
+  PUBLIC_OP_AUTH_HOST: {{ .Values.frontend.config.public_op_auth_host | quote }}
+  PERSONA_SDK_URL: {{ .Values.frontend.config.persona_sdk_url | quote }}
+  MOCKXAGO_ENDPOINT: {{ .Values.frontend.config.mockxago_endpoint | quote }}
+  SENTRY_ENV_LABEL: {{ .Values.frontend.config.sentry_env_label | quote }}
 {{- end }}
 
 {{- define "interledger-app.admin.configMap" -}}
@@ -32,4 +38,20 @@ data:
   BACKEND_GRPC_URL: {{ default (printf "http://%s-backend-service-grpc:8448" (include "common.fullname" .)) .Values.admin.config.backend.grpcUrl | quote }}
   KRATOS_ADMIN_URL: {{ .Values.admin.config.kratos.adminUrl | quote }}
   PAYMENT_POINTER_BASE: {{ .Values.admin.config.payment_pointer_base | quote }}
+{{- end }}
+
+{{- define "interledger-app.mockpti.configMap" -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "common.fullname" . }}-{{ .Values.mockpti.configMaps.config.name }}
+  namespace: {{ .Release.Namespace }}
+  {{- include "common.metadata" (list .) | nindent 2 }}
+data:
+  LOG_LEVEL: {{ .Values.mockpti.config.log_level | quote }}
+  MOCKPTI_REDIS_URL: {{ .Values.mockpti.config.redis_url | quote }}
+  MOCKPTI_REDIS_DB: {{ .Values.mockpti.config.redis_db | quote }}
+  MOCKPTI_CLIENT_ID: {{ .Values.mockpti.config.client_id | quote }}
+  MOCKPTI_WEBHOOK_URL: {{ default (printf "http://%s-backend-service-http:8080/webhooks/pti" (include "common.fullname" .)) .Values.mockpti.config.webhook_url | quote }}
+  WEBHOOK_MIN_DELAY_SEC: {{ .Values.mockpti.config.webhook_min_delay_sec | quote }}
 {{- end }}

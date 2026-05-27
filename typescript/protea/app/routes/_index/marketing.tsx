@@ -1,5 +1,4 @@
 import {
-  ChimoneyLogo,
   FiantLogo,
   GatehubLogo,
   InterledgerWalletLogo,
@@ -19,7 +18,6 @@ export function MarketingPage() {
       <div className='justfy-center hidden space-x-16 md:flex'>
         <FiantLogo className='w-28' />
         <GatehubLogo className='w-28' />
-        <ChimoneyLogo className='w-28' />
         <XagoLogo className='w-28' />
       </div>
     </div>

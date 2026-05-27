@@ -1,0 +1,44 @@
+:root {
+  --spacing-xs:  4px;
+  --spacing-sm:  8px;
+  --spacing-md:  12px;
+  --spacing-lg:  16px;
+  --spacing-xl:  24px;
+  --spacing-2xl: 32px;
+  --spacing-3xl: 48px;
+  --spacing-4xl: 60px;
+  --spacing-5xl: 80px;
+  --spacing-6xl: 120px;
+  --spacing-7xl: 160px;
+
+  --padding-xs:  4px;
+  --padding-sm:  8px;
+  --padding-md:  12px;
+  --padding-lg:  16px;
+  --padding-xl:  24px;
+  --padding-2xl: 32px;
+  --padding-3xl: 40px;
+  --padding-4xl: 60px;
+  --padding-5xl: 80px;
+  --padding-6xl: 120px;
+  --padding-7xl: 160px;
+
+  /* Border radius */
+  --rounded-lg:   8px;
+  --rounded-xl:   12px;
+  --rounded-2xl:  16px;
+  --rounded-3xl:  24px;
+  --rounded-full: 999px;
+
+  /* Section Padding Rules */
+  /* Mobile */
+  --section-pad-default: var(--padding-lg);  /* 16px — hero, features, send/receive */
+  --section-pad-wide:    var(--padding-xl);  /* 24px — cards, ecosystem, editorial */
+
+  /* Tablet */
+  --section-pad-tablet: var(--padding-xl);   /* 24px */
+
+  /* Desktop */
+  --section-pad-desktop-outer: var(--padding-3xl); /* 40px — outer margin */
+  --section-pad-desktop-text:  var(--padding-6xl); /* 120px — text-only inset */
+}

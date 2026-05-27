@@ -2,7 +2,6 @@ package jobs
 
 import (
 	"encoding/base64"
-	"os"
 	"time"
 
 	"gitlab.com/fynbos/backend/keys"
@@ -95,8 +94,7 @@ func (a *Activity) TransformRafikiKeys() error {
 
 	offset := 0
 
-	connString := os.Getenv("RAFIKI_DB_URL")
-	db, err := DbConnection(connString)
+	db, err := DbConnection(a.cfg.RafikiDBURL)
 	if err != nil {
 		log.Error("Error establishing db connection: %v", zap.Error(err))
 		return err
