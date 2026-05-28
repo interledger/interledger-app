@@ -16,6 +16,10 @@ on:
         required: false
         type: boolean
         default: false
+      is_maintenance_release:
+        required: false
+        type: boolean
+        default: false
   pull_request:
     branches:
       - "**"
@@ -350,6 +354,9 @@ jobs:
     #     `workflow_call` from release.yml with a real tag.
     #   - `dockerPush` is the same signal publish-helm-chart and the image
     #     push jobs use to confirm a real release artifact was produced.
+    #   - Maintenance releases skip auto-bump; they are deployed manually via
+    #     the deploy.yml workflow with maintenance mode to preserve the
+    #     decision to bump a given environment as explicit operator intent.
     # NOTE: do NOT gate on `github.event_name == 'workflow_call'` — for
     # reusable workflows, GitHub propagates the *caller's* event name (e.g.
     # `push`), so that check would always be false. See the comment in
@@ -358,6 +365,7 @@ jobs:
       inputs.release_tag != ''
       && needs.determine_version.outputs.dockerPush == 'true'
       && !inputs.skip_deploy_bump
+      && !inputs.is_maintenance_release
     runs-on: ubuntu-latest
     environment: development
     # No write access needed on THIS repo — all writes go through the App
@@ -443,7 +451,7 @@ jobs:
       # If the file is already at the target version, set skip=true and let
       # the next step short-circuit — this makes manual reruns idempotent.
       - name: Update chartVersion in development appset
-        id: update_chart
+        id: update_appset
         working-directory: deploy
         env:
           CHART: ${{ env.CHART_NAME }}
@@ -453,8 +461,8 @@ jobs:
           # Chart.yaml versions and the appset chartVersion are stored without a
           # leading "v"; the release tag (and determine_version output) has one.
           NEW_VERSION="${VERSION#v}"
-          # Export for the next step (which reads $chart_version from env).
-          echo "chart_version=${NEW_VERSION}" >> "$GITHUB_ENV"
+          # Export for the next step (which reads $chart_version).
+          echo "chart_version=${NEW_VERSION}" >> "$GITHUB_OUTPUT"
 
           CURRENT=$(yq -r \
             ".spec.generators[].list.elements[] | select(.name == \"${CHART}\") | .chartVersion" \
@@ -473,10 +481,11 @@ jobs:
           # repo manually (e.g. during incident response or a re-release).
           if [[ "${CURRENT}" == "${NEW_VERSION}" ]]; then
             echo "Already at ${NEW_VERSION}; nothing to do."
-            echo "skip=true" >> "$GITHUB_ENV"
             echo "skip=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
+
+
           echo "skip=false" >> "$GITHUB_OUTPUT"
           # In-place update of just the matching element.
           yq -i \
@@ -504,18 +513,17 @@ jobs:
       # auto-merge in case it was disabled).
       - name: Open auto-merge PR
         id: open_pr
-        if: steps.update_chart.outputs.skip != 'true'
+        if: steps.update_appset.outputs.skip != 'true'
         working-directory: deploy
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          CHART_VERSION: ${{ steps.update_appset.outputs.chart_version }}
           # Branch name is deterministic per release tag (one bump PR per
           # release). Re-running the workflow updates the existing branch
           # in place rather than creating a parallel PR.
           BRANCH: chore/bump-interledger-app-${{ env.RELEASE_TAG }}
         run: |
           set -euo pipefail
-          # $chart_version was exported by the previous step.
-          CHART_VERSION="${chart_version}"
 
           # Commit as the App's bot user so the audit trail is clear and
           # branch protection rules can target the bot actor specifically.
@@ -586,7 +594,7 @@ jobs:
           echo "pr_url=${PR_URL}" >> "$GITHUB_OUTPUT"
 
       - name: Wait for development deploy PR to merge
-        if: steps.update_chart.outputs.skip != 'true'
+        if: steps.update_appset.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           PR_URL: ${{ steps.open_pr.outputs.pr_url }}
@@ -620,7 +628,7 @@ jobs:
           exit 1
 
       - name: Refresh and sync development in Argo CD
-        if: steps.update_chart.outputs.skip != 'true'
+        if: steps.update_appset.outputs.skip != 'true'
         uses: ./.github/actions/argocd-refresh-sync
         with:
           argocd-endpoint: ${{ vars.ARGOCD_ENDPOINT }}
