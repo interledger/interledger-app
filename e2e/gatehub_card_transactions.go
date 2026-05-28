@@ -278,20 +278,23 @@ func (sc *E2EContext) waitForBackendCardTx(email string, atLeast int, timeout ti
 // waitForBackendCardTxState polls until the latest card transaction for the user has the expected state.
 func (sc *E2EContext) waitForBackendCardTxState(email, expectedState string, timeout time.Duration) error {
 	deadline := time.Now().Add(timeout)
+	lastState := ""
 
 	for time.Now().Before(deadline) {
 		tx, err := sc.getLatestBackendCardTx(email)
-		if err == nil && strings.EqualFold(tx.State, expectedState) {
-			return nil
-		}
 		if err != nil {
 			debugPrintf("   ⚠️  waitForBackendCardTxState: query error: %v\n", err)
-		} else {
-			debugPrintf("   ⏳ Waiting for state '%s', have '%s' for user %s\n", expectedState, tx.State, email)
+			time.Sleep(time.Second)
+			continue
 		}
+		if tx.State == expectedState {
+			return nil
+		}
+		lastState = tx.State
+		debugPrintf("   ⏳ Waiting for state '%s', have '%s' for user %s\n", expectedState, tx.State, email)
 		time.Sleep(time.Second)
 	}
-	return fmt.Errorf("waitForBackendCardTxState: timed out waiting for state '%s' for user %s", expectedState, email)
+	return fmt.Errorf("waitForBackendCardTxState: timed out waiting for state '%s', last state '%s' for user %s", expectedState, lastState, email)
 }
 
 // buildCardTxSetup is a helper shared by all trigger steps to get gatehubUserID and cardID.
@@ -1105,7 +1108,7 @@ func (sc *E2EContext) aPendingWithdrawalTransactionShouldExistWithNoteFor(userNa
 	if err != nil {
 		return err
 	}
-	return sc.assertLatestCardTxHasStateAndNote(email, "pending", note, 30*time.Second)
+	return sc.assertLatestCardTxHasStateAndNote(email, "Pending", note, 30*time.Second)
 }
 
 func (sc *E2EContext) aPendingDepositTransactionShouldExistWithNoteFor(userName, note string) error {
@@ -1113,7 +1116,7 @@ func (sc *E2EContext) aPendingDepositTransactionShouldExistWithNoteFor(userName,
 	if err != nil {
 		return err
 	}
-	return sc.assertLatestCardTxHasStateAndNote(email, "pending", note, 30*time.Second)
+	return sc.assertLatestCardTxHasStateAndNote(email, "Pending", note, 30*time.Second)
 }
 
 func (sc *E2EContext) aFailedTransactionShouldExistWithNoteFor(userName, note string) error {
@@ -1121,7 +1124,7 @@ func (sc *E2EContext) aFailedTransactionShouldExistWithNoteFor(userName, note st
 	if err != nil {
 		return err
 	}
-	return sc.assertLatestCardTxHasStateAndNote(email, "failed", note, 30*time.Second)
+	return sc.assertLatestCardTxHasStateAndNote(email, "Failed", note, 30*time.Second)
 }
 
 func (sc *E2EContext) aCompletedTransactionShouldExistWithNoteFor(userName, note string) error {
@@ -1129,12 +1132,13 @@ func (sc *E2EContext) aCompletedTransactionShouldExistWithNoteFor(userName, note
 	if err != nil {
 		return err
 	}
-	return sc.assertLatestCardTxHasStateAndNote(email, "completed", note, 30*time.Second)
+	return sc.assertLatestCardTxHasStateAndNote(email, "Completed", note, 30*time.Second)
 }
 
 // assertLatestCardTxHasStateAndNote polls until the latest card transaction has the expected state and note.
 func (sc *E2EContext) assertLatestCardTxHasStateAndNote(email, expectedState, expectedNote string, timeout time.Duration) error {
 	deadline := time.Now().Add(timeout)
+	var lastTx *backendCardTx
 
 	for time.Now().Before(deadline) {
 		tx, err := sc.getLatestBackendCardTx(email)
@@ -1142,13 +1146,14 @@ func (sc *E2EContext) assertLatestCardTxHasStateAndNote(email, expectedState, ex
 			time.Sleep(time.Second)
 			continue
 		}
+		lastTx = tx
 
 		actualNote := ""
 		if tx.Note.Valid {
 			actualNote = tx.Note.String
 		}
 
-		if strings.EqualFold(tx.State, expectedState) && actualNote == expectedNote {
+		if tx.State == expectedState && actualNote == expectedNote {
 			debugPrintf("   ✓ Card transaction state=%s note=%q for user %s\n", tx.State, actualNote, email)
 			return nil
 		}
@@ -1157,14 +1162,13 @@ func (sc *E2EContext) assertLatestCardTxHasStateAndNote(email, expectedState, ex
 		time.Sleep(time.Second)
 	}
 
-	tx, _ := sc.getLatestBackendCardTx(email)
-	if tx != nil {
+	if lastTx != nil {
 		actualNote := ""
-		if tx.Note.Valid {
-			actualNote = tx.Note.String
+		if lastTx.Note.Valid {
+			actualNote = lastTx.Note.String
 		}
 		return fmt.Errorf("assertLatestCardTxHasStateAndNote: expected state=%s note=%q but got state=%s note=%q for user %s",
-			expectedState, expectedNote, tx.State, actualNote, email)
+			expectedState, expectedNote, lastTx.State, actualNote, email)
 	}
 	return fmt.Errorf("assertLatestCardTxHasStateAndNote: no card transaction found for user %s", email)
 }
@@ -1213,28 +1217,28 @@ func (sc *E2EContext) theFirstCardTransactionShouldBeFailedFor(userName string) 
 	}
 
 	deadline := time.Now().Add(30 * time.Second)
+	lastState := ""
 
 	for time.Now().Before(deadline) {
 		var state string
-		err = sc.db.QueryRow(`
+		if queryErr := sc.db.QueryRow(`
 			SELECT state FROM transactions
 			WHERE wallet_id = $1 AND type = 'card_transaction'
 			ORDER BY created_at ASC LIMIT 1
-		`, walletID).Scan(&state)
-		if err == nil && strings.EqualFold(state, "failed") {
+		`, walletID).Scan(&state); queryErr != nil {
+			debugPrintf("   ⚠️  theFirstCardTransactionShouldBeFailedFor: query error: %v\n", queryErr)
+			time.Sleep(time.Second)
+			continue
+		}
+		lastState = state
+		if state == "Failed" {
 			debugPrintf("   ✓ First card transaction is failed for user %s\n", email)
 			return nil
 		}
 		time.Sleep(time.Second)
 	}
 
-	var state string
-	_ = sc.db.QueryRow(`
-		SELECT state FROM transactions
-		WHERE wallet_id = $1 AND type = 'card_transaction'
-		ORDER BY created_at ASC LIMIT 1
-	`, walletID).Scan(&state)
-	return fmt.Errorf("theFirstCardTransactionShouldBeFailedFor: expected first card transaction to be failed but got '%s' for user %s", state, email)
+	return fmt.Errorf("theFirstCardTransactionShouldBeFailedFor: expected first card transaction to be failed but got '%s' for user %s", lastState, email)
 }
 
 func (sc *E2EContext) theLastCardTransactionShouldBeCompletedFor(userName string) error {
@@ -1242,7 +1246,7 @@ func (sc *E2EContext) theLastCardTransactionShouldBeCompletedFor(userName string
 	if err != nil {
 		return err
 	}
-	return sc.waitForBackendCardTxState(email, "completed", 30*time.Second)
+	return sc.waitForBackendCardTxState(email, "Completed", 30*time.Second)
 }
 
 func (sc *E2EContext) theLastCardTransactionShouldBeFailedFor(userName string) error {
@@ -1250,7 +1254,7 @@ func (sc *E2EContext) theLastCardTransactionShouldBeFailedFor(userName string) e
 	if err != nil {
 		return err
 	}
-	return sc.waitForBackendCardTxState(email, "failed", 30*time.Second)
+	return sc.waitForBackendCardTxState(email, "Failed", 30*time.Second)
 }
 
 func (sc *E2EContext) theLastTransactionShouldHaveExchangeRateDataFor(userName string) error {
