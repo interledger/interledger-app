@@ -1,23 +1,22 @@
-import type { LinksFunction, V2_MetaFunction } from '@remix-run/node'
+import type { LinksFunction, MetaFunction } from 'react-router'
 import {
   isRouteErrorResponse,
   Links,
-  LiveReload,
   Meta,
   Scripts,
   ScrollRestoration,
   useRouteError
-} from '@remix-run/react'
+} from 'react-router'
 import { AdminLayout, Error } from '~/components'
 import type { ReactNode } from 'react'
-import styles from '~/styles/app.css'
+import styles from '~/styles/app.css?url'
 
 const metaContent = {
   title: 'Interledger Wallet Admin',
   description: ''
 }
 
-export const meta: V2_MetaFunction = () => {
+export const meta: MetaFunction = () => {
   return [
     { title: metaContent.title },
     { name: 'theme-color', content: '#FFE4E6' },
@@ -62,7 +61,6 @@ function Document({
         {children}
         <ScrollRestoration />
         <Scripts />
-        <LiveReload port={443} />
       </body>
     </html>
   )

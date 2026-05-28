@@ -3,8 +3,9 @@
  */
 {
   "extends": [
-    "@remix-run/eslint-config",
-    "@remix-run/eslint-config/node",
     "prettier"
-  ]
+  ],
+  "rules": {
+    "react/react-in-jsx-scope": "off"
+  }
 }

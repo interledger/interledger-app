@@ -1,12 +1,12 @@
-import type { LoaderArgs } from '@remix-run/node'
+import type { LoaderFunctionArgs } from 'react-router'
 
 import { Grid } from '~/components'
-import { json } from '@remix-run/node'
-import { useLoaderData } from '@remix-run/react'
+import { data } from 'react-router'
+import { useLoaderData } from 'react-router'
 import { ListWallets } from '~/lib/wallet.server'
 import { grpcClient } from '~/lib/proto.server'
 
-export async function loader({ request }: LoaderArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
   try {
     const wallets = await ListWallets(request, {
       pageSize: 10000
@@ -22,14 +22,14 @@ export async function loader({ request }: LoaderArgs) {
       }
     )
     console.log('test signups :', signups)
-    return json({
+    return data({
       error: '',
       wallets,
       signups: signups.response.signups
     })
   } catch (e) {
     console.log('Failed to retrieve wallets: ', e)
-    return json({
+    return data({
       error: 'there was an error retrieving wallets',
       wallets: { wallets: [] },
       signups: []

@@ -1,12 +1,10 @@
-import type { LoaderArgs } from '@remix-run/node'
+import type { LoaderFunctionArgs } from 'react-router'
 
 import { Router, Grid } from '~/components'
-import { json } from '@remix-run/node'
-import { Form, useLoaderData, useNavigation } from '@remix-run/react'
+import { data, href, Form, useLoaderData, useNavigation } from 'react-router'
 import { ListWallets } from '~/lib/wallet.server'
-import { route } from 'routes-gen'
 
-export async function loader({ request }: LoaderArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
   const pageSize = url.searchParams.get('pageSize') || '50'
   const pageToken = url.searchParams.get('pageToken') || ''
@@ -17,7 +15,7 @@ export async function loader({ request }: LoaderArgs) {
     search: search || undefined
   })
 
-  return json({
+  return data({
     wallets,
     pageSize,
     search
@@ -115,7 +113,7 @@ export default function Page() {
                         </td>
                         <td className='relative whitespace-nowrap p-4 text-right text-sm font-medium'>
                           <Router
-                            to={route('/wallet/:id/profile', {
+                            to={href('/wallet/:id/profile', {
                               id: wallet.walletID
                             })}
                             className='text-primary'

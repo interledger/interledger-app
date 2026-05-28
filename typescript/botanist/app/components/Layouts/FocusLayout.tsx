@@ -1,5 +1,4 @@
-import { Outlet, useNavigate } from '@remix-run/react'
-import { route } from 'routes-gen'
+import { Outlet, useNavigate, href } from 'react-router'
 import { IconButton, Logo, Router } from '~/components'
 
 export function FocusLayout() {
@@ -10,7 +9,7 @@ export function FocusLayout() {
         <IconButton onClick={() => navigate(-1)} aria-label='Back'>
           arrow_back
         </IconButton>
-        <Router to={route('/')} aria-label='Fynbos logo'>
+        <Router to={href('/')} aria-label='Fynbos logo'>
           <Logo className='h-8' />
         </Router>
       </header>

@@ -1,8 +1,6 @@
-import type { ActionArgs, LoaderArgs } from '@remix-run/node'
-import { json } from '@remix-run/node'
-import { Form, useFetcher, useLoaderData, useParams } from '@remix-run/react'
+import type { ActionFunctionArgs, LoaderFunctionArgs } from 'react-router'
+import { data, href, Form, useFetcher, useLoaderData, useParams } from 'react-router'
 import { useCallback } from 'react'
-import { route } from 'routes-gen'
 import { GridCard, Switch } from '~/components'
 import {
   EnablGatehubBalance,
@@ -13,7 +11,7 @@ import {
   GetXagoWalletBalance
 } from '~/lib/wallet.server'
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const xagoBalance = await GetXagoWalletBalance(request, params.id as string)
   const ptiBalance = await GetPtiWalletBalance(request, params.id as string)
   const gatehubBalance = await GetGatehubWalletBalance(
@@ -21,7 +19,7 @@ export async function loader({ request, params }: LoaderArgs) {
     params.id as string
   )
 
-  return json({
+  return data({
     zarBalance: xagoBalance,
     usdBalance: ptiBalance,
     eurBalance: gatehubBalance
@@ -51,7 +49,7 @@ export default function Page() {
       )}
       <Form
         id='features-form'
-        action={route('/wallet/:id/balances', { id: id as string })}
+        action={href('/wallet/:id/balances', { id: id as string })}
         method='post'
         className='hidden'
       />
@@ -103,7 +101,7 @@ export default function Page() {
   )
 }
 
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   let form = await request.formData()
   let currency = form.get('currency')
 

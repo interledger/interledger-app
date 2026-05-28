@@ -1,23 +1,23 @@
-import type { LoaderArgs } from '@remix-run/node'
-import { json } from '@remix-run/node'
+import type { LoaderFunctionArgs } from 'react-router'
 import {
+  data,
+  href,
   isRouteErrorResponse,
   NavLink,
   Outlet,
   useLoaderData,
   useLocation,
   useRouteError
-} from '@remix-run/react'
+} from 'react-router'
 import { GetWalletDetails, GetWalletTransactions } from '~/lib/wallet.server'
 import type { FC } from 'react'
-import { route } from 'routes-gen'
 import clsx from 'clsx'
 import { Error, Chip, ChipColor } from '~/components'
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const wallet = await GetWalletDetails(request, params.id as string)
   const transactions = await GetWalletTransactions(request, params.id as string)
-  return json({
+  return data({
     transactions,
     wallet
   })
@@ -49,7 +49,7 @@ const ListItem: FC<Transaction> = ({
       preventScrollReset={true}
       prefetch='none'
       className='flex'
-      to={route('/wallet/:id/transactions/:transactionId', {
+      to={href('/wallet/:id/transactions/:transactionId', {
         id: walletID,
         transactionId: id
       })}

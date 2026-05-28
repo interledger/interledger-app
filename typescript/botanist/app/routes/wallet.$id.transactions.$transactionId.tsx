@@ -1,11 +1,11 @@
-import type { LoaderArgs } from '@remix-run/node'
+import type { LoaderFunctionArgs } from 'react-router'
 
-import { json } from '@remix-run/node'
+import { data } from 'react-router'
 import {
   isRouteErrorResponse,
   useLoaderData,
   useRouteError
-} from '@remix-run/react'
+} from 'react-router'
 import { Error, GridCard, GridCardError } from '~/components'
 import {
   GetWalletDetails,
@@ -13,7 +13,7 @@ import {
   ListExternalApiCalls
 } from '~/lib/wallet.server'
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const wallet = await GetWalletDetails(request, params.id as string)
   const transaction = await GetWalletTransactionDetails(
     request,
@@ -25,7 +25,7 @@ export async function loader({ request, params }: LoaderArgs) {
     transaction?.transaction?.paymentId || ''
   )
 
-  return json({
+  return data({
     transaction,
     wallet,
     externalApiLogs

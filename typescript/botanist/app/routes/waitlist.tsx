@@ -1,8 +1,8 @@
-import type { LoaderArgs, ActionArgs } from '@remix-run/node'
+import type { LoaderFunctionArgs, ActionFunctionArgs } from 'react-router'
 
 import { Icon, Grid } from '~/components'
-import { json } from '@remix-run/node'
-import { useLoaderData, useFetcher } from '@remix-run/react'
+import { data } from 'react-router'
+import { useLoaderData, useFetcher } from 'react-router'
 import {
   grpcClient,
   httpMapping,
@@ -10,7 +10,7 @@ import {
   StatusError
 } from '~/lib/proto.server'
 
-export async function loader({ request }: LoaderArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
   const signups = await grpcClient.listWaitlistSignups(
     {},
     {
@@ -20,7 +20,7 @@ export async function loader({ request }: LoaderArgs) {
     }
   )
 
-  return json({
+  return data({
     signups: signups.response.signups
   })
 }
@@ -155,7 +155,7 @@ export default function Page() {
   )
 }
 
-export async function action({ request }: ActionArgs) {
+export async function action({ request }: ActionFunctionArgs) {
   const form = await request.formData()
   const id = form.get('id') as string
 
@@ -173,8 +173,8 @@ export async function action({ request }: ActionArgs) {
     .then((v) => v)
     .catch(StatusError)
   if (isGrpcError(response)) {
-    throw json({}, httpMapping(response.code))
+    throw data({}, httpMapping(response.code))
   }
 
-  return json({ success: true })
+  return data({ success: true })
 }

@@ -1,21 +1,23 @@
 {
+  "include": ["**/*.ts", "**/*.tsx", ".react-router/types/**/*"],
   "compilerOptions": {
-    "lib": ["DOM", "DOM.Iterable", "ES2019"],
+    "lib": ["DOM", "DOM.Iterable", "ES2022"],
+    "types": ["node"],
     "isolatedModules": true,
-    "skipLibCheck": true,
     "esModuleInterop": true,
     "jsx": "react-jsx",
-    "moduleResolution": "node",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
     "resolveJsonModule": true,
-    "target": "ES2019",
+    "target": "ES2022",
     "strict": true,
+    "allowJs": true,
+    "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
     "paths": {
       "~/*": ["./app/*"]
     },
     "noEmit": true,
-    "allowJs": true,
-    "forceConsistentCasingInFileNames": true
-  },
-  "include": ["remix.env.d.ts", "**/*.ts", "**/*.tsx"]
+    "skipLibCheck": true
+  }
 }
