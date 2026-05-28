@@ -456,8 +456,20 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^the pending account-deletion indicator should be visible$`, func() error {
 		return sc.thePendingAccountDeletionIndicatorShouldBeVisible()
 	})
+	ctx.Step(`^the in-progress account-deletion indicator should be visible$`, func() error {
+		return sc.theInProgressAccountDeletionIndicatorShouldBeVisible()
+	})
 	ctx.Step(`^an account-deletion request should exist for me with status "([^"]*)"$`, func(status string) error {
 		return sc.anAccountDeletionRequestShouldExistForMeWithStatus(status)
+	})
+	ctx.Step(`^no account-deletion request should exist for me$`, func() error {
+		return sc.noAccountDeletionRequestShouldExistForMe()
+	})
+	ctx.Step(`^my TOTP enrollment is removed$`, func() error {
+		return sc.myTOTPEnrollmentIsRemoved()
+	})
+	ctx.Step(`^the TOTP step-up popup should not appear$`, func() error {
+		return sc.theTOTPStepUpPopupShouldNotAppear()
 	})
 
 	// Botanist feature toggle steps

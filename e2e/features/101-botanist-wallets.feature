@@ -70,10 +70,7 @@ Feature: Botanist Wallets Filter
   @botanist @wallets-features-toggle @gatehub
   Scenario: Admin can toggle the deleteAccountEnabled feature for a wallet
     Given that my "country" is "germany"
-    And I completed the signup workflow
-    And I completed the account verification workflow
-    And I finished the TOTP registration workflow
-    And I finished the wallet address creation workflow
+    And I complete the minimal KYC flow `botanist-user`
     When I navigate to the admin portal
     And I navigate to my wallet profile page in the admin portal
     Then the "deleteAccountEnabled" feature toggle should be off

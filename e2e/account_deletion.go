@@ -1,9 +1,14 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
+	"io"
+	"net/http"
+	"os"
+	"time"
 
 	"github.com/playwright-community/playwright-go"
 )
@@ -103,18 +108,96 @@ func (sc *E2EContext) iCompleteTheTOTPStepUpChallenge() error {
 }
 
 func (sc *E2EContext) thePendingAccountDeletionIndicatorShouldBeVisible() error {
-	indicator := sc.page.GetByText("Account deletion pending", playwright.PageGetByTextOptions{
+	return sc.waitForAccountDeletionIndicator("Account deletion pending", "pending-deletion-indicator-missing")
+}
+
+func (sc *E2EContext) theInProgressAccountDeletionIndicatorShouldBeVisible() error {
+	return sc.waitForAccountDeletionIndicator("Account deletion in progress", "in-progress-deletion-indicator-missing")
+}
+
+func (sc *E2EContext) waitForAccountDeletionIndicator(text, screenshot string) error {
+	indicator := sc.page.GetByText(text, playwright.PageGetByTextOptions{
 		Exact: playwright.Bool(false),
 	})
 	if err := indicator.First().WaitFor(playwright.LocatorWaitForOptions{
 		State:   playwright.WaitForSelectorStateVisible,
 		Timeout: playwright.Float(5000),
 	}); err != nil {
-		_ = sc.iTakeAScreenshot("pending-deletion-indicator-missing")
-		return fmt.Errorf("pending account-deletion indicator not visible: %w", err)
+		_ = sc.iTakeAScreenshot(screenshot)
+		return fmt.Errorf("%q indicator not visible: %w", text, err)
 	}
-	debugPrintln("✓ Pending account-deletion indicator is visible")
+	debugPrintf("✓ %q indicator is visible\n", text)
 	return nil
+}
+
+func (sc *E2EContext) theTOTPStepUpPopupShouldNotAppear() error {
+	popupInput := sc.page.Locator("input[name='totp_code']")
+	// Settle window — without it we'd race the fetcher response that would
+	// open the popup if TOTP were configured.
+	time.Sleep(2 * time.Second)
+	count, err := popupInput.Count()
+	if err != nil {
+		return fmt.Errorf("failed to inspect TOTP popup: %w", err)
+	}
+	if count > 0 {
+		visible, _ := popupInput.First().IsVisible()
+		if visible {
+			_ = sc.iTakeAScreenshot("totp-popup-unexpectedly-visible")
+			return fmt.Errorf("TOTP step-up popup should not have appeared")
+		}
+	}
+	debugPrintln("✓ TOTP step-up popup did not appear")
+	return nil
+}
+
+func (sc *E2EContext) myTOTPEnrollmentIsRemoved() error {
+	kratosID, err := sc.resolveCurrentKratosID()
+	if err != nil {
+		return err
+	}
+
+	kratosAdminURL := os.Getenv("KRATOS_ADMIN_URL")
+	if kratosAdminURL == "" {
+		kratosAdminURL = "http://localhost:4434"
+	}
+
+	url := fmt.Sprintf("%s/admin/identities/%s/credentials/totp", kratosAdminURL, kratosID)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodDelete, url, nil)
+	if err != nil {
+		return fmt.Errorf("build TOTP delete request: %w", err)
+	}
+
+	client := &http.Client{Timeout: 30 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("delete TOTP credential: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusNoContent && resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("unexpected status %d removing TOTP for %s: %s", resp.StatusCode, kratosID, string(body))
+	}
+
+	debugPrintf("✓ Removed TOTP credential for %s\n", kratosID)
+	return nil
+}
+
+func (sc *E2EContext) noAccountDeletionRequestShouldExistForMe() error {
+	kratosID, err := sc.resolveCurrentKratosID()
+	if err != nil {
+		return err
+	}
+
+	got, err := sc.getAccountDeletionStatus(kratosID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			debugPrintf("✓ no account-deletion request exists for %s\n", kratosID)
+			return nil
+		}
+		return fmt.Errorf("failed to query account-deletion status: %w", err)
+	}
+	return fmt.Errorf("expected no account-deletion request for user %s but found one with status %q", kratosID, got)
 }
 
 func (sc *E2EContext) anAccountDeletionRequestShouldExistForMeWithStatus(expected string) error {
