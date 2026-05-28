@@ -15,7 +15,7 @@ export default defineConfig({
     }
   },
   build: {
-    sourcemap: true
+    sourcemap: process.env.NODE_ENV === 'production' ? 'hidden' : true
   },
   optimizeDeps: {
     include: [
