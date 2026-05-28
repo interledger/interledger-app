@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - release/**
     paths-ignore:
       - 'documentation/**'
   workflow_dispatch:
@@ -62,6 +63,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       release_tag: ${{ steps.tags_after.outputs.latest != steps.tags_before.outputs.latest && steps.tags_after.outputs.latest || '' }}
+      is_maintenance_release: ${{ steps.detect_branch.outputs.is_maintenance }}
     steps:
       - name: Checkout (for composite action)
         uses: actions/checkout@v4
@@ -85,6 +87,19 @@ jobs:
 
       - name: Fetch tags
         run: git fetch --force --tags origin
+
+      - name: Detect branch type
+        id: detect_branch
+        run: |
+          set -euo pipefail
+          BRANCH=$(git rev-parse --abbrev-ref HEAD)
+          if [[ "${BRANCH}" == release/* ]]; then
+            echo "is_maintenance=true" >> "$GITHUB_OUTPUT"
+            echo "Branch ${BRANCH} detected as maintenance branch."
+          else
+            echo "is_maintenance=false" >> "$GITHUB_OUTPUT"
+            echo "Branch ${BRANCH} detected as main release branch."
+          fi
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -124,7 +139,12 @@ jobs:
       id-token: write
     uses: ./.github/workflows/build-and-publish.yml
     with:
+<<<<<<< HEAD
       release_tag: ${{ needs.release.outputs.release_tag || needs.manual_release.outputs.release_tag }}
       ref: ${{ needs.manual_release.outputs.sha || '' }}
       skip_deploy_bump: ${{ needs.manual_release.outputs.release_tag != '' }}
+=======
+      release_tag: ${{ needs.release.outputs.release_tag }}
+      is_maintenance_release: ${{ needs.release.outputs.is_maintenance_release == 'true' }}
+>>>>>>> 41a8dfcc6 (ci: semantic versioning maintenance release process)
     secrets: inherit
