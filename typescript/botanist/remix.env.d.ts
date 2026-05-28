@@ -1,1 +1,1 @@
-/// <reference types="@react-router/dev/vite/env" />
+/// <reference types="vite/client" />
