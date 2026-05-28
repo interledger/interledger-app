@@ -81,25 +81,25 @@ services:
 svc: services
 
 application:
-	$(COMPOSE) --profile application up --build --watch
+	$(COMPOSE) --profile application up --watch
 
 app: application
 
 backend:
-	$(COMPOSE) --profile backend up --build --watch
+	$(COMPOSE) --profile backend up --watch
 
 back: backend
 
 frontend:
-	$(COMPOSE) --profile frontend up --build --watch
+	$(COMPOSE) --profile frontend up --watch
 
 front: frontend
 
 all:
-	$(COMPOSE) --profile "*" up --build --watch
+	$(COMPOSE) --profile "*" up --watch
 
 all-nowatch:
-	$(COMPOSE) --profile "*" up --build -d
+	$(COMPOSE) --profile "*" up -d
 
 all-ci:
 	$(COMPOSE) -f docker-compose.yaml -f protea.runner.mounts.yaml --profile infrastructure --profile services --profile application --profile backend --profile frontend up -d

@@ -16,18 +16,11 @@ var initOnce sync.Once
 var slackToken string
 var channelID string
 
-// Init configures the Slack notifier. The channel ID is environment-specific
-// (set via the SLACK_CHANNEL env var) so that sandbox and production route to
-// separate channels. When channel is empty (e.g. local development) no
-// notifications are sent.
 func Init(token, channel string) {
 	slackToken = token
 	channelID = channel
 }
 
-// SendToChannel posts a notification to the configured Slack channel. It is a
-// best-effort, fire-and-forget operation: failures are logged, not returned.
-// When no channel is configured (e.g. local development) it is a no-op.
 func SendToChannel(ctx context.Context, fromUser, message string) {
 	if channelID == "" {
 		log.Debug("slack channel not configured, skipping notification", zap.String("from_user", fromUser))

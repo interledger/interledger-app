@@ -238,8 +238,6 @@ backend:
       client_secret_ref: "slackClientSecret"
       signing_secret_ref: "slackSigningSecret"
       token_ref: "slackToken"
-      # Slack channel ID notifications are posted to. Set per-environment
-      # (sandbox vs production) in the deploy overlays. Empty disables sending.
       channel: ""
 
     persona:
