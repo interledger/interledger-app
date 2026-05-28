@@ -33,6 +33,7 @@ import (
 	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
 	"gitlab.com/fynbos/backend/wallets"
 	wallets_mock "gitlab.com/fynbos/backend/wallets/client/mock"
+	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/pacioli"
 	pacioli_mock "gitlab.com/fynbos/pacioli/client/mock"
 
@@ -78,6 +79,8 @@ func startPostgresContainer(ctx context.Context) (testcontainers.Container, stri
 }
 
 func TestMain(m *testing.M) {
+	env.SetRafikiNodeEnabled(true)
+
 	if os.Getenv("DB_URL") == "" {
 		ctx := context.Background()
 		container, connStr, err := startPostgresContainer(ctx)

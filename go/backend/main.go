@@ -489,7 +489,7 @@ func startWorker(args *cli.StartArgs) {
 	serveHTTP(&http.Server{Addr: ":8081", Handler: router}, &wg)
 
 	log.Info("Worker creating")
-	w, err := temporal.NewTemporalWorker(b, b.gatehubConfig, b.xagoConfig, args.PTIJWK, args.PTIBaseURL, args.PTIClientID, args.ChimoneyToken, jobs.Config{
+	w, err := temporal.NewTemporalWorker(b, b.gatehubConfig, b.xagoConfig, args.PTIJWK, args.PTIBaseURL, args.PTIClientID, args.ChimoneyToken, args.RafikiNodeEnabled, jobs.Config{
 		KratosURL:         args.KratosUrl,
 		KratosAdminURL:    args.KratosAdminUrl,
 		PTIJWK:            args.PTIJWK,

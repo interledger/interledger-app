@@ -18,6 +18,7 @@ import (
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	"gitlab.com/fynbos/backend/providers/gatehub/external"
 	"gitlab.com/fynbos/backend/slack"
+	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/log"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/serviceerror"
@@ -364,30 +365,32 @@ func HandleUserDeposit(ctx context.Context, b Backends, raw json.RawMessage, w h
 	}
 
 	if wh.Data.DepositType == "hosted" {
-		// Check if this is a Rafiki workflow transfer
-		var rafikiWorkflowID string
-		err = b.DB().GetContext(ctx, &rafikiWorkflowID, "SELECT workflow_id FROM rafiki_gatehub_transfers WHERE gatehub_tx_id=$1;", wh.Data.TrxID)
-		if err != nil && !errors.Is(err, sql.ErrNoRows) {
-			log.Error("gatehub webhook: Failed to lookup rafiki workflow for transfer",
-				zap.String("external_transaction_id", wh.Data.TrxID),
-				zap.Error(err))
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			return
-		}
-
-		// Rafiki transfer: signal the Rafiki workflow only, skip the payments path.
-		if err == nil && rafikiWorkflowID != "" {
-			signalErr := b.Temporal().SignalWorkflow(ctx, rafikiWorkflowID, "", "rafiki_gatehub_signal", nil)
-			if signalErr != nil {
-				log.Error("gatehub webhook: Failed to signal rafiki workflow",
-					zap.String("workflowID", rafikiWorkflowID),
+		if env.IsRafikiNodeEnabled() {
+			// Check if this is a Rafiki workflow transfer
+			var rafikiWorkflowID string
+			err = b.DB().GetContext(ctx, &rafikiWorkflowID, "SELECT workflow_id FROM rafiki_gatehub_transfers WHERE gatehub_tx_id=$1;", wh.Data.TrxID)
+			if err != nil && !errors.Is(err, sql.ErrNoRows) {
+				log.Error("gatehub webhook: Failed to lookup rafiki workflow for transfer",
 					zap.String("external_transaction_id", wh.Data.TrxID),
-					zap.Error(signalErr))
+					zap.Error(err))
 				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 				return
 			}
-			w.WriteHeader(http.StatusOK)
-			return
+
+			// Rafiki transfer: signal the Rafiki workflow only, skip the payments path.
+			if err == nil && rafikiWorkflowID != "" {
+				signalErr := b.Temporal().SignalWorkflow(ctx, rafikiWorkflowID, "", "rafiki_gatehub_signal", nil)
+				if signalErr != nil {
+					log.Error("gatehub webhook: Failed to signal rafiki workflow",
+						zap.String("workflowID", rafikiWorkflowID),
+						zap.String("external_transaction_id", wh.Data.TrxID),
+						zap.Error(signalErr))
+					http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+					return
+				}
+				w.WriteHeader(http.StatusOK)
+				return
+			}
 		}
 
 		if err := b.Payments().SignalGatehubTransferComplete(ctx, wh.Data.TrxID); err != nil {
