@@ -19,11 +19,13 @@ var channelID string
 func Init(token, channel string) {
 	slackToken = token
 	channelID = channel
+	if channelID == "" {
+		log.Info("slack notifications disabled: SLACK_CHANNEL not set")
+	}
 }
 
 func SendToChannel(ctx context.Context, fromUser, message string) {
 	if channelID == "" {
-		log.Debug("slack channel not configured, skipping notification", zap.String("from_user", fromUser))
 		return
 	}
 
