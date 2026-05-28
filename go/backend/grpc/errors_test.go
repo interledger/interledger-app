@@ -118,6 +118,7 @@ func TestToGRPCError(t *testing.T) {
 		}{
 			{"user not found", user.ErrNoUserFound, codes.Unauthenticated, errcodes.ErrCodeUserNoUserFound},
 			{"user invalid argument", user.ErrInvalidArgument, codes.InvalidArgument, errcodes.ErrCodeValidation},
+			{"user duplicate phone", user.ErrDuplicatePhone, codes.AlreadyExists, errcodes.ErrCodeSignupDuplicatePhone},
 			{"duplicate wallet", wallets.ErrDuplicateWallet, codes.AlreadyExists, errcodes.ErrCodeWalletsDuplicateWallet},
 			{"wallet conflict", wallets.ErrWalletConflict, codes.FailedPrecondition, errcodes.ErrCodeWalletsWalletConflict},
 			{"linked account not found", linkedaccounts.ErrNotFound, codes.NotFound, errcodes.ErrCodeLinkedAccNotFound},

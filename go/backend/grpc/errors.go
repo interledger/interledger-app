@@ -35,6 +35,7 @@ const VALIDATION_ERR_MSG = "Some fields are incorrect."
 var errorStatus = map[error]error{
 	user.ErrNoUserFound:            newError(codes.Unauthenticated, errcodes.ErrCodeUserNoUserFound, "Unauthenticated", nil),
 	user.ErrInvalidArgument:        NewValidationError("phone", "Phone number is invalid."),
+	user.ErrDuplicatePhone:         newError(codes.AlreadyExists, errcodes.ErrCodeSignupDuplicatePhone, "Phone number already exists with a user.", nil),
 	twilio.ErrInvalidOTP:           newTwilioValidationErrorSingleField(errcodes.ErrCodeTwilioInvalidOTP, "otp", "Could not validate OTP"),
 	twilio.ErrInvalidArgument:      newTwilioValidationErrorSingleField(errcodes.ErrCodeTwilioInvalidOTP, "otp", "Invalid OTP format"),
 	wallets.ErrDuplicateWallet:     newError(codes.AlreadyExists, errcodes.ErrCodeWalletsDuplicateWallet, "Wallet already exists", nil),

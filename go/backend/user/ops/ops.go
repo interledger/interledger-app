@@ -375,6 +375,9 @@ func UpdateUserPhone(ctx context.Context, b Backends, userID string, phone strin
 		if response != nil && response.StatusCode == 400 {
 			return fmt.Errorf("%w %s", user.ErrInvalidArgument, err)
 		}
+		if response != nil && response.StatusCode == http.StatusConflict {
+			return fmt.Errorf("%w %s", user.ErrDuplicatePhone, err)
+		}
 		return fmt.Errorf("%w %s", user.ErrInternal, err)
 	}
 

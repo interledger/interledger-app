@@ -224,7 +224,16 @@ export async function action({ request }: Route.ActionArgs) {
       if (updateResponse.code === Code.InvalidArgument) {
         return { errors: { phone: 'Invalid phone number. Please check the format.' } }
       }
-      throw updateResponse.errorResponse
+      if (
+        updateResponse.code === Code.AlreadyExists ||
+        updateResponse.hasAppErrorCode('SIGNUP_DUPLICATE_PHONE')
+      ) {
+        return {
+          errors: {
+            phone: 'This mobile number is already in use. Try a different number.'
+          }
+        }
+      }
     }
 
     const sendResponse = await grpc.sendPhoneVerification(request, {

@@ -194,6 +194,7 @@ export default function Page() {
         >
           <input type='hidden' name='intent' value='resend' />
           <input type='hidden' name='csrfToken' value={csrfToken} />
+          <input type='hidden' name='phone' value={currentPhone} />
           <Button type='submit' disabled={isResendDisabled} className='w-full'>
             {!otpSent
               ? resendFetcher.state !== 'idle'
@@ -235,6 +236,16 @@ export async function action({ request }: Route.ActionArgs) {
       if (updateResponse.code === Code.InvalidArgument) {
         return { errors: { phone: 'Invalid phone number. Please check the format.' } }
       }
+      if (
+        updateResponse.code === Code.AlreadyExists ||
+        updateResponse.hasAppErrorCode('SIGNUP_DUPLICATE_PHONE')
+      ) {
+        return {
+          errors: {
+            phone: 'This mobile number is already in use. Try a different number.'
+          }
+        }
+      }
       throw updateResponse.errorResponse
     }
 
@@ -247,15 +258,18 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   if (intent === 'resend') {
+    const resendPhone = (form.get('phone') as string) || phone
     const rateLimitError = await rateLimit(
-      getKey(RateLimitKeys.PhoneOTP, phone),
+      getKey(RateLimitKeys.PhoneOTP, resendPhone),
       { limit: 1, ttlSeconds: 60 }
     )
     if (rateLimitError) {
       return { codeSent: false, error: 'rateLimited', retryAfter: 60 }
     }
 
-    const response = await grpc.sendPhoneVerification(request, { to: phone })
+    const response = await grpc.sendPhoneVerification(request, {
+      to: resendPhone
+    })
     if (isConnectError(response)) throw response.errorResponse
 
     return { codeSent: true }

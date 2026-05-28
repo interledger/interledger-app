@@ -5,6 +5,7 @@ import "errors"
 var (
 	ErrInternal          = errors.New("user: internal error")
 	ErrInvalidArgument   = errors.New("user: invalid argument")
+	ErrDuplicatePhone    = errors.New("user: duplicate phone")
 	ErrNoUserFound       = errors.New("no user found")
 	ErrNoCredentials     = errors.New("no credentials found")
 	ErrTotpNotConfigured = errors.New("totp not configured")
