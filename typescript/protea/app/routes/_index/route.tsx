@@ -55,7 +55,7 @@ async function appLoader({ request }: LoaderFunctionArgs) {
     getFeatures(request),
     grpc.getBalances(request, {})
   ])
-  if (isConnectError(balanceResponse)) throw balanceResponse.error
+  if (isConnectError(balanceResponse)) throw balanceResponse.errorResponse
 
   return data({
     isUser: true,
