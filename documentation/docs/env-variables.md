@@ -182,6 +182,8 @@ The Go backend is the core of the wallet, handling payments, provider integratio
 | Variable | Description | Secret | Notes |
 |---|---|---|---|
 | `SLACK_TOKEN` | Slack bot token for sending notifications | Yes | Not set locally |
+| `SLACK_CHANNEL` | Slack channel ID that Fynbot notifications are posted to.
+    Set per environment (sandbox vs production) to route notifications to separate channels. | No | Not set locally |
 | `SLACK_CLIENT_ID` | Slack OAuth app client ID | Yes | Not set locally |
 | `SLACK_CLIENT_SECRET` | Slack OAuth app client secret | Yes | Not set locally |
 | `SLACK_SIGNING_SECRET` | Slack signing secret for webhook verification | Yes | Not set locally |
