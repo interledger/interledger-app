@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
-	"strconv"
 	"strings"
 	"time"
 
@@ -274,9 +273,6 @@ func validateWithdrawal(ctx context.Context, b Backends, ec external.Client, wal
 		return currency.Amount{}, nil, currency.Amount{}, fmt.Errorf("%w invalid fee", gatehub.ErrInternal)
 	}
 
-	if err != nil {
-		return currency.Amount{}, nil, currency.Amount{}, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
-	}
 	if trx.Type != external.TransactionTypeWithdrawal {
 		return currency.Amount{}, nil, currency.Amount{}, fmt.Errorf("%w Transaction is not a withdrawal", gatehub.ErrInternal)
 	}
@@ -309,13 +305,13 @@ func validateWithdrawal(ctx context.Context, b Backends, ec external.Client, wal
 		return currency.Amount{}, nil, currency.Amount{}, fmt.Errorf("%w invalid amount", gatehub.ErrInternal)
 	}
 
-	value, err := strconv.ParseUint(parts[0], 10, 64)
+	value, err := StringToScaledUInt(trx.Amount)
 	if err != nil {
 		return currency.Amount{}, nil, currency.Amount{}, fmt.Errorf("%w invalid amount", gatehub.ErrInternal)
 	}
 
 	return currency.Amount{
-			Value:    int64(value) * 100, // EUR scale = 2
+			Value:    value, // EUR scale = 2
 			Currency: cc,
 		}, balance, currency.Amount{
 			Value:    fee,
