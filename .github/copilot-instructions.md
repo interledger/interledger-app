@@ -62,9 +62,13 @@ go tool cover -func=coverage.out
 ```
 
 **Coverage Thresholds** (enforced by CI, defined in `go/coverage.thresholds`):
-- `backend=10.0%`
-- `pacioli=34.8%`
+- `backend=12.5%`
+- `pacioli=42.0%`
 - `geo=90.0%`
+- `mockxago=62.0%`
+- `mockgatehub=56.0%`
+- `mockchimoney=62.0%`
+- `mockpti=62.0%`
 
 Changes must meet or exceed these thresholds.
 
@@ -220,7 +224,7 @@ typescript/
 ### PR Checks (must pass before merge)
 
 1. **PR Title** - Must follow Conventional Commits (feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert, local)
-2. **Go Tests** - Coverage thresholds enforced for backend, pacioli, geo
+2. **Go Tests** - Coverage thresholds enforced for backend, pacioli, geo, mockxago, mockgatehub, mockchimoney, mockpti
 3. **E2E Tests** - Full Playwright suite on Google Cloud VM (90m timeout)
 4. **Linting** - golangci-lint v2.5.0 in `go/` directory
 
@@ -262,12 +266,14 @@ PRs are automatically labeled by `.github/workflows/labeler.yml` using the confi
 
 - `.github/workflows/pr-title-check.yml` - Validates PR title format
 - `.github/workflows/labeler.yml` - Auto-labels PRs based on changed files (config: `.github/labeler.yml`)
-- `.github/workflows/go-tests.yml` - Runs `go-test-template.yml` for backend, pacioli (skipped for docs/local-only changes)
+- `.github/workflows/go-tests.yml` - Runs `go-test-template.yml` for backend, pacioli, geo and mock services (skipped for docs/local-only changes)
+- `.github/workflows/go-test-template.yml` - Reusable template; runs inside the `ghcr.io/interledger/builders/gotester:v1.1.0` container — no local Go setup needed
+- `.github/workflows/mock-tester.yml` - Reusable template for mock services; still installs Go (`setup-go`) and golangci-lint manually on the runner (not yet migrated to the gotester container)
 - `.github/workflows/e2e-tests.yml` - Starts VM, runs E2E suite with concurrency=10 (skipped for docs-only changes)
-- `.github/workflows/linting.yml` - Runs golangci-lint on all Go code (skipped for docs/local-only changes)
-- `.github/workflows/build-and-publish.yml` - Builds Docker images on PRs (build only) and pushes to GCP Artifact Registry when triggered by a version tag or `workflow_dispatch`
+- `.github/workflows/linting.yml` - Runs golangci-lint on all Go code inside the `ghcr.io/interledger/builders/gotester:v1.1.0` container (skipped for docs/local-only changes)
+- `.github/workflows/build-and-publish.yml` - Builds Docker images on PRs (build only) and pushes to GCP Artifact Registry when triggered by a version tag or `workflow_dispatch`; on release also publishes the `helm/interledger-app` OCI chart and opens an auto-merge PR in `interledger-app-deploy` to bump `chartVersion` in the development appset
 - `.github/workflows/release.yml` - Runs semantic-release on every push to `main`; creates a git tag, GitHub Release, and release notes from commit history (see Release Process below)
-- `.github/workflows/helm-tests.yml` - Runs `helm unittest` + `kubeconform` on the chart at `helm/interledger-app` (only triggered when `helm/**` files change)
+- `.github/workflows/helm-tests.yml` - Runs `helm unittest` + `kubeconform` on the chart at `helm/interledger-app` inside the `ghcr.io/interledger/builders/chartvalidator:v0.5` container (only triggered when `helm/**` files change)
 
 ### Release Process
 
