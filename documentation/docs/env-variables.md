@@ -257,6 +257,7 @@ For deployed environments the `PTI_JWK`, `PTI_PUBLIC_KEY_JWK`, and `PTI_BASE_URL
 | `PTI_JWK` | PTI private RSA JWK used for request signing and webhook crypto | Yes | Prod/Sandbox: secret (1Password); Local default: test RSA key (see local compose) |
 | `PTI_PUBLIC_KEY_JWK` | PTI public RSA JWK used for webhook signature verification | Yes | Prod/Sandbox: secret (1Password); Local default: test RSA public key (see local compose) |
 | `FYNBOS_BACKEND_HOST` | Host used by the PTI mock webhook proxy (`/webhooks/pti`) when forwarding requests to the wallet backend | No | Not set in any environment |
+| `XAGO_GATEHUB_PAYMENTS_DEFAULT_ENABLED` | Controls default permissions for cross provider payments between Xago and Gatehub. The value is ignored for users having entries in the `wallet_features` table | No | Defaults to false |
 
 ### Legacy Variables
 

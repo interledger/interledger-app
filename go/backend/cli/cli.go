@@ -494,6 +494,10 @@ func ParseStartArgs() (*StartArgs, error) {
 		}
 	}
 
+	if v := os.Getenv("XAGO_GATEHUB_PAYMENTS_DEFAULT_ENABLED"); v == "true" {
+		env.SetXagoGatehubPaymentsDefaultEnabled(true)
+	}
+
 	appleAppID := os.Getenv("APPLE_APP_ID")
 	if appleAppID == "" {
 		return nil, errors.New("APPLE_APP_ID is required")

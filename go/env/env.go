@@ -166,3 +166,13 @@ func AdminURL() string {
 	}
 	return "https://admin.sandbox.interledger.tech"
 }
+
+var xagoGatehubPaymentsDefaultEnabled bool
+
+func SetXagoGatehubPaymentsDefaultEnabled(v bool) {
+	xagoGatehubPaymentsDefaultEnabled = v
+}
+
+func GetXagoGatehubPaymentsDefaultEnabled() bool {
+	return xagoGatehubPaymentsDefaultEnabled
+}
