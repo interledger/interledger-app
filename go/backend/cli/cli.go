@@ -129,6 +129,7 @@ type StartArgs struct {
 	SentryDSN                     string
 	SentryRelease                 string
 	SlackToken                    string
+	SlackChannel                  string
 	SlackClientID                 string
 	SlackClientSecret             string
 	SlackRedirectURL              string
@@ -607,6 +608,7 @@ func ParseStartArgs() (*StartArgs, error) {
 		SentryDSN:                     os.Getenv("SENTRY_DSN"),
 		SentryRelease:                 os.Getenv("SENTRY_RELEASE"),
 		SlackToken:                    os.Getenv("SLACK_TOKEN"),
+		SlackChannel:                  os.Getenv("SLACK_CHANNEL"),
 		SlackClientID:                 os.Getenv("SLACK_CLIENT_ID"),
 		SlackClientSecret:             os.Getenv("SLACK_CLIENT_SECRET"),
 		SlackRedirectURL:              os.Getenv("SLACK_REDIRECT_URL"),

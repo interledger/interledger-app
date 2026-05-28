@@ -2,10 +2,7 @@ package slack
 
 import (
 	"context"
-	"fmt"
 	"sync"
-
-	"gitlab.com/fynbos/env"
 
 	"gitlab.com/fynbos/log"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -17,23 +14,23 @@ import (
 var api *ext_slack.Client
 var initOnce sync.Once
 var slackToken string
+var channelID string
 
-type Channel string
-
-const (
-	ChannelPersona      Channel = "C091T8JD0DS"
-	ChannelNotifyReview Channel = "C091T8JD0DS"
-	ChannelNotifyEvents Channel = "C091T8JD0DS"
-	ChannelNotifyForms  Channel = "C091T8JD0DS"
-	ChannelNotifyErrors Channel = "C091T8JD0DS"
-)
-
-func Init(token string) {
+// Init configures the Slack notifier. The channel ID is environment-specific
+// (set via the SLACK_CHANNEL env var) so that sandbox and production route to
+// separate channels. When channel is empty (e.g. local development) no
+// notifications are sent.
+func Init(token, channel string) {
 	slackToken = token
+	channelID = channel
 }
 
-func SendToChannel(ctx context.Context, channel Channel, fromUser, message string) {
-	if channel == ChannelNotifyEvents && env.IsLocal() {
+// SendToChannel posts a notification to the configured Slack channel. It is a
+// best-effort, fire-and-forget operation: failures are logged, not returned.
+// When no channel is configured (e.g. local development) it is a no-op.
+func SendToChannel(ctx context.Context, fromUser, message string) {
+	if channelID == "" {
+		log.Debug("slack channel not configured, skipping notification", zap.String("from_user", fromUser))
 		return
 	}
 
@@ -44,21 +41,13 @@ func SendToChannel(ctx context.Context, channel Channel, fromUser, message strin
 		return
 	}
 
-	message = formatMessageForEnvironment(message)
-
 	// Create the Slack attachment that we will send to the channel
 	attachment := ext_slack.Attachment{
 		Pretext: message,
 	}
 
-	_, _, err := api.PostMessageContext(ctx, string(channel), ext_slack.MsgOptionUsername(fromUser), ext_slack.MsgOptionAttachments(attachment))
-
-	log.Warn("failed to send message to slack", zap.Error(err))
-}
-
-func formatMessageForEnvironment(message string) string {
-	if !env.IsProd() {
-		return fmt.Sprintf("%s\n*[%s]*", message, env.GetEnv())
+	_, _, err := api.PostMessageContext(ctx, channelID, ext_slack.MsgOptionUsername(fromUser), ext_slack.MsgOptionAttachments(attachment))
+	if err != nil {
+		log.Warn("failed to send message to slack", zap.Error(err))
 	}
-	return message
 }

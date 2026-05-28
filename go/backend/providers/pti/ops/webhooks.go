@@ -198,7 +198,7 @@ func HandleAssessmentUpdate(ctx context.Context, b Backends, data []byte) error 
 		}
 	default:
 		log.Error("failed to handle pti user assessment webhook", zap.String("externalUserId", assessmentData.UserId), zap.String("assessment_status", assessmentData.Assessment))
-		slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "wallet-info-bot", fmt.Sprintf("fiant webhook: kyc assessment status=%s walletID=%s", assessmentData.Assessment, ptiUser.WalletID))
+		slack.SendToChannel(ctx, "wallet-info-bot", fmt.Sprintf("fiant webhook: kyc assessment status=%s walletID=%s", assessmentData.Assessment, ptiUser.WalletID))
 	}
 
 	return nil
@@ -277,7 +277,7 @@ func HandleTransactionStatus(ctx context.Context, b Backends, raw json.RawMessag
 
 	default:
 		log.Error("failed to handle pti transaction status webhook", zap.String("externalUserId", payload.UserID), zap.String("status", payload.Status), zap.String("requestId", payload.RequestID))
-		slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "wallet-info-bot", fmt.Sprintf("fiant webhook: transaction status=%s walletID=%s", payload.Status, payload.UserID))
+		slack.SendToChannel(ctx, "wallet-info-bot", fmt.Sprintf("fiant webhook: transaction status=%s walletID=%s", payload.Status, payload.UserID))
 	}
 
 	w.WriteHeader(http.StatusOK)

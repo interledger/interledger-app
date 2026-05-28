@@ -724,7 +724,7 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 		BearerToken:   args.TwitterBearerToken,
 	})
 
-	slack.Init(args.SlackToken)
+	slack.Init(args.SlackToken, args.SlackChannel)
 	_grpc.InitAgreementIDs(args.SignupAgreementIDs)
 
 	b.slack, err = slack_client.New(b, slack_external.Config{

@@ -59,7 +59,7 @@ func GatehubCardTransactionsPollWorkflow(ctx workflow.Context) error {
 		err := workflow.ExecuteActivity(ctx, a.ProcessCardTransaction, tx).Get(ctx, nil)
 		if err != nil {
 			logger.Error("Failed processing transaction", "txID", tx, "error", err)
-			slack.SendToChannel(context.Background(), slack.ChannelNotifyEvents, "wallet-info-bot", fmt.Sprintf(":warning: Failed to process card transaction\nGateHub TX ID: %s\nGateHub User ID: %s", tx.ID, tx.UserID))
+			slack.SendToChannel(context.Background(), "wallet-info-bot", fmt.Sprintf(":warning: Failed to process card transaction\nGateHub TX ID: %s\nGateHub User ID: %s", tx.ID, tx.UserID))
 			continue
 		}
 

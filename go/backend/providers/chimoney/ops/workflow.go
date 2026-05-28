@@ -662,14 +662,12 @@ func rollBackWithdrawal(ctx workflow.Context, a *Activity, stage withdrawalStage
 		// Rather notify slack for manual intervention
 		slack.SendToChannel(
 			context.Background(),
-			slack.ChannelNotifyEvents,
 			"wallet-info-bot",
 			fmt.Sprintf("Chimoney withdrawal failed after external api call. walletID=%s, transactionID=%s", walletID, trxID),
 		)
 	case externalWithdrawalFailed:
 		slack.SendToChannel(
 			context.Background(),
-			slack.ChannelNotifyEvents,
 			"wallet-info-bot",
 			fmt.Sprintf("Chimoney withdrawal failed on Chimoney side. walletID=%s, transactionID=%s", walletID, trxID),
 		)

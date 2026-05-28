@@ -542,7 +542,7 @@ func AssignBalance(ctx context.Context, b Backends, linkedAccountID, txID string
 func RollbackReserve(ctx context.Context, b Backends, txID string) error {
 	tx, err := b.Pacioli().VoidTransfers(ctx, []string{txID})
 	if err != nil {
-		slack.SendToChannel(ctx, slack.ChannelNotifyErrors, "wallet-info-bot", fmt.Sprintf("*:::[Chimoney ERROR]:::* \n *RollbackReserve txID:* %s,\n *error:* %s", txID, err))
+		slack.SendToChannel(ctx, "wallet-info-bot", fmt.Sprintf("*:::[Chimoney ERROR]:::* \n *RollbackReserve txID:* %s,\n *error:* %s", txID, err))
 		return fmt.Errorf("%w %s", chimoney.ErrInternal, err)
 	}
 	if len(tx) == 0 {

@@ -238,6 +238,9 @@ backend:
       client_secret_ref: "slackClientSecret"
       signing_secret_ref: "slackSigningSecret"
       token_ref: "slackToken"
+      # Slack channel ID notifications are posted to. Set per-environment
+      # (sandbox vs production) in the deploy overlays. Empty disables sending.
+      channel: ""
 
     persona:
       base_url: "https://api.withpersona.com/api/v1/"
@@ -878,6 +881,8 @@ backend:
           valueRef: backend.config.persona.base_url
         - key: SIGNUP_AGREEMENT_IDS
           valueRef: backend.config.signup_agreement_ids
+        - key: SLACK_CHANNEL
+          valueRef: backend.config.slack.channel
 
 # =============================================================================
 # FRONTEND — Protea user-facing wallet
