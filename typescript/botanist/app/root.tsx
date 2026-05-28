@@ -9,6 +9,7 @@ import {
 } from 'react-router'
 import { AdminLayout, Error } from '~/components'
 import type { ReactNode } from 'react'
+import { useEffect } from 'react'
 import styles from '~/styles/app.css?url'
 
 const metaContent = {
@@ -67,6 +68,10 @@ function Document({
 }
 
 export default function Page() {
+  useEffect(() => {
+    document.documentElement.setAttribute('data-hydrated', 'true')
+  }, [])
+
   return (
     <Document>
       <AdminLayout />

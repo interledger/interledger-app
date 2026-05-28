@@ -1,5 +1,4 @@
 import { reactRouter } from '@react-router/dev/vite'
-import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import tsconfigPaths from 'vite-tsconfig-paths'
 
@@ -18,5 +17,20 @@ export default defineConfig({
   build: {
     sourcemap: true
   },
-  plugins: [react(), reactRouter(), tsconfigPaths()]
+  optimizeDeps: {
+    include: [
+      'react',
+      'react-dom',
+      'react-dom/client',
+      'react-router',
+      '@headlessui/react',
+      'clsx',
+      'luxon',
+      '@grpc/grpc-js',
+      '@protobuf-ts/grpc-transport',
+      '@protobuf-ts/runtime',
+      '@protobuf-ts/runtime-rpc'
+    ]
+  },
+  plugins: [reactRouter(), tsconfigPaths()]
 })
