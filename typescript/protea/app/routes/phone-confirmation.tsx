@@ -16,9 +16,11 @@ import {
   ChangePhoneForm,
   Icon,
   Layouts,
+  OutlineButtonRouter,
   TextButton,
   TextField
 } from '~/components'
+
 import { Label } from '~/components/Label'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { ErrorDescriptions } from '~/lib/error.constants'
@@ -206,6 +208,9 @@ export default function Page() {
           </Button>
         </resendFetcher.Form>
       )}
+      <OutlineButtonRouter to={href('/logout')} className='mt-4'>
+        Log out
+      </OutlineButtonRouter>
     </>
   )
 }
