@@ -27,7 +27,7 @@ import {
 } from '~/components'
 import { Scaffold } from '~/components/Scaffold'
 import { TotpChallengeGlobal } from '~/components/TotpChallengeGlobal'
-import { getUserSession, hasUserSession } from '~/lib/kratos/session.server'
+import { getUserSession, isAuthenticated } from '~/lib/kratos/session.server'
 import { getSnackbar } from '~/lib/snackbar.server'
 import styles from '~/styles/app.css?url'
 import { PendingConfirmationsLoader } from './components/PendingConfirmationsLoader'
@@ -127,7 +127,7 @@ function Document({ children, theme = 'theme-system' }: DocumentProps) {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const isUser = hasUserSession(request)
+  const isUser = await isAuthenticated(request)
   const { snackbar, headers } = await getSnackbar(request)
   const pusherArgs = await getPusherArgs(request)
 

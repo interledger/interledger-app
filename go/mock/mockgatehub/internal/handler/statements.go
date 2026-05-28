@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/fynbos/mock/mockgatehub/internal/assets"
+	"gitlab.com/fynbos/mock/mockgatehub/internal/consts"
 	"gitlab.com/fynbos/mock/mockgatehub/internal/logger"
 	"go.uber.org/zap"
 )
@@ -58,9 +59,22 @@ func (h *Handler) GetTransferConfirmation(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	logger.Info("getting transfer confirmation statement", zap.String("transaction_uuid", transactionUUID))
+	tx, err := h.store.GetTransaction(transactionUUID)
+	if err != nil {
+		h.sendError(w, http.StatusNotFound, "Transaction not found")
+		return
+	}
 
-	h.sendStatementPDF(w, "transfer-confirmation.pdf")
+	switch tx.Type {
+	case consts.TransactionTypeDeposit, consts.TransactionTypeWithdrawal:
+		logger.Info("getting transfer confirmation statement", zap.String("transaction_uuid", transactionUUID))
+		h.sendStatementPDF(w, "transfer-confirmation.pdf")
+		return
+	default:
+		h.sendError(w, http.StatusBadRequest, "Transaction is not a deposit or withdrawal")
+		return
+	}
+
 }
 
 func (h *Handler) sendStatementPDF(w http.ResponseWriter, filename string) {

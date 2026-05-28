@@ -9,17 +9,9 @@ import (
 
 	"net/http"
 	"net/url"
-	"slices"
 
 	"github.com/lestrrat-go/jwx/v3/jwk"
 )
-
-var allowedURLs = []string{
-	"https://api.platform.fiant.io/v1/",
-	"https://api.staging.fiant.io/v1/",
-	"http://mockpti:8080",
-	"http://mockpti:8080/",
-}
 
 /*
 note(bradu):
@@ -49,10 +41,6 @@ type Options func(*Controller) error
 
 func WithBaseURL(providerURL string) Options {
 	return func(ctrl *Controller) error {
-		if !slices.Contains(allowedURLs, providerURL) {
-			return ErrInvalidURL
-		}
-
 		ctrl.url = providerURL
 		return nil
 	}

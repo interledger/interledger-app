@@ -108,6 +108,7 @@ type Backends struct {
 	users *user_mock.MockClient
 	la    *la_mock.MockClient
 	wc    *wallet_mock.MockClient
+	tx    transactions.Client
 }
 
 func (b Backends) Payments() payments.Client {
@@ -143,7 +144,7 @@ func (b Backends) KYC() kyc.Client {
 }
 
 func (b Backends) Transactions() transactions.Client {
-	return nil
+	return b.tx
 }
 
 func (b Backends) Email() email.Client {

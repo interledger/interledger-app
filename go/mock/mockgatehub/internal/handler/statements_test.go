@@ -8,6 +8,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"gitlab.com/fynbos/mock/mockgatehub/internal/consts"
+	"gitlab.com/fynbos/mock/mockgatehub/internal/models"
 	"gitlab.com/fynbos/mock/mockgatehub/internal/storage"
 	"gitlab.com/fynbos/mock/mockgatehub/internal/webhook"
 )
@@ -117,6 +120,9 @@ func TestGetTransferConfirmation_MissingTransactionUUID(t *testing.T) {
 
 func TestGetTransferConfirmation_Success(t *testing.T) {
 	h := setupStatementsHandler(t)
+
+	err := h.store.CreateTransaction(&models.Transaction{ID: "tx-uuid-123", Type: consts.TransactionTypeDeposit})
+	require.NoError(t, err)
 
 	req := httptest.NewRequest(http.MethodGet, "/statement/v1/statements/transfer-confirmation/tx-uuid-123", nil)
 	req = statementChiParams(req, map[string]string{"transactionUUID": "tx-uuid-123"})
