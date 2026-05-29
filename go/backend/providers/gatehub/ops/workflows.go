@@ -144,6 +144,7 @@ func CreateGatehubDeposit(ctx workflow.Context, wh DepositWebhook) (string, erro
 	return txID, nil
 }
 
+// TODO: remove once old withdrawal workflows are drained from the Temporal queue
 func ProcessGatehubWithdrawal(ctx workflow.Context, walletID, transactionID string) error {
 	var a *Activity
 	ao := workflow.ActivityOptions{
@@ -175,6 +176,34 @@ func ProcessGatehubWithdrawal(ctx workflow.Context, walletID, transactionID stri
 
 	err = workflow.ExecuteActivity(ctx, a.UpdateGatehubWithdrawalState, walletID, transactionID, transactions.StateCompleted).Get(ctx, nil)
 	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CompleteGatehubWithdrawalWorkflow(ctx workflow.Context, userID, externalTrxID string) error {
+	var a *Activity
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Second,
+	}
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	logger := workflow.GetLogger(ctx)
+	logger.Info("Compleating gatehub withdrawal.", "externalTrxID", externalTrxID)
+
+	var walletID string
+	if err := workflow.ExecuteActivity(ctx, a.GetWalletFromGatehubUser, userID).Get(ctx, &walletID); err != nil {
+		return err
+	}
+
+	var internalTxID string
+	err := workflow.ExecuteActivity(ctx, a.GetGatehubWithdrawalIDByForeignID, walletID, externalTrxID).Get(ctx, &internalTxID)
+	if err != nil {
+		return err
+	}
+
+	if err = workflow.ExecuteActivity(ctx, a.FinalizeGatehubWithdrawal, internalTxID).Get(ctx, nil); err != nil {
 		return err
 	}
 

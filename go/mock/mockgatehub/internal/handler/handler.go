@@ -567,7 +567,7 @@ func (h *Handler) processWithdrawal(w http.ResponseWriter, bearer string, txReq 
 		Currency:         txReq.Currency,
 		VaultUUID:        vaultUUID,
 		ReceivingAddress: walletAddress,
-		Type:             consts.TransactionTypeWithdrawal, // Type 0 = withdrawal
+		Type:             consts.TransactionTypeWithdrawal,
 		DepositType:      consts.DepositTypeWithdrawal,
 		Status:           consts.TransactionStatusCompleted,
 	}
@@ -578,21 +578,21 @@ func (h *Handler) processWithdrawal(w http.ResponseWriter, bearer string, txReq 
 		return
 	}
 
-	// Note that deduct can potentially fail and then we would have to handle it somehow. For simplicity, we assume
-	// it succeeds here. In a real implementation, you would want to handle potential errors and possibly roll back
-	// the transaction creation if balance deduction fails.
-
-	// Deduct balance (including fee) from user
 	if err := h.store.DeductBalance(userUUID, txReq.Currency, totalAmount); err != nil {
 		logger.Error("failed to deduct balance for withdrawal", zap.String("user_id", userUUID), zap.Error(err))
 		h.sendErrorWithCORS(w, http.StatusInternalServerError, "Failed to deduct balance")
 		return
 	}
 
-	// NOTE: Unlike deposits, withdrawals do NOT send webhooks to the backend
-	// The withdrawal flow is: iframe -> postMessage -> frontend -> CreateGatehubWithdrawal RPC -> backend workflow
-	// Real GateHub does not send withdrawal webhooks either
-	logger.Info("withdrawal completed", zap.String("user_id", userUUID), zap.String("transaction_id", txID), zap.String("amount", amountStr), zap.String("currency", txReq.Currency))
+	h.webhookManager.SendAsync(consts.WebhookEventWithdrawalCompleted, userUUID, map[string]interface{}{
+		"tx_uuid":    txID,
+		"amount":     amountStr,
+		"currency":   txReq.Currency,
+		"address":    walletAddress,
+		"total_fees": feeStr,
+	}, 2)
+
+	logger.Info("withdrawal completed and webhook sent", zap.String("user_id", userUUID), zap.String("transaction_id", txID), zap.String("amount", amountStr), zap.String("currency", txReq.Currency))
 
 	// Return success response with transaction ID for iframe
 	h.sendJSONWithCORS(w, http.StatusOK, map[string]string{

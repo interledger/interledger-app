@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
@@ -204,10 +205,6 @@ func CreateWithdrawal(ctx context.Context, b Backends, ec external.Client, walle
 		return "", fmt.Errorf("%w %s", gatehub.ErrInternal, err)
 	}
 	if existingWithdrawal != nil {
-		_, err = processWithdrawal(ctx, b, walletID, existingWithdrawal.ID)
-		if err != nil {
-			return "", fmt.Errorf("%w %s", gatehub.ErrInternal, err)
-		}
 		return existingWithdrawal.ID, nil
 	}
 
@@ -221,7 +218,22 @@ func CreateWithdrawal(ctx context.Context, b Backends, ec external.Client, walle
 		return "", fmt.Errorf("%w %s", gatehub.ErrInternal, err)
 	}
 
-	trxID, err := b.Transactions().CreateTransaction(ctx, transactions.CreateTransactionArgs{
+	trxID := uuid.NewString()
+
+	amountWithFee := currency.Amount{
+		Value:    amount.Value + fee.Value,
+		Currency: amount.Currency,
+		Scale:    amount.Scale,
+	}
+	if _, err = ReserveBalance(ctx, b, balanceAccount.ID, trxID, amountWithFee, 365*24*time.Hour); err != nil {
+		slack.SendToChannel(ctx, slack.ChannelNotifyErrors, "wallet-info-bot",
+			fmt.Sprintf("*:::[GateHub ERROR]:::* Withdrawal ledger reserve failed — no transaction record was created\n*Wallet ID:* %s\n*GateHub TX ID:* %s\n*Error:* %s",
+				walletID, externalTransactionID, err))
+		return "", fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	if _, err = b.Transactions().CreateTransaction(ctx, transactions.CreateTransactionArgs{
+		ID:                      trxID,
 		WalletID:                walletID,
 		ForeignID:               externalTransactionID,
 		Provider:                gatehub.ProviderName,
@@ -235,26 +247,14 @@ func CreateWithdrawal(ctx context.Context, b Backends, ec external.Client, walle
 		DestinationIdentityType: payments.IdentityTypeWalletID.String(),
 		Amount:                  amount,
 		LinkedAccountTitle:      "EUR Balance",
-		Transfers: []transactions.TransferArgs{
-			{
-				LinkedAccountID: balanceAccount.ID,
-				ForeignID:       externalTransactionID,
-				Amount:          amount,
-				Type:            transactions.TransferTypeDebitBalance,
-				State:           transactions.StatePending,
-			},
-		},
-	})
-	if err != nil {
+	}); err != nil {
+		slack.SendToChannel(ctx, slack.ChannelNotifyErrors, "wallet-info-bot",
+			fmt.Sprintf("*:::[GateHub ERROR]:::* Withdrawal transaction record creation failed — ledger reserve exists under transaction ID\n*Wallet ID:* %s\n*Transaction ID:* %s\n*GateHub TX ID:* %s\n*Error:* %s",
+				walletID, trxID, externalTransactionID, err))
 		return "", fmt.Errorf("%w %s", gatehub.ErrInternal, err)
 	}
 
-	_, err = processWithdrawal(ctx, b, walletID, trxID)
-	if err != nil {
-		return "", fmt.Errorf("%w %s", gatehub.ErrInternal, err)
-	}
-
-	return trxID, err
+	return trxID, nil
 }
 
 func validateWithdrawal(ctx context.Context, b Backends, ec external.Client, walletID, externalTransactionID string) (currency.Amount, *linkedaccounts.LinkedAccount, currency.Amount, error) {
@@ -318,43 +318,6 @@ func validateWithdrawal(ctx context.Context, b Backends, ec external.Client, wal
 			Currency: cc,
 			Scale:    2,
 		}, nil
-}
-
-func processWithdrawal(ctx context.Context, b Backends, walletID, transactionID string) (gatehub.Await, error) {
-	wo := client.StartWorkflowOptions{
-		ID:                    fmt.Sprintf("gatehub_create_withdrawal_%s", transactionID),
-		TaskQueue:             "backend",
-		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
-	}
-
-	var workflowStatus enums.WorkflowExecutionStatus
-	wflow, err := b.Temporal().DescribeWorkflowExecution(ctx, wo.ID, "")
-	switch err.(type) {
-	case *serviceerror.Internal,
-		*serviceerror.Unavailable,
-		*serviceerror.InvalidArgument:
-		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
-	case *serviceerror.NotFound:
-		// do nothing
-	default:
-		if wflow != nil {
-			workflowStatus = wflow.GetWorkflowExecutionInfo().Status
-		}
-	}
-
-	// return workflow if it's running
-	var await client.WorkflowRun
-	var executeErr error
-	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
-		await = b.Temporal().GetWorkflow(ctx, wo.ID, "")
-	} else {
-		await, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, ProcessGatehubWithdrawal, walletID, transactionID)
-	}
-	if executeErr != nil {
-		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
-	}
-
-	return await.Get, nil
 }
 
 func ReserveBalance(ctx context.Context, b Backends, linkedAccountID, txID string, amt currency.Amount, timeout time.Duration) (*gatehub.Balance, error) {

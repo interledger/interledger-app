@@ -454,6 +454,17 @@ func (a *Activity) CheckGatehubWithdrawalComplete(ctx context.Context, walletID,
 	return nil
 }
 
+func (a *Activity) GetGatehubWithdrawalIDByForeignID(ctx context.Context, walletID, foreignID string) (string, error) {
+	tx, err := a.b.Transactions().GetTransactionByForeignID(ctx, walletID, foreignID)
+	if errors.Is(err, transactions.ErrNotFound) {
+		return "", fmt.Errorf("withdrawal transaction not found for foreignID %s: %w", foreignID, err)
+	}
+	if err != nil {
+		return "", fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+	return tx.ID, nil
+}
+
 func (a *Activity) CreateNewDeliveryAddress(ctx context.Context, userID, customerID string, args external.CreateCustomerDeliveryAddressArgs) (string, error) {
 	id, err := a.external.CreateCustomerDeliveryAddress(ctx, userID, customerID, args)
 	if err != nil {
@@ -750,6 +761,15 @@ func (a *Activity) CreateGatehubCardTransaction(ctx context.Context, userID, txI
 	}
 
 	return nil
+}
+
+func (a *Activity) FinalizeGatehubWithdrawal(ctx context.Context, internalTrxID string) error {
+	err := FinaliseReserve(ctx, a.b, internalTrxID)
+	if err != nil {
+		return err
+	}
+
+	return a.b.Transactions().SetTransactionState(ctx, internalTrxID, transactions.StateCompleted)
 }
 
 func (a *Activity) FinalizeGatehubCardTransaction(ctx context.Context, cardTxID, internalTxID string) error {
