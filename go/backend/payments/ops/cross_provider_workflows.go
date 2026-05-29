@@ -66,7 +66,6 @@ func crossProviderGatehubToXagoPayOut(ctx workflow.Context, a *Activity, payment
 		return "", false, err
 	}
 
-	// TODO business decision whether we should do the conversion closer to the estimation (before Gatehub)
 	// Execute Xago EUR→ZAR conversion (non-retryable; moves real money).
 	var convertID string
 	err = workflow.ExecuteActivity(ctx, a.XagoConvertCurrencyActivity, paymentID).Get(ctx, &convertID)
@@ -74,7 +73,6 @@ func crossProviderGatehubToXagoPayOut(ctx workflow.Context, a *Activity, payment
 		return "", false, err
 	}
 
-	// TODO There is probably no need for polling
 	// Poll until conversion completes.
 	for {
 		var details XagoConvertDetails
@@ -83,6 +81,7 @@ func crossProviderGatehubToXagoPayOut(ctx workflow.Context, a *Activity, payment
 			return "", false, err
 		}
 		if details.Complete {
+			// TODO check what we need to store. What about the fees?
 			err = workflow.ExecuteActivity(ctx, a.StoreActualFXRateAndAmount, paymentID, details.Rate, details.ReceiveAmount, details.ReceiveCurrency).Get(ctx, nil)
 			if err != nil {
 				return "", false, err
@@ -164,7 +163,6 @@ func crossProviderXagoToGatehubPayOut(ctx workflow.Context, a *Activity, payment
 		return "", false, err
 	}
 
-	// TODO Do we need to poll?
 	// Poll until conversion completes.
 	for {
 		var details XagoConvertDetails
@@ -173,6 +171,7 @@ func crossProviderXagoToGatehubPayOut(ctx workflow.Context, a *Activity, payment
 			return "", false, err
 		}
 		if details.Complete {
+			// TODO check what we need to store. What about the fees?
 			err = workflow.ExecuteActivity(ctx, a.StoreActualFXRateAndAmount, paymentID, details.Rate, details.ReceiveAmount, details.ReceiveCurrency).Get(ctx, nil)
 			if err != nil {
 				return "", false, err
