@@ -41,6 +41,10 @@ export const paymentSchema = z.object({
   note: z.string().optional()
 })
 
+export const requestSchema = z.object({
+  senderAddress: z.string()
+})
+
 export const requestPaymentSchema = paymentSchema.extend({
   senderAddress: paymentSchema.shape.senderAddress.optional(),
 });

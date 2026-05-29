@@ -124,7 +124,7 @@ export default function Page() {
               </>
             ) : (
               <>
-                <BackButton title="Back" to="/quick-pay/pay" />
+                <BackButton title="Back" to="/quick-pay/pay"/>
                 <div className="flex justify-center mb-6"><FinishError className="w-16 h-16" /></div>
                 <div className="text-3xl mb-4 text-red-600">Payment failed</div>
                 <div className="mb-10">
@@ -175,7 +175,7 @@ export async function action({ request }: Route.ActionArgs) {
       const result = await checkOutgoingPayment(
         finishPaymentResponse.url,
         finishPaymentResponse.accessToken,
-        quote.incomingPaymentGrantToken,
+        String(quote.incomingPaymentGrantToken),
         quote.receiver,
         isRequestPayment
       )
