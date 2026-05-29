@@ -62,11 +62,9 @@ func SeedTestUsersWithOrgID(store Storage, defaultOrgID string) error {
 		}
 	}
 
-	// TODO omnibus instead of SendingUser
-	// Sending/omnibus user: used as the source in TransferOmnibusToUser
-	sendingUser := &models.User{
-		ID:        consts.TestSendingUserID,
-		Email:     consts.TestSendingUserEmail,
+	xagoGatehubGhOmnibusUser := &models.User{
+		ID:        consts.TestXagoGatehubGhOmnibusUserID,
+		Email:     consts.TestXagoGatehubGhOmnibusUserEmail,
 		Activated: true,
 		Managed:   true,
 		Role:      "user",
@@ -75,15 +73,13 @@ func SeedTestUsersWithOrgID(store Storage, defaultOrgID string) error {
 		RiskLevel: consts.RiskLevelLow,
 	}
 
-	if err := store.CreateUser(sendingUser); err != nil {
+	if err := store.CreateUser(xagoGatehubGhOmnibusUser); err != nil {
 		// User might already exist, ignore error
 	}
 
-	for _, currency := range []string{"EUR"} {
-		if bal, _ := store.GetBalance(sendingUser.ID, currency); bal == 0 {
-			if err := store.AddBalance(sendingUser.ID, currency, 10000.00); err != nil {
-				return err
-			}
+	if bal, _ := store.GetBalance(xagoGatehubGhOmnibusUser.ID, "EUR"); bal == 0 {
+		if err := store.AddBalance(xagoGatehubGhOmnibusUser.ID, "EUR", 10000.00); err != nil {
+			return err
 		}
 	}
 

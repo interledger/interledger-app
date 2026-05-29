@@ -179,9 +179,7 @@ func NewWebhook(b Backends, cfg gatehub.Config) http.HandlerFunc {
 			return
 		}
 
-		// TODO some omnibus user id instead of SendingUserID
-		// TODO ask whether we will have a wallet for the Omnibus user
-		if wh.UserID != cfg.SendingUserID {
+		if wh.UserID != cfg.XagoGatehubGhOmnibusUserID {
 			if _, err := getWalletID(r.Context(), b, wh.UserID); err != nil {
 				log.Info("Wallet not found for Gatehub user; attempting cards fallback",
 					zap.String("external_user_uuid", wh.UserID),

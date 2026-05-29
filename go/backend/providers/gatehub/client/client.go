@@ -214,12 +214,9 @@ func (c Client) GetAccountStatement(ctx context.Context, walletID string, year, 
 }
 
 func (c Client) TransferUserToOmnibus(ctx context.Context, senderLinkedAccountID string, amount currency.Amount) (*external.Transaction, error) {
-	// TODO probably something like c.config.omnibusAddress instead of c.config.SendingUserAddress
-	return ops.TransferUserToOmnibus(ctx, c.b, c.external, senderLinkedAccountID, amount, c.config.SendingUserAddress, c.config.PaywiserEuroVaultID)
+	return ops.TransferUserToOmnibus(ctx, c.b, c.external, senderLinkedAccountID, amount, c.config.XagoGatehubGhOmnibusUserAddress, c.config.PaywiserEuroVaultID)
 }
 
 func (c Client) TransferOmnibusToUser(ctx context.Context, receiverLinkedAccountID string, amount currency.Amount) (*external.Transaction, error) {
-	// TODO probably something like c.config.omnibusAddress instead of c.config.SendingUserAddress
-	// TODO probably something like c.config.omnibusUserId c.config.SendingUserID
-	return ops.TransferOmnibusToUser(ctx, c.b, c.external, receiverLinkedAccountID, amount, c.config.SendingUserID, c.config.SendingUserAddress, c.config.PaywiserEuroVaultID)
+	return ops.TransferOmnibusToUser(ctx, c.b, c.external, receiverLinkedAccountID, amount, c.config.XagoGatehubGhOmnibusUserID, c.config.XagoGatehubGhOmnibusUserAddress, c.config.PaywiserEuroVaultID)
 }
