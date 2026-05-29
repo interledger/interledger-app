@@ -33,7 +33,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   const kycStatus = await getKycStatus(request)
 
   const balancesResponse = await grpc.getBalances(request, {})
-  if (isConnectError(balancesResponse)) throw balancesResponse.error
+  if (isConnectError(balancesResponse)) throw balancesResponse.errorResponse
 
   const features = await getFeatures(request)
 

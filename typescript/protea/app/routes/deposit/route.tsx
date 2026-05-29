@@ -26,7 +26,7 @@ export async function loader(args: LoaderFunctionArgs) {
     return redirect('/login')
   }
   const providerResponse = await grpc.getOnOffRampProvider(args.request, {})
-  if (isConnectError(providerResponse)) throw providerResponse.error
+  if (isConnectError(providerResponse)) throw providerResponse.errorResponse
   if (providerResponse.provider == 'gatehub') {
     return gatehubDepositLoader(args)
   } else return fynbosDepositLoader(args)
