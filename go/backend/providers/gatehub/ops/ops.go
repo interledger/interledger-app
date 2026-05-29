@@ -281,6 +281,10 @@ func validateWithdrawal(ctx context.Context, b Backends, ec external.Client, wal
 		return currency.Amount{}, nil, currency.Amount{}, fmt.Errorf("%w Invalid currency", gatehub.ErrInternal)
 	}
 
+	if err != nil {
+		return currency.Amount{}, nil, currency.Amount{}, fmt.Errorf("%w invalid fee", gatehub.ErrInternal)
+	}
+
 	balances, err := b.LinkedAccounts().ListBalances(ctx, walletID)
 	if err != nil {
 		return currency.Amount{}, nil, currency.Amount{}, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
