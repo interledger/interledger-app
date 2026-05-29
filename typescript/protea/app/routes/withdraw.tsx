@@ -55,7 +55,7 @@ type WithdrawalLoaderData = {
 
 export async function loader(args: Route.LoaderArgs) {
   const providerResponse = await grpc.getOnOffRampProvider(args.request, {})
-  if (isConnectError(providerResponse)) throw providerResponse.error
+  if (isConnectError(providerResponse)) throw providerResponse.errorResponse
 
   if (providerResponse.provider == 'gatehub') {
     return gatehubWithdrawalLoader(args)
@@ -66,7 +66,7 @@ export async function loader(args: Route.LoaderArgs) {
 
 async function gatehubWithdrawalLoader({ request }: Route.LoaderArgs) {
   const widgetResponse = await grpc.getGatehubWithdrawalWidget(request, {})
-  if (isConnectError(widgetResponse)) throw widgetResponse.error
+  if (isConnectError(widgetResponse)) throw widgetResponse.errorResponse
 
   return jsonWithCSRF(request, {
     provider: 'gatehub',
@@ -101,7 +101,7 @@ export const meta = mergeMeta(() => [
 async function addProviderToLoader(request: Request, provider: 'interledger' | 'pti') {
   const url = new URL(request.url)
   const balanceResponse = await grpc.getBalances(request, {})
-  if (isConnectError(balanceResponse)) throw balanceResponse.error
+  if (isConnectError(balanceResponse)) throw balanceResponse.errorResponse
 
   const balances = await getBalancesForTransfer(request)
 
@@ -475,7 +475,7 @@ async function createGatehubWithdrawal(request: Request, formData: FormData) {
     externalTransactionId: formData.get('withdrawalId') as string
   })
   if (isConnectError(withdrawResponse)) {
-    throw withdrawResponse.error
+    throw withdrawResponse.errorResponse
   }
 
   return redirect(
