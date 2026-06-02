@@ -763,13 +763,13 @@ func (a *Activity) CreateGatehubCardTransaction(ctx context.Context, userID, txI
 	return nil
 }
 
-func (a *Activity) FinalizeGatehubWithdrawal(ctx context.Context, internalTrxID string) error {
-	err := FinaliseReserve(ctx, a.b, internalTrxID)
+func (a *Activity) FinalizeGatehubWithdrawal(ctx context.Context, internalTxID string) error {
+	err := FinaliseReserve(ctx, a.b, internalTxID)
 	if err != nil {
 		return err
 	}
 
-	return a.b.Transactions().SetTransactionState(ctx, internalTrxID, transactions.StateCompleted)
+	return a.b.Transactions().SetTransactionState(ctx, internalTxID, transactions.StateCompleted)
 }
 
 func (a *Activity) FinalizeGatehubCardTransaction(ctx context.Context, cardTxID, internalTxID string) error {

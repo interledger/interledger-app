@@ -149,7 +149,7 @@ type (
 	}
 
 	WithdrawalCompletedWebhookData struct {
-		TrxID     string `json:"tx_uuid"`
+		TxID      string `json:"tx_uuid"`
 		Amount    string `json:"amount"`
 		Currency  string `json:"currency"`
 		Address   string `json:"address"`
@@ -507,7 +507,7 @@ func HandleWithdrawalCompleted(ctx context.Context, b Backends, raw json.RawMess
 	}
 
 	wo := client.StartWorkflowOptions{
-		ID:                    "gatehub_complete_withdrawal_" + wh.ID,
+		ID:                    "gatehub_withdrawal_completed" + wh.ID,
 		TaskQueue:             "backend",
 		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
 	}
@@ -530,9 +530,9 @@ func HandleWithdrawalCompleted(ctx context.Context, b Backends, raw json.RawMess
 	}
 
 	if workflowStatus != enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
-		_, err = b.Temporal().ExecuteWorkflow(ctx, wo, CompleteGatehubWithdrawalWorkflow, wh.UserID, wh.Data.TrxID)
+		_, err = b.Temporal().ExecuteWorkflow(ctx, wo, CompleteGatehubWithdrawalWorkflow, wh.UserID, wh.Data.TxID)
 		if err != nil {
-			log.Error("gatehub webhook: Failed to start finalize withdrawal workflow", zap.Error(err))
+			log.Error("gatehub webhook: Failed to start complete withdrawal workflow", zap.Error(err))
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}

@@ -182,7 +182,7 @@ func ProcessGatehubWithdrawal(ctx workflow.Context, walletID, transactionID stri
 	return nil
 }
 
-func CompleteGatehubWithdrawalWorkflow(ctx workflow.Context, userID, externalTrxID string) error {
+func CompleteGatehubWithdrawalWorkflow(ctx workflow.Context, userID, externalTxID string) error {
 	var a *Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 10 * time.Second,
@@ -190,7 +190,7 @@ func CompleteGatehubWithdrawalWorkflow(ctx workflow.Context, userID, externalTrx
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
 	logger := workflow.GetLogger(ctx)
-	logger.Info("Compleating gatehub withdrawal.", "externalTrxID", externalTrxID)
+	logger.Info("Completing gatehub withdrawal.", "externalTxID", externalTxID)
 
 	var walletID string
 	if err := workflow.ExecuteActivity(ctx, a.GetWalletFromGatehubUser, userID).Get(ctx, &walletID); err != nil {
@@ -198,7 +198,7 @@ func CompleteGatehubWithdrawalWorkflow(ctx workflow.Context, userID, externalTrx
 	}
 
 	var internalTxID string
-	err := workflow.ExecuteActivity(ctx, a.GetGatehubWithdrawalIDByForeignID, walletID, externalTrxID).Get(ctx, &internalTxID)
+	err := workflow.ExecuteActivity(ctx, a.GetGatehubWithdrawalIDByForeignID, walletID, externalTxID).Get(ctx, &internalTxID)
 	if err != nil {
 		return err
 	}
