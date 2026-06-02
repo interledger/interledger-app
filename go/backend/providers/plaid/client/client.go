@@ -58,7 +58,6 @@ func (c *Client) CreateLinkToken(ctx context.Context, userID string) (string, ti
 	if err != nil {
 		return "", time.Time{}, fmt.Errorf("plaid: LinkTokenCreate: %w", wrapPlaidError(err))
 	}
-	fmt.Println("plaid: ✅ link token created for user: ", userID, ": ", resp.LinkToken)
 	return resp.LinkToken, resp.Expiration, nil
 }
 
