@@ -581,3 +581,12 @@ func (a *Activity) FinalizeGatehubWithdrawal(ctx context.Context, internalTxID s
 
 	return a.b.Transactions().SetTransactionState(ctx, internalTxID, transactions.StateCompleted)
 }
+
+func (a *Activity) RollbackGatehubWithdrawal(ctx context.Context, internalTxID string) error {
+	err := RollbackReserve(ctx, a.b, internalTxID)
+	if err != nil {
+		return err
+	}
+
+	return a.b.Transactions().SetTransactionState(ctx, internalTxID, transactions.StateFailed)
+}

@@ -205,6 +205,36 @@ func CompleteGatehubWithdrawalWorkflow(ctx workflow.Context, userID, externalTxI
 	return nil
 }
 
+func RejectGatehubWithdrawalWorkflow(ctx workflow.Context, userID, externalTxID string) error {
+	var a *Activity
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Second,
+	}
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	logger := workflow.GetLogger(ctx)
+	logger.Info("Rejecting gatehub withdrawal.", "externalTxID", externalTxID)
+
+	var walletID string
+	if err := workflow.ExecuteActivity(ctx, a.GetWalletFromGatehubUser, userID).Get(ctx, &walletID); err != nil {
+		return err
+	}
+
+	var internalTxID string
+	err := workflow.ExecuteActivity(ctx, a.GetGatehubWithdrawalIDByForeignID, walletID, externalTxID).Get(ctx, &internalTxID)
+	if err != nil {
+		return err
+	}
+
+	if err = workflow.ExecuteActivity(ctx, a.RollbackGatehubWithdrawal, internalTxID).Get(ctx, nil); err != nil {
+		return err
+	}
+
+	// TODO send email notification
+
+	return nil
+}
+
 func handleFailedWithdrawal(ctx workflow.Context, a *Activity, walletID, transactionID string) {
 	logger := workflow.GetLogger(ctx)
 

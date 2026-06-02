@@ -155,6 +155,24 @@ type (
 		Address   string `json:"address"`
 		TotalFees string `json:"total_fees"`
 	}
+
+	WithdrawalRejectedWebhook struct {
+		ID          string                        `json:"uuid"`
+		EventType   string                        `json:"event_type"`
+		Timestamp   string                        `json:"timestamp"`
+		UserID      string                        `json:"user_uuid"`
+		Environment string                        `json:"environment"`
+		Data        WithdrawalRejectedWebhookData `json:"data"`
+	}
+
+	WithdrawalRejectedWebhookData struct {
+		TxID     string `json:"txUuid"`
+		UserID   string `json:"userUuid"`
+		Iban     string `json:"iban"`
+		Status   string `json:"status"`
+		Currency string `json:"currency"`
+		Amount   string `json:"amount"`
+	}
 )
 
 func NewWebhook(b Backends, cfg gatehub.Config) http.HandlerFunc {
@@ -222,6 +240,8 @@ func NewWebhook(b Backends, cfg gatehub.Config) http.HandlerFunc {
 			HandleUserDeposit(r.Context(), b, body, w)
 		case "core.withdrawal.completed":
 			HandleWithdrawalCompleted(r.Context(), b, body, w)
+		case "more-bridge.withdrawal.rejected":
+			HandleWithdrawalRejected(r.Context(), b, body, w)
 		case "id.document_notice.expired", "id.document_notice.warning", "id.verification.action_required":
 			HandleActionRequiredWebhook(r.Context(), b, body, w)
 		case "cards.card.created":
@@ -533,6 +553,50 @@ func HandleWithdrawalCompleted(ctx context.Context, b Backends, raw json.RawMess
 		_, err = b.Temporal().ExecuteWorkflow(ctx, wo, CompleteGatehubWithdrawalWorkflow, wh.UserID, wh.Data.TxID)
 		if err != nil {
 			log.Error("gatehub webhook: Failed to start complete withdrawal workflow", zap.Error(err))
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func HandleWithdrawalRejected(ctx context.Context, b Backends, raw json.RawMessage, w http.ResponseWriter) {
+	var wh WithdrawalRejectedWebhook
+	err := json.Unmarshal(raw, &wh)
+	if err != nil {
+		log.Error("gatehub webhook: Failed to unmarshal withdrawal rejected webhook", zap.String("payload", string(raw)), zap.Error(err))
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	wo := client.StartWorkflowOptions{
+		ID:                    "gatehub_withdrawal_rejected_" + wh.ID,
+		TaskQueue:             "backend",
+		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+	}
+
+	var workflowStatus enums.WorkflowExecutionStatus
+	wflow, err := b.Temporal().DescribeWorkflowExecution(ctx, wo.ID, "")
+	switch err.(type) {
+	case *serviceerror.Internal,
+		*serviceerror.Unavailable,
+		*serviceerror.InvalidArgument:
+		log.Error("gatehub webhook: Failed to handle withdrawal rejected webhook", zap.Error(err))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	case *serviceerror.NotFound:
+		// do nothing
+	default:
+		if wflow != nil {
+			workflowStatus = wflow.GetWorkflowExecutionInfo().Status
+		}
+	}
+
+	if workflowStatus != enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
+		_, err = b.Temporal().ExecuteWorkflow(ctx, wo, RejectGatehubWithdrawalWorkflow, wh.UserID, wh.Data.TxID)
+		if err != nil {
+			log.Error("gatehub webhook: Failed to start withdrawal rejected workflow", zap.Error(err))
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
