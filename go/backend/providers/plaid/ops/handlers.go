@@ -1,7 +1,10 @@
 package ops
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -11,6 +14,11 @@ import (
 	"gitlab.com/fynbos/backend/user/ops"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
+)
+
+var (
+	errMintFailed  = errors.New("plaid processor token mint failed")
+	errFiantFailed = errors.New("fiant registration failed")
 )
 
 type Handlers struct {
@@ -247,11 +255,13 @@ func (h *Handlers) GetTransactions(w http.ResponseWriter, r *http.Request) {
 }
 
 // LinkToFiant — POST /plaid/link-to-fiant. Body:
+//
 //	{ "account_id": "...", "account_name": "...", "account_mask": "..." }
 //
 // Registers a Plaid-authorised account with Fiant by
 // minting a `processor/token` and forwarding it via Fiant's payment-information
 // endpoint.Returns:
+//
 //	{ "linked_account_id": "...", "payment_information_id": "...", "already_linked": bool }
 //
 // `already_linked: true` means the row existed; no Plaid or Fiant calls were
@@ -278,67 +288,88 @@ func (h *Handlers) LinkToFiant(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	existing, err := h.linker.ExistingLink(r.Context(), u.ID, body.AccountID)
-	if err != nil {
-		log.Error("plaid: ExistingLink lookup failed",
-			zap.String("user_id", u.ID),
-			zap.String("plaid_account_id", body.AccountID),
-			zap.Error(err),
-		)
-		apperrors.WriteAppError(w, r, http.StatusInternalServerError, errcodes.ErrCodeInternal, "failed to check existing fiant link")
-		return
-	}
-	if existing != nil {
-		log.Info("plaid: account already linked to fiant (idempotent hit)",
-			zap.String("user_id", u.ID),
-			zap.String("plaid_account_id", body.AccountID),
-			zap.String("linked_account_id", existing.LinkedAccountID),
-		)
-		writeJSON(w, http.StatusOK, linkToFiantResponse{LinkedIDs: *existing, AlreadyLinked: true})
-		return
-	}
-
 	_, accessToken, ok := h.requireLinkedUser(w, r)
 	if !ok {
 		return
 	}
 
-	processorToken, err := h.client.CreateProcessorToken(r.Context(), accessToken, body.AccountID, h.processor)
+	var (
+		result        *LinkedIDs
+		alreadyLinked bool
+	)
+	err = h.linker.WithAccountLock(r.Context(), u.ID, body.AccountID, func(ctx context.Context) error {
+		existing, err := h.linker.ExistingLink(ctx, u.ID, body.AccountID)
+		if err != nil {
+			return err
+		}
+		if existing != nil {
+			result, alreadyLinked = existing, true
+			return nil
+		}
+
+		processorToken, err := h.client.CreateProcessorToken(ctx, accessToken, body.AccountID, h.processor)
+		if err != nil {
+			return fmt.Errorf("%w: %w", errMintFailed, err)
+		}
+
+		ids, err := h.linker.Register(ctx, LinkPlaidArgs{
+			UserID:         u.ID,
+			PlaidAccountID: body.AccountID,
+			AccountName:    body.AccountName,
+			AccountMask:    body.AccountMask,
+			ProcessorToken: processorToken,
+		})
+		if err != nil {
+			return fmt.Errorf("%w: %w", errFiantFailed, err)
+		}
+		result = ids
+		return nil
+	})
 	if err != nil {
-		log.Error("plaid: CreateProcessorToken failed",
-			zap.String("user_id", u.ID),
-			zap.String("plaid_account_id", body.AccountID),
-			zap.String("processor", h.processor),
-			zap.Error(err),
-		)
-		apperrors.WriteAppError(w, r, http.StatusBadGateway, errcodes.ErrCodeInternal, "plaid processor token mint failed")
+		switch {
+		case errors.Is(err, errMintFailed):
+			log.Error("plaid: CreateProcessorToken failed",
+				zap.String("user_id", u.ID),
+				zap.String("plaid_account_id", body.AccountID),
+				zap.String("processor", h.processor),
+				zap.Error(err),
+			)
+			apperrors.WriteAppError(w, r, http.StatusBadGateway, errcodes.ErrCodeInternal, "plaid processor token mint failed")
+		case errors.Is(err, errFiantFailed):
+			log.Error("plaid: FiantLinker.Register failed",
+				zap.String("user_id", u.ID),
+				zap.String("plaid_account_id", body.AccountID),
+				zap.Error(err),
+			)
+			apperrors.WriteAppError(w, r, http.StatusBadGateway, errcodes.ErrCodeInternal, "fiant registration failed")
+		default:
+			log.Error("plaid: link-to-fiant failed",
+				zap.String("user_id", u.ID),
+				zap.String("plaid_account_id", body.AccountID),
+				zap.Error(err),
+			)
+			apperrors.WriteAppError(w, r, http.StatusInternalServerError, errcodes.ErrCodeInternal, "failed to link plaid account to fiant")
+		}
 		return
 	}
 
-	ids, err := h.linker.Register(r.Context(), LinkPlaidArgs{
-		UserID:         u.ID,
-		PlaidAccountID: body.AccountID,
-		AccountName:    body.AccountName,
-		AccountMask:    body.AccountMask,
-		ProcessorToken: processorToken,
-	})
-	if err != nil {
-		log.Error("plaid: FiantLinker.Register failed",
+	if alreadyLinked {
+		log.Info("plaid: account already linked to fiant",
 			zap.String("user_id", u.ID),
 			zap.String("plaid_account_id", body.AccountID),
-			zap.Error(err),
+			zap.String("linked_account_id", result.LinkedAccountID),
 		)
-		apperrors.WriteAppError(w, r, http.StatusBadGateway, errcodes.ErrCodeInternal, "fiant registration failed")
+		writeJSON(w, http.StatusOK, linkToFiantResponse{LinkedIDs: *result, AlreadyLinked: true})
 		return
 	}
 
 	log.Info("plaid: account linked to fiant",
 		zap.String("user_id", u.ID),
 		zap.String("plaid_account_id", body.AccountID),
-		zap.String("linked_account_id", ids.LinkedAccountID),
-		zap.String("payment_information_id", ids.PaymentInformationID),
+		zap.String("linked_account_id", result.LinkedAccountID),
+		zap.String("payment_information_id", result.PaymentInformationID),
 	)
-	writeJSON(w, http.StatusOK, linkToFiantResponse{LinkedIDs: *ids, AlreadyLinked: false})
+	writeJSON(w, http.StatusOK, linkToFiantResponse{LinkedIDs: *result, AlreadyLinked: false})
 }
 
 type linkToFiantResponse struct {
@@ -376,9 +407,10 @@ func (h *Handlers) GetRegistered(w http.ResponseWriter, r *http.Request) {
 	}{PlaidAccountIDs: ids})
 }
 
-// Removes the Item on Plaid's side and always deletes the local TokenStore entry. 
-// TODO: Returns `{"disconnected": true}` once the store is clean even if Plaid returned an
-// error, so a partial failure can never leave a user permanently stuck.
+// Disconnect removes the Item on Plaid's side and always deletes the local
+// TokenStore entry. Plaid's ItemRemove is soft-failed: it returns
+// `{"disconnected": true}` once the local store is clean even if Plaid returned
+// an error, so a partial failure can never leave a user permanently stuck.
 func (h *Handlers) Disconnect(w http.ResponseWriter, r *http.Request) {
 	u, err := ops.UserForContext(r.Context())
 	if err != nil {
@@ -417,8 +449,7 @@ func (h *Handlers) Disconnect(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
-	// todo: Inform Fiant about the token removal : thus maybe this method should live in plaid-fiant client
+	// TODO: inform Fiant about the token removal; this method may belong in the plaid-fiant client.
 
 	log.Info("plaid item disconnected",
 		zap.String("user_id", u.ID),

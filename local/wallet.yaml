@@ -144,7 +144,7 @@ services:
       - PLAID_ENV=${BACKEND_PLAID_ENV:-sandbox}
       - PLAID_PRODUCTS=${BACKEND_PLAID_PRODUCTS:-auth,transactions,balance,identity}
       - PLAID_COUNTRY_CODES=${BACKEND_PLAID_COUNTRY_CODES:-US}
-      - PLAID_PROCESSOR=${BACKEND_PLAID_PROCESSOR:-invalid-processor}
+      - PLAID_PROCESSOR=${BACKEND_PLAID_PROCESSOR:-fiant}
 
 
       # Providers: Xago

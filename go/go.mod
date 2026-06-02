@@ -27,6 +27,7 @@ require (
 	github.com/machinebox/graphql v0.2.2
 	github.com/n0madic/twitter-scraper v0.0.0-20230423143228-6d13e319a39d
 	github.com/ory/kratos-client-go v0.13.1
+	github.com/plaid/plaid-go/v42 v42.2.0
 	github.com/pquerna/otp v1.5.0
 	github.com/pusher/pusher-http-go/v5 v5.1.1
 	github.com/redis/go-redis/v9 v9.18.0
@@ -116,7 +117,6 @@ require (
 	github.com/moby/sys/user v0.1.0 // indirect
 	github.com/moby/sys/userns v0.1.0 // indirect
 	github.com/nexus-rpc/sdk-go v0.3.0 // indirect
-	github.com/plaid/plaid-go/v42 v42.2.0 // indirect
 	github.com/power-devops/perfstat v0.0.0-20210106213030-5aafc221ea8c // indirect
 	github.com/ryanuber/go-glob v1.0.0 // indirect
 	github.com/segmentio/asm v1.2.0 // indirect
@@ -148,8 +148,8 @@ require (
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/facebookgo/clock v0.0.0-20150410010913-600d898af40a // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
-	github.com/go-playground/universal-translator v0.18.0 // indirect
-	github.com/gogo/googleapis v1.4.1
+	github.com/go-playground/universal-translator v0.18.0
+	github.com/gogo/googleapis v1.4.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/gogo/status v1.0.3
 	github.com/golang/protobuf v1.5.4 // indirect

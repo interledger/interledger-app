@@ -17,13 +17,12 @@ import { useEffect, useState } from 'react'
 import {
   Form,
   href,
-  redirect,
   useActionData,
   useLoaderData,
   useNavigation
 } from 'react-router'
 
-import { jsonWithSnackbar, redirectWithSnackbar } from '~/lib/snackbar.server'
+import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { ErrorHandler, ErrorMapper, UserFacingError } from '~/lib/error-handling/bff-error'
 import type { ServerResponse } from '~/lib/error-handling/types'
 
@@ -45,7 +44,7 @@ import {
 import type { ApplicationProps } from '~/components'
 import { getUserSession } from '~/lib/kratos/session.server'
 import { mergeMeta } from '~/lib/meta'
-import plaid, { isPlaidError, type PlaidError, type PlaidState } from '~/lib/plaid.server'
+import plaid, { isPlaidError, type PlaidState } from '~/lib/plaid.server'
 import { usePlaidStore, type PlaidProduct } from '~/lib/usePlaidStore'
 import type { Route } from './+types/plaid'
 
@@ -127,14 +126,6 @@ interface ActionProductResult {
 interface ActionDisconnectResult {
   intent: 'disconnect'
   ok: true
-}
-
-interface ActionError {
-  ok: false
-  intent: string
-  message: string
-  status: number
-  errorCode: string
 }
 
 export type ActionDataPayload =

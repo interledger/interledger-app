@@ -13,17 +13,16 @@ import (
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	linkedaccounts_ops "gitlab.com/fynbos/backend/linkedaccounts/ops"
+	plaid_ops "gitlab.com/fynbos/backend/providers/plaid/ops"
 	"gitlab.com/fynbos/backend/providers/pti"
 	pti_external "gitlab.com/fynbos/backend/providers/pti/external"
 	pti_ops "gitlab.com/fynbos/backend/providers/pti/ops"
-	plaid_ops "gitlab.com/fynbos/backend/providers/plaid/ops"
 )
 
 type plaidFiantLinker struct {
 	b        *backends
 	external pti_external.Client
 }
-
 
 func newPlaidFiantLinker(b *backends, ptiBaseURL, ptiClientID, ptiJWK string) (*plaidFiantLinker, error) {
 	if ptiJWK == "" {
@@ -43,6 +42,38 @@ func newPlaidFiantLinker(b *backends, ptiBaseURL, ptiClientID, ptiJWK string) (*
 		return nil, fmt.Errorf("plaid/fiant linker: build PTI external client: %w", err)
 	}
 	return &plaidFiantLinker{b: b, external: ext}, nil
+}
+
+// WithAccountLock runs fn while holding a transaction-scoped Postgres advisory
+// lock keyed on (userID, plaidAccountID). This serializes the dedupe-check →
+// processor-token mint → Fiant register sequence so two concurrent requests for
+// the same Plaid account can't both call Fiant and create duplicate
+// payment-information records. The partial unique index
+// `wallet_id_plaid_account_id_uniq` is the final backstop; this lock prevents
+// the wasted/orphaning external calls before that index ever trips.
+func (l *plaidFiantLinker) WithAccountLock(ctx context.Context, userID, plaidAccountID string, fn func(context.Context) error) error {
+	tx, err := l.b.DB().BeginTxx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("plaid/fiant linker: begin lock tx: %w", err)
+	}
+	// The advisory lock is released automatically when the tx ends (commit or
+	// rollback). fn's own DB writes run on the pool and autocommit; the lock
+	// only acts as a per-key mutex across the critical section.
+	key := userID + ":" + plaidAccountID
+	if _, err := tx.ExecContext(ctx, `SELECT pg_advisory_xact_lock(hashtext($1))`, key); err != nil {
+		_ = tx.Rollback()
+		return fmt.Errorf("plaid/fiant linker: acquire advisory lock: %w", err)
+	}
+
+	if fnErr := fn(ctx); fnErr != nil {
+		_ = tx.Rollback()
+		return fnErr
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("plaid/fiant linker: release advisory lock: %w", err)
+	}
+	return nil
 }
 
 func (l *plaidFiantLinker) ExistingLink(ctx context.Context, userID, plaidAccountID string) (*plaid_ops.LinkedIDs, error) {

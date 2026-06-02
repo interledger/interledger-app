@@ -21,8 +21,14 @@ type LinkPlaidArgs struct {
 }
 
 // FiantLinker is the cross-package seam between the Plaid HTTP handler and the
-// PTI/Fiant + linked_accounts machinery. 
+// PTI/Fiant + linked_accounts machinery.
 type FiantLinker interface {
+	// WithAccountLock runs fn while holding a per-(userID, plaidAccountID)
+	// advisory lock, serializing the dedupe-check → mint → Register critical
+	// section so concurrent requests for the same account can't double-register
+	// with Fiant. The lock is released when fn returns.
+	WithAccountLock(ctx context.Context, userID, plaidAccountID string, fn func(context.Context) error) error
+
 	// ExistingLink returns the linked-account row already provisioned for this
 	// (userID, plaidAccountID), if any. nil result + nil error means "no dupe".
 	ExistingLink(ctx context.Context, userID, plaidAccountID string) (*LinkedIDs, error)
