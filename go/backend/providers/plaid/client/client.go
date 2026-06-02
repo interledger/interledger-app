@@ -152,9 +152,6 @@ func (c *Client) SyncTransactions(ctx context.Context, accessToken string) (*pla
 		if err != nil {
 			return nil, fmt.Errorf("plaid: TransactionsSync (page %d): %w", page, wrapPlaidError(err))
 		}
-		
-		fmt.Printf("plaid: ✅ transactions sync page %d: %d added, %d modified, %d removed, has_more=%v",
-			page, len(resp.Added), len(resp.Modified), len(resp.Removed), resp.HasMore)
 
 		result.Added = append(result.Added, resp.Added...)
 		result.Modified = append(result.Modified, resp.Modified...)
