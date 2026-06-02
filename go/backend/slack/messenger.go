@@ -25,6 +25,10 @@ func Init(token, channel string) {
 }
 
 func SendToChannel(ctx context.Context, fromUser, message string) {
+	// mirror every notification in every environment,
+	// regardless of whether slack is  configured or reachable
+	log.Info("slack_msg", zap.String("from_user", fromUser), zap.String("message", message))
+
 	if channelID == "" {
 		return
 	}
