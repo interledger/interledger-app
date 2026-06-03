@@ -91,7 +91,7 @@ export function kratosErrorMessage(error: KratosMessage): string {
     case KratosErrorId.ErrorValidationInvalidCredentials:
       return 'The provided credentials are invalid.'
     case KratosErrorId.ErrorValidationDuplicateCredentials:
-      return 'An account with the same identifier (email, phone, username, ...) exists already.'
+      return 'An account with the same identifier (email or phone) exists already.'
     default:
       return error.text
   }
