@@ -132,11 +132,11 @@ export const NON_PHONE_CONFIRMED_ROUTES = [
   '/unavailable'
 ]
 
-export function phoneConfirmationGuard(
+export async function phoneConfirmationGuard(
   pathname: string,
-  request: Request,
-  session: Session | null
+  request: Request
 ) {
+  const session = await getUserSession(request, true)
   if (NON_PHONE_CONFIRMED_ROUTES.includes(pathname)) return
   if (!session) return // Not yet AAL2 — skip guard
 
