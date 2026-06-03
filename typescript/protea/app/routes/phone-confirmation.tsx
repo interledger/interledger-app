@@ -1,4 +1,3 @@
-import { Code } from '@bufbuild/connect'
 import { useEffect, useState } from 'react'
 import {
   Form,
@@ -23,14 +22,15 @@ import {
 
 import { Label } from '~/components/Label'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
-import { ErrorDescriptions } from '~/lib/error.constants'
-import type { TwillioError } from '~/lib/error.mappers'
-import { isConnectError, isOtpValidationError } from '~/lib/error.server'
+import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { getSessionTraits, getUserSession } from '~/lib/kratos/session.server'
 import { mergeMeta } from '~/lib/meta'
-import { parseUserPhone } from '~/lib/phone.server'
-import { RateLimitKeys, getKey, rateLimit } from '~/lib/rateLimit.server'
+import {
+  handleResendOtp,
+  handleUpdatePhone,
+  handleVerifyOtp
+} from '~/lib/phone.server'
 import { useCountdown } from '~/lib/useCountdown'
 import { safeReturnTo } from '~/lib/url.server'
 import styles from '~/styles/flags.css?url'
@@ -226,89 +226,18 @@ export async function action({ request }: Route.ActionArgs) {
   const { phone } = getSessionTraits(session)
 
   if (intent === 'updatePhone') {
-    const newPhone = form.get('phone') as string
-    const country = form.get('country') as string
-    const parsedPhone = parseUserPhone(newPhone, country)
-
-    if (!parsedPhone.success) {
-      return { errors: { phone: parsedPhone.error } }
-    }
-
-    const updateResponse = await grpc.updateUserPhone(request, {
-      phone: parsedPhone.phone
-    })
-    if (isConnectError(updateResponse)) {
-      if (updateResponse.code === Code.InvalidArgument) {
-        return { errors: { phone: 'Invalid phone number. Please check the format.' } }
-      }
-      if (
-        updateResponse.code === Code.AlreadyExists ||
-        updateResponse.hasAppErrorCode('SIGNUP_DUPLICATE_PHONE')
-      ) {
-        return {
-          errors: {
-            phone: 'This mobile number is already in use. Try a different number.'
-          }
-        }
-      }
-      if (updateResponse.code === Code.Unauthenticated) {
-        throw redirect(href('/logout'))
-      }
-      throw updateResponse.errorResponse
-    }
-
-    const sendResponse = await grpc.sendPhoneVerification(request, {
-      to: parsedPhone.phone
-    })
-    if (isConnectError(sendResponse)) throw sendResponse.errorResponse
-
-    return { codeSent: true, phone: parsedPhone.phone }
+    return handleUpdatePhone(request, form)
   }
 
   if (intent === 'resend') {
     const resendPhone = (form.get('phone') as string) || phone
-    const rateLimitError = await rateLimit(
-      getKey(RateLimitKeys.PhoneOTP, resendPhone),
-      { limit: 1, ttlSeconds: 60 }
-    )
-    if (rateLimitError) {
-      return { codeSent: false, error: 'rateLimited', retryAfter: 60 }
-    }
-
-    const response = await grpc.sendPhoneVerification(request, {
-      to: resendPhone
-    })
-    if (isConnectError(response)) throw response.errorResponse
-
-    return { codeSent: true }
+    return handleResendOtp(request, resendPhone)
   }
 
   // intent === 'verify'
   const otp = form.get('otp') as string
-
-  const errors: Partial<TwillioError> = {
-    otp: ''
-  }
-
-  const response = await grpc.confirmUserPhone(request, { otp })
-
-  if (isConnectError(response)) {
-    if (isOtpValidationError(response)) {
-      return response.error(
-        { errors },
-        {},
-        { action: 'Contact support', message: ErrorDescriptions.INVALID_OTP }
-      )
-    } else if (response.code === Code.InvalidArgument) {
-      return response.error({ errors })
-    } else {
-      return response.error(
-        { errors },
-        {},
-        { action: 'Contact support', message: ErrorDescriptions.DEFAULT }
-      )
-    }
-  }
+  const result = await handleVerifyOtp(request, otp)
+  if (result !== null) return result
 
   throw redirect(returnTo)
 }
