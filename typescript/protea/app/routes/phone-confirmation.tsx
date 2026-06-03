@@ -91,8 +91,8 @@ export default function Page() {
   const [currentPhone, setCurrentPhone] = useState(phone)
   const [showChangePhone, setShowChangePhone] = useState(false)
   const otpError =
-    actionData?.errors && 'otp' in actionData.errors
-      ? actionData.errors.otp
+    actionData && 'errors' in actionData
+      ? (actionData.errors as { otp?: string } | undefined)?.otp
       : undefined
 
   // Start countdown after a successful send/resend

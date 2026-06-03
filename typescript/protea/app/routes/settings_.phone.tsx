@@ -68,7 +68,7 @@ export default function Page() {
   const actionData = useActionData<typeof action>()
   const { csrfToken, countryCode, phone, countries } =
     useLoaderData<typeof loader>()
-  const updateFetcher = useFetcher<typeof action>()
+  const updateFetcher = useFetcher<Awaited<ReturnType<typeof handleUpdatePhone>>>()
   const resendFetcher = useFetcher()
   const { start, isActive, remainingSeconds } = useCountdown()
   const [otpSent, setOtpSent] = useState(false)
@@ -84,8 +84,8 @@ export default function Page() {
       ? updateFetcher.data.phone
       : undefined
   const otpError =
-    actionData?.errors && 'otp' in actionData.errors
-      ? actionData.errors.otp
+    actionData && 'errors' in actionData
+      ? (actionData.errors as { otp?: string } | undefined)?.otp
       : undefined
 
   useEffect(() => {
