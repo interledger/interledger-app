@@ -270,7 +270,9 @@ jobs:
         uses: azure/setup-helm@v5
 
       - name: Update Helm dependencies
-        run: helm dependency update helm/interledger-app
+        run: |
+          helm dependency update helm/interledger-app
+          helm dependency update helm/mock-services
 
       - name: Override chart version for manual build
         if: inputs.ref != ''
@@ -279,10 +281,14 @@ jobs:
           CHART_VER="${VERSION#v}"
           sed -i "s/^version:.*/version: ${CHART_VER}/" helm/interledger-app/Chart.yaml
           sed -i "s/^appVersion:.*/appVersion: ${VERSION}/" helm/interledger-app/Chart.yaml
+          sed -i "s/^version:.*/version: ${CHART_VER}/" helm/mock-services/Chart.yaml
+          sed -i "s/^appVersion:.*/appVersion: ${VERSION}/" helm/mock-services/Chart.yaml
           echo "Patched Chart.yaml → version: ${CHART_VER}, appVersion: ${VERSION}"
 
       - name: Package chart
-        run: helm package helm/interledger-app
+        run: |
+          helm package helm/interledger-app
+          helm package helm/mock-services
 
       - name: Authenticate to prod GCP
         uses: google-github-actions/auth@v3
@@ -297,6 +303,8 @@ jobs:
             | helm registry login europe-west4-docker.pkg.dev --username oauth2accesstoken --password-stdin
           helm push interledger-app-*.tgz \
             oci://europe-west4-docker.pkg.dev/${{ secrets.GCR_PROJECT }}/interledger-helm-charts
+          helm push mock-services-*.tgz \
+            oci://europe-west4-docker.pkg.dev/${{ secrets.GCR_PROJECT }}/interledger-helm-charts
 
       - name: Authenticate to dev GCP
         uses: google-github-actions/auth@v3
@@ -310,6 +318,8 @@ jobs:
           gcloud auth print-access-token \
             | helm registry login europe-west4-docker.pkg.dev --username oauth2accesstoken --password-stdin
           helm push interledger-app-*.tgz \
+            oci://europe-west4-docker.pkg.dev/${{ secrets.GCR_DEV_PROJECT }}/interledger-helm-charts
+          helm push mock-services-*.tgz \
             oci://europe-west4-docker.pkg.dev/${{ secrets.GCR_DEV_PROJECT }}/interledger-helm-charts
 
 
