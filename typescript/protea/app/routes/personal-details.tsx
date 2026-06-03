@@ -222,7 +222,7 @@ function GatehubPage() {
 
       if (
         e.data.type === 'OnboardingCompleted' &&
-        parsedValue?.applicantStatus === 'submitted'
+       (parsedValue?.applicantStatus === 'submitted' || parsedValue?.applicantStatus === 'resubmitted')
       ) {
         console.log('[KYC] Onboarding completed, submitting form to backend')
         submit(null, {
