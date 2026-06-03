@@ -319,13 +319,13 @@ jobs:
   # After a successful release (semantic-release tag -> images pushed -> OCI
   # chart published), this job opens an auto-merge PR in
   # interledger/interledger-app-deploy that updates the `chartVersion` for the
-  # `interledger-app` entry in env/development/appsets/wallet-appset.yaml.
+  # `interledger-app` entry in env/dev1/appsets/wallet-appset.yaml.
   #
   # Why this job exists:
   #   - The deploy repo's ArgoCD ApplicationSet pins a specific chartVersion
   #     per environment. Without this automation, every release requires a
   #     manual PR in the deploy repo before ArgoCD picks up the new chart.
-  #   - Only `development` is bumped automatically. `sandbox` and `production`
+  #   - Only `dev1` is bumped automatically. `sandbox` and `production`
   #     remain manual / promotion-based (intentional gate).
   #
   # Why it runs after publish-helm-chart:
@@ -345,7 +345,7 @@ jobs:
   #     leave the deploy repo drifting from releases).
   # --------------------------------------------------------------------------
   bump-deploy-dev:
-    name: Bump interledger-app-deploy (development)
+    name: Bump interledger-app-deploy (dev1)
     # publish-helm-chart transitively depends on both image-push jobs, so a
     # successful run here guarantees images + chart are both published.
     needs: [determine_version, publish-helm-chart]
@@ -367,14 +367,14 @@ jobs:
       && !inputs.skip_deploy_bump
       && !inputs.is_maintenance_release
     runs-on: ubuntu-latest
-    environment: development
+    environment: dev1
     # No write access needed on THIS repo — all writes go through the App
     # token against the deploy repo.
     permissions:
       contents: read
     env:
       DEPLOY_REPO: interledger/interledger-app-deploy
-      APPSET_FILE: env/development/appsets/wallet-appset.yaml
+      APPSET_FILE: env/dev1/appsets/wallet-appset.yaml
       CHART_NAME: interledger-app
       RELEASE_TAG: ${{ inputs.release_tag }}
       # determine_version returns the tag verbatim (e.g. "v1.11.4"). The
@@ -450,7 +450,7 @@ jobs:
       # other entries (e.g. if the same version string appeared elsewhere).
       # If the file is already at the target version, set skip=true and let
       # the next step short-circuit — this makes manual reruns idempotent.
-      - name: Update chartVersion in development appset
+      - name: Update chartVersion in dev1 appset
         id: update_appset
         working-directory: deploy
         env:
@@ -533,7 +533,7 @@ jobs:
           git checkout -b "${BRANCH}"
           git add "${APPSET_FILE}"
           git commit \
-            -m "chore: bump interledger-app chart to ${CHART_VERSION} in development" \
+            -m "chore: bump interledger-app chart to ${CHART_VERSION} in dev1" \
             -m "Triggered by release ${RELEASE_TAG} of interledger/interledger-app."
           # --force handles the rerun case where the branch already exists
           # remotely (e.g. a previous run pushed the branch but failed
@@ -571,7 +571,7 @@ jobs:
               --repo "${DEPLOY_REPO}" \
               --base main \
               --head "${BRANCH}" \
-              --title "chore: bump interledger-app chart to ${CHART_VERSION} in development" \
+              --title "chore: bump interledger-app chart to ${CHART_VERSION} in dev1" \
               --body-file /tmp/pr-body.md \
               --label automated \
               --label chart-bump)
@@ -581,7 +581,7 @@ jobs:
             # Refresh the body in case the chart version changed since the
             # earlier rerun (rare, but cheap to handle).
             gh pr edit "${PR_URL}" --repo "${DEPLOY_REPO}" \
-              --title "chore: bump interledger-app chart to ${CHART_VERSION} in development" \
+              --title "chore: bump interledger-app chart to ${CHART_VERSION} in dev1" \
               --body-file /tmp/pr-body.md
           fi
 
@@ -593,7 +593,7 @@ jobs:
 
           echo "pr_url=${PR_URL}" >> "$GITHUB_OUTPUT"
 
-      - name: Wait for development deploy PR to merge
+      - name: Wait for dev1 deploy PR to merge
         if: steps.update_appset.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
@@ -602,7 +602,7 @@ jobs:
           set -euo pipefail
           deadline=$((SECONDS + 3600))
 
-          echo "Waiting for ${PR_URL} to merge before refreshing Argo CD..."
+          echo "Waiting for ${PR_URL} to merge before refreshing Argo CD (dev1)..."
           while (( SECONDS < deadline )); do
             PR_JSON=$(gh pr view "${PR_URL}" \
               --repo "${DEPLOY_REPO}" \
@@ -627,7 +627,7 @@ jobs:
           echo "::error::Timed out waiting for deploy PR to merge: ${PR_URL}"
           exit 1
 
-      - name: Refresh and sync development in Argo CD
+      - name: Refresh and sync dev1 in Argo CD
         if: steps.update_appset.outputs.skip != 'true'
         uses: ./.github/actions/argocd-refresh-sync
         with:
