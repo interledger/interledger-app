@@ -1,0 +1,119 @@
+suite: Mock Services - MockGatehub Deployment
+templates:
+  - configMap.mockgatehub.yaml
+  - deployment.mockgatehub.yaml
+set:
+  fullnameOverride: wallet
+  release:
+    name: wallet
+  mockgatehub:
+    enabled: true
+    config:
+      webhook_url: "http://wallet-backend-service-http:8080/webhooks/gatehub"
+tests:
+  - it: 'Should produce no Deployment when mockgatehub.enabled is boolean false'
+    template: deployment.mockgatehub.yaml
+    set:
+      mockgatehub:
+        enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: 'Should produce no Deployment when mockgatehub.enabled is the string "false"'
+    template: deployment.mockgatehub.yaml
+    set:
+      mockgatehub:
+        enabled: "false"
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: 'Should produce no Deployment when mockgatehub.enabled is the string "true"'
+    template: deployment.mockgatehub.yaml
+    set:
+      mockgatehub:
+        enabled: "true"
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: 'Should create a Deployment when mockgatehub.enabled is boolean true'
+    template: deployment.mockgatehub.yaml
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - equal:
+          path: metadata.name
+          value: wallet-mockgatehub-server
+
+  - it: 'Should set replicaCount to 1'
+    template: deployment.mockgatehub.yaml
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 1
+
+  - it: 'Should reference the mockgatehub ConfigMap via envFrom'
+    template: deployment.mockgatehub.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].envFrom[0].configMapRef.name
+          value: wallet-mockgatehub-config
+
+  - it: 'Should source WEBHOOK_SECRET from the mockgatehub Secret'
+    template: deployment.mockgatehub.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[0].name
+          value: WEBHOOK_SECRET
+      - equal:
+          path: spec.template.spec.containers[0].env[0].valueFrom.secretKeyRef.name
+          value: wallet-mockgatehub
+      - equal:
+          path: spec.template.spec.containers[0].env[0].valueFrom.secretKeyRef.key
+          value: webhookSecret
+
+  - it: 'Should source MOCKGATEHUB_VALID_CREDENTIALS from the mockgatehub Secret'
+    template: deployment.mockgatehub.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[1].name
+          value: MOCKGATEHUB_VALID_CREDENTIALS
+      - equal:
+          path: spec.template.spec.containers[0].env[1].valueFrom.secretKeyRef.name
+          value: wallet-mockgatehub
+      - equal:
+          path: spec.template.spec.containers[0].env[1].valueFrom.secretKeyRef.key
+          value: validCredentials
+
+  - it: 'Should provide readinessProbe and livenessProbe on /health'
+    template: deployment.mockgatehub.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.path
+          value: /health
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.path
+          value: /health
+
+  - it: 'Should contain the configmap hash annotation'
+    template: deployment.mockgatehub.yaml
+    asserts:
+      - exists:
+          path: spec.template.metadata.annotations["ilf-configmap-mockgatehub-sha256"]
+
+  - it: 'Should honour image override on the server spec'
+    template: deployment.mockgatehub.yaml
+    set:
+      mockgatehub:
+        server:
+          image:
+            repository: europe-west4-docker.pkg.dev/wallet-dev-462809/interledger-app
+            name: mockgatehub
+            tag: v1.2.3
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: europe-west4-docker.pkg.dev/wallet-dev-462809/interledger-app/mockgatehub:v1.2.3

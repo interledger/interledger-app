@@ -1,0 +1,15 @@
+{{- define "mock-services.mockgatehub.deployment" -}}
+{{- $top := first . }}
+{{- if and (kindIs "bool" $top.Values.mockgatehub.enabled) $top.Values.mockgatehub.enabled }}
+{{- $cfgObj := include "mock-services.mockgatehub.configMap" $top | fromYaml -}}
+{{- $dataHash := $cfgObj.data | toJson | sha256sum -}}
+spec:
+  template:
+    metadata:
+      annotations:
+        ilf-configmap-mockgatehub-sha256: {{ $dataHash | quote }}
+{{- end }}
+{{- end }}
+{{- if and (kindIs "bool" .Values.mockgatehub.enabled) .Values.mockgatehub.enabled }}
+{{- include "common.deployment" (list . .Values.mockgatehub.server .Values.mockgatehub.server.autoscaling .Values.mockgatehub.server.serviceAccount "mock-services.mockgatehub.deployment") }}
+{{- end }}

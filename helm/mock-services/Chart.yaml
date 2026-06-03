@@ -1,10 +1,9 @@
 apiVersion: v2
-name: interledger-app
-description: Interledger App Wallet — combined admin (Botanist), backend, and frontend (Protea) services
+name: mock-services
+description: Mock provider services (mockpti, mockgatehub, mockxago) for non-production Interledger App environments
 home: https://github.com/interledger/interledger-app
 
 type: application
-# version and appVersion is linked because we are doing this in the same repo
 version: 1.19.8
 appVersion: v1.19.8
 
