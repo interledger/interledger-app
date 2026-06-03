@@ -212,3 +212,7 @@ func (c Client) GetAccountConfirmation(ctx context.Context, walletID string) (io
 func (c Client) GetAccountStatement(ctx context.Context, walletID string, year, month int) (io.ReadCloser, error) {
 	return ops.GetAccountStatement(ctx, c.b, c.external, walletID, year, month)
 }
+
+func (c Client) GetTransactionStatement(ctx context.Context, walletID string, txID string) (io.ReadCloser, error) {
+	return ops.GetTransactionStatement(ctx, c.b, c.external, walletID, txID)
+}

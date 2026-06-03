@@ -6,6 +6,20 @@ on:
       release_tag:
         required: true
         type: string
+      ref:
+        description: 'Git ref to check out (overrides release_tag for checkout; use for build versions that are not real git tags)'
+        required: false
+        type: string
+        default: ''
+      skip_deploy_bump:
+        description: 'Skip the bump-deploy-dev job (set true for manual/test builds)'
+        required: false
+        type: boolean
+        default: false
+      is_maintenance_release:
+        required: false
+        type: boolean
+        default: false
   pull_request:
     branches:
       - "**"
@@ -28,7 +42,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.release_tag || github.ref }}
+          ref: ${{ inputs.ref || inputs.release_tag || github.ref }}
       - name: Select packages
         id: select_packages
         uses: actions/github-script@v9
@@ -45,7 +59,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.release_tag || github.ref }}
+          ref: ${{ inputs.ref || inputs.release_tag || github.ref }}
       - name: Determine version
         id: version
         uses: actions/github-script@v9
@@ -67,7 +81,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.release_tag || github.ref }}
+          ref: ${{ inputs.ref || inputs.release_tag || github.ref }}
       - name: Build Go Docker image
         if: matrix.package.type == 'go'
         uses: docker/build-push-action@v7
@@ -141,7 +155,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.release_tag || github.ref }}
+          ref: ${{ inputs.ref || inputs.release_tag || github.ref }}
 
       - name: Load Docker image
         run: |
@@ -202,7 +216,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.release_tag || github.ref }}
+          ref: ${{ inputs.ref || inputs.release_tag || github.ref }}
 
       - name: Load Docker image
         run: |
@@ -250,13 +264,22 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.release_tag || github.ref }}
+          ref: ${{ inputs.ref || inputs.release_tag || github.ref }}
 
       - name: Install Helm
         uses: azure/setup-helm@v5
 
       - name: Update Helm dependencies
         run: helm dependency update helm/interledger-app
+
+      - name: Override chart version for manual build
+        if: inputs.ref != ''
+        run: |
+          VERSION="${{ inputs.release_tag }}"
+          CHART_VER="${VERSION#v}"
+          sed -i "s/^version:.*/version: ${CHART_VER}/" helm/interledger-app/Chart.yaml
+          sed -i "s/^appVersion:.*/appVersion: ${VERSION}/" helm/interledger-app/Chart.yaml
+          echo "Patched Chart.yaml → version: ${CHART_VER}, appVersion: ${VERSION}"
 
       - name: Package chart
         run: helm package helm/interledger-app
@@ -331,6 +354,9 @@ jobs:
     #     `workflow_call` from release.yml with a real tag.
     #   - `dockerPush` is the same signal publish-helm-chart and the image
     #     push jobs use to confirm a real release artifact was produced.
+    #   - Maintenance releases skip auto-bump; they are deployed manually via
+    #     the deploy.yml workflow with maintenance mode to preserve the
+    #     decision to bump a given environment as explicit operator intent.
     # NOTE: do NOT gate on `github.event_name == 'workflow_call'` — for
     # reusable workflows, GitHub propagates the *caller's* event name (e.g.
     # `push`), so that check would always be false. See the comment in
@@ -338,7 +364,10 @@ jobs:
     if: >-
       inputs.release_tag != ''
       && needs.determine_version.outputs.dockerPush == 'true'
+      && !inputs.skip_deploy_bump
+      && !inputs.is_maintenance_release
     runs-on: ubuntu-latest
+    environment: development
     # No write access needed on THIS repo — all writes go through the App
     # token against the deploy repo.
     permissions:
@@ -358,6 +387,11 @@ jobs:
       YQ_VERSION: v4.44.3
       YQ_SHA256: a2c097180dd884a8d50c956ee16a9cec070f30a7947cf4ebf87d5f36213e9ed7
     steps:
+      - name: Checkout workflow actions
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.release_tag || github.ref }}
+
       # Mint an installation token scoped narrowly to the deploy repo only.
       # `owner` + `repositories` ensures the token cannot accidentally modify
       # this repo or any other repo the App happens to be installed on.
@@ -417,6 +451,7 @@ jobs:
       # If the file is already at the target version, set skip=true and let
       # the next step short-circuit — this makes manual reruns idempotent.
       - name: Update chartVersion in development appset
+        id: update_appset
         working-directory: deploy
         env:
           CHART: ${{ env.CHART_NAME }}
@@ -426,8 +461,8 @@ jobs:
           # Chart.yaml versions and the appset chartVersion are stored without a
           # leading "v"; the release tag (and determine_version output) has one.
           NEW_VERSION="${VERSION#v}"
-          # Export for the next step (which reads $chart_version from env).
-          echo "chart_version=${NEW_VERSION}" >> "$GITHUB_ENV"
+          # Export for the next step (which reads $chart_version).
+          echo "chart_version=${NEW_VERSION}" >> "$GITHUB_OUTPUT"
 
           CURRENT=$(yq -r \
             ".spec.generators[].list.elements[] | select(.name == \"${CHART}\") | .chartVersion" \
@@ -446,9 +481,12 @@ jobs:
           # repo manually (e.g. during incident response or a re-release).
           if [[ "${CURRENT}" == "${NEW_VERSION}" ]]; then
             echo "Already at ${NEW_VERSION}; nothing to do."
-            echo "skip=true" >> "$GITHUB_ENV"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
+
+
+          echo "skip=false" >> "$GITHUB_OUTPUT"
           # In-place update of just the matching element.
           yq -i \
             "(.spec.generators[].list.elements[] | select(.name == \"${CHART}\")).chartVersion = \"${NEW_VERSION}\"" \
@@ -474,18 +512,18 @@ jobs:
       # already exists (force-pushing the latest contents and re-enabling
       # auto-merge in case it was disabled).
       - name: Open auto-merge PR
-        if: env.skip != 'true'
+        id: open_pr
+        if: steps.update_appset.outputs.skip != 'true'
         working-directory: deploy
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          CHART_VERSION: ${{ steps.update_appset.outputs.chart_version }}
           # Branch name is deterministic per release tag (one bump PR per
           # release). Re-running the workflow updates the existing branch
           # in place rather than creating a parallel PR.
           BRANCH: chore/bump-interledger-app-${{ env.RELEASE_TAG }}
         run: |
           set -euo pipefail
-          # $chart_version was exported by the previous step.
-          CHART_VERSION="${chart_version}"
 
           # Commit as the App's bot user so the audit trail is clear and
           # branch protection rules can target the bot actor specifically.
@@ -552,3 +590,50 @@ jobs:
           # `gh pr merge --auto` returns a non-zero exit and fails this job.
           # Safe to re-run on an already-auto-merging PR (idempotent).
           gh pr merge "${PR_URL}" --repo "${DEPLOY_REPO}" --squash --auto
+
+          echo "pr_url=${PR_URL}" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for development deploy PR to merge
+        if: steps.update_appset.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          PR_URL: ${{ steps.open_pr.outputs.pr_url }}
+        run: |
+          set -euo pipefail
+          deadline=$((SECONDS + 3600))
+
+          echo "Waiting for ${PR_URL} to merge before refreshing Argo CD..."
+          while (( SECONDS < deadline )); do
+            PR_JSON=$(gh pr view "${PR_URL}" \
+              --repo "${DEPLOY_REPO}" \
+              --json state,mergedAt,mergeStateStatus,url)
+            STATE=$(jq -r '.state' <<< "${PR_JSON}")
+            MERGED_AT=$(jq -r '.mergedAt // ""' <<< "${PR_JSON}")
+            MERGE_STATE=$(jq -r '.mergeStateStatus // "UNKNOWN"' <<< "${PR_JSON}")
+
+            echo "PR state=${STATE}, mergeState=${MERGE_STATE}, mergedAt=${MERGED_AT:-none}"
+            if [[ -n "${MERGED_AT}" ]]; then
+              echo "Deploy PR merged at ${MERGED_AT}."
+              exit 0
+            fi
+            if [[ "${STATE}" == "CLOSED" ]]; then
+              echo "::error::Deploy PR closed without merging: ${PR_URL}"
+              exit 1
+            fi
+
+            sleep 30
+          done
+
+          echo "::error::Timed out waiting for deploy PR to merge: ${PR_URL}"
+          exit 1
+
+      - name: Refresh and sync development in Argo CD
+        if: steps.update_appset.outputs.skip != 'true'
+        uses: ./.github/actions/argocd-refresh-sync
+        with:
+          argocd-endpoint: ${{ vars.ARGOCD_ENDPOINT }}
+          argocd-auth-token: ${{ secrets.ARGOCD_AUTH_TOKEN }}
+          cf-access-client-id: ${{ vars.CF_ACCESS_CLIENT_ID }}
+          cf-access-client-secret: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
+          root-application: root-appset
+          target-application: interledger-app

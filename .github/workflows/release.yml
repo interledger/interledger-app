@@ -4,8 +4,16 @@ on:
   push:
     branches:
       - main
+      - '*.x'
+      - '*.*.x'
     paths-ignore:
       - 'documentation/**'
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reason for manual build (for run log only)'
+        required: false
+        default: 'Manual pipeline test'
 
 permissions:
   contents: read
@@ -17,11 +25,46 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Runs only on workflow_dispatch: reads the latest tag and appends
+  # -build.<run_number> so the artifact is clearly not a real release.
+  manual_release:
+    name: Compute Manual Build Version
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    outputs:
+      release_tag: ${{ steps.compute.outputs.release_tag }}
+      sha: ${{ steps.compute.outputs.sha }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Fetch tags
+        run: git fetch --force --tags origin
+      - name: Compute build version
+        id: compute
+        run: |
+          LATEST=$(git tag --sort=-v:refname | head -n 1)
+          if [[ -z "$LATEST" ]]; then
+            echo "::error::No existing tags found; cannot compute build version."
+            exit 1
+          fi
+          BUILD_TAG="${LATEST}-build.${{ github.run_number }}"
+          SHA=$(git rev-parse HEAD)
+          echo "Latest tag:    $LATEST"
+          echo "Build version: $BUILD_TAG"
+          echo "SHA:           $SHA"
+          echo "release_tag=${BUILD_TAG}" >> "$GITHUB_OUTPUT"
+          echo "sha=${SHA}" >> "$GITHUB_OUTPUT"
+
   release:
     name: Semantic Release
+    if: github.event_name != 'workflow_dispatch'
     runs-on: ubuntu-latest
     outputs:
       release_tag: ${{ steps.tags_after.outputs.latest != steps.tags_before.outputs.latest && steps.tags_after.outputs.latest || '' }}
+      is_maintenance_release: ${{ steps.detect_branch.outputs.is_maintenance }}
     steps:
       - name: Checkout (for composite action)
         uses: actions/checkout@v4
@@ -45,6 +88,19 @@ jobs:
 
       - name: Fetch tags
         run: git fetch --force --tags origin
+
+      - name: Detect branch type
+        id: detect_branch
+        run: |
+          set -euo pipefail
+          BRANCH=$(git rev-parse --abbrev-ref HEAD)
+          if [[ "${BRANCH}" =~ ^[0-9]+(\.[0-9]+)?\.x$ ]]; then
+            echo "is_maintenance=true" >> "$GITHUB_OUTPUT"
+            echo "Branch ${BRANCH} detected as maintenance branch."
+          else
+            echo "is_maintenance=false" >> "$GITHUB_OUTPUT"
+            echo "Branch ${BRANCH} detected as main release branch."
+          fi
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -72,13 +128,20 @@ jobs:
         run: echo "latest=$(git tag --sort=-v:refname | head -n 1)" >> "$GITHUB_OUTPUT"
 
   publish_release_artifacts:
-    needs: release
-    if: needs.release.outputs.release_tag != ''
+    needs: [release, manual_release]
+    if: >-
+      always() && (
+        (needs.release.result == 'success' && needs.release.outputs.release_tag != '') ||
+        (needs.manual_release.result == 'success' && needs.manual_release.outputs.release_tag != '')
+      )
     permissions:
       contents: write
       packages: write
       id-token: write
     uses: ./.github/workflows/build-and-publish.yml
     with:
-      release_tag: ${{ needs.release.outputs.release_tag }}
+      release_tag: ${{ needs.release.outputs.release_tag || needs.manual_release.outputs.release_tag }}
+      ref: ${{ needs.manual_release.outputs.sha || '' }}
+      skip_deploy_bump: ${{ needs.manual_release.outputs.release_tag != '' }}
+      is_maintenance_release: ${{ needs.release.outputs.is_maintenance_release == 'true' }}
     secrets: inherit
