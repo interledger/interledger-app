@@ -39,19 +39,3 @@ data:
   KRATOS_ADMIN_URL: {{ .Values.admin.config.kratos.adminUrl | quote }}
   PAYMENT_POINTER_BASE: {{ .Values.admin.config.payment_pointer_base | quote }}
 {{- end }}
-
-{{- define "interledger-app.mockpti.configMap" -}}
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: {{ include "common.fullname" . }}-{{ .Values.mockpti.configMaps.config.name }}
-  namespace: {{ .Release.Namespace }}
-  {{- include "common.metadata" (list .) | nindent 2 }}
-data:
-  LOG_LEVEL: {{ .Values.mockpti.config.log_level | quote }}
-  MOCKPTI_REDIS_URL: {{ .Values.mockpti.config.redis_url | quote }}
-  MOCKPTI_REDIS_DB: {{ .Values.mockpti.config.redis_db | quote }}
-  MOCKPTI_CLIENT_ID: {{ .Values.mockpti.config.client_id | quote }}
-  MOCKPTI_WEBHOOK_URL: {{ default (printf "http://%s-backend-service-http:8080/webhooks/pti" (include "common.fullname" .)) .Values.mockpti.config.webhook_url | quote }}
-  WEBHOOK_MIN_DELAY_SEC: {{ .Values.mockpti.config.webhook_min_delay_sec | quote }}
-{{- end }}

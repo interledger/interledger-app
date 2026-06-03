@@ -1,0 +1,16 @@
+# Values used during helm unittest CI runs.
+# All services enabled with minimal required config so templates render.
+mockpti:
+  enabled: true
+  config:
+    webhook_url: "http://wallet-backend-service-http:8080/webhooks/pti"
+
+mockgatehub:
+  enabled: true
+  config:
+    webhook_url: "http://wallet-backend-service-http:8080/webhooks/gatehub"
+
+mockxago:
+  enabled: true
+  config:
+    webhook_url: "http://wallet-backend-service-http:8080/webhooks/xago"
