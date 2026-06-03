@@ -25,6 +25,7 @@ var (
 )
 
 const backendDBConnStr = "host=localhost port=5432 user=postgres password=postgres dbname=backend sslmode=disable"
+const pacioliDBConnStr = "host=localhost port=5432 user=postgres password=postgres dbname=pacioli sslmode=disable"
 
 // ensureDB opens the backend database connection if it is not already open.
 func (sc *E2EContext) ensureDB() error {
@@ -535,6 +536,62 @@ func phoneRangeForCountry(country string) (prefix string, pattern string, digits
 		// Germany / fallback
 		return "+491700", `^\+491700([0-9]{6})$`, 6
 	}
+}
+
+func (sc *E2EContext) ensurePacioliDB() error {
+	if sc.pacioliDB != nil {
+		return nil
+	}
+	db, err := sql.Open("postgres", pacioliDBConnStr)
+	if err != nil {
+		return fmt.Errorf("failed to open pacioli db: %w", err)
+	}
+	sc.pacioliDB = db
+	return nil
+}
+
+func (sc *E2EContext) getGatehubLinkedAccountID(email string) (string, error) {
+	if err := sc.ensureDB(); err != nil {
+		return "", fmt.Errorf("getGatehubLinkedAccountID: %w", err)
+	}
+	walletID, err := sc.getWalletIDByEmail(email)
+	if err != nil {
+		return "", fmt.Errorf("getGatehubLinkedAccountID: %w", err)
+	}
+	var accountID string
+	err = sc.db.QueryRow(`
+		SELECT id FROM linked_accounts
+		WHERE wallet_id = $1 AND provider = 'gatehub' AND type = 'balance'
+		LIMIT 1
+	`, walletID).Scan(&accountID)
+	if err != nil {
+		return "", fmt.Errorf("getGatehubLinkedAccountID: %w", err)
+	}
+	return accountID, nil
+}
+
+type ledgerBalance struct {
+	Total     int64
+	Available int64
+}
+
+func (sc *E2EContext) getLedgerBalanceByAccountID(accountID string) (*ledgerBalance, error) {
+	if err := sc.ensurePacioliDB(); err != nil {
+		return nil, fmt.Errorf("getLedgerBalanceByAccountID: %w", err)
+	}
+	var creditsPosted, debitsPosted, debitsPending int64
+	err := sc.pacioliDB.QueryRow(`
+		SELECT credits_posted, debits_posted, debits_pending
+		FROM ledger_accounts
+		WHERE id = $1
+	`, accountID).Scan(&creditsPosted, &debitsPosted, &debitsPending)
+	if err != nil {
+		return nil, fmt.Errorf("getLedgerBalanceByAccountID: query: %w", err)
+	}
+	return &ledgerBalance{
+		Total:     creditsPosted - debitsPosted,
+		Available: creditsPosted - debitsPosted - debitsPending,
+	}, nil
 }
 
 // getWalletIDByEmail looks up the wallet ID for a user by their email address

@@ -31,6 +31,7 @@ type E2EContext struct {
 	context     playwright.BrowserContext
 	page        playwright.Page
 	db          *sql.DB
+	pacioliDB   *sql.DB
 	baseURL     string
 	email       string
 	password    string
@@ -97,6 +98,9 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 		}
 		if sc.db != nil {
 			_ = sc.db.Close()
+		}
+		if sc.pacioliDB != nil {
+			_ = sc.pacioliDB.Close()
 		}
 		debugPrintf("✓ Cleaned up context for scenario: %s\n", scenario.Name)
 		return goCtx, nil
@@ -469,6 +473,9 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	})
 	ctx.Step(`^the last card transaction of '([^']*)' should be failed in the database$`, func(userName string) error {
 		return sc.theLastCardTransactionShouldBeFailedFor(userName)
+	})
+	ctx.Step(`^the ledger balance for '([^']*)' should be total "([^"]*)" EUR and available "([^"]*)" EUR$`, func(userName, total, available string) error {
+		return sc.theLedgerBalanceForShouldBe(userName, total, available)
 	})
 	ctx.Step(`^the last transaction for '([^']*)' should have exchange rate data$`, func(userName string) error {
 		return sc.theLastTransactionShouldHaveExchangeRateDataFor(userName)

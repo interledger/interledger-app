@@ -6,8 +6,10 @@ import (
 	"database/sql"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -713,7 +715,7 @@ const txWrongPINJSON = `{
 
 const txInvalidCVVJSON = `{
   "operation": 2,
-  "transactionClassification": "Authorization",
+  "transactionClassification": "Advice",
   "type": 0,
   "isTrxAmountConverted": false,
   "txStatus": null,
@@ -744,7 +746,7 @@ const txInvalidCVVJSON = `{
 
 const txCardExpiredJSON = `{
   "operation": 2,
-  "transactionClassification": "Authorization",
+  "transactionClassification": "Advice",
   "type": 0,
   "isTrxAmountConverted": false,
   "txStatus": null,
@@ -775,7 +777,7 @@ const txCardExpiredJSON = `{
 
 const txFrozenCardJSON = `{
   "operation": 2,
-  "transactionClassification": "Authorization",
+  "transactionClassification": "Advice",
   "type": 0,
   "isTrxAmountConverted": false,
   "txStatus": null,
@@ -1257,6 +1259,55 @@ func (sc *E2EContext) theLastCardTransactionShouldBeFailedFor(userName string) e
 	return sc.waitForBackendCardTxState(email, "Failed", 30*time.Second)
 }
 
+func (sc *E2EContext) theLedgerBalanceForShouldBe(userName, expectedTotal, expectedAvailable string) error {
+	email, err := sc.getEmailForUser(userName)
+	if err != nil {
+		return err
+	}
+
+	wantTotalF, err := strconv.ParseFloat(expectedTotal, 64)
+	if err != nil {
+		return fmt.Errorf("theLedgerBalanceForShouldBe: invalid total %q: %w", expectedTotal, err)
+	}
+	wantAvailableF, err := strconv.ParseFloat(expectedAvailable, 64)
+	if err != nil {
+		return fmt.Errorf("theLedgerBalanceForShouldBe: invalid available %q: %w", expectedAvailable, err)
+	}
+	wantTotal := int64(math.Round(wantTotalF * 100))
+	wantAvailable := int64(math.Round(wantAvailableF * 100))
+
+	accountID, err := sc.getGatehubLinkedAccountID(email)
+	if err != nil {
+		return fmt.Errorf("theLedgerBalanceForShouldBe: %w", err)
+	}
+
+	deadline := time.Now().Add(30 * time.Second)
+	var last *ledgerBalance
+
+	for time.Now().Before(deadline) {
+		balance, err := sc.getLedgerBalanceByAccountID(accountID)
+		if err != nil {
+			time.Sleep(time.Second)
+			continue
+		}
+		last = balance
+		if balance.Total == wantTotal && balance.Available == wantAvailable {
+			debugPrintf("   ✓ Ledger balance total=%.2f available=%.2f EUR for user %s\n",
+				float64(balance.Total)/100, float64(balance.Available)/100, email)
+			return nil
+		}
+		debugPrintf("   ⏳ Waiting for ledger total=%s available=%s EUR, got total=%.2f available=%.2f\n",
+			expectedTotal, expectedAvailable, float64(balance.Total)/100, float64(balance.Available)/100)
+		time.Sleep(time.Second)
+	}
+
+	if last != nil {
+		return fmt.Errorf("theLedgerBalanceForShouldBe: expected total=%s available=%s EUR but got total=%.2f available=%.2f for user %s",
+			expectedTotal, expectedAvailable, float64(last.Total)/100, float64(last.Available)/100, email)
+	}
+	return fmt.Errorf("theLedgerBalanceForShouldBe: could not read ledger balance for user %s", email)
+}
+
 func (sc *E2EContext) theLastTransactionShouldHaveExchangeRateDataFor(userName string) error {
 	email, err := sc.getEmailForUser(userName)
 	if err != nil {
@@ -1283,4 +1334,3 @@ func (sc *E2EContext) theLastTransactionShouldHaveExchangeRateDataFor(userName s
 
 	return fmt.Errorf("theLastTransactionShouldHaveExchangeRateDataFor: no exchange rate data found for user %s", email)
 }
-
