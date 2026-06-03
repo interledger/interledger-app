@@ -86,7 +86,7 @@ export async function detailsAction({ request }: Route.ActionArgs) {
       phone: ''
     }
   }
-  const mapping = { country: 'CountryOfResidence', phone: 'To' }
+  const mapping = { country: 'CountryCode', phone: 'MobileNumber' }
 
   const firstName = form.get('firstName') as string
   const lastName = form.get('lastName') as string
@@ -332,7 +332,7 @@ export async function passwordAction({ request }: Route.ActionArgs) {
 
   return redirectWithSnackbar(
     request,
-    href('/wallet-address'),
+    href('/verify'),
     {
       message: 'Your account was created successfully.',
       icon: 'close'
