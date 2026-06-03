@@ -322,18 +322,7 @@ func CreateCardTransaction(ctx workflow.Context, wh CardTransactionEventWebhook)
 				external.CardTransactionTypePreauthorization,
 				external.CardTransactionTypePreauthorizationIncremental,
 				external.CardTransactionTypePreauthorizationCompletion:
-				if ct.RefTransactionID != nil {
-					var prevInternalTx *transactions.Transaction
-					if err = workflow.ExecuteActivity(ctx, a.GetCardTransactionByForeignID, ctMeta.WalletID, *ct.RefTransactionID).Get(ctx, &prevInternalTx); err != nil {
-						return err
-					}
-					if err = workflow.ExecuteActivity(ctx, a.RollbackGatehubCardTransaction, *ct.RefTransactionID, prevInternalTx.ID).Get(ctx, nil); err != nil {
-						return err
-					}
-				} else {
-					slack.SendToChannel(context.Background(), slack.ChannelNotifyEvents, "wallet-info-bot", fmt.Sprintf("!!! Received reversal for card transaction without a ref transaction id:\nCard TX ID: %s\nCard ID: %s\nGateHub User ID: %s\nType: %d", ct.TransactionID, card.ID, wh.UserID, ct.Type))
-				}
-				if err = workflow.ExecuteActivity(ctx, a.RecordGatehubCardDeposit, txID, ct, recordDepositArgs).Get(ctx, nil); err != nil {
+				if err = workflow.ExecuteActivity(ctx, a.CreateGatehubCardReversal, txID, ct, recordDepositArgs).Get(ctx, nil); err != nil {
 					return err
 				}
 			default:

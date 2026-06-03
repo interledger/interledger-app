@@ -172,11 +172,34 @@ func GatehubRealtimeCardTransactionsPollWorkflow(ctx workflow.Context) error {
 		}
 
 		var activityErr error
-		switch *cardTx.TxStatus {
-		case external.CardTransactionStatusCompleted:
-			activityErr = workflow.ExecuteActivity(loopCtx, a.FinalizeGatehubCardTransaction, tx.ID, internalTx.ID).Get(loopCtx, nil)
-		case external.CardTransactionStatusFailed:
-			activityErr = workflow.ExecuteActivity(loopCtx, a.RollbackGatehubCardTransaction, tx.ID, internalTx.ID).Get(loopCtx, nil)
+		if isReversal {
+			if cardTx.RefTransactionID == nil {
+				slack.SendToChannel(context.Background(), slack.ChannelNotifyEvents, "wallet-info-bot", fmt.Sprintf("!!! Reversal card transaction has no ref transaction id\nGateHub TX ID: %s\nGateHub User ID: %s", tx.ID, tx.UserID))
+				continue
+			}
+			var originalInternalTx *transactions.Transaction
+			if err := workflow.ExecuteActivity(loopCtx, a.GetCardTransactionByForeignID, walletID, *cardTx.RefTransactionID).Get(loopCtx, &originalInternalTx); err != nil {
+				logger.Error("Failed fetching original internal transaction for reversal", "txID", tx.ID, "refTxID", *cardTx.RefTransactionID, "error", err)
+				continue
+			}
+			switch *cardTx.TxStatus {
+			case external.CardTransactionStatusCompleted:
+				activityErr = workflow.ExecuteActivity(loopCtx, a.FinalizeGatehubCardReversal, FinalizeGatehubCardReversalArgs{
+					ReversalCardTxID:     tx.ID,
+					ReversalInternalTxID: internalTx.ID,
+					OriginalCardTxID:     *cardTx.RefTransactionID,
+					OriginalInternalTxID: originalInternalTx.ID,
+				}).Get(loopCtx, nil)
+			case external.CardTransactionStatusFailed:
+				activityErr = workflow.ExecuteActivity(loopCtx, a.FailGatehubCardReversal, tx.ID, internalTx.ID).Get(loopCtx, nil)
+			}
+		} else {
+			switch *cardTx.TxStatus {
+			case external.CardTransactionStatusCompleted:
+				activityErr = workflow.ExecuteActivity(loopCtx, a.FinalizeGatehubCardTransaction, tx.ID, internalTx.ID).Get(loopCtx, nil)
+			case external.CardTransactionStatusFailed:
+				activityErr = workflow.ExecuteActivity(loopCtx, a.RollbackGatehubCardTransaction, tx.ID, internalTx.ID).Get(loopCtx, nil)
+			}
 		}
 		if activityErr != nil {
 			logger.Error("Failed updating card transaction", "txID", tx.ID, "error", activityErr)
