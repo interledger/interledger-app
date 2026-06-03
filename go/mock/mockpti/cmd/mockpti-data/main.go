@@ -358,6 +358,7 @@ func runExport(client *redis.Client, args []string) error {
 func runImport(client *redis.Client, args []string) error {
 	fs := flag.NewFlagSet("import", flag.ExitOnError)
 	input := fs.String("input", "", "Input file (default: stdin)")
+	noFlush := fs.Bool("no-flush", false, "Skip FlushDB before import (useful when FlushDB is disabled)")
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
@@ -381,9 +382,11 @@ func runImport(client *redis.Client, args []string) error {
 
 	ctx := context.Background()
 
-	// 1. Flush DB
-	if err := client.FlushDB(ctx).Err(); err != nil {
-		return fmt.Errorf("FlushDB: %w", err)
+	// 1. Flush DB (skip if --no-flush or FlushDB is disabled on the server)
+	if !*noFlush {
+		if err := client.FlushDB(ctx).Err(); err != nil {
+			return fmt.Errorf("FlushDB: %w", err)
+		}
 	}
 
 	// 2. Users
