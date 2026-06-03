@@ -227,7 +227,7 @@ func CreateWithdrawal(ctx context.Context, b Backends, ec external.Client, walle
 	}
 	if _, err = ReserveBalance(ctx, b, balanceAccount.ID, trxID, amountWithFee, 365*24*time.Hour); err != nil {
 		slack.SendToChannel(ctx, slack.ChannelNotifyErrors, "wallet-info-bot",
-			fmt.Sprintf("*:::[GateHub ERROR]:::* Withdrawal ledger reserve failed — no transaction record was created\n*Wallet ID:* %s\n*GateHub TX ID:* %s\n*Error:* %s",
+			fmt.Sprintf("*:::[GateHub ERROR]:::* Withdrawal ledger reserve failed\n*Wallet ID:* %s\n*GateHub TX ID:* %s\n*Error:* %s",
 				walletID, externalTransactionID, err))
 		return "", fmt.Errorf("%w %s", gatehub.ErrInternal, err)
 	}
@@ -249,7 +249,7 @@ func CreateWithdrawal(ctx context.Context, b Backends, ec external.Client, walle
 		LinkedAccountTitle:      "EUR Balance",
 	}); err != nil {
 		slack.SendToChannel(ctx, slack.ChannelNotifyErrors, "wallet-info-bot",
-			fmt.Sprintf("*:::[GateHub ERROR]:::* Withdrawal transaction record creation failed — ledger reserve exists under transaction ID\n*Wallet ID:* %s\n*Transaction ID:* %s\n*GateHub TX ID:* %s\n*Error:* %s",
+			fmt.Sprintf("*:::[GateHub ERROR]:::* Withdrawal transaction record creation failed\n*Wallet ID:* %s\n*Transaction ID:* %s\n*GateHub TX ID:* %s\n*Error:* %s",
 				walletID, trxID, externalTransactionID, err))
 		return "", fmt.Errorf("%w %s", gatehub.ErrInternal, err)
 	}
