@@ -1,16 +1,16 @@
 services:
-  redis:
+  valkey:
     image: valkey/valkey:8-alpine
-    container_name: mockpti-redis-test
+    container_name: mockpti-valkey-test
     ports:
       - "26380:6379"
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "valkey-cli", "ping"]
       interval: 2s
       timeout: 1s
       retries: 5
     volumes:
-      - mockpti-redis-data:/data
+      - mockpti-valkey-data:/data
 
   mockpti:
     build:
@@ -22,13 +22,13 @@ services:
     environment:
       - MOCKPTI_PORT=8080
       - MOCKPTI_CLIENT_ID=test-client-id
-      - MOCKPTI_REDIS_URL=redis://redis:6379
+      - MOCKPTI_REDIS_URL=redis://valkey:6379
       - MOCKPTI_WEBHOOK_URL=http://host.docker.internal:24100/webhooks/pti
       - MOCKPTI_WEBHOOK_SIGNING_KEY_B64=${MOCKPTI_WEBHOOK_SIGNING_KEY_B64:-}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
-      redis:
+      valkey:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
@@ -38,4 +38,4 @@ services:
       start_period: 5s
 
 volumes:
-  mockpti-redis-data:
+  mockpti-valkey-data:

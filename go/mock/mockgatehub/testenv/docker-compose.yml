@@ -1,10 +1,10 @@
 services:
-  redis:
+  valkey:
     image: valkey/valkey:8-alpine
-    container_name: mockgatehub-test-redis
+    container_name: mockgatehub-test-valkey
     ports:
       - "26380:6379"  # Use different port to avoid conflicts
-    command: redis-server --save "" --appendonly no  # No persistence
+    command: valkey-server --save "" --appendonly no  # No persistence
     networks:
       - mockgatehub-test
 
@@ -18,7 +18,7 @@ services:
     environment:
       - LOG_LEVEL=debug
       - MOCKGATEHUB_PORT=8080
-      - MOCKGATEHUB_REDIS_URL=redis://redis:6379
+      - MOCKGATEHUB_REDIS_URL=redis://valkey:6379
       - MOCKGATEHUB_REDIS_DB=0
       - WEBHOOK_URL=http://mockgatehub:8080/test-webhook
       - WEBHOOK_SECRET=test-webhook-secret
@@ -26,7 +26,7 @@ services:
       # Tests invoke card-data links from the host via the mapped port.
       - MOCKGATEHUB_PUBLIC_BASE_URL=http://localhost:25151
     depends_on:
-      - redis
+      - valkey
     networks:
       - mockgatehub-test
     healthcheck:

@@ -1,11 +1,11 @@
 services:
-  redis:
+  valkey:
     image: valkey/valkey:8-alpine
-    container_name: mockchimoney-test-redis
+    container_name: mockchimoney-test-valkey
     ports:
       - "26381:6379"
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "valkey-cli", "ping"]
       interval: 2s
       timeout: 1s
       retries: 10
@@ -22,12 +22,12 @@ services:
       - LOG_LEVEL=debug
       - MOCKCHIMONEY_API_KEY=local-test-api-key
       - MOCKCHIMONEY_ENFORCE_AUTHENTICATION=true
-      - MOCKCHIMONEY_REDIS_URL=redis://redis:6379
+      - MOCKCHIMONEY_REDIS_URL=redis://valkey:6379
       - MOCKCHIMONEY_REDIS_DB=5
       - WEBHOOK_URL=http://host.docker.internal:18080/webhooks/chimoney
       - CHIMONEY_WEBHOOK_SECRET=local_bG9jYWwtdGVzdC13ZWJob29rLXNlY3JldA==
     depends_on:
-      redis:
+      valkey:
         condition: service_healthy
     extra_hosts:
       - "host.docker.internal:host-gateway"

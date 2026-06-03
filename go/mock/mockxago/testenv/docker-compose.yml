@@ -1,16 +1,16 @@
 services:
-  redis:
+  valkey:
     image: valkey/valkey:8-alpine
-    container_name: mockxago-redis-test
+    container_name: mockxago-valkey-test
     ports:
       - "26379:6379"
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "valkey-cli", "ping"]
       interval: 2s
       timeout: 1s
       retries: 5
     volumes:
-      - mockxago-redis-data:/data
+      - mockxago-valkey-data:/data
 
   mockxago:
     build:
@@ -26,11 +26,11 @@ services:
       - XAGO_MOCK_TEST_MODE=true
       - WEBHOOK_URL=http://host.docker.internal:3000/xago/webhooks
       - WEBHOOK_SECRET=test-webhook-secret
-      - MOCKXAGO_REDIS_URL=redis://redis:6379
+      - MOCKXAGO_REDIS_URL=redis://valkey:6379
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
-      redis:
+      valkey:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
@@ -40,5 +40,4 @@ services:
       start_period: 5s
 
 volumes:
-  mockxago-redis-data:
-
+  mockxago-valkey-data:
