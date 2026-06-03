@@ -47,7 +47,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   if (transaction.type == 'withdrawal' || transaction.type == 'deposit') {
     const linkedAccountsResponse = await grpc.getLinkedAccounts(request, {})
     if (isConnectError(linkedAccountsResponse))
-      throw linkedAccountsResponse.error
+      throw linkedAccountsResponse.errorResponse
     senderAccountTitle = linkedAccountsResponse.linkedAccounts.find(
       (account) => account.id == transaction.senderAccountId
     )?.title

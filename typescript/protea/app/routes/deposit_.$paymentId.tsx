@@ -25,7 +25,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   if (payment.state > 1) throw redirect(href('/deposit'))
 
   const linkedAccountsResponse = await grpc.getLinkedAccounts(request, {})
-  if (isConnectError(linkedAccountsResponse)) throw linkedAccountsResponse.error
+  if (isConnectError(linkedAccountsResponse)) throw linkedAccountsResponse.errorResponse
 
   return jsonWithCSRF(request, {
     receiverAccountTitle: linkedAccountsResponse.linkedAccounts.find(

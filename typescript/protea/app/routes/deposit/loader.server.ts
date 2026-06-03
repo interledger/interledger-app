@@ -17,7 +17,7 @@ import type { FormattedLinkedAccount } from '~/data/accounts.server'
 
 export async function gatehubDepositLoader({ request }: LoaderFunctionArgs) {
     const widgetResponse = await grpc.getGatehubDepositWidget(request, {})
-    if (isConnectError(widgetResponse)) throw widgetResponse.error
+    if (isConnectError(widgetResponse)) throw widgetResponse.errorResponse
 
     return jsonWithCSRF(request, {
         provider: 'gatehub',
@@ -27,14 +27,14 @@ export async function gatehubDepositLoader({ request }: LoaderFunctionArgs) {
 
 export async function fynbosDepositLoader({ request }: LoaderFunctionArgs) {
     const providerResponse = await grpc.getOnOffRampProvider(request, {})
-    if (isConnectError(providerResponse)) throw providerResponse.error
+    if (isConnectError(providerResponse)) throw providerResponse.errorResponse
     const url = new URL(request.url)
     let balanceAccount: Balance | undefined
     let balance: FormattedLinkedAccount | undefined
     let depositDetails: XagoDepositDetails | undefined
 
     const balanceResponse = await grpc.getBalances(request, {})
-    if (isConnectError(balanceResponse)) throw balanceResponse.error
+    if (isConnectError(balanceResponse)) throw balanceResponse.errorResponse
 
     const balances = await getBalancesForTransfer(request)
 
