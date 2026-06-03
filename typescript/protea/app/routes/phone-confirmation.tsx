@@ -251,6 +251,9 @@ export async function action({ request }: Route.ActionArgs) {
           }
         }
       }
+      if (updateResponse.code === Code.Unauthenticated) {
+        throw redirect(href('/logout'))
+      }
       throw updateResponse.errorResponse
     }
 

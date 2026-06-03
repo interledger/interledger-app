@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import {
   Form,
   href,
+  redirect,
   useActionData,
   useFetcher,
   useLoaderData
@@ -234,6 +235,10 @@ export async function action({ request }: Route.ActionArgs) {
           }
         }
       }
+      if (updateResponse.code === Code.Unauthenticated) {
+        throw redirect(href('/logout'))
+      }
+      throw updateResponse.errorResponse
     }
 
     const sendResponse = await grpc.sendPhoneVerification(request, {
