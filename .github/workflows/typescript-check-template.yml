@@ -37,12 +37,14 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Lint check
-        run: pnpm lint:check
-
+      # Generate route types first: React Router writes .react-router/types(.gitignored)
+      # which `./+types/*` imports resolve against.
       - name: Generate route types
         if: ${{ inputs.run_react_router_typegen }}
         run: pnpm exec react-router typegen
+
+      - name: Lint check
+        run: pnpm lint:check
 
       - name: Typecheck
         run: pnpm typecheck
