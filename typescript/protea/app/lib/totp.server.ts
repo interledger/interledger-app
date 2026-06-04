@@ -5,7 +5,7 @@ import {
   CLEAR_SESSION_COOKIE_HEADER,
   kratosPublic
 } from './kratos/kratos-client.server'
-import { getUserSession } from './kratos/session.server'
+import { getSessionTraits, getUserSession } from './kratos/session.server'
 import { safeReturnTo } from './url.server'
 
 /**
@@ -63,13 +63,6 @@ async function isTotpSet(session: Session, headers: Headers): Promise<boolean> {
   } catch (error) {
     return false
   }
-}
-
-function getSessionTraits(session: Session): {
-  phone?: string
-  phoneVerified?: boolean
-} {
-  return (session.identity?.traits as any) ?? {}
 }
 
 function isEmailVerified(session: Session): boolean {
