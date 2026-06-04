@@ -645,5 +645,4 @@ jobs:
           argocd-auth-token: ${{ secrets.ARGOCD_AUTH_TOKEN }}
           cf-access-client-id: ${{ vars.CF_ACCESS_CLIENT_ID }}
           cf-access-client-secret: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
-          root-application: root-appset
-          application-selector: environment=dev1
+          application-selector: environment=wallet-dev1
