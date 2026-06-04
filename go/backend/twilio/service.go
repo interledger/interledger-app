@@ -12,7 +12,6 @@ import (
 	"github.com/twilio/twilio-go"
 	"github.com/twilio/twilio-go/client"
 	verify "github.com/twilio/twilio-go/rest/verify/v2"
-	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/log"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.uber.org/zap"
@@ -38,12 +37,14 @@ type (
 		AccountToken string `validate:"required"`
 		ServiceSid   string `validate:"required"`
 		ApiBaseUrl   string // use this to override the default base url
+		Enabled      bool   // when false, all methods return stub responses without calling Twilio
 	}
 
 	service struct {
 		validator    *validator.Validate
 		serviceSid   string
 		twilioClient *twilio.RestClient
+		enabled      bool
 	}
 
 	Verification struct {
@@ -59,10 +60,11 @@ func (v Verification) IsValid() bool {
 }
 
 func NewService(args *ServiceArgs) (Service, error) {
-	validator := validator.New()
-	err := validator.Struct(args)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %s", ErrInvalidArgument, err)
+	if args.Enabled {
+		validator := validator.New()
+		if err := validator.Struct(args); err != nil {
+			return nil, fmt.Errorf("%w: %s", ErrInvalidArgument, err)
+		}
 	}
 
 	customClient := &CustomClient{
@@ -80,9 +82,10 @@ func NewService(args *ServiceArgs) (Service, error) {
 	})
 
 	return &service{
-		validator:    validator,
+		validator:    validator.New(),
 		twilioClient: twilioClient,
 		serviceSid:   args.ServiceSid,
+		enabled:      args.Enabled,
 	}, nil
 }
 
@@ -92,7 +95,7 @@ func (s *service) SendVerificationCode(ctx context.Context, phoneNumber string) 
 		return nil, fmt.Errorf("%w: %s", ErrInvalidArgument, err)
 	}
 
-	if !env.IsProd() && !env.IsSandbox() {
+	if !s.enabled {
 		return &Verification{
 			Sid:         "1234",
 			PhoneNumber: phoneNumber,
@@ -132,8 +135,7 @@ type CheckVerificationCodeArgs struct {
 }
 
 func (s *service) CheckVerificationCode(ctx context.Context, args *CheckVerificationCodeArgs) (*Verification, error) {
-	// Short circuit here for environments where there is not twilio integrations
-	if !env.IsProd() && !env.IsSandbox() {
+	if !s.enabled {
 		return &Verification{
 			Sid:         "1234",
 			PhoneNumber: args.PhoneNumber,
@@ -190,16 +192,16 @@ type ListSuccessfulVerificationAttemptsArgs struct {
 }
 
 func (s *service) ListSuccessfulVerificationAttempts(ctx context.Context, args ListSuccessfulVerificationAttemptsArgs) ([]Verification, error) {
-	// if !env.IsProd() && !env.IsSandbox() {
-	// return []Verification{
-	// 	{
-	// 		Sid:         "1234",
-	// 		PhoneNumber: args.To,
-	// 		Status:      statusApproved,
-	// 		UpdatedAt:   time.Now(),
-	// 	},
-	// }, nil
-	// }
+	if !s.enabled {
+		return []Verification{
+			{
+				Sid:         "1234",
+				PhoneNumber: args.To,
+				Status:      statusApproved,
+				UpdatedAt:   time.Now(),
+			},
+		}, nil
+	}
 
 	converted := "converted"
 	params := &verify.ListVerificationAttemptParams{
