@@ -6,7 +6,7 @@ import {
 } from '~/lib/kratos/error.server'
 import { getNodeValueFromFlow, isNodeInFlow } from '~/lib/kratos/flow.server'
 import { kratosPublic } from '~/lib/kratos/kratos-client.server'
-import { CreateBrowserLoginFlowResponse } from '~/lib/kratos/types.server'
+import type { CreateBrowserLoginFlowResponse } from '~/lib/kratos/types.server'
 import logger, { addRequestId } from '~/lib/logger.server'
 import { extractOrGenerateRequestId } from '~/lib/requestContext.server'
 import type { Route } from './+types/api.totp-challenge-init'

@@ -29,7 +29,7 @@ import { RateLimitKeys, getKey, rateLimit } from '~/lib/rateLimit.server'
 import { safeReturnTo } from '~/lib/url.server'
 import { useCountdown } from '~/lib/useCountdown'
 import { useDebounceAction } from '~/lib/useDebounceAction'
-import { RootLoaderData } from '~/root'
+import type { RootLoaderData } from '~/root'
 import type { Route } from './+types/verify'
 
 const RESEND_DELAY = 60 * 1000 // 1 minute

@@ -4,7 +4,7 @@ import { Button, Card, CardContent, Checkbox } from '~/components'
 import { DateTime } from 'luxon'
 import { usePTISdk } from '~/lib/usePTISdk'
 import { PaymentDetailsCard } from './PaymentDetailsCard'
-import { confirmPaymentAction } from './action.server'
+import type { confirmPaymentAction } from './action.server'
 import type { loader } from './route'
 
 export function Confirm() {
