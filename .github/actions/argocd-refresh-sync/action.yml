@@ -1,5 +1,5 @@
 name: Argo CD Refresh and Sync
-description: Refresh a root Argo CD app via the Argo CD HTTP API, wait for it to become healthy, then refresh and sync a target app.
+description: Refresh a root Argo CD app via the Argo CD HTTP API, wait for it to become healthy, then refresh and sync either a target app or all apps matching a label selector.
 
 inputs:
   argocd-endpoint:
@@ -22,6 +22,10 @@ inputs:
     description: Argo CD application to refresh and sync.
     required: false
     default: interledger-app
+  application-selector:
+    description: Label selector for Argo CD applications to refresh and sync after the root app becomes healthy. When set, this takes precedence over target-application.
+    required: false
+    default: ''
   timeout-seconds:
     description: Maximum seconds to wait for each application to become healthy and synced.
     required: false
@@ -34,7 +38,7 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Refresh root app and sync target app
+    - name: Refresh root app and sync Argo CD applications
       shell: bash
       env:
         ARGOCD_ENDPOINT: ${{ inputs.argocd-endpoint }}
@@ -43,6 +47,7 @@ runs:
         CF_ACCESS_CLIENT_SECRET: ${{ inputs.cf-access-client-secret }}
         ROOT_APPLICATION: ${{ inputs.root-application }}
         TARGET_APPLICATION: ${{ inputs.target-application }}
+        APPLICATION_SELECTOR: ${{ inputs.application-selector }}
         TIMEOUT_SECONDS: ${{ inputs.timeout-seconds }}
         POLL_INTERVAL_SECONDS: ${{ inputs.poll-interval-seconds }}
       run: |
@@ -89,6 +94,39 @@ runs:
             -X GET \
             "${ARGOCD_BASE}/api/v1/applications/${app_name}?refresh=normal" \
             >/dev/null
+        }
+
+        list_selected_applications() {
+          local selector="$1"
+          local response_file
+          response_file="$(mktemp)"
+
+          curl_argocd \
+            -X GET \
+            "${ARGOCD_BASE}/api/v1/applications" \
+            > "${response_file}"
+
+          jq -r --arg selector "${selector}" '
+            def parse_selector($selector):
+              ($selector | split(",") | map(gsub("^\\s+|\\s+$"; "") | select(length > 0)));
+            def selector_matches($selector):
+              all(parse_selector($selector)[]; 
+                if test("^[^!=]+=[^=]+$") then
+                  capture("^(?<key>[^=]+)=(?<value>.+)$") as $m
+                  | (.metadata.labels[$m.key] // "") == $m.value
+                elif test("^[^!]+!=.+$") then
+                  capture("^(?<key>[^!]+)!=(?<value>.+)$") as $m
+                  | (.metadata.labels[$m.key] // "") != $m.value
+                else
+                  false
+                end
+              );
+            .items[]
+            | select(selector_matches($selector))
+            | .metadata.name
+          ' "${response_file}"
+
+          rm -f "${response_file}"
         }
 
         sync_application() {
@@ -139,17 +177,43 @@ runs:
           return 1
         }
 
+        declare -a applications_to_sync
+
         refresh_application "${ROOT_APPLICATION}"
         wait_for_green "${ROOT_APPLICATION}"
 
-        refresh_application "${TARGET_APPLICATION}"
-        sync_application "${TARGET_APPLICATION}"
-        wait_for_green "${TARGET_APPLICATION}"
+        if [[ -n "${APPLICATION_SELECTOR}" ]]; then
+          mapfile -t applications_to_sync < <(list_selected_applications "${APPLICATION_SELECTOR}")
+          if [[ ${#applications_to_sync[@]} -eq 0 ]]; then
+            echo "::error::No Argo CD applications matched selector '${APPLICATION_SELECTOR}'."
+            exit 1
+          fi
+          echo "Selected Argo CD applications: ${applications_to_sync[*]}"
+        else
+          applications_to_sync=("${TARGET_APPLICATION}")
+        fi
+
+        for app_name in "${applications_to_sync[@]}"; do
+          refresh_application "${app_name}"
+        done
+
+        for app_name in "${applications_to_sync[@]}"; do
+          sync_application "${app_name}"
+        done
+
+        for app_name in "${applications_to_sync[@]}"; do
+          wait_for_green "${app_name}"
+        done
 
         {
           echo "### Argo CD deployment"
           echo ""
           echo "- Refreshed root application: \`${ROOT_APPLICATION}\`"
-          echo "- Synced target application: \`${TARGET_APPLICATION}\`"
+          if [[ -n "${APPLICATION_SELECTOR}" ]]; then
+            echo "- Refreshed and synced applications matching: \`${APPLICATION_SELECTOR}\`"
+            echo "- Matched applications: \`${applications_to_sync[*]}\`"
+          else
+            echo "- Synced target application: \`${TARGET_APPLICATION}\`"
+          fi
           echo "- Endpoint: \`${ARGOCD_BASE}\`"
         } >> "${GITHUB_STEP_SUMMARY}"

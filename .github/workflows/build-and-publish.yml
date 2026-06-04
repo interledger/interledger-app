@@ -637,7 +637,7 @@ jobs:
           echo "::error::Timed out waiting for deploy PR to merge: ${PR_URL}"
           exit 1
 
-      - name: Refresh and sync dev1 in Argo CD
+      - name: Refresh and sync dev1 applications in Argo CD
         if: steps.update_appset.outputs.skip != 'true'
         uses: ./.github/actions/argocd-refresh-sync
         with:
@@ -646,4 +646,4 @@ jobs:
           cf-access-client-id: ${{ vars.CF_ACCESS_CLIENT_ID }}
           cf-access-client-secret: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
           root-application: root-appset
-          target-application: interledger-app
+          application-selector: environment=dev1
