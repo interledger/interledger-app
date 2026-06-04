@@ -6,6 +6,7 @@ package mock
 
 import (
 	context "context"
+	io "io"
 	reflect "reflect"
 	time "time"
 
@@ -65,20 +66,6 @@ func (m *MockClient) BlockCard(ctx context.Context, args gatehub.BlockCardArgs) 
 func (mr *MockClientMockRecorder) BlockCard(ctx, args interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BlockCard", reflect.TypeOf((*MockClient)(nil).BlockCard), ctx, args)
-}
-
-// CloseCard mocks base method.
-func (m *MockClient) CloseCard(ctx context.Context, args gatehub.CloseCardArgs) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CloseCard", ctx, args)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// CloseCard indicates an expected call of CloseCard.
-func (mr *MockClientMockRecorder) CloseCard(ctx, args interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CloseCard", reflect.TypeOf((*MockClient)(nil).CloseCard), ctx, args)
 }
 
 // CreateTransfer mocks base method.
@@ -152,6 +139,36 @@ func (m *MockClient) FreezeCard(ctx context.Context, args gatehub.FreezeCardArgs
 func (mr *MockClientMockRecorder) FreezeCard(ctx, args interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FreezeCard", reflect.TypeOf((*MockClient)(nil).FreezeCard), ctx, args)
+}
+
+// GetAccountConfirmation mocks base method.
+func (m *MockClient) GetAccountConfirmation(ctx context.Context, walletID string) (io.ReadCloser, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAccountConfirmation", ctx, walletID)
+	ret0, _ := ret[0].(io.ReadCloser)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAccountConfirmation indicates an expected call of GetAccountConfirmation.
+func (mr *MockClientMockRecorder) GetAccountConfirmation(ctx, walletID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccountConfirmation", reflect.TypeOf((*MockClient)(nil).GetAccountConfirmation), ctx, walletID)
+}
+
+// GetAccountStatement mocks base method.
+func (m *MockClient) GetAccountStatement(ctx context.Context, walletID string, year, month int) (io.ReadCloser, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAccountStatement", ctx, walletID, year, month)
+	ret0, _ := ret[0].(io.ReadCloser)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAccountStatement indicates an expected call of GetAccountStatement.
+func (mr *MockClientMockRecorder) GetAccountStatement(ctx, walletID, year, month interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccountStatement", reflect.TypeOf((*MockClient)(nil).GetAccountStatement), ctx, walletID, year, month)
 }
 
 // GetBalance mocks base method.
@@ -244,6 +261,21 @@ func (mr *MockClientMockRecorder) GetOnboardingWidget(ctx, walletID interface{})
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOnboardingWidget", reflect.TypeOf((*MockClient)(nil).GetOnboardingWidget), ctx, walletID)
 }
 
+// GetPendingThreeDSConfirmations mocks base method.
+func (m *MockClient) GetPendingThreeDSConfirmations(ctx context.Context, userID string) ([]external.PendingThreeDSConfirmation, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPendingThreeDSConfirmations", ctx, userID)
+	ret0, _ := ret[0].([]external.PendingThreeDSConfirmation)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPendingThreeDSConfirmations indicates an expected call of GetPendingThreeDSConfirmations.
+func (mr *MockClientMockRecorder) GetPendingThreeDSConfirmations(ctx, userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPendingThreeDSConfirmations", reflect.TypeOf((*MockClient)(nil).GetPendingThreeDSConfirmations), ctx, userID)
+}
+
 // GetTransaction mocks base method.
 func (m *MockClient) GetTransaction(ctx context.Context, walletID, id string) (*external.Transaction, error) {
 	m.ctrl.T.Helper()
@@ -257,6 +289,21 @@ func (m *MockClient) GetTransaction(ctx context.Context, walletID, id string) (*
 func (mr *MockClientMockRecorder) GetTransaction(ctx, walletID, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTransaction", reflect.TypeOf((*MockClient)(nil).GetTransaction), ctx, walletID, id)
+}
+
+// GetTransactionStatement mocks base method.
+func (m *MockClient) GetTransactionStatement(ctx context.Context, walletID, txID string) (io.ReadCloser, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetTransactionStatement", ctx, walletID, txID)
+	ret0, _ := ret[0].(io.ReadCloser)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetTransactionStatement indicates an expected call of GetTransactionStatement.
+func (mr *MockClientMockRecorder) GetTransactionStatement(ctx, walletID, txID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTransactionStatement", reflect.TypeOf((*MockClient)(nil).GetTransactionStatement), ctx, walletID, txID)
 }
 
 // GetUser mocks base method.
@@ -375,6 +422,20 @@ func (mr *MockClientMockRecorder) RollbackReserve(ctx, txID interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RollbackReserve", reflect.TypeOf((*MockClient)(nil).RollbackReserve), ctx, txID)
 }
 
+// ThreeDSPaymentConfirmation mocks base method.
+func (m *MockClient) ThreeDSPaymentConfirmation(ctx context.Context, userID, txID string, confirmed bool) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ThreeDSPaymentConfirmation", ctx, userID, txID, confirmed)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ThreeDSPaymentConfirmation indicates an expected call of ThreeDSPaymentConfirmation.
+func (mr *MockClientMockRecorder) ThreeDSPaymentConfirmation(ctx, userID, txID, confirmed interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ThreeDSPaymentConfirmation", reflect.TypeOf((*MockClient)(nil).ThreeDSPaymentConfirmation), ctx, userID, txID, confirmed)
+}
+
 // UnfreezeCard mocks base method.
 func (m *MockClient) UnfreezeCard(ctx context.Context, args gatehub.UnfreezeCardArgs) error {
 	m.ctrl.T.Helper()
@@ -387,6 +448,21 @@ func (m *MockClient) UnfreezeCard(ctx context.Context, args gatehub.UnfreezeCard
 func (mr *MockClientMockRecorder) UnfreezeCard(ctx, args interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnfreezeCard", reflect.TypeOf((*MockClient)(nil).UnfreezeCard), ctx, args)
+}
+
+// UpdateOrganizationConfiguration mocks base method.
+func (m *MockClient) UpdateOrganizationConfiguration(ctx context.Context, apiBaseURL, twoFAType string) (*external.UpdateOrganizationConfigurationResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateOrganizationConfiguration", ctx, apiBaseURL, twoFAType)
+	ret0, _ := ret[0].(*external.UpdateOrganizationConfigurationResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateOrganizationConfiguration indicates an expected call of UpdateOrganizationConfiguration.
+func (mr *MockClientMockRecorder) UpdateOrganizationConfiguration(ctx, apiBaseURL, twoFAType interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOrganizationConfiguration", reflect.TypeOf((*MockClient)(nil).UpdateOrganizationConfiguration), ctx, apiBaseURL, twoFAType)
 }
 
 // ValidateCardProductCode mocks base method.

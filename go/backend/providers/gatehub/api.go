@@ -41,6 +41,7 @@ type Client interface {
 	ExternalClient() external.Client
 	GetAccountConfirmation(ctx context.Context, walletID string) (io.ReadCloser, error)
 	GetAccountStatement(ctx context.Context, walletID string, year, month int) (io.ReadCloser, error)
+	GetTransactionStatement(ctx context.Context, walletID string, txID string) (io.ReadCloser, error)
 }
 
 type Await func(ctx context.Context, result interface{}) error

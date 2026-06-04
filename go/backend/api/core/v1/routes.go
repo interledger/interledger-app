@@ -22,6 +22,7 @@ func NewRouter(uc user.Client, wc wallets.Client, gc gatehub.Client) http.Handle
 	r.Route("/statements", func(r chi.Router) {
 		r.Get("/account-confirmation", h.getAccountConfirmation)
 		r.Get("/monthly/{year}/{month}", h.getAccountStatement)
+		r.Get("/transaction/{id}", h.getTransactionStatement)
 	})
 
 	return r

@@ -163,6 +163,10 @@ func (c Client) GetAccountStatement(ctx context.Context, walletID string, year, 
 	return ops.GetAccountStatement(ctx, c.b, c.external, walletID, year, month)
 }
 
+func (c Client) GetTransactionStatement(ctx context.Context, walletID string, txID string) (io.ReadCloser, error) {
+	return ops.GetTransactionStatement(ctx, c.b, c.external, walletID, txID)
+}
+
 func (c Client) ExternalClient() external.Client {
 	return c.external
 }

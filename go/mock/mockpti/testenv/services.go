@@ -26,7 +26,13 @@ func startServices() error {
 
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		redactedOutput := strings.ReplaceAll(string(output), webhookCryptoState.signingPrivatePEM, "[REDACTED_SIGNING_KEY]")
+		redactedOutput := string(output)
+		for _, e := range env {
+			if strings.HasPrefix(e, "MOCKPTI_WEBHOOK_SIGNING_KEY_B64=") {
+				b64Val := strings.TrimPrefix(e, "MOCKPTI_WEBHOOK_SIGNING_KEY_B64=")
+				redactedOutput = strings.ReplaceAll(redactedOutput, b64Val, "[REDACTED_SIGNING_KEY]")
+			}
+		}
 		return fmt.Errorf("docker compose up failed: %w\n%s", err, redactedOutput)
 	}
 	return nil

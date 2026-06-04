@@ -89,3 +89,46 @@ func GetAccountConfirmation(ctx context.Context, b Backends, ec external.Client,
 	}
 	return result, nil
 }
+
+func GetTransactionStatement(ctx context.Context, b Backends, ec external.Client, walletID string, txID string) (io.ReadCloser, error) {
+	linkedAccounts, err := b.LinkedAccounts().ListByWalletId(ctx, walletID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	var linkedAccount linkedaccounts.LinkedAccount
+	for _, la := range linkedAccounts {
+		if la.Provider == gatehub.ProviderName && la.Type == gatehub.AccTypeBalance {
+			linkedAccount = la
+			break
+		}
+	}
+
+	if linkedAccount.ProviderID == "" {
+		return nil, fmt.Errorf("%w no gatehub linked account found for wallet", gatehub.ErrNotFound)
+	}
+
+	externalIDs, err := GetExternalIDs(ctx, b, linkedAccount.WalletID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	transaction, err := b.Transactions().GetTransaction(ctx, walletID, txID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	if transaction == nil {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrNotFound, "transaction not found")
+	}
+
+	result, err := ec.GetTransferConfirmation(ctx, externalIDs.UserID, transaction.ForeignID)
+	if errors.Is(err, external.ErrNotFound) {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrNotFound, err)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	return result, nil
+}
