@@ -1,6 +1,9 @@
-import { data as rrData, UNSAFE_DataWithResponseInit as DataWithResponseInit } from 'react-router';
 import { captureMessage } from '@sentry/react-router'
 import { randomUUID } from 'crypto'
+import {
+  UNSAFE_DataWithResponseInit as DataWithResponseInit,
+  data as rrData
+} from 'react-router'
 import { commitSession, getSession } from '~/session.server'
 
 async function getCSRFToken(
@@ -39,9 +42,9 @@ type JsonWithCSRFFunction = <Data>(
 ) => Promise<
   DataWithResponseInit<
     Data &
-    object & {
-      csrfToken: `${string}-${string}-${string}-${string}-${string}`
-    }
+      object & {
+        csrfToken: `${string}-${string}-${string}-${string}-${string}`
+      }
   >
 >
 

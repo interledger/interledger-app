@@ -1,11 +1,11 @@
-import type { Route } from './+types/api_.getCardToken'
-import { data } from 'react-router';
+import { data } from 'react-router'
 import type {
   CardTokenType,
   TokenLink
 } from '~/generated/connect/backend/v1/backend_pb'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
+import type { Route } from './+types/api_.getCardToken'
 
 export type GetCardTokenResponse = {
   tokenType: CardTokenType

@@ -1,9 +1,11 @@
 import { Code } from '@bufbuild/connect'
 
-import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
-import { redirect } from 'react-router';
-import { useLoaderData } from 'react-router';
-import { href } from 'react-router'
+import type {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  MetaFunction
+} from 'react-router'
+import { href, redirect, useLoaderData } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   Alert,
@@ -22,7 +24,7 @@ import { grpc } from '~/lib/grpc.server'
 import { getClientIP } from '~/lib/ip.server'
 import { mergeMeta } from '~/lib/meta'
 import { PaymentIdentityType } from '~/lib/types'
-import { payLoader, searchLoader } from './loader.server';
+import { payLoader, searchLoader } from './loader.server'
 
 export async function loader(args: LoaderFunctionArgs) {
   const url = new URL(args.request.url)

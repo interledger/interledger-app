@@ -1,8 +1,8 @@
 import { Dialog as HeadlessDialog, Transition } from '@headlessui/react'
-import { useNavigate } from 'react-router';
 import clsx from 'clsx'
 import type { FC, ReactNode } from 'react'
 import { Fragment, useEffect } from 'react'
+import { useNavigate } from 'react-router'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 
 type CommandPaletteProps = {

@@ -52,8 +52,10 @@
     --text-h4: var(--font-weight-regular) 18px/28px var(--font-heading);
     --text-h5: var(--font-weight-regular) 16px/26px var(--font-heading);
 
-    --text-body-lg-standard: var(--font-weight-regular) 15px/24px var(--font-body);
-    --text-body-lg-emphasis: var(--font-weight-medium) 15px/24px var(--font-body);
+    --text-body-lg-standard: var(--font-weight-regular) 15px/24px
+      var(--font-body);
+    --text-body-lg-emphasis: var(--font-weight-medium) 15px/24px
+      var(--font-body);
   }
 }
 
@@ -62,8 +64,10 @@
     --text-h1: var(--font-weight-semibold) 40px/48px var(--font-heading);
     --text-h2: var(--font-weight-semibold) 24px/32px var(--font-heading);
     --text-h3: var(--font-weight-medium) 18px/24px var(--font-heading);
-    --text-body-lg-standard: var(--font-weight-regular) 14px/22px var(--font-body);
-    --text-body-lg-emphasis: var(--font-weight-medium) 14px/22px var(--font-body);
+    --text-body-lg-standard: var(--font-weight-regular) 14px/22px
+      var(--font-body);
+    --text-body-lg-emphasis: var(--font-weight-medium) 14px/22px
+      var(--font-body);
     --text-body: var(--font-weight-regular) 13px/20px var(--font-body);
   }
 }

@@ -1,24 +1,36 @@
-import type { Route } from './+types/recovery_.password'
-import { data, redirect, href } from 'react-router'
+import { useEffect, useState } from 'react'
 import {
   Form,
+  data,
+  href,
+  redirect,
   useActionData,
   useLoaderData,
   useRevalidator
 } from 'react-router'
-import { useEffect, useState } from 'react'
-import logger from '~/lib/logger.server'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts, TextField } from '~/components'
 import { error } from '~/lib/error.server'
-import { kratosPublic, CLEAR_SESSION_COOKIE_HEADER } from '~/lib/kratos/kratos-client.server'
-import { getCookie, withCookie, buildHeadersWithCookies } from '~/lib/kratos/cookie.server'
+import {
+  buildHeadersWithCookies,
+  getCookie,
+  withCookie
+} from '~/lib/kratos/cookie.server'
+import {
+  handleFlowError,
+  mapFlowToFieldErrors
+} from '~/lib/kratos/error.server'
 import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.server'
-import { handleFlowError, mapFlowToFieldErrors } from '~/lib/kratos/error.server'
+import {
+  CLEAR_SESSION_COOKIE_HEADER,
+  kratosPublic
+} from '~/lib/kratos/kratos-client.server'
 import { hasUserSession } from '~/lib/kratos/session.server'
+import logger from '~/lib/logger.server'
 import { mergeMeta } from '~/lib/meta'
-import { safeReturnTo } from '~/lib/url.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
+import { safeReturnTo } from '~/lib/url.server'
+import type { Route } from './+types/recovery_.password'
 
 export const handle: ApplicationProps = {
   layout: Layouts.Focus,
@@ -54,7 +66,10 @@ export async function loader({ request }: Route.LoaderArgs) {
       return data({ flowId: flow.id, csrfToken: getCsrfTokenFromFlow(flow) })
     } catch (err: any) {
       handleFlowError(err, 'recovery/password')
-      logger.error({ error: err, route: 'recovery.password' }, 'Failed to load recovery password flow')
+      logger.error(
+        { error: err, route: 'recovery.password' },
+        'Failed to load recovery password flow'
+      )
       throw new Error('Failed to load recovery password flow')
     }
   }
@@ -74,7 +89,10 @@ export async function loader({ request }: Route.LoaderArgs) {
       return redirect('/totp/challenge?returnTo=/recovery/password')
     }
     handleFlowError(err, 'recovery/password')
-    logger.error({ error: err, route: 'recovery.password' }, 'Failed to initialize recovery password flow')
+    logger.error(
+      { error: err, route: 'recovery.password' },
+      'Failed to initialize recovery password flow'
+    )
     throw new Error('Failed to initialize recovery password flow')
   }
 }
@@ -193,8 +211,7 @@ export async function action({ request }: Route.ActionArgs) {
       },
       {
         headers: {
-          'Set-Cookie':
-            CLEAR_SESSION_COOKIE_HEADER
+          'Set-Cookie': CLEAR_SESSION_COOKIE_HEADER
         }
       }
     )
@@ -206,7 +223,10 @@ export async function action({ request }: Route.ActionArgs) {
       return error(request, { errors: errs })
     }
     handleFlowError(err, 'recovery/password')
-    logger.error({ error: err, route: 'recovery.password' }, 'Failed to set recovery password')
+    logger.error(
+      { error: err, route: 'recovery.password' },
+      'Failed to set recovery password'
+    )
     throw new Error('Failed to set recovery password')
   }
 }

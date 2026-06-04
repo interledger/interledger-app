@@ -1,4 +1,4 @@
-import { useFetcher } from 'react-router';
+import { useFetcher } from 'react-router'
 import {
   Button,
   Card,

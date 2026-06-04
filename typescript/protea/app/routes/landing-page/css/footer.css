@@ -1,4 +1,3 @@
-
 :root {
   --color-footer: var(--color-neutral-150);
   --color-head: var(--color-neutral-0);
@@ -14,7 +13,7 @@
 
 .page-footer {
   background-color: var(--color-footer);
-  padding-block: var(--padding-5xl); 
+  padding-block: var(--padding-5xl);
   padding-inline: var(--padding-3xl);
   display: flex;
   justify-content: center;

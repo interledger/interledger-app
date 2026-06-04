@@ -1,6 +1,5 @@
 import type { PartialMessage } from '@bufbuild/protobuf'
-import { redirect } from 'react-router';
-import { href } from 'react-router'
+import { href, redirect } from 'react-router'
 import type {
   Features,
   GetPublicWalletDetailsResponse,

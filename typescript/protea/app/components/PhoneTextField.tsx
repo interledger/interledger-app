@@ -149,7 +149,8 @@ export const PhoneTextField = forwardRef<
                     <Listbox.Option
                       key={index}
                       className={({ active }) =>
-                        `relative flex h-12 cursor-pointer select-none items-center justify-between rounded-lg pl-4 pr-3 ${active ? 'bg-nav-hover' : 'text-medium'
+                        `relative flex h-12 cursor-pointer select-none items-center justify-between rounded-lg pl-4 pr-3 ${
+                          active ? 'bg-nav-hover' : 'text-medium'
                         }`
                       }
                       value={option}
