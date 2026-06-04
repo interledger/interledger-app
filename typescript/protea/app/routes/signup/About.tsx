@@ -8,8 +8,10 @@ import {
   CardContent,
   CardIcon,
   Icon,
+  PhoneTextField,
   TextField
 } from '~/components'
+import type { PhoneAutocompleteOptions } from '~/components'
 import { SignupStep, useSignupStore } from '~/lib/useSignupStore'
 import type { loader } from './route'
 import type { detailsAction } from './route.server';
@@ -60,6 +62,8 @@ export function About() {
     setCountry,
     countries,
     setDetails,
+    setPhone,
+    phone,
     setStep
   ] = useSignupStore((state) => [
     state.firstName,
@@ -69,11 +73,16 @@ export function About() {
     state.setCountry,
     state.countries,
     state.setDetails,
+    state.setPhone,
+    state.phone,
     state.setStep
   ])
 
+  const [phoneNumber, setPhoneNumber] = useState<string>(phone)
+
   const [query, setQuery] = useState<string>('')
   const [filteredCountries, setFilteredCountries] = useState(countries)
+
 
   useEffect(() => {
     if (query === '') setFilteredCountries(countries)
@@ -84,9 +93,9 @@ export function About() {
             .toLowerCase()
             .replace(/\s+/g, '')
             .includes(query.toLowerCase().replace(/\s+/g, '')) || country.id
-            .toLowerCase()
-            .replace(/\s+/g, '')
-            .includes(query.toLowerCase().replace(/\s+/g, '')));
+              .toLowerCase()
+              .replace(/\s+/g, '')
+              .includes(query.toLowerCase().replace(/\s+/g, '')));
         })
       )
     }
@@ -100,9 +109,10 @@ export function About() {
         details.data?.lastName.replace(/\s+/g, ' ').trim(),
         details.data?.email
       )
-      setStep(SignupStep.PHONE)
+      setPhone(details.data?.phone ?? '')
+      setStep(SignupStep.PASSWORD)
     }
-  }, [details.data, setDetails, setStep])
+  }, [details.data, setDetails, setPhone, setStep])
 
   return (
     <>
@@ -198,6 +208,29 @@ export function About() {
           name='country'
           type='hidden'
         />
+        {country && (
+          <PhoneTextField
+            key={country.id}
+            id='phone'
+            form='signup-about-details'
+            name='phone'
+            defaultCountry={country.id as string}
+            defaultValue={phoneNumber || undefined}
+            options={countries as PhoneAutocompleteOptions[]}
+            label='Mobile number'
+            className='mt-4'
+            onInput={(event) => {
+              setPhoneNumber(event.currentTarget.value)
+            }}
+            aria-invalid={Boolean(details.data?.errors?.phone) || undefined}
+            aria-describedby={
+              details.data?.errors?.phone ? 'phone-error' : undefined
+            }
+            data-testid='signup-phone'
+            required
+            errorMessage={details.data?.errors?.phone}
+          />
+        )}
       </Card>
       {country &&
         country?.id != 'CA' &&

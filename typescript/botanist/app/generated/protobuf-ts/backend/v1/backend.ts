@@ -45,6 +45,24 @@ export interface ThreeDSPaymentConfirmationRequest {
     confirmed: boolean;
 }
 /**
+ * @generated from protobuf message backend.v1.ConfirmUserPhoneRequest
+ */
+export interface ConfirmUserPhoneRequest {
+    /**
+     * @generated from protobuf field: string otp = 1;
+     */
+    otp: string;
+}
+/**
+ * @generated from protobuf message backend.v1.UpdateUserPhoneRequest
+ */
+export interface UpdateUserPhoneRequest {
+    /**
+     * @generated from protobuf field: string phone = 1;
+     */
+    phone: string;
+}
+/**
  * @generated from protobuf message backend.v1.PendingThreeDSConfirmation
  */
 export interface PendingThreeDSConfirmation {
@@ -1937,6 +1955,10 @@ export interface SetSignupUserDataRequest {
      * @generated from protobuf field: string countryCode = 5;
      */
     countryCode: string;
+    /**
+     * @generated from protobuf field: string mobile = 6;
+     */
+    mobile: string;
 }
 /**
  * @generated from protobuf message backend.v1.SetSignupUserDataResponse
@@ -3068,6 +3090,100 @@ class ThreeDSPaymentConfirmationRequest$Type extends MessageType<ThreeDSPaymentC
  * @generated MessageType for protobuf message backend.v1.ThreeDSPaymentConfirmationRequest
  */
 export const ThreeDSPaymentConfirmationRequest = new ThreeDSPaymentConfirmationRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ConfirmUserPhoneRequest$Type extends MessageType<ConfirmUserPhoneRequest> {
+    constructor() {
+        super("backend.v1.ConfirmUserPhoneRequest", [
+            { no: 1, name: "otp", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<ConfirmUserPhoneRequest>): ConfirmUserPhoneRequest {
+        const message = { otp: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ConfirmUserPhoneRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ConfirmUserPhoneRequest): ConfirmUserPhoneRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string otp */ 1:
+                    message.otp = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ConfirmUserPhoneRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string otp = 1; */
+        if (message.otp !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.otp);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.ConfirmUserPhoneRequest
+ */
+export const ConfirmUserPhoneRequest = new ConfirmUserPhoneRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class UpdateUserPhoneRequest$Type extends MessageType<UpdateUserPhoneRequest> {
+    constructor() {
+        super("backend.v1.UpdateUserPhoneRequest", [
+            { no: 1, name: "phone", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<UpdateUserPhoneRequest>): UpdateUserPhoneRequest {
+        const message = { phone: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<UpdateUserPhoneRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: UpdateUserPhoneRequest): UpdateUserPhoneRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string phone */ 1:
+                    message.phone = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: UpdateUserPhoneRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string phone = 1; */
+        if (message.phone !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.phone);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.UpdateUserPhoneRequest
+ */
+export const UpdateUserPhoneRequest = new UpdateUserPhoneRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class PendingThreeDSConfirmation$Type extends MessageType<PendingThreeDSConfirmation> {
     constructor() {
@@ -9317,11 +9433,12 @@ class SetSignupUserDataRequest$Type extends MessageType<SetSignupUserDataRequest
             { no: 2, name: "firstName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "lastName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 4, name: "email", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 5, name: "countryCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 5, name: "countryCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "mobile", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<SetSignupUserDataRequest>): SetSignupUserDataRequest {
-        const message = { firstName: "", lastName: "", email: "", countryCode: "" };
+        const message = { firstName: "", lastName: "", email: "", countryCode: "", mobile: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<SetSignupUserDataRequest>(this, message, value);
@@ -9346,6 +9463,9 @@ class SetSignupUserDataRequest$Type extends MessageType<SetSignupUserDataRequest
                     break;
                 case /* string countryCode */ 5:
                     message.countryCode = reader.string();
+                    break;
+                case /* string mobile */ 6:
+                    message.mobile = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -9374,6 +9494,9 @@ class SetSignupUserDataRequest$Type extends MessageType<SetSignupUserDataRequest
         /* string countryCode = 5; */
         if (message.countryCode !== "")
             writer.tag(5, WireType.LengthDelimited).string(message.countryCode);
+        /* string mobile = 6; */
+        if (message.mobile !== "")
+            writer.tag(6, WireType.LengthDelimited).string(message.mobile);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -12793,5 +12916,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "UnfreezeCard", options: {}, I: UnfreezeCardRequest, O: Empty },
     { name: "BlockCard", options: {}, I: BlockCardRequest, O: Empty },
     { name: "GetPendingThreeDSConfirmations", options: {}, I: Empty, O: GetPendingThreeDSConfirmationsResponse },
-    { name: "ThreeDSPaymentConfirmation", options: {}, I: ThreeDSPaymentConfirmationRequest, O: Empty }
+    { name: "ThreeDSPaymentConfirmation", options: {}, I: ThreeDSPaymentConfirmationRequest, O: Empty },
+    { name: "ConfirmUserPhone", options: {}, I: ConfirmUserPhoneRequest, O: Empty },
+    { name: "UpdateUserPhone", options: {}, I: UpdateUserPhoneRequest, O: Empty }
 ]);

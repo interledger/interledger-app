@@ -98,12 +98,12 @@ func SetUserData(ctx context.Context, b Backends, args signup.UserDataArgs) (str
 
 	var r sql.Result
 	if existing == nil {
-		r, err = b.DB().ExecContext(ctx, "INSERT INTO signups (id, first_name, last_name, country_code, email) "+
-			"VALUES ($1, $2, $3, $4, $5)", id, args.FirstName, args.LastName, args.CountryCode, args.Email)
+		r, err = b.DB().ExecContext(ctx, "INSERT INTO signups (id, first_name, last_name, country_code, email, mobile_number) "+
+			"VALUES ($1, $2, $3, $4, $5, $6)", id, args.FirstName, args.LastName, args.CountryCode, args.Email, args.MobileNumber)
 	} else {
 		// Update an existing signup
-		r, err = b.DB().ExecContext(ctx, "UPDATE signups SET first_name=$1, last_name=$2, country_code=$3, email=$4, updated_at=now() WHERE id=$5 ",
-			args.FirstName, args.LastName, args.CountryCode, args.Email, args.ID)
+		r, err = b.DB().ExecContext(ctx, "UPDATE signups SET first_name=$1, last_name=$2, country_code=$3, email=$4, mobile_number=$5, updated_at=now() WHERE id=$6 ",
+			args.FirstName, args.LastName, args.CountryCode, args.Email, args.MobileNumber, args.ID)
 	}
 	if err != nil {
 		return "", fmt.Errorf("%w %s", signup.ErrInternal, err)

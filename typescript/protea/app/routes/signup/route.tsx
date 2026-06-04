@@ -9,7 +9,6 @@ import { SignupStep, useSignupStore } from '~/lib/useSignupStore'
 import { About } from '~/routes/signup/About'
 import { Landing } from '~/routes/signup/Landing'
 import { Password } from '~/routes/signup/Password'
-import { Phone } from '~/routes/signup/Phone'
 import styles from '~/styles/flags.css?url'
 export { loader } from '~/routes/signup/route.server'
 
@@ -52,7 +51,6 @@ export default function Page() {
     <>
       {step === SignupStep.LANDING && <Landing />}
       {step === SignupStep.ABOUT && <About />}
-      {step === SignupStep.PHONE && <Phone />}
       {step === SignupStep.PASSWORD && <Password />}
     </>
   )

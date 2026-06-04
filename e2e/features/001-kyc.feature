@@ -23,6 +23,7 @@ Feature: User KYC and Account Activation
     Given that my "country" is "germany"
     And I completed the signup workflow
     And I completed the account verification workflow
+    And I finished the phone confirmation workflow
     And I finished the TOTP registration workflow
     And I finished the wallet address creation workflow
 
@@ -44,6 +45,7 @@ Feature: User KYC and Account Activation
     And mockpti is running at "https://mockpti.interledger.test"
     And I completed the signup workflow
     And I completed the account verification workflow
+    And I finished the phone confirmation workflow
     And I finished the TOTP registration workflow
     And I finished the wallet address creation workflow
 
@@ -61,6 +63,7 @@ Feature: User KYC and Account Activation
     Given that my "country" is "south africa"
     And I completed the signup workflow
     And I completed the account verification workflow
+    And I finished the phone confirmation workflow
     And I finished the TOTP registration workflow
     And I finished the wallet address creation workflow
 
