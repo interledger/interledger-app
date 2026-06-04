@@ -22,4 +22,6 @@ DNS.7 = traefik.test
 DNS.8 = ngrok.test
 DNS.9 = mockgatehub.interledger.test
 DNS.10 = mockpti.interledger.test
+DNS.11 = mockplaid.interledger.test
+DNS.12 = cdn.plaid.com
 IP.1  = 127.0.0.1

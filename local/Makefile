@@ -197,6 +197,8 @@ HOSTS := interledger.test \
 	mockgatehub.interledger.test \
 	mockxago.interledger.test \
 	mockpti.interledger.test \
+	mockplaid.interledger.test \
+	cdn.plaid.com \
 	docs.interledger.test
 
 hosts:
