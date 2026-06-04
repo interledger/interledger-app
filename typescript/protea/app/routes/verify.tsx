@@ -41,7 +41,9 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   // We currently only allow one email per user.
   if (userSession.identity?.verifiable_addresses?.[0]?.verified) {
-    return redirect(href('/'))
+    const searchParams = new URLSearchParams()
+    searchParams.set('returnTo', safeReturnTo(url.searchParams.get('returnTo')))
+    return redirect(`${href('/phone-confirmation')}?${searchParams.toString()}`)
   }
 
   if (flowId) {

@@ -54,7 +54,7 @@ export default function Page() {
       <Label className='mt-4'>Mobile phone number</Label>
       <CardLink
         className='items-center justify-between'
-        to={href('/otp/challenge')}
+        to={href('/settings/phone')}
       >
         <div className='flex space-x-3'>
           <Icon>call</Icon>

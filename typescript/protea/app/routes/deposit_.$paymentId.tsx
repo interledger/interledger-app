@@ -8,8 +8,7 @@ import { Button, Card, CardContent, Icon, Layouts } from '~/components'
 import { Label } from '~/components/Label'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { ErrorDescriptions } from '~/lib/error.constants'
-import { TwillioErrorMapper } from '~/lib/error.mappers'
-import { isConnectError, isTwilioCodeError } from '~/lib/error.server'
+import { isConnectError, isOtpValidationError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { getClientIP } from '~/lib/ip.server'
 import { mergeMeta } from '~/lib/meta'
@@ -165,12 +164,10 @@ export async function action({ request, params }: Route.ActionArgs) {
       ipAddress: clientIpAddress
     })
     if (isConnectError(response)) {
-      if (isTwilioCodeError(response)) {
+      if (isOtpValidationError(response)) {
         return response.error(
           { errors },
-          {
-            otp: TwillioErrorMapper.otp
-          },
+          {},
           { action: 'Contact support', message: ErrorDescriptions.INVALID_OTP }
         )
       }

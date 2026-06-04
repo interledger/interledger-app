@@ -31,29 +31,7 @@ export function Landing() {
             <div className='ml-5'>
               <h3 className='mb-1 font-medium text-strong'>Profile details</h3>
               <p className='text-xs text-medium'>
-                Submit your legal name, email, and country of residence.
-              </p>
-            </div>
-          </div>
-          <div className='mt-10 flex items-start'>
-            <Shape
-              flex='flex-none'
-              width='w-8'
-              radius='rounded-tr-full rounded-bl-full'
-              color='bg-rose-400'
-            />
-            <Shape
-              flex='flex-none'
-              width='w-8'
-              radius='rounded-full'
-              color='bg-lime-400'
-            />
-            <div className='ml-5'>
-              <h3 className='mb-1 font-medium text-strong'>
-                Mobile phone number
-              </h3>
-              <p className='text-xs text-medium'>
-                Provide a mobile phone number we can verify.
+                Submit your legal name, email, country of residence and your phone number.
               </p>
             </div>
           </div>
@@ -74,6 +52,68 @@ export function Landing() {
               <h3 className='mb-1 font-medium text-strong'>Password</h3>
               <p className='text-xs text-medium'>
                 Create a password we can verify.
+              </p>
+            </div>
+          </div>
+          <div className='mt-10 flex items-start'>
+            <Shape
+              flex='flex-none'
+              width='w-8'
+              radius='rounded-tr-full rounded-bl-full'
+              color='bg-rose-400'
+            />
+            <Shape
+              flex='flex-none'
+              width='w-8'
+              radius='rounded-full'
+              color='bg-lime-400'
+            />
+            <div className='ml-5'>
+              <h3 className='mb-1 font-medium text-strong'>
+                Email confirmation
+              </h3>
+              <p className='text-xs text-medium'>
+                Verify your account email address
+              </p>
+            </div>
+          </div>
+          <div className='mt-10 flex items-start'>
+            <Shape
+              flex='flex-none'
+              width='w-8'
+              radius='rounded-full rounded-bl-none'
+              color='bg-yellow-300'
+            />
+            <Shape
+              flex='flex-none'
+              width='w-8'
+              radius='rounded-full rounded-bl-none'
+              color='bg-indigo-400'
+            />
+            <div className='ml-5'>
+              <h3 className='mb-1 font-medium text-strong'>Phone confirmation</h3>
+              <p className='text-xs text-medium'>
+                Verify your phone number using the code sent by SMS.
+              </p>
+            </div>
+          </div>
+          <div className='mt-10 flex items-start'>
+            <Shape
+              flex='flex-none'
+              width='w-8'
+              radius='rounded-t-full'
+              color='bg-sky-300'
+            />
+            <Shape
+              flex='flex-none'
+              width='w-8'
+              radius='rounded-b-full'
+              color='bg-slate-300'
+            />
+            <div className='ml-5'>
+              <h3 className='mb-1 font-medium text-strong'>Set up Two-Factor Authentication</h3>
+              <p className='text-xs text-medium'>
+                Enhance your account security by setting up two-factor authentication on your Authenticator App.
               </p>
             </div>
           </div>

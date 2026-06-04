@@ -1,91 +1,50 @@
-import { Code } from '@bufbuild/connect'
-import type { Route } from './+types/settings_.phone'
-import { redirect, href } from 'react-router'
-import type { ShouldRevalidateFunction } from 'react-router'
+import { useEffect, useState } from 'react'
 import {
   Form,
+  href,
   useActionData,
   useFetcher,
   useLoaderData
 } from 'react-router'
-import { useEffect, useState } from 'react'
 import type { ApplicationProps, PhoneAutocompleteOptions } from '~/components'
 import {
   Button,
   Card,
   CardContent,
-  CardHeader,
-  Dialog,
+  ChangePhoneForm,
   Icon,
   Layouts,
-  PhoneTextField,
-  TextButton,
   TextField
 } from '~/components'
 import { Label } from '~/components/Label'
-import logger from '~/lib/logger.server'
-import { jsonWithCSRF } from '~/lib/csrf.server'
-import { error, isConnectError } from '~/lib/error.server'
+import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
+import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
-import { kratosPublic } from '~/lib/kratos/kratos-client.server'
-import { getCookie, withCookie } from '~/lib/kratos/cookie.server'
-import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.server'
-import { handleFlowError, mapFlowToFieldErrors } from '~/lib/kratos/error.server'
-import { getUserSession, getSessionTraits } from '~/lib/kratos/session.server'
+import { getSessionTraits, getUserSession } from '~/lib/kratos/session.server'
 import { mergeMeta } from '~/lib/meta'
+import {
+  handleResendOtp,
+  handleUpdatePhone,
+  handleVerifyOtp
+} from '~/lib/phone.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
-import type { action as sendOtpAction } from '~/routes/api_.sendOtp'
+import { useCountdown } from '~/lib/useCountdown'
 import styles from '~/styles/flags.css?url'
+import type { Route } from './+types/settings_.phone'
 
-// The loader generates a new 3ds session. This must only be called on initial page load
-// and not after submitting actions.
-export const shouldRevalidate: ShouldRevalidateFunction = ({
-  defaultShouldRevalidate,
-  currentUrl
-}) => {
-  // don't initialise a new 3DS session.
-  if (currentUrl.searchParams.has('flow')) {
-    return false
-  }
-
-  return defaultShouldRevalidate
-}
+const RESEND_DELAY = 60 * 1000
 
 export async function loader({ request }: Route.LoaderArgs) {
-  const url = new URL(request.url)
-  const flowId = url.searchParams.get('flow')
-  const cookie = getCookie(request)
   const session = await getUserSession(request)
+  const { countryCode, phone } = getSessionTraits(session)
 
-  if (!flowId) {
-    // If we don't have a flow, the user hasn't confirmed their old phone yet
-    throw redirect(href('/otp/challenge'))
-  }
-
-  let flow
-  try {
-    const { data } = await kratosPublic.getSettingsFlow(
-      { id: flowId },
-      withCookie(cookie)
-    )
-    flow = data
-  } catch (err: any) {
-    handleFlowError(err, 'settings/phone')
-    logger.error({ error: err, route: 'settings.phone' }, 'Failed to load phone settings flow')
-    throw new Error('Failed to load phone settings flow')
-  }
-
-  let response = await grpc.getCountries(request, {})
-
+  const response = await grpc.getCountries(request, {})
   if (isConnectError(response)) throw response.errorResponse
 
-  const countries = response.countries
-
   return jsonWithCSRF(request, {
-    flow,
-    countryCode: getSessionTraits(session).countryCode,
-    countries,
-    csrf_token: getCsrfTokenFromFlow(flow)
+    countryCode,
+    phone,
+    countries: response.countries
   })
 }
 
@@ -94,194 +53,177 @@ export const handle: ApplicationProps = {
   scaffold: {
     header: {
       back: href('/settings'),
-      title: 'Set new mobile number'
+      title: 'Update mobile number'
     }
   }
 }
 
-export const meta = mergeMeta(() => [
-  {
-    title: 'Set new mobile number'
-  }
-])
+export const meta = mergeMeta(() => [{ title: 'Update mobile number' }])
 
 export function links() {
   return [{ rel: 'stylesheet', href: styles }]
 }
 
 export default function Page() {
-  const otpFetcher = useFetcher<typeof sendOtpAction>()
-  const actionData = useActionData()
-  const { flow, countryCode, countries, csrfToken, csrf_token } =
-    useLoaderData()
-  const [showDialog, setShowDialog] = useState<boolean>(false)
+  const actionData = useActionData<typeof action>()
+  const { csrfToken, countryCode, phone, countries } =
+    useLoaderData<typeof loader>()
+  const updateFetcher = useFetcher<Awaited<ReturnType<typeof handleUpdatePhone>>>()
+  const resendFetcher = useFetcher()
+  const { start, isActive, remainingSeconds } = useCountdown()
+  const [otpSent, setOtpSent] = useState(false)
+  const [newPhone, setNewPhone] = useState<string | null>(null)
+  const updateCodeSent =
+    updateFetcher.data &&
+    'codeSent' in updateFetcher.data &&
+    Boolean(updateFetcher.data.codeSent)
+  const updatedPhone =
+    updateFetcher.data &&
+      'phone' in updateFetcher.data &&
+      typeof updateFetcher.data.phone === 'string'
+      ? updateFetcher.data.phone
+      : undefined
+  const otpError =
+    actionData && 'errors' in actionData
+      ? (actionData.errors as { otp?: string } | undefined)?.otp
+      : undefined
 
   useEffect(() => {
-    if (
-      !showDialog &&
-      otpFetcher.state == 'loading' &&
-      otpFetcher?.data?.success
-    ) {
-      setShowDialog(true)
+    if (updateCodeSent && updatedPhone) {
+      setNewPhone(updatedPhone)
+      setOtpSent(true)
+      start(RESEND_DELAY)
     }
-  }, [otpFetcher?.data, otpFetcher.state, showDialog])
+  }, [start, updateCodeSent, updatedPhone])
+
+  useEffect(() => {
+    if (resendFetcher.data?.codeSent) {
+      start(RESEND_DELAY)
+    }
+  }, [resendFetcher.data, start])
+
+  const isResendDisabled =
+    (otpSent && isActive) || resendFetcher.state !== 'idle'
 
   return (
     <>
-      <otpFetcher.Form
-        id='settings-phone-otp'
-        action={href('/api/sendOtp')}
+      <Form
+        id='settings-phone-verify'
+        action='/settings/phone'
         method='post'
         className='hidden'
       />
       <input
-        form='settings-phone-otp'
-        value={csrfToken}
+        form='settings-phone-verify'
+        defaultValue={csrfToken}
         name='csrfToken'
         type='hidden'
       />
-      <Form
-        id='settings-phone'
-        action={`/settings/phone?flow=${flow.id}`}
-        method='post'
-        className='hidden'
-      />
       <input
-        form='settings-phone'
-        defaultValue={csrf_token}
-        name='csrf_token'
+        form='settings-phone-verify'
+        value='verify'
+        name='intent'
         type='hidden'
       />
       <Card>
         <CardContent>
-          <p>Set a new phone number to continue.</p>
+          <p>
+            Enter your new mobile number. We'll send a verification code to
+            confirm it.
+          </p>
         </CardContent>
-        <PhoneTextField
-          id='phone'
-          form={showDialog ? 'settings-phone' : 'settings-phone-otp'}
-          name='phone'
-          defaultCountry={countryCode}
-          options={countries as PhoneAutocompleteOptions[]}
-          label='Mobile number'
-          className='mt-2'
-          aria-invalid={Boolean(otpFetcher.data?.errors?.phone) || undefined}
-          aria-describedby={
-            otpFetcher.data?.errors?.phone ? 'phone-error' : undefined
-          }
-          errorMessage={otpFetcher.data?.errors?.phone}
-        />
+        {!otpSent && (
+          <>
+            <Label className='mt-4'>Current mobile number</Label>
+            <div className='mt-1 flex space-x-2 rounded-xl bg-nav p-3 text-medium'>
+              <Icon>phone_android</Icon>
+              <span>{phone}</span>
+            </div>
+          </>
+        )}
+        {!otpSent && (
+          <ChangePhoneForm
+            fetcher={updateFetcher}
+            csrfToken={csrfToken}
+            defaultCountry={countryCode}
+            countries={countries as PhoneAutocompleteOptions[]}
+            submitLabel='Continue'
+            className='mt-3'
+          />
+        )}
+        {otpSent && newPhone && (
+          <>
+            <Label className='mt-4'>New mobile number</Label>
+            <div className='mt-1 flex space-x-2 rounded-xl bg-nav p-3 text-medium'>
+              <Icon>phone_android</Icon>
+              <span>{newPhone}</span>
+            </div>
+            <input
+              form='settings-phone-verify'
+              type='hidden'
+              name='phone'
+              value={newPhone}
+            />
+            <TextField
+              id='otp'
+              form='settings-phone-verify'
+              label='Verification code'
+              name='otp'
+              type='number'
+              className='mt-4'
+              aria-invalid={Boolean(otpError) || undefined}
+              aria-describedby={otpError ? 'otp-error' : undefined}
+              required
+              errorMessage={otpError}
+            />
+          </>
+        )}
       </Card>
-      <Button form='settings-phone-otp' type='submit'>
-        Continue
-      </Button>
-      <Dialog open={showDialog} setOpen={setShowDialog}>
-        <CardHeader>
-          <h1 className='text-xl font-medium'>Two-step verification</h1>
-        </CardHeader>
-        <CardContent>
-          <span className='text-medium'>
-            Enter the six digit code sent to your mobile number.
-          </span>
-        </CardContent>
-        <Label className='mt-2'>Your mobile phone number</Label>
-        <div className='mt-1 flex space-x-2 rounded-xl bg-nav p-3 text-medium'>
-          <Icon>phone_android</Icon>
-          <span>{otpFetcher?.data?.phone}</span>
-        </div>
-
-        <input
-          form='signup-phone-otp-validation'
-          value={otpFetcher?.data?.phone}
-          name='phone'
-          type='hidden'
-        />
-        <TextField
-          id='otp'
-          form='signup-phone-otp-validation'
-          label='Verification code'
-          name='otp'
-          type='number'
-          className='mt-4'
-          aria-invalid={Boolean(actionData?.errors?.otp) || undefined}
-          aria-describedby={actionData?.errors?.otp ? 'email-error' : undefined}
-          required
-          errorMessage={actionData?.errors?.otp}
-        />
-        <CardContent className='mt-2 flex w-full justify-end space-x-6'>
-          <TextButton type='submit' form='settings-phone-otp'>
-            Resend code
-          </TextButton>
-          <TextButton type='submit' form='settings-phone'>
-            Verify
-          </TextButton>
-        </CardContent>
-      </Dialog>
+      {otpSent && (
+        <Button form='settings-phone-verify' type='submit'>
+          Verify
+        </Button>
+      )}
+      {otpSent && (
+        <resendFetcher.Form
+          method='post'
+          action='/settings/phone'
+          className='mt-2'
+        >
+          <input type='hidden' name='intent' value='resend' />
+          <input type='hidden' name='csrfToken' value={csrfToken} />
+          <input type='hidden' name='phone' value={newPhone ?? ''} />
+          <Button type='submit' disabled={isResendDisabled} className='w-full'>
+            {isActive ? `Resend in ${remainingSeconds}s` : 'Resend code'}
+          </Button>
+        </resendFetcher.Form>
+      )}
     </>
   )
 }
 
 export async function action({ request }: Route.ActionArgs) {
-  const session = await getUserSession(request)
-  const url = new URL(request.url)
-  const flowId = url.searchParams.get('flow')
-  if (!flowId) return redirect('/otp/challenge')
-
   const form = await request.formData()
-  const csrfToken = form.get('csrf_token') as string
-  const phone = form.get('phone') as string
+  await validateCSRFToken(request, form)
+
+  const intent = form.get('intent') as string
+
+  if (intent === 'updatePhone') {
+    return handleUpdatePhone(request, form)
+  }
+
+  if (intent === 'resend') {
+    const phone = form.get('phone') as string
+    return handleResendOtp(request, phone)
+  }
+
+  // intent === 'verify'
   const otp = form.get('otp') as string
+  const result = await handleVerifyOtp(request, otp)
+  if (result !== null) return result
 
-  const errors = {
-    form: '',
-    phone: '',
-    otp: ''
-  }
-  const mapping = {
-    phone: 'To'
-  }
-
-  const response = grpc.checkPhoneVerification(request, {
-    to: phone,
-    otp
+  return redirectWithSnackbar(request, href('/settings/profile-contact'), {
+    message: 'Mobile number updated successfully.',
+    icon: 'check'
   })
-
-  if (isConnectError(response)) {
-    if (response.code == Code.InvalidArgument) {
-      return response.error({ errors }, mapping)
-    } else
-      return response.error({ errors }, mapping, { action: 'Contact support' })
-  }
-
-  const cookie = getCookie(request)
-
-  try {
-    await kratosPublic.updateSettingsFlow(
-      {
-        flow: flowId,
-        updateSettingsFlowBody: {
-          method: 'profile',
-          traits: {
-            ...getSessionTraits(session),
-            phone
-          },
-          csrf_token: csrfToken
-        }
-      },
-      withCookie(cookie)
-    )
-    return redirectWithSnackbar(request, href('/settings/profile-contact'), {
-      message: 'New mobile number successfully saved.',
-      icon: 'close'
-    })
-  } catch (err: any) {
-    const status = err.response?.status
-    const flowData = err.response?.data
-    if (status === 400) {
-      const errs = mapFlowToFieldErrors(flowData, errors)
-      return error(request, { errors: errs })
-    }
-    handleFlowError(err, 'settings/phone')
-    logger.error({ error: err, route: 'settings.phone' }, 'Failed to update phone settings')
-    throw new Error('Failed to update phone settings')
-  }
 }
