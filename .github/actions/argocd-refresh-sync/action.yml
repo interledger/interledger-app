@@ -114,8 +114,8 @@ runs:
                 if test("^[^!=]+=[^=]+$") then
                   capture("^(?<key>[^=]+)=(?<value>.+)$") as $m
                   | (.metadata.labels[$m.key] // "") == $m.value
-                elif test("^[^!]+!=.+$") then
-                  capture("^(?<key>[^!]+)!=(?<value>.+)$") as $m
+                elif test("^[^!=]+!=.+$") then
+                  capture("^(?<key>[^!=]+)!=(?<value>.+)$") as $m
                   | (.metadata.labels[$m.key] // "") != $m.value
                 else
                   false
