@@ -65,6 +65,13 @@ async function isTotpSet(session: Session, headers: Headers): Promise<boolean> {
   }
 }
 
+function getSessionTraits(session: Session): {
+  phone?: string
+  phoneVerified?: boolean
+} {
+  return (session.identity?.traits as any) ?? {}
+}
+
 function isEmailVerified(session: Session): boolean {
   return !!(
     session.identity?.verifiable_addresses &&
@@ -140,12 +147,11 @@ export async function phoneConfirmationGuard(
   if (NON_PHONE_CONFIRMED_ROUTES.includes(pathname)) return
   if (!session) return // Not yet AAL2 — skip guard
 
+  const { phone, phoneVerified } = getSessionTraits(session)
   // Skip guard for users without a phone number (legacy users)
-  const phone = (session.identity?.traits as any)?.phone
   if (!phone) return
 
   // Read phoneVerified directly from Kratos session traits — no gRPC call needed
-  const phoneVerified = (session.identity?.traits as any)?.phoneVerified
   if (!phoneVerified) {
     const url = new URL(request.url)
     const searchParams = new URLSearchParams()
