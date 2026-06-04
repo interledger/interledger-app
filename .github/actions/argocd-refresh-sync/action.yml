@@ -182,8 +182,8 @@ runs:
         refresh_application "${ROOT_APPLICATION}"
         wait_for_green "${ROOT_APPLICATION}"
 
+        APPLICATION_SELECTOR="${APPLICATION_SELECTOR//[[:space:]]/}"
         if [[ -n "${APPLICATION_SELECTOR}" ]]; then
-          mapfile -t applications_to_sync < <(list_selected_applications "${APPLICATION_SELECTOR}")
           if [[ ${#applications_to_sync[@]} -eq 0 ]]; then
             echo "::error::No Argo CD applications matched selector '${APPLICATION_SELECTOR}'."
             exit 1
