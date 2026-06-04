@@ -95,6 +95,8 @@ func EventWebhook(b Backends) http.HandlerFunc {
 }
 
 func processWebhook(ctx context.Context, b Backends, hook webhook) int {
+	nodeEnabled := env.IsRafikiNodeEnabled()
+
 	switch hook.Type {
 	case "incoming_payment.created":
 		isGatehub, err := isGatehubIncomingWebhook(ctx, b, hook)
@@ -113,6 +115,12 @@ func processWebhook(ctx context.Context, b Backends, hook webhook) int {
 		return http.StatusOK
 
 	case "incoming_payment.completed", "incoming_payment.expired":
+		if !nodeEnabled {
+			log.Info("rafiki node flow disabled; skipping incoming payment finalized webhook",
+				zap.String("type", hook.Type))
+			return http.StatusOK
+		}
+
 		isGatehub, err := isGatehubIncomingWebhook(ctx, b, hook)
 		if err != nil {
 			log.Error("failed to resolve provider for incoming payment finalized webhook",
@@ -139,6 +147,14 @@ func processWebhook(ctx context.Context, b Backends, hook webhook) int {
 		})
 
 	case "outgoing_payment.created":
+		if !nodeEnabled {
+			if err := outgoingPayment(ctx, b, hook); err != nil {
+				log.Error("failed to handle outgoing_payment.created while rafiki node flow is disabled", zap.Error(err))
+				return http.StatusBadRequest
+			}
+			return http.StatusOK
+		}
+
 		isGatehubToGatehub, err := isGatehubToGatehubOutgoingWebhook(ctx, b, hook)
 		if err != nil {
 			log.Error("failed to resolve provider for outgoing_payment.created", zap.Error(err))
@@ -163,6 +179,11 @@ func processWebhook(ctx context.Context, b Backends, hook webhook) int {
 		})
 
 	case "outgoing_payment.completed":
+		if !nodeEnabled {
+			log.Info("rafiki node flow disabled; skipping outgoing_payment.completed")
+			return http.StatusOK
+		}
+
 		isGatehubToGatehub, err := isGatehubToGatehubOutgoingWebhook(ctx, b, hook)
 		if err != nil {
 			log.Error("failed to resolve provider for outgoing_payment.completed", zap.Error(err))
@@ -183,6 +204,11 @@ func processWebhook(ctx context.Context, b Backends, hook webhook) int {
 		})
 
 	case "outgoing_payment.failed":
+		if !nodeEnabled {
+			log.Info("rafiki node flow disabled; skipping outgoing_payment.failed")
+			return http.StatusOK
+		}
+
 		isGatehubToGatehub, err := isGatehubToGatehubOutgoingWebhook(ctx, b, hook)
 		if err != nil {
 			log.Error("failed to resolve provider for outgoing_payment.failed", zap.Error(err))

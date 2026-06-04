@@ -24,7 +24,17 @@ import (
 	"go.temporal.io/sdk/client"
 
 	"gitlab.com/fynbos/backend/rafiki/ops"
+	"gitlab.com/fynbos/env"
 )
+
+func setRafikiNodeFlag(t *testing.T, enabled bool) {
+	t.Helper()
+	prev := env.IsRafikiNodeEnabled()
+	env.SetRafikiNodeEnabled(enabled)
+	t.Cleanup(func() {
+		env.SetRafikiNodeEnabled(prev)
+	})
+}
 
 func TestEventWebhookUnsupportedType(t *testing.T) {
 	ctrl := gomock.NewController(t)
@@ -95,6 +105,8 @@ func TestEventWebhookIncomingPaymentCreated_NilDB(t *testing.T) {
 }
 
 func TestEventWebhookWorkflowTypes_StartsWorkflow(t *testing.T) {
+	setRafikiNodeFlag(t, true)
+
 	if os.Getenv("DB_URL") == "" {
 		t.Skip("DB_URL not set; skipping test")
 	}
@@ -200,6 +212,8 @@ func TestEventWebhookWorkflowTypes_StartsWorkflow(t *testing.T) {
 }
 
 func TestEventWebhookOutgoingCreated_MixedProviders_UsesOldFlow(t *testing.T) {
+	setRafikiNodeFlag(t, true)
+
 	if os.Getenv("DB_URL") == "" {
 		t.Skip("DB_URL not set; skipping test")
 	}
@@ -267,6 +281,8 @@ func TestEventWebhookOutgoingCreated_MixedProviders_UsesOldFlow(t *testing.T) {
 }
 
 func TestEventWebhookWorkflowTypes_UnmarshalFails(t *testing.T) {
+	setRafikiNodeFlag(t, true)
+
 	tests := []struct {
 		name string
 		body string
@@ -305,6 +321,21 @@ func TestEventWebhookWorkflowTypes_UnmarshalFails(t *testing.T) {
 			assert.Equal(t, http.StatusBadRequest, rr.Code, "bad data should return 400")
 		})
 	}
+}
+
+func TestEventWebhookNodeDisabled_SkipsFinalizedFlow(t *testing.T) {
+	setRafikiNodeFlag(t, false)
+
+	b := ops.NewTestBackends()
+	handler := ops.EventWebhook(b)
+
+	body := `{"id":"evt_1","type":"incoming_payment.completed","data":{"id":"ip_1","walletAddressId":"wa_1","createdAt":"2024-01-15T10:00:00Z","expiresAt":"2024-01-16T10:00:00Z","receivedAmount":{"value":"5000","assetCode":"EUR","assetScale":2},"completed":true}}`
+	req := httptest.NewRequest(http.MethodPost, "/rafiki", strings.NewReader(body))
+	rr := httptest.NewRecorder()
+
+	handler.ServeHTTP(rr, req)
+
+	assert.Equal(t, http.StatusOK, rr.Code, "node-disabled finalized webhook should be acknowledged and skipped")
 }
 
 // fakeWorkflowRun satisfies client.WorkflowRun for tests.
