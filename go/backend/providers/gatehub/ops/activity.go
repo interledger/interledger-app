@@ -452,6 +452,11 @@ func (a *Activity) CheckGatehubWithdrawalComplete(ctx context.Context, walletID,
 	return nil
 }
 
+func (a *Activity) SendWithdrawalRejectedEmail(ctx context.Context, walletID string) error {
+	a.b.Email().SendGatehubWithdrawalRejectedEmail(ctx, walletID)
+	return nil
+}
+
 func (a *Activity) LinkGatehubUserToGateway(ctx context.Context, externalUser string) error {
 	return a.external.LinkUserToGateway(ctx, externalUser)
 }

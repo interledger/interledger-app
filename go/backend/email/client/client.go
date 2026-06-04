@@ -111,3 +111,7 @@ func (c *client) SendAuthenticatorResetEmail(ctx context.Context, walletID strin
 func (c *client) SendCardTransactionFXEmail(ctx context.Context, walletID, maskedPAN, merchantName, date, surcharge, transactionAmount, billingAmount string) {
 	ops.SendCardTransactionFXEmail(ctx, c.b, walletID, maskedPAN, merchantName, date, surcharge, transactionAmount, billingAmount)
 }
+
+func (c *client) SendGatehubWithdrawalRejectedEmail(ctx context.Context, walletID string) {
+	ops.SendGatehubWithdrawalRejectedEmail(ctx, c.b, walletID)
+}

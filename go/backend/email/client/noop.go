@@ -78,3 +78,7 @@ func (n *noopClient) SendAuthenticatorResetEmail(_ context.Context, walletID str
 func (n *noopClient) SendCardTransactionFXEmail(_ context.Context, walletID, _, _, _, _, _, _ string) {
 	log.Info("NOT SENDING: card transaction FX email", zap.String("walletID", walletID))
 }
+
+func (n *noopClient) SendGatehubWithdrawalRejectedEmail(_ context.Context, walletID string) {
+	log.Info("NOT SENDING: withdrawal rejected email", zap.String("walletID", walletID))
+}

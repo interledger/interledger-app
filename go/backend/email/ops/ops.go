@@ -387,6 +387,30 @@ func SendWithdrawalFailedEmail(ctx context.Context, b Backends, walletID string)
 	}
 }
 
+func SendGatehubWithdrawalRejectedEmail(ctx context.Context, b Backends, walletID string) {
+	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
+	if err != nil {
+		log.Error("Failed to send withdrawal rejected email.", zap.Error(err), zap.String("walletID", walletID))
+		return
+	}
+
+	err = b.External().SendTemplate(ctx, "Withdrawal rejected", sendTo, b.OneTemplateID(), map[string]interface{}{
+		"subject": "Withdrawal rejected",
+		"data": []map[string]interface{}{
+			{"paragraph": greeting},
+			{"heading": "Your recent withdrawal was rejected"},
+			{"paragraph": "Please contact support if you have any questions."},
+		},
+		"cta": map[string]interface{}{
+			"text": "Contact support",
+			"url":  env.GetUrl(),
+		},
+	}, nil)
+	if err != nil {
+		log.Error("Failed to send withdrawal rejected email.", zap.Error(err), zap.String("walletID", walletID))
+	}
+}
+
 func SendDepositFailedEmail(ctx context.Context, b Backends, walletID string) {
 	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
 	if err != nil {

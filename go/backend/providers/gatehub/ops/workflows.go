@@ -230,9 +230,7 @@ func RejectGatehubWithdrawalWorkflow(ctx workflow.Context, userID, externalTxID 
 		return err
 	}
 
-	// TODO send email notification
-
-	return nil
+	return workflow.ExecuteActivity(ctx, a.SendWithdrawalRejectedEmail, walletID).Get(ctx, nil)
 }
 
 func handleFailedWithdrawal(ctx workflow.Context, a *Activity, walletID, transactionID string) {
