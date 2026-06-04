@@ -2,11 +2,7 @@
 #
 # Revisions listed here are skipped by `git blame` so large, mechanical commits
 # (e.g. repo-wide reformatting) don't obscure the real authorship of each line.
-#
-# Activate locally (once per clone):
-#   git config blame.ignoreRevsFile .git-blame-ignore-revs
-# GitHub's web blame honors this file automatically — no setup needed.
-#
+
 # Each entry must be the FULL 40-character commit SHA, one per line.
 
 # style: apply Prettier formatting to protea and botanist (#576)
