@@ -329,7 +329,8 @@ jobs:
   # After a successful release (semantic-release tag -> images pushed -> OCI
   # chart published), this job opens an auto-merge PR in
   # interledger/interledger-app-deploy that updates the `chartVersion` for the
-  # `interledger-app` entry in env/dev1/appsets/wallet-appset.yaml.
+  # `interledger-app` and `mock-services` entries in
+  # env/dev1/appsets/wallet-appset.yaml.
   #
   # Why this job exists:
   #   - The deploy repo's ArgoCD ApplicationSet pins a specific chartVersion
@@ -385,7 +386,7 @@ jobs:
     env:
       DEPLOY_REPO: interledger/interledger-app-deploy
       APPSET_FILE: env/dev1/appsets/wallet-appset.yaml
-      CHART_NAME: interledger-app
+      CHART_NAMES: interledger-app,mock-services
       RELEASE_TAG: ${{ inputs.release_tag }}
       # determine_version returns the tag verbatim (e.g. "v1.11.4"). The
       # appset and Chart.yaml use the version WITHOUT the leading "v", so
@@ -455,16 +456,17 @@ jobs:
           rm -f "${tmp}"
           yq --version
 
-      # Surgically update ONLY the `interledger-app` element of the
+      # Surgically update ONLY the target wallet chart elements of the
       # ApplicationSet list. A naive find/replace would risk colliding with
       # other entries (e.g. if the same version string appeared elsewhere).
-      # If the file is already at the target version, set skip=true and let
-      # the next step short-circuit — this makes manual reruns idempotent.
+      # If the file is already at the target version for ALL target entries,
+      # set skip=true and let the next step short-circuit — this makes manual
+      # reruns idempotent.
       - name: Update chartVersion in dev1 appset
         id: update_appset
         working-directory: deploy
         env:
-          CHART: ${{ env.CHART_NAME }}
+          CHARTS: ${{ env.CHART_NAMES }}
           FILE: ${{ env.APPSET_FILE }}
         run: |
           set -euo pipefail
@@ -474,33 +476,43 @@ jobs:
           # Export for the next step (which reads $chart_version).
           echo "chart_version=${NEW_VERSION}" >> "$GITHUB_OUTPUT"
 
-          CURRENT=$(yq -r \
-            ".spec.generators[].list.elements[] | select(.name == \"${CHART}\") | .chartVersion" \
-            "${FILE}")
-          # Fail loudly if the target element disappears or the appset
-          # structure changes upstream. Without this, yq -i below would be
-          # a no-op and `git commit` would later fail with the misleading
-          # "nothing to commit" error.
-          if [[ -z "${CURRENT}" || "${CURRENT}" == "null" ]]; then
-            echo "::error::Could not find chartVersion for ${CHART} in ${FILE}. The appset structure may have changed."
-            exit 1
-          fi
-          echo "Current chartVersion: ${CURRENT}"
-          echo "New chartVersion:     ${NEW_VERSION}"
+          IFS=',' read -r -a CHART_ARRAY <<< "${CHARTS}"
+
+          # Track whether any target entry actually needs a bump.
+          needs_update=false
+          for CHART in "${CHART_ARRAY[@]}"; do
+            CURRENT=$(yq -r \
+              ".spec.generators[].list.elements[] | select(.name == \"${CHART}\") | .chartVersion" \
+              "${FILE}")
+            # Fail loudly if a target element disappears or the appset
+            # structure changes upstream. Without this, yq -i below could
+            # silently skip one chart and still produce a commit.
+            if [[ -z "${CURRENT}" || "${CURRENT}" == "null" ]]; then
+              echo "::error::Could not find chartVersion for ${CHART} in ${FILE}. The appset structure may have changed."
+              exit 1
+            fi
+
+            echo "${CHART}: current=${CURRENT}, new=${NEW_VERSION}"
+            if [[ "${CURRENT}" != "${NEW_VERSION}" ]]; then
+              needs_update=true
+            fi
+          done
+
           # Idempotency guard: someone may have already bumped the deploy
           # repo manually (e.g. during incident response or a re-release).
-          if [[ "${CURRENT}" == "${NEW_VERSION}" ]]; then
-            echo "Already at ${NEW_VERSION}; nothing to do."
+          if [[ "${needs_update}" == "false" ]]; then
+            echo "All target charts already at ${NEW_VERSION}; nothing to do."
             echo "skip=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-
           echo "skip=false" >> "$GITHUB_OUTPUT"
-          # In-place update of just the matching element.
-          yq -i \
-            "(.spec.generators[].list.elements[] | select(.name == \"${CHART}\")).chartVersion = \"${NEW_VERSION}\"" \
-            "${FILE}"
+          # In-place update of just the matching elements.
+          for CHART in "${CHART_ARRAY[@]}"; do
+            yq -i \
+              "(.spec.generators[].list.elements[] | select(.name == \"${CHART}\")).chartVersion = \"${NEW_VERSION}\"" \
+              "${FILE}"
+          done
           # Belt-and-braces: confirm the file actually changed before we try
           # to commit it. Protects against a yq query that silently matches
           # nothing.
@@ -543,7 +555,7 @@ jobs:
           git checkout -b "${BRANCH}"
           git add "${APPSET_FILE}"
           git commit \
-            -m "chore: bump interledger-app chart to ${CHART_VERSION} in dev1" \
+            -m "chore: bump dev1 wallet charts to ${CHART_VERSION}" \
             -m "Triggered by release ${RELEASE_TAG} of interledger/interledger-app."
           # --force handles the rerun case where the branch already exists
           # remotely (e.g. a previous run pushed the branch but failed
@@ -559,7 +571,7 @@ jobs:
           cat > /tmp/pr-body.md <<EOF
           Automated bump triggered by [interledger-app ${RELEASE_TAG}](https://github.com/${GITHUB_REPOSITORY}/releases/tag/${RELEASE_TAG}).
 
-          Updates \`${APPSET_FILE}\` chartVersion for \`${CHART_NAME}\` to \`${CHART_VERSION}\`.
+          Updates \`${APPSET_FILE}\` chartVersion for \`interledger-app\` and \`mock-services\` to \`${CHART_VERSION}\`.
 
           Auto-merge is enabled; will merge once \`conform.yaml\` checks pass.
           EOF
@@ -581,7 +593,7 @@ jobs:
               --repo "${DEPLOY_REPO}" \
               --base main \
               --head "${BRANCH}" \
-              --title "chore: bump interledger-app chart to ${CHART_VERSION} in dev1" \
+              --title "chore: bump dev1 wallet charts to ${CHART_VERSION}" \
               --body-file /tmp/pr-body.md \
               --label automated \
               --label chart-bump)
@@ -591,7 +603,7 @@ jobs:
             # Refresh the body in case the chart version changed since the
             # earlier rerun (rare, but cheap to handle).
             gh pr edit "${PR_URL}" --repo "${DEPLOY_REPO}" \
-              --title "chore: bump interledger-app chart to ${CHART_VERSION} in dev1" \
+              --title "chore: bump dev1 wallet charts to ${CHART_VERSION}" \
               --body-file /tmp/pr-body.md
           fi
 
@@ -645,5 +657,4 @@ jobs:
           argocd-auth-token: ${{ secrets.ARGOCD_AUTH_TOKEN }}
           cf-access-client-id: ${{ vars.CF_ACCESS_CLIENT_ID }}
           cf-access-client-secret: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
-          root-application: root-appset
-          application-selector: environment=dev1
+          application-selector: environment=wallet-dev1
