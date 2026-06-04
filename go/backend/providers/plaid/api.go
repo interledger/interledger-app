@@ -15,7 +15,10 @@ type Config struct {
 	Env          string
 	Products     []string
 	CountryCodes []string
-	Processor string
+	Processor    string
+	// APIURL, when non-empty, overrides the SDK base URL (e.g. point at mockplaid
+	// in local dev). Empty = use the real Plaid environment selected by Env.
+	APIURL string
 }
 
 // TokenSet is the per-user state persisted after a successful Plaid Link.
@@ -60,4 +63,3 @@ type TokenStore interface {
 	Put(ctx context.Context, userID string, t TokenSet) error
 	Delete(ctx context.Context, userID string) error
 }
-

@@ -271,6 +271,7 @@ Plaid integration is a proof-of-concept (see `documentation/poc/plaid/`). The fe
 | `PLAID_PRODUCTS` | Comma-separated list of Plaid products requested at Link creation | No | POC: `auth,transactions,balance,identity` |
 | `PLAID_COUNTRY_CODES` | Comma-separated ISO-3166-1 alpha-2 country codes for Link institution filtering | No | POC: `US` (sandbox only supports US institutions out of the box) |
 | `PLAID_PROCESSOR` | Plaid processor partner used when minting a processor token via `processor/token/create` (`fiant` or `zero_hash`). Phase 2 only. | No | Default: `fiant`. Use `zero_hash` to validate plumbing if `fiant` is not enabled in your Plaid team. |
+| `PLAID_API_URL` | Overrides the Plaid SDK base URL. When set, all Plaid REST calls target this host instead of the real `sandbox.plaid.com`/`production.plaid.com`. Used to point the backend at the local **mockplaid** service. | No | Local POC: `http://mockplaid:8080` (mock). Blank/unset for real Plaid. Deployed: unset. See `documentation/poc/mockplaid/`. |
 
 ### Legacy Variables
 

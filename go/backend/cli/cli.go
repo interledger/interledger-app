@@ -133,6 +133,7 @@ type StartArgs struct {
 	PlaidProducts                 []string
 	PlaidCountryCodes             []string
 	PlaidProcessor                string
+	PlaidAPIURL                   string
 	RedisURL                      string
 	SentryDSN                     string
 	SentryRelease                 string
@@ -571,6 +572,9 @@ func ParseStartArgs() (*StartArgs, error) {
 	plaidProductsStr := os.Getenv("PLAID_PRODUCTS")
 	plaidCountryCodesStr := os.Getenv("PLAID_COUNTRY_CODES")
 	plaidProcessor := os.Getenv("PLAID_PROCESSOR")
+	// PLAID_API_URL overrides the SDK base URL (point at mockplaid locally).
+	// Empty = real Plaid environment selected by PLAID_ENV.
+	plaidAPIURL := os.Getenv("PLAID_API_URL")
 
 	plaidProducts := splitAndTrim(plaidProductsStr, ",")
 	plaidCountryCodes := splitAndTrim(plaidCountryCodesStr, ",")
@@ -696,6 +700,7 @@ func ParseStartArgs() (*StartArgs, error) {
 		PlaidProducts:                 plaidProducts,
 		PlaidCountryCodes:             plaidCountryCodes,
 		PlaidProcessor:                plaidProcessor,
+		PlaidAPIURL:                   plaidAPIURL,
 		RedisURL:                      redisURL,
 	}, nil
 }

@@ -145,6 +145,8 @@ services:
       - PLAID_PRODUCTS=${BACKEND_PLAID_PRODUCTS:-auth,transactions,balance,identity}
       - PLAID_COUNTRY_CODES=${BACKEND_PLAID_COUNTRY_CODES:-US}
       - PLAID_PROCESSOR=${BACKEND_PLAID_PROCESSOR:-fiant}
+      # Base-URL override → mockplaid (local). Blank for real Plaid (see `make plaid-real`).
+      - PLAID_API_URL=${BACKEND_PLAID_API_URL:-http://mockplaid:8080}
 
 
       # Providers: Xago

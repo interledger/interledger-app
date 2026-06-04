@@ -19,7 +19,9 @@ type Client struct {
 	countryCodes []plaidsdk.CountryCode
 }
 
-func New(cfg plaid.Config) (*Client, error) {
+// buildSDKConfig assembles the plaid-go SDK Configuration from our Config,
+// including the optional APIURL base-URL override. Extracted for unit testing.
+func buildSDKConfig(cfg plaid.Config) (*plaidsdk.Configuration, error) {
 	sdkCfg := plaidsdk.NewConfiguration()
 	sdkCfg.AddDefaultHeader("PLAID-CLIENT-ID", cfg.ClientID)
 	sdkCfg.AddDefaultHeader("PLAID-SECRET", cfg.Secret)
@@ -31,6 +33,21 @@ func New(cfg plaid.Config) (*Client, error) {
 		sdkCfg.UseEnvironment(plaidsdk.Production)
 	default:
 		return nil, fmt.Errorf("plaid client: unknown PLAID_ENV %q (want sandbox|production)", cfg.Env)
+	}
+
+	// APIURL overrides the SDK base URL (e.g. point at mockplaid in local dev).
+	// UseEnvironment only sets Servers and OperationServers is empty by default,
+	// so this single override redirects every endpoint.
+	if cfg.APIURL != "" {
+		sdkCfg.Servers = plaidsdk.ServerConfigurations{{URL: cfg.APIURL}}
+	}
+	return sdkCfg, nil
+}
+
+func New(cfg plaid.Config) (*Client, error) {
+	sdkCfg, err := buildSDKConfig(cfg)
+	if err != nil {
+		return nil, err
 	}
 
 	products := make([]plaidsdk.Products, 0, len(cfg.Products))
