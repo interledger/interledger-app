@@ -20,7 +20,7 @@ inputs:
   timeout-seconds:
     description: Maximum seconds to wait for each application to become healthy and synced.
     required: false
-    default: '1800'
+    default: '300'
   poll-interval-seconds:
     description: Seconds between Argo CD status polls.
     required: false
@@ -41,10 +41,10 @@ runs:
         POLL_INTERVAL_SECONDS: ${{ inputs.poll-interval-seconds }}
       run: |
         set -euo pipefail
-        script_path="${GITHUB_ACTION_PATH}/../../../ci/scripts/argocd_refresh_sync.sh"
-        if [[ ! -x "${script_path}" ]]; then
+        script_path="${GITHUB_ACTION_PATH}/../../../tooling/github-scripts/argocd-refresh-sync.js"
+        if [[ ! -f "${script_path}" ]]; then
           echo "::error::Script is missing or not executable: ${script_path}"
           exit 1
         fi
 
-        "${script_path}"
+        node "${script_path}"
