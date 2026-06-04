@@ -31,8 +31,8 @@ import {
   handleUpdatePhone,
   handleVerifyOtp
 } from '~/lib/phone.server'
-import { useCountdown } from '~/lib/useCountdown'
 import { safeReturnTo } from '~/lib/url.server'
+import { useCountdown } from '~/lib/useCountdown'
 import styles from '~/styles/flags.css?url'
 import type { Route } from './+types/phone-confirmation'
 
@@ -115,7 +115,9 @@ export default function Page() {
 
   const isResendDisabled =
     (otpSent && isActive) || resendFetcher.state !== 'idle'
-  const actionPath = `/phone-confirmation?returnTo=${encodeURIComponent(returnTo)}`
+  const actionPath = `/phone-confirmation?returnTo=${encodeURIComponent(
+    returnTo
+  )}`
 
   return (
     <>
@@ -189,11 +191,7 @@ export default function Page() {
         </Button>
       )}
       {!showChangePhone && (
-        <resendFetcher.Form
-          method='post'
-          action={actionPath}
-          className='mt-2'
-        >
+        <resendFetcher.Form method='post' action={actionPath} className='mt-2'>
           <input type='hidden' name='intent' value='resend' />
           <input type='hidden' name='csrfToken' value={csrfToken} />
           <input type='hidden' name='phone' value={currentPhone} />
@@ -203,8 +201,8 @@ export default function Page() {
                 ? 'Sending...'
                 : 'Send code'
               : isActive
-                ? `Resend in ${remainingSeconds}s`
-                : 'Resend code'}
+              ? `Resend in ${remainingSeconds}s`
+              : 'Resend code'}
           </Button>
         </resendFetcher.Form>
       )}

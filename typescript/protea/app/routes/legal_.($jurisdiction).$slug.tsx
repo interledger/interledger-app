@@ -1,12 +1,12 @@
-import type { Route } from './+types/legal_.($jurisdiction).$slug'
-import { data } from 'react-router';
+import { data } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Layouts } from '~/components'
+import type { Route } from './+types/legal_.($jurisdiction).$slug'
 
-import type { UIMatch } from 'react-router';
-import { useLoaderData } from 'react-router';
 import { DateTime } from 'luxon'
 import { StructuredText } from 'react-datocms'
+import type { UIMatch } from 'react-router'
+import { useLoaderData } from 'react-router'
 import { Prose } from '~/components/Content'
 import { getCurrentLegalPage } from '~/data/content.server'
 import { fetchAndSanitizeHTML } from '~/lib/fetchAndSanitizeHTML.server'
@@ -45,7 +45,8 @@ export const handle: ApplicationProps = {
   layout: Layouts.Marketing,
   scaffold: {
     header: {},
-    footer: (match: UIMatch<Route.ComponentProps['loaderData']>) => match.loaderData?.footer ?? null
+    footer: (match: UIMatch<Route.ComponentProps['loaderData']>) =>
+      match.loaderData?.footer ?? null
   }
 }
 

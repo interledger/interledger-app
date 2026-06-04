@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite'
-import tsconfigPaths from 'vite-tsconfig-paths'
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
+import tsconfigPaths from 'vite-tsconfig-paths'
 
 // Storybook-specific Vite config — React Router plugin intentionally excluded.
 // The plugin requires an app entry point and SSR context that Storybook doesn't
@@ -11,7 +11,7 @@ export default defineConfig({
     tsconfigPaths(),
     nodePolyfills({
       include: ['os', 'constants', 'buffer', 'assert', 'process'],
-      globals: { Buffer: true, process: true },
-    }),
-  ],
+      globals: { Buffer: true, process: true }
+    })
+  ]
 })

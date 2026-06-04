@@ -1,21 +1,17 @@
-import type { Route } from './+types/settings.profile-contact'
-import { data } from 'react-router';
-import { useLoaderData } from 'react-router';
-import { href } from 'react-router'
+import { data, href, useLoaderData } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Card, CardLink, Icon, Layouts } from '~/components'
 import { Label } from '~/components/Label'
-import { getUserSession, getSessionTraits } from '~/lib/kratos/session.server'
+import { getSessionTraits, getUserSession } from '~/lib/kratos/session.server'
 import { mergeMeta } from '~/lib/meta'
+import type { Route } from './+types/settings.profile-contact'
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await getUserSession(request)
   const { phone, email } = getSessionTraits(session)
 
   const len = phone.length
-  const phoneMask = phone
-    .substring(len - 4, len)
-    .padStart(len, '*')
+  const phoneMask = phone.substring(len - 4, len).padStart(len, '*')
 
   return data({
     phoneMask,

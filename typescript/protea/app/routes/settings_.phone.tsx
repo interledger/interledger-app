@@ -68,7 +68,8 @@ export default function Page() {
   const actionData = useActionData<typeof action>()
   const { csrfToken, countryCode, phone, countries } =
     useLoaderData<typeof loader>()
-  const updateFetcher = useFetcher<Awaited<ReturnType<typeof handleUpdatePhone>>>()
+  const updateFetcher =
+    useFetcher<Awaited<ReturnType<typeof handleUpdatePhone>>>()
   const resendFetcher = useFetcher()
   const { start, isActive, remainingSeconds } = useCountdown()
   const [otpSent, setOtpSent] = useState(false)
@@ -79,8 +80,8 @@ export default function Page() {
     Boolean(updateFetcher.data.codeSent)
   const updatedPhone =
     updateFetcher.data &&
-      'phone' in updateFetcher.data &&
-      typeof updateFetcher.data.phone === 'string'
+    'phone' in updateFetcher.data &&
+    typeof updateFetcher.data.phone === 'string'
       ? updateFetcher.data.phone
       : undefined
   const otpError =

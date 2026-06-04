@@ -1,6 +1,5 @@
-import { useFetcher, useLoaderData } from 'react-router';
 import { useEffect, useState } from 'react'
-import { href } from 'react-router'
+import { href, useFetcher, useLoaderData } from 'react-router'
 import {
   Button,
   Card,
@@ -12,7 +11,7 @@ import {
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { useSignupStore } from '~/lib/useSignupStore'
 import type { loader } from './route'
-import type { passwordAction } from './route.server';
+import type { passwordAction } from './route.server'
 
 export function Password() {
   const passwordFetcher = useFetcher<typeof passwordAction>()

@@ -1,13 +1,11 @@
-import { Form, useActionData, useLoaderData } from 'react-router';
-import { href } from 'react-router'
+import { Form, href, useActionData, useLoaderData } from 'react-router'
 import { Button, Card, CardContent, Checkbox } from '~/components'
 
 import { DateTime } from 'luxon'
 import { usePTISdk } from '~/lib/usePTISdk'
 import { PaymentDetailsCard } from './PaymentDetailsCard'
+import { confirmPaymentAction } from './action.server'
 import type { loader } from './route'
-import { confirmPaymentAction } from './action.server';
-
 
 export function Confirm() {
   const { payment, account, csrfToken, PTIClientId } =

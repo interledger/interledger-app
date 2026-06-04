@@ -31,7 +31,8 @@ export function Landing() {
             <div className='ml-5'>
               <h3 className='mb-1 font-medium text-strong'>Profile details</h3>
               <p className='text-xs text-medium'>
-                Submit your legal name, email, country of residence and your phone number.
+                Submit your legal name, email, country of residence and your
+                phone number.
               </p>
             </div>
           </div>
@@ -91,7 +92,9 @@ export function Landing() {
               color='bg-indigo-400'
             />
             <div className='ml-5'>
-              <h3 className='mb-1 font-medium text-strong'>Phone confirmation</h3>
+              <h3 className='mb-1 font-medium text-strong'>
+                Phone confirmation
+              </h3>
               <p className='text-xs text-medium'>
                 Verify your phone number using the code sent by SMS.
               </p>
@@ -111,9 +114,12 @@ export function Landing() {
               color='bg-slate-300'
             />
             <div className='ml-5'>
-              <h3 className='mb-1 font-medium text-strong'>Set up Two-Factor Authentication</h3>
+              <h3 className='mb-1 font-medium text-strong'>
+                Set up Two-Factor Authentication
+              </h3>
               <p className='text-xs text-medium'>
-                Enhance your account security by setting up two-factor authentication on your Authenticator App.
+                Enhance your account security by setting up two-factor
+                authentication on your Authenticator App.
               </p>
             </div>
           </div>

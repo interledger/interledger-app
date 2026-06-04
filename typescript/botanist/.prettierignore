@@ -5,6 +5,7 @@ public/build
 generated
 dist
 yarn.lock
+pnpm-lock.yaml
 app/routes.d.ts
 app/styles/app.css
 

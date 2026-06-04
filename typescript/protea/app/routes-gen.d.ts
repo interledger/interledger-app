@@ -1,154 +1,163 @@
-declare module "routes-gen" {
+declare module 'routes-gen' {
   export type RouteParams = {
-    "/": Record<string, never>;
-    "/:slug": { "slug": string };
-    "/accounts": Record<string, never>;
-    "/accounts/:accountId": { "accountId": string };
-    "/accounts/:accountId/name": { "accountId": string };
-    "/api/cardOperation": Record<string, never>;
-    "/api/check-totp-enabled": Record<string, never>;
-    "/api/confirmPendingConfirmation": Record<string, never>;
-    "/api/fern": Record<string, never>;
-    "/api/getCardToken": Record<string, never>;
-    "/api/getPendingConfirmations": Record<string, never>;
-    "/api/maps/geocode": Record<string, never>;
-    "/api/maps/placesAutocomplete": Record<string, never>;
-    "/api/paymentConfirmation": Record<string, never>;
-    "/api/pti/token": Record<string, never>;
-    "/api/sendOtp": Record<string, never>;
-    "/api/totp-challenge-init": Record<string, never>;
-    "/api/totp-challenge-verify": Record<string, never>;
-    "/callbacks/chimoney": Record<string, never>;
-    "/cards": Record<string, never>;
-    "/cards/:cardId": { "cardId": string };
-    "/cards/order": Record<string, never>;
-    "/confirmations": Record<string, never>;
-    "/confirmations/:confirmationId": { "confirmationId": string };
-    "/connect/bank/us": Record<string, never>;
-    "/connect/bank/za": Record<string, never>;
-    "/connect/card": Record<string, never>;
-    "/connect/interac": Record<string, never>;
-    "/consent": Record<string, never>;
-    "/contact": Record<string, never>;
-    "/contact/success": Record<string, never>;
-    "/deposit": Record<string, never>;
-    "/deposit/:paymentId": { "paymentId": string };
-    "/healthz": Record<string, never>;
-    "/legal/:jurisdiction?/:slug": { "jurisdiction"?: string, "slug": string };
-    "/live": Record<string, never>;
-    "/login": Record<string, never>;
-    "/login/challenge": Record<string, never>;
-    "/logout": Record<string, never>;
-    "/otp/challenge": Record<string, never>;
-    "/pay": Record<string, never>;
-    "/pay/:paymentId": { "paymentId": string };
-    "/payments": Record<string, never>;
-    "/payments/:paymentId": { "paymentId": string };
-    "/personal-details": Record<string, never>;
-    "/recovery": Record<string, never>;
-    "/recovery/password": Record<string, never>;
-    "/settings": Record<string, never>;
-    "/settings/grants": Record<string, never>;
-    "/settings/grants/:grantId": { "grantId": string };
-    "/settings/keys": Record<string, never>;
-    "/settings/keys/:keyId": { "keyId": string };
-    "/settings/keys/add-public": Record<string, never>;
-    "/settings/password": Record<string, never>;
-    "/settings/phone": Record<string, never>;
-    "/settings/profile-contact": Record<string, never>;
-    "/settings/profile-personal": Record<string, never>;
-    "/settings/profile-public": Record<string, never>;
-    "/settings/profile-public/name": Record<string, never>;
-    "/signup": Record<string, never>;
-    "/support": Record<string, never>;
-    "/temp-cloudflare-error": Record<string, never>;
-    "/totp/challenge": Record<string, never>;
-    "/totp/two-factor-authentication": Record<string, never>;
-    "/transactions": Record<string, never>;
-    "/transactions/:transactionId": { "transactionId": string };
-    "/unavailable": Record<string, never>;
-    "/verify": Record<string, never>;
-    "/waitlist": Record<string, never>;
-    "/waitlist/success": Record<string, never>;
-    "/wallet-address": Record<string, never>;
-    "/withdraw": Record<string, never>;
-    "/withdraw/:paymentId": { "paymentId": string };
-  };
+    '/': Record<string, never>
+    '/:slug': { slug: string }
+    '/accounts': Record<string, never>
+    '/accounts/:accountId': { accountId: string }
+    '/accounts/:accountId/name': { accountId: string }
+    '/api/cardOperation': Record<string, never>
+    '/api/check-totp-enabled': Record<string, never>
+    '/api/confirmPendingConfirmation': Record<string, never>
+    '/api/fern': Record<string, never>
+    '/api/getCardToken': Record<string, never>
+    '/api/getPendingConfirmations': Record<string, never>
+    '/api/maps/geocode': Record<string, never>
+    '/api/maps/placesAutocomplete': Record<string, never>
+    '/api/paymentConfirmation': Record<string, never>
+    '/api/pti/token': Record<string, never>
+    '/api/sendOtp': Record<string, never>
+    '/api/totp-challenge-init': Record<string, never>
+    '/api/totp-challenge-verify': Record<string, never>
+    '/callbacks/chimoney': Record<string, never>
+    '/cards': Record<string, never>
+    '/cards/:cardId': { cardId: string }
+    '/cards/order': Record<string, never>
+    '/confirmations': Record<string, never>
+    '/confirmations/:confirmationId': { confirmationId: string }
+    '/connect/bank/us': Record<string, never>
+    '/connect/bank/za': Record<string, never>
+    '/connect/card': Record<string, never>
+    '/connect/interac': Record<string, never>
+    '/consent': Record<string, never>
+    '/contact': Record<string, never>
+    '/contact/success': Record<string, never>
+    '/deposit': Record<string, never>
+    '/deposit/:paymentId': { paymentId: string }
+    '/healthz': Record<string, never>
+    '/legal/:jurisdiction?/:slug': { jurisdiction?: string; slug: string }
+    '/live': Record<string, never>
+    '/login': Record<string, never>
+    '/login/challenge': Record<string, never>
+    '/logout': Record<string, never>
+    '/otp/challenge': Record<string, never>
+    '/pay': Record<string, never>
+    '/pay/:paymentId': { paymentId: string }
+    '/payments': Record<string, never>
+    '/payments/:paymentId': { paymentId: string }
+    '/personal-details': Record<string, never>
+    '/recovery': Record<string, never>
+    '/recovery/password': Record<string, never>
+    '/settings': Record<string, never>
+    '/settings/grants': Record<string, never>
+    '/settings/grants/:grantId': { grantId: string }
+    '/settings/keys': Record<string, never>
+    '/settings/keys/:keyId': { keyId: string }
+    '/settings/keys/add-public': Record<string, never>
+    '/settings/password': Record<string, never>
+    '/settings/phone': Record<string, never>
+    '/settings/profile-contact': Record<string, never>
+    '/settings/profile-personal': Record<string, never>
+    '/settings/profile-public': Record<string, never>
+    '/settings/profile-public/name': Record<string, never>
+    '/signup': Record<string, never>
+    '/support': Record<string, never>
+    '/temp-cloudflare-error': Record<string, never>
+    '/totp/challenge': Record<string, never>
+    '/totp/two-factor-authentication': Record<string, never>
+    '/transactions': Record<string, never>
+    '/transactions/:transactionId': { transactionId: string }
+    '/unavailable': Record<string, never>
+    '/verify': Record<string, never>
+    '/waitlist': Record<string, never>
+    '/waitlist/success': Record<string, never>
+    '/wallet-address': Record<string, never>
+    '/withdraw': Record<string, never>
+    '/withdraw/:paymentId': { paymentId: string }
+  }
 
   export function route<
     T extends
-      | ["/"]
-      | ["/:slug", RouteParams["/:slug"]]
-      | ["/accounts"]
-      | ["/accounts/:accountId", RouteParams["/accounts/:accountId"]]
-      | ["/accounts/:accountId/name", RouteParams["/accounts/:accountId/name"]]
-      | ["/api/cardOperation"]
-      | ["/api/check-totp-enabled"]
-      | ["/api/confirmPendingConfirmation"]
-      | ["/api/fern"]
-      | ["/api/getCardToken"]
-      | ["/api/getPendingConfirmations"]
-      | ["/api/maps/geocode"]
-      | ["/api/maps/placesAutocomplete"]
-      | ["/api/paymentConfirmation"]
-      | ["/api/pti/token"]
-      | ["/api/sendOtp"]
-      | ["/api/totp-challenge-init"]
-      | ["/api/totp-challenge-verify"]
-      | ["/callbacks/chimoney"]
-      | ["/cards"]
-      | ["/cards/:cardId", RouteParams["/cards/:cardId"]]
-      | ["/cards/order"]
-      | ["/confirmations"]
-      | ["/confirmations/:confirmationId", RouteParams["/confirmations/:confirmationId"]]
-      | ["/connect/bank/us"]
-      | ["/connect/bank/za"]
-      | ["/connect/card"]
-      | ["/connect/interac"]
-      | ["/consent"]
-      | ["/contact"]
-      | ["/contact/success"]
-      | ["/deposit"]
-      | ["/deposit/:paymentId", RouteParams["/deposit/:paymentId"]]
-      | ["/healthz"]
-      | ["/legal/:jurisdiction?/:slug", RouteParams["/legal/:jurisdiction?/:slug"]]
-      | ["/live"]
-      | ["/login"]
-      | ["/login/challenge"]
-      | ["/logout"]
-      | ["/otp/challenge"]
-      | ["/pay"]
-      | ["/pay/:paymentId", RouteParams["/pay/:paymentId"]]
-      | ["/payments"]
-      | ["/payments/:paymentId", RouteParams["/payments/:paymentId"]]
-      | ["/personal-details"]
-      | ["/recovery"]
-      | ["/recovery/password"]
-      | ["/settings"]
-      | ["/settings/grants"]
-      | ["/settings/grants/:grantId", RouteParams["/settings/grants/:grantId"]]
-      | ["/settings/keys"]
-      | ["/settings/keys/:keyId", RouteParams["/settings/keys/:keyId"]]
-      | ["/settings/keys/add-public"]
-      | ["/settings/password"]
-      | ["/settings/phone"]
-      | ["/settings/profile-contact"]
-      | ["/settings/profile-personal"]
-      | ["/settings/profile-public"]
-      | ["/settings/profile-public/name"]
-      | ["/signup"]
-      | ["/support"]
-      | ["/temp-cloudflare-error"]
-      | ["/totp/challenge"]
-      | ["/totp/two-factor-authentication"]
-      | ["/transactions"]
-      | ["/transactions/:transactionId", RouteParams["/transactions/:transactionId"]]
-      | ["/unavailable"]
-      | ["/verify"]
-      | ["/waitlist"]
-      | ["/waitlist/success"]
-      | ["/wallet-address"]
-      | ["/withdraw"]
-      | ["/withdraw/:paymentId", RouteParams["/withdraw/:paymentId"]]
-  >(...args: T): typeof args[0];
+      | ['/']
+      | ['/:slug', RouteParams['/:slug']]
+      | ['/accounts']
+      | ['/accounts/:accountId', RouteParams['/accounts/:accountId']]
+      | ['/accounts/:accountId/name', RouteParams['/accounts/:accountId/name']]
+      | ['/api/cardOperation']
+      | ['/api/check-totp-enabled']
+      | ['/api/confirmPendingConfirmation']
+      | ['/api/fern']
+      | ['/api/getCardToken']
+      | ['/api/getPendingConfirmations']
+      | ['/api/maps/geocode']
+      | ['/api/maps/placesAutocomplete']
+      | ['/api/paymentConfirmation']
+      | ['/api/pti/token']
+      | ['/api/sendOtp']
+      | ['/api/totp-challenge-init']
+      | ['/api/totp-challenge-verify']
+      | ['/callbacks/chimoney']
+      | ['/cards']
+      | ['/cards/:cardId', RouteParams['/cards/:cardId']]
+      | ['/cards/order']
+      | ['/confirmations']
+      | [
+          '/confirmations/:confirmationId',
+          RouteParams['/confirmations/:confirmationId']
+        ]
+      | ['/connect/bank/us']
+      | ['/connect/bank/za']
+      | ['/connect/card']
+      | ['/connect/interac']
+      | ['/consent']
+      | ['/contact']
+      | ['/contact/success']
+      | ['/deposit']
+      | ['/deposit/:paymentId', RouteParams['/deposit/:paymentId']]
+      | ['/healthz']
+      | [
+          '/legal/:jurisdiction?/:slug',
+          RouteParams['/legal/:jurisdiction?/:slug']
+        ]
+      | ['/live']
+      | ['/login']
+      | ['/login/challenge']
+      | ['/logout']
+      | ['/otp/challenge']
+      | ['/pay']
+      | ['/pay/:paymentId', RouteParams['/pay/:paymentId']]
+      | ['/payments']
+      | ['/payments/:paymentId', RouteParams['/payments/:paymentId']]
+      | ['/personal-details']
+      | ['/recovery']
+      | ['/recovery/password']
+      | ['/settings']
+      | ['/settings/grants']
+      | ['/settings/grants/:grantId', RouteParams['/settings/grants/:grantId']]
+      | ['/settings/keys']
+      | ['/settings/keys/:keyId', RouteParams['/settings/keys/:keyId']]
+      | ['/settings/keys/add-public']
+      | ['/settings/password']
+      | ['/settings/phone']
+      | ['/settings/profile-contact']
+      | ['/settings/profile-personal']
+      | ['/settings/profile-public']
+      | ['/settings/profile-public/name']
+      | ['/signup']
+      | ['/support']
+      | ['/temp-cloudflare-error']
+      | ['/totp/challenge']
+      | ['/totp/two-factor-authentication']
+      | ['/transactions']
+      | [
+          '/transactions/:transactionId',
+          RouteParams['/transactions/:transactionId']
+        ]
+      | ['/unavailable']
+      | ['/verify']
+      | ['/waitlist']
+      | ['/waitlist/success']
+      | ['/wallet-address']
+      | ['/withdraw']
+      | ['/withdraw/:paymentId', RouteParams['/withdraw/:paymentId']]
+  >(...args: T): (typeof args)[0]
 }
