@@ -10,7 +10,7 @@ name: Deploy
 #
 # Why this exists (vs. the existing bump-deploy-dev job):
 #   - `bump-deploy-dev` in build-and-publish.yml automatically promotes every
-#     non-maintenance release to `development` immediately after publish.
+#     non-maintenance release to `dev1` immediately after publish.
 #     Sandbox/production are intentionally gated and require human intent +
 #     a specific version pick, so we expose a separate manually-dispatched
 #     workflow rather than widening the auto-publish flow.
