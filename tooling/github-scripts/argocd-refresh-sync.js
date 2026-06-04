@@ -233,7 +233,7 @@ export function createArgocdApi(endpoint, token, clientId, clientSecret) {
 /**
  * @param {NodeJS.ProcessEnv} env
  */
-function getRequiredConfig(env) {
+export function getRequiredConfig(env) {
   const required = [
     "ARGOCD_ENDPOINT",
     "ARGOCD_AUTH_TOKEN",
@@ -248,14 +248,33 @@ function getRequiredConfig(env) {
     }
   }
 
+  const timeoutSeconds = Number(env.TIMEOUT_SECONDS || "300");
+  const pollIntervalSeconds = Number(env.POLL_INTERVAL_SECONDS || "20");
+
+  if (!Number.isFinite(timeoutSeconds) || timeoutSeconds <= 0) {
+    throw new Error("TIMEOUT_SECONDS must be a finite number greater than 0.");
+  }
+
+  if (!Number.isFinite(pollIntervalSeconds) || pollIntervalSeconds <= 0) {
+    throw new Error(
+      "POLL_INTERVAL_SECONDS must be a finite number greater than 0.",
+    );
+  }
+
+  if (pollIntervalSeconds > timeoutSeconds) {
+    throw new Error(
+      "POLL_INTERVAL_SECONDS must be less than or equal to TIMEOUT_SECONDS.",
+    );
+  }
+
   return {
     endpoint: String(env.ARGOCD_ENDPOINT),
     token: String(env.ARGOCD_AUTH_TOKEN),
     clientId: String(env.CF_ACCESS_CLIENT_ID),
     clientSecret: String(env.CF_ACCESS_CLIENT_SECRET),
     selector: String(env.APPLICATION_SELECTOR).replace(/\s+/g, ""),
-    timeoutSeconds: Number(env.TIMEOUT_SECONDS || "300"),
-    pollIntervalSeconds: Number(env.POLL_INTERVAL_SECONDS || "20"),
+    timeoutSeconds,
+    pollIntervalSeconds,
   };
 }
 

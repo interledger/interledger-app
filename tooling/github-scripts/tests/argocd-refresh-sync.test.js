@@ -2,6 +2,7 @@ import { describe, it } from "node:test";
 import assert from "node:assert";
 
 import {
+  getRequiredConfig,
   matchesSelector,
   runRefreshSync,
   selectApplications,
@@ -137,6 +138,65 @@ describe("argocd-refresh-sync/orchestration", () => {
           async () => {},
         ),
       /Timed out waiting for 'a' to become Healthy and Synced/,
+    );
+  });
+});
+
+describe("argocd-refresh-sync/config", () => {
+  it("uses defaults when timeout/poll vars are absent", () => {
+    const config = getRequiredConfig({
+      ARGOCD_ENDPOINT: "https://sandbox-argo.interledger.tech",
+      ARGOCD_AUTH_TOKEN: "token",
+      CF_ACCESS_CLIENT_ID: "id",
+      CF_ACCESS_CLIENT_SECRET: "secret",
+      APPLICATION_SELECTOR: "environment=wallet-dev1",
+    });
+
+    assert.equal(config.timeoutSeconds, 300);
+    assert.equal(config.pollIntervalSeconds, 20);
+  });
+
+  it("fails fast for invalid timeout/poll values", () => {
+    assert.throws(
+      () =>
+        getRequiredConfig({
+          ARGOCD_ENDPOINT: "https://sandbox-argo.interledger.tech",
+          ARGOCD_AUTH_TOKEN: "token",
+          CF_ACCESS_CLIENT_ID: "id",
+          CF_ACCESS_CLIENT_SECRET: "secret",
+          APPLICATION_SELECTOR: "environment=wallet-dev1",
+          TIMEOUT_SECONDS: "not-a-number",
+          POLL_INTERVAL_SECONDS: "20",
+        }),
+      /TIMEOUT_SECONDS must be a finite number greater than 0/,
+    );
+
+    assert.throws(
+      () =>
+        getRequiredConfig({
+          ARGOCD_ENDPOINT: "https://sandbox-argo.interledger.tech",
+          ARGOCD_AUTH_TOKEN: "token",
+          CF_ACCESS_CLIENT_ID: "id",
+          CF_ACCESS_CLIENT_SECRET: "secret",
+          APPLICATION_SELECTOR: "environment=wallet-dev1",
+          TIMEOUT_SECONDS: "300",
+          POLL_INTERVAL_SECONDS: "0",
+        }),
+      /POLL_INTERVAL_SECONDS must be a finite number greater than 0/,
+    );
+
+    assert.throws(
+      () =>
+        getRequiredConfig({
+          ARGOCD_ENDPOINT: "https://sandbox-argo.interledger.tech",
+          ARGOCD_AUTH_TOKEN: "token",
+          CF_ACCESS_CLIENT_ID: "id",
+          CF_ACCESS_CLIENT_SECRET: "secret",
+          APPLICATION_SELECTOR: "environment=wallet-dev1",
+          TIMEOUT_SECONDS: "30",
+          POLL_INTERVAL_SECONDS: "60",
+        }),
+      /POLL_INTERVAL_SECONDS must be less than or equal to TIMEOUT_SECONDS/,
     );
   });
 });

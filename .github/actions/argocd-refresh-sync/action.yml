@@ -43,7 +43,7 @@ runs:
         set -euo pipefail
         script_path="${GITHUB_ACTION_PATH}/../../../tooling/github-scripts/argocd-refresh-sync.js"
         if [[ ! -f "${script_path}" ]]; then
-          echo "::error::Script is missing or not executable: ${script_path}"
+          echo "::error::Script file is missing: ${script_path}"
           exit 1
         fi
 
