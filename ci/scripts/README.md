@@ -109,19 +109,41 @@ Common failure patterns:
 
 ## Testing
 
-Run tests from repo root:
+Validate selector matching with a small local fixture:
 
 ```bash
-ci/tests/argocd_select_applications_test.sh
-ci/tests/argocd_refresh_sync_test.sh
+cat > /tmp/argocd-apps.json <<'JSON'
+{
+	"items": [
+		{"metadata":{"name":"dev1-app","labels":{"environment":"wallet-dev1","team":"wallet"}}},
+		{"metadata":{"name":"sandbox-app","labels":{"environment":"wallet-sandbox","team":"wallet"}}}
+	]
+}
+JSON
+
+./argocd_select_applications.sh \
+	--selector "environment=wallet-dev1,team=wallet" \
+	--input /tmp/argocd-apps.json
 ```
 
-What they cover:
+Expected output:
 
-- selector parsing and matching behavior
-- full refresh/sync flow via mocked HTTP client
-- no-match failure behavior
-- env-file loading behavior
+- `dev1-app`
+
+Validate full flow against a real environment:
+
+```bash
+APPLICATION_SELECTOR='environment=wallet-dev1' \
+TIMEOUT_SECONDS=300 \
+POLL_INTERVAL_SECONDS=10 \
+./argocd_refresh_sync.sh --env-file .env
+```
+
+Expected behavior:
+
+- script lists matched apps
+- refresh + sync is triggered per app
+- each app reaches `Healthy` and `Synced`
 
 ## Troubleshooting Checklist
 
