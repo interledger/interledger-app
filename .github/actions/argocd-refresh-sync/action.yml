@@ -1,5 +1,5 @@
 name: Argo CD Refresh and Sync
-description: Refresh a root Argo CD app via the Argo CD HTTP API, wait for it to become healthy, then refresh and sync either a target app or all apps matching a label selector.
+description: Refresh and sync Argo CD apps selected by label selector.
 
 inputs:
   argocd-endpoint:
@@ -14,18 +14,9 @@ inputs:
   cf-access-client-secret:
     description: Cloudflare Access service token client secret.
     required: true
-  root-application:
-    description: Root Argo CD application to refresh before syncing the target app.
-    required: false
-    default: root-appset
-  target-application:
-    description: Argo CD application to refresh and sync.
-    required: false
-    default: interledger-app
   application-selector:
-    description: Label selector for Argo CD applications to refresh and sync after the root app becomes healthy. When set, this takes precedence over target-application.
-    required: false
-    default: ''
+    description: "Label selector for Argo CD applications to refresh and sync. Required. Examples: environment=wallet-dev1, environment=wallet-sandbox, environment=wallet-production."
+    required: true
   timeout-seconds:
     description: Maximum seconds to wait for each application to become healthy and synced.
     required: false
@@ -38,15 +29,13 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Refresh root app and sync Argo CD applications
+    - name: Refresh and sync selected Argo CD applications
       shell: bash
       env:
         ARGOCD_ENDPOINT: ${{ inputs.argocd-endpoint }}
         ARGOCD_AUTH_TOKEN: ${{ inputs.argocd-auth-token }}
         CF_ACCESS_CLIENT_ID: ${{ inputs.cf-access-client-id }}
         CF_ACCESS_CLIENT_SECRET: ${{ inputs.cf-access-client-secret }}
-        ROOT_APPLICATION: ${{ inputs.root-application }}
-        TARGET_APPLICATION: ${{ inputs.target-application }}
         APPLICATION_SELECTOR: ${{ inputs.application-selector }}
         TIMEOUT_SECONDS: ${{ inputs.timeout-seconds }}
         POLL_INTERVAL_SECONDS: ${{ inputs.poll-interval-seconds }}
@@ -153,6 +142,13 @@ runs:
               "${ARGOCD_BASE}/api/v1/applications/${app_name}" \
               > "${status_file}"
 
+            if ! jq -e '.' "${status_file}" >/dev/null 2>&1; then
+              echo "::error::Argo CD returned non-JSON response while checking '${app_name}'."
+              head -c 400 "${status_file}" || true
+              rm -f "${status_file}"
+              return 1
+            fi
+
             local health_status
             local sync_status
             local operation_phase
@@ -178,20 +174,13 @@ runs:
         }
 
         declare -a applications_to_sync
-
-        refresh_application "${ROOT_APPLICATION}"
-        wait_for_green "${ROOT_APPLICATION}"
-
         APPLICATION_SELECTOR="${APPLICATION_SELECTOR//[[:space:]]/}"
-        if [[ -n "${APPLICATION_SELECTOR}" ]]; then
-          if [[ ${#applications_to_sync[@]} -eq 0 ]]; then
-            echo "::error::No Argo CD applications matched selector '${APPLICATION_SELECTOR}'."
-            exit 1
-          fi
-          echo "Selected Argo CD applications: ${applications_to_sync[*]}"
-        else
-          applications_to_sync=("${TARGET_APPLICATION}")
+        mapfile -t applications_to_sync < <(list_selected_applications "${APPLICATION_SELECTOR}")
+        if [[ ${#applications_to_sync[@]} -eq 0 ]]; then
+          echo "::error::No Argo CD applications matched selector '${APPLICATION_SELECTOR}'."
+          exit 1
         fi
+        echo "Selected Argo CD applications: ${applications_to_sync[*]}"
 
         for app_name in "${applications_to_sync[@]}"; do
           refresh_application "${app_name}"
@@ -208,12 +197,7 @@ runs:
         {
           echo "### Argo CD deployment"
           echo ""
-          echo "- Refreshed root application: \`${ROOT_APPLICATION}\`"
-          if [[ -n "${APPLICATION_SELECTOR}" ]]; then
-            echo "- Refreshed and synced applications matching: \`${APPLICATION_SELECTOR}\`"
-            echo "- Matched applications: \`${applications_to_sync[*]}\`"
-          else
-            echo "- Synced target application: \`${TARGET_APPLICATION}\`"
-          fi
+          echo "- Refreshed and synced applications matching: \`${APPLICATION_SELECTOR}\`"
+          echo "- Matched applications: \`${applications_to_sync[*]}\`"
           echo "- Endpoint: \`${ARGOCD_BASE}\`"
         } >> "${GITHUB_STEP_SUMMARY}"

@@ -8,7 +8,7 @@ Go to [local/README.md](local/README.md) for the local development setup.
 
 ### Standard releases
 
-Releases are automated via [semantic-release](https://semantic-release.gitbook.io). Merging non-doc-only changes to `main` triggers the release workflow, which analyses commit messages and — if any releasable change is present — creates a git tag, a GitHub Release with generated notes, and kicks off a Docker image build and Helm chart publish. The new version is then automatically promoted to the `dev1` environment in `interledger-app-deploy`. After the auto-merge PR lands there, the pipeline refreshes `root-appset` in Argo CD and syncs all applications labeled `environment=dev1`. Documentation-only merges (`documentation/**`) are excluded from the release trigger.
+Releases are automated via [semantic-release](https://semantic-release.gitbook.io). Merging non-doc-only changes to `main` triggers the release workflow, which analyses commit messages and — if any releasable change is present — creates a git tag, a GitHub Release with generated notes, and kicks off a Docker image build and Helm chart publish. The new version is then automatically promoted to the `dev1` environment in `interledger-app-deploy`. After the auto-merge PR lands there, the pipeline refreshes and syncs the Argo CD applications labeled `environment=wallet-dev1`. Documentation-only merges (`documentation/**`) are excluded from the release trigger.
 
 Version bumps follow [Conventional Commits](https://www.conventionalcommits.org):
 
