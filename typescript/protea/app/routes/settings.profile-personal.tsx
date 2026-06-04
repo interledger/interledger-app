@@ -1,19 +1,23 @@
-import type { Route } from './+types/settings.profile-personal'
-import { data, useRouteError } from 'react-router';
-import { useLoaderData } from 'react-router';
 import { DateTime } from 'luxon'
-import { href } from 'react-router'
+import { href, useLoaderData } from 'react-router'
 import type { ApplicationProps } from '~/components'
-import { Card, CardContent, Icon, Layouts, Error } from '~/components'
+import { Card, CardContent, Icon, Layouts } from '~/components'
 import { Label } from '~/components/Label'
 import { getKycStatus } from '~/data/wallet.server'
+import {
+  ErrorHandler,
+  ErrorMapper,
+  UserFacingError
+} from '~/lib/error-handling/bff-error'
+import { ServerResponse } from '~/lib/error-handling/types'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
-import { ErrorHandler, ErrorMapper, UserFacingError } from '~/lib/error-handling/bff-error';
-import { ServerResponse } from '~/lib/error-handling/types';
+import type { Route } from './+types/settings.profile-personal'
 
-export async function loader({ request }: Route.LoaderArgs): Promise<ServerResponse> {
+export async function loader({
+  request
+}: Route.LoaderArgs): Promise<ServerResponse> {
   const kycStatus = await getKycStatus(request)
 
   const kycDetails = await grpc.getIndividualKYC(request, {})
@@ -23,7 +27,9 @@ export async function loader({ request }: Route.LoaderArgs): Promise<ServerRespo
       cb: () => {
         return {
           success: false,
-          error: UserFacingError("Personal information not available, please try again or contact support if the issue persists.")
+          error: UserFacingError(
+            'Personal information not available, please try again or contact support if the issue persists.'
+          )
         }
       }
     })

@@ -1,19 +1,25 @@
-import type { Route } from './+types/recovery'
-import { data, redirect } from 'react-router'
-import { useFetcher, useLoaderData } from 'react-router'
+import { data, redirect, useFetcher, useLoaderData } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts, TextField } from '~/components'
 import { error } from '~/lib/error.server'
-import { kratosPublic } from '~/lib/kratos/kratos-client.server'
-import { getCookie, withCookie, buildHeadersWithCookies } from '~/lib/kratos/cookie.server'
+import {
+  buildHeadersWithCookies,
+  getCookie,
+  withCookie
+} from '~/lib/kratos/cookie.server'
+import {
+  handleFlowError,
+  mapFlowToFieldErrors
+} from '~/lib/kratos/error.server'
 import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.server'
-import { handleFlowError, mapFlowToFieldErrors } from '~/lib/kratos/error.server'
-import logger from '~/lib/logger.server'
+import { kratosPublic } from '~/lib/kratos/kratos-client.server'
 import { requireNoUserSession } from '~/lib/kratos/session.server'
+import type { KratosError } from '~/lib/kratos/types.server'
+import logger from '~/lib/logger.server'
 import { mergeMeta } from '~/lib/meta'
 import { RateLimitKeys, getKey, rateLimit } from '~/lib/rateLimit.server'
 import { safeReturnTo } from '~/lib/url.server'
-import type { KratosError } from '~/lib/kratos/types.server'
+import type { Route } from './+types/recovery'
 
 type ActionResponse =
   | { success: true }
@@ -36,7 +42,10 @@ export async function loader({ request }: Route.LoaderArgs) {
       const errResponse = (err as KratosError).response
       if (errResponse.status != 410) {
         handleFlowError(err, 'recovery')
-        logger.error({ error: err, route: 'recovery' }, 'Failed to load recovery flow')
+        logger.error(
+          { error: err, route: 'recovery' },
+          'Failed to load recovery flow'
+        )
         throw new Error('Failed to load recovery flow')
       }
       // 410 - generate a new flow
@@ -54,7 +63,10 @@ export async function loader({ request }: Route.LoaderArgs) {
     })
   } catch (err: any) {
     handleFlowError(err, 'recovery')
-    logger.error({ error: err, route: 'recovery' }, 'Failed to initialize recovery flow')
+    logger.error(
+      { error: err, route: 'recovery' },
+      'Failed to initialize recovery flow'
+    )
     throw new Error('Failed to initialize recovery flow')
   }
 }

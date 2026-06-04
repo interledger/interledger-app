@@ -1,6 +1,6 @@
-import { useFetcher, useLoaderData } from 'react-router';
 import { useEffect, useState } from 'react'
-import { href } from 'react-router'
+import { href, useFetcher, useLoaderData } from 'react-router'
+import type { PhoneAutocompleteOptions } from '~/components'
 import {
   Autocomplete,
   Button,
@@ -11,10 +11,9 @@ import {
   PhoneTextField,
   TextField
 } from '~/components'
-import type { PhoneAutocompleteOptions } from '~/components'
 import { SignupStep, useSignupStore } from '~/lib/useSignupStore'
 import type { loader } from './route'
-import type { detailsAction } from './route.server';
+import type { detailsAction } from './route.server'
 
 export function isEUCountry(countryCode: string) {
   const euCountryCodes = [
@@ -83,19 +82,21 @@ export function About() {
   const [query, setQuery] = useState<string>('')
   const [filteredCountries, setFilteredCountries] = useState(countries)
 
-
   useEffect(() => {
     if (query === '') setFilteredCountries(countries)
     else {
       setFilteredCountries(
         countries.filter((country) => {
-          return (country.name
-            .toLowerCase()
-            .replace(/\s+/g, '')
-            .includes(query.toLowerCase().replace(/\s+/g, '')) || country.id
+          return (
+            country.name
               .toLowerCase()
               .replace(/\s+/g, '')
-              .includes(query.toLowerCase().replace(/\s+/g, '')));
+              .includes(query.toLowerCase().replace(/\s+/g, '')) ||
+            country.id
+              .toLowerCase()
+              .replace(/\s+/g, '')
+              .includes(query.toLowerCase().replace(/\s+/g, ''))
+          )
         })
       )
     }

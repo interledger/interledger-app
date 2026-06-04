@@ -1,11 +1,11 @@
-import type { Route } from './+types/api_.fern'
+import { envValue } from '~/env.server'
 import logger, { addRequestId, withErrorLog } from '~/lib/logger.server'
 import { extractOrGenerateRequestId } from '~/lib/requestContext.server'
-import { envValue } from '~/env.server';
+import type { Route } from './+types/api_.fern'
 
 export async function action({ request }: Route.ActionArgs) {
   try {
-    let expectedDsn = envValue("SENTRY_DSN") || ''
+    let expectedDsn = envValue('SENTRY_DSN') || ''
     let envelope = await request.text()
     let header = envelope.split('\n')[0]
     let headerObject = JSON.parse(header)

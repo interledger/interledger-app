@@ -1,4 +1,8 @@
-import { data as rrData, redirect, UNSAFE_DataWithResponseInit as DataWithResponseInit } from 'react-router';
+import {
+  UNSAFE_DataWithResponseInit as DataWithResponseInit,
+  redirect,
+  data as rrData
+} from 'react-router'
 import { v4 } from 'uuid'
 import type { SnackbarType } from '~/lib/useScaffoldStore'
 import { commitSession, getSession } from '~/session.server'
@@ -25,7 +29,9 @@ export async function flashSnackbar(
  * @param request Request
  * @returns Promise<SnackbarType>
  */
-export async function getSnackbar(request: Request): Promise<{ snackbar: SnackbarType; headers: Headers }> {
+export async function getSnackbar(
+  request: Request
+): Promise<{ snackbar: SnackbarType; headers: Headers }> {
   const session = await getSession(request.headers.get('Cookie'))
 
   const snackbar = session.get('snackbar')

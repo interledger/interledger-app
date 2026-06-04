@@ -1,7 +1,5 @@
-import type { Route } from './+types/route'
-import { data } from 'react-router'
-import { useLoaderData } from 'react-router'
 import { useEffect } from 'react'
+import { data, useLoaderData } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Layouts } from '~/components'
 import { mergeMeta } from '~/lib/meta'
@@ -10,6 +8,7 @@ import { About } from '~/routes/signup/About'
 import { Landing } from '~/routes/signup/Landing'
 import { Password } from '~/routes/signup/Password'
 import styles from '~/styles/flags.css?url'
+import type { Route } from './+types/route'
 export { loader } from '~/routes/signup/route.server'
 
 export const handle: ApplicationProps = {
@@ -57,7 +56,9 @@ export default function Page() {
 }
 
 export async function action(args: Route.ActionArgs) {
-  const { detailsAction, otpAction, passwordAction } = await import('~/routes/signup/route.server')
+  const { detailsAction, otpAction, passwordAction } = await import(
+    '~/routes/signup/route.server'
+  )
   const formName = (await args.request.clone().formData()).get(
     'formName'
   ) as string

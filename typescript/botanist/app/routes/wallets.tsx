@@ -57,7 +57,9 @@ export default function Page() {
           </Form>
           {search && (
             <p className='mt-1 text-xs text-medium'>
-              {wallets.wallets.length} result{wallets.wallets.length !== 1 ? 's' : ''} for &ldquo;{search}&rdquo;
+              {wallets.wallets.length} result
+              {wallets.wallets.length !== 1 ? 's' : ''} for &ldquo;{search}
+              &rdquo;
             </p>
           )}
         </div>
@@ -66,7 +68,11 @@ export default function Page() {
           <div className='-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8'>
             <div className='inline-block min-w-full py-2 align-middle md:px-6 lg:px-8'>
               <div className='overflow-hidden ring-2 ring-base md:rounded-lg'>
-                <table className={`min-w-full divide-y divide-base${isSearching ? ' opacity-50' : ''}`}>
+                <table
+                  className={`min-w-full divide-y divide-base${
+                    isSearching ? ' opacity-50' : ''
+                  }`}
+                >
                   <thead className='bg-app'>
                     <tr>
                       <th
@@ -137,7 +143,9 @@ export default function Page() {
                             {wallets.wallets.length === 0 ? 0 : 1}
                           </span>{' '}
                           to{' '}
-                          <span className='font-medium'>{wallets.wallets.length}</span>{' '}
+                          <span className='font-medium'>
+                            {wallets.wallets.length}
+                          </span>{' '}
                           results
                         </p>
                       </td>
@@ -145,7 +153,13 @@ export default function Page() {
                         <div className='flex flex-1 justify-between pr-3 sm:justify-end'>
                           {wallets.nextPageToken && (
                             <Router
-                              to={`/wallets?pageToken=${wallets.nextPageToken}&pageSize=${pageSize}${search ? `&search=${encodeURIComponent(search)}` : ''}`}
+                              to={`/wallets?pageToken=${
+                                wallets.nextPageToken
+                              }&pageSize=${pageSize}${
+                                search
+                                  ? `&search=${encodeURIComponent(search)}`
+                                  : ''
+                              }`}
                               className='relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50'
                             >
                               Next

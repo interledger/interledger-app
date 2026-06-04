@@ -1,8 +1,12 @@
 import type { Session } from '@ory/client'
-import { redirect, href } from 'react-router'
+import { href, redirect } from 'react-router'
 import { safeReturnTo } from '../url.server'
-import { kratosPublic, KRATOS_SESSION_COOKIE, CLEAR_SESSION_COOKIE_HEADER } from './kratos-client.server'
 import { getCookie } from './cookie.server'
+import {
+  CLEAR_SESSION_COOKIE_HEADER,
+  KRATOS_SESSION_COOKIE,
+  kratosPublic
+} from './kratos-client.server'
 import type { KratosTraits } from './types.server'
 
 const sessionPromiseCache = new WeakMap<
@@ -13,7 +17,7 @@ const sessionPromiseCache = new WeakMap<
 const WhoamiStatus = {
   SESSION_INVALID: 401,
   AAL_FORBIDDEN: 403,
-  AAL_UNPROCESSABLE: 422,
+  AAL_UNPROCESSABLE: 422
 } as const
 
 function getCachedWhoamiSession(request: Request) {
@@ -32,7 +36,9 @@ function buildLoginRedirectUrl(request: Request): string {
 
   const isAlreadyOnLoginPage = pathname === loginPath
   const existingReturnTo = searchParams.get('returnTo') ?? '/'
-  const destination = isAlreadyOnLoginPage ? existingReturnTo : `${pathname}${search}`
+  const destination = isAlreadyOnLoginPage
+    ? existingReturnTo
+    : `${pathname}${search}`
 
   const returnTo = safeReturnTo(destination)
   return `${loginPath}?${new URLSearchParams({ returnTo })}`

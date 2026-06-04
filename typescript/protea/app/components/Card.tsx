@@ -1,8 +1,8 @@
-import { NavLink } from 'react-router';
-import type { NavLinkProps } from 'react-router';
 import clsx from 'clsx'
 import type { ButtonHTMLAttributes, HTMLAttributes, RefAttributes } from 'react'
 import { forwardRef, useEffect, useState } from 'react'
+import type { NavLinkProps } from 'react-router'
+import { NavLink } from 'react-router'
 import { Icon } from '~/components/Icon'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 

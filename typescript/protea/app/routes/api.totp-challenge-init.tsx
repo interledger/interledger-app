@@ -1,12 +1,15 @@
-import type { Route } from './+types/api.totp-challenge-init'
 import { data } from 'react-router'
-import { printKratosError, UserDisplayableError } from '~/lib/kratos/error.server'
-import { kratosPublic } from '~/lib/kratos/kratos-client.server'
 import { withCookie } from '~/lib/kratos/cookie.server'
+import {
+  printKratosError,
+  UserDisplayableError
+} from '~/lib/kratos/error.server'
 import { getNodeValueFromFlow, isNodeInFlow } from '~/lib/kratos/flow.server'
+import { kratosPublic } from '~/lib/kratos/kratos-client.server'
 import { CreateBrowserLoginFlowResponse } from '~/lib/kratos/types.server'
 import logger, { addRequestId } from '~/lib/logger.server'
 import { extractOrGenerateRequestId } from '~/lib/requestContext.server'
+import type { Route } from './+types/api.totp-challenge-init'
 
 /**
  * Initialize a TOTP challenge flow (AAL2)
@@ -18,10 +21,13 @@ export async function action({ request }: Route.ActionArgs) {
 
     let initAAL2FlowResponse: CreateBrowserLoginFlowResponse
     try {
-      initAAL2FlowResponse = await kratosPublic.createBrowserLoginFlow({
-        aal: 'aal2',
-        refresh: true // reauthenticate even if there is a valid session
-      }, withCookie(cookie))
+      initAAL2FlowResponse = await kratosPublic.createBrowserLoginFlow(
+        {
+          aal: 'aal2',
+          refresh: true // reauthenticate even if there is a valid session
+        },
+        withCookie(cookie)
+      )
     } catch (err) {
       const message = printKratosError(err)
       throw new Error(message)
@@ -29,10 +35,10 @@ export async function action({ request }: Route.ActionArgs) {
 
     // if ([302, 303].includes(initAAL2FlowResponse.status)) {} // not sure this is applicable anymore
     const flow = initAAL2FlowResponse.data
-    const csrfToken = getNodeValueFromFlow(flow, "csrf_token")
-    const hasTotpSetUp = isNodeInFlow(flow, "totp_code")
+    const csrfToken = getNodeValueFromFlow(flow, 'csrf_token')
+    const hasTotpSetUp = isNodeInFlow(flow, 'totp_code')
     if (!hasTotpSetUp) {
-      throw new UserDisplayableError("TOTP is not configured for this account")
+      throw new UserDisplayableError('TOTP is not configured for this account')
     }
 
     return data({
@@ -45,9 +51,7 @@ export async function action({ request }: Route.ActionArgs) {
   } catch (error) {
     const requestId = extractOrGenerateRequestId(request)
     const errorDetails =
-      error instanceof Error
-        ? { error }
-        : { error: String(error) }
+      error instanceof Error ? { error } : { error: String(error) }
     logger.error(
       { ...addRequestId(requestId), ...errorDetails },
       'Error initializing TOTP challenge'
