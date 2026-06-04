@@ -234,7 +234,7 @@ func ParseStartArgs() (*StartArgs, error) {
 		temporalUrl = "temporal:7233"
 	}
 
-	twiloEnabled := true
+	twiloEnabled := env.IsProd()
 	if v := os.Getenv("TWILIO_ENABLED"); v != "" {
 		var parseErr error
 		twiloEnabled, parseErr = strconv.ParseBool(v)

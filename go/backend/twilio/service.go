@@ -60,6 +60,9 @@ func (v Verification) IsValid() bool {
 }
 
 func NewService(args *ServiceArgs) (Service, error) {
+	if args == nil {
+		return nil, fmt.Errorf("%w: args must not be nil", ErrInvalidArgument)
+	}
 	if args.Enabled {
 		validator := validator.New()
 		if err := validator.Struct(args); err != nil {
