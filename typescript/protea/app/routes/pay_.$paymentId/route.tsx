@@ -1,9 +1,11 @@
 import type { PlainMessage } from '@bufbuild/protobuf'
-import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
-import { data, redirect } from 'react-router';
-import { useLoaderData } from 'react-router';
 import { useEffect } from 'react'
-import { href } from 'react-router'
+import type {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  MetaFunction
+} from 'react-router'
+import { data, href, redirect, useLoaderData } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   Alert,
@@ -18,6 +20,7 @@ import {
 import type { FormattedLinkedAccount } from '~/data/accounts.server'
 import { getLinkedAccountsForPayment } from '~/data/accounts.server'
 import { getFeatures } from '~/data/wallet.server'
+import { envValue } from '~/env.server'
 import type {
   Features,
   Payment,
@@ -29,20 +32,19 @@ import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { getUserSession } from '~/lib/kratos/session.server'
 import { mergeMeta } from '~/lib/meta'
+import { PaymentIdentityType, PaymentRequiredAction } from '~/lib/types'
 import { PayStep, usePayStore } from '~/lib/usePayStore'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
-import { PaymentIdentityType, PaymentRequiredAction } from '~/lib/types'
 import styles from '~/styles/flags.css?url'
 import { Amount } from './Amount'
 import { Confirm } from './Confirm'
-import { confirmPaymentAction, updatePaymentAction } from './action.server';
-import { envValue } from '~/env.server';
+import { confirmPaymentAction, updatePaymentAction } from './action.server'
 
 const IDENTITY_TYPE_TO_PLATFORM: Record<number, string> = {
   [PaymentIdentityType.Twitter]: 'twitter',
   [PaymentIdentityType.Slack]: 'slack',
   [PaymentIdentityType.WalletID]: 'domain',
-  [PaymentIdentityType.WalletURL]: 'domain',
+  [PaymentIdentityType.WalletURL]: 'domain'
 }
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
@@ -76,7 +78,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         {
           id: payment.receiverWalletUrl,
           wallet: '',
-          platform: IDENTITY_TYPE_TO_PLATFORM[payment.receiverIdentityType] ?? '',
+          platform:
+            IDENTITY_TYPE_TO_PLATFORM[payment.receiverIdentityType] ?? '',
           identifier: payment.receiverIdentity,
           state: '',
           keyId: '',
@@ -98,7 +101,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   )
 
   const senderAccountId = payment.senderAccount
-  account = sendAccounts.find((acc) => acc.id == senderAccountId) ?? sendAccounts[0]
+  account =
+    sendAccounts.find((acc) => acc.id == senderAccountId) ?? sendAccounts[0]
 
   // Only load the phone mask if we require otp
   if (payment.requiredActions.includes(7)) {
@@ -115,10 +119,10 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     sendAccounts,
     phoneMask,
     publicWalletInfo,
-    fynbosEnv: envValue("FYNBOS_ENV"),
+    fynbosEnv: envValue('FYNBOS_ENV'),
     payment,
     requiresOTP: payment.requiredActions.includes(PaymentRequiredAction.OTP),
-    PTIClientId: envValue("PTI_CLIENT_ID")
+    PTIClientId: envValue('PTI_CLIENT_ID')
   })
 }
 
@@ -245,4 +249,3 @@ export async function action(args: ActionFunctionArgs) {
     )
   }
 }
-

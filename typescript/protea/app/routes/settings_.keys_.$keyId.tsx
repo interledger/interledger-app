@@ -1,7 +1,5 @@
-import type { Route } from './+types/settings_.keys_.$keyId'
-import type { UIMatch } from 'react-router';
-import { Form, useLoaderData } from 'react-router';
-import { href } from 'react-router'
+import type { UIMatch } from 'react-router'
+import { Form, href, useLoaderData } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Card, CardContent, Layouts, OutlineButton } from '~/components'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
@@ -9,6 +7,7 @@ import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
+import type { Route } from './+types/settings_.keys_.$keyId'
 
 export const handle: ApplicationProps = {
   layout: Layouts.Focus,

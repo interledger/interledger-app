@@ -1,7 +1,5 @@
-import type { Route } from './+types/support'
-import type { ApplicationProps } from '~/components'
-import { RootLoaderData } from '~/root'
 import { useRouteLoaderData } from 'react-router'
+import type { ApplicationProps } from '~/components'
 import {
   AnchorRouter,
   Card,
@@ -16,6 +14,8 @@ import {
 import { jsonWithCSRF } from '~/lib/csrf.server'
 import { getUserSession } from '~/lib/kratos/session.server'
 import { mergeMeta } from '~/lib/meta'
+import { RootLoaderData } from '~/root'
+import type { Route } from './+types/support'
 
 export async function loader({ request }: Route.LoaderArgs) {
   await getUserSession(request)

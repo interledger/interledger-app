@@ -1,22 +1,24 @@
 import {
   redirect,
+  useLoaderData,
   type ActionFunctionArgs,
   type LoaderFunctionArgs,
-  type MetaFunction,
-} from 'react-router';
-import { useLoaderData } from 'react-router';
+  type MetaFunction
+} from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Layouts } from '~/components'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
+import { KRATOS_URL } from '~/lib/kratos/kratos-client.server'
 import { mergeMeta } from '~/lib/meta'
 import styles from '~/styles/flags.css?url'
+import {
+  fynbosDepositAction,
+  xagoTestAccountDepositAction
+} from './action.server'
 import { FynbosDepositPage } from './fynbos'
 import { GatehubDepositPage } from './gatehub'
-import { KRATOS_URL } from '~/lib/kratos/kratos-client.server'
-import { fynbosDepositLoader, gatehubDepositLoader } from './loader.server';
-import { fynbosDepositAction, xagoTestAccountDepositAction } from './action.server';
-
+import { fynbosDepositLoader, gatehubDepositLoader } from './loader.server'
 
 export async function loader(args: LoaderFunctionArgs) {
   const session = await fetch(`${KRATOS_URL}/sessions/whoami`, {

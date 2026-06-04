@@ -1,11 +1,11 @@
 import { createPromiseClient } from '@bufbuild/connect'
 import { createGrpcTransport } from '@bufbuild/connect-node'
+import { envValue } from '~/env.server'
 import { Health } from '~/generated/connect/grpc/health/v1/health_connect'
 import { HealthCheckResponse_ServingStatus } from '~/generated/connect/grpc/health/v1/health_pb'
 import logger from './logger.server'
-import { envValue } from '~/env.server'
 
-//This duplicates env.server functionality. 
+//This duplicates env.server functionality.
 //Should not be needed.
 
 /*function requireEnv(name: string): string {
