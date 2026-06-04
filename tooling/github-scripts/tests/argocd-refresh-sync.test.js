@@ -43,7 +43,7 @@ describe("argocd-refresh-sync/selectors", () => {
 });
 
 describe("argocd-refresh-sync/orchestration", () => {
-  it("runs refresh-all, sync-all once, then checks status per app", async () => {
+  it("refreshes all, avoids sync spam when operation is already running, then checks status per app", async () => {
     /** @type {string[]} */
     const calls = [];
 
@@ -99,20 +99,14 @@ describe("argocd-refresh-sync/orchestration", () => {
 
     assert.equal(calls[0], "list");
 
-    // Refresh phase must complete for all before sync starts.
-    const lastRefreshIndex = Math.max(
-      calls.indexOf("refresh:a"),
-      calls.indexOf("refresh:b"),
-    );
-    const firstSyncIndex = Math.min(
-      calls.indexOf("sync:a"),
-      calls.indexOf("sync:b"),
-    );
-    assert.ok(lastRefreshIndex < firstSyncIndex);
+    // Refresh phase must run for all selected applications.
+    assert.equal(calls.filter((x) => x === "refresh:a").length, 1);
+    assert.equal(calls.filter((x) => x === "refresh:b").length, 1);
 
-    // Sync is single-pass, one call per app.
-    assert.equal(calls.filter((x) => x === "sync:a").length, 1);
-    assert.equal(calls.filter((x) => x === "sync:b").length, 1);
+    // With operationPhase=Running on the pre-sync status check,
+    // explicit sync calls are intentionally skipped to avoid spamming sync.
+    assert.equal(calls.filter((x) => x === "sync:a").length, 0);
+    assert.equal(calls.filter((x) => x === "sync:b").length, 0);
   });
 
   it("fails the run if an application does not converge in time", async () => {
