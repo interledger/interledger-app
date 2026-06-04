@@ -1,6 +1,5 @@
-import { useNavigate, useParams, useRouteLoaderData } from 'react-router';
 import { useEffect, useMemo } from 'react'
-import { href } from 'react-router'
+import { href, useNavigate, useParams, useRouteLoaderData } from 'react-router'
 import { Layouts, type ApplicationProps } from '~/components'
 import { CardView } from '~/components/Cards'
 import { useCardsStore } from '~/lib/cards/useCardsStore'
@@ -19,7 +18,8 @@ export const handle: ApplicationProps = {
 
 export default function PageCardID() {
   const navigate = useNavigate()
-  const { features } = useRouteLoaderData('root') as RootLoaderData
+  const { features, env } = useRouteLoaderData('root') as RootLoaderData
+  const supportEmail = env.supportEmail
   const { cards, areCardsFetched } = useCardsStore()
   const { cardId } = useParams<{ cardId: string }>()
   const card = useMemo(
@@ -41,5 +41,5 @@ export default function PageCardID() {
 
   if (!card) return null
 
-  return <CardView card={card} />
+  return <CardView card={card} supportEmail={supportEmail} />
 }

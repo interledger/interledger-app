@@ -1,9 +1,6 @@
-import type { Route } from './+types/settings_.keys_.add-public'
 import { Code } from '@bufbuild/connect'
-import { Form, useActionData, useLoaderData } from 'react-router';
-import { href } from 'react-router'
+import { Form, href, useActionData, useLoaderData } from 'react-router'
 import type { ApplicationProps } from '~/components'
-import logger from '~/lib/logger.server'
 import {
   Button,
   Card,
@@ -15,8 +12,10 @@ import {
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
+import logger from '~/lib/logger.server'
 import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
+import type { Route } from './+types/settings_.keys_.add-public'
 
 export const handle: ApplicationProps = {
   layout: Layouts.Focus,

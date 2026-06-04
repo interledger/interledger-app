@@ -1,11 +1,9 @@
-
-import { useLoaderData, useNavigate } from 'react-router';
 import { useEffect } from 'react'
+import { useLoaderData, useNavigate } from 'react-router'
 
 import type { IframeMessage } from '~/lib/types'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
-import { gatehubDepositLoader } from './loader.server';
-
+import { gatehubDepositLoader } from './loader.server'
 
 export function GatehubDepositPage() {
   const { gatehubWidgetUrl } = useLoaderData<typeof gatehubDepositLoader>()
@@ -20,7 +18,8 @@ export function GatehubDepositPage() {
       ) {
         pushSnackbar({
           id: 'deposit-success',
-          message: 'Deposit submitted successfully, it may take a few minutes to reflect in your account',
+          message:
+            'Deposit submitted successfully, it may take a few minutes to reflect in your account',
           icon: 'close',
           canShow: true
         })
@@ -37,7 +36,6 @@ export function GatehubDepositPage() {
       }
     }
   }, [gatehubWidgetUrl, navigate, pushSnackbar])
-
 
   return (
     <iframe

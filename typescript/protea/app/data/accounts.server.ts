@@ -58,14 +58,17 @@ export async function getLinkedAccountsForPayment(
   if (isConnectError(accounts)) throw accounts.errorResponse
 
   // TODO Format, filter and sort this in the backend.
-  return accounts.linkedAccounts
-    .map((account) => formatLinkedAccount(account.details!, account.enabled))
-    .sort((a, b) => {
-      // bubble the balances to the top
-      if (a.type != b.type && b.type == 'balance') return -1
-      return 0
-    })
-    .filter((acc) => acc.canSend)
+  return (
+    accounts.linkedAccounts
+      .map((account) => formatLinkedAccount(account.details!, account.enabled))
+      .sort((a, b) => {
+        // bubble the balances to the top
+        if (a.type != b.type && b.type == 'balance') return -1
+        return 0
+      })
+      // Temporary: restrict P2P PAYMENT source to balance accounts.
+      .filter((acc) => acc.canSend && acc.type == 'balance')
+  )
 }
 
 export async function getLinkedAccountsForWithdraw(

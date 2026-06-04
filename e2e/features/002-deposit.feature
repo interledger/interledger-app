@@ -79,9 +79,25 @@ Feature: Deposit Funds
     Then I should see my balance updated with "100" "USD"
 
   @deposit @xago
+  Scenario: Successfully deposit 200 ZAR via the UI Test Deposit button
+    Given the details of 'xago-ui-deposit-user' are
+      | field           | value                          |
+      | emailSuffix     | xago-ui-deposit@example.com    |
+      | password        | InterlEdger2025!TestPassword   |
+      | country         | South Africa                   |
+      | firstName       | Thabo                          |
+      | lastName        | Mbeki                          |
+      | dateOfBirth     | 1990-01-15                     |
+    And I complete the minimal KYC flow `xago-ui-deposit-user`
+    When I navigate to the deposit page
+    And my Xago specific deposit instructions should be displayed to me
+    And I click the Test Deposit button
+    Then I should see my balance updated with "200" "ZAR"
+
+  @deposit @xago
   Scenario: Successfully deposit 1000 ZAR into Xago wallet
     Given the details of 'xago-deposit-user' are
-      | field           | value                        |
+      | field           | value              k          |
       | emailSuffix     | xago-deposit@example.com     |
       | password        | InterlEdger2025!TestPassword |
       | country         | South Africa                 |

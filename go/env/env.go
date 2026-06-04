@@ -2,24 +2,22 @@ package env
 
 import (
 	"flag"
-	"os"
-	"strings"
-	"sync"
 	"testing"
 )
 
-const (
-	prodUrl  = "https://interledger.app"
-	devUrl   = "https://sandbox.interledger.app"
-	localUrl = "https://interledger.test"
-)
+var applicationURL = "https://interledger.test"
+
+func SetApplicationURL(url string) {
+	applicationURL = url
+}
+
+func GetUrl() string {
+	return applicationURL
+}
 
 var fynbosEnv = "prod"
 var blockedRegions = []string{}
 var allowedWalletIds = []string{}
-var once = sync.Once{}
-var onceAllowedWalletIds = sync.Once{}
-var onceBlockedRegions = sync.Once{}
 
 var allowedEnvs = []string{
 	"prod",    // Live production environment
@@ -29,7 +27,6 @@ var allowedEnvs = []string{
 	"test",    // Go testing env
 }
 
-
 func SetEnv(t *testing.T, env string) {
 	orig := GetEnv()
 	fynbosEnv = env
@@ -38,37 +35,30 @@ func SetEnv(t *testing.T, env string) {
 	})
 }
 
+func SetFynbosEnv(v string) {
+	fynbosEnv = v
+}
+
+func SetAllowedWalletIDs(ids []string) {
+	allowedWalletIds = ids
+}
+
+func SetBlockedRegions(regions []string) {
+	blockedRegions = regions
+}
+
 func GetAllowedWalletIds() []string {
-	onceAllowedWalletIds.Do(func() {
-		a := os.Getenv("ALLOWED_WALLET_IDS")
-		if a == "" {
-			allowedWalletIds = []string{}
-		} else {
-			allowedWalletIds = parseList(a)
-		}
-	})
 	return allowedWalletIds
 }
 
 func GetBlockedRegions() []string {
-	onceBlockedRegions.Do(func() {
-		a := os.Getenv("BLOCKED_REGIONS")
-		if a == "" {
-			blockedRegions = []string{}
-		} else {
-			blockedRegions = parseList(a)
-		}
-	})
 	return blockedRegions
 }
 
 func GetEnv() string {
-	once.Do(func() {
-		fynbosEnv = os.Getenv("FYNBOS_ENV")
-		if fynbosEnv == "" {
-			fynbosEnv = "prod"
-		}
-	})
+	if fynbosEnv == "" {
+		panic("FYNBOS_ENV environment variable is not set")
+	}
 	var contains bool
 	for _, env := range allowedEnvs {
 		if env == fynbosEnv {
@@ -116,86 +106,63 @@ func IsTestExecution() bool {
 	return flag.Lookup("test.v") != nil
 }
 
-func GetUrl() string {
-	if IsLocal() {
-		return localUrl
-	}
+var openPaymentsURL string
 
-	if IsSandbox() || IsDev() {
-		return devUrl
-	}
-
-	return prodUrl
+func SetOpenPaymentsURL(url string) {
+	openPaymentsURL = url
 }
 
-var openPaymentsURL string
-var openPaymentsSync sync.Once
-
 func OpenPaymentsURL() string {
-	openPaymentsSync.Do(func() {
-		openPaymentsURL = os.Getenv("OPEN_PAYMENTS_BASE_URL")
-		if openPaymentsURL == "" {
-			if IsProd() {
-				openPaymentsURL = "https://ilp.link"
-			} else if IsDev() {
-				openPaymentsURL = "https://sandbox.ilp.link"
-			} else if IsLocal() || IsTest() {
-				openPaymentsURL = "https://local.ilp.link"
-			} else {
-				openPaymentsURL = "https://sandbox.ilp.link"
-			}
-		}
-	})
-
-	return openPaymentsURL
+	if openPaymentsURL != "" {
+		return openPaymentsURL
+	}
+	if IsProd() {
+		return "https://ilp.link"
+	} else if IsDev() {
+		return "https://sandbox.ilp.link"
+	} else if IsLocal() || IsTest() {
+		return "https://local.ilp.link"
+	}
+	return "https://sandbox.ilp.link"
 }
 
 var authURL string
-var authURLSync sync.Once
+
+func SetAuthURL(url string) {
+	authURL = url
+}
 
 // TODO -  is this used?
 func AuthURL() string {
-	authURLSync.Do(func() {
-		authURL = os.Getenv("AUTH_BASE_URL")
-		if authURL == "" {
-			if IsProd() {
-				authURL = "https://auth.ilp.link"
-			} else if IsDev() {
-				authURL = "https://auth.sandbox.ilp.link"
-			} else if IsLocal() || IsTest() {
-				authURL = "https://auth.local.ilp.link"
-			} else {
-				authURL = "https://auth.ilp.link"
-			}
-		}
-	})
-
-	return authURL
+	if authURL != "" {
+		return authURL
+	}
+	if IsProd() {
+		return "https://auth.ilp.link"
+	} else if IsDev() {
+		return "https://auth.sandbox.ilp.link"
+	} else if IsLocal() || IsTest() {
+		return "https://auth.local.ilp.link"
+	}
+	return "https://auth.ilp.link"
 }
 
 var adminURL string
-var adminURLSync sync.Once
 
-func AdminURL() string {
-	adminURLSync.Do(func() {
-		adminURL = os.Getenv("ADMIN_BASE_URL")
-		if adminURL == "" {
-			if IsProd() {
-				adminURL = "https://admin.interledger.tech"
-			} else if IsDev() {
-				adminURL = "https://admin.sandbox.interledger.tech"
-			} else if IsLocal() || IsTest() {
-				adminURL = "https://admin.interledger.test"
-			} else {
-				adminURL = "https://admin.sandbox.interledger.tech"
-			}
-		}
-	})
-
-	return adminURL
+func SetAdminURL(url string) {
+	adminURL = url
 }
 
-func parseList(input string) []string {
-	input = strings.ReplaceAll(input, " ", "")
-	return strings.Split(input, ",")
+func AdminURL() string {
+	if adminURL != "" {
+		return adminURL
+	}
+	if IsProd() {
+		return "https://admin.interledger.tech"
+	} else if IsDev() {
+		return "https://admin.sandbox.interledger.tech"
+	} else if IsLocal() || IsTest() {
+		return "https://admin.interledger.test"
+	}
+	return "https://admin.sandbox.interledger.tech"
 }

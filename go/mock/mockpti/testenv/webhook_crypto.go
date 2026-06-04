@@ -4,95 +4,80 @@
 package main
 
 import (
+	"crypto/ed25519"
 	"crypto/rand"
-	"crypto/rsa"
+	"crypto/x509"
+	"encoding/base64"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
-
-	"github.com/lestrrat-go/jwx/v2/jwa"
-	"github.com/lestrrat-go/jwx/v2/jwe"
-	"github.com/lestrrat-go/jwx/v2/jwk"
-	"github.com/lestrrat-go/jwx/v2/jws"
+	"strings"
 )
 
 type cryptoState struct {
-	signingPrivateJWK    string
-	encryptionPrivateJWK string
-	signingPublicKey     *rsa.PublicKey
-	encryptionPrivateKey *rsa.PrivateKey
+	signingPrivateKey ed25519.PrivateKey
+	signingPublicKey  ed25519.PublicKey
 }
 
 var webhookCryptoState cryptoState
 
 func webhookCryptoComposeEnv() ([]string, error) {
-	signingPrivate, err := rsa.GenerateKey(rand.Reader, 2048)
+	pub, priv, err := ed25519.GenerateKey(rand.Reader)
 	if err != nil {
 		return nil, fmt.Errorf("generate signing key: %w", err)
 	}
-	encryptionPrivate, err := rsa.GenerateKey(rand.Reader, 2048)
-	if err != nil {
-		return nil, fmt.Errorf("generate encryption key: %w", err)
-	}
 
-	signingJWK, err := marshalPrivateJWK(signingPrivate)
+	privBytes, err := x509.MarshalPKCS8PrivateKey(priv)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("marshal private key: %w", err)
 	}
-	encryptionJWK, err := marshalPrivateJWK(encryptionPrivate)
+	privPEM := string(pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: privBytes}))
+
+	pubBytes, err := x509.MarshalPKIXPublicKey(pub)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("marshal public key: %w", err)
 	}
+	pubPEM := string(pem.EncodeToMemory(&pem.Block{Type: "PUBLIC KEY", Bytes: pubBytes}))
+
+	privB64 := base64.StdEncoding.EncodeToString([]byte(privPEM))
+	pubOneLine := strings.ReplaceAll(strings.TrimSpace(pubPEM), "\n", `\n`)
 
 	webhookCryptoState = cryptoState{
-		signingPrivateJWK:    signingJWK,
-		encryptionPrivateJWK: encryptionJWK,
-		signingPublicKey:     &signingPrivate.PublicKey,
-		encryptionPrivateKey: encryptionPrivate,
+		signingPrivateKey: priv,
+		signingPublicKey:  pub,
 	}
 
 	return []string{
-		"MOCKPTI_WEBHOOK_SIGNING_JWK=" + signingJWK,
-		"MOCKPTI_WEBHOOK_ENCRYPTION_JWK=" + encryptionJWK,
+		"MOCKPTI_WEBHOOK_SIGNING_KEY_B64=" + privB64,
+		"PTI_PUBLIC_KEY_JWK=" + pubOneLine,
 	}, nil
 }
 
-func parseWebhookPayload(raw []byte) (map[string]interface{}, bool, error) {
-	// First try plain JSON payload (webhook crypto disabled/fallback mode)
-	plain := map[string]interface{}{}
-	if err := json.Unmarshal(raw, &plain); err == nil {
-		if _, hasCipher := plain["ciphertext"]; !hasCipher {
-			return plain, false, nil
+func parseWebhookPayload(raw []byte, sigHeader string) (map[string]interface{}, bool, error) {
+	payload := map[string]interface{}{}
+	if err := json.Unmarshal(raw, &payload); err != nil {
+		return nil, false, fmt.Errorf("unmarshal webhook payload: %w", err)
+	}
+
+	if sigHeader == "" || webhookCryptoState.signingPublicKey == nil {
+		return payload, false, nil
+	}
+
+	signed := false
+	for _, part := range strings.Split(sigHeader, ",") {
+		part = strings.TrimSpace(part)
+		if !strings.HasPrefix(part, "v1=") {
+			continue
+		}
+		sigBytes, err := base64.StdEncoding.DecodeString(strings.TrimPrefix(part, "v1="))
+		if err != nil {
+			continue
+		}
+		if ed25519.Verify(webhookCryptoState.signingPublicKey, raw, sigBytes) {
+			signed = true
+			break
 		}
 	}
 
-	decrypted, err := jwe.Decrypt(raw, jwe.WithKey(jwa.RSA_OAEP_256, webhookCryptoState.encryptionPrivateKey))
-	if err != nil {
-		return nil, false, fmt.Errorf("decrypt webhook payload: %w", err)
-	}
-
-	verified, err := jws.Verify(decrypted, jws.WithKey(jwa.RS512, webhookCryptoState.signingPublicKey))
-	if err != nil {
-		return nil, false, fmt.Errorf("verify webhook payload: %w", err)
-	}
-
-	payload := map[string]interface{}{}
-	if err := json.Unmarshal(verified, &payload); err != nil {
-		return nil, false, fmt.Errorf("unmarshal verified payload: %w", err)
-	}
-
-	return payload, true, nil
-}
-
-func marshalPrivateJWK(key *rsa.PrivateKey) (string, error) {
-	jwkKey, err := jwk.FromRaw(key)
-	if err != nil {
-		return "", fmt.Errorf("create jwk from private key: %w", err)
-	}
-
-	b, err := json.Marshal(jwkKey)
-	if err != nil {
-		return "", fmt.Errorf("marshal jwk: %w", err)
-	}
-
-	return string(b), nil
+	return payload, signed, nil
 }

@@ -1,0 +1,15 @@
+{{- define "interledger-app.frontend.deployment" -}}
+{{- $top := first . }}
+{{- if $top.Values.frontend.enabled }}
+{{- $cfgObj := include "interledger-app.frontend.configMap" $top | fromYaml -}}
+{{- $dataHash := $cfgObj.data | toJson | sha256sum -}}
+spec:
+  template:
+    metadata:
+      annotations:
+        ilf-configmap-frontend-sha256: {{ $dataHash | quote }}
+{{- end }}
+{{- end }}
+{{- if .Values.frontend.enabled }}
+{{- include "common.deployment" (list . .Values.frontend.server .Values.frontend.server.autoscaling .Values.frontend.server.serviceAccount "interledger-app.frontend.deployment") }}
+{{- end }}

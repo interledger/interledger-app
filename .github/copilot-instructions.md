@@ -13,7 +13,7 @@
 - `local/` - Docker Compose development environment
 - `proto/` - Protocol buffers definitions
 
-**Size**: ~50k+ LoC across Go and TypeScript, 38+ documentation files, 10 CI/CD workflows
+**Size**: ~50k+ LoC across Go and TypeScript, 38+ documentation files, 11 CI/CD workflows
 
 ## Build and Validation
 
@@ -28,22 +28,29 @@ docker --version
 # 2. Install Atlas CLI (database migrations)
 curl -sSf https://atlasgo.sh | sh
 
-# 3. Start Postgres for Go tests
-docker run -d --name ilf-postgres -e POSTGRES_USER=postgres \
-  -e POSTGRES_PASSWORD=password -p 5432:5432 postgres:17
+# 3. Start Postgres for Go unit tests (local dev only — CI spins up its own)
+cd local && make unit-test-db-up && cd ..
+# Starts a dedicated ephemeral Postgres on localhost:55432 (tmpfs-backed).
+# Skip if already running: docker ps | grep unit-test
 ```
 
 ### Go Backend Testing
 
-**CRITICAL**: Always generate test migrations before running tests:
+**CRITICAL**: Always generate test migrations before running tests.
+
+The test harness connects to `postgres://postgres:password@127.0.0.1:55432/%s?sslmode=disable`
+by default (hardcoded in `go/backend/db/migrate.go`). **Do not set `DB_URL`** unless you are
+using a different Postgres instance — the default already targets the local unit-test container.
+
+Atlas requires a scratch database as its dev URL (it applies and rolls back migrations internally).
+Run from `go/backend`:
 
 ```bash
-cd go/backend  # or go/pacioli
-export DB_URL=postgres://postgres:password@127.0.0.1:5432?sslmode=disable
+cd go/backend
 atlas migrate diff create_all \
   --dir "file://db/testmigrations" \
   --to "file://db/schema.hcl" \
-  --dev-url "${DB_URL}"
+  --dev-url "postgres://postgres:password@127.0.0.1:55432/postgres?sslmode=disable"
 ```
 
 Then run tests:
@@ -55,9 +62,13 @@ go tool cover -func=coverage.out
 ```
 
 **Coverage Thresholds** (enforced by CI, defined in `go/coverage.thresholds`):
-- `backend=10.0%`
-- `pacioli=34.8%`
+- `backend=12.5%`
+- `pacioli=42.0%`
 - `geo=90.0%`
+- `mockxago=62.0%`
+- `mockgatehub=56.0%`
+- `mockchimoney=62.0%`
+- `mockpti=62.0%`
 
 Changes must meet or exceed these thresholds.
 
@@ -213,7 +224,7 @@ typescript/
 ### PR Checks (must pass before merge)
 
 1. **PR Title** - Must follow Conventional Commits (feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert, local)
-2. **Go Tests** - Coverage thresholds enforced for backend, pacioli, geo
+2. **Go Tests** - Coverage thresholds enforced for backend, pacioli, geo, mockxago, mockgatehub, mockchimoney, mockpti
 3. **E2E Tests** - Full Playwright suite on Google Cloud VM (90m timeout)
 4. **Linting** - golangci-lint v2.5.0 in `go/` directory
 
@@ -222,7 +233,7 @@ typescript/
 Workflows skip unnecessary CI runs based on which files changed:
 - **Documentation-only changes** (`documentation/**`): All tests, builds, and linting are skipped.
 - **Local-only changes** (`local/**`): Unit tests, builds, and linting are skipped. E2E tests still run since they exercise the local environment.
-- These filters apply only to `pull_request` triggers — `push` to main, schedules, and manual dispatches always run.
+- These path filters apply only to the `pull_request` trigger of each workflow. They do not affect `push`, tag, schedule, or `workflow_dispatch` triggers (which each workflow defines separately).
 
 ### PR Auto-Labeling
 
@@ -247,6 +258,7 @@ PRs are automatically labeled by `.github/workflows/labeler.yml` using the confi
 | `documentation` | `documentation/**` |
 | `e2e` | `e2e/**` |
 | `local` | `local/**` |
+| `helm` | `helm/**` |
 
 **When adding new providers, mock services, or frontend apps**: Update `.github/labeler.yml` with appropriate path globs and add the label mapping to this table.
 
@@ -254,10 +266,44 @@ PRs are automatically labeled by `.github/workflows/labeler.yml` using the confi
 
 - `.github/workflows/pr-title-check.yml` - Validates PR title format
 - `.github/workflows/labeler.yml` - Auto-labels PRs based on changed files (config: `.github/labeler.yml`)
-- `.github/workflows/go-tests.yml` - Runs `go-test-template.yml` for backend, pacioli (skipped for docs/local-only changes)
+- `.github/workflows/go-tests.yml` - Runs `go-test-template.yml` for backend, pacioli, geo and mock services (skipped for docs/local-only changes)
+- `.github/workflows/go-test-template.yml` - Reusable template; runs inside the `ghcr.io/interledger/builders/gotester:v1.1.0` container — no local Go setup needed
+- `.github/workflows/mock-tester.yml` - Reusable template for mock services; still installs Go (`setup-go`) and golangci-lint manually on the runner (not yet migrated to the gotester container)
 - `.github/workflows/e2e-tests.yml` - Starts VM, runs E2E suite with concurrency=10 (skipped for docs-only changes)
-- `.github/workflows/linting.yml` - Runs golangci-lint on all Go code (skipped for docs/local-only changes)
-- `.github/workflows/build-and-publish.yml` - Builds Docker images, pushes to registry (skipped for docs/local-only changes on PRs)
+- `.github/workflows/linting.yml` - Runs golangci-lint on all Go code inside the `ghcr.io/interledger/builders/gotester:v1.1.0` container (skipped for docs/local-only changes)
+- `.github/workflows/build-and-publish.yml` - Builds Docker images on PRs (build only) and pushes to GCP Artifact Registry when triggered by a version tag or `workflow_dispatch`; on release also publishes the `helm/interledger-app` OCI chart and opens an auto-merge PR in `interledger-app-deploy` to bump `chartVersion` in the dev1 appset
+- `.github/workflows/release.yml` - Runs semantic-release on every push to `main`; creates a git tag, GitHub Release, and release notes from commit history (see Release Process below)
+- `.github/workflows/helm-tests.yml` - Runs `helm unittest` + `kubeconform` on the chart at `helm/interledger-app` inside the `ghcr.io/interledger/builders/chartvalidator:v0.5` container (only triggered when `helm/**` files change)
+
+### Release Process
+
+Releases are fully automated via **semantic-release** — do not create `release/v*` branches or manually push version tags.
+
+**How it works:**
+
+1. A PR is merged to `main`.
+2. `release.yml` runs semantic-release, which analyses all commits since the last tag.
+3. The version bump is determined from commit types:
+   - `feat:` → minor (`1.1.0`)
+   - `fix:`, `perf:` → patch (`1.0.1`)
+   - `BREAKING CHANGE:` footer or `feat!:` / `fix!:` → major (`2.0.0`)
+   - `refactor:`, `chore:`, `docs:`, `test:`, `ci:`, `build:`, `style:`, `local:` → **no release**
+4. If there is a releasable commit, semantic-release creates a `vX.Y.Z` git tag and a GitHub Release with auto-generated notes.
+5. The new tag triggers `build-and-publish.yml`, which builds all Docker images and pushes them to GCP Artifact Registry tagged with that version. It also packages and publishes the `helm/interledger-app` chart (OCI) to both dev and prod Artifact Registries.
+6. After the chart publish succeeds, the `bump-deploy-dev` job in `build-and-publish.yml` opens an auto-merge PR in `interledger/interledger-app-deploy` that updates `chartVersion` for the `interledger-app` entry in `env/dev1/appsets/wallet-appset.yaml` to the new version (with the leading `v` stripped). The PR auto-merges once the deploy repo's `conform.yaml` checks pass. Only `dev1` is bumped automatically; `sandbox` and `production` remain manual/promotion-based.
+
+**Config files**: `.releaserc.json` (release config), `package.json` + `pnpm-lock.yaml` at repo root (semantic-release dependencies).
+
+**Authentication**: `release.yml` authenticates as a GitHub App rather than using the default `GITHUB_TOKEN`. This is required because tag pushes made with `GITHUB_TOKEN` do **not** trigger downstream workflows, so `build-and-publish.yml` would never see the new tag. Required repo secrets:
+
+- `RELEASE_APP_ID` — the GitHub App's numeric ID
+- `RELEASE_APP_PRIVATE_KEY` — the App's PEM private key (not the OAuth client secret)
+
+The App must be installed on this repository with **Contents: Read & write** permission. The installation ID is auto-discovered at runtime by `actions/create-github-app-token`. `release.yml` validates that the App credentials authenticate and that the App is installed on this repository before invoking semantic-release. If the installation is missing the required permission, semantic-release itself fails with `Resource not accessible by integration`.
+
+**For the `bump-deploy-dev` job**: the same App must additionally be installed on `interledger/interledger-app-deploy` with **Contents: Read & write** and **Pull requests: Read & write**. The token is minted scoped to that repo via `actions/create-github-app-token` with `owner: interledger` and `repositories: interledger-app-deploy`. If the App is not installed there, the job fails loudly (intentional — failure surfaces the misconfiguration). The deploy repo must also have **auto-merge enabled** in its repository settings.
+
+**If `main` is protected**: ensure the App (its bot user, e.g. `your-app[bot]`) is listed as an allowed actor that can bypass branch protection for tag creation, or that the protection rules permit tag pushes from Apps.
 
 ### Testing Locally Before Push
 
@@ -269,7 +315,7 @@ cd go && make lint
 cd go/backend
 atlas migrate diff create_all --dir "file://db/testmigrations" \
   --to "file://db/schema.hcl" \
-  --dev-url "postgres://postgres:password@127.0.0.1:5432?sslmode=disable"
+  --dev-url "postgres://postgres:password@127.0.0.1:55432/postgres?sslmode=disable"
 go test -coverprofile=coverage.out ./...
 
 # 3. Check coverage thresholds
@@ -289,14 +335,14 @@ cd ../../e2e && go test -v -timeout 20m
 
 **Symptom**: `go test` fails with "migration not found" or schema errors
 
-**Fix**: Always regenerate test migrations before running tests:
+**Fix**: Regenerate test migrations from `go/backend` using the local unit-test Postgres as the dev URL:
 
 ```bash
-export DB_URL=postgres://postgres:password@127.0.0.1:5432?sslmode=disable
+cd go/backend
 atlas migrate diff create_all \
   --dir "file://db/testmigrations" \
   --to "file://db/schema.hcl" \
-  --dev-url "${DB_URL}"
+  --dev-url "postgres://postgres:password@127.0.0.1:55432/postgres?sslmode=disable"
 ```
 
 ### Issue: golangci-lint Version Mismatch

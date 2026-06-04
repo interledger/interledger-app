@@ -1,17 +1,9 @@
-import { useFetcher, useLoaderData } from 'react-router';
-import type { loader } from './route'
 import type { ChangeEventHandler } from 'react'
 import { useCallback, useEffect, useReducer, useRef } from 'react'
-import { href } from 'react-router'
-import {
-  Button,
-  Card,
-  CardContent,
-  Icon,
-  SelectRouter,
-  TextField
-} from '~/components'
+import { href, useFetcher, useLoaderData } from 'react-router'
+import { Button, Card, CardContent, TextField } from '~/components'
 import { PayStep, usePayStore } from '~/lib/usePayStore'
+import type { loader } from './route'
 
 import type { PlainMessage } from '@bufbuild/protobuf'
 import type { FormattedLinkedAccount } from '~/data/accounts.server'
@@ -23,7 +15,7 @@ import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { PayTextField } from '~/routes/pay_.$paymentId/PayTextField'
 import { PaySelect } from './PaySelect'
 import { PaymentDetailsCard } from './PaymentDetailsCard'
-import { updatePaymentAction } from './action.server';
+import { updatePaymentAction } from './action.server'
 
 const DEBOUNCE_WAIT = 150
 
@@ -98,7 +90,7 @@ function reducer(state: AmountState, action: Action): AmountState {
 }
 
 export const Amount = () => {
-  const { account, sendAccounts, payment, csrfToken } =
+  const { account, sendAccounts, payment, features, csrfToken } =
     useLoaderData<typeof loader>()
 
   const [localPayment, dispatchPayment] = useReducer(
@@ -280,11 +272,7 @@ export const Amount = () => {
           linkedAccount={localPayment.linkedAccount}
           linkedAccountOptions={sendAccounts || []}
           onChangeLinkedAccount={_onChangeLinkedAccount}
-          selectButton={
-            <SelectRouter to={href('/accounts')}>
-              <span>Connect new account</span> <Icon>add</Icon>
-            </SelectRouter>
-          }
+          showConnectAccount={features.accountsTabEnabled}
           placeholder='0.00'
           prefixIcon={
             <div

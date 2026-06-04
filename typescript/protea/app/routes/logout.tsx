@@ -1,13 +1,12 @@
-import type { Route } from './+types/logout'
-import { data, redirect, href } from 'react-router'
-import { Form, useLoaderData } from 'react-router'
+import { Form, data, href, redirect, useLoaderData } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts } from '~/components'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
-import { kratosPublic } from '~/lib/kratos/kratos-client.server'
-import { getCookie, buildHeadersWithCookies } from '~/lib/kratos/cookie.server'
+import { buildHeadersWithCookies, getCookie } from '~/lib/kratos/cookie.server'
 import { handleFlowError } from '~/lib/kratos/error.server'
+import { kratosPublic } from '~/lib/kratos/kratos-client.server'
 import { mergeMeta } from '~/lib/meta'
+import type { Route } from './+types/logout'
 
 export async function loader({ request }: Route.LoaderArgs) {
   const cookie = getCookie(request)
@@ -76,7 +75,10 @@ export async function action({ request }: Route.ActionArgs) {
   await validateCSRFToken(request, form)
 
   try {
-    const logoutResponse = await kratosPublic.updateLogoutFlow({ token, cookie })
+    const logoutResponse = await kratosPublic.updateLogoutFlow({
+      token,
+      cookie
+    })
     const headers = buildHeadersWithCookies(logoutResponse)
 
     return redirect(href('/'), { headers })

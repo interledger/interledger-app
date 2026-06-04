@@ -92,6 +92,14 @@ When I confirm the card order
 Then I should see the snackbar "Your card in the making! We'll notify you as soon as it's ready to go."
 ```
 
+### Botanist Admin — Wallet Filtering
+```gherkin
+When I navigate to the botanist wallets page
+When I filter the wallets list by "anna@example.com"
+When I filter the wallets list by my email
+Then my wallet should appear in the wallets list
+```
+
 ### Screenshots
 ```gherkin
 And I take a screenshot "kyc-completed-dashboard"
@@ -451,15 +459,15 @@ Feature: Signup Form Validation
     When I fill in "first name" with "John"
     And I fill in "email" with "john@example.com"
     And I select "Germany" from the country dropdown
+    And I fill in "phone" with "+493012345678"
     And I click the "Continue" button
     Then I should be on step 2
-    When I fill in "phone" with "+493012345678"
-    And I try to fill in "password" with "SecurePass2025!"
-    And I click the "Continue" button
-    Then I take a screenshot "signup-step-3"
+    When I try to fill in "password" with "SecurePass2025!"
+    And I take a screenshot "signup-step-2-password"
 ```
 - **Time:** ~30 seconds
 - **Coverage:** Signup form flow and validation
+- **Note:** Phone is now on step 1 (About form), alongside name/email/country. Step 2 is the password form.
 
 ## Tips & Best Practices
 
@@ -514,6 +522,42 @@ Feature: Signup Form Validation
 - Database queries are fast (< 1 second)
 - Waits for network idle add 2-3 seconds per page load
 - Total test should complete in 2-3 minutes
+
+---
+
+## Botanist Admin — Wallet Filtering
+
+Steps for the botanist admin wallet filter flow (`@botanist` tag). Requires the botanist admin app to be running.
+
+### Navigate to Botanist Wallets Page
+```gherkin
+When I navigate to the botanist wallets page
+```
+- Navigates to the botanist admin app's `/wallets` route
+- **Use for:** Admin wallet management scenarios
+
+### Filter Wallets by Search Term
+```gherkin
+When I filter the wallets list by "anna@example.com"
+```
+- Types the given string into the wallets filter input
+- Triggers client-side filtering of the displayed wallet rows
+- **Use for:** Verifying the search/filter input narrows results
+
+### Filter Wallets by the Test User's Email
+```gherkin
+When I filter the wallets list by my email
+```
+- Uses the current test user's email (set during signup) as the filter term
+- Equivalent to `I filter the wallets list by "..."` with the dynamic email
+- **Use for:** End-to-end filter scenarios that start from a signup
+
+### Assert Own Wallet Appears in the List
+```gherkin
+Then my wallet should appear in the wallets list
+```
+- Asserts that at least one row in the filtered wallets table is visible
+- **Requires:** A filter step that narrows results to the test user's wallet
 
 ---
 

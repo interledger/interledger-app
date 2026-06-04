@@ -1,4 +1,8 @@
-import { getFeatures, getKycStatus } from '~/data/wallet.server'
+import type { PlainMessage } from '@bufbuild/protobuf'
+import type { LoaderFunctionArgs } from 'react-router'
+import { data } from 'react-router'
+import { getFeatures } from '~/data/wallet.server'
+import { envValue } from '~/env.server'
 import type {
   Features,
   Payment,
@@ -6,12 +10,8 @@ import type {
   SearchResult
 } from '~/generated/connect/backend/v1/backend_pb'
 import { jsonWithCSRF } from '~/lib/csrf.server'
-import { KycStatus } from '~/lib/types'
-import type { PlainMessage } from '@bufbuild/protobuf'
-import { data, href, redirect } from 'react-router';
-import type { LoaderFunctionArgs } from 'react-router';
-import { grpc } from '~/lib/grpc.server';
-import { isConnectError } from '~/lib/error.server';
+import { isConnectError } from '~/lib/error.server'
+import { grpc } from '~/lib/grpc.server'
 
 export async function searchLoader(
   { request }: LoaderFunctionArgs,
@@ -38,10 +38,6 @@ export async function payLoader({ request }: LoaderFunctionArgs) {
   // used only on route load, params change and form submission
   // TODO should figure out if we need these based on the status of the payment
   if (url.search == '') {
-    const { kycStatus } = await getKycStatus(request)
-    if (kycStatus != KycStatus.Approved)
-      return redirect(href('/personal-details'))
-
     features = await getFeatures(request)
   }
 
@@ -51,7 +47,7 @@ export async function payLoader({ request }: LoaderFunctionArgs) {
     address,
     phoneMask,
     publicWalletInfo,
-    fynbosEnv: process.env.FYNBOS_ENV,
+    fynbosEnv: envValue('FYNBOS_ENV'),
     payment
   })
 }

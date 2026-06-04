@@ -14,7 +14,6 @@
 **Quick Navigation:**
 
 - **Need signup overview?** → Jump to [The Big Picture](#the-big-picture)
-- **Phone verification issues?** → See [Phone Number Verification (OTP)](#2-phone-number-verification-otp)
 - **TOTP setup problems?** → See [Two-Factor Authentication (TOTP)](#5-two-factor-authentication-totp)
 - **Wallet address creation?** → See [Wallet Address Creation](#6-wallet-address-creation)
 - **Backend workflow details?** → See [Temporal Workflows](#8-temporal-workflows-backend-orchestration)
@@ -29,10 +28,10 @@ The signup process creates a complete user account with authentication, wallet i
 
 **The signup journey:**
 
-1. **Profile Details** — User provides legal name, email, country of residence
-2. **Phone Verification** — SMS OTP confirms phone number ownership
-3. **Password Creation** — User sets a secure password via Ory Kratos
-4. **Account Verification** — Email confirmation triggers account activation
+1. **Profile Details** — User provides legal name, email, country of residence, and phone number
+2. **Password Creation** — User sets a secure password via Ory Kratos
+3. **Account Verification** — Email confirmation triggers account activation
+4. **Phone Verification** — SMS OTP confirms phone number ownership
 5. **TOTP Registration** — Time-based one-time password setup for 2FA
 6. **Wallet Address Creation** — Unique payment address (e.g., `https://ilp.link/alice`)
 
@@ -46,48 +45,16 @@ sequenceDiagram
     participant DB as PostgreSQL
 
     rect rgb(59, 130, 246)
-    U->>FE: Enter name, email, country
+    U->>FE: Enter name, email, country, phone
     FE->>BE: SetSignupUserData gRPC
     BE->>DB: INSERT INTO signups
     DB-->>BE: OK
     BE-->>FE: signup_id
-    FE-->>U: Show phone step
+    FE-->>U: Show password step
     end
 ```
 
-### Step 2 — Phone Verification (OTP)
-
-> **Note:** OTP verification is currently **disabled** in the codebase. The frontend OTP dialog is commented out (phone is stored locally and the flow advances to the password step), and the backend Twilio calls are stubbed to always return "approved". The intended flow is documented below.
-
-```mermaid
-sequenceDiagram
-    participant U as 👤 User
-    participant FE as Frontend
-    participant BE as Backend
-    participant TW as Twilio
-    participant DB as PostgreSQL
-
-    rect rgb(245, 158, 11)
-    U->>FE: Enter phone number
-    FE->>BE: SendPhoneVerification gRPC
-    BE->>TW: SendVerificationCode
-    TW-->>U: SMS with 6-digit code
-    U->>FE: Enter OTP code
-    FE->>BE: SetSignupMobileNumber gRPC
-    BE->>TW: CheckVerificationCode
-    end
-
-    alt ✅ OTP Valid
-        TW-->>BE: valid = true
-        BE->>DB: UPDATE signups SET mobile_number
-        BE-->>FE: success
-    else ❌ OTP Invalid
-        TW-->>BE: valid = false
-        BE-->>FE: ErrInvalidOTP
-    end
-```
-
-### Step 3 — Password & Account Creation (Kratos)
+### Step 2 — Password & Account Creation (Kratos)
 
 ```mermaid
 sequenceDiagram
@@ -110,7 +77,7 @@ sequenceDiagram
     end
 ```
 
-### Step 4 — Email Verification
+### Step 3 — Email Verification
 
 ```mermaid
 sequenceDiagram
@@ -122,6 +89,37 @@ sequenceDiagram
     U->>K: Click verification link
     K->>K: Mark identity verified
     K-->>U: Redirect to login
+    end
+```
+
+### Step 4 — Phone Verification
+
+```mermaid
+sequenceDiagram
+    participant U as 👤 User
+    participant FE as Frontend
+    participant BE as Backend
+    participant TW as Twilio
+    participant DB as PostgreSQL
+
+    rect rgb(245, 158, 11)
+    FE->>BE: SendPhoneVerification gRPC
+    BE->>TW: SendVerificationCode
+    TW-->>U: SMS with 6-digit code
+    U->>FE: Enter OTP code
+    FE->>BE: SetSignupMobileNumber gRPC
+    BE->>TW: CheckVerificationCode
+    end
+
+    alt ✅ OTP Valid
+        TW-->>BE: valid = true
+        BE->>DB: UPDATE signups SET mobile_number
+        BE-->>FE: success
+        FE-->>U: Proceed to wallet address
+    else ❌ OTP Invalid or Expired
+        TW-->>BE: valid = false
+        BE-->>FE: ErrInvalidOTP
+        FE-->>U: Show error, allow retry
     end
 ```
 
@@ -193,6 +191,7 @@ The user fills in:
 - **Last Name** — Legal last name
 - **Email** — Primary contact email
 - **Country** — Country of residence (ISO 3166-1 alpha-2 code)
+- **Phone** — Mobile phone number in E.164 format (field appears after country is selected, pre-populated with the country dial code)
 
 **Country restrictions:** Only users from supported countries can proceed: all EU member states, US, CA, and ZA. Users from unsupported countries are redirected to the waitlist (see `isEUCountry()` in `typescript/protea/app/routes/signup/About.tsx` and the country check in `route.tsx`).
 
@@ -226,31 +225,28 @@ type UserDataArgs struct {
 
 ---
 
-## 2) Phone Number Verification (OTP)
+## 2) Phone Number Collection
 
-Phone verification prevents automated account creation and ensures users can receive security alerts.
-
-### OTP Generation
-
-**Service:** Twilio Verify API  
-**Code format:** 6-digit numeric code  
-**Validity:** 10 minutes  
-**Delivery:** SMS to user's phone
-
-> **Current state:** OTP is disabled. The frontend OTP dialog is commented out in `Phone.tsx` (the phone number is stored locally and the flow skips directly to the password step). The backend Twilio calls in `twilio/service.go` are stubbed to always return `"approved"`. When re-enabled, the intended flow is described below.
+Phone number is collected as part of the **About form** (Step 1), alongside name, email, and country. There is no separate phone step in the signup flow.
 
 ### Frontend Flow
 
-Route: `/signup` (`typescript/protea/app/routes/signup/route.tsx`) (Phone step)
+Route: `/signup` — About step (`typescript/protea/app/routes/signup/About.tsx`)
 
-1. User enters phone number in **E.164 format** (e.g., `+14155552671`)
-2. Frontend calls `SendPhoneVerification` gRPC on the backend
-3. Backend calls Twilio Verify API to send SMS
-4. User receives SMS with 6-digit code
-5. User enters code in verification field
-6. Frontend submits phone + OTP to backend via `SetSignupMobileNumber` gRPC
+1. User selects their country from the dropdown
+2. Phone field appears, pre-populated with the country dial code (e.g., `+49` for Germany)
+3. User completes the phone number
+4. Form is submitted; `detailsAction` validates the phone and stores it in the signup Zustand store
+5. On success, the signup advances directly to the password step
+
+**Implementation notes:**
+- `PhoneTextField` remounts on country change via `key={country.id}`, keeping the dial code in sync
+- The phone value persists across back-navigation because it is read from the Zustand store on mount
+- The phone field is gated: it only renders once a country is selected (`{country && <PhoneTextField … />}`)
 
 ### Backend Processing
+
+Phone is stored via `SetSignupMobileNumber` gRPC as part of the signup completion flow.
 
 **gRPC:** `SetSignupMobileNumber`  
 **Handler:** `grpc/signup.go`  
@@ -268,34 +264,15 @@ type MobileNumberArgs struct {
 - Phone format: `validate:"required,e164"`
 - OTP format: `validate:"required,numeric,len=6"`
 
-**OTP Verification Flow:**
+### OTP Verification
 
-```go
-// 1. Verify OTP with Twilio
-v, err := b.Twilio().CheckVerificationCode(ctx, &twilio.CheckVerificationCodeArgs{
-    PhoneNumber: args.MobileNumber,
-    Code:        args.OTP,
-})
+After the user provides their phone number in the About form:
 
-if !v.IsValid() {
-    return signup.ErrInvalidOTP
-}
-
-// 2. Check for duplicate phone (AFTER OTP validation to prevent leakage)
-var existsId string
-err = b.DB().GetContext(ctx, &existsId, 
-    "SELECT id FROM signups WHERE mobile_number=$1 AND user_id IS NOT NULL", 
-    args.MobileNumber)
-
-if existsId != "" {
-    return signup.ErrDuplicatePhone
-}
-
-// 3. Update signup record
-_, err = b.DB().ExecContext(ctx, 
-    "UPDATE signups SET mobile_number=$1, updated_at=now() WHERE id=$2",
-    args.MobileNumber, args.ID)
-```
+1. After the user submits their phone number, the frontend calls `SendPhoneVerification` gRPC
+2. Backend triggers a Twilio Verify SMS to the user's phone
+3. User enters the 6-digit code in an OTP challenge dialog
+4. Frontend submits phone + OTP to backend via `SetSignupMobileNumber` gRPC
+5. Backend calls Twilio `CheckVerificationCode` and rejects invalid or expired codes
 
 **Security consideration:** The duplicate phone check happens **after** OTP validation to prevent data leakage through timing attacks.
 
@@ -758,15 +735,15 @@ CREATE TABLE signups (
 
 **State transitions:**
 
-| Field | Initial | After Profile | After Phone | After Password |
-|-------|---------|---------------|-------------|----------------|
-| `id` | UUID | UUID | UUID | UUID |
-| `first_name` | NULL | "Alice" | "Alice" | "Alice" |
-| `last_name` | NULL | "Jones" | "Jones" | "Jones" |
-| `email` | NULL | "alice@..." | "alice@..." | "alice@..." |
-| `country_code` | NULL | "US" | "US" | "US" |
-| `mobile_number` | NULL | NULL | "+14155551234" | "+14155551234" |
-| `user_id` | NULL | NULL | NULL | "{kratos_id}" |
+| Field | Initial | After Profile (About) | After Password |
+|-------|---------|----------------------|----------------|
+| `id` | UUID | UUID | UUID |
+| `first_name` | NULL | "Alice" | "Alice" |
+| `last_name` | NULL | "Jones" | "Jones" |
+| `email` | NULL | "alice@..." | "alice@..." |
+| `country_code` | NULL | "US" | "US" |
+| `mobile_number` | NULL | "+14155551234" | "+14155551234" |
+| `user_id` | NULL | NULL | "{kratos_id}" |
 
 **Completion check:**
 ```go

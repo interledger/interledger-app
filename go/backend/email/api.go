@@ -28,6 +28,7 @@ type Client interface {
 	SendPending3DSConfirmation(ctx context.Context, walletID, confirmationID string)
 	SendKYCDocumentsRequiredEmail(ctx context.Context, walletID string)
 	SendAgreementChangedEmail(ctx context.Context, userID string, agreements []AgreementLink, deadlineDate string) error
+	SendAuthenticatorResetEmail(ctx context.Context, walletID string)
 }
 
 // AgreementLink is a single agreement to show in the agreement-change email (display name + URL).

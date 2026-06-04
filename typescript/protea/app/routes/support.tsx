@@ -1,4 +1,4 @@
-import type { Route } from './+types/support'
+import { useRouteLoaderData } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   AnchorRouter,
@@ -14,6 +14,8 @@ import {
 import { jsonWithCSRF } from '~/lib/csrf.server'
 import { getUserSession } from '~/lib/kratos/session.server'
 import { mergeMeta } from '~/lib/meta'
+import { RootLoaderData } from '~/root'
+import type { Route } from './+types/support'
 
 export async function loader({ request }: Route.LoaderArgs) {
   await getUserSession(request)
@@ -36,6 +38,9 @@ export const meta = mergeMeta(() => [
 ])
 
 export default function Page() {
+  const { env } = useRouteLoaderData('root') as RootLoaderData
+  const supportEmail = env.supportEmail
+
   return (
     <WalletGrid>
       <GridColumn className='col-span-full lg:col-span-6'>
@@ -53,10 +58,10 @@ export default function Page() {
             <div className='mt-4 flex items-center space-x-2 text-medium'>
               <Icon>mail</Icon>
               <AnchorRouter
-                to='mailto:support@interledger.app'
+                to={`mailto:${supportEmail}`}
                 className='text-sm text-primary'
               >
-                support@interledger.app
+                {supportEmail}
               </AnchorRouter>
             </div>
           </CardContent>

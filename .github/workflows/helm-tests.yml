@@ -1,0 +1,30 @@
+name: Helm Tests
+
+on:
+  pull_request:
+    paths:
+      - 'helm/**'
+
+jobs:
+  helm-unit-tests:
+    name: Run Helm Unit Tests
+    runs-on: ubuntu-latest
+    container: ghcr.io/interledger/builders/chartvalidator:v0.5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Helm Unit Tests
+        run: |
+          helm plugin install https://github.com/helm-unittest/helm-unittest.git --version v0.7.2
+          helm unittest helm/interledger-app
+          helm unittest helm/mock-services
+
+      - name: Run Kubeconform Validation
+        run: |
+          helm template helm/interledger-app \
+            -f helm/interledger-app/tests/ci-values.yaml \
+            | kubeconform -strict -summary -ignore-missing-schemas
+          helm template helm/mock-services \
+            -f helm/mock-services/tests/ci-values.yaml \
+            | kubeconform -strict -summary -ignore-missing-schemas

@@ -166,6 +166,42 @@ func GetUserIDForWallet(ctx context.Context, b Backends, walletID string) (strin
 	return userID, nil
 }
 
+// FindWalletIDByEmail looks up a Kratos identity by credential identifier (email)
+// and returns the associated wallet ID from user_wallets. Returns "" when no match.
+func FindWalletIDByEmail(ctx context.Context, b Backends, email string) (string, error) {
+	ctx, cancel := context.WithTimeout(ctx, kratosTimeout)
+	defer cancel()
+
+	// Kratos admin API is at server index 1.
+	kratosCtx := context.WithValue(ctx, client.ContextServerIndex, 1)
+	identities, _, err := b.Kratos().IdentityApi.ListIdentities(kratosCtx).CredentialsIdentifier(email).Execute()
+	if err != nil {
+		return "", fmt.Errorf("%w %s", user.ErrInternal, err)
+	}
+	if len(identities) == 0 {
+		return "", nil
+	}
+
+	// A Kratos identity can be linked to more than one wallet. Return the most
+	// recently created one so the result is deterministic.
+	var walletID string
+	err = b.DB().GetContext(ctx, &walletID,
+		`SELECT uw.wallet_id FROM user_wallets uw
+		 JOIN wallets w ON w.id = uw.wallet_id
+		 WHERE uw.user_id = $1
+		 ORDER BY w.created_at DESC
+		 LIMIT 1`,
+		identities[0].Id,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", nil
+		}
+		return "", fmt.Errorf("%w %s", user.ErrInternal, err)
+	}
+	return walletID, nil
+}
+
 // TODO: Modify?
 func ListUsers(ctx context.Context, b Backends, walletID string) ([]user.User, error) {
 	if walletID == wallets.WebMonetizationWalletID {
@@ -291,4 +327,59 @@ func searchTotpURL(credentials map[string]client.IdentityCredentials) (string, e
 	}
 
 	return "", user.ErrTotpNotConfigured
+}
+
+func SetPhoneVerified(ctx context.Context, b Backends, userID string) error {
+	// Required for kratos to use admin server
+	ctx = context.WithValue(ctx, client.ContextServerIndex, 1)
+
+	identity, _, err := b.Kratos().IdentityApi.GetIdentity(ctx, userID).Execute()
+	if err != nil {
+		return fmt.Errorf("%w %s", user.ErrInternal, err)
+	}
+
+	traits, ok := identity.Traits.(map[string]any)
+	if !ok {
+		return fmt.Errorf("%w: invalid traits format", user.ErrInternal)
+	}
+	traits["phoneVerified"] = true
+
+	update := client.UpdateIdentityBody{Traits: traits}
+	_, _, err = b.Kratos().IdentityApi.UpdateIdentity(ctx, userID).UpdateIdentityBody(update).Execute()
+	if err != nil {
+		return fmt.Errorf("%w %s", user.ErrInternal, err)
+	}
+
+	return nil
+}
+
+func UpdateUserPhone(ctx context.Context, b Backends, userID string, phone string) error {
+	// Required for kratos to use admin server
+	ctx = context.WithValue(ctx, client.ContextServerIndex, 1)
+
+	identity, _, err := b.Kratos().IdentityApi.GetIdentity(ctx, userID).Execute()
+	if err != nil {
+		return fmt.Errorf("%w %s", user.ErrInternal, err)
+	}
+
+	traits, ok := identity.Traits.(map[string]any)
+	if !ok {
+		return fmt.Errorf("%w: invalid traits format", user.ErrInternal)
+	}
+	traits["phone"] = phone
+	traits["phoneVerified"] = false
+
+	update := client.UpdateIdentityBody{Traits: traits}
+	_, response, err := b.Kratos().IdentityApi.UpdateIdentity(ctx, userID).UpdateIdentityBody(update).Execute()
+	if err != nil {
+		if response != nil && response.StatusCode == 400 {
+			return fmt.Errorf("%w %s", user.ErrInvalidArgument, err)
+		}
+		if response != nil && response.StatusCode == http.StatusConflict {
+			return fmt.Errorf("%w %s", user.ErrDuplicatePhone, err)
+		}
+		return fmt.Errorf("%w %s", user.ErrInternal, err)
+	}
+
+	return nil
 }

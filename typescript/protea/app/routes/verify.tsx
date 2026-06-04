@@ -1,6 +1,11 @@
-import type { Route } from './+types/verify'
-import { data, redirect, href } from 'react-router'
-import { useFetcher, useLoaderData } from 'react-router'
+import {
+  data,
+  href,
+  redirect,
+  useFetcher,
+  useLoaderData,
+  useRouteLoaderData
+} from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   Button,
@@ -9,17 +14,23 @@ import {
   Layouts,
   OutlineButtonRouter
 } from '~/components'
-import { kratosPublic } from '~/lib/kratos/kratos-client.server'
-import { getCookie, withCookie, buildHeadersWithCookies } from '~/lib/kratos/cookie.server'
-import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.server'
+import {
+  buildHeadersWithCookies,
+  getCookie,
+  withCookie
+} from '~/lib/kratos/cookie.server'
 import { handleFlowError } from '~/lib/kratos/error.server'
-import logger from '~/lib/logger.server'
+import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.server'
+import { kratosPublic } from '~/lib/kratos/kratos-client.server'
 import { getUserSession } from '~/lib/kratos/session.server'
+import logger from '~/lib/logger.server'
 import { mergeMeta } from '~/lib/meta'
-import { safeReturnTo } from '~/lib/url.server'
 import { RateLimitKeys, getKey, rateLimit } from '~/lib/rateLimit.server'
+import { safeReturnTo } from '~/lib/url.server'
 import { useCountdown } from '~/lib/useCountdown'
 import { useDebounceAction } from '~/lib/useDebounceAction'
+import { RootLoaderData } from '~/root'
+import type { Route } from './+types/verify'
 
 const RESEND_DELAY = 60 * 1000 // 1 minute
 
@@ -40,7 +51,9 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   // We currently only allow one email per user.
   if (userSession.identity?.verifiable_addresses?.[0]?.verified) {
-    return redirect(href('/'))
+    const searchParams = new URLSearchParams()
+    searchParams.set('returnTo', safeReturnTo(url.searchParams.get('returnTo')))
+    return redirect(`${href('/phone-confirmation')}?${searchParams.toString()}`)
   }
 
   if (flowId) {
@@ -56,7 +69,10 @@ export async function loader({ request }: Route.LoaderArgs) {
       })
     } catch (err: any) {
       handleFlowError(err, 'verify')
-      logger.error({ error: err, route: 'verify' }, 'Failed to load verification flow')
+      logger.error(
+        { error: err, route: 'verify' },
+        'Failed to load verification flow'
+      )
       throw new Error('Failed to load verification flow')
     }
   }
@@ -72,7 +88,10 @@ export async function loader({ request }: Route.LoaderArgs) {
     })
   } catch (err: any) {
     handleFlowError(err, 'verify')
-    logger.error({ error: err, route: 'verify' }, 'Failed to initialize verification flow')
+    logger.error(
+      { error: err, route: 'verify' },
+      'Failed to initialize verification flow'
+    )
     throw new Error('Failed to initialize verification flow')
   }
 }
@@ -95,6 +114,8 @@ export const meta = mergeMeta(() => [
 export default function Page() {
   const { flow, email, csrfToken } = useLoaderData()
   const fetcher = useFetcher<ActionData>()
+  const { env } = useRouteLoaderData('root') as RootLoaderData
+  const supportEmail = env.supportEmail
 
   const withDebounce = useDebounceAction(RESEND_DELAY)
   const { start, isActive, remainingSeconds } = useCountdown()
@@ -136,8 +157,8 @@ export default function Page() {
         {isActive
           ? `Resend in ${remainingSeconds}s`
           : fetcher.state !== 'idle'
-            ? 'Sending...'
-            : 'Resend verification'}
+          ? 'Sending...'
+          : 'Resend verification'}
       </Button>
 
       <OutlineButtonRouter to={href('/logout')} className='mt-4'>
@@ -148,8 +169,8 @@ export default function Page() {
         <p className='mt-2 text-sm text-error'>
           Could not send email verification. Please try again or contact support
           at{' '}
-          <a href='mailto:support@interledger.app'>
-            <b>support@interledger.app</b>
+          <a href={`mailto:${supportEmail}`}>
+            <b>{supportEmail}</b>
           </a>
           .
         </p>
@@ -168,7 +189,7 @@ export async function action({ request }: Route.ActionArgs) {
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
   if (!flowId) {
-    throw redirect("/verify")
+    throw redirect('/verify')
   }
 
   const form = await request.formData()

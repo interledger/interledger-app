@@ -1864,6 +1864,7 @@ type Features struct {
 	ZarBalanceEnabled        bool                   `protobuf:"varint,10,opt,name=zarBalanceEnabled,proto3" json:"zarBalanceEnabled,omitempty"`
 	ManageWalletCardsEnabled bool                   `protobuf:"varint,11,opt,name=manageWalletCardsEnabled,proto3" json:"manageWalletCardsEnabled,omitempty"`
 	AccountEnabled           bool                   `protobuf:"varint,12,opt,name=accountEnabled,proto3" json:"accountEnabled,omitempty"`
+	AccountsTabEnabled       bool                   `protobuf:"varint,13,opt,name=accountsTabEnabled,proto3" json:"accountsTabEnabled,omitempty"`
 	unknownFields            protoimpl.UnknownFields
 	sizeCache                protoimpl.SizeCache
 }
@@ -1978,6 +1979,13 @@ func (x *Features) GetManageWalletCardsEnabled() bool {
 func (x *Features) GetAccountEnabled() bool {
 	if x != nil {
 		return x.AccountEnabled
+	}
+	return false
+}
+
+func (x *Features) GetAccountsTabEnabled() bool {
+	if x != nil {
+		return x.AccountsTabEnabled
 	}
 	return false
 }
@@ -3106,6 +3114,7 @@ type PaginationRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	PageSize      int32                  `protobuf:"varint,1,opt,name=pageSize,proto3" json:"pageSize,omitempty"`
 	PageToken     *string                `protobuf:"bytes,2,opt,name=pageToken,proto3,oneof" json:"pageToken,omitempty"`
+	Search        *string                `protobuf:"bytes,3,opt,name=search,proto3,oneof" json:"search,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3150,6 +3159,13 @@ func (x *PaginationRequest) GetPageSize() int32 {
 func (x *PaginationRequest) GetPageToken() string {
 	if x != nil && x.PageToken != nil {
 		return *x.PageToken
+	}
+	return ""
+}
+
+func (x *PaginationRequest) GetSearch() string {
+	if x != nil && x.Search != nil {
+		return *x.Search
 	}
 	return ""
 }
@@ -3868,7 +3884,7 @@ const file_backend_admin_v1_backend_proto_rawDesc = "" +
 	"\x06reason\x18\x02 \x01(\tR\x06reason\x12\x1a\n" +
 	"\bnewState\x18\x03 \x01(\tR\bnewState\"6\n" +
 	"\x18GetWalletFeaturesRequest\x12\x1a\n" +
-	"\bwalletID\x18\x01 \x01(\tR\bwalletID\"\x80\x04\n" +
+	"\bwalletID\x18\x01 \x01(\tR\bwalletID\"\xb0\x04\n" +
 	"\bFeatures\x12 \n" +
 	"\vsendEnabled\x18\x01 \x01(\bR\vsendEnabled\x12&\n" +
 	"\x0ereceiveEnabled\x18\x02 \x01(\bR\x0ereceiveEnabled\x124\n" +
@@ -3882,7 +3898,8 @@ const file_backend_admin_v1_backend_proto_rawDesc = "" +
 	"\x11zarBalanceEnabled\x18\n" +
 	" \x01(\bR\x11zarBalanceEnabled\x12:\n" +
 	"\x18manageWalletCardsEnabled\x18\v \x01(\bR\x18manageWalletCardsEnabled\x12&\n" +
-	"\x0eaccountEnabled\x18\f \x01(\bR\x0eaccountEnabled\".\n" +
+	"\x0eaccountEnabled\x18\f \x01(\bR\x0eaccountEnabled\x12.\n" +
+	"\x12accountsTabEnabled\x18\r \x01(\bR\x12accountsTabEnabled\".\n" +
 	"\x10ListAuditRequest\x12\x1a\n" +
 	"\bwalletID\x18\x01 \x01(\tR\bwalletID\"U\n" +
 	"\x11ListAuditResponse\x12@\n" +
@@ -3978,12 +3995,14 @@ const file_backend_admin_v1_backend_proto_rawDesc = "" +
 	"\vnationality\x18\v \x01(\tR\vnationality\x12\x1e\n" +
 	"\n" +
 	"walletName\x18\f \x01(\tR\n" +
-	"walletName\"`\n" +
+	"walletName\"\x88\x01\n" +
 	"\x11PaginationRequest\x12\x1a\n" +
 	"\bpageSize\x18\x01 \x01(\x05R\bpageSize\x12!\n" +
-	"\tpageToken\x18\x02 \x01(\tH\x00R\tpageToken\x88\x01\x01B\f\n" +
+	"\tpageToken\x18\x02 \x01(\tH\x00R\tpageToken\x88\x01\x01\x12\x1b\n" +
+	"\x06search\x18\x03 \x01(\tH\x01R\x06search\x88\x01\x01B\f\n" +
 	"\n" +
-	"_pageToken\"r\n" +
+	"_pageTokenB\t\n" +
+	"\a_search\"r\n" +
 	"\x06Wallet\x12\x1a\n" +
 	"\bwalletID\x18\x01 \x01(\tR\bwalletID\x12\x1e\n" +
 	"\n" +

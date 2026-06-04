@@ -1,0 +1,87 @@
+suite: Interledger App - Frontend validation
+templates:
+  - validation.frontend.yaml
+set:
+  fullnameOverride: wallet
+  frontend:
+    config:
+      target_host: "https://interledger.app"
+      support_email: "support@interledger.app"
+      public_op_auth_host: "auth.ilp.link"
+release:
+  name: wallet
+tests:
+  - it: 'Should succeed when replicaCount is 2 (default)'
+    asserts:
+      - isNull:
+          path: spec
+
+  - it: 'Should succeed when replicaCount is 3'
+    set:
+      frontend:
+        server:
+          replicaCount: 3
+    asserts:
+      - isNull:
+          path: spec
+
+  - it: 'Should fail when replicaCount is 1'
+    set:
+      frontend:
+        server:
+          replicaCount: 1
+    asserts:
+      - failedTemplate:
+          errorMessage: "frontend.server.replicaCount must be at least 2"
+
+  - it: 'Should fail when target_host is empty'
+    set:
+      frontend:
+        config:
+          target_host: ""
+    asserts:
+      - failedTemplate:
+          errorMessage: "The following required frontend values are empty: frontend.config.target_host"
+
+  - it: 'Should fail when support_email is empty'
+    set:
+      frontend:
+        config:
+          support_email: ""
+    asserts:
+      - failedTemplate:
+          errorMessage: "The following required frontend values are empty: frontend.config.support_email"
+
+  - it: 'Should fail when public_op_auth_host is empty'
+    set:
+      frontend:
+        config:
+          public_op_auth_host: ""
+    asserts:
+      - failedTemplate:
+          errorMessage: "The following required frontend values are empty: frontend.config.public_op_auth_host"
+
+  - it: 'Should report all missing required fields in one error'
+    set:
+      frontend:
+        config:
+          target_host: ""
+          support_email: ""
+          public_op_auth_host: ""
+    asserts:
+      - failedTemplate:
+          errorMessage: "The following required frontend values are empty: frontend.config.target_host, frontend.config.support_email, frontend.config.public_op_auth_host"
+
+  - it: 'Should skip all validation when frontend is disabled'
+    set:
+      frontend:
+        enabled: false
+        server:
+          replicaCount: 1
+        config:
+          target_host: ""
+          support_email: ""
+          public_op_auth_host: ""
+    asserts:
+      - isNull:
+          path: spec

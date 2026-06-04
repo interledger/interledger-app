@@ -95,3 +95,15 @@ func (c *client) GetTotpURL(ctx context.Context, userID string) (string, error) 
 func (c *client) GetUserIDForWallet(ctx context.Context, walletID string) (string, error) {
 	return ops.GetUserIDForWallet(ctx, c.b, walletID)
 }
+
+func (c *client) SetPhoneVerified(ctx context.Context, userID string) error {
+	return ops.SetPhoneVerified(ctx, c.b, userID)
+}
+
+func (c *client) UpdateUserPhone(ctx context.Context, userID string, phone string) error {
+	return ops.UpdateUserPhone(ctx, c.b, userID, phone)
+}
+
+func (c *client) FindWalletIDByEmail(ctx context.Context, email string) (string, error) {
+	return ops.FindWalletIDByEmail(ctx, c.b, email)
+}

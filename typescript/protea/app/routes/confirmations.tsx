@@ -1,8 +1,5 @@
-import type { Route } from './+types/confirmations'
-import { data, redirect } from 'react-router';
-import type { ShouldRevalidateFunction } from 'react-router';
-import { Outlet, useLocation } from 'react-router';
-import { href } from 'react-router'
+import type { ShouldRevalidateFunction } from 'react-router'
+import { Outlet, data, href, redirect, useLocation } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   Card,
@@ -16,15 +13,14 @@ import {
 } from '~/components'
 import { usePendingConfirmations } from '~/lib/cards/usePendingConfirmations'
 import { hasUserSession } from '~/lib/kratos/session.server'
+import type { Route } from './+types/confirmations'
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = hasUserSession(request)
   const returnTo = new URL(request.url).pathname
 
   if (!session) {
-    throw redirect(
-      `${href('/login')}?returnTo=${encodeURIComponent(returnTo)}`
-    )
+    throw redirect(`${href('/login')}?returnTo=${encodeURIComponent(returnTo)}`)
   }
 
   return data({})

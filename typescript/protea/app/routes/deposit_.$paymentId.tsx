@@ -1,28 +1,20 @@
-import type { Route } from './+types/deposit_.$paymentId'
-import { redirect } from 'react-router';
-import { Form, useLoaderData } from 'react-router';
 import { DateTime } from 'luxon'
-import { href } from 'react-router'
+import { Form, href, redirect, useLoaderData } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Icon, Layouts } from '~/components'
 import { Label } from '~/components/Label'
-import { getKycStatus } from '~/data/wallet.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { ErrorDescriptions } from '~/lib/error.constants'
-import { TwillioErrorMapper } from '~/lib/error.mappers'
-import { isConnectError, isTwilioCodeError } from '~/lib/error.server'
+import { isConnectError, isOtpValidationError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { getClientIP } from '~/lib/ip.server'
 import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
+import { PaymentRequiredAction } from '~/lib/types'
 import { usePTISdk } from '~/lib/usePTISdk'
-import { KycStatus, PaymentRequiredAction } from '~/lib/types'
+import type { Route } from './+types/deposit_.$paymentId'
 
 export async function loader({ request, params }: Route.LoaderArgs) {
-  const { kycStatus } = await getKycStatus(request)
-  if (kycStatus != KycStatus.Approved)
-    return redirect(href('/personal-details'))
-
   const payment = await grpc.getPayment(request, { id: params.paymentId })
 
   if (isConnectError(payment)) throw payment.errorResponse
@@ -31,7 +23,8 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   if (payment.state > 1) throw redirect(href('/deposit'))
 
   const linkedAccountsResponse = await grpc.getLinkedAccounts(request, {})
-  if (isConnectError(linkedAccountsResponse)) throw linkedAccountsResponse.error
+  if (isConnectError(linkedAccountsResponse))
+    throw linkedAccountsResponse.errorResponse
 
   return jsonWithCSRF(request, {
     receiverAccountTitle: linkedAccountsResponse.linkedAccounts.find(
@@ -59,12 +52,8 @@ export const meta = mergeMeta(() => [
 ])
 
 export default function Page() {
-  const {
-    payment,
-    receiverAccountTitle,
-    senderAccountTitle,
-    csrfToken
-  } = useLoaderData()
+  const { payment, receiverAccountTitle, senderAccountTitle, csrfToken } =
+    useLoaderData()
 
   usePTISdk(payment.id, payment.receiverAmount?.clientId ?? '')
 
@@ -170,12 +159,10 @@ export async function action({ request, params }: Route.ActionArgs) {
       ipAddress: clientIpAddress
     })
     if (isConnectError(response)) {
-      if (isTwilioCodeError(response)) {
+      if (isOtpValidationError(response)) {
         return response.error(
           { errors },
-          {
-            otp: TwillioErrorMapper.otp
-          },
+          {},
           { action: 'Contact support', message: ErrorDescriptions.INVALID_OTP }
         )
       }

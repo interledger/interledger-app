@@ -107,3 +107,7 @@ func (c *client) SendKYCDocumentsRequiredEmail(ctx context.Context, walletID str
 func (c *client) SendAgreementChangedEmail(ctx context.Context, userID string, agreements []email.AgreementLink, deadlineDate string) error {
 	return ops.SendAgreementChangedEmail(ctx, c.b, userID, agreements, deadlineDate)
 }
+
+func (c *client) SendAuthenticatorResetEmail(ctx context.Context, walletID string) {
+	ops.SendAuthenticatorResetEmail(ctx, c.b, walletID)
+}

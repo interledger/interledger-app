@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -18,18 +19,34 @@ var phoneAllocMu sync.Mutex
 // Kratos has registered the previous allocation.
 var phoneCounters = map[string]int{}
 
+var (
+	_ = (*E2EContext).getGatehubWalletIDByEmail
+	_ = (*E2EContext).getWalletIDByEmail
+	_ = (*E2EContext).getKYCStatusByWalletID
+)
+
+const backendDBConnStr = "host=localhost port=5432 user=postgres password=postgres dbname=backend sslmode=disable"
+
+// ensureDB opens the backend database connection if it is not already open.
+func (sc *E2EContext) ensureDB() error {
+	if sc.db != nil {
+		return nil
+	}
+	db, err := sql.Open("postgres", backendDBConnStr)
+	if err != nil {
+		return fmt.Errorf("failed to open backend db: %w", err)
+	}
+	sc.db = db
+	return nil
+}
+
 // waitForStableWalletCount polls the backend DB for the number of wallets
 // associated with the current test user. It returns when the observed
 // count is >= expectedMin for `stableFor` consecutive checks or when
 // the timeout is reached.
 func (sc *E2EContext) waitForStableWalletCount(expectedMin int, stableFor int, timeout time.Duration) error {
-	if sc.db == nil {
-		connStr := "host=localhost port=5432 user=postgres password=postgres dbname=backend sslmode=disable"
-		db, err := sql.Open("postgres", connStr)
-		if err != nil {
-			return fmt.Errorf("waitForStableWalletCount: failed to open db: %w", err)
-		}
-		sc.db = db
+	if err := sc.ensureDB(); err != nil {
+		return fmt.Errorf("waitForStableWalletCount: %w", err)
 	}
 
 	email, err := sc.getCurrentUserEmail()
@@ -76,13 +93,8 @@ func (sc *E2EContext) waitForStableWalletCount(expectedMin int, stableFor int, t
 // getGatehubWalletIDByEmail fetches the GateHub wallet ID (provider_id) for a user by email
 // It queries the linked_accounts table to find the GateHub provider_id for the user
 func (sc *E2EContext) getGatehubWalletIDByEmail(email string) (string, error) {
-	if sc.db == nil {
-		connStr := "host=localhost port=5432 user=postgres password=postgres dbname=backend sslmode=disable"
-		db, err := sql.Open("postgres", connStr)
-		if err != nil {
-			return "", fmt.Errorf("getGatehubWalletIDByEmail: failed to open db: %w", err)
-		}
-		sc.db = db
+	if err := sc.ensureDB(); err != nil {
+		return "", fmt.Errorf("getGatehubWalletIDByEmail: %w", err)
 	}
 
 	// Get the Kratos user ID from the email
@@ -118,13 +130,8 @@ func (sc *E2EContext) getGatehubWalletIDByEmail(email string) (string, error) {
 // getGatehubUserIDByEmail fetches the GateHub managed user ID (external_id) for a user by email.
 // It queries the gatehub_users table using the user's wallet associations.
 func (sc *E2EContext) getGatehubUserIDByEmail(email string) (string, error) {
-	if sc.db == nil {
-		connStr := "host=localhost port=5432 user=postgres password=postgres dbname=backend sslmode=disable"
-		db, err := sql.Open("postgres", connStr)
-		if err != nil {
-			return "", fmt.Errorf("getGatehubUserIDByEmail: failed to open db: %w", err)
-		}
-		sc.db = db
+	if err := sc.ensureDB(); err != nil {
+		return "", fmt.Errorf("getGatehubUserIDByEmail: %w", err)
 	}
 
 	kratosID := sc.getKratosUserIDByEmail(email)
@@ -166,13 +173,8 @@ type SignupRecord struct {
 
 // getSignupRecord retrieves signup record for an email address
 func (sc *E2EContext) getSignupRecord(email string) (*SignupRecord, error) {
-	if sc.db == nil {
-		connStr := "host=localhost port=5432 user=postgres password=postgres dbname=backend sslmode=disable"
-		db, err := sql.Open("postgres", connStr)
-		if err != nil {
-			return nil, fmt.Errorf("getSignupRecord: failed to open db: %w", err)
-		}
-		sc.db = db
+	if err := sc.ensureDB(); err != nil {
+		return nil, fmt.Errorf("getSignupRecord: %w", err)
 	}
 
 	var record SignupRecord
@@ -251,6 +253,62 @@ func (sc *E2EContext) markKratosEmailAsVerified(email string) error {
 	}
 
 	debugPrintf("✓ Marked email as verified in Kratos: %s\n", email)
+	return nil
+}
+
+// markKratosPhoneAsVerified marks the current user's phone as verified in Kratos traits.
+func (sc *E2EContext) markKratosPhoneAsVerified(email string) error {
+	kratosConnStr := "host=localhost port=5432 user=postgres password=postgres dbname=kratos sslmode=disable"
+	kratosDB, err := sql.Open("postgres", kratosConnStr)
+	if err != nil {
+		return fmt.Errorf("markKratosPhoneAsVerified: could not connect to Kratos DB: %w", err)
+	}
+	defer kratosDB.Close()
+
+	identityID, err := sc.lookupKratosIdentityByEmail(email)
+	if err != nil {
+		return fmt.Errorf("markKratosPhoneAsVerified: failed to resolve identity for %s: %w", email, err)
+	}
+
+	var traitsRaw []byte
+	if err := kratosDB.QueryRow(`SELECT traits FROM identities WHERE id = $1`, identityID).Scan(&traitsRaw); err != nil {
+		return fmt.Errorf("markKratosPhoneAsVerified: failed to load traits for %s: %w", identityID, err)
+	}
+
+	var traits map[string]interface{}
+	if err := json.Unmarshal(traitsRaw, &traits); err != nil {
+		return fmt.Errorf("markKratosPhoneAsVerified: failed to decode traits for %s: %w", identityID, err)
+	}
+
+	phone, hasPhone := traits["phone"].(string)
+	if !hasPhone || strings.TrimSpace(phone) == "" {
+		return fmt.Errorf("markKratosPhoneAsVerified: no phone trait found for %s", identityID)
+	}
+
+	traits["phoneVerified"] = true
+	updatedTraits, err := json.Marshal(traits)
+	if err != nil {
+		return fmt.Errorf("markKratosPhoneAsVerified: failed to encode traits for %s: %w", identityID, err)
+	}
+
+	result, err := kratosDB.Exec(`
+		UPDATE identities
+		SET traits = $2, updated_at = NOW()
+		WHERE id = $1
+	`, identityID, updatedTraits)
+	if err != nil {
+		return fmt.Errorf("markKratosPhoneAsVerified: failed to update traits for %s: %w", identityID, err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("markKratosPhoneAsVerified: could not check rows affected: %w", err)
+	}
+	if rowsAffected == 0 {
+		return fmt.Errorf("markKratosPhoneAsVerified: no identity row updated for %s", identityID)
+	}
+
+	debugPrintf("✓ Marked phone as verified in Kratos: %s (%s)\n", phone, identityID)
 	return nil
 }
 
@@ -368,13 +426,8 @@ func (sc *E2EContext) checkRafikiAssetsSeeded() error {
 
 // getUserIDFromSignup retrieves the user_id (Kratos ID) from signups table by email
 func (sc *E2EContext) getUserIDFromSignup(email string) (string, error) {
-	if sc.db == nil {
-		connStr := "host=localhost port=5432 user=postgres password=postgres dbname=backend sslmode=disable"
-		db, err := sql.Open("postgres", connStr)
-		if err != nil {
-			return "", fmt.Errorf("getUserIDFromSignup: failed to open db: %w", err)
-		}
-		sc.db = db
+	if err := sc.ensureDB(); err != nil {
+		return "", fmt.Errorf("getUserIDFromSignup: %w", err)
 	}
 
 	var kratosUserID string
@@ -391,13 +444,8 @@ func (sc *E2EContext) getUserIDFromSignup(email string) (string, error) {
 
 // getWalletIDForUser retrieves the wallet_id for a given user_id
 func (sc *E2EContext) getWalletIDForUser(kratosUserID string) (string, error) {
-	if sc.db == nil {
-		connStr := "host=localhost port=5432 user=postgres password=postgres dbname=backend sslmode=disable"
-		db, err := sql.Open("postgres", connStr)
-		if err != nil {
-			return "", fmt.Errorf("getWalletIDForUser: failed to open db: %w", err)
-		}
-		sc.db = db
+	if err := sc.ensureDB(); err != nil {
+		return "", fmt.Errorf("getWalletIDForUser: %w", err)
 	}
 
 	var walletID string
@@ -414,13 +462,8 @@ func (sc *E2EContext) getWalletIDForUser(kratosUserID string) (string, error) {
 
 // getTransactionCount retrieves the transaction count for a wallet
 func (sc *E2EContext) getTransactionCount(walletID string) (int, error) {
-	if sc.db == nil {
-		connStr := "host=localhost port=5432 user=postgres password=postgres dbname=backend sslmode=disable"
-		db, err := sql.Open("postgres", connStr)
-		if err != nil {
-			return 0, fmt.Errorf("getTransactionCount: failed to open db: %w", err)
-		}
-		sc.db = db
+	if err := sc.ensureDB(); err != nil {
+		return 0, fmt.Errorf("getTransactionCount: %w", err)
 	}
 
 	var count int
@@ -440,13 +483,8 @@ type WalletDetails struct {
 }
 
 func (sc *E2EContext) getWalletDetailsForUser(kratosUserID string) (*WalletDetails, error) {
-	if sc.db == nil {
-		connStr := "host=localhost port=5432 user=postgres password=postgres dbname=backend sslmode=disable"
-		db, err := sql.Open("postgres", connStr)
-		if err != nil {
-			return nil, fmt.Errorf("getWalletDetailsForUser: failed to open db: %w", err)
-		}
-		sc.db = db
+	if err := sc.ensureDB(); err != nil {
+		return nil, fmt.Errorf("getWalletDetailsForUser: %w", err)
 	}
 
 	var walletID, walletName, walletAddress sql.NullString
@@ -474,13 +512,8 @@ func (sc *E2EContext) getWalletDetailsForUser(kratosUserID string) (*WalletDetai
 
 // getUserWalletCount returns the count of wallets for a user
 func (sc *E2EContext) getUserWalletCount(kratosUserID string) (int, error) {
-	if sc.db == nil {
-		connStr := "host=localhost port=5432 user=postgres password=postgres dbname=backend sslmode=disable"
-		db, err := sql.Open("postgres", connStr)
-		if err != nil {
-			return 0, fmt.Errorf("getUserWalletCount: failed to open db: %w", err)
-		}
-		sc.db = db
+	if err := sc.ensureDB(); err != nil {
+		return 0, fmt.Errorf("getUserWalletCount: %w", err)
 	}
 
 	var count int
@@ -563,13 +596,8 @@ func phoneRangeForCountry(country string) (prefix string, pattern string, digits
 
 // getWalletIDByEmail looks up the wallet ID for a user by their email address
 func (sc *E2EContext) getWalletIDByEmail(email string) (string, error) {
-	if sc.db == nil {
-		connStr := "host=localhost port=5432 user=postgres password=postgres dbname=backend sslmode=disable"
-		db, err := sql.Open("postgres", connStr)
-		if err != nil {
-			return "", fmt.Errorf("getWalletIDByEmail: failed to open db: %w", err)
-		}
-		sc.db = db
+	if err := sc.ensureDB(); err != nil {
+		return "", fmt.Errorf("getWalletIDByEmail: %w", err)
 	}
 
 	kratosID := sc.getKratosUserIDByEmail(email)
@@ -592,13 +620,8 @@ func (sc *E2EContext) getWalletIDByEmail(email string) (string, error) {
 
 // getKYCStatusByWalletID looks up the KYC status for a wallet
 func (sc *E2EContext) getKYCStatusByWalletID(walletID string) (int, error) {
-	if sc.db == nil {
-		connStr := "host=localhost port=5432 user=postgres password=postgres dbname=backend sslmode=disable"
-		db, err := sql.Open("postgres", connStr)
-		if err != nil {
-			return -1, fmt.Errorf("getKYCStatusByWalletID: failed to open db: %w", err)
-		}
-		sc.db = db
+	if err := sc.ensureDB(); err != nil {
+		return -1, fmt.Errorf("getKYCStatusByWalletID: %w", err)
 	}
 
 	var status int

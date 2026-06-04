@@ -75,3 +75,7 @@ func (n *noopClient) SendAgreementChangedEmail(_ context.Context, userID string,
 	log.Info("NOT SENDING: agreement changed email", zap.String("userID", userID))
 	return nil
 }
+
+func (n *noopClient) SendAuthenticatorResetEmail(_ context.Context, walletID string) {
+	log.Info("NOT SENDING: authenticator reset email", zap.String("walletID", walletID))
+}

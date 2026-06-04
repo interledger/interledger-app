@@ -34,14 +34,28 @@ type Backends interface {
 	Agreements() agreements.Client
 }
 
+type Config struct {
+	KratosURL         string
+	KratosAdminURL    string
+	PTIJWK            string
+	PTIBaseURL        string
+	PTIClientID       string
+	RafikiDBURL       string
+	RafikiAuthDBURL   string
+	TempGatehubAppID  string
+	TempGatehubSecret string
+}
+
 type Activity struct {
 	b             Backends
 	gatehubConfig gatehub.Config
+	cfg           Config
 }
 
-func NewActivity(b Backends, gatehubConfig gatehub.Config) *Activity {
+func NewActivity(b Backends, gatehubConfig gatehub.Config, cfg Config) *Activity {
 	return &Activity{
 		b:             b,
 		gatehubConfig: gatehubConfig,
+		cfg:           cfg,
 	}
 }

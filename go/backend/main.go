@@ -39,6 +39,7 @@ import (
 	contacts_client "gitlab.com/fynbos/backend/contacts/client"
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
+	"gitlab.com/fynbos/backend/jobs"
 
 	"gitlab.com/fynbos/backend/email"
 	email_client "gitlab.com/fynbos/backend/email/client"
@@ -84,6 +85,7 @@ import (
 	signup_client "gitlab.com/fynbos/backend/signup/client"
 	"gitlab.com/fynbos/backend/slack"
 	slack_client "gitlab.com/fynbos/backend/slack/client"
+	slack_external "gitlab.com/fynbos/backend/slack/external"
 	"gitlab.com/fynbos/backend/temporal"
 	"gitlab.com/fynbos/backend/transactions"
 	transactions_client "gitlab.com/fynbos/backend/transactions/client"
@@ -123,19 +125,6 @@ func main() {
 	// Set the timezone globally
 	time.Local = time.UTC
 
-	if os.Getenv("SENTRY_DSN") != "" {
-		err := sentry.Init(sentry.ClientOptions{
-			Dsn:              os.Getenv("SENTRY_DSN"),
-			Release:          os.Getenv("SENTRY_RELEASE"),
-			TracesSampleRate: 1.0,
-		})
-		if err != nil {
-			log.Fatal("sentry.Init: %s", zap.Error(err))
-		}
-		// Flush buffered events before the program terminates.
-		defer sentry.Flush(2 * time.Second)
-	}
-
 	command := os.Args[1]
 	switch command {
 	case "migrate":
@@ -143,32 +132,52 @@ func main() {
 		if err != nil {
 			log.Fatalln(err)
 		}
+		initSentry(args.SentryDSN, args.SentryRelease)
+		defer sentry.Flush(2 * time.Second)
 		migrate(args)
 	case "start":
 		args, err := cli.ParseStartArgs()
 		if err != nil {
 			log.Fatalln(err)
 		}
+		initSentry(args.SentryDSN, args.SentryRelease)
+		defer sentry.Flush(2 * time.Second)
 		start(args)
 	case "worker":
 		args, err := cli.ParseStartArgs()
 		if err != nil {
 			log.Fatalln(err)
 		}
+		initSentry(args.SentryDSN, args.SentryRelease)
+		defer sentry.Flush(2 * time.Second)
 		startWorker(args)
 	case "dev":
 		args, err := cli.ParseStartArgs()
 		if err != nil {
 			log.Fatalln(err)
 		}
-
+		initSentry(args.SentryDSN, args.SentryRelease)
+		defer sentry.Flush(2 * time.Second)
 		go func() {
 			startWorker(args)
 		}()
-
 		start(args)
 	default:
 		log.Fatal("Unknown command:", zap.String("command", command))
+	}
+}
+
+func initSentry(dsn, release string) {
+	if dsn == "" {
+		return
+	}
+	err := sentry.Init(sentry.ClientOptions{
+		Dsn:              dsn,
+		Release:          release,
+		TracesSampleRate: 1.0,
+	})
+	if err != nil {
+		log.Fatal("sentry.Init: %s", zap.Error(err))
 	}
 }
 
@@ -223,12 +232,12 @@ func start(args *cli.StartArgs) {
 		WebhookSecret: args.PersonaWebhookToken,
 	})
 	router.Handle("/webhooks/persona", kyc_ops.NewHandlePersonaWebhook(b, personaClient))
-	router.Handle("/webhooks/chimoney", chimoney_ops.NewWebhook(b))
+	router.Handle("/webhooks/chimoney", chimoney_ops.NewWebhook(b, args.ChimoneyWebhookSecret, args.ChimoneyToken))
 	router.Handle("/.well-known/apple-app-site-association", aasa_assetlinks.AppSiteAssociationHandler(b.aasaConfig))
 	router.Handle("/.well-known/assetlinks.json", aasa_assetlinks.AssetLinksHandler(b.aasaConfig))
 
 	if args.PTIEnabled {
-		ptiWebhook, err := pti_ops.Webhook(b)
+		ptiWebhook, err := pti_ops.Webhook(b, args.PTIClientID, args.PTIPublicKeyJWK)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -504,7 +513,17 @@ func startWorker(args *cli.StartArgs) {
 	serveHTTP(&http.Server{Addr: ":8081", Handler: router}, &wg)
 
 	log.Info("Worker creating")
-	w, err := temporal.NewTemporalWorker(b, b.gatehubConfig, b.xagoConfig)
+	w, err := temporal.NewTemporalWorker(b, b.gatehubConfig, b.xagoConfig, args.PTIJWK, args.PTIBaseURL, args.PTIClientID, args.ChimoneyToken, jobs.Config{
+		KratosURL:         args.KratosUrl,
+		KratosAdminURL:    args.KratosAdminUrl,
+		PTIJWK:            args.PTIJWK,
+		PTIBaseURL:        args.PTIBaseURL,
+		PTIClientID:       args.PTIClientID,
+		RafikiDBURL:       args.RafikiDBURL,
+		RafikiAuthDBURL:   args.RafikiAuthDBURL,
+		TempGatehubAppID:  args.TempGatehubAppID,
+		TempGatehubSecret: args.TempGatehubSecret,
+	})
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -729,7 +748,15 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 		BearerToken:   args.TwitterBearerToken,
 	})
 
-	b.slack, err = slack_client.New(b)
+	slack.Init(args.SlackToken)
+	_grpc.InitAgreementIDs(args.SignupAgreementIDs)
+
+	b.slack, err = slack_client.New(b, slack_external.Config{
+		ClientID:       args.SlackClientID,
+		ClientSecret:   args.SlackClientSecret,
+		RedirectURL:    args.SlackRedirectURL,
+		BotRedirectURL: args.SlackBotRedirectURL,
+	})
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -772,6 +799,7 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 			BaseURL:       args.PersonaBaseURL,
 			BearerToken:   args.PersonaToken,
 			WebhookSecret: args.PersonaWebhookToken,
+			FakeZAID:      args.PersonaSandboxFakeZAID,
 		},
 	)
 	if err != nil {
@@ -811,7 +839,11 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	b.img = img_client.New(b)
 
 	log.Debug("initialising vault")
-	vc, err := vault.NewClient()
+	vc, err := vault.NewClient(vault.Config{
+		Addr:              args.VaultAddr,
+		TransitEnginePath: args.VaultTransitEnginePath,
+		Token:             args.VaultToken,
+	})
 	if err != nil {
 		log.Error("error vault", zap.Error(err))
 	}
@@ -825,9 +857,11 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 
 	log.Debug("initialising rafiki")
 	b.rafiki = rafiki_client.New(b, rafiki_external.AdminSigningConfig{
-		OperatorTenantID: args.OperatorTenantID,
-		AdminAPISecret:   args.AdminAPISecret,
-		SignatureVersion: args.SignatureVersion,
+		OperatorTenantID:  args.OperatorTenantID,
+		AdminAPISecret:    args.AdminAPISecret,
+		SignatureVersion:  args.SignatureVersion,
+		BackendGraphQLURL: args.RafikiBackendGraphQLURL,
+		AuthGraphQLURL:    args.RafikiAuthGraphQLURL,
 	})
 
 	log.Debug("initialising pacioli")
@@ -849,7 +883,7 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 
 	log.Debug("initialising FIANT")
 	pti_ops.ConfigureWidgetURLs(args.PTISDKURL, args.PTIFormsURL, args.PTIClientID)
-	b.pti = pti_client.New(b)
+	b.pti = pti_client.New(b, args.PTIJWK, args.PTIBaseURL, args.PTIClientID)
 
 	log.Debug("initialising Gatehub")
 	b.gatehubConfig = gatehub.Config{
@@ -879,7 +913,7 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	}
 
 	log.Debug("initialising Chimoney")
-	b.chimoney = chimoney_client.New(b)
+	b.chimoney = chimoney_client.New(b, args.ChimoneyToken)
 
 	b.aasaConfig = aasa_assetlinks.Config{
 		AppleAppID:         args.AppleAppID,

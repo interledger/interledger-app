@@ -1,10 +1,10 @@
 import { Listbox, Transition } from '@headlessui/react'
-import { Link } from 'react-router';
-import type { LinkProps } from 'react-router';
 import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { FC, ReactNode, RefAttributes } from 'react'
 import { Fragment, forwardRef } from 'react'
+import type { LinkProps } from 'react-router'
+import { Link } from 'react-router'
 import { Icon } from '.'
 
 export type SelectOptions = {

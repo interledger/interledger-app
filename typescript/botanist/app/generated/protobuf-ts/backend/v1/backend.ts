@@ -45,6 +45,24 @@ export interface ThreeDSPaymentConfirmationRequest {
     confirmed: boolean;
 }
 /**
+ * @generated from protobuf message backend.v1.ConfirmUserPhoneRequest
+ */
+export interface ConfirmUserPhoneRequest {
+    /**
+     * @generated from protobuf field: string otp = 1;
+     */
+    otp: string;
+}
+/**
+ * @generated from protobuf message backend.v1.UpdateUserPhoneRequest
+ */
+export interface UpdateUserPhoneRequest {
+    /**
+     * @generated from protobuf field: string phone = 1;
+     */
+    phone: string;
+}
+/**
  * @generated from protobuf message backend.v1.PendingThreeDSConfirmation
  */
 export interface PendingThreeDSConfirmation {
@@ -1548,6 +1566,10 @@ export interface Features {
      * @generated from protobuf field: bool accountEnabled = 12;
      */
     accountEnabled: boolean;
+    /**
+     * @generated from protobuf field: bool accountsTabEnabled = 13;
+     */
+    accountsTabEnabled: boolean;
 }
 /**
  * @generated from protobuf message backend.v1.CreateCardRequest
@@ -1933,6 +1955,10 @@ export interface SetSignupUserDataRequest {
      * @generated from protobuf field: string countryCode = 5;
      */
     countryCode: string;
+    /**
+     * @generated from protobuf field: string mobile = 6;
+     */
+    mobile: string;
 }
 /**
  * @generated from protobuf message backend.v1.SetSignupUserDataResponse
@@ -2707,6 +2733,40 @@ export interface VerifyIdentityRequest {
     id: string;
 }
 /**
+ * @generated from protobuf message backend.v1.AppError
+ */
+export interface AppError {
+    /**
+     * @generated from protobuf field: string errorCode = 1;
+     */
+    errorCode: string; // See errcodes.go for all possible values
+    /**
+     * @generated from protobuf field: string message = 2;
+     */
+    message: string;
+    /**
+     * @generated from protobuf field: repeated backend.v1.AppErrorField fields = 3;
+     */
+    fields: AppErrorField[];
+    /**
+     * @generated from protobuf field: string reqId = 4;
+     */
+    reqId: string;
+}
+/**
+ * @generated from protobuf message backend.v1.AppErrorField
+ */
+export interface AppErrorField {
+    /**
+     * @generated from protobuf field: string field = 1;
+     */
+    field: string;
+    /**
+     * @generated from protobuf field: string error = 2;
+     */
+    error: string;
+}
+/**
  * @generated from protobuf enum backend.v1.CardTokenType
  */
 export enum CardTokenType {
@@ -3030,6 +3090,100 @@ class ThreeDSPaymentConfirmationRequest$Type extends MessageType<ThreeDSPaymentC
  * @generated MessageType for protobuf message backend.v1.ThreeDSPaymentConfirmationRequest
  */
 export const ThreeDSPaymentConfirmationRequest = new ThreeDSPaymentConfirmationRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ConfirmUserPhoneRequest$Type extends MessageType<ConfirmUserPhoneRequest> {
+    constructor() {
+        super("backend.v1.ConfirmUserPhoneRequest", [
+            { no: 1, name: "otp", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<ConfirmUserPhoneRequest>): ConfirmUserPhoneRequest {
+        const message = { otp: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ConfirmUserPhoneRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ConfirmUserPhoneRequest): ConfirmUserPhoneRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string otp */ 1:
+                    message.otp = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ConfirmUserPhoneRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string otp = 1; */
+        if (message.otp !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.otp);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.ConfirmUserPhoneRequest
+ */
+export const ConfirmUserPhoneRequest = new ConfirmUserPhoneRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class UpdateUserPhoneRequest$Type extends MessageType<UpdateUserPhoneRequest> {
+    constructor() {
+        super("backend.v1.UpdateUserPhoneRequest", [
+            { no: 1, name: "phone", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<UpdateUserPhoneRequest>): UpdateUserPhoneRequest {
+        const message = { phone: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<UpdateUserPhoneRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: UpdateUserPhoneRequest): UpdateUserPhoneRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string phone */ 1:
+                    message.phone = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: UpdateUserPhoneRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string phone = 1; */
+        if (message.phone !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.phone);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.UpdateUserPhoneRequest
+ */
+export const UpdateUserPhoneRequest = new UpdateUserPhoneRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class PendingThreeDSConfirmation$Type extends MessageType<PendingThreeDSConfirmation> {
     constructor() {
@@ -7980,11 +8134,12 @@ class Features$Type extends MessageType<Features> {
             { no: 9, name: "interacEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 10, name: "zarBalanceEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 11, name: "manageWalletCardsEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 12, name: "accountEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+            { no: 12, name: "accountEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 13, name: "accountsTabEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
         ]);
     }
     create(value?: PartialMessage<Features>): Features {
-        const message = { sendEnabled: false, receiveEnabled: false, linkedAccountsEnabled: false, cardsEnabled: false, banksEnabled: false, identitiesEnabled: false, twitterEnabled: false, addCardsEnabled: false, interacEnabled: false, zarBalanceEnabled: false, manageWalletCardsEnabled: false, accountEnabled: false };
+        const message = { sendEnabled: false, receiveEnabled: false, linkedAccountsEnabled: false, cardsEnabled: false, banksEnabled: false, identitiesEnabled: false, twitterEnabled: false, addCardsEnabled: false, interacEnabled: false, zarBalanceEnabled: false, manageWalletCardsEnabled: false, accountEnabled: false, accountsTabEnabled: false };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Features>(this, message, value);
@@ -8030,6 +8185,9 @@ class Features$Type extends MessageType<Features> {
                     break;
                 case /* bool accountEnabled */ 12:
                     message.accountEnabled = reader.bool();
+                    break;
+                case /* bool accountsTabEnabled */ 13:
+                    message.accountsTabEnabled = reader.bool();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -8079,6 +8237,9 @@ class Features$Type extends MessageType<Features> {
         /* bool accountEnabled = 12; */
         if (message.accountEnabled !== false)
             writer.tag(12, WireType.Varint).bool(message.accountEnabled);
+        /* bool accountsTabEnabled = 13; */
+        if (message.accountsTabEnabled !== false)
+            writer.tag(13, WireType.Varint).bool(message.accountsTabEnabled);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -9272,11 +9433,12 @@ class SetSignupUserDataRequest$Type extends MessageType<SetSignupUserDataRequest
             { no: 2, name: "firstName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "lastName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 4, name: "email", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 5, name: "countryCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 5, name: "countryCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "mobile", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<SetSignupUserDataRequest>): SetSignupUserDataRequest {
-        const message = { firstName: "", lastName: "", email: "", countryCode: "" };
+        const message = { firstName: "", lastName: "", email: "", countryCode: "", mobile: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<SetSignupUserDataRequest>(this, message, value);
@@ -9301,6 +9463,9 @@ class SetSignupUserDataRequest$Type extends MessageType<SetSignupUserDataRequest
                     break;
                 case /* string countryCode */ 5:
                     message.countryCode = reader.string();
+                    break;
+                case /* string mobile */ 6:
+                    message.mobile = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -9329,6 +9494,9 @@ class SetSignupUserDataRequest$Type extends MessageType<SetSignupUserDataRequest
         /* string countryCode = 5; */
         if (message.countryCode !== "")
             writer.tag(5, WireType.LengthDelimited).string(message.countryCode);
+        /* string mobile = 6; */
+        if (message.mobile !== "")
+            writer.tag(6, WireType.LengthDelimited).string(message.mobile);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -12518,6 +12686,128 @@ class VerifyIdentityRequest$Type extends MessageType<VerifyIdentityRequest> {
  * @generated MessageType for protobuf message backend.v1.VerifyIdentityRequest
  */
 export const VerifyIdentityRequest = new VerifyIdentityRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class AppError$Type extends MessageType<AppError> {
+    constructor() {
+        super("backend.v1.AppError", [
+            { no: 1, name: "errorCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "message", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "fields", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => AppErrorField },
+            { no: 4, name: "reqId", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<AppError>): AppError {
+        const message = { errorCode: "", message: "", fields: [], reqId: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<AppError>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: AppError): AppError {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string errorCode */ 1:
+                    message.errorCode = reader.string();
+                    break;
+                case /* string message */ 2:
+                    message.message = reader.string();
+                    break;
+                case /* repeated backend.v1.AppErrorField fields */ 3:
+                    message.fields.push(AppErrorField.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* string reqId */ 4:
+                    message.reqId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: AppError, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string errorCode = 1; */
+        if (message.errorCode !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.errorCode);
+        /* string message = 2; */
+        if (message.message !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.message);
+        /* repeated backend.v1.AppErrorField fields = 3; */
+        for (let i = 0; i < message.fields.length; i++)
+            AppErrorField.internalBinaryWrite(message.fields[i], writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        /* string reqId = 4; */
+        if (message.reqId !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.reqId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.AppError
+ */
+export const AppError = new AppError$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class AppErrorField$Type extends MessageType<AppErrorField> {
+    constructor() {
+        super("backend.v1.AppErrorField", [
+            { no: 1, name: "field", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "error", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<AppErrorField>): AppErrorField {
+        const message = { field: "", error: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<AppErrorField>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: AppErrorField): AppErrorField {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string field */ 1:
+                    message.field = reader.string();
+                    break;
+                case /* string error */ 2:
+                    message.error = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: AppErrorField, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string field = 1; */
+        if (message.field !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.field);
+        /* string error = 2; */
+        if (message.error !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.error);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.AppErrorField
+ */
+export const AppErrorField = new AppErrorField$Type();
 /**
  * @generated ServiceType for protobuf service backend.v1.BackendService
  */
@@ -12626,5 +12916,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "UnfreezeCard", options: {}, I: UnfreezeCardRequest, O: Empty },
     { name: "BlockCard", options: {}, I: BlockCardRequest, O: Empty },
     { name: "GetPendingThreeDSConfirmations", options: {}, I: Empty, O: GetPendingThreeDSConfirmationsResponse },
-    { name: "ThreeDSPaymentConfirmation", options: {}, I: ThreeDSPaymentConfirmationRequest, O: Empty }
+    { name: "ThreeDSPaymentConfirmation", options: {}, I: ThreeDSPaymentConfirmationRequest, O: Empty },
+    { name: "ConfirmUserPhone", options: {}, I: ConfirmUserPhoneRequest, O: Empty },
+    { name: "UpdateUserPhone", options: {}, I: UpdateUserPhoneRequest, O: Empty }
 ]);

@@ -1,0 +1,5 @@
+{{- define "interledger-app.frontend.pdb" -}}
+{{- end }}
+{{- if and .Values.frontend.enabled .Values.frontend.server.podDisruptionBudget.enabled }}
+{{- include "common.pdb" (list . .Values.frontend.server "interledger-app.frontend.pdb") }}
+{{- end }}

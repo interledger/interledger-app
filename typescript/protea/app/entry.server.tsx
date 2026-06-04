@@ -1,14 +1,15 @@
-
-
-import type { EntryContext } from 'react-router';
-import { createReadableStreamFromReadable } from '@react-router/node';
-import { ServerRouter, isRouteErrorResponse } from 'react-router';
+import { createReadableStreamFromReadable } from '@react-router/node'
 import * as Sentry from '@sentry/react-router'
 import isbot from 'isbot'
 import { renderToPipeableStream } from 'react-dom/server'
+import type { EntryContext } from 'react-router'
+import { ServerRouter, isRouteErrorResponse } from 'react-router'
 import { PassThrough } from 'stream'
+import { envValue, envVarValidation } from './env.server'
 import logger, { addRequestId } from './lib/logger.server'
 import { extractOrGenerateRequestId } from './lib/requestContext.server'
+
+envVarValidation()
 
 export const streamTimeout = 5_000
 
@@ -17,12 +18,12 @@ function getResponseTime(startTime: number): number {
   return Date.now() - startTime
 }
 
-if (process.env.SENTRY_DSN) {
+if (envValue('SENTRY_DSN')) {
   Sentry.init({
-    dsn: process.env.SENTRY_DSN,
-    release: process.env.SENTRY_RELEASE,
+    dsn: envValue('SENTRY_DSN'),
+    release: envValue('SENTRY_RELEASE'),
     tracesSampleRate: 1,
-    environment: process.env.FYNBOS_ENV,
+    environment: envValue('SENTRY_ENV_LABEL'),
     integrations: [
       Sentry.requestDataIntegration({
         include: {
@@ -50,7 +51,10 @@ export function handleError(
   }
 
   logger.error(
-    { ...addRequestId(requestId), error: error instanceof Error ? error.message : String(error) },
+    {
+      ...addRequestId(requestId),
+      error: error instanceof Error ? error.message : String(error)
+    },
     'Unhandled error in server'
   )
 }
@@ -71,56 +75,60 @@ export default function handleRequest(
       ...addRequestId(requestId),
       method: request.method,
       url: url.pathname + url.search,
-      userAgent: request.headers.get('user-agent'),
+      userAgent: request.headers.get('user-agent')
     },
     `${request.method} ${url.pathname}${url.search}`
   )
 
   const handler = isbot(request.headers.get('user-agent'))
     ? handleBotRequest(
-      request,
-      responseStatusCode,
-      responseHeaders,
-      reactRouterContext,
-      requestId,
-      startTime
-    )
+        request,
+        responseStatusCode,
+        responseHeaders,
+        reactRouterContext,
+        requestId,
+        startTime
+      )
     : handleBrowserRequest(
-      request,
-      responseStatusCode,
-      responseHeaders,
-      reactRouterContext,
-      requestId,
-      startTime
-    )
+        request,
+        responseStatusCode,
+        responseHeaders,
+        reactRouterContext,
+        requestId,
+        startTime
+      )
 
-  return handler.then((response) => {
-    // Log response
-    logger.info(
-      {
-        ...addRequestId(requestId),
-        method: request.method,
-        url: url.pathname + url.search,
-        statusCode: response.status,
-        responseTime: getResponseTime(startTime),
-      },
-      `${request.method} ${url.pathname}${url.search} ${response.status} - ${getResponseTime(startTime)}ms`
-    )
-    return response
-  }).catch((error) => {
-    // Log error
-    logger.error(
-      {
-        ...addRequestId(requestId),
-        method: request.method,
-        url: url.pathname + url.search,
-        error: error instanceof Error ? error.message : String(error),
-        responseTime: getResponseTime(startTime),
-      },
-      `${request.method} ${url.pathname}${url.search} failed`
-    )
-    throw error
-  })
+  return handler
+    .then((response) => {
+      // Log response
+      logger.info(
+        {
+          ...addRequestId(requestId),
+          method: request.method,
+          url: url.pathname + url.search,
+          statusCode: response.status,
+          responseTime: getResponseTime(startTime)
+        },
+        `${request.method} ${url.pathname}${url.search} ${
+          response.status
+        } - ${getResponseTime(startTime)}ms`
+      )
+      return response
+    })
+    .catch((error) => {
+      // Log error
+      logger.error(
+        {
+          ...addRequestId(requestId),
+          method: request.method,
+          url: url.pathname + url.search,
+          error: error instanceof Error ? error.message : String(error),
+          responseTime: getResponseTime(startTime)
+        },
+        `${request.method} ${url.pathname}${url.search} failed`
+      )
+      throw error
+    })
 }
 
 function handleBotRequest(
@@ -133,10 +141,7 @@ function handleBotRequest(
 ) {
   return new Promise<Response>((resolve, reject) => {
     const { pipe, abort } = renderToPipeableStream(
-      <ServerRouter
-        context={reactRouterContext}
-        url={request.url}
-      />,
+      <ServerRouter context={reactRouterContext} url={request.url} />,
       {
         onAllReady() {
           const body = new PassThrough()
@@ -161,7 +166,7 @@ function handleBotRequest(
             {
               ...addRequestId(requestId),
               error: error instanceof Error ? error.message : String(error),
-              responseTime: getResponseTime(startTime),
+              responseTime: getResponseTime(startTime)
             },
             'Error rendering to bot'
           )
@@ -170,7 +175,7 @@ function handleBotRequest(
     )
 
     setTimeout(abort, streamTimeout + 1000)
-  });
+  })
 }
 
 function handleBrowserRequest(
@@ -183,10 +188,7 @@ function handleBrowserRequest(
 ) {
   return new Promise<Response>((resolve, reject) => {
     const { pipe, abort } = renderToPipeableStream(
-      <ServerRouter
-        context={reactRouterContext}
-        url={request.url}
-      />,
+      <ServerRouter context={reactRouterContext} url={request.url} />,
       {
         onShellReady() {
           const body = new PassThrough()
@@ -210,7 +212,7 @@ function handleBrowserRequest(
             {
               ...addRequestId(requestId),
               error: error instanceof Error ? error.message : String(error),
-              responseTime: getResponseTime(startTime),
+              responseTime: getResponseTime(startTime)
             },
             'Error rendering to browser'
           )
@@ -220,5 +222,5 @@ function handleBrowserRequest(
     )
 
     setTimeout(abort, streamTimeout + 1000)
-  });
+  })
 }
