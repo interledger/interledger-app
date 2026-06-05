@@ -218,6 +218,23 @@ tests:
           path: data.SIGNUP_AGREEMENT_IDS
           value: ""
 
+  - it: 'Should contain ADMIN_BASE_URL when set'
+    set:
+      backend:
+        config:
+          admin:
+            base_url: "https://admin.interledger.app"
+    asserts:
+      - equal:
+          path: data.ADMIN_BASE_URL
+          value: "https://admin.interledger.app"
+
+  - it: 'Should contain empty ADMIN_BASE_URL by default'
+    asserts:
+      - equal:
+          path: data.ADMIN_BASE_URL
+          value: ""
+
   - it: 'Should contain SIGNUP_AGREEMENT_IDS when set'
     set:
       backend:
