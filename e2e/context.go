@@ -254,6 +254,9 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^that Gatehub charges my user a ([0-9.]+)% withdrawal fee$`, func(feePercent string) error {
 		return sc.thatGatehubChargesWithdrawalFee(feePercent)
 	})
+	ctx.Step(`^the GateHub withdrawal event "([^"]*)" is triggered$`, func(event string) error {
+		return sc.theGatehubWithdrawalEventIsTriggered(event)
+	})
 
 	// P2P Payment steps
 	ctx.Step(`^I navigate to the dashboard$`, func() error { return sc.iNavigateToTheDashboard() })
