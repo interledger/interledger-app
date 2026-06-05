@@ -162,6 +162,7 @@ backend:
       allowed_wallet_ids: ""
 
     twilio:
+      enabled: "false"
       account_sid_ref: twilioAccountSID
       service_sid_ref: twilioServiceSID
       account_token_ref: twilioAccountToken
@@ -881,6 +882,8 @@ backend:
           valueRef: backend.config.persona.base_url
         - key: SIGNUP_AGREEMENT_IDS
           valueRef: backend.config.signup_agreement_ids
+        - key: TWILIO_ENABLED
+          valueRef: backend.config.twilio.enabled
         - key: SIGNUP_KYC_SLACK_CHANNEL
           valueRef: backend.config.slack.channel_signup_kyc
         - key: TRANSACTION_SLACK_CHANNEL

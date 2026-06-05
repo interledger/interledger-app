@@ -151,6 +151,7 @@ The Go backend is the core of the wallet, handling payments, provider integratio
 | `TWILIO_ACCOUNT_SID` | Twilio account SID | Yes | Local default: `SK021f793191208ba69c3bea87dd426085` |
 | `TWILIO_SERVICE_SID` | Twilio Verify service SID | Yes | Local default: `VA8af4e130da63b9fac4c042acbc33a267` |
 | `TWILIO_ACCOUNT_TOKEN` | Twilio auth token | Yes | Local default: `test` |
+| `TWILIO_ENABLED` | Enables live Twilio Verify calls. When `false`, all phone verification methods return stub responses and credentials are not required. | No | Prod/Sandbox: `true`; Dev/Local: `false` |
 
 ### SendGrid (Transactional Email)
 
