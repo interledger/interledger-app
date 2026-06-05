@@ -1,8 +1,8 @@
 import { Code } from '@bufbuild/connect'
-import { ConnectError } from '../error.server'
+import type { ConnectError } from '../error.server'
 import logger from '../logger.server'
 import { redirectWithSnackbar } from '../snackbar.server'
-import { FailedServerResponse } from './types'
+import type { FailedServerResponse } from './types'
 
 /**
  * Standard error object that will be used in the BFF layer.

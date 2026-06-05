@@ -15,7 +15,7 @@ import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { PayTextField } from '~/routes/pay_.$paymentId/PayTextField'
 import { PaySelect } from './PaySelect'
 import { PaymentDetailsCard } from './PaymentDetailsCard'
-import { updatePaymentAction } from './action.server'
+import type { updatePaymentAction } from './action.server'
 
 const DEBOUNCE_WAIT = 150
 

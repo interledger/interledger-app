@@ -1,4 +1,4 @@
-import { UserFacingErrorType } from './bff-error'
+import type { UserFacingErrorType } from './bff-error'
 
 export type SuccessfulServerResponse<T = any> = {
   success: true

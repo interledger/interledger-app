@@ -9,7 +9,7 @@ import {
   ErrorMapper,
   UserFacingError
 } from '~/lib/error-handling/bff-error'
-import { ServerResponse } from '~/lib/error-handling/types'
+import type { ServerResponse } from '~/lib/error-handling/types'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'

@@ -1,0 +1,30 @@
+name: TypeScript Code Quality
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - "**"
+    paths:
+      - "typescript/protea/**"
+      - "typescript/botanist/**"
+      - ".github/workflows/typescript-checks.yml"
+      - ".github/workflows/typescript-check-template.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  protea:
+    uses: ./.github/workflows/typescript-check-template.yml
+    with:
+      working_directory: typescript/protea
+      run_react_router_typegen: true
+
+  botanist:
+    uses: ./.github/workflows/typescript-check-template.yml
+    with:
+      working_directory: typescript/botanist
