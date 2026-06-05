@@ -183,6 +183,9 @@ The Go backend is the core of the wallet, handling payments, provider integratio
 | Variable | Description | Secret | Notes |
 |---|---|---|---|
 | `SLACK_TOKEN` | Slack bot token for sending notifications | Yes | Not set locally |
+| `SIGNUP_KYC_SLACK_CHANNEL` | Slack channel ID for signup, identity, linked-account, and KYC notifications. Empty disables this category. | No | Not set locally |
+| `TRANSACTION_SLACK_CHANNEL` | Slack channel ID for transaction-lifecycle notifications (new transactions, fiant transaction-status webhooks). Empty disables this category. | No | Not set locally |
+| `ERROR_SLACK_CHANNEL` | Slack channel ID for error/ops alerts: provider RollbackReserve errors, withdrawal failures, asset-not-configured warnings, gatehub card-transaction anomalies. Empty disables this category. | No | Not set locally |
 | `SLACK_CLIENT_ID` | Slack OAuth app client ID | Yes | Not set locally |
 | `SLACK_CLIENT_SECRET` | Slack OAuth app client secret | Yes | Not set locally |
 | `SLACK_SIGNING_SECRET` | Slack signing secret for webhook verification | Yes | Not set locally |

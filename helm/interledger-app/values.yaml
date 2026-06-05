@@ -239,6 +239,9 @@ backend:
       client_secret_ref: "slackClientSecret"
       signing_secret_ref: "slackSigningSecret"
       token_ref: "slackToken"
+      channel_signup_kyc: ""
+      channel_transaction: ""
+      channel_error: ""
 
     persona:
       base_url: "https://api.withpersona.com/api/v1/"
@@ -881,6 +884,12 @@ backend:
           valueRef: backend.config.signup_agreement_ids
         - key: TWILIO_ENABLED
           valueRef: backend.config.twilio.enabled
+        - key: SIGNUP_KYC_SLACK_CHANNEL
+          valueRef: backend.config.slack.channel_signup_kyc
+        - key: TRANSACTION_SLACK_CHANNEL
+          valueRef: backend.config.slack.channel_transaction
+        - key: ERROR_SLACK_CHANNEL
+          valueRef: backend.config.slack.channel_error
 
 # =============================================================================
 # FRONTEND — Protea user-facing wallet
