@@ -47,6 +47,18 @@ func (h *Handler) sendPlaidError(w http.ResponseWriter, status int, errorType, e
 	})
 }
 
+// decodeJSON decodes a JSON request body. An empty body is tolerated (returns nil).
+func (h *Handler) decodeJSON(r *http.Request, v interface{}) error {
+	if r.Body == nil {
+		return nil
+	}
+	err := json.NewDecoder(r.Body).Decode(v)
+	if err == nil || err.Error() == "EOF" {
+		return nil
+	}
+	return err
+}
+
 // logCreds debug-logs the inbound Plaid auth headers WITHOUT logging secret values
 // (presence only) — per the Plaid POC logging rule (never log raw tokens/secrets).
 func (h *Handler) logCreds(r *http.Request) {
