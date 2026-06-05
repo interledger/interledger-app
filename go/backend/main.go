@@ -745,6 +745,7 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 		AccountSid:   args.TwilioSid,
 		AccountToken: args.TwilioSecret,
 		ServiceSid:   args.TwilioServiceSid,
+		Enabled:      args.TwilioEnabled,
 	})
 	if err != nil {
 		log.Fatalln(err)
