@@ -1,7 +1,7 @@
-import { reactRouter } from "@react-router/dev/vite";
-import { defineConfig } from "vite";
-import { nodePolyfills } from "vite-plugin-node-polyfills";
-import tsconfigPaths from "vite-tsconfig-paths";
+import { reactRouter } from '@react-router/dev/vite'
+import { defineConfig } from 'vite'
+import { nodePolyfills } from 'vite-plugin-node-polyfills'
+import tsconfigPaths from 'vite-tsconfig-paths'
 
 export default defineConfig(({ isSsrBuild }) => ({
   // The public path translates to Vite's base config.
@@ -10,31 +10,31 @@ export default defineConfig(({ isSsrBuild }) => ({
     : '/',
 
   server: {
-    allowedHosts: ["interledger.test"],
+    allowedHosts: ['interledger.test'],
     port: 3000,
     host: true,
     hmr: {
       port: 8002,
       clientPort: 443,
       protocol: 'wss',
-      path: '/socket',
-    },
+      path: '/socket'
+    }
   },
 
   build: {
-    sourcemap: process.env.NODE_ENV === 'production' ? 'hidden' : true,
+    sourcemap: process.env.NODE_ENV === 'production' ? 'hidden' : true
   },
   plugins: [
     reactRouter(),
     tsconfigPaths(),
     ...(!isSsrBuild
       ? [
-        nodePolyfills({
-          include: ['os', 'constants', 'buffer', 'assert', 'process'],
-          globals: { Buffer: true, process: true },
-        })
-      ]
-      : []),
+          nodePolyfills({
+            include: ['os', 'constants', 'buffer', 'assert', 'process'],
+            globals: { Buffer: true, process: true }
+          })
+        ]
+      : [])
   ],
   optimizeDeps: {
     // Scan all application entries on boot so Vite discovers all dependencies upfront.
@@ -61,5 +61,5 @@ export default defineConfig(({ isSsrBuild }) => ({
     // a pure-ESM package. noExternal forces Vite to bundle react-datocms inline into the SSR
     // output and transform it to CJS, avoiding the runtime crash.
     noExternal: ['react-datocms']
-  },
-}));
+  }
+}))

@@ -33,11 +33,7 @@ const statusConfig = {
   }
 } as const
 
-export const StatusPopup = ({
-  type,
-  message,
-  className
-}: StatusPopupProps) => {
+export const StatusPopup = ({ type, message, className }: StatusPopupProps) => {
   const config = statusConfig[type]
 
   return (

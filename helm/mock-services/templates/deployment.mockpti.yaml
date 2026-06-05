@@ -1,7 +1,7 @@
-{{- define "interledger-app.mockpti.deployment" -}}
+{{- define "mock-services.mockpti.deployment" -}}
 {{- $top := first . }}
 {{- if and (kindIs "bool" $top.Values.mockpti.enabled) $top.Values.mockpti.enabled }}
-{{- $cfgObj := include "interledger-app.mockpti.configMap" $top | fromYaml -}}
+{{- $cfgObj := include "mock-services.mockpti.configMap" $top | fromYaml -}}
 {{- $dataHash := $cfgObj.data | toJson | sha256sum -}}
 spec:
   template:
@@ -11,5 +11,5 @@ spec:
 {{- end }}
 {{- end }}
 {{- if and (kindIs "bool" .Values.mockpti.enabled) .Values.mockpti.enabled }}
-{{- include "common.deployment" (list . .Values.mockpti.server .Values.mockpti.server.autoscaling .Values.mockpti.server.serviceAccount "interledger-app.mockpti.deployment") }}
+{{- include "common.deployment" (list . .Values.mockpti.server .Values.mockpti.server.autoscaling .Values.mockpti.server.serviceAccount "mock-services.mockpti.deployment") }}
 {{- end }}

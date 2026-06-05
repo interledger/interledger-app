@@ -1,3 +1,3 @@
 {{- if and (kindIs "bool" .Values.mockpti.enabled) .Values.mockpti.enabled }}
-{{- include "interledger-app.mockpti.configMap" . }}
+{{- include "mock-services.mockpti.configMap" . }}
 {{- end }}

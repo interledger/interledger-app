@@ -1,8 +1,12 @@
-import type { Route } from './+types/accounts_.$accountId.name'
 import { Code } from '@bufbuild/connect'
-import type { UIMatch } from 'react-router';
-import { Form, useActionData, useLoaderData, useParams } from 'react-router';
-import { href } from 'react-router'
+import type { UIMatch } from 'react-router'
+import {
+  Form,
+  href,
+  useActionData,
+  useLoaderData,
+  useParams
+} from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, Layouts, TextField } from '~/components'
 import { getLinkedAccount } from '~/data/accounts.server'
@@ -11,6 +15,7 @@ import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
+import type { Route } from './+types/accounts_.$accountId.name'
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const account = await getLinkedAccount(request, params.accountId as string)
@@ -26,14 +31,18 @@ export const handle: ApplicationProps = {
     header: {
       back: href('/accounts'),
       title: (match: UIMatch<Route.ComponentProps['loaderData']>) =>
-        match.loaderData?.type == 'bank' ? 'Bank account nickname' : 'Card nickname'
+        match.loaderData?.type == 'bank'
+          ? 'Bank account nickname'
+          : 'Card nickname'
     }
   }
 }
 
 export const meta = mergeMeta(({ data }) => {
   const d = data as Route.ComponentProps['loaderData'] | undefined
-  return [{ title: d?.type == 'bank' ? 'Bank account nickname' : 'Card nickname' }]
+  return [
+    { title: d?.type == 'bank' ? 'Bank account nickname' : 'Card nickname' }
+  ]
 })
 
 export default function Page() {

@@ -1,7 +1,13 @@
-import { Form, useActionData, useLoaderData, useRouteLoaderData, useSearchParams } from 'react-router';
 import type { ChangeEventHandler } from 'react'
 import { useCallback, useEffect, useState } from 'react'
-import { href } from 'react-router'
+import {
+  Form,
+  href,
+  useActionData,
+  useLoaderData,
+  useRouteLoaderData,
+  useSearchParams
+} from 'react-router'
 import {
   Alert,
   AlertBody,
@@ -21,10 +27,9 @@ import {
 import type { FormattedLinkedAccount } from '~/data/accounts.server'
 
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
+import type { RootLoaderData } from '~/root'
 import { PaySelect } from '../pay_.$paymentId/PaySelect'
-import { RootLoaderData } from '~/root';
-import { fynbosDepositLoader } from './loader.server';
-
+import type { fynbosDepositLoader } from './loader.server'
 
 export function FynbosDepositPage() {
   const { depositDetails } = useLoaderData<typeof fynbosDepositLoader>()
@@ -44,8 +49,14 @@ export function FynbosDepositPage() {
 }
 
 const Amount = () => {
-  const { balance, balances, balanceAccount, linkedAccounts, csrfToken, provider } =
-    useLoaderData<typeof fynbosDepositLoader>()
+  const {
+    balance,
+    balances,
+    balanceAccount,
+    linkedAccounts,
+    csrfToken,
+    provider
+  } = useLoaderData<typeof fynbosDepositLoader>()
   const [, setSearchParams] = useSearchParams()
   const actionData = useActionData<any>()
 
@@ -271,4 +282,3 @@ export function stringToBigInt(amount: string) {
   }
   return BigInt(parseFloat(amount) * 100)
 }
-
