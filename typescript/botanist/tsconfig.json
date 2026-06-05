@@ -1,5 +1,10 @@
 {
-  "include": ["remix.env.d.ts", "**/*.ts", "**/*.tsx", ".react-router/types/**/*"],
+  "include": [
+    "remix.env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".react-router/types/**/*"
+  ],
   "compilerOptions": {
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
     "types": ["node"],
@@ -14,6 +19,7 @@
     "allowJs": true,
     "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
+    "rootDirs": [".", ".react-router/types"],
     "paths": {
       "~/*": ["./app/*"]
     },

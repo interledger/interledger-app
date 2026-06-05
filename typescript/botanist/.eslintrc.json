@@ -2,7 +2,9 @@
  * @type {import('@types/eslint').Linter.BaseConfig}
  */
 {
-  "extends": [
-    "prettier"
-  ]
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module"
+  },
+  "extends": ["prettier"]
 }
