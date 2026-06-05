@@ -162,6 +162,7 @@ backend:
       allowed_wallet_ids: ""
 
     twilio:
+      enabled: "false"
       account_sid_ref: twilioAccountSID
       service_sid_ref: twilioServiceSID
       account_token_ref: twilioAccountToken
@@ -238,6 +239,9 @@ backend:
       client_secret_ref: "slackClientSecret"
       signing_secret_ref: "slackSigningSecret"
       token_ref: "slackToken"
+      channel_signup_kyc: ""
+      channel_transaction: ""
+      channel_error: ""
 
     persona:
       base_url: "https://api.withpersona.com/api/v1/"
@@ -878,6 +882,14 @@ backend:
           valueRef: backend.config.persona.base_url
         - key: SIGNUP_AGREEMENT_IDS
           valueRef: backend.config.signup_agreement_ids
+        - key: TWILIO_ENABLED
+          valueRef: backend.config.twilio.enabled
+        - key: SIGNUP_KYC_SLACK_CHANNEL
+          valueRef: backend.config.slack.channel_signup_kyc
+        - key: TRANSACTION_SLACK_CHANNEL
+          valueRef: backend.config.slack.channel_transaction
+        - key: ERROR_SLACK_CHANNEL
+          valueRef: backend.config.slack.channel_error
 
 # =============================================================================
 # FRONTEND — Protea user-facing wallet
@@ -1097,99 +1109,3 @@ frontend:
           valueRef: frontend.config.mockxago_endpoint
         - key: SENTRY_ENV_LABEL
           valueRef: frontend.config.sentry_env_label
-
-# =============================================================================
-# MOCKPTI — Mock PTI (fiant) service for non-production environments
-#
-# When mockpti.enabled is true, three resources are rendered:
-#   - ConfigMap   <fullname>-mockpti-config  (non-secret env vars)
-#   - Deployment  <fullname>-mockpti-server  (single replica)
-#   - Service     <fullname>-mockpti-service (ClusterIP :8080)
-#
-# The Deployment sources MOCKPTI_WEBHOOK_SIGNING_KEY_B64 from a Secret named
-# <fullname>-mockpti, key "mockptiWebhookSigningKeyB64" (configurable via
-# config.webhook_signing_key_ref). The value must be a base64-encoded Ed25519
-# private key PEM; the service refuses to start if the variable is absent or
-# not valid base64.
-#
-# enabled MUST be a boolean (true/false). A string value of "false" would
-# be treated as truthy by a bare `if` check and silently deploy the service.
-# The templates use `kindIs "bool"` to reject any non-boolean value, so a
-# string "true" or "false" will produce no resources.
-# =============================================================================
-mockpti:
-  # Boolean — must be true or false, not a quoted string.
-  enabled: false
-
-  config:
-    log_level: "debug"
-    redis_url: ""
-    redis_db: "5"
-    # client_id enforced against the x-pti-client-id header on every API call.
-    # Leave empty to accept any client ID (suitable for development).
-    client_id: ""
-    # webhook_url is the backend endpoint mockpti calls for async events.
-    # Defaults to http://<fullname>-backend-service-http:8080/webhooks/pti when unset.
-    webhook_url: ""
-    webhook_min_delay_sec: "0.2"
-    # Name of the key inside the <fullname>-mockpti Secret that holds the
-    # base64-encoded Ed25519 private key PEM used to sign outbound webhook payloads.
-    webhook_signing_key_ref: "mockptiWebhookSigningKeyB64"
-
-  configMaps:
-    config:
-      name: mockpti-config
-
-  server:
-    name: mockpti-server
-    image:
-      repository: europe-west4-docker.pkg.dev/wallet-451208/interledger-app
-      name: mockpti
-      # tag: vA.B.C  — defaults to .Chart.AppVersion
-    imagePullPolicy: Always
-    replicaCount: 1
-    livenessProbe:
-      initialDelaySeconds: 10
-      periodSeconds: 5
-      timeoutSeconds: 3
-      successThreshold: 1
-      failureThreshold: 3
-      httpGet:
-        path: /health
-        port: 8080
-    readinessProbe:
-      initialDelaySeconds: 10
-      periodSeconds: 5
-      timeoutSeconds: 3
-      successThreshold: 1
-      failureThreshold: 3
-      httpGet:
-        path: /health
-        port: 8080
-    ports:
-      - name: http
-        containerPort: 8080
-    service:
-      name: mockpti-service
-      type: ClusterIP
-      ports:
-        - port: 8080
-          targetPort: 8080
-          protocol: TCP
-          name: http
-    envFrom:
-      - configMapRef:
-          name: '{{ include "common.fullname" . }}-mockpti-config'
-    env:
-      - name: MOCKPTI_WEBHOOK_SIGNING_KEY_B64
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-mockpti'
-            key: "{{ .Values.mockpti.config.webhook_signing_key_ref }}"
-    resources:
-      requests:
-        memory: 64Mi
-        cpu: 50m
-      limits:
-        memory: 256Mi
-        cpu: 500m

@@ -18,9 +18,13 @@ jobs:
         run: |
           helm plugin install https://github.com/helm-unittest/helm-unittest.git --version v0.7.2
           helm unittest helm/interledger-app
+          helm unittest helm/mock-services
 
       - name: Run Kubeconform Validation
         run: |
           helm template helm/interledger-app \
             -f helm/interledger-app/tests/ci-values.yaml \
+            | kubeconform -strict -summary -ignore-missing-schemas
+          helm template helm/mock-services \
+            -f helm/mock-services/tests/ci-values.yaml \
             | kubeconform -strict -summary -ignore-missing-schemas

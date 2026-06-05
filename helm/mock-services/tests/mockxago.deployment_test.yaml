@@ -1,0 +1,136 @@
+suite: Mock Services - MockXago Deployment
+templates:
+  - configMap.mockxago.yaml
+  - deployment.mockxago.yaml
+set:
+  fullnameOverride: wallet
+  release:
+    name: wallet
+  mockxago:
+    enabled: true
+    config:
+      webhook_url: "http://wallet-backend-service-http:8080/webhooks/xago"
+tests:
+  - it: 'Should produce no Deployment when mockxago.enabled is boolean false'
+    template: deployment.mockxago.yaml
+    set:
+      mockxago:
+        enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: 'Should produce no Deployment when mockxago.enabled is the string "false"'
+    template: deployment.mockxago.yaml
+    set:
+      mockxago:
+        enabled: "false"
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: 'Should produce no Deployment when mockxago.enabled is the string "true"'
+    template: deployment.mockxago.yaml
+    set:
+      mockxago:
+        enabled: "true"
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: 'Should create a Deployment when mockxago.enabled is boolean true'
+    template: deployment.mockxago.yaml
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - equal:
+          path: metadata.name
+          value: wallet-mockxago-server
+
+  - it: 'Should set replicaCount to 1'
+    template: deployment.mockxago.yaml
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 1
+
+  - it: 'Should reference the mockxago ConfigMap via envFrom'
+    template: deployment.mockxago.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].envFrom[0].configMapRef.name
+          value: wallet-mockxago-config
+
+  - it: 'Should source WEBHOOK_SECRET from the mockxago Secret'
+    template: deployment.mockxago.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[0].name
+          value: WEBHOOK_SECRET
+      - equal:
+          path: spec.template.spec.containers[0].env[0].valueFrom.secretKeyRef.name
+          value: wallet-mockxago
+      - equal:
+          path: spec.template.spec.containers[0].env[0].valueFrom.secretKeyRef.key
+          value: webhookSecret
+
+  - it: 'Should source XAGO_API_PUBLIC_KEY from the mockxago Secret'
+    template: deployment.mockxago.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[1].name
+          value: XAGO_API_PUBLIC_KEY
+      - equal:
+          path: spec.template.spec.containers[0].env[1].valueFrom.secretKeyRef.name
+          value: wallet-mockxago
+
+  - it: 'Should source XAGO_API_SECRET from the mockxago Secret'
+    template: deployment.mockxago.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[2].name
+          value: XAGO_API_SECRET
+      - equal:
+          path: spec.template.spec.containers[0].env[2].valueFrom.secretKeyRef.name
+          value: wallet-mockxago
+
+  - it: 'Should source PERSONA_WEBHOOK_TOKEN from the mockxago Secret'
+    template: deployment.mockxago.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[3].name
+          value: PERSONA_WEBHOOK_TOKEN
+      - equal:
+          path: spec.template.spec.containers[0].env[3].valueFrom.secretKeyRef.name
+          value: wallet-mockxago
+
+  - it: 'Should provide readinessProbe and livenessProbe on /health'
+    template: deployment.mockxago.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.path
+          value: /health
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.path
+          value: /health
+
+  - it: 'Should contain the configmap hash annotation'
+    template: deployment.mockxago.yaml
+    asserts:
+      - exists:
+          path: spec.template.metadata.annotations["ilf-configmap-mockxago-sha256"]
+
+  - it: 'Should honour image override on the server spec'
+    template: deployment.mockxago.yaml
+    set:
+      mockxago:
+        server:
+          image:
+            repository: europe-west4-docker.pkg.dev/wallet-dev-462809/interledger-app
+            name: mockxago
+            tag: v1.2.3
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: europe-west4-docker.pkg.dev/wallet-dev-462809/interledger-app/mockxago:v1.2.3

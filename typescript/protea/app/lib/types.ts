@@ -1,8 +1,8 @@
-export type IframeMessageType = 'WithdrawalCompleted' | 'StripeDepositCompleted';
+export type IframeMessageType = 'WithdrawalCompleted' | 'StripeDepositCompleted'
 
 export interface IframeMessage {
-  type: IframeMessageType;
-  uuid: string;
+  type: IframeMessageType
+  uuid: string
 }
 
 export enum KycStatus {

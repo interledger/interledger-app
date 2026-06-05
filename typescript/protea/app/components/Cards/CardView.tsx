@@ -20,7 +20,13 @@ import { CardViewFront } from './CardViewFront'
 import { StatusPopup } from './StatusPopup'
 import { TimedPinPopup } from './TimedPinPopup'
 
-export const CardView = ({ card, supportEmail }: { card: StorableCard, supportEmail?: string }) => {
+export const CardView = ({
+  card,
+  supportEmail
+}: {
+  card: StorableCard
+  supportEmail?: string
+}) => {
   const {
     flip,
     showBack,

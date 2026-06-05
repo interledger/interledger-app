@@ -1,10 +1,15 @@
-import type { Route } from './+types/payments'
-import { data } from 'react-router';
-import type { ShouldRevalidateFunction } from 'react-router';
-import { Outlet, useFetcher, useLoaderData, useLocation, useSearchParams } from 'react-router';
 import clsx from 'clsx'
 import { useCallback, useEffect, useState } from 'react'
-import { href } from 'react-router'
+import type { ShouldRevalidateFunction } from 'react-router'
+import {
+  Outlet,
+  data,
+  href,
+  useFetcher,
+  useLoaderData,
+  useLocation,
+  useSearchParams
+} from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   Card,
@@ -29,6 +34,7 @@ import { Label } from '~/components/Label'
 import { getKycStatus, getTransactionsWithPending } from '~/data/wallet.server'
 import type { Transaction } from '~/generated/connect/backend/v1/backend_pb'
 import { grpc } from '~/lib/grpc.server'
+import type { Route } from './+types/payments'
 
 import { isConnectError } from '~/lib/error.server'
 import { mergeMeta } from '~/lib/meta'
@@ -218,7 +224,7 @@ export default function Page() {
   const pathSegments = location.pathname.split('/').filter(Boolean)
 
   return (
-    (<WalletGrid ref={divHeight}>
+    <WalletGrid ref={divHeight}>
       <GridColumn
         hideOnMobile={pathSegments[pathSegments.length - 1] !== 'payments'}
         className='col-span-full lg:col-span-6'
@@ -272,14 +278,14 @@ export default function Page() {
             </Card>
           )}
         {transactions &&
-          transactions.map((transactionGroup: import("~/generated/connect/backend/v1/backend_pb").Transaction[], index: number) => (
+          transactions.map((transactionGroup: Transaction[], index: number) => (
             <Card key={`group-${index}`}>
               <Label>{transactionGroup[0].formattedDate}</Label>
-              {transactionGroup.map((transaction: import("~/generated/connect/backend/v1/backend_pb").Transaction) =>
+              {transactionGroup.map((transaction: Transaction) =>
                 transaction.type.includes('web_monetization_') &&
                 transaction.state == 'Pending' ? (
                   // Can't disable a link :/
-                  (<div
+                  <div
                     key={transaction.id + transaction.state}
                     className='my-1 flex justify-between space-x-4 rounded-xl p-3 first:mt-0 last-of-type:mb-0'
                   >
@@ -307,7 +313,7 @@ export default function Page() {
                       </span>
                       <div className='h-6 w-6' />
                     </div>
-                  </div>)
+                  </div>
                 ) : (
                   <CardLink
                     preventScrollReset={!isMobile}
@@ -385,6 +391,6 @@ export default function Page() {
       <GridColumn sticky className='col-span-full lg:col-span-6 lg:col-start-7'>
         <Outlet />
       </GridColumn>
-    </WalletGrid>)
-  );
+    </WalletGrid>
+  )
 }

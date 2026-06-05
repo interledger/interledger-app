@@ -100,7 +100,7 @@ func notifyPersonaReview(ctx context.Context, js json.RawMessage) {
 		return
 	}
 
-	slack.SendToChannel(ctx, slack.ChannelPersona, "wallet-info-bot", fmt.Sprintf("New Persona review in [%s] link [https://app.withpersona.com/dashboard/inquiries/%s]",
+	slack.SendToChannel(ctx, slack.ChannelSignupKYC, "wallet-info-bot", fmt.Sprintf("New Persona review in [%s] link [https://app.withpersona.com/dashboard/inquiries/%s]",
 		env.GetEnv(), inq.Data.ID))
 }
 
@@ -303,7 +303,7 @@ func accountTagAddedWebhook(ctx context.Context, b Backends, pc persona.Client, 
 
 	// Too many state tags.
 	if stateTags > 1 {
-		slack.SendToChannel(ctx, slack.ChannelPersona, "wallet-info-bot", fmt.Sprintf("Persona account in [%s] is in unknown state. link [https://app.withpersona.com/dashboard/accounts/%s]",
+		slack.SendToChannel(ctx, slack.ChannelSignupKYC, "wallet-info-bot", fmt.Sprintf("Persona account in [%s] is in unknown state. link [https://app.withpersona.com/dashboard/accounts/%s]",
 			env.GetEnv(), externalAcc.ID))
 	} else if kycState != 0 {
 		err = SetKYCStatus(ctx, b, externalAcc.Attributes.ReferenceID, kycState)

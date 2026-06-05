@@ -1,6 +1,5 @@
-import { useNavigate, useParams } from 'react-router';
 import { useEffect, useMemo } from 'react'
-import { href } from 'react-router'
+import { href, useNavigate, useParams } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Icon, Layouts } from '~/components'
 import { Label } from '~/components/Label'
@@ -25,8 +24,7 @@ export default function Page() {
   const navigate = useNavigate()
   const { pendingConfirmations, hasFetched, removeConfirmation } =
     usePendingConfirmations()
-  const { confirmationId } =
-    useParams<{ confirmationId: string }>()
+  const { confirmationId } = useParams<{ confirmationId: string }>()
 
   const confirmation = useMemo(
     () =>

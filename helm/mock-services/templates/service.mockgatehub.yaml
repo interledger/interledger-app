@@ -1,0 +1,6 @@
+{{- define "mock-services.mockgatehub.service" -}}
+{{- $top := first . -}}
+{{- end }}
+{{- if and (kindIs "bool" .Values.mockgatehub.enabled) .Values.mockgatehub.enabled }}
+{{- include "common.svc" (list . .Values.mockgatehub.server.service .Values.mockgatehub.server "mock-services.mockgatehub.service") }}
+{{- end }}

@@ -1,11 +1,15 @@
-import type { Route } from './+types/api.totp-challenge-verify'
 import { data } from 'react-router'
-import { kratosPublic } from '~/lib/kratos/kratos-client.server'
-import { getCookie, withCookie, buildHeadersWithCookies } from '~/lib/kratos/cookie.server'
+import {
+  buildHeadersWithCookies,
+  getCookie,
+  withCookie
+} from '~/lib/kratos/cookie.server'
 import { mapFlowToFieldErrors } from '~/lib/kratos/error.server'
+import { kratosPublic } from '~/lib/kratos/kratos-client.server'
 import type { KratosError } from '~/lib/kratos/types.server'
 import logger, { addRequestId, withErrorLog } from '~/lib/logger.server'
 import { extractOrGenerateRequestId } from '~/lib/requestContext.server'
+import type { Route } from './+types/api.totp-challenge-verify'
 
 /**
  * Verify TOTP code for AAL2 challenge
@@ -27,14 +31,17 @@ export async function action({ request }: Route.ActionArgs) {
       )
     }
 
-    const submitTotpResponse = await kratosPublic.updateLoginFlow({
-      flow,
-      updateLoginFlowBody: {
-        method: 'totp',
-        totp_code: totpCode,
-        csrf_token: csrfToken
-      }
-    }, withCookie(cookie))
+    const submitTotpResponse = await kratosPublic.updateLoginFlow(
+      {
+        flow,
+        updateLoginFlowBody: {
+          method: 'totp',
+          totp_code: totpCode,
+          csrf_token: csrfToken
+        }
+      },
+      withCookie(cookie)
+    )
     const headers = buildHeadersWithCookies(submitTotpResponse)
 
     return data({ success: true, shouldRevalidate: false }, { headers })
@@ -56,7 +63,8 @@ export async function action({ request }: Route.ActionArgs) {
       mapFlowToFieldErrors(flowData, errorMapping)
       return data({
         success: false,
-        error: errorMapping.form || errorMapping.totp_code || 'Invalid TOTP code',
+        error:
+          errorMapping.form || errorMapping.totp_code || 'Invalid TOTP code',
         flowId: flowData.id
       })
     }

@@ -1,6 +1,4 @@
-import type { Route } from './+types/contact'
-import type { UIMatch } from 'react-router';
-import { RootLoaderData } from '~/root'
+import type { UIMatch } from 'react-router'
 import { useLoaderData, useRouteLoaderData } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { AnchorRouter, Icon, Layouts } from '~/components'
@@ -8,6 +6,8 @@ import { MarketingPageWithSections } from '~/components/Content'
 import { getContactRoute } from '~/data/content.server'
 import type { SectionRecord } from '~/generated/dato-cms-graphql'
 import { jsonWithCSRF } from '~/lib/csrf.server'
+import type { RootLoaderData } from '~/root'
+import type { Route } from './+types/contact'
 
 export async function loader({ request }: Route.LoaderArgs) {
   const { contactRoute, footer } = await getContactRoute()
@@ -19,7 +19,8 @@ export const handle: ApplicationProps = {
   layout: Layouts.Marketing,
   scaffold: {
     header: {},
-    footer: (match: UIMatch<Route.ComponentProps['loaderData']>) => match.loaderData?.footer ?? null
+    footer: (match: UIMatch<Route.ComponentProps['loaderData']>) =>
+      match.loaderData?.footer ?? null
   }
 }
 
@@ -30,7 +31,7 @@ export default function Page() {
 
   return (
     <>
-      {contactRoute?.body.map((section: import("~/generated/dato-cms-graphql").SectionRecord) => (
+      {contactRoute?.body.map((section: SectionRecord) => (
         <MarketingPageWithSections
           key={section.id}
           section={section as SectionRecord}

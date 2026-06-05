@@ -8,8 +8,10 @@
     "build": "pnpm typecheck && react-router build",
     "start": "react-router-serve ./build/server/index.js",
     "lint": "eslint --fix --cache --cache-location ./node_modules/.cache/eslint .",
+    "lint:check": "eslint --max-warnings=0 --cache --cache-location ./node_modules/.cache/eslint .",
     "typecheck": "tsc",
     "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "precommit": "pnpm format && pnpm lint && pnpm build",
     "test": "playwright test",
     "test:report": "playwright show-report"

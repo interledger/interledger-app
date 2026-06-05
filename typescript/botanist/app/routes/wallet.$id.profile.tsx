@@ -2,7 +2,14 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from 'react-router'
 
 import { data, href, Form, useFetcher, useLoaderData } from 'react-router'
 import { useCallback, useEffect, useState } from 'react'
-import { Autocomplete, Button, Dialog, GridCard, Switch, TextButton } from '~/components'
+import {
+  Autocomplete,
+  Button,
+  Dialog,
+  GridCard,
+  Switch,
+  TextButton
+} from '~/components'
 import {
   CheckUserTotpEnabled,
   DeleteUserTotp,
@@ -177,7 +184,9 @@ export default function Page() {
       <div className='col-span-full flex h-max max-h-max w-full flex-col space-y-4 rounded-2xl bg-page p-4 lg:col-span-4'>
         <div className='flex items-center justify-between'>
           <div className='space-y-1'>
-            <h2 className='font-display text-lg font-medium'>Authenticator app (TOTP)</h2>
+            <h2 className='font-display text-lg font-medium'>
+              Authenticator app (TOTP)
+            </h2>
             <p className='text-sm text-weak'>
               {isTotpEnabled
                 ? 'User has an authenticator app configured for two-factor login.'
@@ -186,7 +195,9 @@ export default function Page() {
           </div>
           <span
             className={`rounded-full px-2 py-1 text-xs font-medium ${
-              isTotpEnabled ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
+              isTotpEnabled
+                ? 'bg-green-100 text-green-800'
+                : 'bg-gray-100 text-gray-600'
             }`}
           >
             {isTotpEnabled ? 'Enabled' : 'Not enabled'}
@@ -209,15 +220,18 @@ export default function Page() {
           Reset authenticator for this wallet owner?
         </h3>
         <p className='text-sm text-medium'>
-          This will immediately invalidate the current TOTP secret. The user will be
-          prompted to set up their authenticator app again on next login.
+          This will immediately invalidate the current TOTP secret. The user
+          will be prompted to set up their authenticator app again on next
+          login.
         </p>
         <div className='rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900'>
-          The wallet owner will be notified by email, and this action is recorded in
-          the audit log.
+          The wallet owner will be notified by email, and this action is
+          recorded in the audit log.
         </div>
         {resetFetcher.data?.error && (
-          <p className='text-sm font-medium text-red-600'>{resetFetcher.data.error}</p>
+          <p className='text-sm font-medium text-red-600'>
+            {resetFetcher.data.error}
+          </p>
         )}
         <div className='mt-2 flex justify-end space-x-3'>
           <TextButton
@@ -289,16 +303,25 @@ async function deleteTotpAction({ request, params }: ActionFunctionArgs) {
   const routeWalletId = params.id as string
 
   if (!identityId) {
-    return data({ success: false, error: 'Identity ID is required' }, { status: 400 })
+    return data(
+      { success: false, error: 'Identity ID is required' },
+      { status: 400 }
+    )
   }
 
   if (!routeWalletId) {
-    return data({ success: false, error: 'Wallet ID is required' }, { status: 400 })
+    return data(
+      { success: false, error: 'Wallet ID is required' },
+      { status: 400 }
+    )
   }
 
   if (walletId && walletId !== routeWalletId) {
     return data(
-      { success: false, error: 'Wallet ID does not match the requested wallet' },
+      {
+        success: false,
+        error: 'Wallet ID does not match the requested wallet'
+      },
       { status: 400 }
     )
   }
@@ -322,9 +345,6 @@ async function deleteTotpAction({ request, params }: ActionFunctionArgs) {
         ? error.message
         : 'Failed to reset authenticator enrollment'
 
-    return data(
-      { success: false, error: message },
-      { status: 500 }
-    )
+    return data({ success: false, error: message }, { status: 500 })
   }
 }

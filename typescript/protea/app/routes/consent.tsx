@@ -1,6 +1,10 @@
-import type { Route } from './+types/consent'
-import { data, redirect } from 'react-router';
-import { Form, useLoaderData, useSearchParams } from 'react-router';
+import {
+  Form,
+  data,
+  redirect,
+  useLoaderData,
+  useSearchParams
+} from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   Button,
@@ -11,11 +15,12 @@ import {
   TextButton
 } from '~/components'
 import { getWalletInfo } from '~/data/wallet.server'
+import { envValue } from '~/env.server'
 import { getUserSession } from '~/lib/kratos/session.server'
 import { mergeMeta } from '~/lib/meta'
 import type { Amount } from '~/lib/rafikiauth.server'
 import { consent, getInteraction } from '~/lib/rafikiauth.server'
-import { envValue } from '~/env.server'
+import type { Route } from './+types/consent'
 
 export async function loader({ request }: Route.LoaderArgs) {
   await getUserSession(request)
@@ -206,7 +211,7 @@ export async function action({ request }: Route.ActionArgs) {
   await consent(interactId, nonce, userDecision)
 
   // TODO: Move to environment variables
-  const publicOpenPaymentsAuthHost = envValue("PUBLIC_OP_AUTH_HOST")
+  const publicOpenPaymentsAuthHost = envValue('PUBLIC_OP_AUTH_HOST')
 
   return redirect(
     `https://${publicOpenPaymentsAuthHost}/interact/${interactId}/${nonce}/finish`

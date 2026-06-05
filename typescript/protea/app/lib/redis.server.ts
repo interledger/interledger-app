@@ -1,6 +1,6 @@
 import { createClient } from '@redis/client'
-import logger from './logger.server'
 import { envValue } from '~/env.server'
+import logger from './logger.server'
 
 type RedisClient = ReturnType<typeof createClient>
 
@@ -8,7 +8,7 @@ const REDIS_STARTUP_ATTEMPTS = 3
 const REDIS_RETRY_DELAY_MS = 3000
 const DEFAULT_WAIT_TIMEOUT_MS = 5000
 
-const configuredRedisUrl = envValue("REDIS_URL")?.trim()
+const configuredRedisUrl = envValue('REDIS_URL')?.trim()
 
 if (!configuredRedisUrl) {
   logger.error('REDIS_URL config is empty. Exiting process.')
@@ -38,7 +38,7 @@ const getRedisTargetForLogs = (redisUrl: string) => {
 
 logger.info(
   {
-    nodeEnv: envValue("NODE_ENV"),
+    nodeEnv: envValue('NODE_ENV'),
     redisTarget: getRedisTargetForLogs(configuredRedisUrl),
     redisUrlFromEnv: Boolean(configuredRedisUrl)
   },
@@ -62,7 +62,8 @@ const createRedisClientWithLogging = (): RedisClient => {
   return client
 }
 
-const delay = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms))
+const delay = (ms: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, ms))
 
 const connectWithRetry = async (): Promise<void> => {
   let lastError: unknown
@@ -75,7 +76,10 @@ const connectWithRetry = async (): Promise<void> => {
 
     try {
       await redisClient.connect()
-      logger.info({ attempt, redisTarget: getRedisTargetForLogs(configuredRedisUrl) }, 'Redis connected')
+      logger.info(
+        { attempt, redisTarget: getRedisTargetForLogs(configuredRedisUrl) },
+        'Redis connected'
+      )
       return
     } catch (error) {
       lastError = error
@@ -127,11 +131,16 @@ if (global.__redisRuntimeState) {
   }
 }
 
-const waitForRedisConnection = async (timeout: number = DEFAULT_WAIT_TIMEOUT_MS): Promise<void> => {
+const waitForRedisConnection = async (
+  timeout: number = DEFAULT_WAIT_TIMEOUT_MS
+): Promise<void> => {
   await Promise.race([
     startupConnectionPromise,
     new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new Error('Timeout waiting for Redis startup connection')), timeout)
+      setTimeout(
+        () => reject(new Error('Timeout waiting for Redis startup connection')),
+        timeout
+      )
     })
   ])
 
@@ -166,7 +175,9 @@ const waitForRedisConnection = async (timeout: number = DEFAULT_WAIT_TIMEOUT_MS)
   })
 }
 
-const getRedisHealth = async (): Promise<{ ok: true } | { ok: false; error: string }> => {
+const getRedisHealth = async (): Promise<
+  { ok: true } | { ok: false; error: string }
+> => {
   try {
     await waitForRedisConnection(2000)
     const response = await redisClient.ping()
@@ -184,4 +195,4 @@ const getRedisHealth = async (): Promise<{ ok: true } | { ok: false; error: stri
   }
 }
 
-export { redisClient, waitForRedisConnection, getRedisHealth }
+export { getRedisHealth, redisClient, waitForRedisConnection }

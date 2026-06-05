@@ -1,8 +1,6 @@
-import type { Route } from './+types/connect_.card'
 import { Code } from '@bufbuild/connect'
-import { useLoaderData, useSubmit } from 'react-router';
 import { useEffect } from 'react'
-import { href } from 'react-router'
+import { href, useLoaderData, useSubmit } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Layouts } from '~/components'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
@@ -10,10 +8,11 @@ import { isConnectError } from '~/lib/error.server'
 import type { FiantSdkMessage } from '~/lib/fiant'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
+import { usePtiConfig } from '~/lib/pti-context'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { useScript } from '~/lib/useScript'
-import { usePtiConfig } from '~/lib/pti-context'
+import type { Route } from './+types/connect_.card'
 
 export async function loader({ request }: Route.LoaderArgs) {
   const response = await grpc.getKYCProviderWidget(request, {

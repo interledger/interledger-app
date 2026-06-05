@@ -20,9 +20,10 @@ type MobileNumberArgs struct {
 }
 
 type UserDataArgs struct {
-	ID          string `validate:"omitempty,uuid"`
-	FirstName   string `validate:"required"`
-	LastName    string `validate:"required"`
-	Email       string `validate:"required,email"`
-	CountryCode string `validate:"required,iso3166_1_alpha2"`
+	ID           string `validate:"omitempty,uuid"`
+	FirstName    string `validate:"required"`
+	LastName     string `validate:"required"`
+	Email        string `validate:"required,email"`
+	CountryCode  string `validate:"required,iso3166_1_alpha2"`
+	MobileNumber string `validate:"required,e164"`
 }

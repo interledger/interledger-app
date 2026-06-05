@@ -1,0 +1,19 @@
+apiVersion: v2
+name: mock-services
+description: Mock provider services (mockpti, mockgatehub, mockxago) for non-production Interledger App environments
+home: https://github.com/interledger/interledger-app
+
+type: application
+version: 1.22.0
+appVersion: v1.22.0
+
+dependencies:
+  - name: common
+    version: 0.9.0
+    repository: https://interledger.github.io/charts/interledger
+
+maintainers:
+  - name: Stephan Butler
+    email: stephan@interledger.foundation
+  - name: Radu Popa
+    email: radu@interledger.foundation
