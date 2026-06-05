@@ -162,6 +162,7 @@ backend:
       allowed_wallet_ids: ""
 
     twilio:
+      enabled: "false"
       account_sid_ref: twilioAccountSID
       service_sid_ref: twilioServiceSID
       account_token_ref: twilioAccountToken
