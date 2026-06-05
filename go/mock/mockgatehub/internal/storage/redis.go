@@ -716,6 +716,23 @@ func (s *RedisStorage) CreateTransaction(tx *models.Transaction) error {
 	return nil
 }
 
+func (s *RedisStorage) ListTransactionsByUser(userID string) ([]*models.Transaction, error) {
+	ids, err := s.client.LRange(s.ctx, s.userTransactionsKey(userID), 0, -1).Result()
+	if err != nil {
+		return nil, fmt.Errorf("failed to list transaction IDs for user: %w", err)
+	}
+
+	transactions := make([]*models.Transaction, 0, len(ids))
+	for _, id := range ids {
+		tx, err := s.GetTransaction(id)
+		if err != nil {
+			continue
+		}
+		transactions = append(transactions, tx)
+	}
+	return transactions, nil
+}
+
 func (s *RedisStorage) GetTransaction(id string) (*models.Transaction, error) {
 	data, err := s.client.Get(s.ctx, s.txKey(id)).Result()
 	if err == redis.Nil {
@@ -1036,6 +1053,10 @@ func (s *RedisStorage) userWalletsKey(userID string) string {
 
 func (s *RedisStorage) txKey(id string) string {
 	return fmt.Sprintf("tx:%s", id)
+}
+
+func (s *RedisStorage) userTransactionsKey(userID string) string {
+	return fmt.Sprintf("user_txs:%s", userID)
 }
 
 func (s *RedisStorage) balanceKey(userID, currency string) string {
