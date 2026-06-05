@@ -125,6 +125,7 @@ The Go backend is the core of the wallet, handling payments, provider integratio
 | `APPLE_APP_ID` | Apple App Site Association app ID for deep-links | No | Prod: `6B7AFCRT3V.app.wallet.interledger`; Sandbox: TBD; Dev: `6B7AFCRT3V.app.wallet.interledger.dev`; Local: `6B7AFCRT3V.app.wallet.interledger.test` |
 | `ANDROID_PACKAGE_NAME` | Android App Links package name for deep-links | No | Prod: `org.interledger.walletandroid`; Sandbox: TBD; Dev: `org.interledger.walletandroid.debugDevelopment`; Local: `org.interledger.walletandroid.test` |
 | `ANDROID_SHA256` | Android signing certificate SHA-256 fingerprint for deep-links | No | Prod: `25:D0:6A:A1:4F:BD:F6:05:93:2C:80:A2:AC:DA:DE:E4:2F:72:BC:23:9C:8F:2C:78:85:49:9A:AC:D2:4B:A4:FF`; Sandbox: TBD |
+| `ADMIN_BASE_URL` | Base URL of the admin portal, used to build links to it for support purposes. **Required** | No | Full URL including scheme, e.g. `https://admin.interledger.app` |
 
 ### Infrastructure Services
 
