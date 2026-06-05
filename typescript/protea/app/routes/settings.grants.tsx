@@ -1,14 +1,12 @@
-import type { Route } from './+types/settings.grants'
 import type { PlainMessage } from '@bufbuild/protobuf'
-import type { RafikiGrant } from '~/generated/connect/backend/v1/backend_pb'
-import { data } from 'react-router';
-import { useLoaderData } from 'react-router';
-import { href } from 'react-router'
+import { data, href, useLoaderData } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Alert, AlertBody, Card, CardLink, Icon, Layouts } from '~/components'
+import type { RafikiGrant } from '~/generated/connect/backend/v1/backend_pb'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
+import type { Route } from './+types/settings.grants'
 
 export async function loader({ request }: Route.LoaderArgs) {
   let response = await grpc.listRafikiGrants(request, {})

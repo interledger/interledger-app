@@ -1,6 +1,5 @@
-import { useLoaderData } from 'react-router';
 import clsx from 'clsx'
-import { href } from 'react-router'
+import { href, useLoaderData } from 'react-router'
 import {
   Alert,
   AlertBody,
@@ -24,9 +23,9 @@ import {
 } from '~/components'
 import { Label } from '~/components/Label'
 import { usePendingConfirmations } from '~/lib/cards/usePendingConfirmations'
-import { usePusher } from '~/lib/usePusher'
-import type { loader, AppLoaderData } from './route'
 import { KycStatus } from '~/lib/types'
+import { usePusher } from '~/lib/usePusher'
+import type { AppLoaderData, loader } from './route'
 
 export function AppPage() {
   const {
@@ -68,8 +67,11 @@ export function AppPage() {
                 <div className='flex flex-col space-y-4'>
                   <p className='text-sm text-medium'>
                     Your KYC submission needs attention. <br />
-                    Please resubmit your documents to activate your wallet. <br />
-                    Your previous submission may have been incomplete, the photos may have been unclear, or your documents may have expired.
+                    Please resubmit your documents to activate your wallet.{' '}
+                    <br />
+                    Your previous submission may have been incomplete, the
+                    photos may have been unclear, or your documents may have
+                    expired.
                   </p>
                   <Router
                     className='text-sm font-medium text-primary'
@@ -111,18 +113,18 @@ export function AppPage() {
         )}
         {(kycStatus == KycStatus.Pending ||
           kycStatus == KycStatus.InReview) && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Activation</CardTitle>
-                <Chip color={ChipColor.orange}>Pending</Chip>
-              </CardHeader>
-              <CardContent>
-                <p className='text-sm text-medium'>
-                  Just a moment, we are verifying your details.
-                </p>
-              </CardContent>
-            </Card>
-          )}
+          <Card>
+            <CardHeader>
+              <CardTitle>Activation</CardTitle>
+              <Chip color={ChipColor.orange}>Pending</Chip>
+            </CardHeader>
+            <CardContent>
+              <p className='text-sm text-medium'>
+                Just a moment, we are verifying your details.
+              </p>
+            </CardContent>
+          </Card>
+        )}
         {kycStatus == KycStatus.Denied && (
           <Card>
             <CardHeader>
@@ -327,7 +329,9 @@ export function AppPage() {
 }
 
 function CTACards() {
-  const { features, walletInfo } = useLoaderData<typeof loader>() as AppLoaderData
+  const { features, walletInfo } = useLoaderData<
+    typeof loader
+  >() as AppLoaderData
 
   return (
     <>

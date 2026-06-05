@@ -1,7 +1,11 @@
-import type { Route } from './+types/accounts'
-import { data, redirect } from 'react-router';
-import { Outlet, useLoaderData, useLocation } from 'react-router';
-import { href } from 'react-router'
+import {
+  Outlet,
+  data,
+  href,
+  redirect,
+  useLoaderData,
+  useLocation
+} from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   Card,
@@ -26,6 +30,7 @@ import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
 import { KycStatus } from '~/lib/types'
 import styles from '~/styles/flags.css?url'
+import type { Route } from './+types/accounts'
 
 export async function loader({ request }: Route.LoaderArgs) {
   const { bankAccounts, cardAccounts, interacAccounts } =
@@ -33,7 +38,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   const kycStatus = await getKycStatus(request)
 
   const balancesResponse = await grpc.getBalances(request, {})
-  if (isConnectError(balancesResponse)) throw balancesResponse.error
+  if (isConnectError(balancesResponse)) throw balancesResponse.errorResponse
 
   const features = await getFeatures(request)
 

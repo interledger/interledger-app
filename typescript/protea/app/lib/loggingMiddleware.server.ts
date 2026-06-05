@@ -1,8 +1,8 @@
-import type { ActionFunctionArgs, LoaderFunctionArgs } from 'react-router';
-import logger, { addRequestId, addCorrelationId } from './logger.server'
+import type { ActionFunctionArgs, LoaderFunctionArgs } from 'react-router'
+import logger, { addCorrelationId, addRequestId } from './logger.server'
 import {
-  initializeRequestContext,
-  extractOrGenerateRequestId
+  extractOrGenerateRequestId,
+  initializeRequestContext
 } from './requestContext.server'
 
 /**
@@ -22,11 +22,14 @@ import {
  * })
  */
 export function withLoggingContext<T extends any[] | Record<string, any>>(
-  handler: (args: LoaderFunctionArgs | ActionFunctionArgs) => Promise<T | Response>
+  handler: (
+    args: LoaderFunctionArgs | ActionFunctionArgs
+  ) => Promise<T | Response>
 ) {
   return async (args: LoaderFunctionArgs | ActionFunctionArgs) => {
     const requestId = extractOrGenerateRequestId(args.request)
-    const correlationId = args.request.headers.get('x-correlation-id') || undefined
+    const correlationId =
+      args.request.headers.get('x-correlation-id') || undefined
 
     return initializeRequestContext(
       () => handler(args),

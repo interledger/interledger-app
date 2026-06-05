@@ -9,7 +9,7 @@ import {
   RadioGroup
 } from '~/components'
 import { OrderCardStep, useOrderCardStore } from '~/lib/cards/useOrderCardStore'
-import type { SelectableAddress} from './utils';
+import type { SelectableAddress } from './utils'
 import { toSelectableAddresses } from './utils'
 
 export const DeliveryAddresses = () => {

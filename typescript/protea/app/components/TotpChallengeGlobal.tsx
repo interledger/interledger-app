@@ -13,7 +13,7 @@ export function TotpChallengeGlobal() {
     return null
   }
 
-  return (  
+  return (
     <TotpChallengePopup
       flowId={challengeData.flowId}
       csrfToken={challengeData.csrfToken}

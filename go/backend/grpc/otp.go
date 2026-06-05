@@ -2,7 +2,6 @@ package grpc
 
 import (
 	"context"
-	"errors"
 
 	"gitlab.com/fynbos/backend/twilio"
 
@@ -23,13 +22,37 @@ func (s *rpcService) SendOTP(ctx context.Context, _ *pb.Empty) (*pb.Empty, error
 	return &pb.Empty{}, nil
 }
 
+func (s *rpcService) ConfirmUserPhone(ctx context.Context, req *pb.ConfirmUserPhoneRequest) (*pb.Empty, error) {
+	u, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	vc, err := s.b.Twilio().CheckVerificationCode(ctx, &twilio.CheckVerificationCodeArgs{
+		PhoneNumber: u.PhoneNumber,
+		Code:        req.GetOtp(),
+	})
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+	if !vc.IsValid() {
+		return nil, NewValidationError("otp", "Invalid OTP")
+	}
+
+	if err = s.b.Users().SetPhoneVerified(ctx, u.ID); err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &pb.Empty{}, nil
+}
+
 func (s *rpcService) SendPhoneVerification(
 	ctx context.Context,
 	req *pb.SendPhoneVerificationRequest,
 ) (*pb.Empty, error) {
 	err := s.b.Validator().VarCtx(ctx, req.To, "required,e164")
 	if err != nil {
-		return nil, NewValidationError("To", "Phone number is invalid.")
+		return nil, NewValidationError("phone", "Phone number is invalid.")
 	}
 
 	_, err = s.b.Twilio().SendVerificationCode(ctx, req.To)
@@ -46,7 +69,7 @@ func (s *rpcService) CheckPhoneVerification(
 ) (*pb.Empty, error) {
 	err := s.b.Validator().VarCtx(ctx, req.To, "required,e164")
 	if err != nil {
-		return nil, NewValidationError("To", "Phone number is invalid.")
+		return nil, NewValidationError("phone", "Phone number is invalid.")
 	}
 
 	vc, err := s.b.Twilio().CheckVerificationCode(ctx, &twilio.CheckVerificationCodeArgs{
@@ -54,12 +77,6 @@ func (s *rpcService) CheckPhoneVerification(
 		Code:        req.GetOtp(),
 	})
 	if err != nil {
-		if errors.Is(err, twilio.ErrInvalidOTP) {
-			return nil, NewTwilioError("Code", "Invalid verification code")
-		}
-		if errors.Is(err, twilio.ErrInvalidArgument) {
-			return nil, NewTwilioError("To", "Invalid phone number format")
-		}
 		return nil, toGRPCError(err)
 	}
 	if !vc.IsValid() {

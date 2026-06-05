@@ -5,7 +5,7 @@ const config: StorybookConfig = {
   addons: [
     '@storybook/addon-links',
     '@storybook/addon-essentials',
-    '@storybook/addon-interactions',
+    '@storybook/addon-interactions'
     // 'storybook-addon-react-router-v6',
     // ^ Add this if stories use routing hooks (useNavigate, useParams, useLocation, etc.).
     // Also wrap affected stories with the `withRouter` decorator from that package.
@@ -15,12 +15,12 @@ const config: StorybookConfig = {
     name: '@storybook/react-vite',
     options: {
       builder: {
-        viteConfigPath: '.storybook/vite.config.ts',
-      },
-    },
+        viteConfigPath: '.storybook/vite.config.ts'
+      }
+    }
   },
   docs: {
     autodocs: false
-  },
+  }
 }
 export default config

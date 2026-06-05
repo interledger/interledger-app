@@ -48,6 +48,11 @@
         },
         "countryCode": {
           "type": "string"
+        },
+        "phoneVerified": {
+          "title": "Phone Verified",
+          "type": "boolean",
+          "default": false
         }
       },
       "required": ["email", "phone", "firstName", "lastName", "countryCode"],

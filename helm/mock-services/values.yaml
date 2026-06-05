@@ -1,0 +1,318 @@
+# =============================================================================
+# MOCK-SERVICES — Standalone chart for mock provider services
+#
+# All services are disabled by default. Set <service>.enabled: true (boolean)
+# to render resources for that service.
+#
+# Each service requires a pre-created Secret (not created by this chart).
+# See the individual service sections below for the expected Secret name and
+# key contract.
+#
+# enabled MUST be a boolean (true/false). A quoted string "true" or "false"
+# is rejected — the templates use `kindIs "bool"` to prevent accidental
+# deployment from a misconfigured values file.
+# =============================================================================
+
+# =============================================================================
+# MOCKPTI — Mock PTI (Fiant) service
+#
+# Resources rendered when enabled:
+#   - ConfigMap   <fullname>-mockpti-config
+#   - Deployment  <fullname>-mockpti-server
+#   - Service     <fullname>-mockpti-service
+#
+# Expected Secret: <fullname>-mockpti
+#   Key: mockptiWebhookSigningKeyB64 (base64-encoded Ed25519 private key PEM)
+#   The service refuses to start if this variable is absent or not valid base64.
+#
+# Required values (chart will fail to render if empty):
+#   mockpti.config.webhook_url
+# =============================================================================
+mockpti:
+  # Boolean — must be true or false, not a quoted string.
+  enabled: false
+
+  config:
+    log_level: "debug"
+    redis_url: ""
+    redis_db: "5"
+    # client_id enforced against the x-pti-client-id header on every API call.
+    # Leave empty to accept any client ID.
+    client_id: ""
+    # webhook_url is the backend endpoint mockpti calls for async events.
+    # Required — the chart will refuse to render if left empty.
+    webhook_url: ""
+    webhook_min_delay_sec: "0.2"
+    # Name of the key inside the <fullname>-mockpti Secret that holds the
+    # base64-encoded Ed25519 private key PEM.
+    webhook_signing_key_ref: "mockptiWebhookSigningKeyB64"
+
+  configMaps:
+    config:
+      name: mockpti-config
+
+  server:
+    name: mockpti-server
+    image:
+      repository: europe-west4-docker.pkg.dev/wallet-451208/interledger-app
+      name: mockpti
+      # tag: vA.B.C  — defaults to .Chart.AppVersion
+    imagePullPolicy: Always
+    replicaCount: 1
+    livenessProbe:
+      initialDelaySeconds: 10
+      periodSeconds: 5
+      timeoutSeconds: 3
+      successThreshold: 1
+      failureThreshold: 3
+      httpGet:
+        path: /health
+        port: 8080
+    readinessProbe:
+      initialDelaySeconds: 10
+      periodSeconds: 5
+      timeoutSeconds: 3
+      successThreshold: 1
+      failureThreshold: 3
+      httpGet:
+        path: /health
+        port: 8080
+    ports:
+      - name: http
+        containerPort: 8080
+    service:
+      name: mockpti-service
+      type: ClusterIP
+      ports:
+        - port: 8080
+          targetPort: 8080
+          protocol: TCP
+          name: http
+    envFrom:
+      - configMapRef:
+          name: '{{ include "common.fullname" . }}-mockpti-config'
+    env:
+      - name: MOCKPTI_WEBHOOK_SIGNING_KEY_B64
+        valueFrom:
+          secretKeyRef:
+            name: '{{ include "common.fullname" . }}-mockpti'
+            key: "{{ .Values.mockpti.config.webhook_signing_key_ref }}"
+    resources:
+      requests:
+        memory: 64Mi
+        cpu: 50m
+      limits:
+        memory: 256Mi
+        cpu: 500m
+
+# =============================================================================
+# MOCKGATEHUB — Mock GateHub service
+#
+# Resources rendered when enabled:
+#   - ConfigMap   <fullname>-mockgatehub-config
+#   - Deployment  <fullname>-mockgatehub-server
+#   - Service     <fullname>-mockgatehub-service
+#
+# Expected Secret: <fullname>-mockgatehub
+#   webhookSecret          — WEBHOOK_SECRET (outbound webhook HMAC secret)
+#   validCredentials       — MOCKGATEHUB_VALID_CREDENTIALS ("appid:secret" pairs)
+#
+# Required values (chart will fail to render if empty):
+#   mockgatehub.config.webhook_url
+# =============================================================================
+mockgatehub:
+  # Boolean — must be true or false, not a quoted string.
+  enabled: false
+
+  config:
+    log_level: "info"
+    redis_url: ""
+    redis_db: "2"
+    # webhook_url is the backend endpoint mockgatehub calls for async events.
+    # Required — the chart will refuse to render if left empty.
+    webhook_url: ""
+    webhook_min_delay_sec: "2"
+    enforce_authentication: "true"
+    default_organization_id: "default-org"
+    # public_base_url is used to construct absolute URLs in API responses
+    # (e.g. card-data tokenisation links followed directly by the browser).
+    public_base_url: "https://mockgatehub.interledger.test"
+    # Secret key refs — names of keys in the <fullname>-mockgatehub Secret.
+    webhook_secret_ref: "webhookSecret"
+    valid_credentials_ref: "validCredentials"
+
+  configMaps:
+    config:
+      name: mockgatehub-config
+
+  server:
+    name: mockgatehub-server
+    image:
+      repository: europe-west4-docker.pkg.dev/wallet-451208/interledger-app
+      name: mockgatehub
+      # tag: vA.B.C  — defaults to .Chart.AppVersion
+    imagePullPolicy: Always
+    replicaCount: 1
+    livenessProbe:
+      initialDelaySeconds: 10
+      periodSeconds: 5
+      timeoutSeconds: 3
+      successThreshold: 1
+      failureThreshold: 3
+      httpGet:
+        path: /health
+        port: 8080
+    readinessProbe:
+      initialDelaySeconds: 10
+      periodSeconds: 5
+      timeoutSeconds: 3
+      successThreshold: 1
+      failureThreshold: 3
+      httpGet:
+        path: /health
+        port: 8080
+    ports:
+      - name: http
+        containerPort: 8080
+    service:
+      name: mockgatehub-service
+      type: ClusterIP
+      ports:
+        - port: 8080
+          targetPort: 8080
+          protocol: TCP
+          name: http
+    envFrom:
+      - configMapRef:
+          name: '{{ include "common.fullname" . }}-mockgatehub-config'
+    env:
+      - name: WEBHOOK_SECRET
+        valueFrom:
+          secretKeyRef:
+            name: '{{ include "common.fullname" . }}-mockgatehub'
+            key: "{{ .Values.mockgatehub.config.webhook_secret_ref }}"
+      - name: MOCKGATEHUB_VALID_CREDENTIALS
+        valueFrom:
+          secretKeyRef:
+            name: '{{ include "common.fullname" . }}-mockgatehub'
+            key: "{{ .Values.mockgatehub.config.valid_credentials_ref }}"
+    resources:
+      requests:
+        memory: 64Mi
+        cpu: 50m
+      limits:
+        memory: 256Mi
+        cpu: 500m
+
+# =============================================================================
+# MOCKXAGO — Mock Xago service
+#
+# Resources rendered when enabled:
+#   - ConfigMap   <fullname>-mockxago-config
+#   - Deployment  <fullname>-mockxago-server
+#   - Service     <fullname>-mockxago-service
+#
+# Expected Secret: <fullname>-mockxago
+#   webhookSecret          — WEBHOOK_SECRET (outbound webhook HMAC secret)
+#   apiPublicKey           — XAGO_API_PUBLIC_KEY (API credential)
+#   apiSecret              — XAGO_API_SECRET (API credential)
+#   personaWebhookToken    — PERSONA_WEBHOOK_TOKEN (Persona KYC webhook token)
+#
+# Required values (chart will fail to render if empty):
+#   mockxago.config.webhook_url
+# =============================================================================
+mockxago:
+  # Boolean — must be true or false, not a quoted string.
+  enabled: false
+
+  config:
+    log_level: "debug"
+    redis_url: ""
+    redis_db: "4"
+    # webhook_url is the backend endpoint mockxago calls for async events.
+    # Required — the chart will refuse to render if left empty.
+    webhook_url: ""
+    webhook_min_delay_sec: "2"
+    enforce_authentication: "true"
+    test_mode: "true"
+    # persona_webhook_url is the URL mockxago sends Persona KYC webhooks to.
+    # Leave empty to disable Persona webhook forwarding.
+    persona_webhook_url: ""
+    # Secret key refs — names of keys in the <fullname>-mockxago Secret.
+    webhook_secret_ref: "webhookSecret"
+    api_public_key_ref: "apiPublicKey"
+    api_secret_ref: "apiSecret"
+    persona_webhook_token_ref: "personaWebhookToken"
+
+  configMaps:
+    config:
+      name: mockxago-config
+
+  server:
+    name: mockxago-server
+    image:
+      repository: europe-west4-docker.pkg.dev/wallet-451208/interledger-app
+      name: mockxago
+      # tag: vA.B.C  — defaults to .Chart.AppVersion
+    imagePullPolicy: Always
+    replicaCount: 1
+    livenessProbe:
+      initialDelaySeconds: 10
+      periodSeconds: 5
+      timeoutSeconds: 3
+      successThreshold: 1
+      failureThreshold: 3
+      httpGet:
+        path: /health
+        port: 8080
+    readinessProbe:
+      initialDelaySeconds: 10
+      periodSeconds: 5
+      timeoutSeconds: 3
+      successThreshold: 1
+      failureThreshold: 3
+      httpGet:
+        path: /health
+        port: 8080
+    ports:
+      - name: http
+        containerPort: 8080
+    service:
+      name: mockxago-service
+      type: ClusterIP
+      ports:
+        - port: 8080
+          targetPort: 8080
+          protocol: TCP
+          name: http
+    envFrom:
+      - configMapRef:
+          name: '{{ include "common.fullname" . }}-mockxago-config'
+    env:
+      - name: WEBHOOK_SECRET
+        valueFrom:
+          secretKeyRef:
+            name: '{{ include "common.fullname" . }}-mockxago'
+            key: "{{ .Values.mockxago.config.webhook_secret_ref }}"
+      - name: XAGO_API_PUBLIC_KEY
+        valueFrom:
+          secretKeyRef:
+            name: '{{ include "common.fullname" . }}-mockxago'
+            key: "{{ .Values.mockxago.config.api_public_key_ref }}"
+      - name: XAGO_API_SECRET
+        valueFrom:
+          secretKeyRef:
+            name: '{{ include "common.fullname" . }}-mockxago'
+            key: "{{ .Values.mockxago.config.api_secret_ref }}"
+      - name: PERSONA_WEBHOOK_TOKEN
+        valueFrom:
+          secretKeyRef:
+            name: '{{ include "common.fullname" . }}-mockxago'
+            key: "{{ .Values.mockxago.config.persona_webhook_token_ref }}"
+    resources:
+      requests:
+        memory: 64Mi
+        cpu: 50m
+      limits:
+        memory: 256Mi
+        cpu: 500m

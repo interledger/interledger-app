@@ -1,7 +1,7 @@
-import { useRevalidator } from 'react-router';
 import type { Channel, PresenceChannel } from 'pusher-js'
 import Pusher from 'pusher-js'
 import { useEffect, useState } from 'react'
+import { useRevalidator } from 'react-router'
 import type { PendingThreeDSConfirmation } from '~/generated/connect/backend/v1/backend_pb'
 import { usePendingConfirmations } from './cards/usePendingConfirmations'
 import { useScaffoldStore } from './useScaffoldStore'

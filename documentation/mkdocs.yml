@@ -41,6 +41,7 @@ nav:
   - Operations:
       - Payment Troubleshooting: payment-troubleshooting-guide.md
   - Developers:
+      - Error Handling Guide: error-handling-guide.md
       - Logging Reference: logging-reference.md
       - Environment Variables: env-variables.md
 

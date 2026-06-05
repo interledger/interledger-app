@@ -1,5 +1,5 @@
-import { useFetcher } from 'react-router';
 import { useCallback, useEffect, useRef } from 'react'
+import { useFetcher } from 'react-router'
 import { useTotpChallengeStore } from './useTotpChallengeStore'
 
 interface TotpChallengeData {
