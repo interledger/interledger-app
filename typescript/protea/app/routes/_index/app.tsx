@@ -22,8 +22,8 @@ import {
   WalletGrid
 } from '~/components'
 import { Label } from '~/components/Label'
-import { computeCardSubtotalStyles } from '~/lib/cards/utils'
 import { usePendingConfirmations } from '~/lib/cards/usePendingConfirmations'
+import { computeCardSubtotalStyles } from '~/lib/cards/utils'
 import { KycStatus } from '~/lib/types'
 import { usePusher } from '~/lib/usePusher'
 import type { AppLoaderData, loader } from './route'
@@ -258,7 +258,8 @@ export function AppPage() {
                           <Icon>credit_card_off</Icon>
                         ) : transaction.state === 'Pending' ? (
                           <Icon>schedule</Icon>
-                        ) : transaction.cardTransactionDetails?.classification === 'Reversal' ? (
+                        ) : transaction.cardTransactionDetails
+                            ?.classification === 'Reversal' ? (
                           <Icon>undo</Icon>
                         ) : (
                           <Icon>credit_card</Icon>
@@ -266,14 +267,17 @@ export function AppPage() {
                       </>
                     ) : (
                       <>
-                        {transaction.state == 'Pending' && <Icon>schedule</Icon>}
+                        {transaction.state == 'Pending' && (
+                          <Icon>schedule</Icon>
+                        )}
                         {transaction.state == 'Failed' && (
                           <Icon className='text-error'>exclamation</Icon>
                         )}
                         {transaction.state != 'Pending' &&
                           transaction.state != 'Failed' && (
                             <>
-                              {transaction.destinationIdentityType == 'wallet' && (
+                              {transaction.destinationIdentityType ==
+                                'wallet' && (
                                 <>
                                   {transaction.type != 'withdrawal' &&
                                     transaction.type != 'deposit' && (
@@ -287,12 +291,10 @@ export function AppPage() {
                                   )}
                                 </>
                               )}
-                              {transaction.destinationIdentityType == 'Twitter' && (
-                                <TwitterIcon />
-                              )}
-                              {transaction.destinationIdentityType == 'Slack' && (
-                                <SlackIcon />
-                              )}
+                              {transaction.destinationIdentityType ==
+                                'Twitter' && <TwitterIcon />}
+                              {transaction.destinationIdentityType ==
+                                'Slack' && <SlackIcon />}
                             </>
                           )}
                         {transaction.state != 'Pending' &&
@@ -303,7 +305,9 @@ export function AppPage() {
                       </>
                     )}
                     <div className='flex w-full flex-col space-y-1'>
-                      <span className='truncate text-medium'>{transaction.title}</span>
+                      <span className='truncate text-medium'>
+                        {transaction.title}
+                      </span>
                       <span className='text-xs text-weak'>
                         {transaction.formattedDate} -{' '}
                         {transaction.formattedTime}

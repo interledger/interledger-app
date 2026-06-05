@@ -29,7 +29,10 @@ import {
 } from '~/components'
 import { Label } from '~/components/Label'
 import { type PublicWalletInfo } from '~/generated/connect/backend/v1/backend_pb'
-import { computeCardPaymentLabel, computeCardSubtotalStyles } from '~/lib/cards/utils'
+import {
+  computeCardPaymentLabel,
+  computeCardSubtotalStyles
+} from '~/lib/cards/utils'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
@@ -177,12 +180,12 @@ export default function Page() {
     <>
       {(transaction.type == 'sent' ||
         transaction.type == 'web_monetization_outgoing') && (
-          <Sent openDialog={() => setShowDialog(true)} />
-        )}
+        <Sent openDialog={() => setShowDialog(true)} />
+      )}
       {(transaction.type == 'received' ||
         transaction.type == 'web_monetization_incoming') && (
-          <Received openDialog={() => setShowDialog(true)} />
-        )}
+        <Received openDialog={() => setShowDialog(true)} />
+      )}
       {transaction.type == 'card_transaction' && <CardTransaction />}
       {transaction.type == 'withdrawal' && <Withdrawal />}
       {transaction.type == 'deposit' && <Deposit />}
@@ -899,7 +902,9 @@ function CardTransaction() {
         )}
         <CardContent>
           <div className='mt-2 flex w-full justify-between'>
-            <span className='text-weak'>{computeCardPaymentLabel(transaction.cardTransactionDetails)}</span>
+            <span className='text-weak'>
+              {computeCardPaymentLabel(transaction.cardTransactionDetails)}
+            </span>
             <span className='text-medium'>{transaction.accountTitle}</span>
           </div>
           <div className='mt-2 flex w-full justify-between'>
@@ -927,7 +932,9 @@ function CardTransaction() {
           {transaction.formattedTargetAmount && (
             <div className='mt-2 flex w-full justify-between'>
               <span className='text-weak'>Merchant's charge</span>
-              <span className='text-medium'>{transaction.formattedTargetAmount}</span>
+              <span className='text-medium'>
+                {transaction.formattedTargetAmount}
+              </span>
             </div>
           )}
           {transaction.exchangeRateApplied && (

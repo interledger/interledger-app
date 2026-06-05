@@ -1,7 +1,5 @@
-import {
-  CardOperation,
-  CardTransactionDetails
-} from '~/generated/connect/backend/v1/backend_pb'
+import type { CardTransactionDetails } from '~/generated/connect/backend/v1/backend_pb'
+import { CardOperation } from '~/generated/connect/backend/v1/backend_pb'
 
 const WITHDRAW_TYPES = [
   'Purchase',
