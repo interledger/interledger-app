@@ -39,10 +39,21 @@ func Init(token string, channels map[Channel]string) {
 func SendToChannel(ctx context.Context, channel Channel, fromUser, message string) {
 	// mirror every notification in every environment,
 	// regardless of whether slack is configured or reachable
-	log.Info("slack_msg",
-		zap.String("channel", string(channel)),
-		zap.String("from_user", fromUser),
-		zap.String("message", message))
+	var sendErr error
+	defer func() {
+		fields := []zap.Field{
+			zap.String("channel", string(channel)),
+			zap.String("from_user", fromUser),
+			zap.String("message", message),
+		}
+
+		if sendErr != nil {
+			log.Warn("failed to send message to slack", append(fields, zap.Error(sendErr))...)
+			return
+		}
+
+		log.Info("slack_msg", fields...)
+	}()
 
 	channelID := channelIDs[channel]
 	if channelID == "" {
@@ -61,8 +72,5 @@ func SendToChannel(ctx context.Context, channel Channel, fromUser, message strin
 		Pretext: message,
 	}
 
-	_, _, err := api.PostMessageContext(ctx, channelID, ext_slack.MsgOptionUsername(fromUser), ext_slack.MsgOptionAttachments(attachment))
-	if err != nil {
-		log.Warn("failed to send message to slack", zap.Error(err))
-	}
+	_, _, sendErr = api.PostMessageContext(ctx, channelID, ext_slack.MsgOptionUsername(fromUser), ext_slack.MsgOptionAttachments(attachment))
 }
