@@ -67,13 +67,17 @@ func Webhook(b Backends, clientID, publicKeyJWK string) (http.HandlerFunc, error
 	return func(w http.ResponseWriter, r *http.Request) {
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
-			log.Error("pti webhook: Failed to read body", zap.Error(err))
+			log.Error("pti webhook: failed to read body", zap.Error(err))
+			slack.SendToChannel(r.Context(), slack.ChannelError, "wallet-info-bot", fmt.Sprintf("pti webhook: failed to read body (clientID=%s)", clientID))
+
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return
 		}
 
 		if !verifyEd25519Signature(pubKey, body, r.Header.Get("X-Signature")) {
 			log.Error("pti webhook: signature verification failed")
+			slack.SendToChannel(r.Context(), slack.ChannelError, "wallet-info-bot", fmt.Sprintf("pti webhook: signature verification failed (clientID=%s)", clientID))
+
 			http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 			return
 		}
