@@ -403,7 +403,7 @@ func CreateCardTransaction(ctx workflow.Context, wh CardTransactionEventWebhook)
 
 	// radu: I do not like this..., but... such is life. We need to handle all TX types in the future
 	if ct.Type != external.CardTransactionTypePurchase && ct.Type != external.CardTransactionTypeATMWithdrawal {
-		slack.SendToChannel(context.Background(), "wallet-info-bot", fmt.Sprintf("!!! Received card transaction with unsupported type (only handling 0 and 1 at the moment)  :\nCard TX ID: %s\nCard ID: %s\nCard TX Type: %d\nGateHub User ID: %s", ct.TransactionID, card.ID, ct.Type, wh.UserID))
+		slack.SendToChannel(context.Background(), slack.ChannelError, "wallet-info-bot", fmt.Sprintf("!!! Received card transaction with unsupported type (only handling 0 and 1 at the moment)  :\nCard TX ID: %s\nCard ID: %s\nCard TX Type: %d\nGateHub User ID: %s", ct.TransactionID, card.ID, ct.Type, wh.UserID))
 		return nil
 	}
 
@@ -415,7 +415,7 @@ func CreateCardTransaction(ctx workflow.Context, wh CardTransactionEventWebhook)
 
 	if ct.TxStatus == nil {
 		// Notify GateHub as well if this happens.
-		slack.SendToChannel(context.Background(), "wallet-info-bot", fmt.Sprintf("!!! Received card transaction with no tx status:\nCard TX ID: %s\nCard ID: %s\nGateHub User ID: %s", ct.TransactionID, card.ID, wh.UserID))
+		slack.SendToChannel(context.Background(), slack.ChannelError, "wallet-info-bot", fmt.Sprintf("!!! Received card transaction with no tx status:\nCard TX ID: %s\nCard ID: %s\nGateHub User ID: %s", ct.TransactionID, card.ID, wh.UserID))
 	}
 
 	var txID string

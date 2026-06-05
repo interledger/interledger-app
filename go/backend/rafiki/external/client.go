@@ -81,7 +81,7 @@ func (c client) CreatePaymentPointer(ctx context.Context, w wallets.Wallet) (str
 		assetCode = "CAD"
 	} else {
 		assetCode = "USD"
-		slack.SendToChannel(ctx, "Fynbot", fmt.Sprintf("Rafiki external: Asset not configured for country=%s. Defaulting to USD. walletID=%s", w.Country, w.ID))
+		slack.SendToChannel(ctx, slack.ChannelError, "Fynbot", fmt.Sprintf("Rafiki external: Asset not configured for country=%s. Defaulting to USD. walletID=%s", w.Country, w.ID))
 	}
 
 	assetID, err := c.a.Get(ctx, c.backendClient, assetCode)

@@ -11,24 +11,40 @@ import (
 	ext_slack "github.com/slack-go/slack"
 )
 
+type Channel string
+
+const (
+	ChannelSignupKYC   Channel = "signup_kyc"
+	ChannelTransaction Channel = "transaction"
+	ChannelError       Channel = "error"
+)
+
+var allChannels = []Channel{ChannelSignupKYC, ChannelTransaction, ChannelError}
+
 var api *ext_slack.Client
 var initOnce sync.Once
 var slackToken string
-var channelID string
+var channelIDs map[Channel]string
 
-func Init(token, channel string) {
+func Init(token string, channels map[Channel]string) {
 	slackToken = token
-	channelID = channel
-	if channelID == "" {
-		log.Info("slack notifications disabled: SLACK_CHANNEL not set")
+	channelIDs = channels
+	for _, ch := range allChannels {
+		if channelIDs[ch] == "" {
+			log.Info("slack channel not configured", zap.String("channel", string(ch)))
+		}
 	}
 }
 
-func SendToChannel(ctx context.Context, fromUser, message string) {
+func SendToChannel(ctx context.Context, channel Channel, fromUser, message string) {
 	// mirror every notification in every environment,
-	// regardless of whether slack is  configured or reachable
-	log.Info("slack_msg", zap.String("from_user", fromUser), zap.String("message", message))
+	// regardless of whether slack is configured or reachable
+	log.Info("slack_msg",
+		zap.String("channel", string(channel)),
+		zap.String("from_user", fromUser),
+		zap.String("message", message))
 
+	channelID := channelIDs[channel]
 	if channelID == "" {
 		return
 	}
