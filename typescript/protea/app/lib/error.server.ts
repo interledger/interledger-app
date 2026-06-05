@@ -2,12 +2,8 @@ import type { ConnectError as BufConnectError } from '@bufbuild/connect'
 import { Code } from '@bufbuild/connect'
 import type { PlainMessage } from '@bufbuild/protobuf'
 import { captureMessage } from '@sentry/react-router'
-import {
-  UNSAFE_DataWithResponseInit as DataWithResponseInit,
-  href,
-  redirect,
-  data as rrData
-} from 'react-router'
+import type { UNSAFE_DataWithResponseInit as DataWithResponseInit } from 'react-router'
+import { href, redirect, data as rrData } from 'react-router'
 import { AppError } from '~/generated/connect/backend/v1/backend_pb'
 import type {
   BadRequest_FieldViolation,

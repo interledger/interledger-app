@@ -1,8 +1,5 @@
-import {
-  UNSAFE_DataWithResponseInit as DataWithResponseInit,
-  redirect,
-  data as rrData
-} from 'react-router'
+import type { UNSAFE_DataWithResponseInit as DataWithResponseInit } from 'react-router'
+import { redirect, data as rrData } from 'react-router'
 import { v4 } from 'uuid'
 import type { SnackbarType } from '~/lib/useScaffoldStore'
 import { commitSession, getSession } from '~/session.server'

@@ -8,6 +8,6 @@ function resolvePtiWidgetConfig() {
   return { sdkUrl, formsUrl }
 }
 
-export async function loader({}: Route.LoaderArgs) {
+export async function loader(_args: Route.LoaderArgs) {
   return Response.json(resolvePtiWidgetConfig())
 }
