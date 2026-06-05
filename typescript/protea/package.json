@@ -8,8 +8,10 @@
     "build": "react-router typegen && pnpm typecheck && react-router build",
     "start": "react-router-serve ./build/server/index.js",
     "lint": "eslint --fix --cache --cache-location ./node_modules/.cache/eslint .",
+    "lint:check": "eslint --max-warnings=0 --cache --cache-location ./node_modules/.cache/eslint .",
     "typecheck": "tsc -b",
     "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "precommit": "pnpm format && pnpm lint && pnpm build",
     "storybook": "storybook dev -p 6006 --no-open",
     "build-storybook": "storybook build",
@@ -56,6 +58,7 @@
   "devDependencies": {
     "@react-router/dev": "^7.13.1",
     "@react-router/fs-routes": "^7.13.1",
+    "@remix-run/eslint-config": "^1.16.0",
     "@storybook/addon-actions": "8.6.17",
     "@storybook/addon-docs": "8.6.17",
     "@storybook/addon-essentials": "8.6.17",

@@ -1,11 +1,7 @@
 import { href, redirect } from 'react-router'
 import logger from '../logger.server'
-import {
-  KratosError,
-  KratosErrorId,
-  KratosMessage,
-  type UiNode
-} from './types.server'
+import type { KratosError, KratosMessage } from './types.server'
+import { KratosErrorId, type UiNode } from './types.server'
 
 export class UserDisplayableError extends Error {
   constructor(public message: string) {

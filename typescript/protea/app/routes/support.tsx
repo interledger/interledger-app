@@ -14,7 +14,7 @@ import {
 import { jsonWithCSRF } from '~/lib/csrf.server'
 import { getUserSession } from '~/lib/kratos/session.server'
 import { mergeMeta } from '~/lib/meta'
-import { RootLoaderData } from '~/root'
+import type { RootLoaderData } from '~/root'
 import type { Route } from './+types/support'
 
 export async function loader({ request }: Route.LoaderArgs) {

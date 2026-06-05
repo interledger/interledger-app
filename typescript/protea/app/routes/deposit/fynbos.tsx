@@ -27,9 +27,9 @@ import {
 import type { FormattedLinkedAccount } from '~/data/accounts.server'
 
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
-import { RootLoaderData } from '~/root'
+import type { RootLoaderData } from '~/root'
 import { PaySelect } from '../pay_.$paymentId/PaySelect'
-import { fynbosDepositLoader } from './loader.server'
+import type { fynbosDepositLoader } from './loader.server'
 
 export function FynbosDepositPage() {
   const { depositDetails } = useLoaderData<typeof fynbosDepositLoader>()

@@ -20,7 +20,7 @@ import {
 } from '~/lib/kratos/error.server'
 import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.server'
 import { kratosPublic } from '~/lib/kratos/kratos-client.server'
-import { KratosError } from '~/lib/kratos/types.server'
+import type { KratosError } from '~/lib/kratos/types.server'
 import logger from '~/lib/logger.server'
 import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'

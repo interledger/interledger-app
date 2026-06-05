@@ -17,7 +17,7 @@ import type {
   UpdateVerificationFlowWithLinkMethod,
   VerificationFlow
 } from '@ory/client'
-import { kratosPublic } from './kratos-client.server'
+import type { kratosPublic } from './kratos-client.server'
 
 // Re-export types for convenience
 export type {
