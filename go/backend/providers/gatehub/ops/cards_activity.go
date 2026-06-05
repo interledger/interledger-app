@@ -358,6 +358,13 @@ func (a *Activity) RecordGatehubCardInformational(ctx context.Context, txID stri
 	return nil
 }
 
+func (a *Activity) FailGatehubCardTransaction(ctx context.Context, cardTxID, internalTxID string) error {
+	if err := a.b.Transactions().SetTransactionState(ctx, internalTxID, transactions.StateFailed); err != nil {
+		return err
+	}
+	return updateCardTransactionStatus(ctx, a.b, cardTxID, external.CardTransactionStatusFailed)
+}
+
 func (a *Activity) CreateGatehubCardReversal(ctx context.Context, txID string, tx external.CardTransaction, args RecordGatehubCardDepositArgs) error {
 	createArgs := transactions.CreateTransactionArgs{
 		ID:                 txID,
@@ -384,7 +391,6 @@ func (a *Activity) CreateGatehubCardReversal(ctx context.Context, txID string, t
 type FinalizeGatehubCardReversalArgs struct {
 	ReversalCardTxID     string
 	ReversalInternalTxID string
-	OriginalCardTxID     string
 	OriginalInternalTxID string
 }
 
@@ -395,13 +401,7 @@ func (a *Activity) FinalizeGatehubCardReversal(ctx context.Context, args Finaliz
 	if err := updateCardTransactionStatus(ctx, a.b, args.ReversalCardTxID, external.CardTransactionStatusCompleted); err != nil {
 		return err
 	}
-	if err := RollbackReserve(ctx, a.b, args.OriginalInternalTxID); err != nil {
-		return err
-	}
-	if err := a.b.Transactions().SetTransactionState(ctx, args.OriginalInternalTxID, transactions.StateFailed); err != nil {
-		return err
-	}
-	return updateCardTransactionStatus(ctx, a.b, args.OriginalCardTxID, external.CardTransactionStatusFailed)
+	return RollbackReserve(ctx, a.b, args.OriginalInternalTxID)
 }
 
 func (a *Activity) FailGatehubCardReversal(ctx context.Context, cardTxID, internalTxID string) error {

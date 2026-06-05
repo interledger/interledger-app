@@ -50,6 +50,7 @@ Feature: GateHub card transaction processing
     When I trigger a card purchase transaction for 'card-tx-user'
     And I trigger a purchase reversal for the last card transaction of 'card-tx-user'
     Then a pending deposit transaction should exist in the database for 'card-tx-user' with note "Refund"
+    And the first card transaction should be failed for 'card-tx-user'
     And the ledger balance for 'card-tx-user' should be total "200.00" EUR and available "198.11" EUR
 
   @card-transactions @withdrawal @preauth @incremental

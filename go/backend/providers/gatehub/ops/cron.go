@@ -187,7 +187,6 @@ func GatehubRealtimeCardTransactionsPollWorkflow(ctx workflow.Context) error {
 				activityErr = workflow.ExecuteActivity(loopCtx, a.FinalizeGatehubCardReversal, FinalizeGatehubCardReversalArgs{
 					ReversalCardTxID:     tx.ID,
 					ReversalInternalTxID: internalTx.ID,
-					OriginalCardTxID:     *cardTx.RefTransactionID,
 					OriginalInternalTxID: originalInternalTx.ID,
 				}).Get(loopCtx, nil)
 			case external.CardTransactionStatusFailed:
