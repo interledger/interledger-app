@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MockPlaid Link</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, system-ui, sans-serif; color: #1a2b3b; }
+  .wrap { padding: 24px; display: flex; flex-direction: column; height: 100vh; }
+  h1 { font-size: 18px; margin: 0 0 4px; }
+  .sub { font-size: 13px; color: #6b7c93; margin: 0 0 20px; }
+  label { display: block; font-size: 12px; font-weight: 600; margin: 14px 0 6px; }
+  select { width: 100%; padding: 10px; font-size: 14px; border: 1px solid #cfd7df; border-radius: 8px; background: #fff; }
+  .spacer { flex: 1; }
+  button { width: 100%; padding: 12px; font-size: 15px; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; }
+  .primary { background: #000; color: #fff; }
+  .primary:disabled { background: #9aa5b1; cursor: not-allowed; }
+  .ghost { background: transparent; color: #6b7c93; margin-top: 8px; }
+  .err { color: #c0392b; font-size: 12px; margin-top: 10px; min-height: 14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Connect a bank (Mock)</h1>
+  <p class="sub">MockPlaid — sandbox stand-in for Plaid Link.</p>
+
+  <label for="bank">Bank</label>
+  <select id="bank"></select>
+
+  <label for="account">Account</label>
+  <select id="account"></select>
+
+  <div class="err" id="err"></div>
+  <div class="spacer"></div>
+
+  <button class="primary" id="continue">Continue</button>
+  <button class="ghost" id="cancel">Cancel</button>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // Mirrors the mockplaid catalog (internal/models/institutions.go).
+  var CATALOG = [
+    { id: 'ins_mock_a', name: 'Tartan Bank', accounts: [
+      { key: 'checking', label: 'Plaid Checking ••••0000' },
+      { key: 'savings',  label: 'Plaid Saving ••••1111' }
+    ]},
+    { id: 'ins_mock_b', name: 'Platypus Bank', accounts: [
+      { key: 'checking', label: 'Plaid Checking ••••2222' },
+      { key: 'savings',  label: 'Plaid Saving ••••3333' }
+    ]}
+  ];
+
+  function qs(name) {
+    var m = new RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+    return m ? decodeURIComponent(m[1]) : '';
+  }
+
+  var linkToken = qs('link_token');
+
+  // Reply to the parent app window. Prefer the referrer origin; fall back to '*'
+  // (the parent shim validates the source origin regardless).
+  var targetOrigin = '*';
+  try { if (document.referrer) targetOrigin = new URL(document.referrer).origin; } catch (e) {}
+
+  var bankEl = document.getElementById('bank');
+  var acctEl = document.getElementById('account');
+  var errEl = document.getElementById('err');
+  var continueBtn = document.getElementById('continue');
+  var cancelBtn = document.getElementById('cancel');
+
+  CATALOG.forEach(function (b) {
+    var o = document.createElement('option');
+    o.value = b.id; o.textContent = b.name;
+    bankEl.appendChild(o);
+  });
+
+  function renderAccounts() {
+    acctEl.innerHTML = '';
+    var bank = CATALOG.filter(function (b) { return b.id === bankEl.value; })[0];
+    bank.accounts.forEach(function (a) {
+      var o = document.createElement('option');
+      o.value = a.key; o.textContent = a.label;
+      acctEl.appendChild(o);
+    });
+  }
+  bankEl.addEventListener('change', renderAccounts);
+  renderAccounts();
+
+  function post(type, payload) {
+    var msg = Object.assign({ namespace: 'mockplaid', type: type }, payload || {});
+    window.parent.postMessage(msg, targetOrigin);
+  }
+
+  cancelBtn.addEventListener('click', function () {
+    post('exit', { error: null, metadata: {} });
+  });
+
+  continueBtn.addEventListener('click', function () {
+    errEl.textContent = '';
+    continueBtn.disabled = true;
+    fetch('/link/session/select', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        link_token: linkToken,
+        institution_id: bankEl.value,
+        account_key: acctEl.value
+      })
+    })
+      .then(function (res) {
+        return res.json().then(function (body) { return { ok: res.ok, body: body }; });
+      })
+      .then(function (r) {
+        if (!r.ok) {
+          errEl.textContent = (r.body && r.body.error_message) || 'Selection failed';
+          continueBtn.disabled = false;
+          return;
+        }
+        post('success', { public_token: r.body.public_token, metadata: r.body.metadata });
+      })
+      .catch(function (e) {
+        errEl.textContent = 'Network error: ' + e.message;
+        continueBtn.disabled = false;
+      });
+  });
+})();
+</script>
+</body>
+</html>
