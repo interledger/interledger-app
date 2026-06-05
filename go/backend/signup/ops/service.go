@@ -189,7 +189,7 @@ func Complete(ctx context.Context, b Backends, id, userID string) error {
 		return fmt.Errorf("%w %s", signup.ErrInternal, err)
 	}
 
-	slack.SendToChannel(ctx, slack.ChannelSignupKYC, "Fynbot", fmt.Sprintf(":baby: New Sign Up\nID: %s\nUser ID: %s\nFull name: %s\nCountry: %s", current.ID, userID, current.FirstName+" "+current.LastName, current.CountryCode))
+	slack.SendToChannel(ctx, slack.ChannelSignupKYC, "wallet-info-bot", fmt.Sprintf(":baby: New Sign Up\nID: %s\nUser ID: %s\nFull name: %s\nCountry: %s", current.ID, userID, current.FirstName+" "+current.LastName, current.CountryCode))
 
 	return nil
 }
