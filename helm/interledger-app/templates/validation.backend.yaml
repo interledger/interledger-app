@@ -5,6 +5,7 @@
   (dict "path" "backend.config.apple_app_id" "value" .Values.backend.config.apple_app_id)
   (dict "path" "backend.config.android_package_name" "value" .Values.backend.config.android_package_name)
   (dict "path" "backend.config.android_sha256" "value" .Values.backend.config.android_sha256)
+  (dict "path" "backend.config.admin.base_url" "value" .Values.backend.config.admin.base_url)
 -}}
 
 {{- if eq (toString .Values.backend.config.gatehub.enabled) "true" -}}
