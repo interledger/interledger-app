@@ -178,6 +178,9 @@ backend:
       operator_tenant_id_ref: "rafikiOperatorTenantID"
       admin_api_secret_ref: "rafikiAdminAPISecret"
       signature_version_ref: "rafikiSignatureVersion"
+      # Feature flag: enables full-node event orchestration (GateHub lifecycle workflows).
+      # Set to "true" only in environments where the node flow rollout is intended.
+      node_enabled: "false"
 
     temporal:
       url: "temporal:7233"
@@ -866,6 +869,8 @@ backend:
           valueRef: backend.config.pti.forms_url
         - key: PORT
           valueRef: backend.config.port
+        - key: RAFIKI_NODE_ENABLED
+          valueRef: backend.config.rafiki.node_enabled
         - key: EMAIL_ENABLED
           valueRef: backend.config.email.enabled
         - key: SENDGRID_FROM_NAME
