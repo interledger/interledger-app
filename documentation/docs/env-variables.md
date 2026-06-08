@@ -273,6 +273,18 @@ Plaid integration is a proof-of-concept (see `documentation/poc/plaid/`). The fe
 | `PLAID_PROCESSOR` | Plaid processor partner used when minting a processor token via `processor/token/create` (`fiant` or `zero_hash`). Phase 2 only. | No | Default: `fiant`. Use `zero_hash` to validate plumbing if `fiant` is not enabled in your Plaid team. |
 | `PLAID_API_URL` | Overrides the Plaid SDK base URL. When set, all Plaid REST calls target this host instead of the real `sandbox.plaid.com`/`production.plaid.com`. Used to point the backend at the local **mockplaid** service. | No | Local POC: `http://mockplaid:8080` (mock). Blank/unset for real Plaid. Deployed: unset. See `documentation/poc/mockplaid/`. |
 
+#### MockPlaid service (local only)
+
+The `mockplaid` mock service (`go/mock/mockplaid/`, started by `local/docker-compose.yaml`) reads its own env. These are **local-only**; not set in deployed environments.
+
+| Variable | Description | Secret | Notes |
+|---|---|---|---|
+| `MOCKPLAID_PORT` | HTTP listen port | No | Default `8080` |
+| `MOCKPLAID_REDIS_URL` | Redis connection URL | No | Set → Redis store; empty → in-memory. Local: `redis://redis:6379` |
+| `MOCKPLAID_REDIS_DB` | Redis DB index | No | Default `6` |
+
+> `cdn.plaid.com` is **not** an env var — it's an `/etc/hosts` redirect to mockplaid (added by `make hosts`), so the browser loads the mock Plaid Link SDK. Toggle with `make plaid-mock` / `make plaid-real`. See `documentation/poc/plaid/mockplaid.md`.
+
 ### Legacy Variables
 
 | Variable | Description | Secret | Notes |
