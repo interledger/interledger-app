@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Card Transaction — MockGatehub Admin</title>
+<style>
+body { font-family: sans-serif; margin: 2rem; }
+label { display: block; margin: 0.75rem 0 0.25rem; font-weight: bold; }
+select, input { padding: 0.4rem; width: 24rem; }
+button { margin-top: 1rem; padding: 0.5rem 1.5rem; cursor: pointer; }
+.flash-ok  { color: green; font-weight: bold; }
+.flash-err { color: red;   font-weight: bold; }
+a { color: #0070f3; }
+.btn-secondary { margin-left: 0.6rem; background: #f3f4f6; border: 1px solid #d1d5db; }
+pre { background: #0b1020; color: #d9e2ff; padding: 1rem; border-radius: 8px; overflow: auto; max-width: 60rem; }
+</style>
+</head>
+<body>
+<h1>Simulate Card Transaction</h1>
+<nav><a href="/ui/">Dashboard</a> | <a href="/ui/actions/kyc">KYC Action</a> | <a href="/ui/actions/card-transaction">Card Transaction</a></nav>
+<hr>
+{{if .Flash}}<p class="{{if .FlashOK}}flash-ok{{else}}flash-err{{end}}">{{.Flash}}</p>{{end}}
+<form method="POST" action="/ui/actions/card-transaction">
+  <label for="userID">User</label>
+  <select name="userID" id="userID" required onchange="loadCards(this.value)">
+    <option value="">-- select user --</option>
+    {{range .Users}}
+    <option value="{{.ID}}" {{if eq $.SelectedUserID .ID}}selected{{end}}>{{.Email}} ({{.ID}})</option>
+    {{end}}
+  </select>
+
+  <label for="cardID">Card</label>
+  <select name="cardID" id="cardID" required>
+    <option value="">-- select card --</option>
+    {{range .Cards}}
+    <option value="{{.ID}}" {{if eq $.SelectedCardID .ID}}selected{{end}}>{{.MaskedPan}} ({{.Status}})</option>
+    {{end}}
+  </select>
+
+  <label for="title">Webhook Title</label>
+  <input type="text" name="title" id="title" value="{{.Title}}" placeholder="Card Purchase" required>
+
+  <label for="body">Webhook Body</label>
+  <input type="text" name="body" id="body" value="{{.Body}}" placeholder="EUR 10.00 at Coffee Shop" required>
+
+  <label for="cardTxObject">Card Transaction Object (JSON)</label>
+  <textarea name="cardTxObject" id="cardTxObject" rows="14" style="width: 40rem; max-width: 100%; font-family: monospace;" required>{{.CardTxObject}}</textarea>
+  <p style="margin: 0.4rem 0 0; color: #666; max-width: 40rem;">
+    The JSON object maps to the GateHub card transaction payload. Optional numeric <strong>cardId</strong> is independent from selected card GUID.
+  </p>
+
+    <button type="submit">Simulate Transaction</button>
+    <button type="button" class="btn-secondary" onclick="previewCallback()">Preview Callback</button>
+</form>
+
+  <h2>Callback Preview</h2>
+  <pre id="previewOutput">Click "Preview Callback" to see the exact webhook payload and normalized card transaction payload.</pre>
+<script>
+function loadCards(userID) {
+  const sel = document.getElementById('cardID');
+  sel.innerHTML = '<option value="">-- loading --</option>';
+  if (!userID) {
+    sel.innerHTML = '<option value="">-- select card --</option>';
+    return;
+  }
+  fetch('/ui/actions/card-transaction/cards?userID=' + encodeURIComponent(userID))
+    .then(function(r){ return r.json(); })
+    .then(function(cards){
+      sel.innerHTML = '<option value="">-- select card --</option>' +
+        cards.map(function(c){
+          return '<option value="' + c.id + '">' + (c.maskedPan || c.id) + ' (' + c.status + ')</option>';
+        }).join('');
+    })
+    .catch(function(){ sel.innerHTML = '<option value="">-- error loading cards --</option>'; });
+}
+
+function previewCallback() {
+  const form = document.querySelector('form[action="/ui/actions/card-transaction"]');
+  const out = document.getElementById('previewOutput');
+  out.textContent = 'Loading preview...';
+
+  fetch('/ui/actions/card-transaction/preview', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+    body: new URLSearchParams(new FormData(form)).toString()
+  })
+    .then(function(r) {
+      return r.json().then(function(data){ return { ok: r.ok, data: data }; });
+    })
+    .then(function(result) {
+      if (!result.ok) {
+        out.textContent = 'Preview failed: ' + (result.data.error || 'Unknown error');
+        return;
+      }
+      out.textContent = JSON.stringify(result.data, null, 2);
+    })
+    .catch(function(err) {
+      out.textContent = 'Preview failed: ' + err;
+    });
+}
+</script>
+</body>
+</html>

@@ -244,6 +244,16 @@ func TestMiddleware_PublicPatternSkipsAuth(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
+func TestMiddleware_UIPathSkipsAuth(t *testing.T) {
+	mw := Middleware(testCreds)(okHandler)
+	for _, path := range []string{"/ui", "/ui/", "/ui/users/some-uuid", "/ui/actions/kyc", "/ui/actions/card-transaction"} {
+		req := httptest.NewRequest("GET", path, nil)
+		w := httptest.NewRecorder()
+		mw.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusOK, w.Code, "UI path %s should skip auth", path)
+	}
+}
+
 func TestGetRegisteredAppIDs(t *testing.T) {
 	ids := getRegisteredAppIDs(map[string]string{"a": "1", "b": "2"})
 	assert.Len(t, ids, 2)

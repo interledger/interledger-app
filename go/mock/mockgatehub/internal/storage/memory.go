@@ -1,8 +1,10 @@
 package storage
 
 import (
+	"encoding/json"
 	"fmt"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"gitlab.com/fynbos/mock/mockgatehub/internal/models"
@@ -20,6 +22,8 @@ type MemoryStorage struct {
 	cards                  map[string]*models.Card                      // cardID -> Card
 	cardTransactions       map[string]*models.CardTransaction           // transactionID -> CardTransaction
 	cardTransactionsByCard map[string][]string                          // cardID -> transactionIDs
+	rawCardTransactions    map[string]json.RawMessage                   // transactionID -> raw JSON payload
+	cardTxSeqID            atomic.Int64                                 // globally incrementing card tx sequence id
 	cardLimits             map[string][]models.CardLimit                // cardID -> limits
 	customerAddresses      map[string][]*models.CustomerDeliveryAddress // customerID -> addresses
 	threeDSChallenges      map[string]*models.ThreeDSChallenge          // transactionID -> ThreeDSChallenge
@@ -40,6 +44,7 @@ func NewMemoryStorage() *MemoryStorage {
 		cards:                  make(map[string]*models.Card),
 		cardTransactions:       make(map[string]*models.CardTransaction),
 		cardTransactionsByCard: make(map[string][]string),
+		rawCardTransactions:    make(map[string]json.RawMessage),
 		cardLimits:             make(map[string][]models.CardLimit),
 		customerAddresses:      make(map[string][]*models.CustomerDeliveryAddress),
 		threeDSChallenges:      make(map[string]*models.ThreeDSChallenge),
@@ -410,6 +415,29 @@ func (s *MemoryStorage) GetCardTransaction(id string) (*models.CardTransaction, 
 	return tx, nil
 }
 
+func (s *MemoryStorage) UpdateCardTransactionStatus(txID string, status string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	tx, exists := s.cardTransactions[txID]
+	if !exists {
+		return fmt.Errorf("card transaction not found")
+	}
+	tx.TxStatus = &status
+
+	if raw, ok := s.rawCardTransactions[txID]; ok {
+		var m map[string]interface{}
+		if err := json.Unmarshal(raw, &m); err == nil {
+			m["txStatus"] = status
+			if updated, err := json.Marshal(m); err == nil {
+				s.rawCardTransactions[txID] = updated
+			}
+		}
+	}
+
+	return nil
+}
+
 func (s *MemoryStorage) AddCardTransactionIndex(cardID string, transactionID string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -434,6 +462,40 @@ func (s *MemoryStorage) GetCardTransactionIDs(cardID string) ([]string, error) {
 	result := make([]string, len(ids))
 	copy(result, ids)
 	return result, nil
+}
+
+func (s *MemoryStorage) StoreRawCardTransaction(txID string, data json.RawMessage) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if txID == "" {
+		return fmt.Errorf("txID is required")
+	}
+	cloned := make([]byte, len(data))
+	copy(cloned, data)
+	s.rawCardTransactions[txID] = cloned
+	return nil
+}
+
+func (s *MemoryStorage) GetRawCardTransaction(txID string) (json.RawMessage, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	data, ok := s.rawCardTransactions[txID]
+	if !ok {
+		return nil, fmt.Errorf("raw card transaction not found")
+	}
+	cloned := make([]byte, len(data))
+	copy(cloned, data)
+	return cloned, nil
+}
+
+func (s *MemoryStorage) NextCardTransactionSeqID() (int, error) {
+	return int(s.cardTxSeqID.Add(1)), nil
+}
+
+func (s *MemoryStorage) PeekCardTransactionSeqID() (int, error) {
+	return int(s.cardTxSeqID.Load()) + 1, nil
 }
 
 // CreateWallet creates a new wallet
@@ -684,4 +746,47 @@ func (s *MemoryStorage) UpdateOrganization(org *models.Organization) error {
 	orgCopy := *org
 	s.organizations[org.ID] = &orgCopy
 	return nil
+}
+
+// ListUsers returns all users in storage.
+func (s *MemoryStorage) ListUsers() ([]*models.User, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	users := make([]*models.User, 0, len(s.users))
+	for _, u := range s.users {
+		cp := *u
+		users = append(users, &cp)
+	}
+	return users, nil
+}
+
+// ListTransactionsByUser returns all transactions belonging to the given user.
+func (s *MemoryStorage) ListTransactionsByUser(userID string) ([]*models.Transaction, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	var txns []*models.Transaction
+	for _, tx := range s.transactions {
+		if tx.UserID == userID {
+			cp := *tx
+			txns = append(txns, &cp)
+		}
+	}
+	return txns, nil
+}
+
+// GetAllBalances returns a map of currency → amount for all currencies that have
+// a stored balance entry for the given user. Zero-balance entries are included.
+func (s *MemoryStorage) GetAllBalances(userID string) (map[string]float64, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	result := make(map[string]float64)
+	if balances, ok := s.balances[userID]; ok {
+		for currency, amount := range balances {
+			result[currency] = amount
+		}
+	}
+	return result, nil
 }
