@@ -1,0 +1,50 @@
+name: Argo CD Refresh and Sync
+description: Refresh and sync Argo CD apps selected by label selector.
+
+inputs:
+  argocd-endpoint:
+    description: Argo CD endpoint host or URL.
+    required: true
+  argocd-auth-token:
+    description: Argo CD API token.
+    required: true
+  cf-access-client-id:
+    description: Cloudflare Access service token client ID.
+    required: true
+  cf-access-client-secret:
+    description: Cloudflare Access service token client secret.
+    required: true
+  application-selector:
+    description: "Label selector for Argo CD applications to refresh and sync. Required. Examples: environment=wallet-dev1, environment=wallet-sandbox, environment=wallet-production."
+    required: true
+  timeout-seconds:
+    description: Maximum seconds to wait for each application to become healthy and synced.
+    required: false
+    default: '300'
+  poll-interval-seconds:
+    description: Seconds between Argo CD status polls.
+    required: false
+    default: '20'
+
+runs:
+  using: composite
+  steps:
+    - name: Refresh and sync selected Argo CD applications
+      shell: bash
+      env:
+        ARGOCD_ENDPOINT: ${{ inputs.argocd-endpoint }}
+        ARGOCD_AUTH_TOKEN: ${{ inputs.argocd-auth-token }}
+        CF_ACCESS_CLIENT_ID: ${{ inputs.cf-access-client-id }}
+        CF_ACCESS_CLIENT_SECRET: ${{ inputs.cf-access-client-secret }}
+        APPLICATION_SELECTOR: ${{ inputs.application-selector }}
+        TIMEOUT_SECONDS: ${{ inputs.timeout-seconds }}
+        POLL_INTERVAL_SECONDS: ${{ inputs.poll-interval-seconds }}
+      run: |
+        set -euo pipefail
+        script_path="${GITHUB_ACTION_PATH}/../../../tooling/github-scripts/argocd-refresh-sync.js"
+        if [[ ! -f "${script_path}" ]]; then
+          echo "::error::Script file is missing: ${script_path}"
+          exit 1
+        fi
+
+        node "${script_path}"

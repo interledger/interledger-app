@@ -1,7 +1,12 @@
 package main
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -261,6 +266,115 @@ func (sc *E2EContext) iConfirmTheCardOrder() error {
 	// waiting too long would cause the snackbar assertion to miss it.
 	// iShouldBeRedirectedTo handles the navigation wait via WaitForURL.
 	debugPrintf("✓ Card order submitted\n")
+	return nil
+}
+
+// getActiveCardID queries MockGatehub for the first active card belonging to gatehubUserID.
+func (sc *E2EContext) getActiveCardID(gatehubUserID string) (string, error) {
+	baseURL := mockgatehubCardTxBaseURL
+	if sc.mockgatehubBaseURL != "" {
+		baseURL = sc.mockgatehubBaseURL
+	}
+
+	reqURL := fmt.Sprintf("%s/ui/actions/card-transaction/cards?userID=%s", baseURL, url.QueryEscape(gatehubUserID))
+	req, err := http.NewRequestWithContext(context.Background(), "GET", reqURL, nil)
+	if err != nil {
+		return "", fmt.Errorf("getActiveCardID: build request: %w", err)
+	}
+
+	resp, err := mockgatehubHTTPClient().Do(req)
+	if err != nil {
+		return "", fmt.Errorf("getActiveCardID: request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("getActiveCardID: read body: %w", err)
+	}
+
+	var cards []struct {
+		ID string `json:"id"`
+	}
+	if err = json.Unmarshal(body, &cards); err != nil {
+		return "", fmt.Errorf("getActiveCardID: decode cards: %w (body: %s)", err, string(body))
+	}
+
+	if len(cards) == 0 {
+		return "", fmt.Errorf("getActiveCardID: no active cards for user %s", gatehubUserID)
+	}
+
+	return cards[0].ID, nil
+}
+
+// waitForCardInMockgatehub polls MockGatehub until an active card exists for gatehubUserID.
+func (sc *E2EContext) waitForCardInMockgatehub(gatehubUserID string, timeout time.Duration) error {
+	deadline := time.Now().Add(timeout)
+
+	for time.Now().Before(deadline) {
+		cardID, err := sc.getActiveCardID(gatehubUserID)
+		if err == nil && cardID != "" {
+			debugPrintf("   ✓ Card %s is active in MockGatehub for user %s\n", cardID, gatehubUserID)
+			return nil
+		}
+		debugPrintf("   ⏳ Waiting for card in MockGatehub for user %s...\n", gatehubUserID)
+		time.Sleep(2 * time.Second)
+	}
+	return fmt.Errorf("waitForCardInMockgatehub: timed out waiting for card for user %s", gatehubUserID)
+}
+
+// iOrderAPhysicalCardFor is a composite step that navigates through the full card
+// order flow for the named user and waits until the card appears in MockGatehub.
+func (sc *E2EContext) iOrderAPhysicalCardFor(userName string) error {
+	debugPrintf("\n🃏 Ordering physical card for user: %s\n", userName)
+
+	if err := sc.iImpersonate(userName); err != nil {
+		return fmt.Errorf("iOrderAPhysicalCardFor: impersonate: %w", err)
+	}
+	if err := sc.iNavigateToTheCardsPage(); err != nil {
+		return fmt.Errorf("iOrderAPhysicalCardFor: navigate: %w", err)
+	}
+	if err := sc.iClickTheButton("Order card"); err != nil {
+		return fmt.Errorf("iOrderAPhysicalCardFor: click order card: %w", err)
+	}
+	if err := sc.iShouldBeOnTheCardOrderPage(); err != nil {
+		return fmt.Errorf("iOrderAPhysicalCardFor: card order page: %w", err)
+	}
+	if err := sc.iSelectTheFirstAvailableCardProduct(); err != nil {
+		return fmt.Errorf("iOrderAPhysicalCardFor: select product: %w", err)
+	}
+	if err := sc.iClickTheButton("Physical"); err != nil {
+		return fmt.Errorf("iOrderAPhysicalCardFor: click physical: %w", err)
+	}
+	if err := sc.iShouldBeOnTheDeliveryAddressStep(); err != nil {
+		return fmt.Errorf("iOrderAPhysicalCardFor: delivery address step: %w", err)
+	}
+	if err := sc.iSelectTheExistingDeliveryAddress(); err != nil {
+		return fmt.Errorf("iOrderAPhysicalCardFor: select address: %w", err)
+	}
+	if err := sc.iClickTheButton("Confirm"); err != nil {
+		return fmt.Errorf("iOrderAPhysicalCardFor: click confirm: %w", err)
+	}
+	if err := sc.iShouldBeOnTheCardOrderConfirmationStep(); err != nil {
+		return fmt.Errorf("iOrderAPhysicalCardFor: confirmation step: %w", err)
+	}
+	if err := sc.iConfirmTheCardOrder(); err != nil {
+		return fmt.Errorf("iOrderAPhysicalCardFor: confirm order: %w", err)
+	}
+
+	email, err := sc.getEmailForUser(userName)
+	if err != nil {
+		return fmt.Errorf("iOrderAPhysicalCardFor: get email: %w", err)
+	}
+	gatehubUserID, err := sc.getGatehubUserIDByEmail(email)
+	if err != nil {
+		return fmt.Errorf("iOrderAPhysicalCardFor: get gatehub user ID: %w", err)
+	}
+	if err = sc.waitForCardInMockgatehub(gatehubUserID, 60*time.Second); err != nil {
+		return fmt.Errorf("iOrderAPhysicalCardFor: wait for card: %w", err)
+	}
+
+	debugPrintf("✓ Virtual card ordered and confirmed in MockGatehub for user: %s\n", userName)
 	return nil
 }
 

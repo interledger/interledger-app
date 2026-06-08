@@ -18,6 +18,19 @@ type UserDetails struct {
 // SignupContext needs to track current and stored user details
 // These fields are added to the SignupContext struct definition
 
+// getEmailForUser returns the email for a named user from sc.userDetails.
+func (sc *E2EContext) getEmailForUser(userName string) (string, error) {
+	details, exists := sc.userDetails[userName]
+	if !exists {
+		return "", fmt.Errorf("getEmailForUser: no user details for '%s'", userName)
+	}
+	email, ok := details.Fields["email"]
+	if !ok {
+		return "", fmt.Errorf("getEmailForUser: no email set for user '%s' (was iImpersonate called?)", userName)
+	}
+	return email, nil
+}
+
 // theDetailsOfAre stores user details from a Gherkin table
 // Usage: Given the details of 'kyc-user' are
 //

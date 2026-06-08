@@ -1,7 +1,8 @@
-import type { Route } from './+types/login'
-import { data, redirect, href } from 'react-router'
 import {
   Form,
+  data,
+  href,
+  redirect,
   useActionData,
   useLoaderData,
   useSearchParams
@@ -17,22 +18,24 @@ import {
   TextField
 } from '~/components'
 import {
-  kratosPublic
-} from '~/lib/kratos/kratos-client.server'
-import {
+  buildHeadersWithCookies,
   getCookie,
   isSessionAlreadyExistsMessage,
-  buildHeadersWithCookies,
   withCookie
 } from '~/lib/kratos/cookie.server'
+import {
+  handleFlowError,
+  mapFlowToFieldErrors
+} from '~/lib/kratos/error.server'
 import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.server'
-import { mapFlowToFieldErrors, handleFlowError } from '~/lib/kratos/error.server'
-import { flashSnackbar } from '~/lib/snackbar.server'
-import { type KratosError } from '~/lib/kratos/types.server'
+import { kratosPublic } from '~/lib/kratos/kratos-client.server'
 import { requireNoUserSession } from '~/lib/kratos/session.server'
+import { type KratosError } from '~/lib/kratos/types.server'
 import logger from '~/lib/logger.server'
 import { mergeMeta } from '~/lib/meta'
+import { flashSnackbar } from '~/lib/snackbar.server'
 import { safeReturnTo } from '~/lib/url.server'
+import type { Route } from './+types/login'
 
 export async function loader({ request }: Route.LoaderArgs) {
   await requireNoUserSession(request)
@@ -182,15 +185,16 @@ export async function action({ request }: Route.ActionArgs) {
   searchParams.set('returnTo', returnTo)
 
   try {
-    const response = await kratosPublic.updateLoginFlow({
-      flow: flowId as string,
-      updateLoginFlowBody: {
-        method: 'password' as const,
-        identifier: email as string,
-        password: password as string,
-        csrf_token: csrfToken as string
+    const response = await kratosPublic.updateLoginFlow(
+      {
+        flow: flowId as string,
+        updateLoginFlowBody: {
+          method: 'password' as const,
+          identifier: email as string,
+          password: password as string,
+          csrf_token: csrfToken as string
+        }
       },
-    },
       withCookie(cookie)
     )
 
@@ -239,16 +243,17 @@ export async function action({ request }: Route.ActionArgs) {
       })
       const redirectHeaders = buildHeadersWithCookies(errResponse)
       redirectHeaders.append('Set-Cookie', snackbarCookie)
-      return redirect(`/login?${redirectParams.toString()}`, { headers: redirectHeaders })
+      return redirect(`/login?${redirectParams.toString()}`, {
+        headers: redirectHeaders
+      })
     }
 
     // Handle AAL2 required
     if (errResponse?.status === 422) {
       const headers = buildHeadersWithCookies(errResponse)
-      return redirect(
-        `${href('/totp/challenge')}?${searchParams.toString()}`,
-        { headers }
-      )
+      return redirect(`${href('/totp/challenge')}?${searchParams.toString()}`, {
+        headers
+      })
     }
 
     // CSRF cookie missing or expired — redirect to get a fresh flow

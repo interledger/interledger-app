@@ -1,13 +1,18 @@
 import type { Session } from '@ory/client'
 import { redirect } from 'react-router'
-import { getUserSession } from './kratos/session.server'
-import { kratosPublic, CLEAR_SESSION_COOKIE_HEADER } from './kratos/kratos-client.server'
 import { withCookie } from './kratos/cookie.server'
+import {
+  CLEAR_SESSION_COOKIE_HEADER,
+  kratosPublic
+} from './kratos/kratos-client.server'
+import { getSessionTraits, getUserSession } from './kratos/session.server'
+import { safeReturnTo } from './url.server'
 
 /**
  * Routes that can be accessed without a session with highest AAL
  */
 export const NON_FULL_SESSION_ROUTES = [
+  '/phone-confirmation',
   '/totp/two-factor-authentication',
   '/totp/challenge',
   '/login',
@@ -35,10 +40,7 @@ export const NON_VERIFIED_EMAIL_ROUTES = ['/logout', '/verify']
 /**
  * Check if the user has TOTP enabled
  */
-async function isTotpSet(
-  session: Session,
-  headers: Headers
-): Promise<boolean> {
+async function isTotpSet(session: Session, headers: Headers): Promise<boolean> {
   if (session?.authenticator_assurance_level === 'aal2') {
     return true
   }
@@ -54,7 +56,8 @@ async function isTotpSet(
     // If TOTP is configured, the settings flow contains totp group nodes
     // with an "unlink" action. If not configured, the nodes offer "enable".
     const isSet = nodes.some(
-      (node: any) => node.group === 'totp' && node.attributes?.name === 'totp_unlink'
+      (node: any) =>
+        node.group === 'totp' && node.attributes?.name === 'totp_unlink'
     )
     return isSet
   } catch (error) {
@@ -88,7 +91,11 @@ export async function emailVerificationGuard(
   }
 }
 
-export async function withAAL2Guard(pathname: string, request: Request, fn: () => Promise<void>) {
+export async function withAAL2Guard(
+  pathname: string,
+  request: Request,
+  fn: (session: Session) => Promise<void>
+) {
   if (NON_FULL_SESSION_ROUTES.includes(pathname)) {
     return
   }
@@ -105,10 +112,51 @@ export async function withAAL2Guard(pathname: string, request: Request, fn: () =
     throw redirect('/totp/two-factor-authentication')
   }
 
-  await fn();
+  await fn(session)
 }
 
-export async function recoveryLinkSessionInvalidationGuard(pathname: string, request: Request) {
+/**
+ * Routes that can be accessed without phone confirmation
+ */
+export const NON_PHONE_CONFIRMED_ROUTES = [
+  '/phone-confirmation',
+  '/settings/phone',
+  '/totp/challenge',
+  '/login',
+  '/logout',
+  '/signup',
+  '/recovery',
+  '/recovery/password',
+  '/verify',
+  '/wallet-address',
+  '/unavailable'
+]
+
+export async function phoneConfirmationGuard(
+  pathname: string,
+  request: Request
+) {
+  const session = await getUserSession(request, true)
+  if (NON_PHONE_CONFIRMED_ROUTES.includes(pathname)) return
+  if (!session) return // Not yet AAL2 — skip guard
+
+  const { phone, phoneVerified } = getSessionTraits(session)
+  // Skip guard for users without a phone number (legacy users)
+  if (!phone) return
+
+  // Read phoneVerified directly from Kratos session traits — no gRPC call needed
+  if (!phoneVerified) {
+    const url = new URL(request.url)
+    const searchParams = new URLSearchParams()
+    searchParams.set('returnTo', safeReturnTo(url.pathname + url.search))
+    throw redirect(`/phone-confirmation?${searchParams.toString()}`)
+  }
+}
+
+export async function recoveryLinkSessionInvalidationGuard(
+  pathname: string,
+  request: Request
+) {
   if (PASSWORD_RECOVERY_ALLOWED_ROUTES.includes(pathname)) {
     return
   }
@@ -116,7 +164,9 @@ export async function recoveryLinkSessionInvalidationGuard(pathname: string, req
   const session = await getUserSession(request)
   if (!session) throw redirect('/login')
 
-  const isLinkRecoverySession = !!session.authentication_methods?.some((method: any) => method.method === 'link_recovery')
+  const isLinkRecoverySession = !!session.authentication_methods?.some(
+    (method: any) => method.method === 'link_recovery'
+  )
   if (isLinkRecoverySession) {
     throw redirect('/login', {
       headers: {

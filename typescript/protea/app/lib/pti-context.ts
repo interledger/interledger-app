@@ -1,10 +1,10 @@
 import {
   createContext,
   createElement,
-  type ReactNode,
   useContext,
   useEffect,
-  useState
+  useState,
+  type ReactNode
 } from 'react'
 
 export interface PtiWidgetConfig {

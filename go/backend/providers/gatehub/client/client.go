@@ -213,6 +213,10 @@ func (c Client) GetAccountStatement(ctx context.Context, walletID string, year, 
 	return ops.GetAccountStatement(ctx, c.b, c.external, walletID, year, month)
 }
 
+func (c Client) GetTransactionStatement(ctx context.Context, walletID string, txID string) (io.ReadCloser, error) {
+	return ops.GetTransactionStatement(ctx, c.b, c.external, walletID, txID)
+}
+
 func (c Client) TransferUserToOmnibus(ctx context.Context, senderLinkedAccountID string, amount currency.Amount) (*external.Transaction, error) {
 	return ops.TransferUserToOmnibus(ctx, c.b, c.external, senderLinkedAccountID, amount, c.config.XagoGatehubGhOmnibusUserAddress, c.config.PaywiserEuroVaultID)
 }

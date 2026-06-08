@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"gitlab.com/fynbos/mock/mockgatehub/internal/consts"
 	"gitlab.com/fynbos/mock/mockgatehub/internal/handler"
 	"gitlab.com/fynbos/mock/mockgatehub/internal/storage"
 	"gitlab.com/fynbos/mock/mockgatehub/internal/webhook"
@@ -13,6 +14,40 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 )
+
+func setupTestRouter() chi.Router {
+	store := storage.NewMemoryStorage()
+	_ = storage.SeedTestUsers(store)
+	webhookManager := webhook.NewManager("", "test-secret", nil, nil, "")
+	h := handler.NewHandler(store, webhookManager)
+	r := chi.NewRouter()
+	setupRoutes(r, h)
+	return r
+}
+
+func TestUIRoutes(t *testing.T) {
+	r := setupTestRouter()
+	tests := []struct {
+		method string
+		path   string
+		code   int
+	}{
+		{"GET", "/ui/", http.StatusOK},
+		{"GET", "/ui/users/" + consts.TestUser1ID, http.StatusOK},
+		{"GET", "/ui/users/nonexistent-id", http.StatusNotFound},
+		{"GET", "/ui/actions/kyc", http.StatusOK},
+		{"POST", "/ui/actions/kyc", http.StatusSeeOther},
+		{"GET", "/ui/actions/card-transaction", http.StatusOK},
+		{"POST", "/ui/actions/card-transaction", http.StatusBadRequest},
+		{"GET", "/ui/actions/card-transaction/cards", http.StatusOK},
+	}
+	for _, tt := range tests {
+		req := httptest.NewRequest(tt.method, tt.path, nil)
+		rr := httptest.NewRecorder()
+		r.ServeHTTP(rr, req)
+		assert.Equal(t, tt.code, rr.Code, "%s %s", tt.method, tt.path)
+	}
+}
 
 func TestOrderAdditionalCardRoute(t *testing.T) {
 	store := storage.NewMemoryStorage()

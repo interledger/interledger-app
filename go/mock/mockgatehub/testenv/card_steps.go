@@ -323,7 +323,7 @@ func (tc *TestContext) managedCustomerWithCardAndTransaction() error {
 	}
 
 	body := map[string]interface{}{
-		"cardId":       tc.cardID,
+		"cardGuid":     tc.cardID,
 		"amount":       "25.00",
 		"currency":     "EUR",
 		"type":         0,
@@ -409,7 +409,7 @@ func (tc *TestContext) putCardLimitsWithUpdate(path string, newDailyLimit int) e
 
 func (tc *TestContext) postCardTransaction(path, amount, currency string) error {
 	body := map[string]interface{}{
-		"cardId":       tc.cardID,
+		"cardGuid":     tc.cardID,
 		"amount":       amount,
 		"currency":     currency,
 		"type":         0,

@@ -1,17 +1,30 @@
-import type { Route } from './+types/settings_.password'
-import { data, redirect, href } from 'react-router'
-import { Form, useActionData, useLoaderData } from 'react-router'
+import {
+  Form,
+  data,
+  href,
+  redirect,
+  useActionData,
+  useLoaderData
+} from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts, TextField } from '~/components'
 import { error } from '~/lib/error.server'
-import { kratosPublic } from '~/lib/kratos/kratos-client.server'
-import { getCookie, withCookie, buildHeadersWithCookies } from '~/lib/kratos/cookie.server'
+import {
+  buildHeadersWithCookies,
+  getCookie,
+  withCookie
+} from '~/lib/kratos/cookie.server'
+import {
+  handleFlowError,
+  mapFlowToFieldErrors
+} from '~/lib/kratos/error.server'
 import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.server'
-import { handleFlowError, mapFlowToFieldErrors } from '~/lib/kratos/error.server'
+import { kratosPublic } from '~/lib/kratos/kratos-client.server'
+import type { KratosError } from '~/lib/kratos/types.server'
 import logger from '~/lib/logger.server'
 import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
-import { KratosError } from '~/lib/kratos/types.server'
+import type { Route } from './+types/settings_.password'
 
 export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url)
@@ -30,7 +43,10 @@ export async function loader({ request }: Route.LoaderArgs) {
       })
     } catch (err: any) {
       handleFlowError(err, 'settings/password')
-      logger.error({ error: err, route: 'settings.password' }, 'Failed to load password settings flow')
+      logger.error(
+        { error: err, route: 'settings.password' },
+        'Failed to load password settings flow'
+      )
       throw new Error('Failed to load password settings flow')
     }
   }
@@ -46,7 +62,10 @@ export async function loader({ request }: Route.LoaderArgs) {
     })
   } catch (err: any) {
     handleFlowError(err, 'settings/password')
-    logger.error({ error: err, route: 'settings.password' }, 'Failed to initialize password settings flow')
+    logger.error(
+      { error: err, route: 'settings.password' },
+      'Failed to initialize password settings flow'
+    )
     throw new Error('Failed to initialize password settings flow')
   }
 }
@@ -151,7 +170,10 @@ export async function action({ request }: Route.ActionArgs) {
       return error(request, { errors: errs })
     }
     handleFlowError(err, 'settings/password')
-    logger.error({ error: err, route: 'settings.password' }, 'Failed to update password')
+    logger.error(
+      { error: err, route: 'settings.password' },
+      'Failed to update password'
+    )
     throw new Error('Failed to update password')
   }
 }

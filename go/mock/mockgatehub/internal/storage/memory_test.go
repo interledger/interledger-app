@@ -709,3 +709,101 @@ func TestMemoryStorage_ThreeDSChallenge(t *testing.T) {
 	err = store.UpdateThreeDSChallenge(&models.ThreeDSChallenge{TransactionID: "nonexistent"})
 	assert.Error(t, err)
 }
+
+// ── ListUsers ──────────────────────────────────────────────────────────────
+
+func TestListUsers_Empty(t *testing.T) {
+	store := NewMemoryStorage()
+	users, err := store.ListUsers()
+	require.NoError(t, err)
+	assert.Empty(t, users)
+}
+
+func TestListUsers_WithSeededUsers(t *testing.T) {
+	store := NewMemoryStorage()
+	SeedTestUsers(store)
+
+	users, err := store.ListUsers()
+	require.NoError(t, err)
+	assert.Len(t, users, 2)
+
+	emails := make([]string, 0, len(users))
+	for _, u := range users {
+		emails = append(emails, u.Email)
+	}
+	assert.Contains(t, emails, "testuser1@mockgatehub.local")
+	assert.Contains(t, emails, "testuser2@mockgatehub.local")
+}
+
+func TestListUsers_AfterCreate(t *testing.T) {
+	store := NewMemoryStorage()
+	require.NoError(t, store.CreateUser(&models.User{Email: "a@example.com"}))
+	require.NoError(t, store.CreateUser(&models.User{Email: "b@example.com"}))
+
+	users, err := store.ListUsers()
+	require.NoError(t, err)
+	assert.Len(t, users, 2)
+}
+
+// ── ListTransactionsByUser ─────────────────────────────────────────────────
+
+func TestListTransactionsByUser_Empty(t *testing.T) {
+	store := NewMemoryStorage()
+	SeedTestUsers(store)
+
+	txns, err := store.ListTransactionsByUser("00000000-0000-0000-0000-000000000001")
+	require.NoError(t, err)
+	assert.Empty(t, txns)
+}
+
+func TestListTransactionsByUser(t *testing.T) {
+	store := NewMemoryStorage()
+	SeedTestUsers(store)
+
+	user1 := "00000000-0000-0000-0000-000000000001"
+	user2 := "00000000-0000-0000-0000-000000000002"
+
+	require.NoError(t, store.CreateTransaction(&models.Transaction{
+		ID: "tx-u1-a", UserID: user1, Amount: "10.00", Currency: "USD",
+	}))
+	require.NoError(t, store.CreateTransaction(&models.Transaction{
+		ID: "tx-u1-b", UserID: user1, Amount: "20.00", Currency: "EUR",
+	}))
+	require.NoError(t, store.CreateTransaction(&models.Transaction{
+		ID: "tx-u2-a", UserID: user2, Amount: "5.00", Currency: "GBP",
+	}))
+
+	u1Txns, err := store.ListTransactionsByUser(user1)
+	require.NoError(t, err)
+	assert.Len(t, u1Txns, 2)
+
+	u2Txns, err := store.ListTransactionsByUser(user2)
+	require.NoError(t, err)
+	assert.Len(t, u2Txns, 1)
+	assert.Equal(t, "tx-u2-a", u2Txns[0].ID)
+}
+
+// ── GetAllBalances ─────────────────────────────────────────────────────────
+
+func TestGetAllBalances_Empty(t *testing.T) {
+	store := NewMemoryStorage()
+	balances, err := store.GetAllBalances("nonexistent-user")
+	require.NoError(t, err)
+	assert.NotNil(t, balances)
+	assert.Empty(t, balances)
+}
+
+func TestGetAllBalances(t *testing.T) {
+	store := NewMemoryStorage()
+	userID := "00000000-0000-0000-0000-000000000001"
+	require.NoError(t, store.CreateUser(&models.User{ID: userID, Email: "u@test.com"}))
+
+	require.NoError(t, store.AddBalance(userID, "USD", 100.0))
+	require.NoError(t, store.AddBalance(userID, "EUR", 200.0))
+
+	balances, err := store.GetAllBalances(userID)
+	require.NoError(t, err)
+	assert.Equal(t, 100.0, balances["USD"])
+	assert.Equal(t, 200.0, balances["EUR"])
+	assert.Len(t, balances, 2)
+}

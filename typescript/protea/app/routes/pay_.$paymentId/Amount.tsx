@@ -1,15 +1,9 @@
-import { useFetcher, useLoaderData } from 'react-router';
-import type { loader } from './route'
 import type { ChangeEventHandler } from 'react'
 import { useCallback, useEffect, useReducer, useRef } from 'react'
-import { href } from 'react-router'
-import {
-  Button,
-  Card,
-  CardContent,
-  TextField
-} from '~/components'
+import { href, useFetcher, useLoaderData } from 'react-router'
+import { Button, Card, CardContent, TextField } from '~/components'
 import { PayStep, usePayStore } from '~/lib/usePayStore'
+import type { loader } from './route'
 
 import type { PlainMessage } from '@bufbuild/protobuf'
 import type { FormattedLinkedAccount } from '~/data/accounts.server'
@@ -21,7 +15,7 @@ import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { PayTextField } from '~/routes/pay_.$paymentId/PayTextField'
 import { PaySelect } from './PaySelect'
 import { PaymentDetailsCard } from './PaymentDetailsCard'
-import { updatePaymentAction } from './action.server';
+import type { updatePaymentAction } from './action.server'
 
 const DEBOUNCE_WAIT = 150
 

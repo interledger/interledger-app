@@ -1,5 +1,5 @@
-import { useLoaderData } from 'react-router';
 import { useState } from 'react'
+import { useLoaderData } from 'react-router'
 import {
   Alert,
   AlertBody,
@@ -19,8 +19,8 @@ import {
   TwitterIcon
 } from '~/components'
 import { Label } from '~/components/Label'
-import type { loader } from './route'
 import { PaymentIdentityType } from '~/lib/types'
+import type { loader } from './route'
 
 export const PaymentDetailsCard = () => {
   const { publicWalletInfo, payment } = useLoaderData<typeof loader>()
@@ -37,7 +37,7 @@ export const PaymentDetailsCard = () => {
               {(payment.receiverIdentityType ===
                 PaymentIdentityType.WalletURL ||
                 payment.receiverIdentityType ===
-                PaymentIdentityType.WalletID) && <InterledgerIcon />}
+                  PaymentIdentityType.WalletID) && <InterledgerIcon />}
               {payment.receiverIdentityType === PaymentIdentityType.Twitter && (
                 <TwitterIcon />
               )}

@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
-import { useScript } from './useScript'
 import { usePtiConfig } from './pti-context'
+import { useScript } from './useScript'
 
 export function usePTISdk(sessionId: string, clientId: string) {
   const ptiConfig = usePtiConfig()
