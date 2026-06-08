@@ -32,10 +32,11 @@ import {
 } from '~/components'
 import { Label } from '~/components/Label'
 import { getKycStatus, getTransactionsWithPending } from '~/data/wallet.server'
-import type { Transaction } from '~/generated/connect/backend/v1/backend_pb'
+import { type Transaction } from '~/generated/connect/backend/v1/backend_pb'
 import { grpc } from '~/lib/grpc.server'
 import type { Route } from './+types/payments'
 
+import { computeCardSubtotalStyles } from '~/lib/cards/utils'
 import { isConnectError } from '~/lib/error.server'
 import { mergeMeta } from '~/lib/meta'
 import { KycStatus } from '~/lib/types'
@@ -325,44 +326,63 @@ export default function Page() {
                     className='justify-between space-x-4'
                   >
                     <div className='flex w-7/12 items-center space-x-2'>
-                      {transaction.state == 'Pending' && <Icon>schedule</Icon>}
-                      {transaction.state == 'Failed' && (
-                        <Icon className='text-error'>exclamation</Icon>
-                      )}
-                      {transaction.state != 'Pending' &&
-                        transaction.state != 'Failed' && (
-                          <>
-                            {transaction.destinationIdentityType ==
-                              'wallet' && (
+                      {transaction.type === 'card_transaction' ? (
+                        <>
+                          {transaction.state == 'Failed' ? (
+                            <Icon>credit_card_off</Icon>
+                          ) : transaction.state == 'Pending' ? (
+                            <Icon>schedule</Icon>
+                          ) : transaction.cardTransactionDetails
+                              ?.classification == 'Reversal' ? (
+                            <Icon>undo</Icon>
+                          ) : (
+                            <Icon>credit_card</Icon>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          {transaction.state == 'Pending' && (
+                            <Icon>schedule</Icon>
+                          )}
+                          {transaction.state == 'Failed' && (
+                            <Icon className='text-error'>exclamation</Icon>
+                          )}
+                          {transaction.state != 'Pending' &&
+                            transaction.state != 'Failed' && (
                               <>
-                                {transaction.type != 'withdrawal' &&
-                                  transaction.type != 'deposit' && (
-                                    <InterledgerIcon />
-                                  )}
-                                {transaction.type == 'withdrawal' && (
-                                  <Icon>south_west</Icon>
+                                {transaction.destinationIdentityType ==
+                                  'wallet' && (
+                                  <>
+                                    {transaction.type != 'withdrawal' &&
+                                      transaction.type != 'deposit' && (
+                                        <InterledgerIcon />
+                                      )}
+                                    {transaction.type == 'withdrawal' && (
+                                      <Icon>south_west</Icon>
+                                    )}
+                                    {transaction.type == 'deposit' && (
+                                      <Icon>north_east</Icon>
+                                    )}
+                                  </>
                                 )}
-                                {transaction.type == 'deposit' && (
-                                  <Icon>north_east</Icon>
-                                )}
+                                {transaction.destinationIdentityType ==
+                                  'Twitter' && <TwitterIcon />}
+                                {transaction.destinationIdentityType ==
+                                  'Slack' && <SlackIcon />}
                               </>
                             )}
-                            {transaction.destinationIdentityType ==
-                              'Twitter' && <TwitterIcon />}
-                            {transaction.destinationIdentityType == 'Slack' && (
-                              <SlackIcon />
-                            )}
-                            {transaction.type === 'card_transaction' && (
-                              <Icon>credit_card</Icon>
-                            )}
-                          </>
-                        )}
+                        </>
+                      )}
                       <div className='flex w-full flex-col space-y-1'>
                         <span className='truncate text-medium'>
                           {transaction.title}
                         </span>
+
                         <span className='text-xs text-weak'>
                           {transaction.formattedTime}
+                          {transaction.type === 'card_transaction' &&
+                            transaction.reference &&
+                            `, ${transaction.reference}`}
                         </span>
                       </div>
                     </div>
@@ -370,10 +390,12 @@ export default function Page() {
                       <span
                         className={clsx(
                           'min-w-max font-medium',
-                          transaction.type == 'sent' ||
-                            transaction.type == 'web_monetization_outgoing' ||
-                            (transaction.type == 'card_transaction' &&
-                              transaction.state === 'Completed')
+                          transaction.type === 'card_transaction'
+                            ? computeCardSubtotalStyles(
+                                transaction.cardTransactionDetails
+                              )
+                            : transaction.type === 'sent' ||
+                              transaction.type === 'web_monetization_outgoing'
                             ? 'text-error'
                             : 'text-medium'
                         )}

@@ -1,6 +1,8 @@
 package storage
 
 import (
+	"encoding/json"
+
 	"gitlab.com/fynbos/mock/mockgatehub/internal/models"
 )
 
@@ -39,8 +41,17 @@ type Storage interface {
 	// Card Transactions
 	CreateCardTransaction(tx *models.CardTransaction) error
 	GetCardTransaction(id string) (*models.CardTransaction, error)
+	UpdateCardTransactionStatus(txID string, status string) error
 	AddCardTransactionIndex(cardID string, transactionID string) error
 	GetCardTransactionIDs(cardID string) ([]string, error)
+
+	// Raw Card Transactions (preserves all user-supplied fields from the UI form)
+	StoreRawCardTransaction(txID string, data json.RawMessage) error
+	GetRawCardTransaction(txID string) (json.RawMessage, error)
+
+	// Card Transaction Sequence Counter (globally incrementing integer id field)
+	NextCardTransactionSeqID() (int, error)
+	PeekCardTransactionSeqID() (int, error)
 
 	// Wallets
 	CreateWallet(wallet *models.Wallet) error
@@ -67,4 +78,9 @@ type Storage interface {
 	GetOrganization(orgID string) (*models.Organization, error)
 	CreateOrganization(org *models.Organization) error
 	UpdateOrganization(org *models.Organization) error
+
+	// Admin UI enumeration
+	ListUsers() ([]*models.User, error)
+	ListTransactionsByUser(userID string) ([]*models.Transaction, error)
+	GetAllBalances(userID string) (map[string]float64, error)
 }

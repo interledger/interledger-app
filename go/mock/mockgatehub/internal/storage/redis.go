@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"gitlab.com/fynbos/mock/mockgatehub/internal/logger"
@@ -539,6 +540,33 @@ func (s *RedisStorage) GetCardTransaction(id string) (*models.CardTransaction, e
 	return &tx, nil
 }
 
+func (s *RedisStorage) UpdateCardTransactionStatus(txID string, status string) error {
+	tx, err := s.GetCardTransaction(txID)
+	if err != nil {
+		return err
+	}
+	tx.TxStatus = &status
+	data, err := json.Marshal(tx)
+	if err != nil {
+		return fmt.Errorf("failed to marshal card transaction: %w", err)
+	}
+	if err := s.client.Set(s.ctx, s.cardTransactionKey(txID), data, 0).Err(); err != nil {
+		return fmt.Errorf("failed to update card transaction: %w", err)
+	}
+
+	if rawData, err := s.GetRawCardTransaction(txID); err == nil {
+		var m map[string]interface{}
+		if err := json.Unmarshal(rawData, &m); err == nil {
+			m["txStatus"] = status
+			if updated, err := json.Marshal(m); err == nil {
+				_ = s.StoreRawCardTransaction(txID, updated)
+			}
+		}
+	}
+
+	return nil
+}
+
 func (s *RedisStorage) AddCardTransactionIndex(cardID string, transactionID string) error {
 	if cardID == "" || transactionID == "" {
 		return errors.New("cardID and transactionID are required")
@@ -558,6 +586,46 @@ func (s *RedisStorage) GetCardTransactionIDs(cardID string) ([]string, error) {
 	}
 
 	return ids, nil
+}
+
+func (s *RedisStorage) StoreRawCardTransaction(txID string, data json.RawMessage) error {
+	if txID == "" {
+		return errors.New("txID is required")
+	}
+	if err := s.client.Set(s.ctx, s.cardTransactionRawKey(txID), []byte(data), 0).Err(); err != nil {
+		return fmt.Errorf("failed to store raw card transaction: %w", err)
+	}
+	return nil
+}
+
+func (s *RedisStorage) GetRawCardTransaction(txID string) (json.RawMessage, error) {
+	data, err := s.client.Get(s.ctx, s.cardTransactionRawKey(txID)).Bytes()
+	if err == redis.Nil {
+		return nil, errors.New("raw card transaction not found")
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed to get raw card transaction: %w", err)
+	}
+	return json.RawMessage(data), nil
+}
+
+func (s *RedisStorage) NextCardTransactionSeqID() (int, error) {
+	n, err := s.client.Incr(s.ctx, "card_tx_seq").Result()
+	if err != nil {
+		return 0, fmt.Errorf("failed to increment card transaction seq: %w", err)
+	}
+	return int(n), nil
+}
+
+func (s *RedisStorage) PeekCardTransactionSeqID() (int, error) {
+	val, err := s.client.Get(s.ctx, "card_tx_seq").Int64()
+	if err == redis.Nil {
+		return 1, nil // next would be 1
+	}
+	if err != nil {
+		return 0, fmt.Errorf("failed to peek card transaction seq: %w", err)
+	}
+	return int(val) + 1, nil // return what the next call to Next would return
 }
 
 // Wallet operations
@@ -636,6 +704,13 @@ func (s *RedisStorage) CreateTransaction(tx *models.Transaction) error {
 
 	if err := s.client.Set(s.ctx, s.txKey(tx.ID), data, 0).Err(); err != nil {
 		return fmt.Errorf("failed to store transaction: %w", err)
+	}
+
+	// Maintain per-user transaction index for admin UI enumeration
+	if tx.UserID != "" {
+		if err := s.client.LPush(s.ctx, s.userTransactionsKey(tx.UserID), tx.ID).Err(); err != nil {
+			return fmt.Errorf("failed to index transaction for user: %w", err)
+		}
 	}
 
 	return nil
@@ -947,6 +1022,10 @@ func (s *RedisStorage) cardTransactionsKey(cardID string) string {
 	return fmt.Sprintf("card:%s:transactions", cardID)
 }
 
+func (s *RedisStorage) cardTransactionRawKey(id string) string {
+	return fmt.Sprintf("cardtx_raw:%s", id)
+}
+
 func (s *RedisStorage) walletKey(address string) string {
 	return fmt.Sprintf("wallet:%s", address)
 }
@@ -973,4 +1052,109 @@ func (s *RedisStorage) userThreeDSChallengesKey(userID string) string {
 
 func (s *RedisStorage) organizationKey(orgID string) string {
 	return fmt.Sprintf("organization:%s", orgID)
+}
+
+func (s *RedisStorage) userTransactionsKey(userID string) string {
+	return fmt.Sprintf("user:%s:transactions", userID)
+}
+
+// ListUsers returns all users stored in Redis by scanning for keys matching
+// the pattern "user:*" and filtering out composite keys (e.g. "user:{id}:wallets").
+func (s *RedisStorage) ListUsers() ([]*models.User, error) {
+	var users []*models.User
+	var cursor uint64
+
+	for {
+		keys, nextCursor, err := s.client.Scan(s.ctx, cursor, "user:*", 100).Result()
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan user keys: %w", err)
+		}
+
+		for _, key := range keys {
+			// Skip composite keys like "user:{id}:wallets", "user:{id}:3ds:challenges", etc.
+			// A plain user key has exactly one colon: "user:{id}"
+			suffix := key[len("user:"):]
+			if strings.Contains(suffix, ":") {
+				continue
+			}
+
+			data, err := s.client.Get(s.ctx, key).Result()
+			if err != nil {
+				continue
+			}
+
+			var user models.User
+			if err := json.Unmarshal([]byte(data), &user); err != nil {
+				continue
+			}
+			users = append(users, &user)
+		}
+
+		cursor = nextCursor
+		if cursor == 0 {
+			break
+		}
+	}
+
+	return users, nil
+}
+
+// ListTransactionsByUser returns all transactions for the given user by reading
+// from the per-user transaction index list "user:{id}:transactions".
+func (s *RedisStorage) ListTransactionsByUser(userID string) ([]*models.Transaction, error) {
+	ids, err := s.client.LRange(s.ctx, s.userTransactionsKey(userID), 0, -1).Result()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user transaction index: %w", err)
+	}
+
+	txns := make([]*models.Transaction, 0, len(ids))
+	for _, id := range ids {
+		tx, err := s.GetTransaction(id)
+		if err != nil {
+			continue
+		}
+		txns = append(txns, tx)
+	}
+	return txns, nil
+}
+
+// GetAllBalances returns a map of currency → amount for the given user by
+// scanning keys matching "balance:{userID}:*".
+func (s *RedisStorage) GetAllBalances(userID string) (map[string]float64, error) {
+	result := make(map[string]float64)
+	pattern := fmt.Sprintf("balance:%s:*", userID)
+	prefix := fmt.Sprintf("balance:%s:", userID)
+	var cursor uint64
+
+	for {
+		keys, nextCursor, err := s.client.Scan(s.ctx, cursor, pattern, 100).Result()
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan balance keys: %w", err)
+		}
+
+		for _, key := range keys {
+			currency := strings.TrimPrefix(key, prefix)
+			if currency == "" {
+				continue
+			}
+
+			val, err := s.client.Get(s.ctx, key).Result()
+			if err != nil {
+				continue
+			}
+
+			amount, err := strconv.ParseFloat(val, 64)
+			if err != nil {
+				continue
+			}
+			result[currency] = amount
+		}
+
+		cursor = nextCursor
+		if cursor == 0 {
+			break
+		}
+	}
+
+	return result, nil
 }
