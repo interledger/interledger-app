@@ -507,7 +507,7 @@ func HandleWithdrawalCompleted(ctx context.Context, b Backends, raw json.RawMess
 	}
 
 	wo := client.StartWorkflowOptions{
-		ID:                    "gatehub_withdrawal_completed" + wh.ID,
+		ID:                    "gatehub_withdrawal_completed_" + wh.ID,
 		TaskQueue:             "backend",
 		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
 	}
