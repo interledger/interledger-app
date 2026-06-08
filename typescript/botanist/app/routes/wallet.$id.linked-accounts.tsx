@@ -1,13 +1,13 @@
-import type { LoaderArgs } from '@remix-run/node'
-import { json } from '@remix-run/node'
-import { useLoaderData } from '@remix-run/react'
+import type { LoaderFunctionArgs } from 'react-router'
+import { data } from 'react-router'
+import { useLoaderData } from 'react-router'
 import { ListLinkedAccounts } from '~/lib/wallet.server'
 import { GridCard } from '~/components'
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const linkedAccounts = await ListLinkedAccounts(request, params.id as string)
 
-  return json({
+  return data({
     linkedAccounts
   })
 }
