@@ -22,7 +22,6 @@ jobs:
     uses: ./.github/workflows/typescript-check-template.yml
     with:
       working_directory: typescript/protea
-      run_react_router_typegen: true
 
   botanist:
     uses: ./.github/workflows/typescript-check-template.yml

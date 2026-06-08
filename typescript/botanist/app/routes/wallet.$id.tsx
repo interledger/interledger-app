@@ -1,6 +1,5 @@
-import { NavLink, Outlet, useParams } from '@remix-run/react'
+import { NavLink, Outlet, useParams, href } from 'react-router'
 import type { FC, ReactNode } from 'react'
-import { route } from 'routes-gen'
 import { Grid } from '~/components'
 
 type TabItemProps = {
@@ -33,24 +32,24 @@ export default function Page() {
     <Grid>
       <div className='col-span-full flex'>
         <div className='flex space-x-1 rounded-xl bg-page p-1'>
-          <TabItem to={route('/wallet/:id/profile', { id: id as string })}>
+          <TabItem to={href('/wallet/:id/profile', { id: id as string })}>
             Profile
           </TabItem>
-          <TabItem to={route('/wallet/:id/transactions', { id: id as string })}>
+          <TabItem to={href('/wallet/:id/transactions', { id: id as string })}>
             Transactions
           </TabItem>
-          <TabItem to={route('/wallet/:id/audit', { id: id as string })}>
+          <TabItem to={href('/wallet/:id/audit', { id: id as string })}>
             Audit log
           </TabItem>
           <TabItem
-            to={route('/wallet/:id/linked-accounts', { id: id as string })}
+            to={href('/wallet/:id/linked-accounts', { id: id as string })}
           >
             Linked accounts
           </TabItem>
-          <TabItem to={route('/wallet/:id/balances', { id: id as string })}>
+          <TabItem to={href('/wallet/:id/balances', { id: id as string })}>
             Balances
           </TabItem>
-          <TabItem to={route('/wallet/:id/gatehub', { id: id as string })}>
+          <TabItem to={href('/wallet/:id/gatehub', { id: id as string })}>
             Gatehub User
           </TabItem>
         </div>

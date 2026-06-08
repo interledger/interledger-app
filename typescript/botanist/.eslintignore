@@ -3,6 +3,7 @@ public
 public/build
 .cache
 generated
+.react-router
 dist
 yarn.lock
 

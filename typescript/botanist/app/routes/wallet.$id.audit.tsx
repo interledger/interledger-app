@@ -1,13 +1,13 @@
-import type { LoaderArgs } from '@remix-run/node'
+import type { LoaderFunctionArgs } from 'react-router'
 
-import { json } from '@remix-run/node'
-import { useLoaderData } from '@remix-run/react'
+import { data } from 'react-router'
+import { useLoaderData } from 'react-router'
 import { GetWalletAudits } from '~/lib/wallet.server'
 import { DateTime } from 'luxon'
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const audit = await GetWalletAudits(request, params.id as string)
-  return json({
+  return data({
     audit: audit.operations.map((op) => ({
       ...op,
       date: DateTime.fromSeconds(
