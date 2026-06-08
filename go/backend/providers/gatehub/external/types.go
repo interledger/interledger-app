@@ -38,11 +38,11 @@ var (
 	CardStatusAccountBlocked   string = "AccountBlocked"
 	CardStatusInCreation       string = "InCreation"
 
-	CardTractionStatusInitial    string = "INITIAL"
-	CardTractionStatusProcessing string = "PROCESSING"
-	CardTractionStatusAcquired   string = "ACQUIRED"
-	CardTractionStatusCompleted  string = "COMPLETED"
-	CardTractionStatusFailed     string = "FAILED"
+	CardTransactionStatusInitial    string = "INITIAL"
+	CardTransactionStatusProcessing string = "PROCESSING"
+	CardTransactionStatusAcquired   string = "ACQUIRED"
+	CardTransactionStatusCompleted  string = "COMPLETED"
+	CardTransactionStatusFailed     string = "FAILED"
 
 	CardTransactionTypePurchase                    int = 0
 	CardTransactionTypeATMWithdrawal               int = 1
@@ -57,6 +57,30 @@ var (
 	CardTransactionTypePreauthorizationCompletion  int = 103
 	CardTransactionTypeTransferToAccount           int = 107
 	CardTransactionTypeTransferFromAccount         int = 108
+
+	CardTransactionOperationWithdraw int = 0
+	CardTransactionOperationDeposit  int = 1
+	CardTransactionOperationNone     int = 2
+
+	CardTransactionClassificationAuthorization string = "Authorization"
+	CardTransactionClassificationReversal      string = "Reversal"
+
+	CardTransactionGHResponseCodeOK    string = "OK"
+	CardTransactionGHResponseCodeCRGUI string = "CRGUI"
+	CardTransactionGHResponseCodeTRXNS string = "TRXNS"
+	CardTransactionGHResponseCodeSYSEX string = "SYSEX"
+
+	CardTransactionResponseCodeOK    string = "OK"
+	CardTransactionResponseCodeWCVV1 string = "WCVV1"
+	CardTransactionResponseCodeWCVV2 string = "WCVV2"
+	CardTransactionResponseCodeWPIN  string = "WPIN"
+	CardTransactionResponseCodeCAEDM string = "CAEDM" // card expiration date doesn't match
+	CardTransactionResponseCodeCAEDI string = "CAEDI" // card expiration date invalid
+	CardTransactionResponseCodeCAEXP string = "CAEXP" // card expired
+	CardTransactionResponseCodeCASUS string = "CASUS" // card frozen
+	CardTransactionResponseCodeCALOS string = "CALOS" // card lost
+	CardTransactionResponseCodeCASTO string = "CASTO" // card stolen
+	CardTransactionResponseCodeCAUSR string = "CAUSR" // card suspended
 )
 
 const (
@@ -465,7 +489,7 @@ type (
 
 	MastercardConversion struct {
 		ConvRate        *string `json:"convRate"`
-		RefConfRate     *string `json:"refConRate"`
+		RefConfRate     *string `json:"refConfRate"`
 		RefConfRateDiff *string `json:"refConfRateDiff"`
 	}
 
