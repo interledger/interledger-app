@@ -62,7 +62,6 @@ type Storage interface {
 	CreateTransaction(tx *models.Transaction) error
 	GetTransaction(id string) (*models.Transaction, error)
 	UpdateTransactionStatus(id string, status int) error
-	ListTransactionsByUser(userID string) ([]*models.Transaction, error)
 
 	// Balances (per user, per currency)
 	GetBalance(userID, currency string) (float64, error)

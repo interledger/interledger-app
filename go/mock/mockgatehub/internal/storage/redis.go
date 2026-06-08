@@ -1055,10 +1055,6 @@ func (s *RedisStorage) txKey(id string) string {
 	return fmt.Sprintf("tx:%s", id)
 }
 
-func (s *RedisStorage) userTransactionsKey(userID string) string {
-	return fmt.Sprintf("user_txs:%s", userID)
-}
-
 func (s *RedisStorage) balanceKey(userID, currency string) string {
 	return fmt.Sprintf("balance:%s:%s", userID, currency)
 }
@@ -1118,25 +1114,6 @@ func (s *RedisStorage) ListUsers() ([]*models.User, error) {
 	}
 
 	return users, nil
-}
-
-// ListTransactionsByUser returns all transactions for the given user by reading
-// from the per-user transaction index list "user:{id}:transactions".
-func (s *RedisStorage) ListTransactionsByUser(userID string) ([]*models.Transaction, error) {
-	ids, err := s.client.LRange(s.ctx, s.userTransactionsKey(userID), 0, -1).Result()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get user transaction index: %w", err)
-	}
-
-	txns := make([]*models.Transaction, 0, len(ids))
-	for _, id := range ids {
-		tx, err := s.GetTransaction(id)
-		if err != nil {
-			continue
-		}
-		txns = append(txns, tx)
-	}
-	return txns, nil
 }
 
 // GetAllBalances returns a map of currency → amount for the given user by

@@ -593,20 +593,6 @@ func (s *MemoryStorage) UpdateTransactionStatus(id string, status int) error {
 	return nil
 }
 
-// ListTransactionsByUser returns all transactions for a user.
-func (s *MemoryStorage) ListTransactionsByUser(userID string) ([]*models.Transaction, error) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	var transactions []*models.Transaction
-	for _, tx := range s.transactions {
-		if tx.UserID == userID {
-			transactions = append(transactions, tx)
-		}
-	}
-	return transactions, nil
-}
-
 // GetBalance retrieves balance for a user and currency
 func (s *MemoryStorage) GetBalance(userID, currency string) (float64, error) {
 	s.mu.RLock()
