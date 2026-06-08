@@ -126,9 +126,11 @@ func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago
 	w.RegisterWorkflow(gatehub_workflows.CreateGateHubCardWorkflow)
 	w.RegisterWorkflow(gatehub_workflows.BackfillAccountWorkflow)
 	w.RegisterWorkflow(gatehub_workflows.CreateCardTransaction)
-	w.RegisterWorkflow(gatehub_workflows.GatehubCardTransactionsPollWorkflow)
+	w.RegisterWorkflow(gatehub_workflows.GatehubClearingCardTransactionsPollWorkflow)
+	w.RegisterWorkflow(gatehub_workflows.GatehubRealtimeCardTransactionsPollWorkflow)
 
-	gatehub_workflows.StartCardTransactionsPooling(b)
+	gatehub_workflows.StartClearingCardTransactionsPolling(b)
+	gatehub_workflows.StartRealtimeCardTransactionsPolling(b)
 
 	// Chimoney
 	w.RegisterActivity(chimoney_workflows.NewActivity(b, chimoneyToken))

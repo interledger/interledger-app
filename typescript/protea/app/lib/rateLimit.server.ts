@@ -1,14 +1,14 @@
-import { redisClient } from './redis.server'
-import logger from './logger.server'
 import { envValue } from '~/env.server'
+import logger from './logger.server'
+import { redisClient } from './redis.server'
 
 interface RateLimitOptions {
   limit: number
   ttlSeconds: number
 }
 function getRateLimitDefaults(): RateLimitOptions {
-  const limit = Number(envValue("DEFAULT_RATE_LIMIT_REQUESTS")) || 4
-  const ttlSeconds = Number(envValue("DEFAULT_RATE_LIMIT_TIME")) || 3600
+  const limit = Number(envValue('DEFAULT_RATE_LIMIT_REQUESTS')) || 4
+  const ttlSeconds = Number(envValue('DEFAULT_RATE_LIMIT_TIME')) || 3600
 
   return { limit, ttlSeconds }
 }
@@ -16,7 +16,8 @@ function getRateLimitDefaults(): RateLimitOptions {
 const DEFAULT_RATE_LIMIT = getRateLimitDefaults()
 export enum RateLimitKeys {
   RecoveryEmail = 'recovery.email',
-  VerifyEmail = 'verify.email'
+  VerifyEmail = 'verify.email',
+  PhoneOTP = 'phone.otp'
 }
 
 type RateLimitKeyType = `${RateLimitKeys}_${string}`
@@ -43,7 +44,10 @@ export async function rateLimit(
     }
     await redisClient.set(key, count + 1, { EX: ttlSeconds })
   } catch (err) {
-    logger.error({ error: err instanceof Error ? err.message : String(err) }, 'Rate limit check failed')
+    logger.error(
+      { error: err instanceof Error ? err.message : String(err) },
+      'Rate limit check failed'
+    )
   }
 }
 

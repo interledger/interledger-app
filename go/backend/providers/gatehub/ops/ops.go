@@ -226,7 +226,7 @@ func CreateWithdrawal(ctx context.Context, b Backends, ec external.Client, walle
 		Scale:    amount.Scale,
 	}
 	if _, err = ReserveBalance(ctx, b, balanceAccount.ID, trxID, amountWithFee, 365*24*time.Hour); err != nil {
-		slack.SendToChannel(ctx, slack.ChannelNotifyErrors, "wallet-info-bot",
+		slack.SendToChannel(ctx, slack.ChannelError, "wallet-info-bot",
 			fmt.Sprintf("*:::[GateHub ERROR]:::* Withdrawal ledger reserve failed\n*Wallet ID:* %s\n*GateHub TX ID:* %s\n*Error:* %s",
 				walletID, externalTransactionID, err))
 		return "", fmt.Errorf("%w %s", gatehub.ErrInternal, err)
@@ -248,7 +248,7 @@ func CreateWithdrawal(ctx context.Context, b Backends, ec external.Client, walle
 		Amount:                  amount,
 		LinkedAccountTitle:      "EUR Balance",
 	}); err != nil {
-		slack.SendToChannel(ctx, slack.ChannelNotifyErrors, "wallet-info-bot",
+		slack.SendToChannel(ctx, slack.ChannelError, "wallet-info-bot",
 			fmt.Sprintf("*:::[GateHub ERROR]:::* Withdrawal transaction record creation failed\n*Wallet ID:* %s\n*Transaction ID:* %s\n*GateHub TX ID:* %s\n*Error:* %s",
 				walletID, trxID, externalTransactionID, err))
 		return "", fmt.Errorf("%w %s", gatehub.ErrInternal, err)
@@ -404,7 +404,7 @@ func FinaliseReserve(ctx context.Context, b Backends, trxID string) error {
 func RollbackReserve(ctx context.Context, b Backends, txID string) error {
 	tx, err := b.Pacioli().VoidTransfers(ctx, []string{txID})
 	if err != nil {
-		slack.SendToChannel(ctx, slack.ChannelNotifyErrors, "wallet-info-bot", fmt.Sprintf("*:::[GateHub ERROR]:::* \n *RollbackReserve  txID:* %s,\n *error:* %s", txID, err))
+		slack.SendToChannel(ctx, slack.ChannelError, "wallet-info-bot", fmt.Sprintf("*:::[GateHub ERROR]:::* \n *RollbackReserve  txID:* %s,\n *error:* %s", txID, err))
 		return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
 	}
 	if len(tx) == 0 {
@@ -857,22 +857,35 @@ type pendingTransaction struct {
 	UserID string `db:"user_id"`
 }
 
-func GetPendingCardTransactions(ctx context.Context, b Backends) ([]pendingTransaction, error) {
-	sqlStmt := "SELECT id, user_id FROM gatehub_card_transactions WHERE status IN ($1, $2, $3)  AND type IN ($4, $5) AND created_at::date < CURRENT_DATE ORDER BY created_at ASC, id"
-	var txs []pendingTransaction
-
-	err := b.DB().SelectContext(ctx, &txs,
-		sqlStmt,
-		external.CardTractionStatusInitial,
-		external.CardTractionStatusProcessing,
-		external.CardTractionStatusAcquired,
-		external.CardTransactionTypePurchase,
-		external.CardTransactionTypeATMWithdrawal,
-	)
-	if err != nil {
-		return []pendingTransaction{}, fmt.Errorf("%w %s", transactions.ErrInternal, err)
+func GetPendingClearingCardTransactions(ctx context.Context, b Backends) ([]pendingTransaction, error) {
+	sqlStmt := "SELECT id, user_id FROM gatehub_card_transactions WHERE status NOT IN ($1, $2) AND type NOT IN ($3, $4) AND raw_transaction ->> 'transactionClassification' != $5 AND (raw_transaction ->> 'createdAt')::timestamptz::date < CURRENT_DATE ORDER BY created_at ASC"
+	sqlArgs := []any{
+		external.CardTransactionStatusCompleted,
+		external.CardTransactionStatusFailed,
+		external.CardTransactionTypeTransferToAccount,
+		external.CardTransactionTypeTransferFromAccount,
+		external.CardTransactionClassificationReversal,
 	}
+	return getPendingCardTransactions(ctx, b, sqlStmt, sqlArgs)
+}
 
+func GetPendingRealtimeCardTransactions(ctx context.Context, b Backends) ([]pendingTransaction, error) {
+	sqlStmt := "SELECT id, user_id FROM gatehub_card_transactions WHERE status NOT IN ($1, $2) AND (type IN ($3, $4) OR raw_transaction ->> 'transactionClassification' = $5) ORDER BY created_at ASC"
+	sqlArgs := []any{
+		external.CardTransactionStatusCompleted,
+		external.CardTransactionStatusFailed,
+		external.CardTransactionTypeTransferToAccount,
+		external.CardTransactionTypeTransferFromAccount,
+		external.CardTransactionClassificationReversal,
+	}
+	return getPendingCardTransactions(ctx, b, sqlStmt, sqlArgs)
+}
+
+func getPendingCardTransactions(ctx context.Context, b Backends, sqlStmt string, sqlArgs []any) ([]pendingTransaction, error) {
+	var txs []pendingTransaction
+	if err := b.DB().SelectContext(ctx, &txs, sqlStmt, sqlArgs...); err != nil {
+		return nil, fmt.Errorf("%w %s", transactions.ErrInternal, err)
+	}
 	return txs, nil
 }
 

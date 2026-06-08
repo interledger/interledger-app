@@ -1,55 +1,84 @@
-import { useRef } from "react"
-import { Link } from "react-router"
-import { motion } from "framer-motion"
+import { motion } from 'framer-motion'
+import { useRef } from 'react'
+import { Link } from 'react-router'
 
-import { PhoneFrame } from "./PhoneFrame"
-import { usePhoneCarousel } from "../context/PhoneCarouselContext"
-import type { CarouselScreen } from "../context/PhoneCarouselContext"
-import { FeatureSection } from "./FeatureSection"
-import { FeatureWidget } from "./FeatureWidget"
-import { useHeroSnap } from "../hooks/useHeroSnap"
-import orbitSvg from "../assets/orbit.svg"
+import orbitSvg from '../assets/orbit.svg'
+import type { CarouselScreen } from '../context/PhoneCarouselContext'
+import { usePhoneCarousel } from '../context/PhoneCarouselContext'
+import { useHeroSnap } from '../hooks/useHeroSnap'
+import { FeatureSection } from './FeatureSection'
+import { FeatureWidget } from './FeatureWidget'
+import { PhoneFrame } from './PhoneFrame'
 
 const FEATURES = [
   {
     screen: 2,
-    heading: "Global by design. Inclusive by default.",
-    body: "Designed to meet people where they are, how they are.",
+    heading: 'Global by design. Inclusive by default.',
+    body: 'Designed to meet people where they are, how they are.',
     visual: (
       <FeatureWidget
-        avatar="MH"
-        avatarColor="#e87a7a"
-        name="Mike H"
-        amount="+ $348"
-        note="tnx for the adventure"
-        timestamp="28.10.2026 21:57"
+        avatar='MH'
+        avatarColor='#e87a7a'
+        name='Mike H'
+        amount='+ $348'
+        note='tnx for the adventure'
+        timestamp='28.10.2026 21:57'
       />
-    ),
+    )
   },
   {
     screen: 3,
-    heading: "Broad in reach. Borderless by design.",
-    body: "Built broad, built borderless. Designed to work everywhere.",
-    widget: <img src={orbitSvg} alt="Orbit graphic" loading="lazy" decoding="async" style={{ width: "80px", marginTop: "16px", display: "block", marginInline: "auto" }} />,
+    heading: 'Broad in reach. Borderless by design.',
+    body: 'Built broad, built borderless. Designed to work everywhere.',
+    widget: (
+      <img
+        src={orbitSvg}
+        alt='Orbit graphic'
+        loading='lazy'
+        decoding='async'
+        style={{
+          width: '80px',
+          marginTop: '16px',
+          display: 'block',
+          marginInline: 'auto'
+        }}
+      />
+    )
   },
   {
     screen: 4,
-    heading: "One system. Many contexts.",
-    body: "Ready to diverse environments and needs.",
-    widget: <img src={orbitSvg} alt="Orbit graphic" loading="lazy" decoding="async" style={{ width: "80px", marginTop: "16px", display: "block", marginInline: "auto" }} />,
+    heading: 'One system. Many contexts.',
+    body: 'Ready to diverse environments and needs.',
+    widget: (
+      <img
+        src={orbitSvg}
+        alt='Orbit graphic'
+        loading='lazy'
+        decoding='async'
+        style={{
+          width: '80px',
+          marginTop: '16px',
+          display: 'block',
+          marginInline: 'auto'
+        }}
+      />
+    )
   },
   {
     screen: 5,
-    heading: "Designed to adopt. Easy to adopt.",
-    body: "We are building the wallet in the open and want to participate from the start.",
+    heading: 'Designed to adopt. Easy to adopt.',
+    body: 'We are building the wallet in the open and want to participate from the start.',
     visual: (
-      <div className="hero-signup-cta-wrap">
-        <Link to="/signup" className="nav-cta nav-cta--hero">
-          Sign up now <span aria-hidden="true" style={{ marginLeft: "4px" }}>&rarr;</span>
+      <div className='hero-signup-cta-wrap'>
+        <Link to='/signup' className='nav-cta nav-cta--hero'>
+          Sign up now{' '}
+          <span aria-hidden='true' style={{ marginLeft: '4px' }}>
+            &rarr;
+          </span>
         </Link>
       </div>
-    ),
-  },
+    )
+  }
 ]
 
 /**
@@ -68,33 +97,38 @@ export function HeroSection() {
     sectionRef,
     activeScreen,
     setActiveScreen,
-    screenCount: 5,
+    screenCount: 5
   })
 
   const heroTextVisible = activeScreen === 1
 
   return (
-    <div className="page-content">
-      <section ref={sectionRef} className="animated-hero" data-screen={activeScreen}>
-        <div className="sticky-viewport">
-          <div className="sticky-viewport-content">
+    <div className='page-content'>
+      <section
+        ref={sectionRef}
+        className='animated-hero'
+        data-screen={activeScreen}
+      >
+        <div className='sticky-viewport'>
+          <div className='sticky-viewport-content'>
             {/* Hero text — headline, subhead, CTA */}
-            <div className="hero-content">
+            <div className='hero-content'>
               <motion.div
-                className="hero-punch-scroll"
+                className='hero-punch-scroll'
                 animate={{
                   y: heroTextVisible ? 0 : -40,
-                  opacity: heroTextVisible ? 1 : 0,
+                  opacity: heroTextVisible ? 1 : 0
                 }}
-                transition={{ type: "spring", duration: 0.8, bounce: 0 }}
+                transition={{ type: 'spring', duration: 0.8, bounce: 0 }}
               >
-                <div
-                  className="hero-punch anim-enter"
-                  data-anim="punch-text"
-                >
-                  <h1 className="text-h1 hero-headline">A wallet for what&apos;s next</h1>
-                  <p className="text-h3 hero-subhead">
-                    Built for interoperability, inclusion,<br />and the long run.
+                <div className='hero-punch anim-enter' data-anim='punch-text'>
+                  <h1 className='text-h1 hero-headline'>
+                    A wallet for what&apos;s next
+                  </h1>
+                  <p className='text-h3 hero-subhead'>
+                    Built for interoperability, inclusion,
+                    <br />
+                    and the long run.
                   </p>
                 </div>
               </motion.div>
@@ -103,8 +137,8 @@ export function HeroSection() {
             <PhoneFrame />
 
             {/* Feature content slot — all feature panels live here as absolute overlays */}
-            <div className="feature-content-slot">
-              {FEATURES.map(f => (
+            <div className='feature-content-slot'>
+              {FEATURES.map((f) => (
                 <FeatureSection
                   key={f.screen}
                   screen={f.screen as CarouselScreen}

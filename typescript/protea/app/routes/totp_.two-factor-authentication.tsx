@@ -1,11 +1,15 @@
-import type { Route } from './+types/totp_.two-factor-authentication'
 import type { UiNode } from '@ory/client'
-import { data, redirect, redirectDocument } from 'react-router';
-import { Form, useActionData, useLoaderData, useSubmit } from 'react-router';
 import { useRef } from 'react'
-import logger, { addRequestId } from '~/lib/logger.server'
-import { extractOrGenerateRequestId } from '~/lib/requestContext.server'
-import { href } from 'react-router'
+import {
+  Form,
+  data,
+  href,
+  redirect,
+  redirectDocument,
+  useActionData,
+  useLoaderData,
+  useSubmit
+} from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   Button,
@@ -16,13 +20,23 @@ import {
   OutlineButtonRouter,
   TextField
 } from '~/components'
-import { kratosPublic } from '~/lib/kratos/kratos-client.server'
-import { getCookie, withCookie, buildHeadersWithCookies } from '~/lib/kratos/cookie.server'
-import { handleFlowError, mapFlowToFieldErrors } from '~/lib/kratos/error.server'
+import {
+  buildHeadersWithCookies,
+  getCookie,
+  withCookie
+} from '~/lib/kratos/cookie.server'
+import {
+  handleFlowError,
+  mapFlowToFieldErrors
+} from '~/lib/kratos/error.server'
 import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.server'
+import { kratosPublic } from '~/lib/kratos/kratos-client.server'
 import type { KratosError } from '~/lib/kratos/types.server'
+import logger, { addRequestId } from '~/lib/logger.server'
 import { mergeMeta } from '~/lib/meta'
+import { extractOrGenerateRequestId } from '~/lib/requestContext.server'
 import { useTotpChallenge } from '~/lib/useTotpChallenge'
+import type { Route } from './+types/totp_.two-factor-authentication'
 
 type TotpForm = {
   flowId?: string
@@ -32,9 +46,7 @@ type TotpForm = {
   csrfToken?: string
 }
 
-export async function loader({
-  request
-}: Route.LoaderArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
   const cookie = getCookie(request)
@@ -54,7 +66,10 @@ export async function loader({
         withCookie(cookie)
       )
       const headers = buildHeadersWithCookies(response)
-      return redirect(`/totp/two-factor-authentication?flow=${response.data.id}`, { headers })
+      return redirect(
+        `/totp/two-factor-authentication?flow=${response.data.id}`,
+        { headers }
+      )
     }
 
     const nodes = flow?.ui?.nodes ?? []
@@ -83,7 +98,10 @@ export async function loader({
       }
     )
 
-    return data({ ...totpSchema, csrfToken: getCsrfTokenFromFlow(flow) } as TotpForm)
+    return data({
+      ...totpSchema,
+      csrfToken: getCsrfTokenFromFlow(flow)
+    } as TotpForm)
   } catch (error) {
     handleFlowError(error, 'totp')
     const requestId = extractOrGenerateRequestId(request)
@@ -104,13 +122,10 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta = mergeMeta(() => [
-  { title: 'Two-factor authentication' }
-])
+export const meta = mergeMeta(() => [{ title: 'Two-factor authentication' }])
 
 export default function Page() {
-  const { flowId, qrNode, secretKey, totpUnlink, csrfToken } =
-    useLoaderData()
+  const { flowId, qrNode, secretKey, totpUnlink, csrfToken } = useLoaderData()
   const actionData = useActionData()
   const formRef = useRef<HTMLFormElement>(null)
   const submit = useSubmit()
@@ -248,14 +263,19 @@ export async function action({ request }: Route.ActionArgs) {
       mapFlowToFieldErrors(flowData, fieldErrors)
       return data({
         errors: {
-          totpCode: fieldErrors.totp_code || fieldErrors.form ||
+          totpCode:
+            fieldErrors.totp_code ||
+            fieldErrors.form ||
             'Invalid code. Please scan the QR code again or add the new code to your authenticator application.'
         }
       })
     }
 
     handleFlowError(err, 'totp')
-    logger.error({ error: err, route: 'totp.two-factor-authentication' }, 'Failed to set up TOTP authentication')
+    logger.error(
+      { error: err, route: 'totp.two-factor-authentication' },
+      'Failed to set up TOTP authentication'
+    )
     throw new Error('Failed to set up TOTP authentication')
   }
 }

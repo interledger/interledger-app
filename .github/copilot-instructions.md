@@ -271,7 +271,7 @@ PRs are automatically labeled by `.github/workflows/labeler.yml` using the confi
 - `.github/workflows/mock-tester.yml` - Reusable template for mock services; still installs Go (`setup-go`) and golangci-lint manually on the runner (not yet migrated to the gotester container)
 - `.github/workflows/e2e-tests.yml` - Starts VM, runs E2E suite with concurrency=10 (skipped for docs-only changes)
 - `.github/workflows/linting.yml` - Runs golangci-lint on all Go code inside the `ghcr.io/interledger/builders/gotester:v1.1.0` container (skipped for docs/local-only changes)
-- `.github/workflows/build-and-publish.yml` - Builds Docker images on PRs (build only) and pushes to GCP Artifact Registry when triggered by a version tag or `workflow_dispatch`; on release also publishes the `helm/interledger-app` OCI chart and opens an auto-merge PR in `interledger-app-deploy` to bump `chartVersion` in the dev1 appset
+- `.github/workflows/build-and-publish.yml` - Builds Docker images on PRs (build only) and pushes to GCP Artifact Registry when triggered by a version tag or `workflow_dispatch`; on release also publishes the `helm/interledger-app` OCI chart, uses the `dev1` GitHub environment for the automatic deploy step, opens an auto-merge PR in `interledger-app-deploy` to bump `chartVersion` in the dev1 appset, then refreshes and syncs Argo CD applications labeled `environment=wallet-dev1`
 - `.github/workflows/release.yml` - Runs semantic-release on every push to `main`; creates a git tag, GitHub Release, and release notes from commit history (see Release Process below)
 - `.github/workflows/helm-tests.yml` - Runs `helm unittest` + `kubeconform` on the chart at `helm/interledger-app` inside the `ghcr.io/interledger/builders/chartvalidator:v0.5` container (only triggered when `helm/**` files change)
 
@@ -290,7 +290,7 @@ Releases are fully automated via **semantic-release** — do not create `release
    - `refactor:`, `chore:`, `docs:`, `test:`, `ci:`, `build:`, `style:`, `local:` → **no release**
 4. If there is a releasable commit, semantic-release creates a `vX.Y.Z` git tag and a GitHub Release with auto-generated notes.
 5. The new tag triggers `build-and-publish.yml`, which builds all Docker images and pushes them to GCP Artifact Registry tagged with that version. It also packages and publishes the `helm/interledger-app` chart (OCI) to both dev and prod Artifact Registries.
-6. After the chart publish succeeds, the `bump-deploy-dev` job in `build-and-publish.yml` opens an auto-merge PR in `interledger/interledger-app-deploy` that updates `chartVersion` for the `interledger-app` entry in `env/dev1/appsets/wallet-appset.yaml` to the new version (with the leading `v` stripped). The PR auto-merges once the deploy repo's `conform.yaml` checks pass. Only `dev1` is bumped automatically; `sandbox` and `production` remain manual/promotion-based.
+6. After the chart publish succeeds, the `bump-deploy-dev` job in `build-and-publish.yml` runs under the `dev1` GitHub environment, opens an auto-merge PR in `interledger/interledger-app-deploy` that updates `chartVersion` for the `interledger-app` entry in `env/dev1/appsets/wallet-appset.yaml` to the new version (with the leading `v` stripped), waits for that PR to merge, then refreshes and syncs Argo CD applications labeled `environment=wallet-dev1`. Only `dev1` is bumped automatically; `sandbox` and `production` remain manual/promotion-based.
 
 **Config files**: `.releaserc.json` (release config), `package.json` + `pnpm-lock.yaml` at repo root (semantic-release dependencies).
 

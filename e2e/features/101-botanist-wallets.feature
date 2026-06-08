@@ -25,6 +25,8 @@ Feature: Botanist Wallets Filter
     And I take a screenshot "signup-complete"
     And I completed the account verification workflow
     And I take a screenshot "account-verified"
+    And I finished the phone confirmation workflow
+    And I take a screenshot "phone-verified"
     And I finished the TOTP registration workflow
     And I take a screenshot "totp-registered"
     And I finished the wallet address creation workflow
@@ -47,6 +49,8 @@ Feature: Botanist Wallets Filter
     Given that my "country" is "South Africa"
     And I completed the signup workflow
     And I completed the account verification workflow
+    And I finished the phone confirmation workflow
+    And I take a screenshot "phone-verified"
     And I finished the TOTP registration workflow
     And I finished the wallet address creation workflow
     When I navigate to the admin portal

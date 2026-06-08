@@ -1,15 +1,15 @@
-import { UserFacingErrorType } from "./bff-error"
+import type { UserFacingErrorType } from './bff-error'
 
 export type SuccessfulServerResponse<T = any> = {
-    success: true
-    data: T
+  success: true
+  data: T
 }
 export type FailedServerResponse = {
-    success: false
-    error: UserFacingErrorType
+  success: false
+  error: UserFacingErrorType
 }
 
 export type ServerResponse<T = any> =
-    SuccessfulServerResponse<T> |
-    FailedServerResponse | 
-    Promise<Response>
+  | SuccessfulServerResponse<T>
+  | FailedServerResponse
+  | Promise<Response>

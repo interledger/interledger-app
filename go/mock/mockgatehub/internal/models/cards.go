@@ -176,7 +176,8 @@ type CardTransactionsResponse struct {
 }
 
 type CreateCardTransactionArgs struct {
-	CardID          string  `json:"cardId"`
+	CardGUID        string  `json:"cardGuid"`
+	CardID          *int    `json:"cardId,omitempty"`
 	Amount          string  `json:"amount"`
 	Currency        string  `json:"currency"`
 	Type            int     `json:"type"`

@@ -1,9 +1,5 @@
-import type { Route } from './+types/settings.keys'
 import type { PlainMessage } from '@bufbuild/protobuf'
-import type { Connection } from '~/generated/connect/backend/v1/backend_pb'
-import { data } from 'react-router';
-import { useLoaderData } from 'react-router';
-import { href } from 'react-router'
+import { data, href, useLoaderData } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   ButtonRouter,
@@ -13,9 +9,11 @@ import {
   Icon,
   Layouts
 } from '~/components'
+import type { Connection } from '~/generated/connect/backend/v1/backend_pb'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
+import type { Route } from './+types/settings.keys'
 
 export async function loader({ request }: Route.LoaderArgs) {
   let response = await grpc.listConnections(request, {})

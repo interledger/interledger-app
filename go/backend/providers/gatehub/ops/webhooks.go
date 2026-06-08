@@ -324,7 +324,7 @@ func HandleActionRequiredWebhook(ctx context.Context, b Backends, raw json.RawMe
 		return
 	}
 
-	slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "wallet-info-bot",
+	slack.SendToChannel(ctx, slack.ChannelSignupKYC, "wallet-info-bot",
 		fmt.Sprintf("KYC resubmission required - walletID: %s, event: %s", walletID, wh.EventType),
 	)
 

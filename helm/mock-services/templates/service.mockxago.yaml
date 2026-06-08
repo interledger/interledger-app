@@ -1,0 +1,6 @@
+{{- define "mock-services.mockxago.service" -}}
+{{- $top := first . -}}
+{{- end }}
+{{- if and (kindIs "bool" .Values.mockxago.enabled) .Values.mockxago.enabled }}
+{{- include "common.svc" (list . .Values.mockxago.server.service .Values.mockxago.server "mock-services.mockxago.service") }}
+{{- end }}

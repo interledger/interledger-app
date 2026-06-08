@@ -1,4 +1,4 @@
-import type { ReactNode } from "react"
+import type { ReactNode } from 'react'
 
 interface PageSectionProps {
   children: ReactNode
@@ -8,12 +8,20 @@ interface PageSectionProps {
   style?: React.CSSProperties
 }
 
-export function PageSection({ children, className = "", innerClassName = "", id, style }: PageSectionProps) {
+export function PageSection({
+  children,
+  className = '',
+  innerClassName = '',
+  id,
+  style
+}: PageSectionProps) {
   return (
-    <section id={id} className={`page-section content-section ${className}`} style={style}>
-      <div className={`page-section-inner ${innerClassName}`}>
-        {children}
-      </div>
+    <section
+      id={id}
+      className={`page-section content-section ${className}`}
+      style={style}
+    >
+      <div className={`page-section-inner ${innerClassName}`}>{children}</div>
     </section>
   )
 }
