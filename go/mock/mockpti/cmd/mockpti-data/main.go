@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -51,12 +50,12 @@ type TxUpdateSnap struct {
 
 // PTISnapshot is the top-level export/import structure.
 type PTISnapshot struct {
-	Users              []*models.User                `json:"users"`
+	Users              []*models.User                  `json:"users"`
 	Assessments        map[string][]*models.Assessment `json:"assessments"`
-	Wallets            []*WalletSnap                 `json:"wallets"`
-	PaymentInformation []*PaymentInfoSnap            `json:"payment_information"`
-	Transactions       []*models.Transaction         `json:"transactions"`
-	TransactionUpdates map[string][]*TxUpdateSnap    `json:"transaction_updates"`
+	Wallets            []*WalletSnap                   `json:"wallets"`
+	PaymentInformation []*PaymentInfoSnap              `json:"payment_information"`
+	Transactions       []*models.Transaction           `json:"transactions"`
+	TransactionUpdates map[string][]*TxUpdateSnap      `json:"transaction_updates"`
 }
 
 func main() {
@@ -121,22 +120,17 @@ func envOrDefault(key, def string) string {
 	return def
 }
 
+// newClient creates a Redis client from rawURL (redis:// / rediss:// URL or plain host:port).
 func newClient(rawURL string, db int) (*redis.Client, error) {
-	var addr string
-	if u, err := url.Parse(rawURL); err == nil && u.Scheme == "redis" {
-		addr = u.Host
-		if addr == "" {
-			addr = rawURL
-		}
+	var opt *redis.Options
+	if parsed, err := redis.ParseURL(rawURL); err == nil {
+		opt = parsed
 	} else {
-		addr = rawURL
+		opt = &redis.Options{Addr: rawURL, PoolSize: 5}
 	}
+	opt.DB = db
 
-	client := redis.NewClient(&redis.Options{
-		Addr:     addr,
-		DB:       db,
-		PoolSize: 5,
-	})
+	client := redis.NewClient(opt)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -165,15 +159,8 @@ func scanKeys(ctx context.Context, client *redis.Client, pattern string) ([]stri
 	return keys, nil
 }
 
-// runExport reads all PTI data from Valkey and writes JSON to the output file (or stdout).
-func runExport(client *redis.Client, args []string) error {
-	fs := flag.NewFlagSet("export", flag.ExitOnError)
-	output := fs.String("output", "", "Output file (default: stdout)")
-	if err := fs.Parse(args); err != nil {
-		return err
-	}
-
-	ctx := context.Background()
+// exportData reads all PTI data from Valkey and returns a snapshot.
+func exportData(ctx context.Context, client *redis.Client) (*PTISnapshot, error) {
 	snap := &PTISnapshot{
 		Users:              make([]*models.User, 0),
 		Assessments:        make(map[string][]*models.Assessment),
@@ -186,16 +173,16 @@ func runExport(client *redis.Client, args []string) error {
 	// --- Users ---
 	userKeys, err := scanKeys(ctx, client, "pti:user:*")
 	if err != nil {
-		return err
+		return nil, err
 	}
 	for _, k := range userKeys {
 		data, err := client.Get(ctx, k).Bytes()
 		if err != nil {
-			return fmt.Errorf("GET %s: %w", k, err)
+			return nil, fmt.Errorf("GET %s: %w", k, err)
 		}
 		var u models.User
 		if err := json.Unmarshal(data, &u); err != nil {
-			return fmt.Errorf("unmarshal user %s: %w", k, err)
+			return nil, fmt.Errorf("unmarshal user %s: %w", k, err)
 		}
 		snap.Users = append(snap.Users, &u)
 	}
@@ -203,20 +190,20 @@ func runExport(client *redis.Client, args []string) error {
 	// --- Assessments ---
 	assessmentKeys, err := scanKeys(ctx, client, "pti:assessments:*")
 	if err != nil {
-		return err
+		return nil, err
 	}
 	for _, k := range assessmentKeys {
 		// key = pti:assessments:{userID}
 		userID := strings.TrimPrefix(k, "pti:assessments:")
 		items, err := client.LRange(ctx, k, 0, -1).Result()
 		if err != nil {
-			return fmt.Errorf("LRANGE %s: %w", k, err)
+			return nil, fmt.Errorf("LRANGE %s: %w", k, err)
 		}
 		list := make([]*models.Assessment, 0, len(items))
 		for _, item := range items {
 			var a models.Assessment
 			if err := json.Unmarshal([]byte(item), &a); err != nil {
-				return fmt.Errorf("unmarshal assessment in %s: %w", k, err)
+				return nil, fmt.Errorf("unmarshal assessment in %s: %w", k, err)
 			}
 			list = append(list, &a)
 		}
@@ -226,24 +213,24 @@ func runExport(client *redis.Client, args []string) error {
 	// --- Wallets ---
 	walletIndexKeys, err := scanKeys(ctx, client, "pti:wallets:*")
 	if err != nil {
-		return err
+		return nil, err
 	}
 	for _, indexKey := range walletIndexKeys {
 		// key = pti:wallets:{userID}
 		userID := strings.TrimPrefix(indexKey, "pti:wallets:")
 		walletIDs, err := client.SMembers(ctx, indexKey).Result()
 		if err != nil {
-			return fmt.Errorf("SMEMBERS %s: %w", indexKey, err)
+			return nil, fmt.Errorf("SMEMBERS %s: %w", indexKey, err)
 		}
 		for _, walletID := range walletIDs {
 			wKey := fmt.Sprintf("pti:wallet:%s:%s", userID, walletID)
 			data, err := client.Get(ctx, wKey).Bytes()
 			if err != nil {
-				return fmt.Errorf("GET %s: %w", wKey, err)
+				return nil, fmt.Errorf("GET %s: %w", wKey, err)
 			}
 			var w models.Wallet
 			if err := json.Unmarshal(data, &w); err != nil {
-				return fmt.Errorf("unmarshal wallet %s: %w", wKey, err)
+				return nil, fmt.Errorf("unmarshal wallet %s: %w", wKey, err)
 			}
 			snap.Wallets = append(snap.Wallets, &WalletSnap{
 				UserID:         userID,
@@ -259,7 +246,7 @@ func runExport(client *redis.Client, args []string) error {
 	// --- Payment Information ---
 	piKeys, err := scanKeys(ctx, client, "pti:paymentinfo:*")
 	if err != nil {
-		return err
+		return nil, err
 	}
 	for _, k := range piKeys {
 		// key = pti:paymentinfo:{userID}:{piID}
@@ -267,16 +254,16 @@ func runExport(client *redis.Client, args []string) error {
 		// userID may itself contain ":" only if UUIDs — PTI uses UUIDs so safe to split on first ":"
 		sepIdx := strings.Index(suffix, ":")
 		if sepIdx < 0 {
-			return fmt.Errorf("unexpected paymentinfo key format: %s", k)
+			return nil, fmt.Errorf("unexpected paymentinfo key format: %s", k)
 		}
 		userID := suffix[:sepIdx]
 		data, err := client.Get(ctx, k).Bytes()
 		if err != nil {
-			return fmt.Errorf("GET %s: %w", k, err)
+			return nil, fmt.Errorf("GET %s: %w", k, err)
 		}
 		var pi models.PaymentInformation
 		if err := json.Unmarshal(data, &pi); err != nil {
-			return fmt.Errorf("unmarshal payment info %s: %w", k, err)
+			return nil, fmt.Errorf("unmarshal payment info %s: %w", k, err)
 		}
 		snap.PaymentInformation = append(snap.PaymentInformation, &PaymentInfoSnap{
 			UserID:                userID,
@@ -294,16 +281,16 @@ func runExport(client *redis.Client, args []string) error {
 	// --- Transactions ---
 	txKeys, err := scanKeys(ctx, client, "pti:transaction:*")
 	if err != nil {
-		return err
+		return nil, err
 	}
 	for _, k := range txKeys {
 		data, err := client.Get(ctx, k).Bytes()
 		if err != nil {
-			return fmt.Errorf("GET %s: %w", k, err)
+			return nil, fmt.Errorf("GET %s: %w", k, err)
 		}
 		var tx models.Transaction
 		if err := json.Unmarshal(data, &tx); err != nil {
-			return fmt.Errorf("unmarshal transaction %s: %w", k, err)
+			return nil, fmt.Errorf("unmarshal transaction %s: %w", k, err)
 		}
 		snap.Transactions = append(snap.Transactions, &tx)
 	}
@@ -311,20 +298,20 @@ func runExport(client *redis.Client, args []string) error {
 	// --- Transaction Updates ---
 	txUpdateKeys, err := scanKeys(ctx, client, "pti:txupdates:*")
 	if err != nil {
-		return err
+		return nil, err
 	}
 	for _, k := range txUpdateKeys {
 		// key = pti:txupdates:{requestID}
 		requestID := strings.TrimPrefix(k, "pti:txupdates:")
 		items, err := client.LRange(ctx, k, 0, -1).Result()
 		if err != nil {
-			return fmt.Errorf("LRANGE %s: %w", k, err)
+			return nil, fmt.Errorf("LRANGE %s: %w", k, err)
 		}
 		list := make([]*TxUpdateSnap, 0, len(items))
 		for _, item := range items {
 			var upd models.TransactionUpdate
 			if err := json.Unmarshal([]byte(item), &upd); err != nil {
-				return fmt.Errorf("unmarshal tx update in %s: %w", k, err)
+				return nil, fmt.Errorf("unmarshal tx update in %s: %w", k, err)
 			}
 			list = append(list, &TxUpdateSnap{
 				RequestID:     requestID,
@@ -339,14 +326,29 @@ func runExport(client *redis.Client, args []string) error {
 		snap.TransactionUpdates[requestID] = list
 	}
 
-	// Marshal snapshot
+	return snap, nil
+}
+
+// runExport reads all PTI data from Valkey and writes JSON to the output file (or stdout).
+func runExport(client *redis.Client, args []string) error {
+	fs := flag.NewFlagSet("export", flag.ExitOnError)
+	output := fs.String("output", "", "Output file (default: stdout)")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+
+	ctx := context.Background()
+	snap, err := exportData(ctx, client)
+	if err != nil {
+		return err
+	}
+
 	out, err := json.MarshalIndent(snap, "", "  ")
 	if err != nil {
 		return fmt.Errorf("marshal snapshot: %w", err)
 	}
 	out = append(out, '\n')
 
-	// Write output
 	if *output == "" {
 		_, err = os.Stdout.Write(out)
 		return err
@@ -354,36 +356,10 @@ func runExport(client *redis.Client, args []string) error {
 	return os.WriteFile(*output, out, 0o644)
 }
 
-// runImport reads a JSON snapshot and restores it into Valkey after flushing the DB.
-func runImport(client *redis.Client, args []string) error {
-	fs := flag.NewFlagSet("import", flag.ExitOnError)
-	input := fs.String("input", "", "Input file (default: stdin)")
-	noFlush := fs.Bool("no-flush", false, "Skip FlushDB before import (useful when FlushDB is disabled)")
-	if err := fs.Parse(args); err != nil {
-		return err
-	}
-
-	// Read snapshot
-	var raw []byte
-	var err error
-	if *input == "" {
-		raw, err = os.ReadFile("/dev/stdin")
-	} else {
-		raw, err = os.ReadFile(*input)
-	}
-	if err != nil {
-		return fmt.Errorf("read input: %w", err)
-	}
-
-	var snap PTISnapshot
-	if err := json.Unmarshal(raw, &snap); err != nil {
-		return fmt.Errorf("unmarshal snapshot: %w", err)
-	}
-
-	ctx := context.Background()
-
+// importData restores PTI state from a snapshot.
+func importData(ctx context.Context, client *redis.Client, snap *PTISnapshot, noFlush bool) error {
 	// 1. Flush DB (skip if --no-flush or FlushDB is disabled on the server)
-	if !*noFlush {
+	if !noFlush {
 		if err := client.FlushDB(ctx).Err(); err != nil {
 			return fmt.Errorf("FlushDB: %w", err)
 		}
@@ -510,4 +486,34 @@ func runImport(client *redis.Client, args []string) error {
 		len(snap.TransactionUpdates),
 	)
 	return nil
+}
+
+// runImport reads a JSON snapshot and restores it into Valkey after flushing the DB.
+func runImport(client *redis.Client, args []string) error {
+	fs := flag.NewFlagSet("import", flag.ExitOnError)
+	input := fs.String("input", "", "Input file (default: stdin)")
+	noFlush := fs.Bool("no-flush", false, "Skip FlushDB before import (useful when FlushDB is disabled)")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+
+	// Read snapshot
+	var raw []byte
+	var err error
+	if *input == "" {
+		raw, err = os.ReadFile("/dev/stdin")
+	} else {
+		raw, err = os.ReadFile(*input)
+	}
+	if err != nil {
+		return fmt.Errorf("read input: %w", err)
+	}
+
+	var snap PTISnapshot
+	if err := json.Unmarshal(raw, &snap); err != nil {
+		return fmt.Errorf("unmarshal snapshot: %w", err)
+	}
+
+	ctx := context.Background()
+	return importData(ctx, client, &snap, *noFlush)
 }

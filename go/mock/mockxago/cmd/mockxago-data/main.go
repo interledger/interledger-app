@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -154,31 +153,25 @@ func main() {
 	}
 }
 
-// newRedisClient parses a redis:// URL (or plain host:port) and returns a client.
-func newRedisClient(addr string, db int) (*redis.Client, error) {
-	var redisAddr string
-	if u, err := url.Parse(addr); err == nil && u.Scheme == "redis" {
-		redisAddr = u.Host
-		if redisAddr == "" {
-			redisAddr = addr
-		}
+// newRedisClient creates a Redis client from rawURL (redis:// / rediss:// URL or plain host:port).
+func newRedisClient(rawURL string, db int) (*redis.Client, error) {
+	var opt *redis.Options
+	if parsed, err := redis.ParseURL(rawURL); err == nil {
+		opt = parsed
 	} else {
-		redisAddr = addr
+		opt = &redis.Options{Addr: rawURL}
 	}
+	opt.DB = db
 
-	client := redis.NewClient(&redis.Options{
-		Addr: redisAddr,
-		DB:   db,
-	})
-
+	client := redis.NewClient(opt)
 	if err := client.Ping(context.Background()).Err(); err != nil {
 		return nil, fmt.Errorf("ping failed: %w", err)
 	}
 	return client, nil
 }
 
-// runExport scans Redis for all persistent mockxago keys and writes a JSON snapshot.
-func runExport(ctx context.Context, client *redis.Client, outputFile string) error {
+// exportData scans Redis for all persistent mockxago keys and returns a snapshot.
+func exportData(ctx context.Context, client *redis.Client) (*XagoSnapshot, error) {
 	snap := &XagoSnapshot{
 		SubAccounts:   []*models.SubAccount{},
 		Beneficiaries: []*models.Beneficiary{},
@@ -193,16 +186,16 @@ func runExport(ctx context.Context, client *redis.Client, outputFile string) err
 		return !strings.Contains(suffix, ":")
 	})
 	if err != nil {
-		return fmt.Errorf("scanning sub-accounts: %w", err)
+		return nil, fmt.Errorf("scanning sub-accounts: %w", err)
 	}
 	for _, key := range subAccountKeys {
 		data, err := client.Get(ctx, key).Bytes()
 		if err != nil {
-			return fmt.Errorf("getting sub-account %s: %w", key, err)
+			return nil, fmt.Errorf("getting sub-account %s: %w", key, err)
 		}
 		var sa models.SubAccount
 		if err := json.Unmarshal(data, &sa); err != nil {
-			return fmt.Errorf("unmarshalling sub-account %s: %w", key, err)
+			return nil, fmt.Errorf("unmarshalling sub-account %s: %w", key, err)
 		}
 		snap.SubAccounts = append(snap.SubAccounts, &sa)
 	}
@@ -213,16 +206,16 @@ func runExport(ctx context.Context, client *redis.Client, outputFile string) err
 		return !strings.Contains(suffix, ":")
 	})
 	if err != nil {
-		return fmt.Errorf("scanning beneficiaries: %w", err)
+		return nil, fmt.Errorf("scanning beneficiaries: %w", err)
 	}
 	for _, key := range beneficiaryKeys {
 		data, err := client.Get(ctx, key).Bytes()
 		if err != nil {
-			return fmt.Errorf("getting beneficiary %s: %w", key, err)
+			return nil, fmt.Errorf("getting beneficiary %s: %w", key, err)
 		}
 		var b models.Beneficiary
 		if err := json.Unmarshal(data, &b); err != nil {
-			return fmt.Errorf("unmarshalling beneficiary %s: %w", key, err)
+			return nil, fmt.Errorf("unmarshalling beneficiary %s: %w", key, err)
 		}
 		snap.Beneficiaries = append(snap.Beneficiaries, &b)
 	}
@@ -233,16 +226,16 @@ func runExport(ctx context.Context, client *redis.Client, outputFile string) err
 		return !strings.Contains(suffix, ":")
 	})
 	if err != nil {
-		return fmt.Errorf("scanning transactions: %w", err)
+		return nil, fmt.Errorf("scanning transactions: %w", err)
 	}
 	for _, key := range transactionKeys {
 		data, err := client.Get(ctx, key).Bytes()
 		if err != nil {
-			return fmt.Errorf("getting transaction %s: %w", key, err)
+			return nil, fmt.Errorf("getting transaction %s: %w", key, err)
 		}
 		var tx models.Transaction
 		if err := json.Unmarshal(data, &tx); err != nil {
-			return fmt.Errorf("unmarshalling transaction %s: %w", key, err)
+			return nil, fmt.Errorf("unmarshalling transaction %s: %w", key, err)
 		}
 		snap.Transactions = append(snap.Transactions, &tx)
 	}
@@ -250,7 +243,7 @@ func runExport(ctx context.Context, client *redis.Client, outputFile string) err
 	// Deposits: use the ordered list "deposits:all"
 	depositIDs, err := client.LRange(ctx, "deposits:all", 0, -1).Result()
 	if err != nil && err != redis.Nil {
-		return fmt.Errorf("reading deposits:all: %w", err)
+		return nil, fmt.Errorf("reading deposits:all: %w", err)
 	}
 	for _, id := range depositIDs {
 		data, err := client.Get(ctx, fmt.Sprintf("deposit:%s", id)).Bytes()
@@ -258,11 +251,11 @@ func runExport(ctx context.Context, client *redis.Client, outputFile string) err
 			if err == redis.Nil {
 				continue // already deleted
 			}
-			return fmt.Errorf("getting deposit %s: %w", id, err)
+			return nil, fmt.Errorf("getting deposit %s: %w", id, err)
 		}
 		var dep models.Deposit
 		if err := json.Unmarshal(data, &dep); err != nil {
-			return fmt.Errorf("unmarshalling deposit %s: %w", id, err)
+			return nil, fmt.Errorf("unmarshalling deposit %s: %w", id, err)
 		}
 		snap.Deposits = append(snap.Deposits, &dep)
 	}
@@ -278,7 +271,7 @@ func runExport(ctx context.Context, client *redis.Client, outputFile string) err
 		return last == "available" || last == "reserved"
 	})
 	if err != nil {
-		return fmt.Errorf("scanning balances: %w", err)
+		return nil, fmt.Errorf("scanning balances: %w", err)
 	}
 	for _, key := range balanceKeys {
 		parts := strings.Split(key, ":")
@@ -292,11 +285,11 @@ func runExport(ctx context.Context, client *redis.Client, outputFile string) err
 			if err == redis.Nil {
 				continue
 			}
-			return fmt.Errorf("getting balance %s: %w", key, err)
+			return nil, fmt.Errorf("getting balance %s: %w", key, err)
 		}
 		val, err := strconv.ParseFloat(valStr, 64)
 		if err != nil {
-			return fmt.Errorf("parsing balance value %q for key %s: %w", valStr, key, err)
+			return nil, fmt.Errorf("parsing balance value %q for key %s: %w", valStr, key, err)
 		}
 
 		if snap.Balances[walletID] == nil {
@@ -312,7 +305,16 @@ func runExport(ctx context.Context, client *redis.Client, outputFile string) err
 		snap.Balances[walletID][currency] = b
 	}
 
-	// Write output
+	return snap, nil
+}
+
+// runExport exports data to a file or stdout.
+func runExport(ctx context.Context, client *redis.Client, outputFile string) error {
+	snap, err := exportData(ctx, client)
+	if err != nil {
+		return err
+	}
+
 	var out io.Writer = os.Stdout
 	if outputFile != "" {
 		f, err := os.Create(outputFile)
@@ -328,28 +330,11 @@ func runExport(ctx context.Context, client *redis.Client, outputFile string) err
 	if err := enc.Encode(snap); err != nil {
 		return fmt.Errorf("encoding snapshot: %w", err)
 	}
-
 	return nil
 }
 
-// runImport flushes the DB and restores all data from a JSON snapshot.
-func runImport(ctx context.Context, client *redis.Client, inputFile string) error {
-	var in io.Reader = os.Stdin
-	if inputFile != "" {
-		f, err := os.Open(inputFile)
-		if err != nil {
-			return fmt.Errorf("opening input file: %w", err)
-		}
-		defer f.Close()
-		in = f
-	}
-
-	var snap XagoSnapshot
-	if err := json.NewDecoder(in).Decode(&snap); err != nil {
-		return fmt.Errorf("decoding snapshot: %w", err)
-	}
-
-	// Flush the database before import
+// importData flushes the DB and restores all data from a snapshot.
+func importData(ctx context.Context, client *redis.Client, snap *XagoSnapshot) error {
 	if err := client.FlushDB(ctx).Err(); err != nil {
 		return fmt.Errorf("flushing database: %w", err)
 	}
@@ -420,6 +405,26 @@ func runImport(ctx context.Context, client *redis.Client, inputFile string) erro
 	}
 
 	return nil
+}
+
+// runImport reads a JSON snapshot from a file (or stdin) and restores it.
+func runImport(ctx context.Context, client *redis.Client, inputFile string) error {
+	var in io.Reader = os.Stdin
+	if inputFile != "" {
+		f, err := os.Open(inputFile)
+		if err != nil {
+			return fmt.Errorf("opening input file: %w", err)
+		}
+		defer f.Close()
+		in = f
+	}
+
+	var snap XagoSnapshot
+	if err := json.NewDecoder(in).Decode(&snap); err != nil {
+		return fmt.Errorf("decoding snapshot: %w", err)
+	}
+
+	return importData(ctx, client, &snap)
 }
 
 // scanKeysWithFilter uses SCAN to iterate over keys matching pattern and returns

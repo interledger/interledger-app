@@ -3,7 +3,7 @@ services:
     image: valkey/valkey:8-alpine
     container_name: mockpti-valkey-test
     ports:
-      - "26380:6379"
+      - "26382:6379"
     healthcheck:
       test: ["CMD", "valkey-cli", "ping"]
       interval: 2s
