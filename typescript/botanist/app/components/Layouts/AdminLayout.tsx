@@ -1,6 +1,5 @@
-import { Outlet } from '@remix-run/react'
+import { Outlet, href } from 'react-router'
 import { useState } from 'react'
-import { route } from 'routes-gen'
 import { IconButton, Logo, Router } from '~/components'
 import { NavDrawer } from './NavDrawer'
 
@@ -12,22 +11,19 @@ export function AdminLayout() {
         <NavDrawer>
           <NavDrawer.List>
             <div className='ml-4'>
-              <Router to={route('/')} aria-label='Interledger logo'>
+              <Router to={href('/')} aria-label='Interledger logo'>
                 <Logo className='h-8' />
               </Router>
             </div>
-            <NavDrawer.ListItem to={route('/')}>Home</NavDrawer.ListItem>
-            <NavDrawer.ListItem to={route('/waitlist')}>
+            <NavDrawer.ListItem to={href('/')}>Home</NavDrawer.ListItem>
+            <NavDrawer.ListItem to={href('/waitlist')}>
               Waitlist
             </NavDrawer.ListItem>
-            <NavDrawer.ListItem to={route('/wallets')}>
+            <NavDrawer.ListItem to={href('/wallets')}>
               Wallets
             </NavDrawer.ListItem>
-            <NavDrawer.ListItem to={route('/reviews')}>
+            <NavDrawer.ListItem to={href('/reviews')}>
               Reviews
-            </NavDrawer.ListItem>
-            <NavDrawer.ListItem to={route('/dynamic-forms')}>
-              Forms
             </NavDrawer.ListItem>
           </NavDrawer.List>
           <footer className='flex w-full space-x-3 pl-4 pb-2'>
@@ -46,7 +42,7 @@ export function AdminLayout() {
           >
             menu
           </IconButton>
-          <Router to={route('/')} aria-label='Interledger logo'>
+          <Router to={href('/')} aria-label='Interledger logo'>
             <Logo className='h-8' />
           </Router>
         </header>
@@ -64,18 +60,18 @@ export function AdminLayout() {
               >
                 menu_open
               </IconButton>
-              <Router to={route('/')} aria-label='Interledger logo'>
+              <Router to={href('/')} aria-label='Interledger logo'>
                 <Logo className='h-8' />
               </Router>
             </div>
-            <NavDrawer.ListItem to={route('/')}>Home</NavDrawer.ListItem>
-            <NavDrawer.ListItem to={route('/waitlist')}>
+            <NavDrawer.ListItem to={href('/')}>Home</NavDrawer.ListItem>
+            <NavDrawer.ListItem to={href('/waitlist')}>
               Waitlist
             </NavDrawer.ListItem>
-            <NavDrawer.ListItem to={route('/wallets')}>
+            <NavDrawer.ListItem to={href('/wallets')}>
               Wallets
             </NavDrawer.ListItem>
-            <NavDrawer.ListItem to={route('/reviews')}>
+            <NavDrawer.ListItem to={href('/reviews')}>
               Reviews
             </NavDrawer.ListItem>
           </NavDrawer.List>
