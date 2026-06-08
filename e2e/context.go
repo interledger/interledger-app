@@ -293,11 +293,20 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I fill in my own wallet address as the receiver$`, func() error {
 		return sc.iFillInMyOwnWalletAddressAsTheReceiver()
 	})
+	ctx.Step(`^I search for my own wallet address in the payment form$`, func() error {
+		return sc.iSearchForMyOwnWalletAddressInThePaymentForm()
+	})
+	ctx.Step(`^I should see no payment result for my own wallet address$`, func() error {
+		return sc.iShouldSeeNoPaymentResultForMyOwnWalletAddress()
+	})
 	ctx.Step(`^I should see a completed outgoing transaction for "([^"]*)" "([^"]*)" in my payments history$`, func(amount, currency string) error {
 		return sc.iShouldSeeACompletedOutgoingTransactionFor(amount, currency)
 	})
 	ctx.Step(`^I should not see a completed outgoing transaction for "([^"]*)" "([^"]*)" in my payments history$`, func(amount, currency string) error {
 		return sc.iShouldNotSeeACompletedOutgoingTransactionFor(amount, currency)
+	})
+	ctx.Step(`^I wait "([^"]*)" seconds for the payment workflow to complete$`, func(seconds string) error {
+		return sc.iWaitSeconds(seconds)
 	})
 
 	// Bank account linking steps (Xago ZA)

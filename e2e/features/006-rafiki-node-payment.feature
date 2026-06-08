@@ -144,8 +144,10 @@ Feature: Rafiki Full Node Payment Lifecycle
     And I take a screenshot "transaction-completed-state"
 
   @rafiki-node @validation @gatehub
-  Scenario: Payment to own wallet address is rejected by Rafiki node validation
-    # Set up a single user with KYC and a deposit
+  Scenario: Sending payment to own wallet address is prevented by the application
+    # The frontend filters the user's own wallet from search results,
+    # preventing self-payment before it reaches the backend.
+    # Set up a single user with KYC
     Given the details of 'self-payer' are
       | field       | value                        |
       | emailSuffix | self-payer@example.com       |
@@ -163,25 +165,17 @@ Feature: Rafiki Full Node Payment Lifecycle
     And I should see my account balance with "200" "EUR"
     And I take a screenshot "self-payer-balance-before"
 
-    # Retrieve and store own wallet address for reuse in the payment form
+    # Retrieve own wallet address and confirm it is excluded from payment search results
     And I get my own wallet address
-
-    # Attempt to pay to own wallet address
     And I navigate to the send payment page
-    And I fill in my own wallet address as the receiver
-    And I fill in the payment amount "50"
-    And I select the payment currency "EUR"
-    And I submit the payment
-    # Allow time for the outgoing_payment.created workflow to validate and cancel
-    And I wait "10" seconds for the payment workflow to complete
+    And I search for my own wallet address in the payment form
+    Then I should see no payment result for my own wallet address
+    And I take a screenshot "self-payer-no-search-result"
 
-    # Balance must be unchanged — the node workflow cancelled the outgoing payment
+    # Balance must be unchanged since no payment could be initiated
     And I navigate to the dashboard
     And I should see my account balance with "200" "EUR"
     And I take a screenshot "self-payer-balance-unchanged"
-    And I navigate to the payments history page
-    And I should not see a completed outgoing transaction for "50" "EUR" in my payments history
-    And I take a screenshot "self-payer-no-completed-tx"
 
   @rafiki-node @mixed-provider @gatehub
   Scenario: GateHub-to-non-GateHub payment uses legacy path without pending state

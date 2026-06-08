@@ -57,6 +57,87 @@ func (sc *E2EContext) iFillInMyOwnWalletAddressAsTheReceiver() error {
 	return sc.iFillInTheReceiverWalletAddress()
 }
 
+// iSearchForMyOwnWalletAddressInThePaymentForm types the user's own wallet address
+// into the payment search input and waits briefly for any results to appear.
+// It intentionally does NOT attempt to click a result — the caller then asserts
+// that no result is shown.
+func (sc *E2EContext) iSearchForMyOwnWalletAddressInThePaymentForm() error {
+	if sc.receiverWalletAddress == "" {
+		return fmt.Errorf("iSearchForMyOwnWalletAddressInThePaymentForm: own wallet address not set — call 'I get my own wallet address' first")
+	}
+
+	debugPrintf("\n🔍 Searching for own wallet address in payment form: %s\n", sc.receiverWalletAddress)
+
+	searchSelectors := []string{
+		"[data-testid='pay-search-input']",
+		"input#search",
+		"input[name='search']",
+		"input[placeholder*='pay' i]",
+	}
+
+	var searchInput playwright.Locator
+	for _, selector := range searchSelectors {
+		locator := sc.page.Locator(selector)
+		if count, _ := locator.Count(); count > 0 {
+			searchInput = locator.First()
+			break
+		}
+	}
+	if searchInput == nil {
+		return fmt.Errorf("iSearchForMyOwnWalletAddressInThePaymentForm: could not find payment search input")
+	}
+
+	if err := searchInput.Fill(sc.receiverWalletAddress); err != nil {
+		return fmt.Errorf("iSearchForMyOwnWalletAddressInThePaymentForm: failed to fill search input: %w", err)
+	}
+	searchInput.Press("Enter")
+
+	// Wait up to 3 seconds for any search result to potentially appear.
+	// We do NOT fail if none appears — that is asserted by the next step.
+	results := sc.page.Locator("[data-testid='pay-search-result']")
+	_ = results.First().WaitFor(playwright.LocatorWaitForOptions{
+		State:   playwright.WaitForSelectorStateVisible,
+		Timeout: playwright.Float(3000),
+	})
+
+	debugPrintf("✓ Filled own wallet address in search, waiting for results...\n")
+	return nil
+}
+
+// iShouldSeeNoPaymentResultForMyOwnWalletAddress asserts that the payment search
+// returned no results for the user's own wallet address. This verifies the
+// frontend UI-level self-payment prevention.
+func (sc *E2EContext) iShouldSeeNoPaymentResultForMyOwnWalletAddress() error {
+	debugPrintln("\n🚫 Asserting no search result shown for own wallet address...")
+
+	results := sc.page.Locator("[data-testid='pay-search-result']")
+	count, _ := results.Count()
+	if count > 0 {
+		return fmt.Errorf(
+			"iShouldSeeNoPaymentResultForMyOwnWalletAddress: expected no search results for own wallet, but found %d result(s)",
+			count,
+		)
+	}
+
+	// Also check that no button containing the wallet address/suffix is visible
+	if sc.receiverWalletAddress != "" {
+		suffix := sc.receiverWalletAddress
+		if idx := strings.LastIndex(suffix, "/"); idx >= 0 {
+			suffix = suffix[idx+1:]
+		}
+		selfResult := sc.page.Locator(fmt.Sprintf("button:has-text('%s')", suffix))
+		if selfCount, _ := selfResult.Count(); selfCount > 0 {
+			return fmt.Errorf(
+				"iShouldSeeNoPaymentResultForMyOwnWalletAddress: found own wallet address (%s) in search results",
+				suffix,
+			)
+		}
+	}
+
+	debugPrintf("✓ No search result shown for own wallet address — self-payment prevented by UI\n")
+	return nil
+}
+
 // iShouldSeeACompletedOutgoingTransactionFor asserts that the payments history page
 // contains an outgoing transaction entry for the given amount and currency that is
 // NOT in the pending state (i.e. carries no schedule clock icon / does not have
