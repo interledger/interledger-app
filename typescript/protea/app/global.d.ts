@@ -26,7 +26,11 @@ interface Window {
       inquiryId?: string
       sessionToken?: string
       onReady?: () => void
-      onComplete?: (data: { inquiryId: string; status: string; fields: Record<string, unknown> }) => void
+      onComplete?: (data: {
+        inquiryId: string
+        status: string
+        fields: Record<string, unknown>
+      }) => void
       onCancel?: (data: { inquiryId: string; sessionToken: string }) => void
       onError?: (error: unknown) => void
     }) => { open: () => void }

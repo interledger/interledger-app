@@ -1,0 +1,57 @@
+name: TypeScript Check Template
+
+on:
+  workflow_call:
+    inputs:
+      working_directory:
+        required: true
+        type: string
+        description: 'Path to the package to check (e.g. typescript/protea)'
+      run_react_router_typegen:
+        required: false
+        type: boolean
+        default: false
+        description: 'Run `react-router typegen` before typecheck (React Router apps only)'
+
+jobs:
+  checks:
+    name: Checks
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.working_directory }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          # Resolve the pnpm version from the target app's package.json, NOT the repo root.
+          # because pnpm versions are different, a newer pnpm major would break `install --frozen-lockfile`.
+          package_json_file: ${{ inputs.working_directory }}/package.json
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+          cache-dependency-path: ${{ inputs.working_directory }}/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Generate route types first: React Router writes .react-router/types(.gitignored)
+      # which `./+types/*` imports resolve against.
+      - name: Generate route types
+        if: ${{ inputs.run_react_router_typegen }}
+        run: pnpm exec react-router typegen
+
+      - name: Lint check
+        run: pnpm lint:check
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Format check
+        run: pnpm format:check

@@ -1,5 +1,5 @@
-import { createRoutesStub } from 'react-router';
 import type { Meta, StoryFn } from '@storybook/react'
+import { createRoutesStub } from 'react-router'
 import { Select } from '~/components'
 
 const meta: Meta<typeof Select> = {

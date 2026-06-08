@@ -31,6 +31,7 @@ type E2EContext struct {
 	context     playwright.BrowserContext
 	page        playwright.Page
 	db          *sql.DB
+	pacioliDB   *sql.DB
 	baseURL     string
 	email       string
 	password    string
@@ -50,6 +51,9 @@ type E2EContext struct {
 	// Payment flow state
 	receiverWalletAddress string // Wallet address/identifier for payment receiver
 	ptiDepositRequestID   string // PTI deposit requestId, captured from /deposit/:id URL
+
+	// MockGatehub API URL
+	mockgatehubBaseURL string
 
 	// Test state
 	currentStep     int
@@ -95,6 +99,9 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 		if sc.db != nil {
 			_ = sc.db.Close()
 		}
+		if sc.pacioliDB != nil {
+			_ = sc.pacioliDB.Close()
+		}
 		debugPrintf("✓ Cleaned up context for scenario: %s\n", scenario.Name)
 		return goCtx, nil
 	})
@@ -114,6 +121,7 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I completed the signup workflow$`, func() error { return sc.iCompletedTheSignupWorkflow() })
 	ctx.Step(`^I completed the account verification workflow$`, func() error { return sc.iCompletedTheAccountVerificationWorkflow() })
 	ctx.Step(`^I finished the TOTP registration workflow$`, func() error { return sc.iFinishedTheTOTPRegistrationWorkflow() })
+	ctx.Step(`^I finished the phone confirmation workflow$`, func() error { return sc.iFinishedThePhoneConfirmationWorkflow() })
 	ctx.Step(`^I finished the wallet address creation workflow$`, func() error { return sc.iFinishedTheWalletAddressCreationWorkflow() })
 	ctx.Step(`^I fill in "([^"]*)" with my "([^"]*)"$`, func(fieldName, fieldKey string) error { return sc.iFillInWithMy(fieldName, fieldKey) })
 	ctx.Step(`^I fill in "([^"]*)" with "([^"]*)" prefixed with the random identifier$`, func(fieldName, fieldKey string) error { return sc.iFillInWithPrefixed(fieldName, fieldKey) })
@@ -395,6 +403,107 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I should see the snackbar "([^"]*)"$`, func(message string) error {
 		return sc.iShouldSeeTheSnackbar(message)
 	})
+	ctx.Step(`^I order a physical card for '([^']*)'$`, func(userName string) error {
+		return sc.iOrderAPhysicalCardFor(userName)
+	})
+
+	// Card transaction steps (GateHub webhook-driven scenarios)
+	ctx.Step(`^the card transaction test user is set up$`, func() error {
+		return sc.iEnsureCardTxUserIsSetUp()
+	})
+	ctx.Step(`^I trigger a card purchase transaction for '([^']*)'$`, func(userName string) error {
+		return sc.iTriggerACardPurchaseTransactionFor(userName)
+	})
+	ctx.Step(`^I trigger a card purchase-with-fx transaction for '([^']*)'$`, func(userName string) error {
+		return sc.iTriggerACardPurchaseWithFXTransactionFor(userName)
+	})
+	ctx.Step(`^I trigger a card ATM withdrawal transaction for '([^']*)'$`, func(userName string) error {
+		return sc.iTriggerACardATMWithdrawalTransactionFor(userName)
+	})
+	ctx.Step(`^I trigger a card cash advance transaction for '([^']*)'$`, func(userName string) error {
+		return sc.iTriggerACardCashAdvanceTransactionFor(userName)
+	})
+	ctx.Step(`^I trigger a card preauthorization transaction for '([^']*)'$`, func(userName string) error {
+		return sc.iTriggerACardPreauthorizationTransactionFor(userName)
+	})
+	ctx.Step(`^I trigger a card transfer-from-account transaction for '([^']*)'$`, func(userName string) error {
+		return sc.iTriggerACardTransferFromAccountTransactionFor(userName)
+	})
+	ctx.Step(`^I trigger a card transfer-to-account transaction for '([^']*)'$`, func(userName string) error {
+		return sc.iTriggerACardTransferToAccountTransactionFor(userName)
+	})
+	ctx.Step(`^I trigger a purchase reversal for the last card transaction of '([^']*)'$`, func(userName string) error {
+		return sc.iTriggerAPurchaseReversalForTheLastCardTransactionOf(userName)
+	})
+	ctx.Step(`^I trigger a preauthorization incremental with reference to the last card transaction of '([^']*)'$`, func(userName string) error {
+		return sc.iTriggerAPreauthorizationIncrementalWithReferenceToTheLastCardTransactionOf(userName)
+	})
+	ctx.Step(`^I trigger a preauthorization incremental without reference for '([^']*)'$`, func(userName string) error {
+		return sc.iTriggerAPreauthorizationIncrementalWithoutReferenceFor(userName)
+	})
+	ctx.Step(`^I trigger a card wrong-pin-with-fx transaction for '([^']*)'$`, func(userName string) error {
+		return sc.iTriggerACardWrongPinWithFXTransactionFor(userName)
+	})
+	ctx.Step(`^I trigger a card insufficient-balance transaction for '([^']*)'$`, func(userName string) error {
+		return sc.iTriggerACardInsufficientBalanceTransactionFor(userName)
+	})
+	ctx.Step(`^I trigger a card wrong-pin transaction for '([^']*)'$`, func(userName string) error {
+		return sc.iTriggerACardWrongPinTransactionFor(userName)
+	})
+	ctx.Step(`^I trigger a card invalid-cvv transaction for '([^']*)'$`, func(userName string) error {
+		return sc.iTriggerACardInvalidCVVTransactionFor(userName)
+	})
+	ctx.Step(`^I trigger a card expired transaction for '([^']*)'$`, func(userName string) error {
+		return sc.iTriggerACardExpiredTransactionFor(userName)
+	})
+	ctx.Step(`^I trigger a frozen card transaction for '([^']*)'$`, func(userName string) error {
+		return sc.iTriggerAFrozenCardTransactionFor(userName)
+	})
+	ctx.Step(`^I trigger a card verification-inquiry transaction for '([^']*)'$`, func(userName string) error {
+		return sc.iTriggerACardVerificationInquiryTransactionFor(userName)
+	})
+	ctx.Step(`^I set the card transaction status to "([^"]*)" for the last card transaction of '([^']*)'$`, func(status, userName string) error {
+		return sc.iSetTheCardTransactionStatusToForTheLastCardTransactionOf(status, userName)
+	})
+	ctx.Step(`^I run the GateHub clearing card transactions poll workflow$`, func() error {
+		return sc.iRunTheGatehubClearingCardTransactionsPollWorkflow()
+	})
+	ctx.Step(`^I run the GateHub realtime card transactions poll workflow$`, func() error {
+		return sc.iRunTheGatehubRealtimeCardTransactionsPollWorkflow()
+	})
+	ctx.Step(`^a card transaction record should exist in the database for '([^']*)'$`, func(userName string) error {
+		return sc.aCardTransactionRecordShouldExistInTheDatabaseFor(userName)
+	})
+	ctx.Step(`^a pending withdrawal transaction should exist in the database for '([^']*)' with note "([^"]*)"$`, func(userName, note string) error {
+		return sc.aPendingWithdrawalTransactionShouldExistWithNoteFor(userName, note)
+	})
+	ctx.Step(`^a pending deposit transaction should exist in the database for '([^']*)' with note "([^"]*)"$`, func(userName, note string) error {
+		return sc.aPendingDepositTransactionShouldExistWithNoteFor(userName, note)
+	})
+	ctx.Step(`^a failed transaction should exist in the database for '([^']*)' with note "([^"]*)"$`, func(userName, note string) error {
+		return sc.aFailedTransactionShouldExistWithNoteFor(userName, note)
+	})
+	ctx.Step(`^a completed transaction should exist in the database for '([^']*)' with note "([^"]*)"$`, func(userName, note string) error {
+		return sc.aCompletedTransactionShouldExistWithNoteFor(userName, note)
+	})
+	ctx.Step(`^(\d+) card transactions should exist in the database for '([^']*)'$`, func(n int, userName string) error {
+		return sc.nCardTransactionsShouldExistInTheDatabaseFor(n, userName)
+	})
+	ctx.Step(`^the first card transaction should be failed for '([^']*)'$`, func(userName string) error {
+		return sc.theFirstCardTransactionShouldBeFailedFor(userName)
+	})
+	ctx.Step(`^the last card transaction of '([^']*)' should be completed in the database$`, func(userName string) error {
+		return sc.theLastCardTransactionShouldBeCompletedFor(userName)
+	})
+	ctx.Step(`^the last card transaction of '([^']*)' should be failed in the database$`, func(userName string) error {
+		return sc.theLastCardTransactionShouldBeFailedFor(userName)
+	})
+	ctx.Step(`^the ledger balance for '([^']*)' should be total "([^"]*)" EUR and available "([^"]*)" EUR$`, func(userName, total, available string) error {
+		return sc.theLedgerBalanceForShouldBe(userName, total, available)
+	})
+	ctx.Step(`^the last transaction for '([^']*)' should have exchange rate data$`, func(userName string) error {
+		return sc.theLastTransactionShouldHaveExchangeRateDataFor(userName)
+	})
 
 	// Botanist admin portal steps
 	ctx.Step(`^the admin portal is running at "([^"]*)"$`, func(url string) error {
@@ -502,6 +611,8 @@ func (sc *E2EContext) theFrontendIsRunningAt(urlStr string) error {
 }
 
 func (sc *E2EContext) theMockgatehubIsRunningAt(urlStr string) error {
+	sc.mockgatehubBaseURL = strings.TrimSuffix(urlStr, "/")
+
 	// Extract hostname from URL
 	parsedURL, err := url.Parse(urlStr)
 	if err != nil {

@@ -148,6 +148,10 @@ backend:
     android_sha256: ""
 
     admin:
+      # This is used to create links to the admin portal useful for support purposes
+      base_url: ""
+      # Used to configure the admin portal's OIDC integration with Cloudflare Access
+      # for authentication and access control. See the admin portal docs for details.
       policy_aud_ref: adminPortalCloudFlarePolicyAud
       team_domain_ref: adminPortalCloudflareTeamDomain
 
@@ -162,6 +166,7 @@ backend:
       allowed_wallet_ids: ""
 
     twilio:
+      enabled: "false"
       account_sid_ref: twilioAccountSID
       service_sid_ref: twilioServiceSID
       account_token_ref: twilioAccountToken
@@ -241,6 +246,9 @@ backend:
       client_secret_ref: "slackClientSecret"
       signing_secret_ref: "slackSigningSecret"
       token_ref: "slackToken"
+      channel_signup_kyc: ""
+      channel_transaction: ""
+      channel_error: ""
 
     persona:
       base_url: "https://api.withpersona.com/api/v1/"
@@ -883,6 +891,16 @@ backend:
           valueRef: backend.config.persona.base_url
         - key: SIGNUP_AGREEMENT_IDS
           valueRef: backend.config.signup_agreement_ids
+        - key: TWILIO_ENABLED
+          valueRef: backend.config.twilio.enabled
+        - key: SIGNUP_KYC_SLACK_CHANNEL
+          valueRef: backend.config.slack.channel_signup_kyc
+        - key: TRANSACTION_SLACK_CHANNEL
+          valueRef: backend.config.slack.channel_transaction
+        - key: ERROR_SLACK_CHANNEL
+          valueRef: backend.config.slack.channel_error
+        - key: ADMIN_BASE_URL
+          valueRef: backend.config.admin.base_url
 
 # =============================================================================
 # FRONTEND — Protea user-facing wallet

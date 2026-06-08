@@ -119,9 +119,10 @@ export const PhoneTextField = forwardRef<
                 <input
                   ref={inputRef}
                   {...inputProps}
-                  defaultValue={`+${getCountryCallingCode(
-                    defaultCountry as CountryCode
-                  )}`}
+                  defaultValue={
+                    (inputProps.defaultValue as string) ||
+                    `+${getCountryCallingCode(defaultCountry as CountryCode)}`
+                  }
                   type='tel'
                   onChange={_onChangeInput}
                   className='w-full overflow-hidden border-none bg-transparent px-4 focus:ring-0'

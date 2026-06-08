@@ -1,9 +1,12 @@
-import type { Route } from './+types/waitlist'
 import { Code } from '@bufbuild/connect'
-import { redirect } from 'react-router';
-import { Form, useActionData, useLoaderData } from 'react-router';
 import { useEffect, useState } from 'react'
-import { href } from 'react-router'
+import {
+  Form,
+  href,
+  redirect,
+  useActionData,
+  useLoaderData
+} from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   Autocomplete,
@@ -21,6 +24,7 @@ import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { requireNoUserSession } from '~/lib/kratos/session.server'
 import { mergeMeta } from '~/lib/meta'
+import type { Route } from './+types/waitlist'
 
 type Country = {
   id: string
@@ -97,13 +101,16 @@ export default function Page() {
     else {
       setFilteredCountries(
         countries.filter((country: Country) => {
-          return (country.name
-            .toLowerCase()
-            .replace(/\s+/g, '')
-            .includes(query.toLowerCase().replace(/\s+/g, '')) || country.id
-            .toLowerCase()
-            .replace(/\s+/g, '')
-            .includes(query.toLowerCase().replace(/\s+/g, '')));
+          return (
+            country.name
+              .toLowerCase()
+              .replace(/\s+/g, '')
+              .includes(query.toLowerCase().replace(/\s+/g, '')) ||
+            country.id
+              .toLowerCase()
+              .replace(/\s+/g, '')
+              .includes(query.toLowerCase().replace(/\s+/g, ''))
+          )
         })
       )
     }

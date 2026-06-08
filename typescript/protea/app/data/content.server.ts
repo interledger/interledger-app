@@ -1,12 +1,12 @@
+import { envValue } from '~/env.server'
 import type {
   Query,
   QueryLegalPageArgs,
   QueryMarketingPageArgs
 } from '~/generated/dato-cms-graphql'
-import { envValue } from '~/env.server'
 
 export const getContactRoute = async () => {
-  const targetHost = envValue("TARGET_HOST")
+  const targetHost = envValue('TARGET_HOST')
   return {
     contactRoute: {
       id: '125075088',
@@ -299,7 +299,7 @@ export const getContactRoute = async () => {
 export const getCurrentMarketingPage = async (
   variables: QueryMarketingPageArgs
 ) => {
-  const targetHost = envValue("TARGET_HOST")
+  const targetHost = envValue('TARGET_HOST')
   switch (variables?.filter?.slug?.eq) {
     case 'legal': {
       return {
@@ -755,8 +755,8 @@ export const getCurrentMarketingPage = async (
 }
 
 export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
-  const supportEmail = envValue("SUPPORT_EMAIL")
-  const targetHost = envValue("TARGET_HOST")
+  const supportEmail = envValue('SUPPORT_EMAIL')
+  const targetHost = envValue('TARGET_HOST')
   switch (variables?.filter?.slug?.eq) {
     case 'terms-of-service':
       return {
@@ -798,9 +798,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         url: `mailto:${supportEmail}`,
                         type: 'link',
-                        children: [
-                          { type: 'span', value: supportEmail  }
-                        ]
+                        children: [{ type: 'span', value: supportEmail }]
                       },
                       {
                         type: 'span',
@@ -1792,9 +1790,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         url: `mailto:${supportEmail}`,
                         type: 'link',
-                        children: [
-                          { type: 'span', value: supportEmail  }
-                        ]
+                        children: [{ type: 'span', value: supportEmail }]
                       },
                       { type: 'span', value: '.' }
                     ]
@@ -2068,7 +2064,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                                 children: [
                                   {
                                     type: 'span',
-                                    value: supportEmail 
+                                    value: supportEmail
                                   }
                                 ]
                               },
@@ -2206,7 +2202,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                                 children: [
                                   {
                                     type: 'span',
-                                    value: supportEmail 
+                                    value: supportEmail
                                   }
                                 ]
                               },
@@ -3688,9 +3684,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         url: `mailto:${supportEmail}`,
                         type: 'link',
-                        children: [
-                          { type: 'span', value: supportEmail  }
-                        ]
+                        children: [{ type: 'span', value: supportEmail }]
                       },
                       { type: 'span', value: '.' }
                     ]
@@ -4837,9 +4831,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         url: `mailto:${supportEmail}`,
                         type: 'link',
-                        children: [
-                          { type: 'span', value: supportEmail  }
-                        ]
+                        children: [{ type: 'span', value: supportEmail }]
                       },
                       {
                         type: 'span',
@@ -5421,7 +5413,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                           {
                             type: 'span',
                             marks: ['strong'],
-                            value: supportEmail 
+                            value: supportEmail
                           }
                         ]
                       },
@@ -5521,7 +5513,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                           {
                             type: 'span',
                             marks: ['strong'],
-                            value: supportEmail 
+                            value: supportEmail
                           }
                         ]
                       },
@@ -5557,7 +5549,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                           {
                             type: 'span',
                             marks: ['strong'],
-                            value: supportEmail 
+                            value: supportEmail
                           }
                         ]
                       },

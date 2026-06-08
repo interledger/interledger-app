@@ -1,7 +1,5 @@
-import type { Route } from './+types/settings_.profile-public_.name'
 import { Code } from '@bufbuild/connect'
-import { Form, useActionData, useLoaderData } from 'react-router';
-import { href } from 'react-router'
+import { Form, href, useActionData, useLoaderData } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, Layouts, TextField } from '~/components'
 import { getPublicWalletDetails, getWalletInfo } from '~/data/wallet.server'
@@ -10,6 +8,7 @@ import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
+import type { Route } from './+types/settings_.profile-public_.name'
 
 export async function loader({ request }: Route.LoaderArgs) {
   const walletInfo = await getWalletInfo(request)

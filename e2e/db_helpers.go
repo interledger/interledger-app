@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -25,6 +26,7 @@ var (
 )
 
 const backendDBConnStr = "host=localhost port=5432 user=postgres password=postgres dbname=backend sslmode=disable"
+const pacioliDBConnStr = "host=localhost port=5432 user=postgres password=postgres dbname=pacioli sslmode=disable"
 
 // ensureDB opens the backend database connection if it is not already open.
 func (sc *E2EContext) ensureDB() error {
@@ -252,6 +254,62 @@ func (sc *E2EContext) markKratosEmailAsVerified(email string) error {
 	}
 
 	debugPrintf("✓ Marked email as verified in Kratos: %s\n", email)
+	return nil
+}
+
+// markKratosPhoneAsVerified marks the current user's phone as verified in Kratos traits.
+func (sc *E2EContext) markKratosPhoneAsVerified(email string) error {
+	kratosConnStr := "host=localhost port=5432 user=postgres password=postgres dbname=kratos sslmode=disable"
+	kratosDB, err := sql.Open("postgres", kratosConnStr)
+	if err != nil {
+		return fmt.Errorf("markKratosPhoneAsVerified: could not connect to Kratos DB: %w", err)
+	}
+	defer kratosDB.Close()
+
+	identityID, err := sc.lookupKratosIdentityByEmail(email)
+	if err != nil {
+		return fmt.Errorf("markKratosPhoneAsVerified: failed to resolve identity for %s: %w", email, err)
+	}
+
+	var traitsRaw []byte
+	if err := kratosDB.QueryRow(`SELECT traits FROM identities WHERE id = $1`, identityID).Scan(&traitsRaw); err != nil {
+		return fmt.Errorf("markKratosPhoneAsVerified: failed to load traits for %s: %w", identityID, err)
+	}
+
+	var traits map[string]interface{}
+	if err := json.Unmarshal(traitsRaw, &traits); err != nil {
+		return fmt.Errorf("markKratosPhoneAsVerified: failed to decode traits for %s: %w", identityID, err)
+	}
+
+	phone, hasPhone := traits["phone"].(string)
+	if !hasPhone || strings.TrimSpace(phone) == "" {
+		return fmt.Errorf("markKratosPhoneAsVerified: no phone trait found for %s", identityID)
+	}
+
+	traits["phoneVerified"] = true
+	updatedTraits, err := json.Marshal(traits)
+	if err != nil {
+		return fmt.Errorf("markKratosPhoneAsVerified: failed to encode traits for %s: %w", identityID, err)
+	}
+
+	result, err := kratosDB.Exec(`
+		UPDATE identities
+		SET traits = $2, updated_at = NOW()
+		WHERE id = $1
+	`, identityID, updatedTraits)
+	if err != nil {
+		return fmt.Errorf("markKratosPhoneAsVerified: failed to update traits for %s: %w", identityID, err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("markKratosPhoneAsVerified: could not check rows affected: %w", err)
+	}
+	if rowsAffected == 0 {
+		return fmt.Errorf("markKratosPhoneAsVerified: no identity row updated for %s", identityID)
+	}
+
+	debugPrintf("✓ Marked phone as verified in Kratos: %s (%s)\n", phone, identityID)
 	return nil
 }
 
@@ -535,6 +593,62 @@ func phoneRangeForCountry(country string) (prefix string, pattern string, digits
 		// Germany / fallback
 		return "+491700", `^\+491700([0-9]{6})$`, 6
 	}
+}
+
+func (sc *E2EContext) ensurePacioliDB() error {
+	if sc.pacioliDB != nil {
+		return nil
+	}
+	db, err := sql.Open("postgres", pacioliDBConnStr)
+	if err != nil {
+		return fmt.Errorf("failed to open pacioli db: %w", err)
+	}
+	sc.pacioliDB = db
+	return nil
+}
+
+func (sc *E2EContext) getGatehubLinkedAccountID(email string) (string, error) {
+	if err := sc.ensureDB(); err != nil {
+		return "", fmt.Errorf("getGatehubLinkedAccountID: %w", err)
+	}
+	walletID, err := sc.getWalletIDByEmail(email)
+	if err != nil {
+		return "", fmt.Errorf("getGatehubLinkedAccountID: %w", err)
+	}
+	var accountID string
+	err = sc.db.QueryRow(`
+		SELECT id FROM linked_accounts
+		WHERE wallet_id = $1 AND provider = 'gatehub' AND type = 'balance'
+		LIMIT 1
+	`, walletID).Scan(&accountID)
+	if err != nil {
+		return "", fmt.Errorf("getGatehubLinkedAccountID: %w", err)
+	}
+	return accountID, nil
+}
+
+type ledgerBalance struct {
+	Total     int64
+	Available int64
+}
+
+func (sc *E2EContext) getLedgerBalanceByAccountID(accountID string) (*ledgerBalance, error) {
+	if err := sc.ensurePacioliDB(); err != nil {
+		return nil, fmt.Errorf("getLedgerBalanceByAccountID: %w", err)
+	}
+	var creditsPosted, debitsPosted, debitsPending int64
+	err := sc.pacioliDB.QueryRow(`
+		SELECT credits_posted, debits_posted, debits_pending
+		FROM ledger_accounts
+		WHERE id = $1
+	`, accountID).Scan(&creditsPosted, &debitsPosted, &debitsPending)
+	if err != nil {
+		return nil, fmt.Errorf("getLedgerBalanceByAccountID: query: %w", err)
+	}
+	return &ledgerBalance{
+		Total:     creditsPosted - debitsPosted,
+		Available: creditsPosted - debitsPosted - debitsPending,
+	}, nil
 }
 
 // getWalletIDByEmail looks up the wallet ID for a user by their email address

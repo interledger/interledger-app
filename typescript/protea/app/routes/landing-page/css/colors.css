@@ -146,13 +146,13 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-neutral-0: #0D0D0D;
+    --color-neutral-0: #0d0d0d;
     --color-neutral-25: #000000;
     --color-neutral-50: #292929;
     --color-neutral-100: #c9c9c9;
     --color-neutral-150: #e4e4e4;
     --color-neutral-900: #ffffff;
-    
+
     --main-screen-1-bg: var(--color-aqua-mint-100);
     --feature-screen-1-bg: var(--color-deep-teal-100);
     --feature-screen-2-bg: var(--color-periwikinle-100);

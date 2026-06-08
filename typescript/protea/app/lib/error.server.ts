@@ -1,10 +1,10 @@
-import { Code } from '@bufbuild/connect'
 import type { ConnectError as BufConnectError } from '@bufbuild/connect'
+import { Code } from '@bufbuild/connect'
 import type { PlainMessage } from '@bufbuild/protobuf'
-import { data as rrData, redirect, UNSAFE_DataWithResponseInit as DataWithResponseInit } from 'react-router'
 import { captureMessage } from '@sentry/react-router'
-import { href } from 'react-router'
-import { CLEAR_SESSION_COOKIE_HEADER } from './kratos/kratos-client.server'
+import type { UNSAFE_DataWithResponseInit as DataWithResponseInit } from 'react-router'
+import { href, redirect, data as rrData } from 'react-router'
+import { AppError } from '~/generated/connect/backend/v1/backend_pb'
 import type {
   BadRequest_FieldViolation,
   PreconditionFailure_Violation
@@ -16,28 +16,29 @@ import {
 } from '~/generated/connect/google/rpc/error_details_pb'
 import { flashSnackbar } from '~/lib/snackbar.server'
 import type { SnackbarType } from '~/lib/useScaffoldStore'
+import { CLEAR_SESSION_COOKIE_HEADER } from './kratos/kratos-client.server'
 
 type JsonWithErrorFunction = <
   Data extends
-  | null
-  | (Record<string, unknown> & Record<'errors', Record<string, string>>)
+    | null
+    | (Record<string, unknown> & Record<'errors', Record<string, string>>)
 >(
   request: Request,
   data: Data,
   snackbar?: Partial<SnackbarType>,
   init?: number | ResponseInit,
   isConnectError?: boolean
-) => Promise<DataWithResponseInit<Data & object | Data & null>>
+) => Promise<DataWithResponseInit<(Data & object) | (Data & null)>>
 
 type JsonWithConnectErrorFunction = <
   Data extends Record<string, unknown> &
-  Record<'errors', Record<string, string>>
+    Record<'errors', Record<string, string>>
 >(
   data: Data,
   mapping?: Partial<Data['errors']>,
   snackbar?: Partial<SnackbarType>,
   init?: number | ResponseInit
-) => Promise<DataWithResponseInit<Data & object | Data & null>>
+) => Promise<DataWithResponseInit<(Data & object) | (Data & null)>>
 
 /**
  * This is an extension of the data function from Remix.
@@ -130,10 +131,13 @@ export class ConnectError {
   readonly code: Code
   // The HTTP status code for this error.
   readonly status: ResponseInit | undefined
-  readonly errorResponse: DataWithResponseInit<Record<string, never>> | undefined
+  readonly errorResponse:
+    | DataWithResponseInit<Record<string, never>>
+    | undefined
 
   violations: PlainMessage<PreconditionFailure_Violation>[] = []
   fieldViolations: PlainMessage<BadRequest_FieldViolation>[] = []
+  appErrors: PlainMessage<AppError>[] = []
 
   constructor(request: Request, err: BufConnectError) {
     this._request = request
@@ -165,8 +169,7 @@ export class ConnectError {
 
       throw redirect(href('/login') + url.search, {
         headers: {
-          'Set-Cookie':
-            CLEAR_SESSION_COOKIE_HEADER
+          'Set-Cookie': CLEAR_SESSION_COOKIE_HEADER
         }
       })
     }
@@ -180,7 +183,10 @@ export class ConnectError {
             accumulator: PlainMessage<PreconditionFailure_Violation>[],
             currentValue: PlainMessage<PreconditionFailure>
           ) => {
-            currentValue.violations.forEach((val: PlainMessage<PreconditionFailure_Violation>) => accumulator.push(val))
+            currentValue.violations.forEach(
+              (val: PlainMessage<PreconditionFailure_Violation>) =>
+                accumulator.push(val)
+            )
             return accumulator
           },
           []
@@ -196,12 +202,17 @@ export class ConnectError {
             accumulator: PlainMessage<BadRequest_FieldViolation>[],
             currentValue: PlainMessage<BadRequest>
           ) => {
-            currentValue.fieldViolations.forEach((val: PlainMessage<BadRequest_FieldViolation>) => accumulator.push(val))
+            currentValue.fieldViolations.forEach(
+              (val: PlainMessage<BadRequest_FieldViolation>) =>
+                accumulator.push(val)
+            )
             return accumulator
           },
           []
         )
     }
+
+    this.appErrors = err.findDetails(AppError)
   }
 
   /**
@@ -219,6 +230,27 @@ export class ConnectError {
   ) => {
     data.errors = this.fieldErrors(data.errors, mapping)
     return error(this._request, data, snackbar, init, true)
+  }
+
+  public hasFieldViolation(...fields: string[]): boolean {
+    const normalizedFields = fields.map((field) => field.toLowerCase())
+
+    return (
+      this.fieldViolations.some((violation) =>
+        normalizedFields.includes(violation.field.toLowerCase())
+      ) ||
+      this.appErrors.some((appError) =>
+        appError.fields.some((field) =>
+          normalizedFields.includes(field.field.toLowerCase())
+        )
+      )
+    )
+  }
+
+  public hasAppErrorCode(...errorCodes: string[]): boolean {
+    return this.appErrors.some((appError) =>
+      errorCodes.includes(appError.errorCode)
+    )
   }
 
   /**
@@ -247,7 +279,7 @@ export class ConnectError {
     return this.fieldViolations.reduce((accumulator, current) => {
       let fieldName = fieldNames[current.field.toLowerCase()]
       if (fieldName) {
-        ; (accumulator as Record<string, string>)[fieldName] =
+        ;(accumulator as Record<string, string>)[fieldName] =
           current.description
       }
       return accumulator
@@ -307,10 +339,44 @@ export function isConnectError(response: unknown): response is ConnectError {
 }
 
 export function isTwilioCodeError(error: ConnectError): boolean {
-  return error.fieldViolations.some((violation) => violation.field === 'Code')
+  return isOtpValidationError(error)
 }
 
 export function isTwilioError(error: ConnectError): boolean {
-  const errorInfo = error._err.findDetails(ErrorInfo)
-  return errorInfo.some((info: PlainMessage<ErrorInfo>) => info.reason === 'TwilioError')
+  return isOtpValidationError(error)
+}
+
+function hasFieldViolation(
+  error: Pick<ConnectError, 'fieldViolations' | 'appErrors'>,
+  ...fields: string[]
+): boolean {
+  const normalizedFields = fields.map((field) => field.toLowerCase())
+
+  return (
+    error.fieldViolations.some((violation) =>
+      normalizedFields.includes(violation.field.toLowerCase())
+    ) ||
+    error.appErrors.some((appError) =>
+      appError.fields.some((field) =>
+        normalizedFields.includes(field.field.toLowerCase())
+      )
+    )
+  )
+}
+
+function hasAppErrorCode(
+  error: Pick<ConnectError, 'appErrors'>,
+  ...errorCodes: string[]
+): boolean {
+  return error.appErrors.some((appError) =>
+    errorCodes.includes(appError.errorCode)
+  )
+}
+
+export function isOtpValidationError(error: ConnectError): boolean {
+  return (
+    error.code === Code.InvalidArgument &&
+    (hasFieldViolation(error, 'otp') ||
+      hasAppErrorCode(error, 'TWILIO_INVALID_OTP'))
+  )
 }

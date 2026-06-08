@@ -1,8 +1,6 @@
-import type { Route } from './+types/settings_.grants_.$grantId'
 import type { PlainMessage } from '@bufbuild/protobuf'
-import type { UIMatch } from 'react-router';
-import { Form, useLoaderData } from 'react-router';
-import { href } from 'react-router'
+import type { UIMatch } from 'react-router'
+import { Form, href, useLoaderData } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   Card,
@@ -13,19 +11,21 @@ import {
   OutlineButton
 } from '~/components'
 import { Label } from '~/components/Label'
+import type { RafikiAccess } from '~/generated/connect/backend/v1/backend_pb'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
-import type { RafikiAccess } from '~/generated/connect/backend/v1/backend_pb'
 import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
+import type { Route } from './+types/settings_.grants_.$grantId'
 
 export const handle: ApplicationProps = {
   layout: Layouts.Focus,
   scaffold: {
     header: {
       back: '/settings/grants',
-      title: (match: UIMatch<Route.ComponentProps['loaderData']>) => match.loaderData?.grant.client ?? '',
+      title: (match: UIMatch<Route.ComponentProps['loaderData']>) =>
+        match.loaderData?.grant.client ?? '',
       actions: (match: UIMatch<Route.ComponentProps['loaderData']>) => {
         if (!match.loaderData) return null
         const { grant } = match.loaderData

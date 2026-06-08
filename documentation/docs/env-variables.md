@@ -125,6 +125,7 @@ The Go backend is the core of the wallet, handling payments, provider integratio
 | `APPLE_APP_ID` | Apple App Site Association app ID for deep-links | No | Prod: `6B7AFCRT3V.app.wallet.interledger`; Sandbox: TBD; Dev: `6B7AFCRT3V.app.wallet.interledger.dev`; Local: `6B7AFCRT3V.app.wallet.interledger.test` |
 | `ANDROID_PACKAGE_NAME` | Android App Links package name for deep-links | No | Prod: `org.interledger.walletandroid`; Sandbox: TBD; Dev: `org.interledger.walletandroid.debugDevelopment`; Local: `org.interledger.walletandroid.test` |
 | `ANDROID_SHA256` | Android signing certificate SHA-256 fingerprint for deep-links | No | Prod: `25:D0:6A:A1:4F:BD:F6:05:93:2C:80:A2:AC:DA:DE:E4:2F:72:BC:23:9C:8F:2C:78:85:49:9A:AC:D2:4B:A4:FF`; Sandbox: TBD |
+| `ADMIN_BASE_URL` | Base URL of the admin portal, used to build links to it for support purposes. **Required** | No | Full URL including scheme, e.g. `https://admin.interledger.app` |
 
 ### Infrastructure Services
 
@@ -151,6 +152,7 @@ The Go backend is the core of the wallet, handling payments, provider integratio
 | `TWILIO_ACCOUNT_SID` | Twilio account SID | Yes | Local default: `SK021f793191208ba69c3bea87dd426085` |
 | `TWILIO_SERVICE_SID` | Twilio Verify service SID | Yes | Local default: `VA8af4e130da63b9fac4c042acbc33a267` |
 | `TWILIO_ACCOUNT_TOKEN` | Twilio auth token | Yes | Local default: `test` |
+| `TWILIO_ENABLED` | Enables live Twilio Verify calls. When `false`, all phone verification methods return stub responses and credentials are not required. | No | Prod/Sandbox: `true`; Dev/Local: `false` |
 
 ### SendGrid (Transactional Email)
 
@@ -188,6 +190,9 @@ The Go backend is the core of the wallet, handling payments, provider integratio
 | Variable | Description | Secret | Notes |
 |---|---|---|---|
 | `SLACK_TOKEN` | Slack bot token for sending notifications | Yes | Not set locally |
+| `SIGNUP_KYC_SLACK_CHANNEL` | Slack channel ID for signup, identity, linked-account, and KYC notifications. Empty disables this category. | No | Not set locally |
+| `TRANSACTION_SLACK_CHANNEL` | Slack channel ID for transaction-lifecycle notifications (new transactions, fiant transaction-status webhooks). Empty disables this category. | No | Not set locally |
+| `ERROR_SLACK_CHANNEL` | Slack channel ID for error/ops alerts: provider RollbackReserve errors, withdrawal failures, asset-not-configured warnings, gatehub card-transaction anomalies. Empty disables this category. | No | Not set locally |
 | `SLACK_CLIENT_ID` | Slack OAuth app client ID | Yes | Not set locally |
 | `SLACK_CLIENT_SECRET` | Slack OAuth app client secret | Yes | Not set locally |
 | `SLACK_SIGNING_SECRET` | Slack signing secret for webhook verification | Yes | Not set locally |
