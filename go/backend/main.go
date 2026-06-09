@@ -51,7 +51,6 @@ import (
 	identities_client "gitlab.com/fynbos/backend/identities/client"
 	"gitlab.com/fynbos/backend/images"
 	img_client "gitlab.com/fynbos/backend/images/client"
-	"gitlab.com/fynbos/backend/jobs"
 	"gitlab.com/fynbos/backend/keys"
 	keys_client "gitlab.com/fynbos/backend/keys/client"
 	"gitlab.com/fynbos/backend/kyc"
