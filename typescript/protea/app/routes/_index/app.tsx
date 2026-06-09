@@ -325,6 +325,8 @@ export function AppPage() {
                           ? computeCardSubtotalStyles(
                               transaction.cardTransactionDetails
                             )
+                          : transaction.type === 'withdrawal'
+                          ? 'text-error'
                           : transaction.type === 'sent' ||
                             transaction.type === 'web_monetization_outgoing'
                           ? 'text-error'

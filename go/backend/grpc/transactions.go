@@ -7,8 +7,11 @@ import (
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/payments"
+	"gitlab.com/fynbos/backend/providers/gatehub"
 	"gitlab.com/fynbos/backend/transactions"
+	"gitlab.com/fynbos/log"
 	pb "gitlab.com/fynbos/proto/backend/v1"
+	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -169,19 +172,7 @@ func transformTransaction(tx transactions.Transaction, transfers []transactions.
 		ret.FormattedTargetAmount = &v
 	}
 
-	// only adding the send and receive accounts to withdrawals
-	if tx.Type == transactions.TransactionTypeWithdrawal {
-		for _, t := range transfers {
-			if t.Type == transactions.TransferTypeDebitBalance {
-				ret.SenderAccountId = t.LinkedAccountID
-			}
-			if t.Type == transactions.TransferTypeCreditBankAccount {
-				ret.ReceiverAccountId = t.LinkedAccountID
-			}
-		}
-	}
-
-	// only adding the send and receive accounts to withdrawals
+	// only adding the send and receive accounts to deposits
 	if tx.Type == transactions.TransactionTypeDeposit {
 		for _, t := range transfers {
 			if t.Type == transactions.TransferTypeCreditBalance {
@@ -225,7 +216,28 @@ func (s *rpcService) LookupTransaction(ctx context.Context, req *pb.LookupTransa
 		return nil, toGRPCError(err)
 	}
 
-	return transformTransaction(*tx, transfers), nil
+	pbTx := transformTransaction(*tx, transfers)
+
+	if tx.Provider == gatehub.ProviderName && tx.Type == transactions.TransactionTypeWithdrawal && tx.ForeignID != "" {
+		ghTx, err := s.b.Gatehub().GetTransaction(ctx, wallet.ID, tx.ForeignID)
+		if err != nil {
+			log.Warn("LookupTransaction: failed to fetch GateHub withdrawal details", zap.Error(err))
+		} else {
+			if ghTx.Account.Iban != "" {
+				pbTx.RecipientIban = &ghTx.Account.Iban
+			}
+			if ghTx.Account.LegalName != "" {
+				pbTx.RecipientName = &ghTx.Account.LegalName
+			}
+			paymentChannel := "SEPA"
+			pbTx.PaymentChannel = &paymentChannel
+			if ghTx.Message != nil {
+				pbTx.Reference = *ghTx.Message
+			}
+		}
+	}
+
+	return pbTx, nil
 }
 
 func cardOperationToProto(op transactions.CardOperation) pb.CardOperation {
