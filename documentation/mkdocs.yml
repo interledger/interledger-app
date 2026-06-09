@@ -32,6 +32,7 @@ nav:
   - Architecture:
       - Wallets, Accounts & Addresses: wallets-accounts-addresses-guide.md
       - Dual-Ledger System: ledger-system-guide.md
+      - Agreements & Legal Consent: agreements-guide.md
   - Payments:
       - Payments & Transactions: payments-guide.md
       - Transaction Types Reference: transaction-types-reference.md
