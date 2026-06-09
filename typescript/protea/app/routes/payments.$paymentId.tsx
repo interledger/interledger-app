@@ -42,7 +42,7 @@ import type { Route } from './+types/payments.$paymentId'
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   let statement = false
-  let receiverAccountTitle
+  let senderAccountTitle, receiverAccountTitle
 
   const transaction = await grpc.lookupTransaction(request, {
     id: params.paymentId as string
@@ -53,6 +53,9 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     const linkedAccountsResponse = await grpc.getLinkedAccounts(request, {})
     if (isConnectError(linkedAccountsResponse))
       throw linkedAccountsResponse.errorResponse
+    senderAccountTitle = linkedAccountsResponse.linkedAccounts.find(
+      (account) => account.id == transaction.senderAccountId
+    )?.title
     receiverAccountTitle = linkedAccountsResponse.linkedAccounts.find(
       (account) => account.id == transaction.receiverAccountId
     )?.title
@@ -88,22 +91,9 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 
   const pusherArgs = await getPusherArgs(request)
 
-  console.log(
-    JSON.stringify(
-      {
-        statement,
-        receiverAccountTitle,
-        publicWalletInfo,
-        transaction,
-        pusherArgs
-      },
-      null,
-      2
-    )
-  )
-
   return data({
     statement,
+    senderAccountTitle,
     receiverAccountTitle,
     publicWalletInfo,
     transaction,
@@ -269,7 +259,8 @@ export default function Page() {
 }
 
 function Withdrawal() {
-  const { statement, transaction } = useLoaderData<typeof loader>()
+  const { statement, senderAccountTitle, receiverAccountTitle, transaction } =
+    useLoaderData<typeof loader>()
 
   return (
     <>
@@ -293,7 +284,9 @@ function Withdrawal() {
         <div className='my-1 rounded-xl bg-nav p-3'>
           <div className='flex flex-col'>
             <span className='text-sm text-medium'>
-              {transaction.recipientName ?? 'External wallet'}
+              {receiverAccountTitle ??
+                transaction.recipientName ??
+                'External wallet'}
             </span>
             {transaction.recipientIban && (
               <span className='text-xs text-weak'>
@@ -395,7 +388,9 @@ function Withdrawal() {
           <CardContent>
             <div className='mt-2 flex w-full justify-between'>
               <span className='text-weak'>Withdrawal from</span>
-              <span className='text-medium'>{transaction.accountTitle}</span>
+              <span className='text-medium'>
+                {senderAccountTitle ?? transaction.accountTitle}
+              </span>
             </div>
             <div className='mt-2 flex w-full justify-between'>
               <span className='text-weak'>Fees</span>

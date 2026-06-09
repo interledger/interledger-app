@@ -171,8 +171,19 @@ func transformTransaction(tx transactions.Transaction, transfers []transactions.
 		v := tx.TargetAmount.Format()
 		ret.FormattedTargetAmount = &v
 	}
+	// only adding the send and receive accounts to withdrawals
+	if tx.Type == transactions.TransactionTypeWithdrawal {
+		for _, t := range transfers {
+			if t.Type == transactions.TransferTypeDebitBalance {
+				ret.SenderAccountId = t.LinkedAccountID
+			}
+			if t.Type == transactions.TransferTypeCreditBankAccount {
+				ret.ReceiverAccountId = t.LinkedAccountID
+			}
+		}
+	}
 
-	// only adding the send and receive accounts to deposits
+	// only adding the send and receive accounts to withdrawals
 	if tx.Type == transactions.TransactionTypeDeposit {
 		for _, t := range transfers {
 			if t.Type == transactions.TransferTypeCreditBalance {
