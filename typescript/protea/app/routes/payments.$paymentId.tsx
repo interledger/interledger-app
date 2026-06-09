@@ -293,11 +293,9 @@ function Withdrawal() {
         <div className='my-1 rounded-xl bg-nav p-3'>
           <div className='flex flex-col'>
             <span className='text-sm text-medium'>
-              {transaction.recipientName ??
-                transaction.recipientIban ??
-                'External wallet'}
+              {transaction.recipientName ?? 'External wallet'}
             </span>
-            {transaction.recipientName && transaction.recipientIban && (
+            {transaction.recipientIban && (
               <span className='text-xs text-weak'>
                 IBAN: {transaction.recipientIban}
               </span>
