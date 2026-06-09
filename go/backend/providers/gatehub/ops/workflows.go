@@ -220,13 +220,13 @@ func RejectGatehubWithdrawalWorkflow(ctx workflow.Context, userID, externalTxID 
 		return err
 	}
 
-	var internalTxID string
-	err := workflow.ExecuteActivity(ctx, a.GetGatehubWithdrawalIDByForeignID, walletID, externalTxID).Get(ctx, &internalTxID)
+	var internalTx *transactions.Transaction
+	err := workflow.ExecuteActivity(ctx, a.GetGateHubTransactionByForeignID, walletID, externalTxID).Get(ctx, &internalTx)
 	if err != nil {
 		return err
 	}
 
-	if err = workflow.ExecuteActivity(ctx, a.RollbackGatehubWithdrawal, internalTxID).Get(ctx, nil); err != nil {
+	if err = workflow.ExecuteActivity(ctx, a.RollbackGatehubWithdrawal, internalTx.ID).Get(ctx, nil); err != nil {
 		return err
 	}
 
