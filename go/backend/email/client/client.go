@@ -111,3 +111,7 @@ func (c *client) SendAgreementChangedEmail(ctx context.Context, userID string, a
 func (c *client) SendAuthenticatorResetEmail(ctx context.Context, walletID string) {
 	ops.SendAuthenticatorResetEmail(ctx, c.b, walletID)
 }
+
+func (c *client) SendCardTransactionFXEmail(ctx context.Context, walletID, maskedPAN, merchantName, date, surcharge, transactionAmount, billingAmount string) {
+	ops.SendCardTransactionFXEmail(ctx, c.b, walletID, maskedPAN, merchantName, date, surcharge, transactionAmount, billingAmount)
+}

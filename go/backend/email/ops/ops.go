@@ -502,6 +502,41 @@ func SendPending3DSConfirmation(ctx context.Context, b Backends, walletID, confi
 	}
 }
 
+func SendCardTransactionFXEmail(ctx context.Context, b Backends, walletID, maskedPAN, merchantName, date, surcharge, transactionAmount, billingAmount string) {
+	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
+	if err != nil {
+		log.Error("Failed to send card FX transaction email.", zap.Error(err), zap.String("walletID", walletID))
+		return
+	}
+
+	table := []map[string]interface{}{
+		{"label": "Date and time:", "text": date},
+		{"label": "Card:", "text": maskedPAN},
+		{"label": "Merchant:", "text": merchantName},
+		{"label": "Transaction amount:", "text": transactionAmount},
+		{"label": "Converted amount:", "text": billingAmount},
+	}
+
+	data := []map[string]interface{}{
+		{"paragraph": greeting},
+		{"paragraph": "We would like to inform you of a foreign exchange transaction made with your card."},
+		{"table": table},
+	}
+	if surcharge != "" {
+		data = append(data, map[string]interface{}{
+			"paragraph": fmt.Sprintf("The markup/surcharge applied to the European Central Bank reference exchange rate for this transaction is %s%%.", surcharge),
+		})
+	}
+
+	err = b.External().SendTemplate(ctx, "Foreign Exchange Transaction Notification", sendTo, b.OneTemplateID(), map[string]interface{}{
+		"subject": "Foreign Exchange Transaction Notification",
+		"data":    data,
+	}, nil)
+	if err != nil {
+		log.Error("Failed to send card FX transaction email.", zap.Error(err), zap.String("walletID", walletID))
+	}
+}
+
 func SendKYCDocumentsRequiredEmail(ctx context.Context, b Backends, walletID string) {
 	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
 	if err != nil {

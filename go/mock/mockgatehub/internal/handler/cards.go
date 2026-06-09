@@ -689,6 +689,7 @@ func (h *Handler) CreateCardTransaction(w http.ResponseWriter, r *http.Request) 
 
 	tx := &models.CardTransaction{
 		TransactionID:         txID,
+		CardID:                req.CardID,
 		GHResponseCode:        "00",
 		GHResponseDescription: "Approved",
 		TransactionAmount:     &req.Amount,
@@ -714,8 +715,8 @@ func (h *Handler) CreateCardTransaction(w http.ResponseWriter, r *http.Request) 
 	}
 
 	// Index by card
-	if req.CardID != "" {
-		_ = h.store.AddCardTransactionIndex(req.CardID, txID)
+	if req.CardGUID != "" {
+		_ = h.store.AddCardTransactionIndex(req.CardGUID, txID)
 	}
 
 	h.sendJSON(w, http.StatusCreated, tx)
@@ -725,6 +726,13 @@ func (h *Handler) CreateCardTransaction(w http.ResponseWriter, r *http.Request) 
 func (h *Handler) GetCardTransaction(w http.ResponseWriter, r *http.Request) {
 	txID := chi.URLParam(r, "txID")
 	logger.Info("get card transaction called", zap.String("tx_id", txID))
+
+	if raw, err := h.store.GetRawCardTransaction(txID); err == nil && len(raw) > 0 {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write(raw)
+		return
+	}
 
 	tx, err := h.store.GetCardTransaction(txID)
 	if err != nil {

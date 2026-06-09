@@ -13,6 +13,9 @@
 /public/build
 /.cache
 
+# react router generated route types
+/.react-router
+
 # misc
 .DS_Store
 *.pem

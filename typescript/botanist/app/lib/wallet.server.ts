@@ -1,4 +1,4 @@
-import { json } from '@remix-run/node'
+import { data } from 'react-router'
 import { DateTime } from 'luxon'
 import type {
   Features,
@@ -46,7 +46,7 @@ export async function ListWallets(
     .catch(StatusError)
 
   if (isGrpcError(response)) {
-    throw json({}, httpMapping(response.code))
+    throw data({}, httpMapping(response.code))
   }
 
   return response.response
@@ -81,7 +81,7 @@ export async function GetWalletDetails(
     .then((v) => v)
     .catch(StatusError)
   if (isGrpcError(response)) {
-    throw json({}, httpMapping(response.code))
+    throw data({}, httpMapping(response.code))
   }
 
   return {
@@ -117,7 +117,7 @@ export async function GetWalletFeatures(
     .then((v) => v)
     .catch(StatusError)
   if (isGrpcError(response)) {
-    throw json({}, httpMapping(response.code))
+    throw data({}, httpMapping(response.code))
   }
 
   return response.response
@@ -137,7 +137,7 @@ export async function SetWalletFeatures(
     .then((v) => v)
     .catch(StatusError)
   if (isGrpcError(response)) {
-    throw json({}, httpMapping(response.code))
+    throw data({}, httpMapping(response.code))
   }
 
   return response.response
@@ -173,7 +173,7 @@ export async function GetWalletTransactions(
     .catch(StatusError)
   console.log('RESPONSE', response)
   if (isGrpcError(response)) {
-    throw json({}, httpMapping(response.code))
+    throw data({}, httpMapping(response.code))
   }
 
   return response.response.transactions.map((transaction) => {
@@ -210,7 +210,7 @@ export async function GetWalletTransactionDetails(
     .then((v) => v)
     .catch(StatusError)
   if (isGrpcError(response)) {
-    throw json({}, httpMapping(response.code))
+    throw data({}, httpMapping(response.code))
   }
 
   return response.response
@@ -250,7 +250,7 @@ export async function GetWalletIdentities(
     .then((v) => v)
     .catch(StatusError)
   if (isGrpcError(response)) {
-    throw json({}, httpMapping(response.code))
+    throw data({}, httpMapping(response.code))
   }
 
   return response.response
@@ -273,7 +273,7 @@ export async function GetWalletIdentityDetails(
     .then((v) => v)
     .catch(StatusError)
   if (isGrpcError(response)) {
-    throw json({}, httpMapping(response.code))
+    throw data({}, httpMapping(response.code))
   }
 
   return response.response
@@ -296,7 +296,7 @@ export async function GetWalletLinkedAccounts(
     .then((v) => v)
     .catch(StatusError)
   if (isGrpcError(response)) {
-    throw json({}, httpMapping(response.code))
+    throw data({}, httpMapping(response.code))
   }
 
   return response.response
@@ -319,7 +319,7 @@ export async function GetWalletLinkedAccountDetails(
     .then((v) => v)
     .catch(StatusError)
   if (isGrpcError(response)) {
-    throw json({}, httpMapping(response.code))
+    throw data({}, httpMapping(response.code))
   }
 
   return response.response
@@ -342,7 +342,7 @@ export async function GetWalletAudits(
     .then((v) => v)
     .catch(StatusError)
   if (isGrpcError(response)) {
-    throw json({}, httpMapping(response.code))
+    throw data({}, httpMapping(response.code))
   }
 
   return response.response
@@ -367,7 +367,7 @@ export async function ListLinkedAccounts(
     .then((v) => v)
     .catch(StatusError)
   if (isGrpcError(rpc)) {
-    throw json({}, httpMapping(rpc.code))
+    throw data({}, httpMapping(rpc.code))
   }
 
   return rpc.response.accounts
@@ -387,7 +387,7 @@ export async function ListLinkedAccountReviews(
     .then((v) => v)
     .catch(StatusError)
   if (isGrpcError(rpc)) {
-    throw json({}, httpMapping(rpc.code))
+    throw data({}, httpMapping(rpc.code))
   }
 
   return rpc.response
@@ -410,7 +410,7 @@ export async function GetLinkedAccount(
     .then((v) => v)
     .catch(StatusError)
   if (isGrpcError(rpc)) {
-    throw json({}, httpMapping(rpc.code))
+    throw data({}, httpMapping(rpc.code))
   }
 
   return rpc.response
@@ -433,7 +433,7 @@ export async function GetReview(
     .then((v) => v)
     .catch(StatusError)
   if (isGrpcError(rpc)) {
-    throw json({}, httpMapping(rpc.code))
+    throw data({}, httpMapping(rpc.code))
   }
 
   return rpc.response
@@ -462,7 +462,7 @@ export async function CompleteLinkedAccountReview(
     .then((v) => v)
     .catch(StatusError)
   if (isGrpcError(rpc)) {
-    throw json({}, httpMapping(rpc.code))
+    throw data({}, httpMapping(rpc.code))
   }
 }
 
@@ -484,7 +484,7 @@ export async function ListExternalApiCalls(
     .catch(StatusError)
 
   if (isGrpcError(rpc)) {
-    throw json({}, httpMapping(rpc.code))
+    throw data({}, httpMapping(rpc.code))
   }
 
   return rpc.response.list
@@ -500,7 +500,7 @@ export async function GetPendingPayouts(request: Request) {
     .catch(StatusError)
 
   if (isGrpcError(rpc)) {
-    throw json({}, httpMapping(rpc.code))
+    throw data({}, httpMapping(rpc.code))
   }
 
   return rpc.response.payments
@@ -521,7 +521,7 @@ export async function GetXagoWalletBalance(request: Request, walletId: string) {
     if (rpc.code == Code.NOT_FOUND) {
       return null
     }
-    throw json({}, httpMapping(rpc.code))
+    throw data({}, httpMapping(rpc.code))
   }
 
   return rpc.response
@@ -542,7 +542,7 @@ export async function EnableXagoWalletBalance(
     .catch(StatusError)
 
   if (isGrpcError(rpc)) {
-    throw json({}, httpMapping(rpc.code))
+    throw data({}, httpMapping(rpc.code))
   }
 
   return rpc.response
@@ -565,7 +565,7 @@ export async function setWalletCountry(
     .catch(StatusError)
 
   if (isGrpcError(rpc)) {
-    throw json({}, httpMapping(rpc.code))
+    throw data({}, httpMapping(rpc.code))
   }
 
   return rpc.response
@@ -586,7 +586,7 @@ export async function GetPtiWalletBalance(request: Request, walletId: string) {
     if (rpc.code == Code.NOT_FOUND) {
       return null
     }
-    throw json({}, httpMapping(rpc.code))
+    throw data({}, httpMapping(rpc.code))
   }
 
   return rpc.response
@@ -610,7 +610,7 @@ export async function GetGatehubWalletBalance(
     if (rpc.code == Code.NOT_FOUND) {
       return null
     }
-    throw json({}, httpMapping(rpc.code))
+    throw data({}, httpMapping(rpc.code))
   }
 
   return rpc.response
@@ -628,7 +628,7 @@ export async function EnablGatehubBalance(request: Request, walletId: string) {
     .catch(StatusError)
 
   if (isGrpcError(rpc)) {
-    throw json({}, httpMapping(rpc.code))
+    throw data({}, httpMapping(rpc.code))
   }
 
   return rpc.response
@@ -649,7 +649,7 @@ export async function EnablePtiWalletBalance(
     .catch(StatusError)
 
   if (isGrpcError(rpc)) {
-    throw json({}, httpMapping(rpc.code))
+    throw data({}, httpMapping(rpc.code))
   }
 
   return rpc.response
@@ -671,7 +671,7 @@ export async function ListCountries(
     .then((v) => v)
     .catch(StatusError)
   if (isGrpcError(response)) {
-    throw json({}, httpMapping(response.code))
+    throw data({}, httpMapping(response.code))
   }
 
   return response.response
@@ -694,7 +694,7 @@ export async function GetGatehubUser(
     .then((v) => v)
     .catch(StatusError)
   if (isGrpcError(response)) {
-    throw json({}, httpMapping(response.code))
+    throw data({}, httpMapping(response.code))
   }
 
   return response.response
@@ -719,7 +719,7 @@ export async function CheckUserTotpEnabled(
     .catch(StatusError)
 
   if (isGrpcError(response)) {
-    throw json({}, httpMapping(response.code))
+    throw data({}, httpMapping(response.code))
   }
 
   return response.response.isEnabled
@@ -743,7 +743,7 @@ export async function DeleteUserTotp(
     .then((v) => v)
     .catch(StatusError)
   if (isGrpcError(response)) {
-    throw json({}, httpMapping(response.code))
+    throw data({}, httpMapping(response.code))
   }
 
   return response.response

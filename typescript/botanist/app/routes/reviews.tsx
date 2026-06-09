@@ -1,8 +1,6 @@
-import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import type { ActionFunctionArgs, LoaderFunctionArgs } from 'react-router'
 
-import { json } from '@remix-run/node'
-import { useLoaderData, useSubmit } from '@remix-run/react'
-import { route } from 'routes-gen'
+import { data, href, useLoaderData, useSubmit } from 'react-router'
 import { Grid, Icon, Router } from '~/components'
 import { LinkedAccountReviewState } from '~/lib/types'
 import {
@@ -10,14 +8,14 @@ import {
   ListLinkedAccountReviews
 } from '~/lib/wallet.server'
 
-export async function loader({ request }: LoaderArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
   let pageSize = url.searchParams.get('pageSize') || '50'
   const { reviews } = await ListLinkedAccountReviews(request, {
     pageSize: parseInt(pageSize)
   })
 
-  return json({
+  return data({
     reviews
   })
 }
@@ -112,7 +110,7 @@ export default function Page() {
                               LinkedAccountReviewState.Verified
                             )
                             submit(formData, {
-                              action: route('/reviews'),
+                              action: href('/reviews'),
                               method: 'POST'
                             })
                           }}
@@ -124,7 +122,7 @@ export default function Page() {
                         </td>
                         <td className='relative whitespace-nowrap p-4 text-right text-sm font-medium'>
                           <Router
-                            to={route('/review/:id/details', {
+                            to={href('/review/:id/details', {
                               id: review.id
                             })}
                             className='text-primary'
@@ -163,7 +161,7 @@ export default function Page() {
   )
 }
 
-export async function action({ request }: ActionArgs) {
+export async function action({ request }: ActionFunctionArgs) {
   const form = await request.formData()
   const reviewID = form.get('reviewID') as string
   const newState = form.get('newState') as LinkedAccountReviewState

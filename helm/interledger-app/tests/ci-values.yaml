@@ -9,6 +9,8 @@ admin:
 
 backend:
   config:
+    admin:
+      base_url: "https://admin.ci.interledger.example"
     xago:
       api_base_url: "https://ci.xago.example.com"
       identity_base_url: "https://ci-id.xago.example.com"

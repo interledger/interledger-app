@@ -1,9 +1,7 @@
-import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import type { ActionFunctionArgs, LoaderFunctionArgs } from 'react-router'
 
-import { json } from '@remix-run/node'
-import { Form, useFetcher, useLoaderData } from '@remix-run/react'
+import { data, href, Form, useFetcher, useLoaderData } from 'react-router'
 import { useCallback, useEffect, useState } from 'react'
-import { route } from 'routes-gen'
 import {
   Autocomplete,
   Button,
@@ -22,7 +20,7 @@ import {
   ListCountries
 } from '~/lib/wallet.server'
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const wallet = await GetWalletDetails(request, params.id as string)
   const features = await GetWalletFeatures(request, params.id as string)
   const countries = await ListCountries(request)
@@ -37,7 +35,7 @@ export async function loader({ request, params }: LoaderArgs) {
     )
   }
 
-  return json({
+  return data({
     wallet,
     features,
     hasTotpEnabled,
@@ -138,7 +136,7 @@ export default function Page() {
     <>
       <Form
         id='features-form'
-        action={route('/wallet/:id/profile', { id: wallet.walletID })}
+        action={href('/wallet/:id/profile', { id: wallet.walletID })}
         method='post'
         className='hidden'
       />
@@ -257,7 +255,7 @@ export default function Page() {
   )
 }
 
-export async function action(args: ActionArgs) {
+export async function action(args: ActionFunctionArgs) {
   const formName = (await args.request.clone().formData()).get(
     'formName'
   ) as string
@@ -273,7 +271,7 @@ export async function action(args: ActionArgs) {
   return setWalletCountryAction(args)
 }
 
-async function setWalletFeatureAction({ request, params }: ActionArgs) {
+async function setWalletFeatureAction({ request, params }: ActionFunctionArgs) {
   const form = await request.formData()
   const feature = form.get('key') as string
   const val = form.get('val') as string
@@ -288,7 +286,7 @@ async function setWalletFeatureAction({ request, params }: ActionArgs) {
   return null
 }
 
-async function setWalletCountryAction({ request, params }: ActionArgs) {
+async function setWalletCountryAction({ request, params }: ActionFunctionArgs) {
   const form = await request.formData()
   const country = String(form.get('country') || '')
   const walletId = params.id || ''
@@ -298,28 +296,28 @@ async function setWalletCountryAction({ request, params }: ActionArgs) {
   return null
 }
 //
-async function deleteTotpAction({ request, params }: ActionArgs) {
+async function deleteTotpAction({ request, params }: ActionFunctionArgs) {
   const form = await request.formData()
   const walletId = form.get('walletId') as string
   const identityId = form.get('identityId') as string
   const routeWalletId = params.id as string
 
   if (!identityId) {
-    return json(
+    return data(
       { success: false, error: 'Identity ID is required' },
       { status: 400 }
     )
   }
 
   if (!routeWalletId) {
-    return json(
+    return data(
       { success: false, error: 'Wallet ID is required' },
       { status: 400 }
     )
   }
 
   if (walletId && walletId !== routeWalletId) {
-    return json(
+    return data(
       {
         success: false,
         error: 'Wallet ID does not match the requested wallet'
@@ -332,7 +330,7 @@ async function deleteTotpAction({ request, params }: ActionArgs) {
   const walletIdentityIds = new Set(wallet.users.map((user) => user.id))
 
   if (!walletIdentityIds.has(identityId)) {
-    return json(
+    return data(
       { success: false, error: 'Identity does not belong to this wallet' },
       { status: 400 }
     )
@@ -340,13 +338,13 @@ async function deleteTotpAction({ request, params }: ActionArgs) {
 
   try {
     await DeleteUserTotp(request, identityId, routeWalletId)
-    return json({ success: true })
+    return data({ success: true })
   } catch (error) {
     const message =
       error instanceof Error
         ? error.message
         : 'Failed to reset authenticator enrollment'
 
-    return json({ success: false, error: message }, { status: 500 })
+    return data({ success: false, error: message }, { status: 500 })
   }
 }

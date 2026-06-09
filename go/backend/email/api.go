@@ -29,6 +29,7 @@ type Client interface {
 	SendKYCDocumentsRequiredEmail(ctx context.Context, walletID string)
 	SendAgreementChangedEmail(ctx context.Context, userID string, agreements []AgreementLink, deadlineDate string) error
 	SendAuthenticatorResetEmail(ctx context.Context, walletID string)
+	SendCardTransactionFXEmail(ctx context.Context, walletID, maskedPAN, merchantName, date, surcharge, transactionAmount, billingAmount string)
 }
 
 // AgreementLink is a single agreement to show in the agreement-change email (display name + URL).

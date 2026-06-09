@@ -32,10 +32,11 @@ import {
 } from '~/components'
 import { Label } from '~/components/Label'
 import { getKycStatus, getTransactionsWithPending } from '~/data/wallet.server'
-import type { Transaction } from '~/generated/connect/backend/v1/backend_pb'
+import { type Transaction } from '~/generated/connect/backend/v1/backend_pb'
 import { grpc } from '~/lib/grpc.server'
 import type { Route } from './+types/payments'
 
+import { computeCardSubtotalStyles } from '~/lib/cards/utils'
 import { isConnectError } from '~/lib/error.server'
 import { mergeMeta } from '~/lib/meta'
 import { KycStatus } from '~/lib/types'
@@ -278,60 +279,68 @@ export default function Page() {
             </Card>
           )}
         {transactions &&
-          transactions.map(
-            (
-              transactionGroup: import('~/generated/connect/backend/v1/backend_pb').Transaction[],
-              index: number
-            ) => (
-              <Card key={`group-${index}`}>
-                <Label>{transactionGroup[0].formattedDate}</Label>
-                {transactionGroup.map(
-                  (
-                    transaction: import('~/generated/connect/backend/v1/backend_pb').Transaction
-                  ) =>
-                    transaction.type.includes('web_monetization_') &&
-                    transaction.state == 'Pending' ? (
-                      // Can't disable a link :/
-                      <div
-                        key={transaction.id + transaction.state}
-                        className='my-1 flex justify-between space-x-4 rounded-xl p-3 first:mt-0 last-of-type:mb-0'
-                      >
-                        <div className='flex w-7/12 items-center space-x-2'>
-                          <Icon>schedule</Icon>
-                          <div className='flex w-full flex-col space-y-1'>
-                            <span className='truncate text-medium'>
-                              {transaction.title}
-                            </span>
-                            <span className='text-xs text-weak'>
-                              {transaction.formattedTime}
-                            </span>
-                          </div>
-                        </div>
-                        <div className='flex min-w-max flex-initial items-center space-x-2'>
-                          <span
-                            className={clsx(
-                              'min-w-max font-medium',
-                              transaction.type == 'web_monetization_outgoing'
-                                ? 'text-error'
-                                : 'text-medium'
-                            )}
-                          >
-                            {transaction.subtotal}
-                          </span>
-                          <div className='h-6 w-6' />
-                        </div>
+          transactions.map((transactionGroup: Transaction[], index: number) => (
+            <Card key={`group-${index}`}>
+              <Label>{transactionGroup[0].formattedDate}</Label>
+              {transactionGroup.map((transaction: Transaction) =>
+                transaction.type.includes('web_monetization_') &&
+                transaction.state == 'Pending' ? (
+                  // Can't disable a link :/
+                  <div
+                    key={transaction.id + transaction.state}
+                    className='my-1 flex justify-between space-x-4 rounded-xl p-3 first:mt-0 last-of-type:mb-0'
+                  >
+                    <div className='flex w-7/12 items-center space-x-2'>
+                      <Icon>schedule</Icon>
+                      <div className='flex w-full flex-col space-y-1'>
+                        <span className='truncate text-medium'>
+                          {transaction.title}
+                        </span>
+                        <span className='text-xs text-weak'>
+                          {transaction.formattedTime}
+                        </span>
                       </div>
-                    ) : (
-                      <CardLink
-                        preventScrollReset={!isMobile}
-                        prefetch='none'
-                        key={transaction.id + transaction.state}
-                        to={href('/payments/:paymentId', {
-                          paymentId: transaction.id
-                        })}
-                        className='justify-between space-x-4'
+                    </div>
+                    <div className='flex min-w-max flex-initial items-center space-x-2'>
+                      <span
+                        className={clsx(
+                          'min-w-max font-medium',
+                          transaction.type == 'web_monetization_outgoing'
+                            ? 'text-error'
+                            : 'text-medium'
+                        )}
                       >
-                        <div className='flex w-7/12 items-center space-x-2'>
+                        {transaction.subtotal}
+                      </span>
+                      <div className='h-6 w-6' />
+                    </div>
+                  </div>
+                ) : (
+                  <CardLink
+                    preventScrollReset={!isMobile}
+                    prefetch='none'
+                    key={transaction.id + transaction.state}
+                    to={href('/payments/:paymentId', {
+                      paymentId: transaction.id
+                    })}
+                    className='justify-between space-x-4'
+                  >
+                    <div className='flex w-7/12 items-center space-x-2'>
+                      {transaction.type === 'card_transaction' ? (
+                        <>
+                          {transaction.state == 'Failed' ? (
+                            <Icon>credit_card_off</Icon>
+                          ) : transaction.state == 'Pending' ? (
+                            <Icon>schedule</Icon>
+                          ) : transaction.cardTransactionDetails
+                              ?.classification == 'Reversal' ? (
+                            <Icon>undo</Icon>
+                          ) : (
+                            <Icon>credit_card</Icon>
+                          )}
+                        </>
+                      ) : (
+                        <>
                           {transaction.state == 'Pending' && (
                             <Icon>schedule</Icon>
                           )}
@@ -360,43 +369,46 @@ export default function Page() {
                                   'Twitter' && <TwitterIcon />}
                                 {transaction.destinationIdentityType ==
                                   'Slack' && <SlackIcon />}
-                                {transaction.type === 'card_transaction' && (
-                                  <Icon>credit_card</Icon>
-                                )}
                               </>
                             )}
-                          <div className='flex w-full flex-col space-y-1'>
-                            <span className='truncate text-medium'>
-                              {transaction.title}
-                            </span>
-                            <span className='text-xs text-weak'>
-                              {transaction.formattedTime}
-                            </span>
-                          </div>
-                        </div>
-                        <div className='flex min-w-max flex-initial items-center space-x-2'>
-                          <span
-                            className={clsx(
-                              'min-w-max font-medium',
-                              transaction.type == 'sent' ||
-                                transaction.type ==
-                                  'web_monetization_outgoing' ||
-                                (transaction.type == 'card_transaction' &&
-                                  transaction.state === 'Completed')
-                                ? 'text-error'
-                                : 'text-medium'
-                            )}
-                          >
-                            {transaction.subtotal}
-                          </span>
-                          <Icon>navigate_next</Icon>
-                        </div>
-                      </CardLink>
-                    )
-                )}
-              </Card>
-            )
-          )}
+                        </>
+                      )}
+                      <div className='flex w-full flex-col space-y-1'>
+                        <span className='truncate text-medium'>
+                          {transaction.title}
+                        </span>
+
+                        <span className='text-xs text-weak'>
+                          {transaction.formattedTime}
+                          {transaction.type === 'card_transaction' &&
+                            transaction.reference &&
+                            `, ${transaction.reference}`}
+                        </span>
+                      </div>
+                    </div>
+                    <div className='flex min-w-max flex-initial items-center space-x-2'>
+                      <span
+                        className={clsx(
+                          'min-w-max font-medium',
+                          transaction.type === 'card_transaction'
+                            ? computeCardSubtotalStyles(
+                                transaction.cardTransactionDetails
+                              )
+                            : transaction.type === 'sent' ||
+                              transaction.type === 'web_monetization_outgoing'
+                            ? 'text-error'
+                            : 'text-medium'
+                        )}
+                      >
+                        {transaction.subtotal}
+                      </span>
+                      <Icon>navigate_next</Icon>
+                    </div>
+                  </CardLink>
+                )
+              )}
+            </Card>
+          ))}
       </GridColumn>
       <GridColumn sticky className='col-span-full lg:col-span-6 lg:col-start-7'>
         <Outlet />

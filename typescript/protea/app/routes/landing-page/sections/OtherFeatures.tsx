@@ -39,6 +39,7 @@ export function OtherFeatures() {
         </header>
 
         <div className='other-features-cta-block'>
+          {/* eslint-disable-next-line jsx-a11y/anchor-is-valid -- placeholder CTA, destination TBD */}
           <a href='#' className='other-features-btn'>
             Get the Interledger Wallet
             <svg
@@ -58,6 +59,7 @@ export function OtherFeatures() {
           </a>
 
           <div className='other-features-badges'>
+            {/* eslint-disable-next-line jsx-a11y/anchor-is-valid -- placeholder CTA, destination TBD */}
             <a
               href='#'
               className='app-badge app-badge--ios'
@@ -78,6 +80,7 @@ export function OtherFeatures() {
                 <span className='app-badge__main'>App Store</span>
               </div>
             </a>
+            {/* eslint-disable-next-line jsx-a11y/anchor-is-valid -- placeholder CTA, destination TBD */}
             <a
               href='#'
               className='app-badge app-badge--android'

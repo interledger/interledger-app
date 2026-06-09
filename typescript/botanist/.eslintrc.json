@@ -2,9 +2,9 @@
  * @type {import('@types/eslint').Linter.BaseConfig}
  */
 {
-  "extends": [
-    "@remix-run/eslint-config",
-    "@remix-run/eslint-config/node",
-    "prettier"
-  ]
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module"
+  },
+  "extends": ["prettier"]
 }

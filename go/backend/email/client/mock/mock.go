@@ -98,6 +98,18 @@ func (mr *MockClientMockRecorder) SendCardCreatedEmail(ctx, walletID, cardID int
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendCardCreatedEmail", reflect.TypeOf((*MockClient)(nil).SendCardCreatedEmail), ctx, walletID, cardID)
 }
 
+// SendCardTransactionFXEmail mocks base method.
+func (m *MockClient) SendCardTransactionFXEmail(ctx context.Context, walletID, maskedPAN, merchantName, date, surcharge, transactionAmount, billingAmount string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SendCardTransactionFXEmail", ctx, walletID, maskedPAN, merchantName, date, surcharge, transactionAmount, billingAmount)
+}
+
+// SendCardTransactionFXEmail indicates an expected call of SendCardTransactionFXEmail.
+func (mr *MockClientMockRecorder) SendCardTransactionFXEmail(ctx, walletID, maskedPAN, merchantName, date, surcharge, transactionAmount, billingAmount interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendCardTransactionFXEmail", reflect.TypeOf((*MockClient)(nil).SendCardTransactionFXEmail), ctx, walletID, maskedPAN, merchantName, date, surcharge, transactionAmount, billingAmount)
+}
+
 // SendConnectedAccountDocumentsNeededEmail mocks base method.
 func (m *MockClient) SendConnectedAccountDocumentsNeededEmail(ctx context.Context, walletID string) {
 	m.ctrl.T.Helper()

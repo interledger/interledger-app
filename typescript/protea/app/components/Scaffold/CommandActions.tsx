@@ -16,7 +16,7 @@ import {
 import { Label } from '~/components/Label'
 import type { SearchResult } from '~/generated/connect/backend/v1/backend_pb'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
-import { loader } from '~/routes/pay/route'
+import type { loader } from '~/routes/pay/route'
 
 type Action = {
   icon: string

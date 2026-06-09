@@ -325,7 +325,7 @@ func Complete(ctx context.Context, b Backends, id, userID string) error {
         userID, id)
     
     // Send Slack notification
-    slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "Fynbot", 
+    slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "wallet-info-bot", 
         fmt.Sprintf(":baby: New Sign Up\nID: %s\nUser ID: %s\nFull name: %s\nCountry: %s", 
         current.ID, userID, current.FirstName+" "+current.LastName, current.CountryCode))
     
