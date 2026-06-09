@@ -100,6 +100,29 @@ When I filter the wallets list by my email
 Then my wallet should appear in the wallets list
 ```
 
+### Agreements
+```gherkin
+Then an agreement signature should exist for myself for "privacy_policy-0.0.0"
+
+Given a new "privacy_policy" agreement version "9.9.9" is published
+When the agreement change notification workflow runs
+Then I should be marked notified for the new agreement
+```
+The `should exist for myself` step polls for up to 15s to absorb the
+`signups.user_id` NULL race (CompleteSignup runs server-side after the
+Kratos identity is created, so theSignupShouldBeSubmitted can return before
+the agreement signature is written).
+
+The change-notify steps trigger `NotifyAgreementChangedWorkflow` via the Temporal
+SDK (mirroring `main.go`'s startup trigger) and assert
+`agreement_signatures.last_notified_agreement_id` was updated — proof the
+workflow ran end to end and reached `MarkUsersNotifiedActivity`, which only runs
+for users whose send-email activity returned success. (In the default e2e env
+`EMAIL_ENABLED=false`, that activity is the noop email client, so this proves the
+workflow + DB-marker path, not real SMTP delivery.) The After hook clears the
+test-published agreement and any `last_notified_agreement_id` references so the
+row doesn't leak across runs.
+
 ### Screenshots
 ```gherkin
 And I take a screenshot "kyc-completed-dashboard"
