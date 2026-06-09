@@ -70,7 +70,8 @@ export default function Page() {
     useLoaderData<typeof loader>()
   const updateFetcher =
     useFetcher<Awaited<ReturnType<typeof handleUpdatePhone>>>()
-  const resendFetcher = useFetcher()
+  const resendFetcher =
+    useFetcher<Awaited<ReturnType<typeof handleResendOtp>>>()
   const { start, isActive, remainingSeconds } = useCountdown()
   const [otpSent, setOtpSent] = useState(false)
   const [newPhone, setNewPhone] = useState<string | null>(null)
@@ -80,13 +81,17 @@ export default function Page() {
     Boolean(updateFetcher.data.codeSent)
   const updatedPhone =
     updateFetcher.data &&
-    'phone' in updateFetcher.data &&
-    typeof updateFetcher.data.phone === 'string'
+      'phone' in updateFetcher.data &&
+      typeof updateFetcher.data.phone === 'string'
       ? updateFetcher.data.phone
       : undefined
   const otpError =
     actionData && 'errors' in actionData
       ? (actionData.errors as { otp?: string } | undefined)?.otp
+      : undefined
+  const resendError =
+    resendFetcher.data && 'message' in resendFetcher.data
+      ? resendFetcher.data.message
       : undefined
 
   useEffect(() => {
@@ -198,6 +203,9 @@ export default function Page() {
             {isActive ? `Resend in ${remainingSeconds}s` : 'Resend code'}
           </Button>
         </resendFetcher.Form>
+      )}
+      {otpSent && resendError && (
+        <p className='mt-2 text-sm text-error'>{resendError}</p>
       )}
     </>
   )

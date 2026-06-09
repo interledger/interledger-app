@@ -84,8 +84,10 @@ export default function Page() {
   const actionData = useActionData<typeof action>()
   const { csrfToken, phone, countryCode, countries, returnTo } =
     useLoaderData<typeof loader>()
-  const resendFetcher = useFetcher()
-  const updateFetcher = useFetcher()
+  const resendFetcher =
+    useFetcher<Awaited<ReturnType<typeof handleResendOtp>>>()
+  const updateFetcher =
+    useFetcher<Awaited<ReturnType<typeof handleUpdatePhone>>>()
   const { start, isActive, remainingSeconds } = useCountdown()
   const [otpSent, setOtpSent] = useState(false)
   const [currentPhone, setCurrentPhone] = useState(phone)
@@ -93,6 +95,10 @@ export default function Page() {
   const otpError =
     actionData && 'errors' in actionData
       ? (actionData.errors as { otp?: string } | undefined)?.otp
+      : undefined
+  const resendError =
+    resendFetcher.data && 'message' in resendFetcher.data
+      ? resendFetcher.data.message
       : undefined
 
   // Start countdown after a successful send/resend
@@ -201,10 +207,13 @@ export default function Page() {
                 ? 'Sending...'
                 : 'Send code'
               : isActive
-              ? `Resend in ${remainingSeconds}s`
-              : 'Resend code'}
+                ? `Resend in ${remainingSeconds}s`
+                : 'Resend code'}
           </Button>
         </resendFetcher.Form>
+      )}
+      {!showChangePhone && resendError && (
+        <p className='mt-2 text-sm text-error'>{resendError}</p>
       )}
       <OutlineButtonRouter to={href('/logout')} className='mt-4'>
         Log out
