@@ -411,14 +411,6 @@ func (a *Activity) FailGatehubCardReversal(ctx context.Context, cardTxID, intern
 	return updateCardTransactionStatus(ctx, a.b, cardTxID, external.CardTransactionStatusFailed)
 }
 
-func (a *Activity) GetCardTransactionByForeignID(ctx context.Context, walletID, foreignID string) (*transactions.Transaction, error) {
-	tx, err := a.b.Transactions().GetTransactionByForeignID(ctx, walletID, foreignID)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
-	}
-	return tx, nil
-}
-
 type SendCardTransactionFXEmailArgs struct {
 	WalletID          string
 	MaskedPAN         string
