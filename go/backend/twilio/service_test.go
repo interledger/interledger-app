@@ -2,6 +2,9 @@ package twilio
 
 import (
 	"context"
+	"errors"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -86,4 +89,24 @@ func TestServiceDisabled(t *testing.T) {
 	assert.Len(t, listRes, 1)
 	assert.Equal(t, phoneNumber, listRes[0].PhoneNumber)
 	assert.True(t, listRes[0].IsValid())
+}
+
+func TestNewServiceFailsFastOnInvalidVerifyService(t *testing.T) {
+	invalidServiceServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		_, _ = w.Write([]byte(`{"code":20404,"message":"The requested resource /Services/VA_invalid was not found","status":404}`))
+	}))
+	defer invalidServiceServer.Close()
+
+	_, err := NewService(&ServiceArgs{
+		AccountSid:   "testAccountSid",
+		AccountToken: "testAccountToken",
+		ServiceSid:   "VA_invalid",
+		ApiBaseUrl:   invalidServiceServer.URL,
+		Enabled:      true,
+	})
+
+	assert.Error(t, err)
+	assert.True(t, errors.Is(err, ErrInvalidArgument))
 }

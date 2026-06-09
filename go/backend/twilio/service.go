@@ -64,8 +64,8 @@ func NewService(args *ServiceArgs) (Service, error) {
 		return nil, fmt.Errorf("%w: args must not be nil", ErrInvalidArgument)
 	}
 	if args.Enabled {
-		validator := validator.New()
-		if err := validator.Struct(args); err != nil {
+		v := validator.New()
+		if err := v.Struct(args); err != nil {
 			return nil, fmt.Errorf("%w: %s", ErrInvalidArgument, err)
 		}
 	}
@@ -84,12 +84,31 @@ func NewService(args *ServiceArgs) (Service, error) {
 		Client: customClient,
 	})
 
+	if args.Enabled {
+		if err := validateConfiguration(twilioClient, args.ServiceSid); err != nil {
+			return nil, err
+		}
+	}
+
 	return &service{
 		validator:    validator.New(),
 		twilioClient: twilioClient,
 		serviceSid:   args.ServiceSid,
 		enabled:      args.Enabled,
 	}, nil
+}
+
+func validateConfiguration(twilioClient *twilio.RestClient, serviceSid string) error {
+	_, err := twilioClient.VerifyV2.FetchService(serviceSid)
+	if err == nil {
+		return nil
+	}
+
+	if twilioError, ok := err.(*client.TwilioRestError); ok {
+		return fmt.Errorf("%w: twilio verify service validation failed (code=%d): %s", ErrInvalidArgument, twilioError.Code, twilioError.Message)
+	}
+
+	return fmt.Errorf("%w: twilio verify service validation failed: %s", ErrInternal, err)
 }
 
 func (s *service) SendVerificationCode(ctx context.Context, phoneNumber string) (*Verification, error) {
