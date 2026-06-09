@@ -28,7 +28,7 @@ import {
   handleVerifyOtp
 } from '~/lib/phone.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
-import { useCountdown } from '~/lib/useCountdown'
+import { formatCountdown, useCountdown } from '~/lib/useCountdown'
 import styles from '~/styles/flags.css?url'
 import type { Route } from './+types/settings_.phone'
 
@@ -81,8 +81,8 @@ export default function Page() {
     Boolean(updateFetcher.data.codeSent)
   const updatedPhone =
     updateFetcher.data &&
-    'phone' in updateFetcher.data &&
-    typeof updateFetcher.data.phone === 'string'
+      'phone' in updateFetcher.data &&
+      typeof updateFetcher.data.phone === 'string'
       ? updateFetcher.data.phone
       : undefined
   const otpError =
@@ -105,11 +105,18 @@ export default function Page() {
   useEffect(() => {
     if (resendFetcher.data?.codeSent) {
       start(RESEND_DELAY)
+      return
+    }
+
+    if (
+      resendFetcher.data?.error === 'rateLimited' &&
+      typeof resendFetcher.data.retryAfter === 'number'
+    ) {
+      start(resendFetcher.data.retryAfter * 1000)
     }
   }, [resendFetcher.data, start])
 
-  const isResendDisabled =
-    (otpSent && isActive) || resendFetcher.state !== 'idle'
+  const isResendDisabled = isActive || resendFetcher.state !== 'idle'
 
   return (
     <>
@@ -200,7 +207,9 @@ export default function Page() {
           <input type='hidden' name='csrfToken' value={csrfToken} />
           <input type='hidden' name='phone' value={newPhone ?? ''} />
           <Button type='submit' disabled={isResendDisabled} className='w-full'>
-            {isActive ? `Resend in ${remainingSeconds}s` : 'Resend code'}
+            {isActive
+              ? `Resend in ${formatCountdown(remainingSeconds)}`
+              : 'Resend code'}
           </Button>
         </resendFetcher.Form>
       )}

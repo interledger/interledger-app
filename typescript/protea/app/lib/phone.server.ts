@@ -6,7 +6,7 @@ import { ErrorDescriptions } from '~/lib/error.constants'
 import type { TwillioError } from '~/lib/error.mappers'
 import { isConnectError, isOtpValidationError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
-import { getSessionTraits, getUserSession } from '~/lib/kratos/session.server'
+import { getUserSession } from '~/lib/kratos/session.server'
 import { RateLimitKeys, getKey, rateLimit } from '~/lib/rateLimit.server'
 
 type ParsedPhoneResult =
@@ -27,35 +27,17 @@ type OtpRateLimitResult = {
 async function getRateLimitIdentity(request: Request): Promise<string> {
   const session = await getUserSession(request, true)
 
-  if (session?.identity?.id) {
-    return session.identity.id
+  if (!session?.identity?.id) {
+    throw redirect(href('/login'))
   }
 
-  const { email } = getSessionTraits(session)
-  if (email) {
-    return email
-  }
-
-  throw redirect(href('/logout'))
+  return session.identity.id
 }
 
 async function applyPhoneOtpRateLimit(
   request: Request
 ): Promise<OtpRateLimitResult | null> {
   const identity = await getRateLimitIdentity(request)
-
-  const minuteRateLimitError = await rateLimit(
-    getKey(RateLimitKeys.PhoneOTP, `${identity}:1m`),
-    PHONE_OTP_LIMITS.perMinute
-  )
-  if (minuteRateLimitError) {
-    return {
-      error: 'rateLimited',
-      retryAfter: PHONE_OTP_LIMITS.perMinute.retryAfter,
-      message:
-        'Please wait 1 minute before requesting another verification code.'
-    }
-  }
 
   const hourRateLimitError = await rateLimit(
     getKey(RateLimitKeys.PhoneOTP, `${identity}:1h`),
@@ -67,6 +49,19 @@ async function applyPhoneOtpRateLimit(
       retryAfter: PHONE_OTP_LIMITS.perHour.retryAfter,
       message:
         'Too many verification code requests. Please try again in 1 hour.'
+    }
+  }
+
+  const minuteRateLimitError = await rateLimit(
+    getKey(RateLimitKeys.PhoneOTP, `${identity}:1m`),
+    PHONE_OTP_LIMITS.perMinute
+  )
+  if (minuteRateLimitError) {
+    return {
+      error: 'rateLimited',
+      retryAfter: PHONE_OTP_LIMITS.perMinute.retryAfter,
+      message:
+        'Please wait 1 minute before requesting another verification code.'
     }
   }
 
