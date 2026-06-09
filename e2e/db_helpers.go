@@ -738,14 +738,22 @@ func (sc *E2EContext) getAgreementSignaturesForUser(userID string) ([]AgreementS
 // exists (e.g. a prior test run with a colliding id), every column is refreshed
 // — otherwise a stale name would silently redirect the workflow at a different
 // agreement than the one the test thinks it published.
+//
+// git_file_path MUST be non-NULL: production only ever inserts agreements with a
+// path set (agreements/migrations/migrations.go), and Agreements().Get does
+// `SELECT * INTO agreements.Agreement{GitFilePath string}` — a NULL would fail
+// the scan with "converting NULL to string is unsupported", which surfaces as a
+// LoadAgreementChangeMetadata activity error when the notify workflow runs. We
+// mirror production's "<id>.md" shape; the value is otherwise unused by the test.
 func (sc *E2EContext) insertAgreement(id, name, version, content string) error {
 	if err := sc.ensureDB(); err != nil {
 		return fmt.Errorf("insertAgreement: %w", err)
 	}
+	gitFilePath := fmt.Sprintf("%s.md", id)
 	_, err := sc.db.Exec(
-		`INSERT INTO agreements (id, name, version, content, notified) VALUES ($1, $2, $3, $4, false)
-		 ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, version = EXCLUDED.version, content = EXCLUDED.content, notified = false`,
-		id, name, version, content,
+		`INSERT INTO agreements (id, name, version, content, git_file_path, notified) VALUES ($1, $2, $3, $4, $5, false)
+		 ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, version = EXCLUDED.version, content = EXCLUDED.content, git_file_path = EXCLUDED.git_file_path, notified = false`,
+		id, name, version, content, gitFilePath,
 	)
 	if err != nil {
 		return fmt.Errorf("insertAgreement: %w", err)
