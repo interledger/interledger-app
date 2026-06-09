@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Withdrawal Event — MockGatehub Admin</title>
+<style>
+body { font-family: sans-serif; margin: 2rem; }
+label { display: block; margin: 0.75rem 0 0.25rem; font-weight: bold; }
+select, input { padding: 0.4rem; width: 24rem; }
+button { margin-top: 1rem; padding: 0.5rem 1.5rem; cursor: pointer; }
+.flash-ok  { color: green; font-weight: bold; }
+.flash-err { color: red;   font-weight: bold; }
+a { color: #0070f3; }
+.btn-secondary { margin-left: 0.6rem; background: #f3f4f6; border: 1px solid #d1d5db; }
+</style>
+</head>
+<body>
+<h1>Trigger Withdrawal Event</h1>
+<nav><a href="/ui/">Dashboard</a> | <a href="/ui/actions/kyc">KYC Action</a> | <a href="/ui/actions/card-transaction">Card Transaction</a> | <a href="/ui/actions/withdrawal">Withdrawal Event</a></nav>
+<hr>
+{{if .Flash}}<p class="{{if .FlashOK}}flash-ok{{else}}flash-err{{end}}">{{.Flash}}</p>{{end}}
+<form method="POST" action="/ui/actions/withdrawal">
+  <label for="userID">User</label>
+  <select name="userID" id="userID" required onchange="loadWithdrawals(this.value)">
+    <option value="">-- select user --</option>
+    {{range .Users}}
+    <option value="{{.ID}}" {{if eq $.SelectedUserID .ID}}selected{{end}}>{{.Email}} ({{.ID}})</option>
+    {{end}}
+  </select>
+
+  <label for="txID">Pending Withdrawal</label>
+  <select name="txID" id="txID" required>
+    <option value="">-- select withdrawal --</option>
+    {{range .Withdrawals}}
+    <option value="{{.ID}}" {{if eq $.SelectedTxID .ID}}selected{{end}}>{{.Amount}} {{.Currency}} — {{.ID}}</option>
+    {{end}}
+  </select>
+
+  <label for="event">Event</label>
+  <select name="event" id="event" required>
+    <option value="core.withdrawal.completed" {{if eq $.SelectedEvent "core.withdrawal.completed"}}selected{{end}}>Completed (core.withdrawal.completed)</option>
+    <option value="more-bridge.withdrawal.rejected" {{if eq $.SelectedEvent "more-bridge.withdrawal.rejected"}}selected{{end}}>Rejected (more-bridge.withdrawal.rejected)</option>
+  </select>
+
+  <button type="submit">Trigger Event</button>
+</form>
+<script>
+function loadWithdrawals(userID) {
+  const sel = document.getElementById('txID');
+  sel.innerHTML = '<option value="">-- loading --</option>';
+  if (!userID) {
+    sel.innerHTML = '<option value="">-- select withdrawal --</option>';
+    return;
+  }
+  fetch('/ui/actions/withdrawal/withdrawals?userID=' + encodeURIComponent(userID))
+    .then(function(r){ return r.json(); })
+    .then(function(txs){
+      if (!txs || txs.length === 0) {
+        sel.innerHTML = '<option value="">-- no pending withdrawals --</option>';
+        return;
+      }
+      sel.innerHTML = '<option value="">-- select withdrawal --</option>' +
+        txs.map(function(tx){
+          return '<option value="' + tx.uuid + '">' + tx.amount + ' ' + tx.currency + ' — ' + tx.uuid + '</option>';
+        }).join('');
+    })
+    .catch(function(){ sel.innerHTML = '<option value="">-- error loading withdrawals --</option>'; });
+}
+</script>
+</body>
+</html>

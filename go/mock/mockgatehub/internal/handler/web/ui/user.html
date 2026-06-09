@@ -19,7 +19,7 @@ dt { font-weight: bold; }
 </head>
 <body>
 <h1>User Detail</h1>
-<nav><a href="/ui/">Dashboard</a> | <a href="/ui/actions/kyc">KYC Action</a> | <a href="/ui/actions/card-transaction">Card Transaction</a></nav>
+<nav><a href="/ui/">Dashboard</a> | <a href="/ui/actions/kyc">KYC Action</a> | <a href="/ui/actions/card-transaction">Card Transaction</a> | <a href="/ui/actions/withdrawal">Withdrawal Event</a></nav>
 <hr>
 <h2>Profile</h2>
 <dl>
@@ -98,6 +98,6 @@ dt { font-weight: bold; }
 <p>No cards or card transactions.</p>
 {{end}}
 
-<p><a href="/ui/actions/kyc?userID={{.User.ID}}">Trigger KYC Event</a> | <a href="/ui/actions/card-transaction?userID={{.User.ID}}">Simulate Card Transaction</a></p>
+<p><a href="/ui/actions/kyc?userID={{.User.ID}}">Trigger KYC Event</a> | <a href="/ui/actions/card-transaction?userID={{.User.ID}}">Simulate Card Transaction</a> | <a href="/ui/actions/withdrawal?userID={{.User.ID}}">Trigger Withdrawal Event</a></p>
 </body>
 </html>

@@ -241,6 +241,9 @@ func setupRoutes(r chi.Router, h *handler.Handler) {
 		r.Post("/actions/card-transaction/preview", h.UICardTxPreview)
 		r.Get("/actions/card-transaction/cards", h.UICardTxCards)
 		r.Post("/actions/card-transaction/status", h.UICardTxSetStatus)
+		r.Get("/actions/withdrawal", h.UIWithdrawalForm)
+		r.Post("/actions/withdrawal", h.UIWithdrawalAction)
+		r.Get("/actions/withdrawal/withdrawals", h.UIWithdrawalWithdrawals)
 	})
 	r.Route("/cards/v1", func(r chi.Router) {
 		logger.Info("========== REGISTERING /cards/v1 ROUTES ==========")
