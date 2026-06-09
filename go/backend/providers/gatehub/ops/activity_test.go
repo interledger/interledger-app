@@ -27,7 +27,6 @@ import (
 	wallet_mock "gitlab.com/fynbos/backend/wallets/client/mock"
 	"gitlab.com/fynbos/pacioli"
 	temporal "go.temporal.io/sdk/client"
-	sdktemporal "go.temporal.io/sdk/temporal"
 )
 
 func TestSaveUser(t *testing.T) {
@@ -107,7 +106,7 @@ func TestLinkGatehubUserToGateway(t *testing.T) {
 	return
 }
 
-func TestGetGatehubWithdrawalIDByForeignID(t *testing.T) {
+func TestGetGateHubTransactionByForeignID(t *testing.T) {
 	const walletID = "wallet-123"
 	const foreignID = "gh-tx-456"
 	cfg := gatehub.Config{
@@ -131,42 +130,29 @@ func TestGetGatehubWithdrawalIDByForeignID(t *testing.T) {
 		EUROpsLedgerID:         gatehub.TestEUROpsLedgerID,
 	}
 
-	t.Run("ErrNotFound produces a retryable error", func(t *testing.T) {
-		ctrl := gomock.NewController(t)
-		tc := transactions_mock.NewMockClient(ctrl)
-		tc.EXPECT().GetTransactionByForeignID(gomock.Any(), walletID, foreignID).Return(nil, transactions.ErrNotFound)
-
-		a := ops.NewActivity(Backends{tc: tc}, cfg)
-		_, err := a.GetGatehubWithdrawalIDByForeignID(context.Background(), walletID, foreignID)
-
-		require.Error(t, err)
-		var appErr *sdktemporal.ApplicationError
-		assert.False(t, errors.As(err, &appErr) && appErr.NonRetryable(), "ErrNotFound must not produce a NonRetryableApplicationError")
-	})
-
-	t.Run("internal DB error wraps ErrInternal", func(t *testing.T) {
+	t.Run("DB error wraps ErrInternal", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		tc := transactions_mock.NewMockClient(ctrl)
 		tc.EXPECT().GetTransactionByForeignID(gomock.Any(), walletID, foreignID).Return(nil, errors.New("db timeout"))
 
 		a := ops.NewActivity(Backends{tc: tc}, cfg)
-		_, err := a.GetGatehubWithdrawalIDByForeignID(context.Background(), walletID, foreignID)
+		_, err := a.GetGateHubTransactionByForeignID(context.Background(), walletID, foreignID)
 
 		require.Error(t, err)
 		assert.ErrorIs(t, err, gatehub.ErrInternal)
 	})
 
-	t.Run("success returns transaction ID", func(t *testing.T) {
+	t.Run("success returns transaction", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		tc := transactions_mock.NewMockClient(ctrl)
 		txID := uuid.NewString()
 		tc.EXPECT().GetTransactionByForeignID(gomock.Any(), walletID, foreignID).Return(&transactions.Transaction{ID: txID}, nil)
 
 		a := ops.NewActivity(Backends{tc: tc}, cfg)
-		got, err := a.GetGatehubWithdrawalIDByForeignID(context.Background(), walletID, foreignID)
+		got, err := a.GetGateHubTransactionByForeignID(context.Background(), walletID, foreignID)
 
 		require.NoError(t, err)
-		assert.Equal(t, txID, got)
+		assert.Equal(t, txID, got.ID)
 	})
 }
 

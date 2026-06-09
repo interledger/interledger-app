@@ -452,17 +452,6 @@ func (a *Activity) CheckGatehubWithdrawalComplete(ctx context.Context, walletID,
 	return nil
 }
 
-func (a *Activity) GetGatehubWithdrawalIDByForeignID(ctx context.Context, walletID, foreignID string) (string, error) {
-	tx, err := a.b.Transactions().GetTransactionByForeignID(ctx, walletID, foreignID)
-	if errors.Is(err, transactions.ErrNotFound) {
-		return "", fmt.Errorf("withdrawal transaction not found for foreignID %s: %w", foreignID, err)
-	}
-	if err != nil {
-		return "", fmt.Errorf("%w %s", gatehub.ErrInternal, err)
-	}
-	return tx.ID, nil
-}
-
 func (a *Activity) LinkGatehubUserToGateway(ctx context.Context, externalUser string) error {
 	return a.external.LinkUserToGateway(ctx, externalUser)
 }
@@ -574,6 +563,14 @@ func (a *Activity) MarkBackfillUser(ctx context.Context, walletID, externalUserI
 
 func (a *Activity) SetKYCApprovedForGatehub(ctx context.Context, walletID string) error {
 	return a.b.KYC().SetKYCStatus(ctx, walletID, kyc.StatusLevel1)
+}
+
+func (a *Activity) GetGateHubTransactionByForeignID(ctx context.Context, walletID, foreignID string) (*transactions.Transaction, error) {
+	tx, err := a.b.Transactions().GetTransactionByForeignID(ctx, walletID, foreignID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+	return tx, nil
 }
 
 func (a *Activity) FinalizeGatehubWithdrawal(ctx context.Context, internalTxID string) error {

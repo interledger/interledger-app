@@ -77,7 +77,7 @@ func GatehubClearingCardTransactionsPollWorkflow(ctx workflow.Context) error {
 		}
 
 		var internalTx *transactions.Transaction
-		if err := workflow.ExecuteActivity(loopCtx, a.GetCardTransactionByForeignID, walletID, tx.ID).Get(loopCtx, &internalTx); err != nil {
+		if err := workflow.ExecuteActivity(loopCtx, a.GetGateHubTransactionByForeignID, walletID, tx.ID).Get(loopCtx, &internalTx); err != nil {
 			logger.Error("Failed fetching internal transaction", "txID", tx.ID, "error", err)
 			continue
 		}
@@ -166,7 +166,7 @@ func GatehubRealtimeCardTransactionsPollWorkflow(ctx workflow.Context) error {
 		}
 
 		var internalTx *transactions.Transaction
-		if err := workflow.ExecuteActivity(loopCtx, a.GetCardTransactionByForeignID, walletID, tx.ID).Get(loopCtx, &internalTx); err != nil {
+		if err := workflow.ExecuteActivity(loopCtx, a.GetGateHubTransactionByForeignID, walletID, tx.ID).Get(loopCtx, &internalTx); err != nil {
 			logger.Error("Failed fetching internal transaction", "txID", tx.ID, "error", err)
 			continue
 		}
@@ -178,7 +178,7 @@ func GatehubRealtimeCardTransactionsPollWorkflow(ctx workflow.Context) error {
 				continue
 			}
 			var originalInternalTx *transactions.Transaction
-			if err := workflow.ExecuteActivity(loopCtx, a.GetCardTransactionByForeignID, walletID, *cardTx.RefTransactionID).Get(loopCtx, &originalInternalTx); err != nil {
+			if err := workflow.ExecuteActivity(loopCtx, a.GetGateHubTransactionByForeignID, walletID, *cardTx.RefTransactionID).Get(loopCtx, &originalInternalTx); err != nil {
 				logger.Error("Failed fetching original internal transaction for reversal", "txID", tx.ID, "refTxID", *cardTx.RefTransactionID, "error", err)
 				continue
 			}
