@@ -81,8 +81,8 @@ export default function Page() {
     Boolean(updateFetcher.data.codeSent)
   const updatedPhone =
     updateFetcher.data &&
-      'phone' in updateFetcher.data &&
-      typeof updateFetcher.data.phone === 'string'
+    'phone' in updateFetcher.data &&
+    typeof updateFetcher.data.phone === 'string'
       ? updateFetcher.data.phone
       : undefined
   const otpError =
