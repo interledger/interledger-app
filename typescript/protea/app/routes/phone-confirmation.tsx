@@ -207,8 +207,8 @@ export default function Page() {
                 ? 'Sending...'
                 : 'Send code'
               : isActive
-                ? `Resend in ${remainingSeconds}s`
-                : 'Resend code'}
+              ? `Resend in ${remainingSeconds}s`
+              : 'Resend code'}
           </Button>
         </resendFetcher.Form>
       )}
