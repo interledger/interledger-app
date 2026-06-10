@@ -16,7 +16,7 @@ a { color: #0070f3; }
 </head>
 <body>
 <h1>KYC Action</h1>
-<nav><a href="/ui/">Dashboard</a> | <a href="/ui/actions/kyc">KYC Action</a> | <a href="/ui/actions/card-transaction">Card Transaction</a> | <a href="/ui/actions/withdrawal">Withdrawal Event</a></nav>
+<nav><a href="/ui/">Dashboard</a> | <a href="/ui/actions/kyc">KYC Action</a> | <a href="/ui/actions/card-transaction">Card Transaction</a></nav>
 <hr>
 {{if .Flash}}<p class="{{if .FlashOK}}flash-ok{{else}}flash-err{{end}}">{{.Flash}}</p>{{end}}
 <form method="POST" action="/ui/actions/kyc">

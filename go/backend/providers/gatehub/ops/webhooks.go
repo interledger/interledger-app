@@ -156,16 +156,16 @@ type (
 		TotalFees string `json:"total_fees"`
 	}
 
-	WithdrawalRejectedWebhook struct {
-		ID          string                        `json:"uuid"`
-		EventType   string                        `json:"event_type"`
-		Timestamp   string                        `json:"timestamp"`
-		UserID      string                        `json:"user_uuid"`
-		Environment string                        `json:"environment"`
-		Data        WithdrawalRejectedWebhookData `json:"data"`
+	MoreBridgeWithdrawalRejectedWebhook struct {
+		ID          string                                  `json:"uuid"`
+		EventType   string                                  `json:"event_type"`
+		Timestamp   string                                  `json:"timestamp"`
+		UserID      string                                  `json:"user_uuid"`
+		Environment string                                  `json:"environment"`
+		Data        MoreBridgeWithdrawalRejectedWebhookData `json:"data"`
 	}
 
-	WithdrawalRejectedWebhookData struct {
+	MoreBridgeWithdrawalRejectedWebhookData struct {
 		TxID     string `json:"txUuid"`
 		UserID   string `json:"userUuid"`
 		Iban     string `json:"iban"`
@@ -562,7 +562,7 @@ func HandleWithdrawalCompleted(ctx context.Context, b Backends, raw json.RawMess
 }
 
 func HandleWithdrawalRejected(ctx context.Context, b Backends, raw json.RawMessage, w http.ResponseWriter) {
-	var wh WithdrawalRejectedWebhook
+	var wh MoreBridgeWithdrawalRejectedWebhook
 	err := json.Unmarshal(raw, &wh)
 	if err != nil {
 		log.Error("gatehub webhook: Failed to unmarshal withdrawal rejected webhook", zap.String("payload", string(raw)), zap.Error(err))

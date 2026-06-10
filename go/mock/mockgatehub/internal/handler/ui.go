@@ -3,6 +3,7 @@ package handler
 import (
 	"embed"
 	"encoding/json"
+	"fmt"
 	"html/template"
 	"net/http"
 	"net/url"
@@ -18,7 +19,7 @@ import (
 )
 
 
-//go:embed web/ui/dashboard.html web/ui/user.html web/ui/kyc_action.html web/ui/card_tx_action.html web/ui/withdrawal_action.html
+//go:embed web/ui/dashboard.html web/ui/user.html web/ui/kyc_action.html web/ui/card_tx_action.html
 var uiTemplateFS embed.FS
 
 type cardWithTransactions struct {
@@ -152,6 +153,18 @@ func (h *Handler) UIUserDetail(w http.ResponseWriter, r *http.Request) {
 				return true
 			}
 			return *status != "COMPLETED" && *status != "FAILED"
+		},
+		"txStatus": func(status int) string {
+			switch status {
+			case consts.TransactionStatusPending:
+				return "pending"
+			case consts.TransactionStatusCompleted:
+				return "completed"
+			case consts.TransactionStatusFailed:
+				return "failed"
+			default:
+				return fmt.Sprintf("%d", status)
+			}
 		},
 	}
 	tmpl, err := template.New("user.html").Funcs(funcMap).ParseFS(uiTemplateFS, "web/ui/user.html")
@@ -518,72 +531,7 @@ func (h *Handler) UICardTxSetStatus(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/ui/users/"+userID, http.StatusSeeOther)
 }
 
-func (h *Handler) UIWithdrawalWithdrawals(w http.ResponseWriter, r *http.Request) {
-	userID := r.URL.Query().Get("userID")
-	if userID == "" {
-		h.sendJSON(w, http.StatusOK, []*models.Transaction{})
-		return
-	}
-
-	all, err := h.store.ListTransactionsByUser(userID)
-	if err != nil {
-		h.sendJSON(w, http.StatusOK, []*models.Transaction{})
-		return
-	}
-
-	pending := make([]*models.Transaction, 0)
-	for _, tx := range all {
-		if tx.DepositType == consts.DepositTypeWithdrawal && tx.Status == consts.TransactionStatusPending {
-			pending = append(pending, tx)
-		}
-	}
-	h.sendJSON(w, http.StatusOK, pending)
-}
-
-func (h *Handler) UIWithdrawalForm(w http.ResponseWriter, r *http.Request) {
-	users, err := h.store.ListUsers()
-	if err != nil {
-		logger.Error("ui: failed to list users for withdrawal form", zap.Error(err))
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-
-	q := r.URL.Query()
-	selectedUserID := q.Get("userID")
-
-	var withdrawals []*models.Transaction
-	if selectedUserID != "" {
-		if all, err := h.store.ListTransactionsByUser(selectedUserID); err == nil {
-			for _, tx := range all {
-				if tx.DepositType == consts.DepositTypeWithdrawal && tx.Status == consts.TransactionStatusPending {
-					withdrawals = append(withdrawals, tx)
-				}
-			}
-		}
-	}
-
-	tmpl, err := template.ParseFS(uiTemplateFS, "web/ui/withdrawal_action.html")
-	if err != nil {
-		logger.Error("ui: failed to parse withdrawal template", zap.Error(err))
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	if err := tmpl.Execute(w, map[string]interface{}{
-		"Users":          users,
-		"Withdrawals":    withdrawals,
-		"SelectedUserID": selectedUserID,
-		"SelectedTxID":   q.Get("txID"),
-		"SelectedEvent":  q.Get("event"),
-		"Flash":          q.Get("flash"),
-		"FlashOK":        q.Get("ok") == "1",
-	}); err != nil {
-		logger.Error("ui: failed to render withdrawal form", zap.Error(err))
-	}
-}
-
-func (h *Handler) UIWithdrawalAction(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) UIWithdrawalSetEvent(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "Invalid form data", http.StatusBadRequest)
 		return
@@ -607,20 +555,12 @@ func (h *Handler) UIWithdrawalAction(w http.ResponseWriter, r *http.Request) {
 
 	tx, err := h.store.GetTransaction(txID)
 	if err != nil || tx == nil {
-		redirectURL := "/ui/actions/withdrawal?flash=Transaction+not+found&userID=" + url.QueryEscape(userID)
-		http.Redirect(w, r, redirectURL, http.StatusSeeOther)
+		http.Redirect(w, r, "/ui/users/"+url.QueryEscape(userID), http.StatusSeeOther)
 		return
 	}
 
-	if tx.DepositType != consts.DepositTypeWithdrawal {
-		redirectURL := "/ui/actions/withdrawal?flash=Transaction+is+not+a+withdrawal&userID=" + url.QueryEscape(userID)
-		http.Redirect(w, r, redirectURL, http.StatusSeeOther)
-		return
-	}
-
-	if tx.Status != consts.TransactionStatusPending {
-		redirectURL := "/ui/actions/withdrawal?flash=Transaction+is+not+pending&userID=" + url.QueryEscape(userID)
-		http.Redirect(w, r, redirectURL, http.StatusSeeOther)
+	if tx.DepositType != consts.DepositTypeWithdrawal || tx.Status != consts.TransactionStatusPending {
+		http.Redirect(w, r, "/ui/users/"+url.QueryEscape(userID), http.StatusSeeOther)
 		return
 	}
 
@@ -667,7 +607,6 @@ func (h *Handler) UIWithdrawalAction(w http.ResponseWriter, r *http.Request) {
 		logger.Info("ui: withdrawal rejected", zap.String("tx_id", txID), zap.String("user_id", tx.UserID))
 	}
 
-	redirectURL := "/ui/actions/withdrawal?ok=1&flash=Withdrawal+event+triggered&userID=" + url.QueryEscape(userID) +
-		"&event=" + url.QueryEscape(event)
-	http.Redirect(w, r, redirectURL, http.StatusSeeOther)
+	http.Redirect(w, r, "/ui/users/"+url.QueryEscape(userID), http.StatusSeeOther)
 }
+
