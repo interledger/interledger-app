@@ -32,7 +32,7 @@ import {
   handleVerifyOtp
 } from '~/lib/phone.server'
 import { safeReturnTo } from '~/lib/url.server'
-import { useCountdown } from '~/lib/useCountdown'
+import { formatCountdown, useCountdown } from '~/lib/useCountdown'
 import styles from '~/styles/flags.css?url'
 import type { Route } from './+types/phone-confirmation'
 
@@ -84,8 +84,10 @@ export default function Page() {
   const actionData = useActionData<typeof action>()
   const { csrfToken, phone, countryCode, countries, returnTo } =
     useLoaderData<typeof loader>()
-  const resendFetcher = useFetcher()
-  const updateFetcher = useFetcher()
+  const resendFetcher =
+    useFetcher<Awaited<ReturnType<typeof handleResendOtp>>>()
+  const updateFetcher =
+    useFetcher<Awaited<ReturnType<typeof handleUpdatePhone>>>()
   const { start, isActive, remainingSeconds } = useCountdown()
   const [otpSent, setOtpSent] = useState(false)
   const [currentPhone, setCurrentPhone] = useState(phone)
@@ -94,12 +96,25 @@ export default function Page() {
     actionData && 'errors' in actionData
       ? (actionData.errors as { otp?: string } | undefined)?.otp
       : undefined
+  const resendError =
+    resendFetcher.data && 'message' in resendFetcher.data
+      ? resendFetcher.data.message
+      : undefined
 
-  // Start countdown after a successful send/resend
+  // Start countdown after a successful send/resend or a rate-limit response.
   useEffect(() => {
     if (resendFetcher.data?.codeSent) {
       setOtpSent(true)
       start(RESEND_DELAY)
+      return
+    }
+
+    if (
+      resendFetcher.data?.error === 'rateLimited' &&
+      typeof resendFetcher.data.retryAfter === 'number'
+    ) {
+      setOtpSent(true)
+      start(resendFetcher.data.retryAfter * 1000)
     }
   }, [resendFetcher.data, start])
 
@@ -113,8 +128,7 @@ export default function Page() {
     }
   }, [updateFetcher.data, start])
 
-  const isResendDisabled =
-    (otpSent && isActive) || resendFetcher.state !== 'idle'
+  const isResendDisabled = isActive || resendFetcher.state !== 'idle'
   const actionPath = `/phone-confirmation?returnTo=${encodeURIComponent(
     returnTo
   )}`
@@ -196,15 +210,18 @@ export default function Page() {
           <input type='hidden' name='csrfToken' value={csrfToken} />
           <input type='hidden' name='phone' value={currentPhone} />
           <Button type='submit' disabled={isResendDisabled} className='w-full'>
-            {!otpSent
-              ? resendFetcher.state !== 'idle'
-                ? 'Sending...'
-                : 'Send code'
+            {resendFetcher.state !== 'idle'
+              ? 'Sending...'
               : isActive
-              ? `Resend in ${remainingSeconds}s`
-              : 'Resend code'}
+              ? `Resend in ${formatCountdown(remainingSeconds)}`
+              : otpSent
+              ? 'Resend code'
+              : 'Send code'}
           </Button>
         </resendFetcher.Form>
+      )}
+      {!showChangePhone && resendError && (
+        <p className='mt-2 text-sm text-error'>{resendError}</p>
       )}
       <OutlineButtonRouter to={href('/logout')} className='mt-4'>
         Log out
