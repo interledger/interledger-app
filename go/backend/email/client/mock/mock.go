@@ -158,15 +158,15 @@ func (mr *MockClientMockRecorder) SendDepositReceivedEmail(ctx, walletID, amt, s
 }
 
 // SendGatehubWithdrawalRejectedEmail mocks base method.
-func (m *MockClient) SendGatehubWithdrawalRejectedEmail(ctx context.Context, walletID string) {
+func (m *MockClient) SendGatehubWithdrawalRejectedEmail(ctx context.Context, walletID, amount, currency, iban, name string) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "SendGatehubWithdrawalRejectedEmail", ctx, walletID)
+	m.ctrl.Call(m, "SendGatehubWithdrawalRejectedEmail", ctx, walletID, amount, currency, iban, name)
 }
 
 // SendGatehubWithdrawalRejectedEmail indicates an expected call of SendGatehubWithdrawalRejectedEmail.
-func (mr *MockClientMockRecorder) SendGatehubWithdrawalRejectedEmail(ctx, walletID interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) SendGatehubWithdrawalRejectedEmail(ctx, walletID, amount, currency, iban, name interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendGatehubWithdrawalRejectedEmail", reflect.TypeOf((*MockClient)(nil).SendGatehubWithdrawalRejectedEmail), ctx, walletID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendGatehubWithdrawalRejectedEmail", reflect.TypeOf((*MockClient)(nil).SendGatehubWithdrawalRejectedEmail), ctx, walletID, amount, currency, iban, name)
 }
 
 // SendKYCDocumentsRequiredEmail mocks base method.

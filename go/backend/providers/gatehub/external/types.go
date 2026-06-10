@@ -180,18 +180,20 @@ type (
 	}
 
 	Transaction struct {
-		ID              string `json:"uuid"`
-		CreatedAt       string `json:"created_at"`
-		CompletedAt     string `json:"completed_at"`
-		Amount          string `json:"amount"`
-		Total           string `json:"total_amount"`
-		Fee             string `json:"fee"`
-		SendingWallet   Wallet `json:"sending_wallet"`
-		ReceivingWallet Wallet `json:"receiving_wallet"`
-		Vault           Vault  `json:"vault"`
-		Status          int    `json:"status"`
-		SubStatus       int    `json:"substatus"`
-		Type            int    `json:"type"`
+		ID              string             `json:"uuid"`
+		CreatedAt       string             `json:"created_at"`
+		CompletedAt     string             `json:"completed_at"`
+		Amount          string             `json:"amount"`
+		Total           string             `json:"total_amount"`
+		Fee             string             `json:"fee"`
+		SendingWallet   Wallet             `json:"sending_wallet"`
+		ReceivingWallet Wallet             `json:"receiving_wallet"`
+		Vault           Vault              `json:"vault"`
+		Account         TransactionAccount `json:"account"`
+		Message         *string            `json:"message"`
+		Status          int                `json:"status"`
+		SubStatus       int                `json:"substatus"`
+		Type            int                `json:"type"`
 	}
 
 	Hub struct {
@@ -417,6 +419,11 @@ type (
 		ProductCode string      `json:"productCode"`
 		Currency    string      `json:"currency"`
 		Card        NewCardArgs `json:"card"`
+	}
+
+	TransactionAccount struct {
+		LegalName string `json:"legal_name"`
+		Iban      string `json:"iban"`
 	}
 
 	CreateCustomerAndCardArgs struct {

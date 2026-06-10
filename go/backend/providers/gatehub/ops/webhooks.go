@@ -594,7 +594,7 @@ func HandleWithdrawalRejected(ctx context.Context, b Backends, raw json.RawMessa
 	}
 
 	if workflowStatus != enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
-		_, err = b.Temporal().ExecuteWorkflow(ctx, wo, RejectGatehubWithdrawalWorkflow, wh.UserID, wh.Data.TxID)
+		_, err = b.Temporal().ExecuteWorkflow(ctx, wo, RejectGatehubWithdrawalWorkflow, wh.Data)
 		if err != nil {
 			log.Error("gatehub webhook: Failed to start withdrawal rejected workflow", zap.Error(err))
 			w.WriteHeader(http.StatusInternalServerError)

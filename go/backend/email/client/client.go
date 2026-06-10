@@ -112,6 +112,6 @@ func (c *client) SendCardTransactionFXEmail(ctx context.Context, walletID, maske
 	ops.SendCardTransactionFXEmail(ctx, c.b, walletID, maskedPAN, merchantName, date, surcharge, transactionAmount, billingAmount)
 }
 
-func (c *client) SendGatehubWithdrawalRejectedEmail(ctx context.Context, walletID string) {
-	ops.SendGatehubWithdrawalRejectedEmail(ctx, c.b, walletID)
+func (c *client) SendGatehubWithdrawalRejectedEmail(ctx context.Context, walletID, amount, currency, iban, name string) {
+	ops.SendGatehubWithdrawalRejectedEmail(ctx, c.b, walletID, amount, currency, iban, name)
 }

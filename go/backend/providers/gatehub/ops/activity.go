@@ -452,8 +452,12 @@ func (a *Activity) CheckGatehubWithdrawalComplete(ctx context.Context, walletID,
 	return nil
 }
 
-func (a *Activity) SendWithdrawalRejectedEmail(ctx context.Context, walletID string) error {
-	a.b.Email().SendGatehubWithdrawalRejectedEmail(ctx, walletID)
+func (a *Activity) FetchGatehubTransaction(ctx context.Context, userID, externalTxID string) (*external.Transaction, error) {
+	return a.external.GetTransaction(ctx, userID, externalTxID)
+}
+
+func (a *Activity) SendWithdrawalRejectedEmail(ctx context.Context, walletID, amount, currency, iban, name string) error {
+	a.b.Email().SendGatehubWithdrawalRejectedEmail(ctx, walletID, amount, currency, iban, name)
 	return nil
 }
 

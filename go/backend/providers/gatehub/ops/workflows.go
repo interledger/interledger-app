@@ -8,6 +8,7 @@ import (
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/gatehub"
+	"gitlab.com/fynbos/backend/providers/gatehub/external"
 	"gitlab.com/fynbos/backend/transactions"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
@@ -205,7 +206,7 @@ func CompleteGatehubWithdrawalWorkflow(ctx workflow.Context, userID, externalTxI
 	return nil
 }
 
-func RejectGatehubWithdrawalWorkflow(ctx workflow.Context, userID, externalTxID string) error {
+func RejectGatehubWithdrawalWorkflow(ctx workflow.Context, wh MoreBridgeWithdrawalRejectedWebhookData) error {
 	var a *Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 10 * time.Second,
@@ -213,15 +214,15 @@ func RejectGatehubWithdrawalWorkflow(ctx workflow.Context, userID, externalTxID 
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
 	logger := workflow.GetLogger(ctx)
-	logger.Info("Rejecting gatehub withdrawal.", "externalTxID", externalTxID)
+	logger.Info("Rejecting gatehub withdrawal.", "externalTxID", wh.TxID)
 
 	var walletID string
-	if err := workflow.ExecuteActivity(ctx, a.GetWalletFromGatehubUser, userID).Get(ctx, &walletID); err != nil {
+	if err := workflow.ExecuteActivity(ctx, a.GetWalletFromGatehubUser, wh.UserID).Get(ctx, &walletID); err != nil {
 		return err
 	}
 
 	var internalTx *transactions.Transaction
-	err := workflow.ExecuteActivity(ctx, a.GetGateHubTransactionByForeignID, walletID, externalTxID).Get(ctx, &internalTx)
+	err := workflow.ExecuteActivity(ctx, a.GetGateHubTransactionByForeignID, walletID, wh.TxID).Get(ctx, &internalTx)
 	if err != nil {
 		return err
 	}
@@ -230,7 +231,12 @@ func RejectGatehubWithdrawalWorkflow(ctx workflow.Context, userID, externalTxID 
 		return err
 	}
 
-	return workflow.ExecuteActivity(ctx, a.SendWithdrawalRejectedEmail, walletID).Get(ctx, nil)
+	var externalTx *external.Transaction
+	if err = workflow.ExecuteActivity(ctx, a.FetchGatehubTransaction, wh.UserID, wh.TxID).Get(ctx, &externalTx); err != nil {
+		return err
+	}
+
+	return workflow.ExecuteActivity(ctx, a.SendWithdrawalRejectedEmail, walletID, wh.Amount, wh.Currency, wh.Iban, externalTx.Account.LegalName).Get(ctx, nil)
 }
 
 func handleFailedWithdrawal(ctx workflow.Context, a *Activity, walletID, transactionID string) {
