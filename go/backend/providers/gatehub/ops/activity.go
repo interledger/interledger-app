@@ -564,3 +564,20 @@ func (a *Activity) MarkBackfillUser(ctx context.Context, walletID, externalUserI
 func (a *Activity) SetKYCApprovedForGatehub(ctx context.Context, walletID string) error {
 	return a.b.KYC().SetKYCStatus(ctx, walletID, kyc.StatusLevel1)
 }
+
+func (a *Activity) GetGateHubTransactionByForeignID(ctx context.Context, walletID, foreignID string) (*transactions.Transaction, error) {
+	tx, err := a.b.Transactions().GetTransactionByForeignID(ctx, walletID, foreignID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+	return tx, nil
+}
+
+func (a *Activity) FinalizeGatehubWithdrawal(ctx context.Context, internalTxID string) error {
+	err := FinaliseReserve(ctx, a.b, internalTxID)
+	if err != nil {
+		return err
+	}
+
+	return a.b.Transactions().SetTransactionState(ctx, internalTxID, transactions.StateCompleted)
+}
