@@ -280,7 +280,18 @@ export function useHeroSnap({
     }
 
     // ── Lock lifecycle ────────────────────────────────────────────────
-    /** Re-engage when the user scrolls back up to the hero from below. */
+    /**
+     * Re-engage when the user scrolls back up to the hero from below.
+     *
+     * Re-entry is always from below: the lock never releases upward (screen 1
+     * + up is a no-op), so the page can only be unlocked while the user is
+     * past the hero. Don't infer the direction from geometry — on mobile,
+     * the hero's 100vh resolves to the large-viewport height while
+     * window.innerHeight shrinks when the browser chrome reappears on
+     * scroll-up, and top overscroll bounce pushes rect.top above 0; both
+     * made a `rect.bottom <= innerHeight + 4` check misread re-entry as a
+     * top entry and reset the carousel to screen 1.
+     */
     const onScroll = () => {
       if (state.locked) return
       if (performance.now() - state.lastReleaseAt < REENGAGE_COOLDOWN_MS) return
@@ -288,12 +299,10 @@ export function useHeroSnap({
       const fullyAtTop =
         rect.top >= 0 && rect.top < window.innerHeight && rect.bottom > 0
       if (!fullyAtTop) return
-      const fromBelow = rect.bottom <= window.innerHeight + 4
-      const entryScreen = (fromBelow ? screenCount : 1) as CarouselScreen
+      const entryScreen = screenCount as CarouselScreen
       state.screen = entryScreen
       setActiveScreen(entryScreen)
-      if (fromBelow)
-        state.reengageBlockUntil = performance.now() + REENGAGE_PAUSE_MS
+      state.reengageBlockUntil = performance.now() + REENGAGE_PAUSE_MS
       lockBody()
       window.scrollTo({ top: window.scrollY + rect.top, behavior: 'auto' })
     }
