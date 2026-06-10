@@ -41,9 +41,7 @@ export const handle: ApplicationProps = {
 }
 
 export const meta: MetaFunction = mergeMeta(() => [
-  {
-    title: 'Interledger Pay'
-  }
+  { title: 'Interledger Pay - Step 2: Choose amount' }
 ])
 
 export default function Page() {
@@ -80,7 +78,7 @@ export default function Page() {
       <GridColumn
         className='col-span-full mt-20 mx-auto'
       >
-        <BackButton title="Back" to="/quick-pay"/>
+        <BackButton title="Back" to="/quick-pay" />
         <DialPad />
         <div className="flex justify-center gap-2 mt-12 w-64">
           <Button
