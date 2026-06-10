@@ -12,7 +12,7 @@ import { fetchQuote, getValidWalletAddress, initializePayment } from '~/lib/open
 import { paymentSchema, formatAmount, createError, routeAllowed } from '~/lib/utils.server'
 import { commitSession, getSession } from '~/session.server'
 import { type ActionData, QuickPaySession } from '~/lib/types'
-import { formatError } from '~/lib/helpers'
+import { formatError, NOTE_MAX_CHARACTERS, charactersRemaining } from '~/lib/helpers'
 import logger from '~/lib/logger.server'
 import { BackButton } from '~/components/QuickPay'
 
@@ -97,18 +97,23 @@ export default function Page() {
   const { amountValue } = useDialPadStore()
   const [modalOpen, setModalOpen] = useState(false)
   const errors = actionData?.errors
-  const clearSessionKeys: Array<keyof QuickPaySession>  = ['receiverAddress']
+  const [errorsList, setErrorsList] = useState(errors)
+  const [note, setNote] = useState('')
+
+  useEffect(() => { setErrorsList(errors) }, [errors, setErrorsList])
 
   useEffect(() => {
     setModalOpen(Boolean(isQuote))
   }, [isQuote])
+
+  console.log({ errorsList })
 
   return (
     <WalletGrid>
       <GridColumn
         className='col-span-full mt-20 mx-auto'
       >
-        <BackButton title="Back" to="/quick-pay/amount"/>
+        <BackButton title="Back" to="/quick-pay/amount" />
         <AmountDisplay />
         <div className="mx-auto w-full max-w-sm">
           <Form method="POST">
@@ -125,13 +130,20 @@ export default function Page() {
                 name="receiverAddress"
                 placeholder="Enter receiver wallet address"
                 autoFocus
-                errorMessage={formatError(errors?.receiverAddress)}
+                errorMessage={formatError(errorsList?.receiverAddress)}
               />
               <TextField
                 label="Payment note"
                 name="note"
                 placeholder="Note"
-                errorMessage={formatError(errors?.note)}
+                value={note}
+                maxLength={NOTE_MAX_CHARACTERS}
+                onChange={(e) => {
+                  setNote(e.target.value)
+                  setErrorsList({ ...errorsList, note: undefined })
+                }}
+                errorMessage={formatError(errorsList?.note)}
+                successMessage={charactersRemaining(note)}
               />
               <input
                 type="hidden"
@@ -220,7 +232,7 @@ export async function action({ request }: Route.ActionArgs) {
     })
   }
 
-if (sessionData?.quote === undefined) {
+  if (sessionData?.quote === undefined) {
     throw data(
       {
         code: "QUICKPAY_SESSION_ERROR",

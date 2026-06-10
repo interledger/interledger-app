@@ -12,7 +12,7 @@ import { requestSchema, formatAmount, formatDate, createError, routeAllowed } fr
 import type { RootLoaderData } from '~/root'
 import { commitSession, getSession } from '~/session.server'
 import { type ActionData, QuickPaySession } from '~/lib/types'
-import { formatError } from '~/lib/helpers'
+import { formatError, NOTE_MAX_CHARACTERS, charactersRemaining } from '~/lib/helpers'
 import logger from '~/lib/logger.server'
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -112,6 +112,10 @@ export default function Page() {
     const isSubmitting = navigation.state === "submitting"
     const [modalOpen, setModalOpen] = useState(false)
     const errors = actionData?.errors
+    const [errorsList, setErrorsList] = useState(errors)
+    const [note, setNote] = useState('')
+
+    useEffect(() => { setErrorsList(errors) }, [errors, setErrorsList])
 
     useEffect(() => {
         setModalOpen(Boolean(isQuote))
@@ -146,7 +150,14 @@ export default function Page() {
                                 label="Payment note"
                                 name="note"
                                 placeholder="Note"
-                                errorMessage={formatError(errors?.note)}
+                                value={note}
+                                maxLength={NOTE_MAX_CHARACTERS}
+                                onChange={(e) => {
+                                    setNote(e.target.value)
+                                    setErrorsList({ ...errorsList, note: undefined })
+                                }}
+                                errorMessage={formatError(errorsList?.note)}
+                                successMessage={charactersRemaining(note)}
                             />
                             <TextField
                                 type="text"
@@ -154,7 +165,7 @@ export default function Page() {
                                 placeholder="Wallet address"
                                 name="senderAddress"
                                 defaultValue={walletAddress ?? ''}
-                                errorMessage={formatError(errors?.senderAddress)}
+                                errorMessage={formatError(errorsList?.senderAddress)}
                             />
                             <div className="flex justify-center">
                                 <Button
@@ -212,7 +223,7 @@ export async function action({ request }: Route.ActionArgs) {
 
     if (intent === 'pay') {
         const result = requestSchema.safeParse(formData)
-        
+
         if (!url || !receiver) {
             return data({ errors: createError("actionError", "Invalid url.") })
         }

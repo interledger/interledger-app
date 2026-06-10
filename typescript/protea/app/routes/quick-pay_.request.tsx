@@ -4,7 +4,7 @@ import { Form, useActionData, useLoaderData } from 'react-router'
 import type { MetaFunction } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Button, GridColumn, Layouts, TextField, WalletGrid } from '~/components'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { mergeMeta } from '~/lib/meta'
 import { AmountDisplay } from '~/components/QuickPay/Dialpad'
 import { formatAmount, formatDate, requestPaymentSchema, routeAllowed } from '~/lib/utils.server'
@@ -12,7 +12,7 @@ import { useDialPadStore } from '~/lib/useDialPadStore'
 import { QuickPaySession } from '~/lib/types'
 import { Icon } from '~/components/Icon'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
-import { formatError } from '~/lib/helpers'
+import { formatError, NOTE_MAX_CHARACTERS, charactersRemaining } from '~/lib/helpers'
 import { createRequestPayment } from '~/lib/open-payments.server'
 import { commitSession, getSession } from '~/session.server'
 import { z } from 'zod'
@@ -78,6 +78,10 @@ export default function Page() {
   const errors = actionData?.errors
   const [copied, setCopied] = useState(false)
   const pushSnackbar = useScaffoldStore((state) => state.pushSnackbar)
+  const [errorsList, setErrorsList] = useState(errors)
+  const [note, setNote] = useState('')
+
+  useEffect(() => { setErrorsList(errors) }, [errors, setErrorsList])
 
   function copyToClipboard(e: React.MouseEvent<HTMLElement>, value: string) {
     e.preventDefault()
@@ -191,13 +195,20 @@ export default function Page() {
                   value={walletAddress}
                   readOnly
                   defaultValue={walletAddress || ""}
-                  errorMessage={formatError(errors?.receiverAddress)}
+                  errorMessage={formatError(errorsList?.receiverAddress)}
                 />
                 <TextField
                   label="Payment note"
                   name="note"
                   placeholder="Note"
-                  errorMessage={formatError(errors?.note)}
+                  value={note}
+                  maxLength={NOTE_MAX_CHARACTERS}
+                  onChange={(e) => {
+                    setNote(e.target.value)
+                    setErrorsList({ ...errorsList, note: undefined })
+                  }}
+                  errorMessage={formatError(errorsList?.note)}
+                  successMessage={charactersRemaining(note)}
                 />
                 <div className="flex justify-center">
                   <Button aria-label="Create Request" type="submit" name="intent" value="request">

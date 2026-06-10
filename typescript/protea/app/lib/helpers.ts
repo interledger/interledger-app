@@ -21,3 +21,8 @@ export const getCurrencySymbol = (assetCode: string): string => {
     .replace(/0/g, '')
     .trim()
 }
+
+export const NOTE_MAX_CHARACTERS = 255
+export const charactersRemaining = (text: string, limit: number = NOTE_MAX_CHARACTERS) => {
+  return `Characters remaining ${limit - text.length}`
+}

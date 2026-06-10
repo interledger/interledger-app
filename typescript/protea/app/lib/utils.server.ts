@@ -38,7 +38,10 @@ export const paymentSchema = z.object({
     .transform((val) => val.replace('$', 'https://'))
     .pipe(z.string().url({ message: 'The input is not a wallet address.' })),
   amount: z.coerce.number(),
-  note: z.string().optional()
+  note: z
+    .string()
+    .max(255, { message: 'Payment note must be 255 characters or less.' })
+    .optional()
 })
 
 export const requestSchema = z.object({
