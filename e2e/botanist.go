@@ -68,6 +68,14 @@ func (sc *E2EContext) iNavigateToTheAdminPortal() error {
 		return fmt.Errorf("failed to create page: %w", err)
 	}
 	sc.page = page
+	sc.page.OnConsole(func(msg playwright.ConsoleMessage) {
+		if msg.Type() == "error" || msg.Type() == "warning" {
+			debugPrintf("🔴 Browser %s: %s\n", msg.Type(), msg.Text())
+		}
+	})
+	sc.page.OnPageError(func(err error) {
+		debugPrintf("🔴 Browser page error: %v\n", err)
+	})
 
 	var navErr error
 	for attempt := 0; attempt < 3; attempt++ {
@@ -321,6 +329,17 @@ func (sc *E2EContext) iNavigateToMyWalletProfileInAdminPortal() error {
 		Timeout: playwright.Float(15000),
 	}); err != nil {
 		return fmt.Errorf("wallet profile page did not reach network idle: %w", err)
+	}
+
+	// Wait for React to finish client-side hydration before interacting.
+	// The root layout sets data-hydrated="true" on <html> inside a useEffect,
+	// which only runs after hydration is complete.
+	hydrationLocator := sc.page.Locator("html[data-hydrated='true']")
+	if err = hydrationLocator.WaitFor(playwright.LocatorWaitForOptions{
+		State:   playwright.WaitForSelectorStateAttached,
+		Timeout: playwright.Float(15000),
+	}); err != nil {
+		return fmt.Errorf("React hydration did not complete on wallet profile page: %w", err)
 	}
 
 	debugPrintf("✓ On botanist wallet profile page\n")

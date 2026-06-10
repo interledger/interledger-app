@@ -1,18 +1,18 @@
-import type { LoaderArgs } from '@remix-run/node'
+import type { LoaderFunctionArgs } from 'react-router'
 
-import { json } from '@remix-run/node'
+import { data } from 'react-router'
 import {
   isRouteErrorResponse,
   useLoaderData,
   useRouteError
-} from '@remix-run/react'
+} from 'react-router'
 import { Error, GridCard, GridCardError } from '~/components'
 import { GetGatehubUser } from '~/lib/wallet.server'
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const user = await GetGatehubUser(request, params.id as string)
 
-  return json({ user })
+  return data({ user })
 }
 
 export default function Page() {
