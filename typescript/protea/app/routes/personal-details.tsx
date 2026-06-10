@@ -1,20 +1,18 @@
-import { data } from 'react-router';
-import { useLoaderData, useSubmit } from 'react-router';
-import type { Route } from './+types/personal-details'
 import { useEffect, useRef, useState } from 'react'
-import { href } from 'react-router'
+import { data, href, useLoaderData, useSubmit } from 'react-router'
 import { Button, Card, CardContent, Dialog, Layouts, Shape } from '~/components'
+import { envValue } from '~/env.server'
 import { isConnectError } from '~/lib/error.server'
 import type { FiantSdkMessage } from '~/lib/fiant'
 import { exitFlow, flowType, requireFlow } from '~/lib/flows.server'
 import { grpc } from '~/lib/grpc.server'
+import logger from '~/lib/logger.server'
 import { mergeMeta } from '~/lib/meta'
 import { usePtiConfig } from '~/lib/pti-context'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { useScript } from '~/lib/useScript'
-import logger from '~/lib/logger.server'
-import { envValue } from '~/env.server'
+import type { Route } from './+types/personal-details'
 
 const KYCErrors: KYCErrorsType = {
   UnableToPars: 'KYC: unable to parse message data'
@@ -32,14 +30,17 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   if (isConnectError(response)) throw response.errorResponse
 
-  logger.info({
-    provider: response.provider,
-    hasGatehubWidget: !!response.gatehubWidget,
-    gatehubWidgetUrl: response.gatehubWidget?.widgetUrl,
-    hasPersonaWidget: !!response.personaInquiry,
-    hasPtiWidget: !!response.ptiWidget,
-    flow: 'kyc'
-  }, '[KYC] Personal details page loaded')
+  logger.info(
+    {
+      provider: response.provider,
+      hasGatehubWidget: !!response.gatehubWidget,
+      gatehubWidgetUrl: response.gatehubWidget?.widgetUrl,
+      hasPersonaWidget: !!response.personaInquiry,
+      hasPtiWidget: !!response.ptiWidget,
+      flow: 'kyc'
+    },
+    '[KYC] Personal details page loaded'
+  )
 
   // if (response.provider === 'local') {
   //   // wait 1s on local for the async processes to finish
@@ -52,9 +53,8 @@ export async function loader({ request }: Route.LoaderArgs) {
     gatehubWidget: response.gatehubWidget,
     personaWidget: response.personaInquiry,
     ptiWidget: response.ptiWidget,
-    personaSdkUrl:
-      envValue("PERSONA_SDK_URL"),
-    mockxagoEndpoint: envValue("MOCKXAGO_ENDPOINT")
+    personaSdkUrl: envValue('PERSONA_SDK_URL'),
+    mockxagoEndpoint: envValue('MOCKXAGO_ENDPOINT')
   })
 }
 
@@ -76,7 +76,8 @@ export const meta = mergeMeta(() => [
 
 function PersonaPage() {
   const submit = useSubmit()
-  const { personaWidget, personaSdkUrl, mockxagoEndpoint } = useLoaderData<typeof loader>()
+  const { personaWidget, personaSdkUrl, mockxagoEndpoint } =
+    useLoaderData<typeof loader>()
   const [ready, setReady] = useState(false)
   const mockXagoIframeRef = useRef<HTMLIFrameElement | null>(null)
   const scriptStatus = useScript(
@@ -114,7 +115,10 @@ function PersonaPage() {
 
     const onKYCComplete = (e: MessageEvent) => {
       if (e.origin !== expectedOrigin) {
-        console.warn('[KYC] Ignoring MockXago message from unexpected origin:', e.origin)
+        console.warn(
+          '[KYC] Ignoring MockXago message from unexpected origin:',
+          e.origin
+        )
         return
       }
 
@@ -222,7 +226,8 @@ function GatehubPage() {
 
       if (
         e.data.type === 'OnboardingCompleted' &&
-        parsedValue?.applicantStatus === 'submitted'
+        (parsedValue?.applicantStatus === 'submitted' ||
+          parsedValue?.applicantStatus === 'resubmitted')
       ) {
         console.log('[KYC] Onboarding completed, submitting form to backend')
         submit(null, {
@@ -230,10 +235,13 @@ function GatehubPage() {
           method: 'post'
         })
       } else {
-        console.log('[KYC] Message received but not OnboardingCompleted or wrong status:', {
-          type: e.data.type,
-          applicantStatus: parsedValue?.applicantStatus
-        })
+        console.log(
+          '[KYC] Message received but not OnboardingCompleted or wrong status:',
+          {
+            type: e.data.type,
+            applicantStatus: parsedValue?.applicantStatus
+          }
+        )
       }
     }
 
@@ -391,16 +399,22 @@ export default function Page() {
 }
 
 export async function action({ request }: Route.ActionArgs) {
-  logger.info({ flow: 'kyc' }, '[KYC] Personal details action called - marking KYC status as pending')
-  
+  logger.info(
+    { flow: 'kyc' },
+    '[KYC] Personal details action called - marking KYC status as pending'
+  )
+
   await exitFlow(request, flowType.PersonalDetails)
 
   const setKycResponse = await grpc.setKYCStatusPending(request, {})
   if (isConnectError(setKycResponse)) {
-    logger.error({ error: setKycResponse, flow: 'kyc' }, '[KYC] Failed to set KYC status as pending')
+    logger.error(
+      { error: setKycResponse, flow: 'kyc' },
+      '[KYC] Failed to set KYC status as pending'
+    )
     throw setKycResponse.errorResponse
   }
-  
+
   logger.info({ flow: 'kyc' }, '[KYC] KYC status set to pending successfully')
 
   return redirectWithSnackbar(request, href('/'), {

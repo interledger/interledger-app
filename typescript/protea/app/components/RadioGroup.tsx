@@ -7,7 +7,7 @@ export type RadioGroupOption = {
   name: string
   description?: string
   icon: string
-  disabled?: boolean,
+  disabled?: boolean
   label?: string
 }
 
@@ -65,26 +65,26 @@ export const RadioGroup: FC<RadioGroupProps> = ({
               {({ checked, disabled }) => (
                 <>
                   <div className='flex w-full items-center justify-between'>
-                      <div
+                    <div
                       className={`flex items-center space-x-3 ${
-                          disabled ? 'text-disabled' : 'text-medium'
-                        }`}
-                      >
-                        {option.icon && <Icon>{option.icon}</Icon>}
+                        disabled ? 'text-disabled' : 'text-medium'
+                      }`}
+                    >
+                      {option.icon && <Icon>{option.icon}</Icon>}
                       <div className='flex flex-col'>
                         <HeadlessRadioGroup.Label as='span'>
-                              {option.name}
-                            </HeadlessRadioGroup.Label>
-                          {option.description && (
-                            <HeadlessRadioGroup.Description
-                              as='span'
-                              className={`text-xs ${
-                                disabled ? 'text-disabled' : 'text-weak'
-                              }`}
-                            >
-                              {option.description}
-                            </HeadlessRadioGroup.Description>
-                          )}
+                          {option.name}
+                        </HeadlessRadioGroup.Label>
+                        {option.description && (
+                          <HeadlessRadioGroup.Description
+                            as='span'
+                            className={`text-xs ${
+                              disabled ? 'text-disabled' : 'text-weak'
+                            }`}
+                          >
+                            {option.description}
+                          </HeadlessRadioGroup.Description>
+                        )}
                       </div>
                     </div>
                     <div

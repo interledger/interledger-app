@@ -432,7 +432,7 @@ func FinaliseReserve(ctx context.Context, b Backends, trxID string) error {
 func RollbackReserve(ctx context.Context, b Backends, txID string) error {
 	tx, err := b.Pacioli().VoidTransfers(ctx, []string{txID})
 	if err != nil {
-		slack.SendToChannel(ctx, slack.ChannelNotifyErrors, "wallet-info-bot", fmt.Sprintf("*:::[Fiant ERROR]:::* \n *RollbackReserve txID:* %s,\n *error:* %s", txID, err))
+		slack.SendToChannel(ctx, slack.ChannelError, "wallet-info-bot", fmt.Sprintf("*:::[Fiant ERROR]:::* \n *RollbackReserve txID:* %s,\n *error:* %s", txID, err))
 		return fmt.Errorf("%w %s", pti.ErrInternal, err)
 	}
 	if len(tx) == 0 {

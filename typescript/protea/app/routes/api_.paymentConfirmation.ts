@@ -1,7 +1,7 @@
-import type { Route } from './+types/api_.paymentConfirmation'
-import { data } from 'react-router';
+import { data } from 'react-router'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
+import type { Route } from './+types/api_.paymentConfirmation'
 
 export type PaymentConfirmationResponse = {
   success: boolean

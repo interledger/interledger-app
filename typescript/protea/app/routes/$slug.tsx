@@ -1,10 +1,10 @@
-import type { Route } from './+types/$slug'
-import { data } from 'react-router';
+import { data } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Layouts } from '~/components'
+import type { Route } from './+types/$slug'
 
-import type { UIMatch } from 'react-router';
-import { useLoaderData } from 'react-router';
+import type { UIMatch } from 'react-router'
+import { useLoaderData } from 'react-router'
 import { MarketingPageWithSections } from '~/components/Content'
 import { getCurrentMarketingPage } from '~/data/content.server'
 import type { SectionRecord } from '~/generated/dato-cms-graphql'
@@ -29,7 +29,8 @@ export const handle: ApplicationProps = {
   layout: Layouts.Marketing,
   scaffold: {
     header: {},
-    footer: (match: UIMatch<Route.ComponentProps['loaderData']>) => match.loaderData?.footer
+    footer: (match: UIMatch<Route.ComponentProps['loaderData']>) =>
+      match.loaderData?.footer
   }
 }
 

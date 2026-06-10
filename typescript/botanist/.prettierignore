@@ -3,8 +3,10 @@ public
 public/build
 .cache
 generated
+.react-router
 dist
 yarn.lock
+pnpm-lock.yaml
 app/routes.d.ts
 app/styles/app.css
 

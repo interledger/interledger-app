@@ -3,8 +3,8 @@ import { PendingGrant, IncomingPayment, Quote, type WalletAddress } from '@inter
 export type IframeMessageType = 'WithdrawalCompleted' | 'StripeDepositCompleted';
 
 export interface IframeMessage {
-  type: IframeMessageType;
-  uuid: string;
+  type: IframeMessageType
+  uuid: string
 }
 
 export type Errors = {

@@ -1,8 +1,7 @@
-import { useNavigate } from 'react-router';
 import clsx from 'clsx'
 import { motion } from 'framer-motion'
 import { forwardRef, useEffect, useRef, useState } from 'react'
-import { href } from 'react-router'
+import { href, useNavigate } from 'react-router'
 import { IconButton, TextButton } from '~/components/Buttons'
 import type { SnackbarAction, SnackbarType } from '~/lib/useScaffoldStore'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
@@ -85,7 +84,9 @@ const Stage = forwardRef<any>(({ ...motionProps }, ref) => {
               : 'items-center gap-x-3'
           )}
         >
-          <p className='whitespace-pre-line text-sm text-inverted'>{snackbar.message}</p>
+          <p className='whitespace-pre-line text-sm text-inverted'>
+            {snackbar.message}
+          </p>
           <div className='ml-auto flex items-center gap-x-3'>
             {snackbar.action && (
               <TextButton onClick={() => actionReducer(snackbar?.action)}>

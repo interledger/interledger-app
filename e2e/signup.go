@@ -62,6 +62,14 @@ func (sc *E2EContext) iCompleteSignupFlow(firstName, lastName, email, country, p
 		return err
 	}
 
+	// Phone field appears after country is selected
+	if err := sc.iFillInPhoneWithRandomNumber(phone); err != nil {
+		return err
+	}
+
+	// Wait for phone input to be processed and state to update
+	sc.page.WaitForTimeout(500)
+
 	debugPrintln("   📝 Form filled, clicking Continue...")
 	if err := sc.iClickTheButton("Continue"); err != nil {
 		return err
@@ -70,18 +78,6 @@ func (sc *E2EContext) iCompleteSignupFlow(firstName, lastName, email, country, p
 	debugPrintf("   📍 Current URL after Continue step 1: %s\n", sc.page.URL())
 
 	if err := sc.iShouldBeOnStep(2); err != nil {
-		return err
-	}
-
-	// Generate random phone number with the provided prefix (e.g., "+49")
-	if err := sc.iFillInPhoneWithRandomNumber(phone); err != nil {
-		return err
-	}
-
-	// Wait for phone input to be processed and state to update
-	sc.page.WaitForTimeout(500)
-
-	if err := sc.iClickTheButton("Continue"); err != nil {
 		return err
 	}
 

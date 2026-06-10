@@ -74,3 +74,7 @@ func (n *noopClient) SendKYCDocumentsRequiredEmail(_ context.Context, walletID s
 func (n *noopClient) SendAuthenticatorResetEmail(_ context.Context, walletID string) {
 	log.Info("NOT SENDING: authenticator reset email", zap.String("walletID", walletID))
 }
+
+func (n *noopClient) SendCardTransactionFXEmail(_ context.Context, walletID, _, _, _, _, _, _ string) {
+	log.Info("NOT SENDING: card transaction FX email", zap.String("walletID", walletID))
+}
