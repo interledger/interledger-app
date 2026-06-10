@@ -230,15 +230,27 @@ func (mr *MockClientMockRecorder) SendPending3DSConfirmation(ctx, walletID, conf
 }
 
 // SendSCTITimeoutEmail mocks base method.
-func (m *MockClient) SendSCTITimeoutEmail(ctx context.Context, txID, walletID, amount, beneficiaryIBAN, beneficiaryName, submittedAt string) {
+func (m *MockClient) SendSCTITimeoutEmail(ctx context.Context, txID, walletID, amount, name, iban, submittedAt string) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "SendSCTITimeoutEmail", ctx, txID, walletID, amount, beneficiaryIBAN, beneficiaryName, submittedAt)
+	m.ctrl.Call(m, "SendSCTITimeoutEmail", ctx, txID, walletID, amount, name, iban, submittedAt)
 }
 
 // SendSCTITimeoutEmail indicates an expected call of SendSCTITimeoutEmail.
-func (mr *MockClientMockRecorder) SendSCTITimeoutEmail(ctx, txID, walletID, amount, beneficiaryIBAN, beneficiaryName, submittedAt interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) SendSCTITimeoutEmail(ctx, txID, walletID, amount, name, iban, submittedAt interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendSCTITimeoutEmail", reflect.TypeOf((*MockClient)(nil).SendSCTITimeoutEmail), ctx, txID, walletID, amount, beneficiaryIBAN, beneficiaryName, submittedAt)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendSCTITimeoutEmail", reflect.TypeOf((*MockClient)(nil).SendSCTITimeoutEmail), ctx, txID, walletID, amount, name, iban, submittedAt)
+}
+
+// SendSCTRerouteEmail mocks base method.
+func (m *MockClient) SendSCTRerouteEmail(ctx context.Context, txID, walletID string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SendSCTRerouteEmail", ctx, txID, walletID)
+}
+
+// SendSCTRerouteEmail indicates an expected call of SendSCTRerouteEmail.
+func (mr *MockClientMockRecorder) SendSCTRerouteEmail(ctx, txID, walletID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendSCTRerouteEmail", reflect.TypeOf((*MockClient)(nil).SendSCTRerouteEmail), ctx, txID, walletID)
 }
 
 // SendWithdrawalEmail mocks base method.

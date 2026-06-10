@@ -82,3 +82,7 @@ func (n *noopClient) SendCardTransactionFXEmail(_ context.Context, walletID, _, 
 func (c *noopClient) SendSCTITimeoutEmail(ctx context.Context, txID, walletID, amount, beneficiaryIBAN, beneficiaryName, submittedAt string) {
 	log.Info("NOT SENDING: SCTI timeout email", zap.String("txID", txID), zap.String("walletID", walletID))
 }
+
+func (c *noopClient) SendSCTRerouteEmail(ctx context.Context, txID, walletID string) {
+	log.Info("NOT SENDING: SCT reroute email", zap.String("txID", txID), zap.String("walletID", walletID))
+}

@@ -640,3 +640,34 @@ func SendSCTITimeoutEmail(ctx context.Context, b Backends, txID, walletID, amoun
 		log.Error("Failed to send scti timeout email.", zap.Error(err), zap.String("walletID", walletID))
 	}
 }
+
+func SendSCTRerouteEmail(ctx context.Context, b Backends, txID, walletID string) {
+	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
+	if err != nil {
+		log.Error("Failed to send sct reroute email.", zap.Error(err), zap.String("walletID", walletID))
+		return
+	}
+
+	txURL, err := url.JoinPath(env.GetUrl(), "payments", txID)
+	if err != nil {
+		log.Error("Failed to send sct reroute email.", zap.Error(err), zap.String("walletID", walletID))
+		return
+	}
+
+	data := []map[string]any{
+		{"paragraph": greeting},
+		{"paragraph": "Your payment is processed as a SEPA Credit Transfer Instant by default. However, due to technical limitations your payment will be processed as a standard SEPA Credit Transfer."},
+	}
+
+	err = b.External().SendTemplate(ctx, "Payment rerouted to standard SEPA Credit Transfer", sendTo, b.OneTemplateID(), map[string]any{
+		"subject": "Payment rerouted to standard SEPA Credit Transfer",
+		"data":    data,
+		"cta": map[string]any{
+			"text": "View payment",
+			"url":  txURL,
+		},
+	}, nil)
+	if err != nil {
+		log.Error("Failed to send sct reroute email.", zap.Error(err), zap.String("walletID", walletID))
+	}
+}

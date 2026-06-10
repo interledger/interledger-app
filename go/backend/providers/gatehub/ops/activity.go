@@ -586,3 +586,9 @@ func (a *Activity) SendWithdrawalSCTITimeoutEmail(ctx context.Context, txID, wal
 	a.b.Email().SendSCTITimeoutEmail(ctx, txID, walletID, amount, name, iban, submittedAt)
 	return nil
 }
+
+func (a *Activity) SendWithdrawalReroutedEmail(ctx context.Context, txID, walletID string) error {
+	a.b.Email().SendSCTRerouteEmail(ctx, txID, walletID)
+	return nil
+}
+

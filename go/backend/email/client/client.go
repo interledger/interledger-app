@@ -115,3 +115,7 @@ func (c *client) SendCardTransactionFXEmail(ctx context.Context, walletID, maske
 func (c *client) SendSCTITimeoutEmail(ctx context.Context, txID, walletID, amount, name, iban, submittedAt string) {
 	ops.SendSCTITimeoutEmail(ctx, c.b, txID, walletID, amount, name, iban, submittedAt)
 }
+
+func (c *client) SendSCTRerouteEmail(ctx context.Context, txID, walletID string) {
+	ops.SendSCTRerouteEmail(ctx, c.b, txID, walletID)
+}

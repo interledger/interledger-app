@@ -285,3 +285,34 @@ func NotifyWithdrawalSCTITimeoutWorkflow(ctx workflow.Context, wh MoreBridgeWith
 
 	return nil
 }
+
+func NotifyWithdrawalReroutedWorkflow(ctx workflow.Context, wh MoreBridgeWithdrawalReroutedWebhook) error {
+	var a *Activity
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Second,
+	}
+
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	logger := workflow.GetLogger(ctx)
+	logger.Info("Notify withdrawal SCT reroute.")
+
+	var walletID string
+	err := workflow.ExecuteActivity(ctx, a.GetWalletFromGatehubUser, wh.UserID).Get(ctx, &walletID)
+	if err != nil {
+		return err
+	}
+
+	var tx transactions.Transaction
+	err = workflow.ExecuteActivity(ctx, a.GetGateHubTransactionByForeignID, walletID, wh.Data.ID).Get(ctx, &tx)
+	if err != nil {
+		return err
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.SendWithdrawalSCTITimeoutEmail, tx.ID, walletID).Get(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
