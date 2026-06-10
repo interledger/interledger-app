@@ -36,7 +36,7 @@ const PHONE_OTP_RATE_LIMIT_MESSAGES = {
 } as const
 
 async function getRateLimitIdentity(request: Request): Promise<string> {
-  const session = await getUserSession(request, true)
+  const session = await getUserSession(request)
 
   if (!session?.identity?.id) {
     throw redirect(href('/login'))
@@ -65,11 +65,11 @@ async function applyPhoneOtpRateLimit(
     }
   }
 
-  const minuteRateLimitError = await getRateLimit(
+  const minuteIncrementError = await rateLimit(
     minuteKey,
     PHONE_OTP_LIMITS.perMinute
   )
-  if (minuteRateLimitError) {
+  if (minuteIncrementError) {
     return {
       error: 'rateLimited',
       retryAfter: PHONE_OTP_LIMITS.perMinute.retryAfter,
@@ -87,19 +87,6 @@ async function applyPhoneOtpRateLimit(
       message: PHONE_OTP_RATE_LIMIT_MESSAGES.perHour
     }
   }
-
-  const minuteIncrementError = await rateLimit(
-    minuteKey,
-    PHONE_OTP_LIMITS.perMinute
-  )
-  if (minuteIncrementError) {
-    return {
-      error: 'rateLimited',
-      retryAfter: PHONE_OTP_LIMITS.perMinute.retryAfter,
-      message: PHONE_OTP_RATE_LIMIT_MESSAGES.perMinute
-    }
-  }
-
   return null
 }
 
