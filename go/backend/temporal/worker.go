@@ -125,7 +125,8 @@ func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago
 	w.RegisterActivity(gatehub_workflows.NewActivity(b, gatehubConfig))
 	w.RegisterWorkflow(gatehub_workflows.CreateGatehubUserWorkflow)
 	w.RegisterWorkflow(gatehub_workflows.CreateGatehubDeposit)
-	w.RegisterWorkflow(gatehub_workflows.ProcessGatehubWithdrawal)
+	w.RegisterWorkflow(gatehub_workflows.ProcessGatehubWithdrawal) // TODO: remove once old withdrawal workflows are drained from the Temporal queue
+	w.RegisterWorkflow(gatehub_workflows.CompleteGatehubWithdrawalWorkflow)
 	w.RegisterWorkflow(gatehub_workflows.LinkGatehubUserToGatewayWorkflow)
 	w.RegisterWorkflow(gatehub_workflows.ProcessCardCreationWorkflow)
 	w.RegisterWorkflow(gatehub_workflows.CreateGateHubCardWorkflow)
