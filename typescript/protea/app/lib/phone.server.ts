@@ -7,7 +7,12 @@ import type { TwillioError } from '~/lib/error.mappers'
 import { isConnectError, isOtpValidationError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { getUserSession } from '~/lib/kratos/session.server'
-import { RateLimitKeys, getKey, rateLimit } from '~/lib/rateLimit.server'
+import {
+  RateLimitKeys,
+  getKey,
+  getRateLimit,
+  rateLimit
+} from '~/lib/rateLimit.server'
 
 type ParsedPhoneResult =
   | { success: true; phone: string }
@@ -24,6 +29,12 @@ type OtpRateLimitResult = {
   message: string
 }
 
+const PHONE_OTP_RATE_LIMIT_MESSAGES = {
+  perMinute:
+    'Please wait 1 minute before requesting another verification code.',
+  perHour: 'Too many verification code requests. Please try again in 1 hour.'
+} as const
+
 async function getRateLimitIdentity(request: Request): Promise<string> {
   const session = await getUserSession(request, true)
 
@@ -38,30 +49,54 @@ async function applyPhoneOtpRateLimit(
   request: Request
 ): Promise<OtpRateLimitResult | null> {
   const identity = await getRateLimitIdentity(request)
+  const hourKey = getKey(RateLimitKeys.PhoneOTP, `${identity}:1h`)
+  const minuteKey = getKey(RateLimitKeys.PhoneOTP, `${identity}:1m`)
 
-  const hourRateLimitError = await rateLimit(
-    getKey(RateLimitKeys.PhoneOTP, `${identity}:1h`),
+  // Check first (without incrementing) so we can control message precedence.
+  const hourRateLimitError = await getRateLimit(
+    hourKey,
     PHONE_OTP_LIMITS.perHour
   )
   if (hourRateLimitError) {
     return {
       error: 'rateLimited',
       retryAfter: PHONE_OTP_LIMITS.perHour.retryAfter,
-      message:
-        'Too many verification code requests. Please try again in 1 hour.'
+      message: PHONE_OTP_RATE_LIMIT_MESSAGES.perHour
     }
   }
 
-  const minuteRateLimitError = await rateLimit(
-    getKey(RateLimitKeys.PhoneOTP, `${identity}:1m`),
+  const minuteRateLimitError = await getRateLimit(
+    minuteKey,
     PHONE_OTP_LIMITS.perMinute
   )
   if (minuteRateLimitError) {
     return {
       error: 'rateLimited',
       retryAfter: PHONE_OTP_LIMITS.perMinute.retryAfter,
-      message:
-        'Please wait 1 minute before requesting another verification code.'
+      message: PHONE_OTP_RATE_LIMIT_MESSAGES.perMinute
+    }
+  }
+
+  // Increment both counters only after checks pass.
+  // Keep hour first so a race condition prefers the more restrictive bucket.
+  const hourIncrementError = await rateLimit(hourKey, PHONE_OTP_LIMITS.perHour)
+  if (hourIncrementError) {
+    return {
+      error: 'rateLimited',
+      retryAfter: PHONE_OTP_LIMITS.perHour.retryAfter,
+      message: PHONE_OTP_RATE_LIMIT_MESSAGES.perHour
+    }
+  }
+
+  const minuteIncrementError = await rateLimit(
+    minuteKey,
+    PHONE_OTP_LIMITS.perMinute
+  )
+  if (minuteIncrementError) {
+    return {
+      error: 'rateLimited',
+      retryAfter: PHONE_OTP_LIMITS.perMinute.retryAfter,
+      message: PHONE_OTP_RATE_LIMIT_MESSAGES.perMinute
     }
   }
 
