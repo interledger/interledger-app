@@ -28,6 +28,8 @@ func NewMockServer() *httptest.Server {
 				return
 			}
 
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
 			if _, err := w.Write(body); err != nil {
 				http.Error(w, "Failed to write response.", 500)
 				return

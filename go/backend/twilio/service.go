@@ -104,7 +104,8 @@ func validateConfiguration(twilioClient *twilio.RestClient, serviceSid string) e
 		return nil
 	}
 
-	if twilioError, ok := err.(*client.TwilioRestError); ok {
+	var twilioError *client.TwilioRestError
+	if errors.As(err, &twilioError) {
 		return fmt.Errorf("%w: twilio verify service validation failed (code=%d): %s", ErrInvalidArgument, twilioError.Code, twilioError.Message)
 	}
 
