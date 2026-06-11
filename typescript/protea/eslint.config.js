@@ -1,4 +1,4 @@
-import puglinJs from '@eslint/js'
+import pluginJs from '@eslint/js'
 import prettier from 'eslint-config-prettier'
 import jsxA11y from 'eslint-plugin-jsx-a11y'
 import react from 'eslint-plugin-react'
@@ -17,7 +17,7 @@ export default tseslint.config(
       'app/routes.d.ts'
     ]
   },
-  puglinJs.configs.recommended,
+  pluginJs.configs.recommended,
   ...tseslint.configs.recommended,
   react.configs.flat.recommended,
   react.configs.flat['jsx-runtime'],
