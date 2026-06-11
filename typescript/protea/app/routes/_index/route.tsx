@@ -1,8 +1,5 @@
-import type { Route } from './+types/route'
-import type { LinksFunction, LoaderFunctionArgs } from 'react-router';
-import { data } from 'react-router';
-import type { UIMatch } from 'react-router';
-import { useLoaderData } from 'react-router';
+import type { LinksFunction, LoaderFunctionArgs, UIMatch } from 'react-router'
+import { data, useLoaderData } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Fab, Layouts } from '~/components'
 import {
@@ -16,10 +13,9 @@ import { grpc } from '~/lib/grpc.server'
 import { hasUserSession } from '~/lib/kratos/session.server'
 import { getPusherArgs } from '~/lib/pusher.server'
 import flagStyles from '~/styles/flags.css?url'
+import type { Route } from './+types/route'
 import { AppPage } from './app'
 import { MarketingPage } from './marketing'
-
-
 
 export const links: LinksFunction = () => {
   return [{ rel: 'stylesheet', href: flagStyles }]
@@ -55,7 +51,7 @@ async function appLoader({ request }: LoaderFunctionArgs) {
     getFeatures(request),
     grpc.getBalances(request, {})
   ])
-  if (isConnectError(balanceResponse)) throw balanceResponse.error
+  if (isConnectError(balanceResponse)) throw balanceResponse.errorResponse
 
   return data({
     isUser: true,

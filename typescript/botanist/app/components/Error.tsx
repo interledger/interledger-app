@@ -1,5 +1,5 @@
 import type { FC } from 'react'
-import { Link } from '@remix-run/react'
+import { Link } from 'react-router'
 
 type ErrorProps = {
   status?: number

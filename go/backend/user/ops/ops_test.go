@@ -22,6 +22,65 @@ import (
 	"gitlab.com/fynbos/backend/user"
 )
 
+func TestUpdateUserPhone_StatusMapping(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name         string
+		updateStatus int
+		expectedErr  error
+	}{
+		{
+			name:         "maps bad request to invalid argument",
+			updateStatus: http.StatusBadRequest,
+			expectedErr:  user.ErrInvalidArgument,
+		},
+		{
+			name:         "maps conflict to duplicate phone",
+			updateStatus: http.StatusConflict,
+			expectedErr:  user.ErrDuplicatePhone,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.Method == http.MethodGet {
+					w.Header().Set("Content-Type", "application/json")
+					_ = json.NewEncoder(w).Encode(map[string]any{
+						"id": "user-id",
+						"traits": map[string]any{
+							"phone":         "+10000000000",
+							"phoneVerified": true,
+						},
+					})
+					return
+				}
+
+				w.WriteHeader(tc.updateStatus)
+			}))
+			defer srv.Close()
+
+			cfg := kratos.NewConfiguration()
+			cfg.Servers = kratos.ServerConfigurations{
+				{URL: srv.URL, Description: "Public Kratos"},
+				{URL: srv.URL, Description: "Admin Kratos"},
+			}
+
+			b := &emailTestBackends{
+				kr:  kratos.NewAPIClient(cfg),
+				val: validator.New(),
+			}
+
+			err := UpdateUserPhone(context.Background(), b, "user-id", "+12223334444")
+			require.ErrorIs(t, err, tc.expectedErr)
+		})
+	}
+}
+
 func TestUserForContext(t *testing.T) {
 	ctx := context.Background()
 
@@ -278,11 +337,11 @@ type emailTestBackends struct {
 	val *validator.Validate
 }
 
-func (b *emailTestBackends) DB() *sqlx.DB                  { return b.db }
-func (b *emailTestBackends) Kratos() *kratos.APIClient     { return b.kr }
+func (b *emailTestBackends) DB() *sqlx.DB                   { return b.db }
+func (b *emailTestBackends) Kratos() *kratos.APIClient      { return b.kr }
 func (b *emailTestBackends) Validator() *validator.Validate { return b.val }
-func (b *emailTestBackends) Analytics() analytics.Client   { return analytics_client.New(nil, "") }
-func (b *emailTestBackends) Keys() keys.Client             { return nil }
+func (b *emailTestBackends) Analytics() analytics.Client    { return analytics_client.New(nil, "") }
+func (b *emailTestBackends) Keys() keys.Client              { return nil }
 
 // Maybe it might sense to move to Go 1.26, since the `new` function is now
 // accepting expressions and it returns a pointer to the result.

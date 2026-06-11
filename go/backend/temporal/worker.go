@@ -119,15 +119,19 @@ func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago
 	w.RegisterActivity(gatehub_workflows.NewActivity(b, gatehubConfig))
 	w.RegisterWorkflow(gatehub_workflows.CreateGatehubUserWorkflow)
 	w.RegisterWorkflow(gatehub_workflows.CreateGatehubDeposit)
-	w.RegisterWorkflow(gatehub_workflows.ProcessGatehubWithdrawal)
+	w.RegisterWorkflow(gatehub_workflows.ProcessGatehubWithdrawal) // TODO: remove once old withdrawal workflows are drained from the Temporal queue
+	w.RegisterWorkflow(gatehub_workflows.CompleteGatehubWithdrawalWorkflow)
 	w.RegisterWorkflow(gatehub_workflows.LinkGatehubUserToGatewayWorkflow)
 	w.RegisterWorkflow(gatehub_workflows.ProcessCardCreationWorkflow)
 	w.RegisterWorkflow(gatehub_workflows.CreateGateHubCardWorkflow)
 	w.RegisterWorkflow(gatehub_workflows.BackfillAccountWorkflow)
 	w.RegisterWorkflow(gatehub_workflows.CreateCardTransaction)
-	w.RegisterWorkflow(gatehub_workflows.GatehubCardTransactionsPollWorkflow)
+	w.RegisterWorkflow(gatehub_workflows.GatehubClearingCardTransactionsPollWorkflow)
+	w.RegisterWorkflow(gatehub_workflows.GatehubRealtimeCardTransactionsPollWorkflow)
+	w.RegisterWorkflow(gatehub_workflows.NotifyWithdrawalSCTITimeoutWorkflow)
 
-	gatehub_workflows.StartCardTransactionsPooling(b)
+	gatehub_workflows.StartClearingCardTransactionsPolling(b)
+	gatehub_workflows.StartRealtimeCardTransactionsPolling(b)
 
 	// Chimoney
 	w.RegisterActivity(chimoney_workflows.NewActivity(b, chimoneyToken))

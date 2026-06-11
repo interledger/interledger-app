@@ -1,18 +1,28 @@
-import { Form, useActionData, useLoaderData } from 'react-router';
-import { href } from 'react-router'
+import {
+  Form,
+  href,
+  useActionData,
+  useLoaderData,
+  useNavigation
+} from 'react-router'
 import { Button, Card, CardContent, Checkbox } from '~/components'
 
 import { DateTime } from 'luxon'
 import { usePTISdk } from '~/lib/usePTISdk'
 import { PaymentDetailsCard } from './PaymentDetailsCard'
+import type { confirmPaymentAction } from './action.server'
 import type { loader } from './route'
-import { confirmPaymentAction } from './action.server';
-
 
 export function Confirm() {
   const { payment, account, csrfToken, PTIClientId } =
     useLoaderData<typeof loader>()
   const actionData = useActionData<typeof confirmPaymentAction>()
+  const navigation = useNavigation()
+
+  // Disable while a submit is in flight: a double-click would otherwise fire a
+  // second request that races the redirect and strands the user on Pay search.
+  const isSubmitting =
+    navigation.state !== 'idle' && navigation.formMethod === 'POST'
 
   usePTISdk(payment.id, PTIClientId)
 
@@ -103,6 +113,7 @@ export function Confirm() {
         name='formName'
         value='confirmPayment'
         type='submit'
+        disabled={isSubmitting}
         data-testid='pay-confirm-submit'
       >
         Confirm payment

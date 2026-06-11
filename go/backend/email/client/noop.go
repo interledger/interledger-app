@@ -79,3 +79,11 @@ func (n *noopClient) SendAccountDeletionRequested(_ context.Context, userID stri
 func (n *noopClient) SendAuthenticatorResetEmail(_ context.Context, walletID string) {
 	log.Info("NOT SENDING: authenticator reset email", zap.String("walletID", walletID))
 }
+
+func (n *noopClient) SendCardTransactionFXEmail(_ context.Context, walletID, _, _, _, _, _, _ string) {
+	log.Info("NOT SENDING: card transaction FX email", zap.String("walletID", walletID))
+}
+
+func (c *noopClient) SendSCTITimeoutEmail(ctx context.Context, txID, walletID, amount, beneficiaryIBAN, beneficiaryName, submittedAt string) {
+	log.Info("NOT SENDING: SCTI timeout email", zap.String("txID", txID), zap.String("walletID", walletID))
+}

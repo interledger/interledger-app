@@ -500,6 +500,41 @@ func SendPending3DSConfirmation(ctx context.Context, b Backends, walletID, confi
 	}
 }
 
+func SendCardTransactionFXEmail(ctx context.Context, b Backends, walletID, maskedPAN, merchantName, date, surcharge, transactionAmount, billingAmount string) {
+	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
+	if err != nil {
+		log.Error("Failed to send card FX transaction email.", zap.Error(err), zap.String("walletID", walletID))
+		return
+	}
+
+	table := []map[string]interface{}{
+		{"label": "Date and time:", "text": date},
+		{"label": "Card:", "text": maskedPAN},
+		{"label": "Merchant:", "text": merchantName},
+		{"label": "Transaction amount:", "text": transactionAmount},
+		{"label": "Converted amount:", "text": billingAmount},
+	}
+
+	data := []map[string]interface{}{
+		{"paragraph": greeting},
+		{"paragraph": "We would like to inform you of a foreign exchange transaction made with your card."},
+		{"table": table},
+	}
+	if surcharge != "" {
+		data = append(data, map[string]interface{}{
+			"paragraph": fmt.Sprintf("The markup/surcharge applied to the European Central Bank reference exchange rate for this transaction is %s%%.", surcharge),
+		})
+	}
+
+	err = b.External().SendTemplate(ctx, "Foreign Exchange Transaction Notification", sendTo, b.OneTemplateID(), map[string]interface{}{
+		"subject": "Foreign Exchange Transaction Notification",
+		"data":    data,
+	}, nil)
+	if err != nil {
+		log.Error("Failed to send card FX transaction email.", zap.Error(err), zap.String("walletID", walletID))
+	}
+}
+
 func SendKYCDocumentsRequiredEmail(ctx context.Context, b Backends, walletID string) {
 	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
 	if err != nil {
@@ -623,5 +658,50 @@ func SendAuthenticatorResetEmail(ctx context.Context, b Backends, walletID strin
 	}, nil)
 	if err != nil {
 		log.Error("Failed to send authenticator reset email.", zap.Error(err), zap.String("walletID", walletID))
+	}
+}
+
+func SendSCTITimeoutEmail(ctx context.Context, b Backends, txID, walletID, amount, name, iban, submittedAt string) {
+	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
+	if err != nil {
+		log.Error("Failed to send scti timeout email.", zap.Error(err), zap.String("walletID", walletID))
+		return
+	}
+
+	s := strings.ReplaceAll(iban, " ", "")
+	formattedIBAN := s[:4] + strings.Repeat("X", len(s)-8) + s[len(s)-4:]
+
+	txURL, err := url.JoinPath(env.GetUrl(), "payments", txID)
+	if err != nil {
+		log.Error("Failed to send scti timeout email.", zap.Error(err), zap.String("walletID", walletID))
+		return
+	}
+
+	table := []map[string]any{
+		{"label": "Beneficiary Name:", "text": name},
+		{"label": "Beneficiary IBAN:", "text": formattedIBAN},
+		{"label": "Amount:", "text": amount},
+		{"label": "Submitted:", "text": submittedAt},
+	}
+
+	data := []map[string]any{
+		{"paragraph": greeting},
+		{"paragraph": "We wanted to let you know that your instant payment is still being processed. We did not receive confirmation within 10 seconds, but this does not mean the payment has failed."},
+		{"table": table},
+		{"paragraph": "The payment status will update automatically once the final outcome is available. Please do not resend the payment until you receive confirmation of the final status."},
+		{"paragraph": "If you need any help, please contact us."},
+		{"paragraph": "Thank you for your patience."},
+	}
+
+	err = b.External().SendTemplate(ctx, "SCTI Payment Still In Processing", sendTo, b.OneTemplateID(), map[string]any{
+		"subject": "SCTI Payment Still In Processing",
+		"data":    data,
+		"cta": map[string]any{
+			"text": "View payment",
+			"url":  txURL,
+		},
+	}, nil)
+	if err != nil {
+		log.Error("Failed to send scti timeout email.", zap.Error(err), zap.String("walletID", walletID))
 	}
 }

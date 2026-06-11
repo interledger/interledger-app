@@ -1,7 +1,7 @@
-import type { Route } from './+types/healthz'
 import { getBackendHealth } from '~/lib/backend-health.server'
-import { getRedisHealth } from '~/lib/redis.server'
 import logger from '~/lib/logger.server'
+import { getRedisHealth } from '~/lib/redis.server'
+import type { Route } from './+types/healthz'
 
 // Returns the response headers for /healthz.
 //

@@ -1,8 +1,8 @@
-import type { Logger as PinoLogger, LoggerOptions } from 'pino';
-import pino from 'pino'
 import { createRequire } from 'node:module'
-import { getRequestId, getCorrelationId } from './requestContext.server'
+import type { LoggerOptions, Logger as PinoLogger } from 'pino'
+import pino from 'pino'
 import { envValue } from '~/env.server'
+import { getCorrelationId, getRequestId } from './requestContext.server'
 
 let logger: PinoLogger
 
@@ -16,7 +16,7 @@ const VALID_LOG_LEVELS = ['fatal', 'error', 'warn', 'info', 'debug', 'trace']
 // Get LOG_LEVEL from environment, default to 'warn'
 // This runs once at module load time
 function getLogLevel(): { level: string; wasDefaulted: boolean } {
-  const envLogLevel = envValue("LOG_LEVEL")
+  const envLogLevel = envValue('LOG_LEVEL')
   const logLevel = envLogLevel || 'warn'
   const wasDefaulted = !envLogLevel
 
@@ -30,7 +30,7 @@ function getLogLevel(): { level: string; wasDefaulted: boolean } {
         caller: 'logger.server.ts',
         msg: 'Invalid LOG_LEVEL configuration',
         error: `LOG_LEVEL must be one of: ${VALID_LOG_LEVELS.join(', ')}`,
-        providedValue: logLevel,
+        providedValue: logLevel
       }) + '\n'
     )
     process.exit(1)
@@ -42,7 +42,7 @@ function getLogLevel(): { level: string; wasDefaulted: boolean } {
 // Pino configuration following the logging policy
 function getPinoConfig(): { config: LoggerOptions; wasDefaulted: boolean } {
   const { level: logLevel, wasDefaulted } = getLogLevel()
-  const isDevelopment = envValue("NODE_ENV") === 'development'
+  const isDevelopment = envValue('NODE_ENV') === 'development'
 
   const pinoPrettyTarget = resolvePinoPrettyTarget()
 
@@ -51,27 +51,27 @@ function getPinoConfig(): { config: LoggerOptions; wasDefaulted: boolean } {
     timestamp: pino.stdTimeFunctions.isoTime, // ISO format timestamp
     // Use different transports for different log levels as per policy
     transport:
-      isDevelopment && envValue("LOG_PRETTY") !== 'false' && pinoPrettyTarget
+      isDevelopment && envValue('LOG_PRETTY') !== 'false' && pinoPrettyTarget
         ? {
             target: pinoPrettyTarget,
             options: {
               colorize: true,
               singleLine: false,
               translateTime: 'SYS:standard',
-              ignore: 'pid,hostname',
-            },
+              ignore: 'pid,hostname'
+            }
           }
         : undefined,
     formatters: {
       level: (label) => {
         return { level: label }
-      },
+      }
     },
     base: {
       // Remove the default pid and hostname for cleaner logs
       pid: undefined,
-      hostname: undefined,
-    },
+      hostname: undefined
+    }
   }
 
   return { config, wasDefaulted }
@@ -95,7 +95,7 @@ function resolvePinoPrettyTarget(): string | undefined {
 // create a new logger instance with every change either.
 const { config: pinoConfig, wasDefaulted } = getPinoConfig()
 
-if (envValue("NODE_ENV") === 'production') {
+if (envValue('NODE_ENV') === 'production') {
   logger = pino(pinoConfig)
 } else {
   if (!global.__logger) {

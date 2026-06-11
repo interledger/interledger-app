@@ -932,6 +932,30 @@ table "transactions" {
     type = float
     default = 0
   }
+  column "exchange_rate_applied" {
+    null = true
+    type = text
+  }
+  column "exchange_rate_reference" {
+    null = true
+    type = text
+  }
+  column "exchange_rate_surcharge" {
+    null = true
+    type = text
+  }
+  column "target_amount" {
+    null = true
+    type = bigint
+  }
+  column "target_asset" {
+    null = true
+    type = text
+  }
+  column "target_scale" {
+    null = true
+    type = bigint
+  }
   column "created_at" {
     null    = false
     type    = timestamp

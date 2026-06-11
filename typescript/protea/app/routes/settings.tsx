@@ -39,7 +39,10 @@ export async function loader({ request }: Route.LoaderArgs) {
   const eurBalanceAccount = isConnectError(linkedAccountsResponse)
     ? undefined
     : linkedAccountsResponse.linkedAccounts.find(
-        (la) => la.type === 'balance' && la.receiveCurrencyCode === 'EUR'
+        (la) =>
+          la.type === 'balance' &&
+          la.receiveCurrencyCode === 'EUR' &&
+          la.sendCurrencyCode === 'EUR'
       )
 
   return data({

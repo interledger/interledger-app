@@ -1,5 +1,5 @@
-import { createContext, useContext, useState } from "react"
-import type { ReactNode } from "react"
+import type { ReactNode } from 'react'
+import { createContext, useContext, useState } from 'react'
 
 export type CarouselScreen = 1 | 2 | 3 | 4 | 5
 
@@ -10,7 +10,7 @@ interface PhoneCarouselContextValue {
 
 export const PhoneCarouselContext = createContext<PhoneCarouselContextValue>({
   activeScreen: 1,
-  setActiveScreen: () => {},
+  setActiveScreen: () => {}
 })
 
 /**

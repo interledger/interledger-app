@@ -55,7 +55,7 @@ func (s *rpcService) RequestAccountDeletion(ctx context.Context, _ *pb.RequestAc
 		for _, w := range wallets {
 			walletIDs = append(walletIDs, w.ID)
 		}
-		slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "wallet-info-bot",
+		slack.SendToChannel(ctx, slack.ChannelSignupKYC, "wallet-info-bot",
 			fmt.Sprintf("Account deletion requested\nUserID: %s\nEmail: %s\nWalletIDs: %v", u.ID, strings.TrimSpace(u.Email), walletIDs))
 	} else {
 		log.Warn("account deletion: skipping Slack notification because wallet lookup failed",

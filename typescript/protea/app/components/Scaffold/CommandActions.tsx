@@ -1,10 +1,9 @@
 import type { PlainMessage } from '@bufbuild/protobuf'
 import { Combobox } from '@headlessui/react'
-import { Form, useFetcher, useNavigate } from 'react-router';
 import clsx from 'clsx'
 import type { ChangeEventHandler } from 'react'
 import { useCallback, useEffect, useState } from 'react'
-import { href } from 'react-router'
+import { Form, href, useFetcher, useNavigate } from 'react-router'
 import {
   Card,
   CardButton,
@@ -17,8 +16,7 @@ import {
 import { Label } from '~/components/Label'
 import type { SearchResult } from '~/generated/connect/backend/v1/backend_pb'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
-import { loader } from '~/routes/pay/route';
-
+import type { loader } from '~/routes/pay/route'
 
 type Action = {
   icon: string
@@ -168,8 +166,8 @@ export function CommandActions() {
                 <div className='flex gap-x-3'>
                   {(result.identifierType == 'wallet' ||
                     result.identifierType == 'wallet_url') && (
-                      <InterledgerIcon />
-                    )}
+                    <InterledgerIcon />
+                  )}
                   {result.identifierType == 'twitter' && <TwitterIcon />}
                   {result.identifierType == 'domain' && (
                     <Icon>captive_portal</Icon>

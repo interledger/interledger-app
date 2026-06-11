@@ -1,10 +1,8 @@
-import type { Route } from './+types/payments.$paymentId'
 import type { PlainMessage } from '@bufbuild/protobuf'
-import { data } from 'react-router';
-import type { UIMatch } from 'react-router';
-import { Link, useLoaderData } from 'react-router';
+import clsx from 'clsx'
 import { useState } from 'react'
-import { href } from 'react-router'
+import type { UIMatch } from 'react-router'
+import { data, href, Link, useLoaderData } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   Alert,
@@ -31,13 +29,19 @@ import {
 } from '~/components'
 import { Label } from '~/components/Label'
 import { type PublicWalletInfo } from '~/generated/connect/backend/v1/backend_pb'
+import {
+  computeCardPaymentLabel,
+  computeCardSubtotalStyles
+} from '~/lib/cards/utils'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
 import { getPusherArgs } from '~/lib/pusher.server'
 import { usePusher } from '~/lib/usePusher'
+import type { Route } from './+types/payments.$paymentId'
 
 export async function loader({ request, params }: Route.LoaderArgs) {
+  let statement = false
   let senderAccountTitle, receiverAccountTitle
 
   const transaction = await grpc.lookupTransaction(request, {
@@ -48,17 +52,25 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   if (transaction.type == 'withdrawal' || transaction.type == 'deposit') {
     const linkedAccountsResponse = await grpc.getLinkedAccounts(request, {})
     if (isConnectError(linkedAccountsResponse))
-      throw linkedAccountsResponse.error
+      throw linkedAccountsResponse.errorResponse
     senderAccountTitle = linkedAccountsResponse.linkedAccounts.find(
       (account) => account.id == transaction.senderAccountId
     )?.title
     receiverAccountTitle = linkedAccountsResponse.linkedAccounts.find(
       (account) => account.id == transaction.receiverAccountId
     )?.title
+
+    statement = linkedAccountsResponse.linkedAccounts.some(
+      (la) =>
+        la.type === 'balance' &&
+        la.receiveCurrencyCode === 'EUR' &&
+        la.sendCurrencyCode === 'EUR'
+    )
   }
 
   const walletUrl =
-    transaction.type == 'sent' || transaction.type == 'web_monetization_outgoing'
+    transaction.type == 'sent' ||
+    transaction.type == 'web_monetization_outgoing'
       ? transaction.destination
       : transaction.source
   const publicWalletInfoResponse = await grpc.getPublicWalletInfo(request, {
@@ -80,6 +92,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   const pusherArgs = await getPusherArgs(request)
 
   return data({
+    statement,
     senderAccountTitle,
     receiverAccountTitle,
     publicWalletInfo,
@@ -103,9 +116,7 @@ export const handle: ApplicationProps = {
       actions: (match: UIMatch<Route.ComponentProps['loaderData']>) => {
         if (!match.loaderData) return null
         const { transaction } = match.loaderData
-        if (
-          transaction.refundState == TransactionRefundState.PENDING
-        ) {
+        if (transaction.refundState == TransactionRefundState.PENDING) {
           return {
             key: 'Pending refund',
             nodes: <Chip color={ChipColor.red}>Pending refund</Chip>
@@ -145,15 +156,18 @@ export const handle: ApplicationProps = {
 
 export const meta = mergeMeta(({ data }) => {
   const d = data as Route.ComponentProps['loaderData'] | undefined
-  return [{
-    title:
-      typeof d == 'undefined'
-        ? 'Payment'
-        : // TODO Fix this for withdrawal
-        d.transaction.type == 'sent' || d.transaction.type == 'web_monetization_outgoing'
+  return [
+    {
+      title:
+        typeof d == 'undefined'
+          ? 'Payment'
+          : // TODO Fix this for withdrawal
+          d.transaction.type == 'sent' ||
+            d.transaction.type == 'web_monetization_outgoing'
           ? `${d.transaction.subtotal} to ${d.transaction.title}`
           : `${d.transaction.formattedAmount} from ${d.transaction.title}`
-  }]
+    }
+  ]
 })
 
 export default function Page() {
@@ -166,12 +180,12 @@ export default function Page() {
     <>
       {(transaction.type == 'sent' ||
         transaction.type == 'web_monetization_outgoing') && (
-          <Sent openDialog={() => setShowDialog(true)} />
-        )}
+        <Sent openDialog={() => setShowDialog(true)} />
+      )}
       {(transaction.type == 'received' ||
         transaction.type == 'web_monetization_incoming') && (
-          <Received openDialog={() => setShowDialog(true)} />
-        )}
+        <Received openDialog={() => setShowDialog(true)} />
+      )}
       {transaction.type == 'card_transaction' && <CardTransaction />}
       {transaction.type == 'withdrawal' && <Withdrawal />}
       {transaction.type == 'deposit' && <Deposit />}
@@ -245,7 +259,7 @@ export default function Page() {
 }
 
 function Withdrawal() {
-  const { senderAccountTitle, receiverAccountTitle, transaction } =
+  const { statement, senderAccountTitle, receiverAccountTitle, transaction } =
     useLoaderData<typeof loader>()
 
   return (
@@ -374,10 +388,24 @@ function Withdrawal() {
               <span className='text-weak'>Fees</span>
               <span className='text-medium'>{transaction.fees}</span>
             </div>
-            <div className='mt-4 flex w-full justify-between font-medium'>
+            <div className='mt-2 flex w-full justify-between font-medium'>
               <span className='text-weak'>Net amount</span>
               <span className='text-medium'>{transaction.fundsReceived}</span>
             </div>
+            {statement ? (
+              <div className='mt-2 flex w-full justify-between font-medium'>
+                <span className='text-weak'>Statement </span>
+                <Link
+                  className='text-primary'
+                  target='_blank'
+                  to={href('/api/statements/transaction/:id', {
+                    id: transaction.id
+                  })}
+                >
+                  Download
+                </Link>
+              </div>
+            ) : null}
             <div className='mt-2 flex w-full justify-between font-medium'>
               <span className='text-medium'>Total amount withdrawn</span>
               <span className='text-medium'>{transaction.subtotal}</span>
@@ -401,7 +429,8 @@ function Withdrawal() {
 }
 
 function Deposit() {
-  const { receiverAccountTitle, transaction } = useLoaderData<typeof loader>()
+  const { statement, receiverAccountTitle, transaction } =
+    useLoaderData<typeof loader>()
 
   return (
     <>
@@ -523,11 +552,25 @@ function Deposit() {
               <span className='text-weak'>Fees</span>
               <span className='text-medium'>{transaction.fees}</span>
             </div>
-            <div className='mt-4 flex w-full justify-between font-medium'>
+            {statement ? (
+              <div className='mt-2 flex w-full justify-between font-medium'>
+                <span className='text-weak'>Statement </span>
+                <Link
+                  className='text-primary'
+                  target='_blank'
+                  to={href('/api/statements/transaction/:id', {
+                    id: transaction.id
+                  })}
+                >
+                  Download
+                </Link>
+              </div>
+            ) : null}
+            <div className='mt-2 flex w-full justify-between font-medium'>
               <span className='text-medium'>Total amount deposited</span>
               <span className='text-medium'>{transaction.formattedAmount}</span>
             </div>
-            <div className='mt-4 flex w-full justify-between font-medium'>
+            <div className='mt-2 flex w-full justify-between font-medium'>
               <span className='text-medium'>Total amount received</span>
               <span className='text-medium'>{transaction.fundsReceived}</span>
             </div>
@@ -816,7 +859,12 @@ function CardTransaction() {
       <Card>
         <CardContent>
           <div className='flex items-center justify-between'>
-            <h2 className='text-4xl font-medium text-error'>
+            <h2
+              className={clsx(
+                'text-4xl font-medium',
+                computeCardSubtotalStyles(transaction.cardTransactionDetails)
+              )}
+            >
               {transaction.subtotal}
             </h2>
             <div className='flex flex-col items-end space-y-1'>
@@ -829,21 +877,9 @@ function CardTransaction() {
             </div>
           </div>
         </CardContent>
-        <Label>
-          {transaction.cardTransactionDetails?.type?.toString() === '0' && 'Recipient'}
-          {transaction.cardTransactionDetails?.type?.toString() === '1' && 'Cash at'}
-        </Label>
+        <Label>Merchant</Label>
         <div className='my-1 flex space-x-2 rounded-xl bg-nav p-3'>
-          <div className='flex w-full items-center justify-between text-medium'>
-            <div className='flex space-x-2'>
-              <Icon>
-                {transaction.cardTransactionDetails?.type?.toString() === '0' &&
-                  'local_mall'}
-                {transaction.cardTransactionDetails?.type?.toString() === '1' && 'atm'}
-              </Icon>
-              <span>{transaction.title}</span>
-            </div>
-          </div>
+          <span className='text-medium'>{transaction.title}</span>
         </div>
       </Card>
       <Card>
@@ -866,7 +902,9 @@ function CardTransaction() {
         )}
         <CardContent>
           <div className='mt-2 flex w-full justify-between'>
-            <span className='text-weak'>Payment from</span>
+            <span className='text-weak'>
+              {computeCardPaymentLabel(transaction.cardTransactionDetails)}
+            </span>
             <span className='text-medium'>{transaction.accountTitle}</span>
           </div>
           <div className='mt-2 flex w-full justify-between'>
@@ -885,6 +923,36 @@ function CardTransaction() {
               </Link>
             </span>
           </div>
+          {transaction.reference && (
+            <div className='mt-2 flex w-full justify-between'>
+              <span className='text-weak'>Note</span>
+              <span className='text-medium'>{transaction.reference}</span>
+            </div>
+          )}
+          {transaction.formattedTargetAmount && (
+            <div className='mt-2 flex w-full justify-between'>
+              <span className='text-weak'>Merchant's charge</span>
+              <span className='text-medium'>
+                {transaction.formattedTargetAmount}
+              </span>
+            </div>
+          )}
+          {transaction.exchangeRateApplied && (
+            <div className='mt-2 flex w-full justify-between'>
+              <span className='text-weak'>Exchange rate</span>
+              <span className='text-medium'>
+                {transaction.exchangeRateApplied}
+              </span>
+            </div>
+          )}
+          {transaction.exchangeRateSurcharge && (
+            <div className='mt-2 flex w-full justify-between'>
+              <span className='text-weak'>ECB surcharge</span>
+              <span className='text-medium'>
+                {transaction.exchangeRateSurcharge}%
+              </span>
+            </div>
+          )}
           <div className='mt-4 flex w-full justify-between font-medium'>
             <span className='text-medium'>Amount</span>
             <span className='text-medium'>{transaction.fundsReceived}</span>

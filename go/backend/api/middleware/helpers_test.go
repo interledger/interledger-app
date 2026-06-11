@@ -46,6 +46,12 @@ func (s *stubUserClient) ValidateTotpCode(_ context.Context, _, _ string, _ time
 func (s *stubUserClient) GetUserIDForWallet(_ context.Context, _ string) (string, error) {
 	panic("unexpected")
 }
+func (s *stubUserClient) SetPhoneVerified(_ context.Context, _ string) error {
+	panic("unexpected")
+}
+func (s *stubUserClient) UpdateUserPhone(_ context.Context, _, _ string) error {
+	panic("unexpected")
+}
 func (s *stubUserClient) FindWalletIDByEmail(_ context.Context, _ string) (string, error) {
 	panic("unexpected")
 }

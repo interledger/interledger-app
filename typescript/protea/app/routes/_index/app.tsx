@@ -1,6 +1,5 @@
-import { useLoaderData } from 'react-router';
 import clsx from 'clsx'
-import { href } from 'react-router'
+import { href, useLoaderData } from 'react-router'
 import {
   Alert,
   AlertBody,
@@ -24,9 +23,10 @@ import {
 } from '~/components'
 import { Label } from '~/components/Label'
 import { usePendingConfirmations } from '~/lib/cards/usePendingConfirmations'
-import { usePusher } from '~/lib/usePusher'
-import type { loader, AppLoaderData } from './route'
+import { computeCardSubtotalStyles } from '~/lib/cards/utils'
 import { KycStatus } from '~/lib/types'
+import { usePusher } from '~/lib/usePusher'
+import type { AppLoaderData, loader } from './route'
 
 export function AppPage() {
   const {
@@ -68,8 +68,11 @@ export function AppPage() {
                 <div className='flex flex-col space-y-4'>
                   <p className='text-sm text-medium'>
                     Your KYC submission needs attention. <br />
-                    Please resubmit your documents to activate your wallet. <br />
-                    Your previous submission may have been incomplete, the photos may have been unclear, or your documents may have expired.
+                    Please resubmit your documents to activate your wallet.{' '}
+                    <br />
+                    Your previous submission may have been incomplete, the
+                    photos may have been unclear, or your documents may have
+                    expired.
                   </p>
                   <Router
                     className='text-sm font-medium text-primary'
@@ -111,18 +114,18 @@ export function AppPage() {
         )}
         {(kycStatus == KycStatus.Pending ||
           kycStatus == KycStatus.InReview) && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Activation</CardTitle>
-                <Chip color={ChipColor.orange}>Pending</Chip>
-              </CardHeader>
-              <CardContent>
-                <p className='text-sm text-medium'>
-                  Just a moment, we are verifying your details.
-                </p>
-              </CardContent>
-            </Card>
-          )}
+          <Card>
+            <CardHeader>
+              <CardTitle>Activation</CardTitle>
+              <Chip color={ChipColor.orange}>Pending</Chip>
+            </CardHeader>
+            <CardContent>
+              <p className='text-sm text-medium'>
+                Just a moment, we are verifying your details.
+              </p>
+            </CardContent>
+          </Card>
+        )}
         {kycStatus == KycStatus.Denied && (
           <Card>
             <CardHeader>
@@ -248,49 +251,69 @@ export function AppPage() {
                   })}
                   className='justify-between'
                 >
-                  <div className='flex space-x-1'>
-                    {transaction.state == 'Pending' && <Icon>schedule</Icon>}
-                    {transaction.state == 'Failed' && (
-                      <Icon className='text-error'>exclamation</Icon>
-                    )}
-                    {transaction.state != 'Pending' &&
-                      transaction.state != 'Failed' && (
-                        <>
-                          {transaction.destinationIdentityType == 'wallet' && (
+                  <div className='flex w-7/12 items-center space-x-2'>
+                    {transaction.type === 'card_transaction' ? (
+                      <>
+                        {transaction.state === 'Failed' ? (
+                          <Icon>credit_card_off</Icon>
+                        ) : transaction.state === 'Pending' ? (
+                          <Icon>schedule</Icon>
+                        ) : transaction.cardTransactionDetails
+                            ?.classification === 'Reversal' ? (
+                          <Icon>undo</Icon>
+                        ) : (
+                          <Icon>credit_card</Icon>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        {transaction.state == 'Pending' && (
+                          <Icon>schedule</Icon>
+                        )}
+                        {transaction.state == 'Failed' && (
+                          <Icon className='text-error'>exclamation</Icon>
+                        )}
+                        {transaction.state != 'Pending' &&
+                          transaction.state != 'Failed' && (
                             <>
-                              {transaction.type != 'withdrawal' &&
-                                transaction.type != 'deposit' && (
-                                  <InterledgerIcon />
-                                )}
-                              {transaction.type == 'withdrawal' && (
-                                <Icon>south_west</Icon>
+                              {transaction.destinationIdentityType ==
+                                'wallet' && (
+                                <>
+                                  {transaction.type != 'withdrawal' &&
+                                    transaction.type != 'deposit' && (
+                                      <InterledgerIcon />
+                                    )}
+                                  {transaction.type == 'withdrawal' && (
+                                    <Icon>south_west</Icon>
+                                  )}
+                                  {transaction.type == 'deposit' && (
+                                    <Icon>north_east</Icon>
+                                  )}
+                                </>
                               )}
-                              {transaction.type == 'deposit' && (
-                                <Icon>north_east</Icon>
-                              )}
+                              {transaction.destinationIdentityType ==
+                                'Twitter' && <TwitterIcon />}
+                              {transaction.destinationIdentityType ==
+                                'Slack' && <SlackIcon />}
                             </>
                           )}
-                          {transaction.destinationIdentityType == 'Twitter' && (
-                            <TwitterIcon />
+                        {transaction.state != 'Pending' &&
+                          transaction.state != 'Failed' &&
+                          transaction.destinationIdentityType == 'Unknown' && (
+                            <Icon>account_circle</Icon>
                           )}
-                          {transaction.destinationIdentityType == 'Slack' && (
-                            <SlackIcon />
-                          )}
-                          {transaction.type == 'card_transaction' && (
-                            <Icon>credit_card</Icon>
-                          )}
-                        </>
-                      )}
-                    {transaction.state != 'Pending' &&
-                      transaction.state != 'Failed' &&
-                      transaction.destinationIdentityType == 'Unknown' && (
-                        <Icon>account_circle</Icon>
-                      )}
-                    <div className='flex flex-col space-y-1'>
-                      <span className='text-medium'>{transaction.title}</span>
+                      </>
+                    )}
+                    <div className='flex w-full flex-col space-y-1'>
+                      <span className='truncate text-medium'>
+                        {transaction.title}
+                      </span>
                       <span className='text-xs text-weak'>
                         {transaction.formattedDate} -{' '}
                         {transaction.formattedTime}
+                        {transaction.type === 'card_transaction' &&
+                          transaction.reference &&
+                          `, ${transaction.reference}`}
                       </span>
                     </div>
                   </div>
@@ -298,18 +321,17 @@ export function AppPage() {
                     <span
                       className={clsx(
                         'font-medium',
-                        transaction.type == 'sent' ||
-                          (transaction.type == 'card_transaction' &&
-                            transaction.state === 'Completed')
+                        transaction.type === 'card_transaction'
+                          ? computeCardSubtotalStyles(
+                              transaction.cardTransactionDetails
+                            )
+                          : transaction.type === 'sent' ||
+                            transaction.type === 'web_monetization_outgoing'
                           ? 'text-error'
                           : 'text-medium'
                       )}
                     >
-                      {transaction.type == 'sent' && '- '}
-                      {transaction.type == 'card_transaction' &&
-                        transaction.state == 'Completed' &&
-                        '- '}
-                      {transaction.formattedAmount}
+                      {transaction.subtotal}
                     </span>
                     <Icon>navigate_next</Icon>
                   </div>
@@ -327,7 +349,9 @@ export function AppPage() {
 }
 
 function CTACards() {
-  const { features, walletInfo } = useLoaderData<typeof loader>() as AppLoaderData
+  const { features, walletInfo } = useLoaderData<
+    typeof loader
+  >() as AppLoaderData
 
   return (
     <>

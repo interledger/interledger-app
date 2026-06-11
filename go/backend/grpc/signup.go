@@ -22,11 +22,12 @@ func (s *rpcService) SetSignupUserData(ctx context.Context, req *pb.SetSignupUse
 		id = *req.Id
 	}
 	args := signup.UserDataArgs{
-		ID:          id,
-		FirstName:   req.FirstName,
-		LastName:    req.LastName,
-		Email:       req.Email,
-		CountryCode: req.CountryCode,
+		ID:           id,
+		FirstName:    req.FirstName,
+		LastName:     req.LastName,
+		Email:        req.Email,
+		CountryCode:  req.CountryCode,
+		MobileNumber: req.Mobile,
 	}
 
 	err := s.b.Validator().StructCtx(ctx, args)

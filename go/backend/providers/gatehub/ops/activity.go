@@ -3,7 +3,6 @@ package ops
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -13,7 +12,6 @@ import (
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/notify"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	"gitlab.com/fynbos/backend/providers/gatehub/external"
@@ -269,7 +267,7 @@ func (a *Activity) CreateGatehubDepositTransaction(ctx context.Context, transact
 func (a *Activity) UpdateGatehubWithdrawalState(ctx context.Context, walletID, transactionID string, state transactions.State) error {
 	info := activity.GetInfo(ctx)
 	if info.Attempt == 1 && state == transactions.StateFailed {
-		slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "wallet-info-bot", fmt.Sprintf("Gatehub withdrawal failed. %s/wallet/%s/transactions/%s", env.AdminURL(), walletID, transactionID))
+		slack.SendToChannel(ctx, slack.ChannelError, "wallet-info-bot", fmt.Sprintf("Gatehub withdrawal failed. %s/wallet/%s/transactions/%s", env.AdminURL(), walletID, transactionID))
 	}
 
 	trx, err := a.b.Transactions().GetTransaction(ctx, walletID, transactionID)
@@ -454,64 +452,6 @@ func (a *Activity) CheckGatehubWithdrawalComplete(ctx context.Context, walletID,
 	return nil
 }
 
-func (a *Activity) CreateNewDeliveryAddress(ctx context.Context, userID, customerID string, args external.CreateCustomerDeliveryAddressArgs) (string, error) {
-	id, err := a.external.CreateCustomerDeliveryAddress(ctx, userID, customerID, args)
-	if err != nil {
-		return "", fmt.Errorf("%w %s", gatehub.ErrInternal, err)
-	}
-
-	return id, nil
-}
-
-func (a *Activity) CreateCard(ctx context.Context, userID, accountID string, args external.OrderCardArgs) (*external.Card, error) {
-	card, err := a.external.OrderCard(ctx, userID, accountID, args)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
-	}
-
-	return card, nil
-}
-
-func (a *Activity) StoreCustomerIDs(ctx context.Context, userID, customerID, accountID string) (bool, error) {
-	shouldOrderPlastic, err := updateCustomerIDsReturningPlasticFlag(ctx, a.b, userID, customerID, accountID)
-	if err != nil {
-		return false, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
-	}
-
-	if !shouldOrderPlastic.Valid {
-		return false, fmt.Errorf("%w unknown card type - flag was not set when creating customer", gatehub.ErrInternal)
-	}
-
-	return shouldOrderPlastic.Bool, nil
-}
-
-func (a *Activity) CreatePlasticForCard(ctx context.Context, userID, cardID string) error {
-	return a.external.CreatePlasticForCard(ctx, userID, cardID)
-}
-
-func (a *Activity) MarkFirstCardAsProcessed(ctx context.Context, userID string) error {
-	err := updateFirstCardProcessTime(ctx, a.b, userID)
-	if err != nil {
-		return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
-	}
-
-	return nil
-}
-
-func (a *Activity) IsCustomerCreated(ctx context.Context, userID string) (bool, error) {
-	externalIDs, err := getExternalIDsByUserID(ctx, a.b, userID)
-	if err != nil {
-		return false, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
-	}
-
-	return externalIDs.IsCustomerCreated(), nil
-}
-
-func (a *Activity) SendCardReadyEmail(ctx context.Context, walletID, cardID string) error {
-	a.b.Email().SendCardCreatedEmail(ctx, walletID, cardID)
-	return nil
-}
-
 func (a *Activity) LinkGatehubUserToGateway(ctx context.Context, externalUser string) error {
 	return a.external.LinkUserToGateway(ctx, externalUser)
 }
@@ -625,204 +565,24 @@ func (a *Activity) SetKYCApprovedForGatehub(ctx context.Context, walletID string
 	return a.b.KYC().SetKYCStatus(ctx, walletID, kyc.StatusLevel1)
 }
 
-func (a *Activity) Notify(ctx context.Context, walletID string, notificationType notify.NotificationType) error {
-	a.b.Notify().NotifyWallet(ctx, walletID, notificationType)
-	return nil
+func (a *Activity) GetGateHubTransactionByForeignID(ctx context.Context, walletID, foreignID string) (*transactions.Transaction, error) {
+	tx, err := a.b.Transactions().GetTransactionByForeignID(ctx, walletID, foreignID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+	return tx, nil
 }
 
-func (a *Activity) GetCardDetails(ctx context.Context, userID, cardID string) (*external.Card, error) {
-	return a.external.GetCardDetails(ctx, userID, cardID)
-}
-
-func (a *Activity) GetCardTransaction(ctx context.Context, userID, txID string) (*external.CardTransaction, error) {
-	return a.external.GetCardTransaction(ctx, userID, txID)
-}
-
-func (a *Activity) SaveGatehubCardTransaction(ctx context.Context, userID, cardID, cardMaskedPan string, tx external.CardTransaction) error {
-	raw, err := json.Marshal(tx)
-	if err != nil {
-		return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
-	}
-
-	maskedPan := formatMaskedPan(cardMaskedPan)
-
-	_, err = a.b.DB().ExecContext(ctx,
-		"INSERT INTO gatehub_card_transactions (id, user_id, card_id, card_masked_pan, gatehub_response_code, gatehub_response_description, type, status, mcc, transaction_amount, transaction_currency, raw_transaction) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) ON CONFLICT DO NOTHING;",
-		tx.TransactionID,
-		userID,
-		cardID,
-		maskedPan,
-		tx.GHResponseCode,
-		tx.GHResponseDescription,
-		tx.Type,
-		tx.TxStatus,
-		tx.Mcc,
-		tx.TransactionAmount,
-		tx.TransactionCurrency,
-		raw,
-	)
-	if err != nil {
-		return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
-	}
-
-	return nil
-}
-
-func (a *Activity) CreateGatehubCardTransaction(ctx context.Context, userID, txID string, tx external.CardTransaction) error {
-	if tx.BillingCurrency == nil || tx.BillingAmount == nil {
-		return temporal.NewNonRetryableApplicationError("Invalid billing currency or amount", "ErrInternal", fmt.Errorf("%w invalid currency or amount", gatehub.ErrInternal))
-	}
-
-	if *tx.BillingCurrency != currency.EUR.String() {
-		return temporal.NewNonRetryableApplicationError("Invalid currency", "ErrInternal", fmt.Errorf("%w invalid currency", gatehub.ErrInternal))
-	}
-
-	merchantName := getMerchantName(tx)
-
-	walletID, err := getWalletID(ctx, a.b, userID)
-	if err != nil {
-		return err
-	}
-
-	wallet, err := a.b.Wallets().Get(ctx, walletID)
-	if errors.Is(err, gatehub.ErrNotFound) {
-		return temporal.NewNonRetryableApplicationError("Wallet not found", "ErrNotFound", fmt.Errorf("%w No wallet found for gatehub user", gatehub.ErrNotFound))
-	}
-	if err != nil {
-		return err
-	}
-
-	las, err := a.b.LinkedAccounts().ListBalances(ctx, walletID)
-	if err != nil {
-		return err
-	}
-
-	var eurBalance *linkedaccounts.LinkedAccount
-	for _, la := range las {
-		if la.Provider == gatehub.ProviderName && la.Type == gatehub.AccTypeBalance {
-			eurBalance = &la
-			break
-		}
-	}
-
-	if eurBalance == nil {
-		return temporal.NewNonRetryableApplicationError("Gatehub EUR balance account not found", "ErrInternal", fmt.Errorf("%w Gatehub EUR balance account not found", gatehub.ErrInternal))
-	}
-
-	transactionArgs := transactions.CreateTransactionArgs{
-		ID:                 txID,
-		WalletID:           walletID,
-		Provider:           gatehub.ProviderName,
-		State:              transactions.StatePending,
-		ForeignID:          tx.TransactionID,
-		ForeignType:        transactions.TransactionTypeCardTransaction,
-		Source:             wallet.AddressString(),
-		LinkedAccountTitle: "EUR Balance",
-		Title:              merchantName,
-		Destination:        merchantName,
-	}
-
-	val, err := StringToScaledUInt(*tx.BillingAmount)
-	if err != nil {
-		return temporal.NewNonRetryableApplicationError("Invalid billing amount", "ErrInternal", fmt.Errorf("%w invalid billing amount: %s", gatehub.ErrInternal, *tx.BillingAmount))
-	}
-
-	amount := currency.Amount{
-		Value:    val,
-		Currency: currency.EUR,
-		Scale:    2,
-	}
-
-	transactionArgs.Amount = amount
-	transactionArgs.Transfers = []transactions.TransferArgs{
-		{
-			LinkedAccountID: eurBalance.ID,
-			ForeignID:       tx.TransactionID,
-			Amount:          amount,
-			Type:            transactions.TransferTypeDebitCard,
-			State:           transactions.StatePending,
-		},
-	}
-
-	_, err = a.b.Transactions().CreateTransaction(ctx, transactionArgs)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (a *Activity) FinalizeGatehubCardTransaction(ctx context.Context, cardTxID, internalTxID string) error {
+func (a *Activity) FinalizeGatehubWithdrawal(ctx context.Context, internalTxID string) error {
 	err := FinaliseReserve(ctx, a.b, internalTxID)
 	if err != nil {
 		return err
 	}
 
-	transfers, err := a.b.Transactions().ListTransfers(ctx, internalTxID)
-	if err != nil {
-		return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
-	}
-	for _, t := range transfers {
-		err = a.b.Transactions().SetTransferState(ctx, t.ID, transactions.StateCompleted)
-		if err != nil {
-			return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
-		}
-	}
-
-	err = a.b.Transactions().SetTransactionState(ctx, internalTxID, transactions.StateCompleted)
-	if err != nil {
-		return err
-	}
-
-	err = updateCardTransactionStatus(ctx, a.b, cardTxID, external.CardTractionStatusCompleted)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return a.b.Transactions().SetTransactionState(ctx, internalTxID, transactions.StateCompleted)
 }
 
-func (a *Activity) RollbackGatehubCardTransaction(ctx context.Context, cardTxID, internalTxID string) error {
-	err := RollbackReserve(ctx, a.b, internalTxID)
-	if err != nil {
-		return err
-	}
-
-	transfers, err := a.b.Transactions().ListTransfers(ctx, internalTxID)
-	if err != nil {
-		return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
-	}
-	for _, t := range transfers {
-		err = a.b.Transactions().SetTransferState(ctx, t.ID, transactions.StateFailed)
-		if err != nil {
-			return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
-		}
-	}
-
-	err = a.b.Transactions().SetTransactionState(ctx, internalTxID, transactions.StateFailed)
-	if err != nil {
-		return err
-	}
-
-	err = updateCardTransactionStatus(ctx, a.b, cardTxID, external.CardTractionStatusFailed)
-	if err != nil {
-		return err
-	}
-
+func (a *Activity) SendWithdrawalSCTITimeoutEmail(ctx context.Context, txID, walletID, amount, name, iban, submittedAt string) error {
+	a.b.Email().SendSCTITimeoutEmail(ctx, txID, walletID, amount, name, iban, submittedAt)
 	return nil
-}
-
-func getMerchantName(tx external.CardTransaction) string {
-	switch tx.Type {
-	case external.CardTransactionTypeATMWithdrawal:
-		if tx.MerchantName != nil && *tx.MerchantName != "" {
-			return fmt.Sprintf("ATM Withdrawal (%s)", *tx.MerchantName)
-		}
-		return "ATM Withdrawal"
-	default:
-		if tx.MerchantName != nil && *tx.MerchantName != "" {
-			return *tx.MerchantName
-		}
-		return "N/A"
-	}
 }

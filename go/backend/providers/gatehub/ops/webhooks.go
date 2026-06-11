@@ -138,6 +138,43 @@ type (
 		Gateway        string `json:"gateway"`
 		ExpirationDate string `json:"expiration_date,omitempty"`
 	}
+
+	WithdrawalCompletedWebhook struct {
+		ID          string                         `json:"uuid"`
+		EventType   string                         `json:"event_type"`
+		Timestamp   string                         `json:"timestamp"`
+		UserID      string                         `json:"user_uuid"`
+		Environment string                         `json:"environment"`
+		Data        WithdrawalCompletedWebhookData `json:"data"`
+	}
+
+	WithdrawalCompletedWebhookData struct {
+		TxID      string `json:"tx_uuid"`
+		Amount    string `json:"amount"`
+		Currency  string `json:"currency"`
+		Address   string `json:"address"`
+		TotalFees string `json:"total_fees"`
+	}
+
+	MoreBridgeWithdrawalSCTITimeoutWebhook struct {
+		ID          string                                     `json:"uuid"`
+		Timestamp   string                                     `json:"timestamp"`
+		UserID      string                                     `json:"user_uuid"`
+		EventType   string                                     `json:"event_type"`
+		Environment string                                     `json:"environment"`
+		Data        MoreBridgeWithdrawalSCTITimeoutWebhookData `json:"data"`
+	}
+
+	MoreBridgeWithdrawalSCTITimeoutWebhookData struct {
+		TransactionID    string `json:"txUuid"`
+		Amount           string `json:"amount"`
+		Currency         string `json:"currency"`
+		CounterpartyName string `json:"counterpartyName"`
+		CounterpartyIBAN string `json:"counterpartyIban"`
+		SEPAReference    string `json:"reference"`
+		Timestamp        string `json:"timestamp"`
+	}
+
 )
 
 func NewWebhook(b Backends, cfg gatehub.Config) http.HandlerFunc {
@@ -203,6 +240,8 @@ func NewWebhook(b Backends, cfg gatehub.Config) http.HandlerFunc {
 			HandleUserVerificationWebhook(r.Context(), b, body, w)
 		case "core.deposit.completed":
 			HandleUserDeposit(r.Context(), b, body, w)
+		case "core.withdrawal.completed":
+			HandleWithdrawalCompleted(r.Context(), b, body, w)
 		case "id.document_notice.expired", "id.document_notice.warning", "id.verification.action_required":
 			HandleActionRequiredWebhook(r.Context(), b, body, w)
 		case "cards.card.created":
@@ -211,6 +250,8 @@ func NewWebhook(b Backends, cfg gatehub.Config) http.HandlerFunc {
 			HandleCardThreeDSConfirmation(r.Context(), b, body, w)
 		case "cards.transaction.event":
 			HandleCardTransactionEvent(r.Context(), b, body, w)
+		case "more-bridge.withdrawal.scti_timeout":
+			HandleWithdrawalSCTITimeout(r.Context(), b, body, w)
 		default:
 			log.Warn("gatehub webhook. Unhandled webhook type", zap.String("event_type", wh.EventType), zap.String("payload", string(body)))
 		}
@@ -305,7 +346,7 @@ func HandleActionRequiredWebhook(ctx context.Context, b Backends, raw json.RawMe
 		return
 	}
 
-	slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "wallet-info-bot",
+	slack.SendToChannel(ctx, slack.ChannelSignupKYC, "wallet-info-bot",
 		fmt.Sprintf("KYC resubmission required - walletID: %s, event: %s", walletID, wh.EventType),
 	)
 
@@ -477,6 +518,97 @@ func HandleCardThreeDSConfirmation(ctx context.Context, b Backends, raw json.Raw
 
 	w.WriteHeader(http.StatusOK)
 }
+
+func HandleWithdrawalCompleted(ctx context.Context, b Backends, raw json.RawMessage, w http.ResponseWriter) {
+	var wh WithdrawalCompletedWebhook
+	err := json.Unmarshal(raw, &wh)
+	if err != nil {
+		log.Error("gatehub webhook: Failed to unmarshal withdrawal completed webhook", zap.String("payload", string(raw)), zap.Error(err))
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	wo := client.StartWorkflowOptions{
+		ID:                    "gatehub_withdrawal_completed_" + wh.ID,
+		TaskQueue:             "backend",
+		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+	}
+
+	var workflowStatus enums.WorkflowExecutionStatus
+	wflow, err := b.Temporal().DescribeWorkflowExecution(ctx, wo.ID, "")
+	switch err.(type) {
+	case *serviceerror.Internal,
+		*serviceerror.Unavailable,
+		*serviceerror.InvalidArgument:
+		log.Error("gatehub webhook: Failed to handle withdrawal completed webhook", zap.Error(err))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	case *serviceerror.NotFound:
+		// do nothing
+	default:
+		if wflow != nil {
+			workflowStatus = wflow.GetWorkflowExecutionInfo().Status
+		}
+	}
+
+	if workflowStatus != enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
+		_, err = b.Temporal().ExecuteWorkflow(ctx, wo, CompleteGatehubWithdrawalWorkflow, wh.UserID, wh.Data.TxID)
+		if err != nil {
+			log.Error("gatehub webhook: Failed to start complete withdrawal workflow", zap.Error(err))
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func HandleWithdrawalSCTITimeout(ctx context.Context, b Backends, raw json.RawMessage, w http.ResponseWriter) {
+	var wh MoreBridgeWithdrawalSCTITimeoutWebhook
+	err := json.Unmarshal(raw, &wh)
+	if err != nil {
+		log.Error("gatehub webhook: Failed to unmarshal scti timeout event webhook", zap.String("webhook", string(raw)), zap.Error(err))
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	wo := client.StartWorkflowOptions{
+		ID:                    "gatehub_withdrawal_scti_timeout_" + wh.ID,
+		TaskQueue:             "backend",
+		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
+	}
+
+	var workflowStatus enums.WorkflowExecutionStatus
+	wflow, err := b.Temporal().DescribeWorkflowExecution(ctx, wo.ID, "")
+	switch err.(type) {
+	case *serviceerror.Internal,
+		*serviceerror.Unavailable,
+		*serviceerror.InvalidArgument:
+
+		log.Error("Failed to handle gatehub card transaction event webhook", zap.Error(err))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	case *serviceerror.NotFound:
+		// do nothing
+	default:
+		if wflow != nil {
+			workflowStatus = wflow.GetWorkflowExecutionInfo().Status
+		}
+	}
+
+	// execute workflow if it's not running
+	if workflowStatus != enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
+		_, err = b.Temporal().ExecuteWorkflow(ctx, wo, NotifyWithdrawalSCTITimeoutWorkflow, wh)
+		if err != nil {
+			log.Error("Failed to handle gatehub card transaction event webhook", zap.Error(err))
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
 
 func Verify(ctx context.Context, r *http.Request, key []byte) ([]byte, error) {
 	payload, err := io.ReadAll(r.Body)

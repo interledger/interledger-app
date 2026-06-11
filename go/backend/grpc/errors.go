@@ -36,10 +36,14 @@ const VALIDATION_ERR_MSG = "Some fields are incorrect."
 
 var errorStatus = map[error]error{
 	user.ErrNoUserFound:                 newError(codes.Unauthenticated, errcodes.ErrCodeUserNoUserFound, "Unauthenticated", nil),
-	twilio.ErrInvalidOTP:                newValidationErrorSingleField(errcodes.ErrCodeTwilioInvalidOTP, "OTP", "Could not validate OTP"),
+	user.ErrInvalidArgument:             NewValidationError("phone", "Phone number is invalid."),
+	user.ErrDuplicatePhone:              newError(codes.AlreadyExists, errcodes.ErrCodeSignupDuplicatePhone, "Phone number already exists with a user.", nil),
+	twilio.ErrInvalidOTP:                newTwilioValidationErrorSingleField(errcodes.ErrCodeTwilioInvalidOTP, "otp", "Could not validate OTP"),
+	twilio.ErrInvalidArgument:           newTwilioValidationErrorSingleField(errcodes.ErrCodeTwilioInvalidOTP, "otp", "Invalid OTP format"),
 	wallets.ErrDuplicateWallet:          newError(codes.AlreadyExists, errcodes.ErrCodeWalletsDuplicateWallet, "Wallet already exists", nil),
 	wallets.ErrWalletConflict:           newError(codes.FailedPrecondition, errcodes.ErrCodeWalletsWalletConflict, "Wallet already exists but with different configuration than requested (for example, country, currency, or addresses)", nil),
 	linkedaccounts.ErrNotFound:          newError(codes.NotFound, errcodes.ErrCodeLinkedAccNotFound, "Not found: linked account not found", nil),
+	signup.ErrInvalidOTP:                newTwilioValidationErrorSingleField(errcodes.ErrCodeTwilioInvalidOTP, "otp", "Could not validate OTP"),
 	signup.ErrDuplicatePhone:            newError(codes.AlreadyExists, errcodes.ErrCodeSignupDuplicatePhone, "Phone number already exists with a user.", nil),
 	identities.ErrAlreadyExists:         newError(codes.AlreadyExists, errcodes.ErrCodeIdentitiesAlreadyExists, "Identity already exists", nil),
 	wallets.ErrNoWalletFound:            newError(codes.NotFound, errcodes.ErrCodeWalletsNoWalletFound, "Not found: wallet address not found", nil),
@@ -141,23 +145,7 @@ func NewValidationError(field string, description string) error {
 }
 
 func NewTwilioError(field string, description string) error {
-	st := status.New(codes.InvalidArgument, VALIDATION_ERR_MSG)
-
-	br := &errdetails.BadRequest{}
-	appendBrFieldViolation(br, field, description)
-	metadata := &errdetails.ErrorInfo{
-		Reason: "TwilioError",
-	}
-
-	// TODO maybe a TWILIO specific error code?
-	fields := []*pb.AppErrorField{newAppErrorField(field, description)}
-	appError := &pb.AppError{
-		ErrorCode: errcodes.ErrCodeValidation,
-		Message:   VALIDATION_ERR_MSG,
-		Fields:    fields,
-	}
-
-	return statusWithDetails(st, br, metadata, appError).Err()
+	return newTwilioValidationErrorSingleField(errcodes.ErrCodeTwilioInvalidOTP, field, description)
 }
 
 // Validation error will build an immutable error representing the status of the response.
@@ -321,6 +309,20 @@ func newError(grpcCode codes.Code, appErrCode errcodes.AppErrorCode, msg string,
 	}
 
 	return statusWithDetails(st, appError).Err()
+}
+
+func newTwilioValidationErrorSingleField(appErrCode errcodes.AppErrorCode, field string, fieldError string) error {
+	st := status.New(codes.InvalidArgument, VALIDATION_ERR_MSG)
+	br := &errdetails.BadRequest{}
+	appendBrFieldViolation(br, field, fieldError)
+	metadata := &errdetails.ErrorInfo{Reason: "TwilioError"}
+	appError := &pb.AppError{
+		ErrorCode: appErrCode,
+		Message:   VALIDATION_ERR_MSG,
+		Fields:    []*pb.AppErrorField{newAppErrorField(field, fieldError)},
+	}
+
+	return statusWithDetails(st, br, metadata, appError).Err()
 }
 
 func newValidationErrorSingleField(appErrCode errcodes.AppErrorCode, field string, fieldError string) error {

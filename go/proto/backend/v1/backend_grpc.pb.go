@@ -126,6 +126,8 @@ const (
 	BackendService_ThreeDSPaymentConfirmation_FullMethodName     = "/backend.v1.BackendService/ThreeDSPaymentConfirmation"
 	BackendService_RequestAccountDeletion_FullMethodName         = "/backend.v1.BackendService/RequestAccountDeletion"
 	BackendService_GetAccountDeletionStatus_FullMethodName       = "/backend.v1.BackendService/GetAccountDeletionStatus"
+	BackendService_ConfirmUserPhone_FullMethodName               = "/backend.v1.BackendService/ConfirmUserPhone"
+	BackendService_UpdateUserPhone_FullMethodName                = "/backend.v1.BackendService/UpdateUserPhone"
 )
 
 // BackendServiceClient is the client API for BackendService service.
@@ -267,6 +269,9 @@ type BackendServiceClient interface {
 	RequestAccountDeletion(ctx context.Context, in *RequestAccountDeletionRequest, opts ...grpc.CallOption) (*Empty, error)
 	// Returns whether the authenticated user has a pending account deletion request.
 	GetAccountDeletionStatus(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*AccountDeletionStatus, error)
+	// Phone confirmation
+	ConfirmUserPhone(ctx context.Context, in *ConfirmUserPhoneRequest, opts ...grpc.CallOption) (*Empty, error)
+	UpdateUserPhone(ctx context.Context, in *UpdateUserPhoneRequest, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type backendServiceClient struct {
@@ -1347,6 +1352,26 @@ func (c *backendServiceClient) GetAccountDeletionStatus(ctx context.Context, in 
 	return out, nil
 }
 
+func (c *backendServiceClient) ConfirmUserPhone(ctx context.Context, in *ConfirmUserPhoneRequest, opts ...grpc.CallOption) (*Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, BackendService_ConfirmUserPhone_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) UpdateUserPhone(ctx context.Context, in *UpdateUserPhoneRequest, opts ...grpc.CallOption) (*Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, BackendService_UpdateUserPhone_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServiceServer is the server API for BackendService service.
 // All implementations should embed UnimplementedBackendServiceServer
 // for forward compatibility.
@@ -1486,6 +1511,9 @@ type BackendServiceServer interface {
 	RequestAccountDeletion(context.Context, *RequestAccountDeletionRequest) (*Empty, error)
 	// Returns whether the authenticated user has a pending account deletion request.
 	GetAccountDeletionStatus(context.Context, *Empty) (*AccountDeletionStatus, error)
+	// Phone confirmation
+	ConfirmUserPhone(context.Context, *ConfirmUserPhoneRequest) (*Empty, error)
+	UpdateUserPhone(context.Context, *UpdateUserPhoneRequest) (*Empty, error)
 }
 
 // UnimplementedBackendServiceServer should be embedded to have
@@ -1815,6 +1843,12 @@ func (UnimplementedBackendServiceServer) RequestAccountDeletion(context.Context,
 }
 func (UnimplementedBackendServiceServer) GetAccountDeletionStatus(context.Context, *Empty) (*AccountDeletionStatus, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetAccountDeletionStatus not implemented")
+}
+func (UnimplementedBackendServiceServer) ConfirmUserPhone(context.Context, *ConfirmUserPhoneRequest) (*Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method ConfirmUserPhone not implemented")
+}
+func (UnimplementedBackendServiceServer) UpdateUserPhone(context.Context, *UpdateUserPhoneRequest) (*Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateUserPhone not implemented")
 }
 func (UnimplementedBackendServiceServer) testEmbeddedByValue() {}
 
@@ -3762,6 +3796,42 @@ func _BackendService_GetAccountDeletionStatus_Handler(srv interface{}, ctx conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_ConfirmUserPhone_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ConfirmUserPhoneRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).ConfirmUserPhone(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_ConfirmUserPhone_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).ConfirmUserPhone(ctx, req.(*ConfirmUserPhoneRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_UpdateUserPhone_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateUserPhoneRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).UpdateUserPhone(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_UpdateUserPhone_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).UpdateUserPhone(ctx, req.(*UpdateUserPhoneRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BackendService_ServiceDesc is the grpc.ServiceDesc for BackendService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -4196,6 +4266,14 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetAccountDeletionStatus",
 			Handler:    _BackendService_GetAccountDeletionStatus_Handler,
+		},
+		{
+			MethodName: "ConfirmUserPhone",
+			Handler:    _BackendService_ConfirmUserPhone_Handler,
+		},
+		{
+			MethodName: "UpdateUserPhone",
+			Handler:    _BackendService_UpdateUserPhone_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -50,6 +50,24 @@ export interface ThreeDSPaymentConfirmationRequest {
     confirmed: boolean;
 }
 /**
+ * @generated from protobuf message backend.v1.ConfirmUserPhoneRequest
+ */
+export interface ConfirmUserPhoneRequest {
+    /**
+     * @generated from protobuf field: string otp = 1;
+     */
+    otp: string;
+}
+/**
+ * @generated from protobuf message backend.v1.UpdateUserPhoneRequest
+ */
+export interface UpdateUserPhoneRequest {
+    /**
+     * @generated from protobuf field: string phone = 1;
+     */
+    phone: string;
+}
+/**
  * @generated from protobuf message backend.v1.PendingThreeDSConfirmation
  */
 export interface PendingThreeDSConfirmation {
@@ -1002,9 +1020,17 @@ export interface CardTransactionDetails {
      */
     cardMaskedPan: string;
     /**
-     * @generated from protobuf field: int64 type = 3;
+     * @generated from protobuf field: string type = 3;
      */
     type: string;
+    /**
+     * @generated from protobuf field: backend.v1.CardOperation operation = 4;
+     */
+    operation: CardOperation;
+    /**
+     * @generated from protobuf field: string classification = 5;
+     */
+    classification: string;
 }
 /**
  * @generated from protobuf message backend.v1.Transaction
@@ -1104,6 +1130,26 @@ export interface Transaction {
      * @generated from protobuf field: optional backend.v1.CardTransactionDetails cardTransactionDetails = 24;
      */
     cardTransactionDetails?: CardTransactionDetails;
+    /**
+     * @generated from protobuf field: optional string exchangeRateApplied = 25;
+     */
+    exchangeRateApplied?: string;
+    /**
+     * @generated from protobuf field: optional string exchangeRateReference = 26;
+     */
+    exchangeRateReference?: string;
+    /**
+     * @generated from protobuf field: optional string exchangeRateSurcharge = 27;
+     */
+    exchangeRateSurcharge?: string;
+    /**
+     * @generated from protobuf field: optional backend.v1.Amount targetAmount = 28;
+     */
+    targetAmount?: Amount;
+    /**
+     * @generated from protobuf field: optional string formattedTargetAmount = 29;
+     */
+    formattedTargetAmount?: string;
 }
 /**
  * @generated from protobuf message backend.v1.ListTransactionsResponse
@@ -1942,6 +1988,10 @@ export interface SetSignupUserDataRequest {
      * @generated from protobuf field: string countryCode = 5;
      */
     countryCode: string;
+    /**
+     * @generated from protobuf field: string mobile = 6;
+     */
+    mobile: string;
 }
 /**
  * @generated from protobuf message backend.v1.SetSignupUserDataResponse
@@ -2957,6 +3007,23 @@ export enum CardLockLevel {
     ADMIN = 3
 }
 /**
+ * @generated from protobuf enum backend.v1.CardOperation
+ */
+export enum CardOperation {
+    /**
+     * @generated from protobuf enum value: CARD_OPERATION_NONE = 0;
+     */
+    NONE = 0,
+    /**
+     * @generated from protobuf enum value: CARD_OPERATION_WITHDRAW = 1;
+     */
+    WITHDRAW = 1,
+    /**
+     * @generated from protobuf enum value: CARD_OPERATION_DEPOSIT = 2;
+     */
+    DEPOSIT = 2
+}
+/**
  * @generated from protobuf enum backend.v1.AccountDeletionRequestStatus
  */
 export enum AccountDeletionRequestStatus {
@@ -3137,6 +3204,100 @@ class ThreeDSPaymentConfirmationRequest$Type extends MessageType<ThreeDSPaymentC
  * @generated MessageType for protobuf message backend.v1.ThreeDSPaymentConfirmationRequest
  */
 export const ThreeDSPaymentConfirmationRequest = new ThreeDSPaymentConfirmationRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ConfirmUserPhoneRequest$Type extends MessageType<ConfirmUserPhoneRequest> {
+    constructor() {
+        super("backend.v1.ConfirmUserPhoneRequest", [
+            { no: 1, name: "otp", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<ConfirmUserPhoneRequest>): ConfirmUserPhoneRequest {
+        const message = { otp: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ConfirmUserPhoneRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ConfirmUserPhoneRequest): ConfirmUserPhoneRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string otp */ 1:
+                    message.otp = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ConfirmUserPhoneRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string otp = 1; */
+        if (message.otp !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.otp);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.ConfirmUserPhoneRequest
+ */
+export const ConfirmUserPhoneRequest = new ConfirmUserPhoneRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class UpdateUserPhoneRequest$Type extends MessageType<UpdateUserPhoneRequest> {
+    constructor() {
+        super("backend.v1.UpdateUserPhoneRequest", [
+            { no: 1, name: "phone", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<UpdateUserPhoneRequest>): UpdateUserPhoneRequest {
+        const message = { phone: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<UpdateUserPhoneRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: UpdateUserPhoneRequest): UpdateUserPhoneRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string phone */ 1:
+                    message.phone = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: UpdateUserPhoneRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string phone = 1; */
+        if (message.phone !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.phone);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.UpdateUserPhoneRequest
+ */
+export const UpdateUserPhoneRequest = new UpdateUserPhoneRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class PendingThreeDSConfirmation$Type extends MessageType<PendingThreeDSConfirmation> {
     constructor() {
@@ -6648,11 +6809,13 @@ class CardTransactionDetails$Type extends MessageType<CardTransactionDetails> {
         super("backend.v1.CardTransactionDetails", [
             { no: 1, name: "card_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "card_masked_pan", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "type", kind: "scalar", T: 3 /*ScalarType.INT64*/ }
+            { no: 3, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "operation", kind: "enum", T: () => ["backend.v1.CardOperation", CardOperation, "CARD_OPERATION_"] },
+            { no: 5, name: "classification", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<CardTransactionDetails>): CardTransactionDetails {
-        const message = { cardId: "", cardMaskedPan: "", type: "0" };
+        const message = { cardId: "", cardMaskedPan: "", type: "", operation: 0, classification: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<CardTransactionDetails>(this, message, value);
@@ -6669,8 +6832,14 @@ class CardTransactionDetails$Type extends MessageType<CardTransactionDetails> {
                 case /* string card_masked_pan */ 2:
                     message.cardMaskedPan = reader.string();
                     break;
-                case /* int64 type */ 3:
-                    message.type = reader.int64().toString();
+                case /* string type */ 3:
+                    message.type = reader.string();
+                    break;
+                case /* backend.v1.CardOperation operation */ 4:
+                    message.operation = reader.int32();
+                    break;
+                case /* string classification */ 5:
+                    message.classification = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -6690,9 +6859,15 @@ class CardTransactionDetails$Type extends MessageType<CardTransactionDetails> {
         /* string card_masked_pan = 2; */
         if (message.cardMaskedPan !== "")
             writer.tag(2, WireType.LengthDelimited).string(message.cardMaskedPan);
-        /* int64 type = 3; */
-        if (message.type !== "0")
-            writer.tag(3, WireType.Varint).int64(message.type);
+        /* string type = 3; */
+        if (message.type !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.type);
+        /* backend.v1.CardOperation operation = 4; */
+        if (message.operation !== 0)
+            writer.tag(4, WireType.Varint).int32(message.operation);
+        /* string classification = 5; */
+        if (message.classification !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.classification);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -6729,7 +6904,12 @@ class Transaction$Type extends MessageType<Transaction> {
             { no: 21, name: "destinationIdentityType", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 22, name: "refundState", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
             { no: 23, name: "fundsReceived", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 24, name: "cardTransactionDetails", kind: "message", T: () => CardTransactionDetails }
+            { no: 24, name: "cardTransactionDetails", kind: "message", T: () => CardTransactionDetails },
+            { no: 25, name: "exchangeRateApplied", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
+            { no: 26, name: "exchangeRateReference", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
+            { no: 27, name: "exchangeRateSurcharge", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
+            { no: 28, name: "targetAmount", kind: "message", T: () => Amount },
+            { no: 29, name: "formattedTargetAmount", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Transaction>): Transaction {
@@ -6813,6 +6993,21 @@ class Transaction$Type extends MessageType<Transaction> {
                 case /* optional backend.v1.CardTransactionDetails cardTransactionDetails */ 24:
                     message.cardTransactionDetails = CardTransactionDetails.internalBinaryRead(reader, reader.uint32(), options, message.cardTransactionDetails);
                     break;
+                case /* optional string exchangeRateApplied */ 25:
+                    message.exchangeRateApplied = reader.string();
+                    break;
+                case /* optional string exchangeRateReference */ 26:
+                    message.exchangeRateReference = reader.string();
+                    break;
+                case /* optional string exchangeRateSurcharge */ 27:
+                    message.exchangeRateSurcharge = reader.string();
+                    break;
+                case /* optional backend.v1.Amount targetAmount */ 28:
+                    message.targetAmount = Amount.internalBinaryRead(reader, reader.uint32(), options, message.targetAmount);
+                    break;
+                case /* optional string formattedTargetAmount */ 29:
+                    message.formattedTargetAmount = reader.string();
+                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -6894,6 +7089,21 @@ class Transaction$Type extends MessageType<Transaction> {
         /* optional backend.v1.CardTransactionDetails cardTransactionDetails = 24; */
         if (message.cardTransactionDetails)
             CardTransactionDetails.internalBinaryWrite(message.cardTransactionDetails, writer.tag(24, WireType.LengthDelimited).fork(), options).join();
+        /* optional string exchangeRateApplied = 25; */
+        if (message.exchangeRateApplied !== undefined)
+            writer.tag(25, WireType.LengthDelimited).string(message.exchangeRateApplied);
+        /* optional string exchangeRateReference = 26; */
+        if (message.exchangeRateReference !== undefined)
+            writer.tag(26, WireType.LengthDelimited).string(message.exchangeRateReference);
+        /* optional string exchangeRateSurcharge = 27; */
+        if (message.exchangeRateSurcharge !== undefined)
+            writer.tag(27, WireType.LengthDelimited).string(message.exchangeRateSurcharge);
+        /* optional backend.v1.Amount targetAmount = 28; */
+        if (message.targetAmount)
+            Amount.internalBinaryWrite(message.targetAmount, writer.tag(28, WireType.LengthDelimited).fork(), options).join();
+        /* optional string formattedTargetAmount = 29; */
+        if (message.formattedTargetAmount !== undefined)
+            writer.tag(29, WireType.LengthDelimited).string(message.formattedTargetAmount);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -9386,11 +9596,12 @@ class SetSignupUserDataRequest$Type extends MessageType<SetSignupUserDataRequest
             { no: 2, name: "firstName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "lastName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 4, name: "email", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 5, name: "countryCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 5, name: "countryCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "mobile", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<SetSignupUserDataRequest>): SetSignupUserDataRequest {
-        const message = { firstName: "", lastName: "", email: "", countryCode: "" };
+        const message = { firstName: "", lastName: "", email: "", countryCode: "", mobile: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<SetSignupUserDataRequest>(this, message, value);
@@ -9415,6 +9626,9 @@ class SetSignupUserDataRequest$Type extends MessageType<SetSignupUserDataRequest
                     break;
                 case /* string countryCode */ 5:
                     message.countryCode = reader.string();
+                    break;
+                case /* string mobile */ 6:
+                    message.mobile = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -9443,6 +9657,9 @@ class SetSignupUserDataRequest$Type extends MessageType<SetSignupUserDataRequest
         /* string countryCode = 5; */
         if (message.countryCode !== "")
             writer.tag(5, WireType.LengthDelimited).string(message.countryCode);
+        /* string mobile = 6; */
+        if (message.mobile !== "")
+            writer.tag(6, WireType.LengthDelimited).string(message.mobile);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -12925,5 +13142,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "GetPendingThreeDSConfirmations", options: {}, I: Empty, O: GetPendingThreeDSConfirmationsResponse },
     { name: "ThreeDSPaymentConfirmation", options: {}, I: ThreeDSPaymentConfirmationRequest, O: Empty },
     { name: "RequestAccountDeletion", options: {}, I: RequestAccountDeletionRequest, O: Empty },
-    { name: "GetAccountDeletionStatus", options: {}, I: Empty, O: AccountDeletionStatus }
+    { name: "GetAccountDeletionStatus", options: {}, I: Empty, O: AccountDeletionStatus },
+    { name: "ConfirmUserPhone", options: {}, I: ConfirmUserPhoneRequest, O: Empty },
+    { name: "UpdateUserPhone", options: {}, I: UpdateUserPhoneRequest, O: Empty }
 ]);

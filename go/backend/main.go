@@ -734,7 +734,11 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 		BearerToken:   args.TwitterBearerToken,
 	})
 
-	slack.Init(args.SlackToken)
+	slack.Init(args.SlackToken, map[slack.Channel]string{
+		slack.ChannelSignupKYC:   args.SlackChannelSignupKYC,
+		slack.ChannelTransaction: args.SlackChannelTransaction,
+		slack.ChannelError:       args.SlackChannelError,
+	})
 	_grpc.InitAgreementIDs(args.SignupAgreementIDs)
 
 	b.slack, err = slack_client.New(b, slack_external.Config{
@@ -755,6 +759,7 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 		AccountSid:   args.TwilioSid,
 		AccountToken: args.TwilioSecret,
 		ServiceSid:   args.TwilioServiceSid,
+		Enabled:      args.TwilioEnabled,
 	})
 	if err != nil {
 		log.Fatalln(err)

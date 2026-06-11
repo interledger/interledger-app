@@ -181,6 +181,14 @@ func (mc *MockClient) GetUserIDForWallet(_ context.Context, walletID string) (st
 	return uid, nil
 }
 
+func (mc *MockClient) SetPhoneVerified(_ context.Context, _ string) error {
+	return nil
+}
+
+func (mc *MockClient) UpdateUserPhone(_ context.Context, _ string, _ string) error {
+	return nil
+}
+
 func (mc *MockClient) FindWalletIDByEmail(_ context.Context, _ string) (string, error) {
 	return "", nil
 }

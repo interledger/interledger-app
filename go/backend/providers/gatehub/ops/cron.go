@@ -7,18 +7,20 @@ import (
 
 	"gitlab.com/fynbos/backend/providers/gatehub/external"
 	"gitlab.com/fynbos/backend/slack"
+	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/log"
 
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/client"
+	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 	"go.uber.org/zap"
 )
 
-func StartCardTransactionsPooling(b Backends) {
+func StartClearingCardTransactionsPolling(b Backends) {
 	// Every day at 4PM UTC
 	schedule := "0 16 * * *"
-	workflowID := "gatehub_card_transactions_poll"
+	workflowID := "gatehub_card_transactions_clearing_poll"
 	workflowOptions := client.StartWorkflowOptions{
 		ID:                    workflowID,
 		TaskQueue:             "backend",
@@ -26,82 +28,181 @@ func StartCardTransactionsPooling(b Backends) {
 		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
 	}
 
-	we, err := b.Temporal().ExecuteWorkflow(context.Background(), workflowOptions, GatehubCardTransactionsPollWorkflow)
+	we, err := b.Temporal().ExecuteWorkflow(context.Background(), workflowOptions, GatehubClearingCardTransactionsPollWorkflow)
 	if err != nil {
 		log.Fatal("Unable to execute workflow", zap.Error(err))
 	}
 	log.Info("Started workflow", zap.String("WorkflowID", we.GetID()), zap.String("RunID", we.GetRunID()))
 }
 
-func GatehubCardTransactionsPollWorkflow(ctx workflow.Context) error {
+func GatehubClearingCardTransactionsPollWorkflow(ctx workflow.Context) error {
 	var a *Activity
-	ao := workflow.ActivityOptions{
+	ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
 		StartToCloseTimeout: 20 * time.Minute,
-	}
-	ctx = workflow.WithActivityOptions(ctx, ao)
+	})
 
 	logger := workflow.GetLogger(ctx)
-
-	logger.Info("starting gatehub card transactions polling")
+	logger.Info("starting gatehub clearing card transactions polling")
 
 	var txs []pendingTransaction
-	err := workflow.ExecuteActivity(ctx, a.GetPendingCardTransactions).Get(ctx, &txs)
-	if err != nil {
+	if err := workflow.ExecuteActivity(ctx, a.GetPendingClearingCardTransactions).Get(ctx, &txs); err != nil {
 		return err
 	}
 
-	// No new transactions, so nothing to do
 	if len(txs) == 0 {
 		return nil
 	}
 
+	loopCtx := workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
+		StartToCloseTimeout: 30 * time.Second,
+		RetryPolicy:         &temporal.RetryPolicy{MaximumAttempts: 3},
+	})
+
 	for _, tx := range txs {
-		err := workflow.ExecuteActivity(ctx, a.ProcessCardTransaction, tx).Get(ctx, nil)
-		if err != nil {
-			logger.Error("Failed processing transaction", "txID", tx, "error", err)
-			slack.SendToChannel(context.Background(), slack.ChannelNotifyEvents, "wallet-info-bot", fmt.Sprintf(":warning: Failed to process card transaction\nGateHub TX ID: %s\nGateHub User ID: %s", tx.ID, tx.UserID))
+		var cardTx *external.CardTransaction
+		if err := workflow.ExecuteActivity(loopCtx, a.GetCardTransaction, tx.UserID, tx.ID).Get(loopCtx, &cardTx); err != nil {
+			slack.SendToChannel(context.Background(), slack.ChannelError, "wallet-info-bot", fmt.Sprintf("!!! Failed to fetch card transaction from GateHub\nGateHub TX ID: %s\nGateHub User ID: %s", tx.ID, tx.UserID))
 			continue
 		}
 
-		time.Sleep(time.Millisecond * 300)
+		if cardTx.TxStatus == nil {
+			slack.SendToChannel(context.Background(), slack.ChannelError, "wallet-info-bot", fmt.Sprintf("!!! Card transaction has no status\nGateHub TX ID: %s\nGateHub User ID: %s", tx.ID, tx.UserID))
+			continue
+		}
+
+		var walletID string
+		if err := workflow.ExecuteActivity(loopCtx, a.GetWalletID, tx.UserID).Get(loopCtx, &walletID); err != nil {
+			logger.Error("Failed fetching wallet ID", "txID", tx.ID, "error", err)
+			continue
+		}
+
+		var internalTx *transactions.Transaction
+		if err := workflow.ExecuteActivity(loopCtx, a.GetGateHubTransactionByForeignID, walletID, tx.ID).Get(loopCtx, &internalTx); err != nil {
+			logger.Error("Failed fetching internal transaction", "txID", tx.ID, "error", err)
+			continue
+		}
+
+		var activityErr error
+		switch *cardTx.TxStatus {
+		case external.CardTransactionStatusCompleted:
+			activityErr = workflow.ExecuteActivity(loopCtx, a.FinalizeGatehubCardTransaction, tx.ID, internalTx.ID).Get(loopCtx, nil)
+		case external.CardTransactionStatusFailed:
+			activityErr = workflow.ExecuteActivity(loopCtx, a.RollbackGatehubCardTransaction, tx.ID, internalTx.ID).Get(loopCtx, nil)
+		}
+		if activityErr != nil {
+			logger.Error("Failed updating card transaction", "txID", tx.ID, "error", activityErr)
+		}
+
+		workflow.Sleep(ctx, 100*time.Millisecond)
 	}
 
 	return nil
 }
 
-func (a *Activity) GetPendingCardTransactions(ctx context.Context) ([]pendingTransaction, error) {
-	return GetPendingCardTransactions(ctx, a.b)
+func StartRealtimeCardTransactionsPolling(b Backends) {
+	// Every 2 minutes
+	schedule := "*/2 * * * *"
+	workflowID := "gatehub_card_transactions_realtime_poll"
+	workflowOptions := client.StartWorkflowOptions{
+		ID:                    workflowID,
+		TaskQueue:             "backend",
+		CronSchedule:          schedule,
+		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+	}
+
+	we, err := b.Temporal().ExecuteWorkflow(context.Background(), workflowOptions, GatehubRealtimeCardTransactionsPollWorkflow)
+	if err != nil {
+		log.Fatal("Unable to execute workflow", zap.Error(err))
+	}
+	log.Info("Started workflow", zap.String("WorkflowID", we.GetID()), zap.String("RunID", we.GetRunID()))
 }
 
-func (a *Activity) ProcessCardTransaction(ctx context.Context, tx pendingTransaction) error {
-	walletID, err := getWalletID(ctx, a.b, tx.UserID)
-	if err != nil {
+func GatehubRealtimeCardTransactionsPollWorkflow(ctx workflow.Context) error {
+	var a *Activity
+	ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
+		StartToCloseTimeout: 4 * time.Minute,
+	})
+
+	logger := workflow.GetLogger(ctx)
+	logger.Info("starting gatehub realtime card transactions polling")
+
+	var txs []pendingTransaction
+	if err := workflow.ExecuteActivity(ctx, a.GetPendingRealtimeCardTransactions).Get(ctx, &txs); err != nil {
 		return err
 	}
 
-	cardTx, err := a.external.GetCardTransaction(ctx, tx.UserID, tx.ID)
-	if err != nil {
-		return err
+	if len(txs) == 0 {
+		return nil
 	}
 
-	internalTx, err := a.b.Transactions().GetTransactionByForeignID(ctx, walletID, tx.ID)
-	if err != nil {
-		return err
-	}
+	loopCtx := workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
+		StartToCloseTimeout: 30 * time.Second,
+		RetryPolicy:         &temporal.RetryPolicy{MaximumAttempts: 3},
+	})
 
-	switch *cardTx.TxStatus {
-	case external.CardTractionStatusCompleted:
-		err = a.FinalizeGatehubCardTransaction(ctx, cardTx.TransactionID, internalTx.ID)
-		if err != nil {
-			return err
+	for _, tx := range txs {
+		var cardTx *external.CardTransaction
+		if err := workflow.ExecuteActivity(loopCtx, a.GetCardTransaction, tx.UserID, tx.ID).Get(loopCtx, &cardTx); err != nil {
+			slack.SendToChannel(context.Background(), slack.ChannelError, "wallet-info-bot", fmt.Sprintf("!!! Failed to fetch card transaction from GateHub\nGateHub TX ID: %s\nGateHub User ID: %s", tx.ID, tx.UserID))
+			continue
 		}
-	case external.CardTractionStatusFailed:
-		err = a.RollbackGatehubCardTransaction(ctx, cardTx.TransactionID, internalTx.ID)
-		if err != nil {
-			return err
+
+		if cardTx.TxStatus == nil {
+			slack.SendToChannel(context.Background(), slack.ChannelError, "wallet-info-bot", fmt.Sprintf("!!! Card transaction has no status\nGateHub TX ID: %s\nGateHub User ID: %s", tx.ID, tx.UserID))
+			continue
 		}
-	default:
-		//do nothing
+
+		isMasterCardSend := cardTx.Type == external.CardTransactionTypeTransferFromAccount || cardTx.Type == external.CardTransactionTypeTransferToAccount
+		isReversal := cardTx.TransactionClassification != nil && *cardTx.TransactionClassification == external.CardTransactionClassificationReversal
+		if isMasterCardSend && isReversal {
+			slack.SendToChannel(context.Background(), slack.ChannelError, "wallet-info-bot", fmt.Sprintf("!!! Unexpected reversal for MasterCard transfer card transaction\nGateHub TX ID: %s\nGateHub User ID: %s\nType: %d", tx.ID, tx.UserID, cardTx.Type))
+			continue
+		}
+
+		var walletID string
+		if err := workflow.ExecuteActivity(loopCtx, a.GetWalletID, tx.UserID).Get(loopCtx, &walletID); err != nil {
+			logger.Error("Failed fetching wallet ID", "txID", tx.ID, "error", err)
+			continue
+		}
+
+		var internalTx *transactions.Transaction
+		if err := workflow.ExecuteActivity(loopCtx, a.GetGateHubTransactionByForeignID, walletID, tx.ID).Get(loopCtx, &internalTx); err != nil {
+			logger.Error("Failed fetching internal transaction", "txID", tx.ID, "error", err)
+			continue
+		}
+
+		var activityErr error
+		if isReversal {
+			if cardTx.RefTransactionID == nil {
+				slack.SendToChannel(context.Background(), slack.ChannelError, "wallet-info-bot", fmt.Sprintf("!!! Reversal card transaction has no ref transaction id\nGateHub TX ID: %s\nGateHub User ID: %s", tx.ID, tx.UserID))
+				continue
+			}
+			var originalInternalTx *transactions.Transaction
+			if err := workflow.ExecuteActivity(loopCtx, a.GetGateHubTransactionByForeignID, walletID, *cardTx.RefTransactionID).Get(loopCtx, &originalInternalTx); err != nil {
+				logger.Error("Failed fetching original internal transaction for reversal", "txID", tx.ID, "refTxID", *cardTx.RefTransactionID, "error", err)
+				continue
+			}
+			switch *cardTx.TxStatus {
+			case external.CardTransactionStatusCompleted:
+				activityErr = workflow.ExecuteActivity(loopCtx, a.FinalizeGatehubCardReversal, FinalizeGatehubCardReversalArgs{
+					ReversalCardTxID:     tx.ID,
+					ReversalInternalTxID: internalTx.ID,
+					OriginalInternalTxID: originalInternalTx.ID,
+				}).Get(loopCtx, nil)
+			case external.CardTransactionStatusFailed:
+				activityErr = workflow.ExecuteActivity(loopCtx, a.FailGatehubCardReversal, tx.ID, internalTx.ID).Get(loopCtx, nil)
+			}
+		} else {
+			switch *cardTx.TxStatus {
+			case external.CardTransactionStatusCompleted:
+				activityErr = workflow.ExecuteActivity(loopCtx, a.FinalizeGatehubCardTransaction, tx.ID, internalTx.ID).Get(loopCtx, nil)
+			case external.CardTransactionStatusFailed:
+				activityErr = workflow.ExecuteActivity(loopCtx, a.RollbackGatehubCardTransaction, tx.ID, internalTx.ID).Get(loopCtx, nil)
+			}
+		}
+		if activityErr != nil {
+			logger.Error("Failed updating card transaction", "txID", tx.ID, "error", activityErr)
+		}
 	}
 
 	return nil

@@ -1,0 +1,15 @@
+{{- define "mock-services.mockxago.deployment" -}}
+{{- $top := first . }}
+{{- if and (kindIs "bool" $top.Values.mockxago.enabled) $top.Values.mockxago.enabled }}
+{{- $cfgObj := include "mock-services.mockxago.configMap" $top | fromYaml -}}
+{{- $dataHash := $cfgObj.data | toJson | sha256sum -}}
+spec:
+  template:
+    metadata:
+      annotations:
+        ilf-configmap-mockxago-sha256: {{ $dataHash | quote }}
+{{- end }}
+{{- end }}
+{{- if and (kindIs "bool" .Values.mockxago.enabled) .Values.mockxago.enabled }}
+{{- include "common.deployment" (list . .Values.mockxago.server .Values.mockxago.server.autoscaling .Values.mockxago.server.serviceAccount "mock-services.mockxago.deployment") }}
+{{- end }}
