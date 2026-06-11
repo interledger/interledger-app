@@ -30,6 +30,7 @@ type Client interface {
 	SendAgreementChangedEmail(ctx context.Context, userID string, agreements []AgreementLink, deadlineDate string) error
 	SendAuthenticatorResetEmail(ctx context.Context, walletID string)
 	SendCardTransactionFXEmail(ctx context.Context, walletID, maskedPAN, merchantName, date, surcharge, transactionAmount, billingAmount string)
+	SendSCTITimeoutEmail(ctx context.Context, txID, walletID, amount, name, iban, submittedAt string)
 }
 
 // AgreementLink is a single agreement to show in the agreement-change email (display name + URL).
