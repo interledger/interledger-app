@@ -247,7 +247,7 @@ func CreateCardTransaction(ctx workflow.Context, wh CardTransactionEventWebhook)
 			case external.CardTransactionTypePreauthorizationIncremental:
 				if ct.RefTransactionID != nil {
 					var prevInternalTx *transactions.Transaction
-					if err = workflow.ExecuteActivity(ctx, a.GetCardTransactionByForeignID, ctMeta.WalletID, *ct.RefTransactionID).Get(ctx, &prevInternalTx); err != nil {
+					if err = workflow.ExecuteActivity(ctx, a.GetGateHubTransactionByForeignID, ctMeta.WalletID, *ct.RefTransactionID).Get(ctx, &prevInternalTx); err != nil {
 						return err
 					}
 					if err = workflow.ExecuteActivity(ctx, a.RollbackGatehubCardTransaction, *ct.RefTransactionID, prevInternalTx.ID).Get(ctx, nil); err != nil {
@@ -327,7 +327,7 @@ func CreateCardTransaction(ctx workflow.Context, wh CardTransactionEventWebhook)
 				external.CardTransactionTypePreauthorizationCompletion:
 				if ct.RefTransactionID != nil {
 					var prevInternalTx *transactions.Transaction
-					if err = workflow.ExecuteActivity(ctx, a.GetCardTransactionByForeignID, ctMeta.WalletID, *ct.RefTransactionID).Get(ctx, &prevInternalTx); err != nil {
+					if err = workflow.ExecuteActivity(ctx, a.GetGateHubTransactionByForeignID, ctMeta.WalletID, *ct.RefTransactionID).Get(ctx, &prevInternalTx); err != nil {
 						return err
 					}
 					if err = workflow.ExecuteActivity(ctx, a.FailGatehubCardTransaction, *ct.RefTransactionID, prevInternalTx.ID).Get(ctx, nil); err != nil {
