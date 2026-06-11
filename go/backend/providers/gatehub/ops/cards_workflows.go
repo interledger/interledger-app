@@ -162,8 +162,8 @@ func CreateCardTransaction(ctx workflow.Context, wh CardTransactionEventWebhook)
 	}
 	ctx = workflow.WithActivityOptions(ctx, ao)
 	notifyCtx := workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
-		ScheduleToCloseTimeout: 10 * time.Second,
-		RetryPolicy:            &temporal.RetryPolicy{MaximumAttempts: 1},
+		StartToCloseTimeout: 10 * time.Second,
+		RetryPolicy:         &temporal.RetryPolicy{MaximumAttempts: 1},
 	})
 
 	var ct external.CardTransaction

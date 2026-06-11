@@ -58,8 +58,8 @@ func GatehubClearingCardTransactionsPollWorkflow(ctx workflow.Context) error {
 		RetryPolicy:         &temporal.RetryPolicy{MaximumAttempts: 3},
 	})
 	notifyCtx := workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
-		ScheduleToCloseTimeout: 10 * time.Second,
-		RetryPolicy:            &temporal.RetryPolicy{MaximumAttempts: 1},
+		StartToCloseTimeout: 10 * time.Second,
+		RetryPolicy:         &temporal.RetryPolicy{MaximumAttempts: 1},
 	})
 
 	for _, tx := range txs {
@@ -144,8 +144,8 @@ func GatehubRealtimeCardTransactionsPollWorkflow(ctx workflow.Context) error {
 		RetryPolicy:         &temporal.RetryPolicy{MaximumAttempts: 3},
 	})
 	notifyCtx := workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
-		ScheduleToCloseTimeout: 10 * time.Second,
-		RetryPolicy:            &temporal.RetryPolicy{MaximumAttempts: 1},
+		StartToCloseTimeout: 10 * time.Second,
+		RetryPolicy:         &temporal.RetryPolicy{MaximumAttempts: 1},
 	})
 
 	for _, tx := range txs {
