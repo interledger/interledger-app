@@ -673,5 +673,8 @@ func SendGatehubWithdrawalRejectedEmail(ctx context.Context, b Backends, txID, w
 
 func maskIBAN(iban string) string {
 	s := strings.ReplaceAll(iban, " ", "")
+	if len(s) < 15 { // minimum valid IBAN length (ISO 13616)
+		return s
+	}
 	return s[:4] + strings.Repeat("X", len(s)-8) + s[len(s)-4:]
 }
