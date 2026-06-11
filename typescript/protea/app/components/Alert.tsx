@@ -24,7 +24,7 @@ const Alert = forwardRef<HTMLDivElement, AlertProps>(
 Alert.displayName = 'Alert'
 
 const AlertTitle = forwardRef<
-  HTMLParagraphElement,
+  HTMLHeadingElement,
   HTMLAttributes<HTMLHeadingElement>
 >(({ className, ...props }, ref) => {
   return (
@@ -40,7 +40,7 @@ AlertTitle.displayName = 'AlertTitle'
 
 const AlertBody = forwardRef<
   HTMLParagraphElement,
-  HTMLAttributes<HTMLHeadingElement>
+  HTMLAttributes<HTMLParagraphElement>
 >(({ className, ...props }, ref) => {
   return <p ref={ref} className={clsx('text-medium', className)} {...props} />
 })
