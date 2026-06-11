@@ -83,6 +83,6 @@ func (c *noopClient) SendSCTITimeoutEmail(ctx context.Context, txID, walletID, a
 	log.Info("NOT SENDING: SCTI timeout email", zap.String("txID", txID), zap.String("walletID", walletID))
 }
 
-func (n *noopClient) SendGatehubWithdrawalRejectedEmail(_ context.Context, walletID, _, _, _, _ string) {
+func (n *noopClient) SendGatehubWithdrawalRejectedEmail(_ context.Context, _, walletID, _, _, _, _ string) {
 	log.Info("NOT SENDING: withdrawal rejected email", zap.String("walletID", walletID))
 }

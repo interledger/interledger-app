@@ -23,7 +23,7 @@ type Client interface {
 	SendDepositFailedEmail(ctx context.Context, walletID string)
 	SendWithdrawalEmail(ctx context.Context, walletID string, amt currency.Amount, destinationAccount, date string)
 	SendWithdrawalFailedEmail(ctx context.Context, walletID string)
-	SendGatehubWithdrawalRejectedEmail(ctx context.Context, walletID, amount, currency, iban, name string)
+	SendGatehubWithdrawalRejectedEmail(ctx context.Context, txID, walletID, amount, currency, iban, name string)
 	SendLimitsExceededEmail(ctx context.Context, walletID string)
 	SendCardCreatedEmail(ctx context.Context, walletID, cardID string)
 	SendPending3DSConfirmation(ctx context.Context, walletID, confirmationID string)

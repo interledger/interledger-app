@@ -456,11 +456,6 @@ func (a *Activity) FetchGatehubTransaction(ctx context.Context, userID, external
 	return a.external.GetTransaction(ctx, userID, externalTxID)
 }
 
-func (a *Activity) SendWithdrawalRejectedEmail(ctx context.Context, walletID, amount, currency, iban, name string) error {
-	a.b.Email().SendGatehubWithdrawalRejectedEmail(ctx, walletID, amount, currency, iban, name)
-	return nil
-}
-
 func (a *Activity) LinkGatehubUserToGateway(ctx context.Context, externalUser string) error {
 	return a.external.LinkUserToGateway(ctx, externalUser)
 }
@@ -602,5 +597,10 @@ func (a *Activity) RollbackGatehubWithdrawal(ctx context.Context, internalTxID s
 
 func (a *Activity) SendWithdrawalSCTITimeoutEmail(ctx context.Context, txID, walletID, amount, name, iban, submittedAt string) error {
 	a.b.Email().SendSCTITimeoutEmail(ctx, txID, walletID, amount, name, iban, submittedAt)
+	return nil
+}
+
+func (a *Activity) SendWithdrawalRejectedEmail(ctx context.Context, txID, walletID, amount, currency, iban, name string) error {
+	a.b.Email().SendGatehubWithdrawalRejectedEmail(ctx, txID, walletID, amount, currency, iban, name)
 	return nil
 }

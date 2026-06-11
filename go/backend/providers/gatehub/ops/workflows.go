@@ -178,6 +178,55 @@ func ProcessGatehubWithdrawal(ctx workflow.Context, walletID, transactionID stri
 	return nil
 }
 
+func handleFailedWithdrawal(ctx workflow.Context, a *Activity, walletID, transactionID string) {
+	logger := workflow.GetLogger(ctx)
+
+	err := workflow.ExecuteActivity(ctx, a.UpdateGatehubWithdrawalState, walletID, transactionID, transactions.StateFailed).Get(ctx, nil)
+	if err != nil {
+		logger.Error("Unable to update transaction state to failed", transactionID)
+	}
+}
+
+func BackfillAccountWorkflow(ctx workflow.Context, walletID string) error {
+	var a *Activity
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 20 * time.Second,
+	}
+
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	logger := workflow.GetLogger(ctx)
+	logger.Info("Backfill gatehub account.")
+
+	// The activity will check if the config has SendingUserID set
+	var externalID string
+	err := workflow.ExecuteActivity(ctx, a.CheckIfBackfillWasDone, walletID).Get(ctx, &externalID)
+	if err != nil {
+		return err
+	}
+
+	if externalID != "" {
+		var balance gatehub.Balance
+		err = workflow.ExecuteActivity(ctx, a.BackfillPaywiserBalanceAfterKYC, walletID).Get(ctx, &balance)
+		if err != nil {
+			return err
+		}
+
+		err = workflow.ExecuteActivity(ctx, a.MarkBackfillUser, walletID, externalID, balance).Get(ctx, nil)
+		if err != nil {
+			// if this errors we need to go in manually and update the table will
+			return err
+		}
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.SetKYCApprovedForGatehub, walletID).Get(ctx, nil)
+	if err != nil {
+		// if this  we need to go in manually and update the table will
+		return err
+	}
+	return nil
+}
+
 func CompleteGatehubWithdrawalWorkflow(ctx workflow.Context, userID, externalTxID string) error {
 	var a *Activity
 	ao := workflow.ActivityOptions{
@@ -236,56 +285,7 @@ func RejectGatehubWithdrawalWorkflow(ctx workflow.Context, wh MoreBridgeWithdraw
 		return err
 	}
 
-	return workflow.ExecuteActivity(ctx, a.SendWithdrawalRejectedEmail, walletID, wh.Amount, wh.Currency, wh.Iban, externalTx.Account.LegalName).Get(ctx, nil)
-}
-
-func handleFailedWithdrawal(ctx workflow.Context, a *Activity, walletID, transactionID string) {
-	logger := workflow.GetLogger(ctx)
-
-	err := workflow.ExecuteActivity(ctx, a.UpdateGatehubWithdrawalState, walletID, transactionID, transactions.StateFailed).Get(ctx, nil)
-	if err != nil {
-		logger.Error("Unable to update transaction state to failed", transactionID)
-	}
-}
-
-func BackfillAccountWorkflow(ctx workflow.Context, walletID string) error {
-	var a *Activity
-	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: 20 * time.Second,
-	}
-
-	ctx = workflow.WithActivityOptions(ctx, ao)
-
-	logger := workflow.GetLogger(ctx)
-	logger.Info("Backfill gatehub account.")
-
-	// The activity will check if the config has SendingUserID set
-	var externalID string
-	err := workflow.ExecuteActivity(ctx, a.CheckIfBackfillWasDone, walletID).Get(ctx, &externalID)
-	if err != nil {
-		return err
-	}
-
-	if externalID != "" {
-		var balance gatehub.Balance
-		err = workflow.ExecuteActivity(ctx, a.BackfillPaywiserBalanceAfterKYC, walletID).Get(ctx, &balance)
-		if err != nil {
-			return err
-		}
-
-		err = workflow.ExecuteActivity(ctx, a.MarkBackfillUser, walletID, externalID, balance).Get(ctx, nil)
-		if err != nil {
-			// if this errors we need to go in manually and update the table will
-			return err
-		}
-	}
-
-	err = workflow.ExecuteActivity(ctx, a.SetKYCApprovedForGatehub, walletID).Get(ctx, nil)
-	if err != nil {
-		// if this  we need to go in manually and update the table will
-		return err
-	}
-	return nil
+	return workflow.ExecuteActivity(ctx, a.SendWithdrawalRejectedEmail, internalTx.ID, walletID, wh.Amount, wh.Currency, wh.IBAN, externalTx.Account.LegalName).Get(ctx, nil)
 }
 
 func NotifyWithdrawalSCTITimeoutWorkflow(ctx workflow.Context, wh MoreBridgeWithdrawalSCTITimeoutWebhook) error {
