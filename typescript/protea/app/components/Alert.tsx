@@ -28,6 +28,7 @@ const AlertTitle = forwardRef<
   HTMLAttributes<HTMLHeadingElement>
 >(({ className, ...props }, ref) => {
   return (
+    // eslint-disable-next-line jsx-a11y/heading-has-content -- heading content is supplied by the consumer via {...props}
     <h2
       ref={ref}
       className={clsx('font-medium text-medium', className)}
