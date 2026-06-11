@@ -1,0 +1,9 @@
+{
+  "search.exclude": {
+    "**/.react-router": true,
+    "**/build": true
+  },
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "eslint.workingDirectories": [{ "mode": "auto" }]
+}
