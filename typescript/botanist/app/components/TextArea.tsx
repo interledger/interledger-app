@@ -1,7 +1,6 @@
 import { forwardRef } from 'react'
 
-interface TextAreaProps
-  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+interface TextAreaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   // Override the `className` of the root `div` of the Input. Defaults to **min-w-full**.
   className?: string
   // The label value.

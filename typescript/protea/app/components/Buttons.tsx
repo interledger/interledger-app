@@ -24,7 +24,7 @@ export const Button = forwardRef<any, ButtonProps>(
         {...buttonProps}
         disabled={buttonProps.disabled}
         className={clsx(
-          'flex h-12 w-full items-center justify-center rounded-full border border-transparent px-6 font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2  disabled:cursor-not-allowed disabled:bg-disabled disabled:text-disabled',
+          'flex h-12 w-full items-center justify-center rounded-full border border-transparent px-6 font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:bg-disabled disabled:text-disabled',
           error
             ? 'bg-container-strong text-error focus-visible:outline-error active:ring-error hover:enabled:bg-error-hover'
             : 'bg-primary text-white focus-visible:outline-focus active:ring-blue-400 hover:enabled:bg-blue-400',

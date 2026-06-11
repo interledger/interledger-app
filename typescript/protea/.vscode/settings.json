@@ -3,8 +3,7 @@
     "**/.react-router": true,
     "**/build": true
   },
-  // off until the Prettier 3 upgrade PR (editor bundles v3, project is on 2.8.8).
-  "editor.formatOnSave": false,
+  "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "eslint.workingDirectories": [{ "mode": "auto" }]
 }

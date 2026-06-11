@@ -89,8 +89,8 @@ export const RadioGroup: FC<RadioGroupProps> = ({
                         disabled
                           ? 'text-disabled'
                           : checked
-                          ? 'text-primary'
-                          : 'text-medium'
+                            ? 'text-primary'
+                            : 'text-medium'
                       }`}
                     >
                       {checked && <Icon>radio_button_checked</Icon>}
