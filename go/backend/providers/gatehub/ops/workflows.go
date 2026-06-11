@@ -253,3 +253,35 @@ func BackfillAccountWorkflow(ctx workflow.Context, walletID string) error {
 	}
 	return nil
 }
+
+func NotifyWithdrawalSCTITimeoutWorkflow(ctx workflow.Context, wh MoreBridgeWithdrawalSCTITimeoutWebhook) error {
+	var a *Activity
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Second,
+	}
+
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	logger := workflow.GetLogger(ctx)
+	logger.Info("Notify withdrawal SCTI timeout.")
+
+	var walletID string
+	err := workflow.ExecuteActivity(ctx, a.GetWalletFromGatehubUser, wh.UserID).Get(ctx, &walletID)
+	if err != nil {
+		return err
+	}
+
+	var tx transactions.Transaction
+	err = workflow.ExecuteActivity(ctx, a.GetGateHubTransactionByForeignID, walletID, wh.Data.TransactionID).Get(ctx, &tx)
+	if err != nil {
+		return err
+	}
+
+	amount := fmt.Sprintf("%s %s", wh.Data.Amount, wh.Data.Currency)
+	err = workflow.ExecuteActivity(ctx, a.SendWithdrawalSCTITimeoutEmail, tx.ID, walletID, amount, wh.Data.CounterpartyName, wh.Data.CounterpartyIBAN, wh.Data.Timestamp).Get(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

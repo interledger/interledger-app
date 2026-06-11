@@ -128,6 +128,7 @@ func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago
 	w.RegisterWorkflow(gatehub_workflows.CreateCardTransaction)
 	w.RegisterWorkflow(gatehub_workflows.GatehubClearingCardTransactionsPollWorkflow)
 	w.RegisterWorkflow(gatehub_workflows.GatehubRealtimeCardTransactionsPollWorkflow)
+	w.RegisterWorkflow(gatehub_workflows.NotifyWithdrawalSCTITimeoutWorkflow)
 
 	gatehub_workflows.StartClearingCardTransactionsPolling(b)
 	gatehub_workflows.StartRealtimeCardTransactionsPolling(b)

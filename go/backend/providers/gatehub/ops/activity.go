@@ -581,3 +581,8 @@ func (a *Activity) FinalizeGatehubWithdrawal(ctx context.Context, internalTxID s
 
 	return a.b.Transactions().SetTransactionState(ctx, internalTxID, transactions.StateCompleted)
 }
+
+func (a *Activity) SendWithdrawalSCTITimeoutEmail(ctx context.Context, txID, walletID, amount, name, iban, submittedAt string) error {
+	a.b.Email().SendSCTITimeoutEmail(ctx, txID, walletID, amount, name, iban, submittedAt)
+	return nil
+}
