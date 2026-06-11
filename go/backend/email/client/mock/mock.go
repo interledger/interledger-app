@@ -241,6 +241,18 @@ func (mr *MockClientMockRecorder) SendPending3DSConfirmation(ctx, walletID, conf
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendPending3DSConfirmation", reflect.TypeOf((*MockClient)(nil).SendPending3DSConfirmation), ctx, walletID, confirmationID)
 }
 
+// SendSCTITimeoutEmail mocks base method.
+func (m *MockClient) SendSCTITimeoutEmail(ctx context.Context, txID, walletID, amount, beneficiaryIBAN, beneficiaryName, submittedAt string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SendSCTITimeoutEmail", ctx, txID, walletID, amount, beneficiaryIBAN, beneficiaryName, submittedAt)
+}
+
+// SendSCTITimeoutEmail indicates an expected call of SendSCTITimeoutEmail.
+func (mr *MockClientMockRecorder) SendSCTITimeoutEmail(ctx, txID, walletID, amount, beneficiaryIBAN, beneficiaryName, submittedAt interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendSCTITimeoutEmail", reflect.TypeOf((*MockClient)(nil).SendSCTITimeoutEmail), ctx, txID, walletID, amount, beneficiaryIBAN, beneficiaryName, submittedAt)
+}
+
 // SendWithdrawalEmail mocks base method.
 func (m *MockClient) SendWithdrawalEmail(ctx context.Context, walletID string, amt currency.Amount, destinationAccount, date string) {
 	m.ctrl.T.Helper()

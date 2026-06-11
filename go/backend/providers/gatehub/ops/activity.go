@@ -599,3 +599,8 @@ func (a *Activity) RollbackGatehubWithdrawal(ctx context.Context, internalTxID s
 
 	return a.b.Transactions().SetTransactionState(ctx, internalTxID, transactions.StateFailed)
 }
+
+func (a *Activity) SendWithdrawalSCTITimeoutEmail(ctx context.Context, txID, walletID, amount, name, iban, submittedAt string) error {
+	a.b.Email().SendSCTITimeoutEmail(ctx, txID, walletID, amount, name, iban, submittedAt)
+	return nil
+}
