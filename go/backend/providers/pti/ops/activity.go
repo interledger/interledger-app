@@ -568,6 +568,22 @@ func (a *Activity) CreateTransaction(ctx context.Context, la *linkedaccounts.Lin
 		return err
 	}
 
+	las, err := a.b.LinkedAccounts().ListBalances(ctx, la.WalletID)
+	if err != nil {
+		return err
+	}
+
+	var balance *linkedaccounts.LinkedAccount
+	for _, l := range las {
+		if l.Provider == pti.ProviderName && l.Type == pti.AccTypeBalance {
+			balance = &l
+			break
+		}
+	}
+	if balance == nil {
+		return temporal.NewNonRetryableApplicationError("PTI USD balance account not found", "ErrInternal", fmt.Errorf("%w balance account not found", pti.ErrInternal))
+	}
+
 	_, err = a.b.Transactions().CreateTransaction(ctx, transactions.CreateTransactionArgs{
 		WalletID:                wallet.ID,
 		ForeignID:               externalID,
@@ -584,7 +600,7 @@ func (a *Activity) CreateTransaction(ctx context.Context, la *linkedaccounts.Lin
 		LinkedAccountTitle:      "US Balance",
 		Transfers: []transactions.TransferArgs{
 			{
-				LinkedAccountID: la.ID,
+				LinkedAccountID: balance.ID,
 				ForeignID:       externalID,
 				Amount:          amount,
 				Type:            transactions.TransferTypeCreditBalance,
