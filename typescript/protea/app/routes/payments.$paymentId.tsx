@@ -436,7 +436,9 @@ function Withdrawal() {
         <Card>
           <CardContent>
             <div className='flex w-full flex-col space-y-1'>
-              <span className='text-weak'>SEPA Reference</span>
+              <span className='text-weak'>
+                {transaction.recipientIban ? 'SEPA Reference' : 'Withdraw note'}
+              </span>
               <span className='text-medium'>{transaction.reference}</span>
             </div>
           </CardContent>
