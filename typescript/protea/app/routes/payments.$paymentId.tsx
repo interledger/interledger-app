@@ -293,7 +293,9 @@ function Withdrawal() {
                 </span>
               </>
             ) : (
-              <span className='text-sm text-medium'>{receiverAccountTitle}</span>
+              <span className='text-sm text-medium'>
+                {receiverAccountTitle}
+              </span>
             )}
           </div>
         </div>
