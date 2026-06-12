@@ -61,7 +61,7 @@ export const OutlineButton = forwardRef<any, ButtonProps>(
 
 OutlineButton.displayName = 'OutlineButton'
 
-interface TextButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {}
+type TextButtonProps = ButtonHTMLAttributes<HTMLButtonElement>
 
 export const TextButton = forwardRef<any, TextButtonProps>(
   ({ children, ...buttonProps }, ref) => {
