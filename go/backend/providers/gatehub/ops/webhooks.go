@@ -175,6 +175,23 @@ type (
 		Timestamp        string `json:"timestamp"`
 	}
 
+	MoreBridgeWithdrawalRejectedWebhook struct {
+		ID          string                                  `json:"uuid"`
+		EventType   string                                  `json:"event_type"`
+		Timestamp   string                                  `json:"timestamp"`
+		UserID      string                                  `json:"user_uuid"`
+		Environment string                                  `json:"environment"`
+		Data        MoreBridgeWithdrawalRejectedWebhookData `json:"data"`
+	}
+
+	MoreBridgeWithdrawalRejectedWebhookData struct {
+		TxID     string `json:"txUuid"`
+		UserID   string `json:"userUuid"`
+		IBAN     string `json:"iban"`
+		Status   string `json:"status"`
+		Currency string `json:"currency"`
+		Amount   string `json:"amount"`
+	}
 )
 
 func NewWebhook(b Backends, cfg gatehub.Config) http.HandlerFunc {
@@ -252,6 +269,8 @@ func NewWebhook(b Backends, cfg gatehub.Config) http.HandlerFunc {
 			HandleCardTransactionEvent(r.Context(), b, body, w)
 		case "more-bridge.withdrawal.scti_timeout":
 			HandleWithdrawalSCTITimeout(r.Context(), b, body, w)
+		case "more-bridge.withdrawal.rejected":
+			HandleWithdrawalRejected(r.Context(), b, body, w)
 		default:
 			log.Warn("gatehub webhook. Unhandled webhook type", zap.String("event_type", wh.EventType), zap.String("payload", string(body)))
 		}
@@ -609,6 +628,49 @@ func HandleWithdrawalSCTITimeout(ctx context.Context, b Backends, raw json.RawMe
 	w.WriteHeader(http.StatusOK)
 }
 
+func HandleWithdrawalRejected(ctx context.Context, b Backends, raw json.RawMessage, w http.ResponseWriter) {
+	var wh MoreBridgeWithdrawalRejectedWebhook
+	err := json.Unmarshal(raw, &wh)
+	if err != nil {
+		log.Error("gatehub webhook: Failed to unmarshal withdrawal rejected webhook", zap.String("payload", string(raw)), zap.Error(err))
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	wo := client.StartWorkflowOptions{
+		ID:                    "gatehub_withdrawal_rejected_" + wh.ID,
+		TaskQueue:             "backend",
+		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+	}
+
+	var workflowStatus enums.WorkflowExecutionStatus
+	wflow, err := b.Temporal().DescribeWorkflowExecution(ctx, wo.ID, "")
+	switch err.(type) {
+	case *serviceerror.Internal,
+		*serviceerror.Unavailable,
+		*serviceerror.InvalidArgument:
+		log.Error("gatehub webhook: Failed to handle withdrawal rejected webhook", zap.Error(err))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	case *serviceerror.NotFound:
+		// do nothing
+	default:
+		if wflow != nil {
+			workflowStatus = wflow.GetWorkflowExecutionInfo().Status
+		}
+	}
+
+	if workflowStatus != enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
+		_, err = b.Temporal().ExecuteWorkflow(ctx, wo, RejectGatehubWithdrawalWorkflow, wh.Data)
+		if err != nil {
+			log.Error("gatehub webhook: Failed to start withdrawal rejected workflow", zap.Error(err))
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
 
 func Verify(ctx context.Context, r *http.Request, key []byte) ([]byte, error) {
 	payload, err := io.ReadAll(r.Body)
