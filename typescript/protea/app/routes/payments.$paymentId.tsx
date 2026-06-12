@@ -283,15 +283,17 @@ function Withdrawal() {
         <Label className='mt-2'>Withdrawal to</Label>
         <div className='my-1 rounded-xl bg-nav p-3'>
           <div className='flex flex-col'>
-            <span className='text-sm text-medium'>
-              {receiverAccountTitle ??
-                transaction.recipientName ??
-                'External wallet'}
-            </span>
-            {transaction.recipientIban && (
-              <span className='text-xs text-weak'>
-                IBAN: {transaction.recipientIban}
-              </span>
+            {transaction.recipientIban ? (
+              <>
+                <span className='text-sm text-medium'>
+                  {transaction.recipientName}
+                </span>
+                <span className='text-xs text-weak'>
+                  IBAN: {transaction.recipientIban}
+                </span>
+              </>
+            ) : (
+              <span className='text-sm text-medium'>{receiverAccountTitle}</span>
             )}
           </div>
         </div>

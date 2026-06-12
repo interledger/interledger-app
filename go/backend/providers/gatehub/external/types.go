@@ -423,7 +423,7 @@ type (
 
 	TransactionAccount struct {
 		LegalName string `json:"legal_name"`
-		Iban      string `json:"iban"`
+		IBAN      string `json:"iban"`
 	}
 
 	CreateCustomerAndCardArgs struct {

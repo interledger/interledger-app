@@ -570,6 +570,9 @@ func (h *Handler) processWithdrawal(w http.ResponseWriter, bearer string, txReq 
 		Type:             consts.TransactionTypeWithdrawal, // Type 0 = withdrawal
 		DepositType:      consts.DepositTypeWithdrawal,
 		Status:           consts.TransactionStatusCompleted,
+		AccountIBAN:      "GB29NWBK60161331926819",
+		AccountLegalName: "Jane Smith",
+		Message:          "Mock Reference",
 	}
 
 	if err := h.store.CreateTransaction(tx); err != nil {

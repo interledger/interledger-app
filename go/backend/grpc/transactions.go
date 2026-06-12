@@ -234,8 +234,8 @@ func (s *rpcService) LookupTransaction(ctx context.Context, req *pb.LookupTransa
 		if err != nil {
 			log.Warn("LookupTransaction: failed to fetch GateHub withdrawal details", zap.Error(err))
 		} else {
-			if ghTx.Account.Iban != "" {
-				pbTx.RecipientIban = &ghTx.Account.Iban
+			if ghTx.Account.IBAN != "" {
+				pbTx.RecipientIban = &ghTx.Account.IBAN
 			}
 			if ghTx.Account.LegalName != "" {
 				pbTx.RecipientName = &ghTx.Account.LegalName

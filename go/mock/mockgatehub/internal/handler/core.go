@@ -489,10 +489,10 @@ func (h *Handler) GetTransaction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if tx.Type == consts.TransactionTypeWithdrawal {
-		response["message"] = "Mock Reference"
+		response["message"] = tx.Message
 		response["account"] = map[string]interface{}{
-			"iban":       "GB29NWBK60161331926819",
-			"legal_name": "Jane Smith",
+			"iban":       tx.AccountIBAN,
+			"legal_name": tx.AccountLegalName,
 		}
 	}
 
