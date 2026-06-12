@@ -157,6 +157,110 @@ func (sc *E2EContext) iWithdrawViATheWithdrawalIframe(amount, currency string) e
 	return nil
 }
 
+func (sc *E2EContext) listPendingGatehubWithdrawals(gatehubUserID string) ([]map[string]interface{}, error) {
+	url := fmt.Sprintf("https://mockgatehub.interledger.test/admin/users/%s/withdrawals?status=pending", gatehubUserID)
+
+	httpClient := &http.Client{
+		Timeout: 10 * time.Second,
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
+
+	resp, err := httpClient.Get(url)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list pending withdrawals: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("list pending withdrawals returned status %d: %s", resp.StatusCode, string(body))
+	}
+
+	var txs []map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&txs); err != nil {
+		return nil, fmt.Errorf("failed to decode pending withdrawals response: %w", err)
+	}
+
+	return txs, nil
+}
+
+func (sc *E2EContext) triggerGatehubWithdrawalEvent(txID, event string) error {
+	url := fmt.Sprintf("https://mockgatehub.interledger.test/admin/withdrawals/%s/trigger-event", txID)
+
+	payload, err := json.Marshal(map[string]string{"event": event})
+	if err != nil {
+		return fmt.Errorf("failed to marshal trigger event request: %w", err)
+	}
+
+	httpClient := &http.Client{
+		Timeout: 10 * time.Second,
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
+
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(payload))
+	if err != nil {
+		return fmt.Errorf("failed to create trigger event request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to trigger withdrawal event: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("trigger withdrawal event returned status %d: %s", resp.StatusCode, string(body))
+	}
+
+	return nil
+}
+
+func (sc *E2EContext) theGatehubWithdrawalEventIsTriggered(event string) error {
+	debugPrintf("\n💸 Triggering withdrawal event: %s\n", event)
+
+	email, err := sc.getCurrentUserEmail()
+	if err != nil {
+		return fmt.Errorf("failed to get current user email: %w", err)
+	}
+
+	gatehubUserID, err := sc.getGatehubUserIDByEmail(email)
+	if err != nil {
+		return fmt.Errorf("failed to get GateHub user ID for user %s: %w", email, err)
+	}
+
+	txs, err := sc.listPendingGatehubWithdrawals(gatehubUserID)
+	if err != nil {
+		return fmt.Errorf("failed to list pending withdrawals: %w", err)
+	}
+
+	if len(txs) == 0 {
+		return fmt.Errorf("no pending withdrawals found for user %s", gatehubUserID)
+	}
+
+	txID, ok := txs[0]["uuid"].(string)
+	if !ok || txID == "" {
+		return fmt.Errorf("pending withdrawal has no uuid field")
+	}
+
+	debugPrintf("   Triggering event %s for withdrawal %s\n", event, txID)
+
+	if err := sc.triggerGatehubWithdrawalEvent(txID, event); err != nil {
+		return fmt.Errorf("failed to trigger withdrawal event: %w", err)
+	}
+
+	// Wait for the webhook to be processed
+	time.Sleep(5 * time.Second)
+
+	debugPrintf("   ✓ Withdrawal event %s triggered\n", event)
+	return nil
+}
+
 func (sc *E2EContext) thatGatehubChargesWithdrawalFee(feePercent string) error {
 	debugPrintf("\n💸 Configuring GateHub withdrawal fee for user to %s%%...\n", feePercent)
 

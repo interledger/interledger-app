@@ -641,6 +641,37 @@ func SendSCTITimeoutEmail(ctx context.Context, b Backends, txID, walletID, amoun
 	}
 }
 
+func SendGatehubWithdrawalRejectedEmail(ctx context.Context, b Backends, txID, walletID, amount, currency, iban, name string) {
+	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
+	if err != nil {
+		log.Error("Failed to send withdrawal rejected email.", zap.Error(err), zap.String("walletID", walletID))
+		return
+	}
+
+	body := fmt.Sprintf("The amount of %s %s was not received by %s in the account %s.", amount, currency, name, maskIBAN(iban))
+	txURL, err := url.JoinPath(env.GetUrl(), "payments", txID)
+	if err != nil {
+		log.Error("Failed to send withdrawal rejected email.", zap.Error(err), zap.String("walletID", walletID))
+		return
+	}
+
+	err = b.External().SendTemplate(ctx, "Withdrawal unsuccessful", sendTo, b.OneTemplateID(), map[string]interface{}{
+		"subject": "Withdrawal unsuccessful",
+		"data": []map[string]interface{}{
+			{"paragraph": greeting},
+			{"paragraph": "We would like to inform you that your withdrawal was unsuccessful."},
+			{"paragraph": body},
+		},
+		"cta": map[string]any{
+			"text": "View payment",
+			"url":  txURL,
+		},
+	}, nil)
+	if err != nil {
+		log.Error("Failed to send withdrawal rejected email.", zap.Error(err), zap.String("walletID", walletID))
+	}
+}
+
 func SendSCTRerouteEmail(ctx context.Context, b Backends, txID, walletID string) {
 	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
 	if err != nil {
@@ -670,4 +701,12 @@ func SendSCTRerouteEmail(ctx context.Context, b Backends, txID, walletID string)
 	if err != nil {
 		log.Error("Failed to send sct reroute email.", zap.Error(err), zap.String("walletID", walletID))
 	}
+}
+
+func maskIBAN(iban string) string {
+	s := strings.ReplaceAll(iban, " ", "")
+	if len(s) < 15 { // minimum valid IBAN length (ISO 13616)
+		return s
+	}
+	return s[:4] + strings.Repeat("X", len(s)-8) + s[len(s)-4:]
 }

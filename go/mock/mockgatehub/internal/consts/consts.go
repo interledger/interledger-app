@@ -116,6 +116,7 @@ const (
 	WebhookEventKYCActionRequired   = "id.verification.action_required"
 	WebhookEventDepositCompleted    = "core.deposit.completed"
 	WebhookEventWithdrawalCompleted = "core.withdrawal.completed"
+	WebhookEventWithdrawalRejected  = "more-bridge.withdrawal.rejected"
 	WebhookEventCardCreated         = "cards.card.created"
 	WebhookEventCardTransaction     = "cards.transaction.event"
 	WebhookEventCard3DS             = "cards.3ds.auth_3ds_confirmation"

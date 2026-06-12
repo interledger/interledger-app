@@ -51,6 +51,34 @@ export async function rateLimit(
   }
 }
 
+/**
+ * Read-only Redis-based rate-limit check.
+ * Does not increment the counter.
+ *
+ * @param key Unique key per action/user
+ * @param options { limit }
+ * @returns string | undefined - error message if rate limit exceeded, otherwise undefined
+ */
+export async function getRateLimit(
+  key: RateLimitKeyType,
+  options: RateLimitOptions = DEFAULT_RATE_LIMIT
+): Promise<string | undefined> {
+  const { limit } = options
+
+  try {
+    const current = await redisClient.get(key)
+    const count = Number(current) || 0
+    if (count >= limit) {
+      return 'Too many attempts. Please try again later.'
+    }
+  } catch (err) {
+    logger.error(
+      { error: err instanceof Error ? err.message : String(err) },
+      'Rate limit read failed'
+    )
+  }
+}
+
 export function getKey(
   rateLimitKeys: RateLimitKeys,
   id: string

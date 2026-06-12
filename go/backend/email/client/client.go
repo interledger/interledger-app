@@ -116,6 +116,10 @@ func (c *client) SendSCTITimeoutEmail(ctx context.Context, txID, walletID, amoun
 	ops.SendSCTITimeoutEmail(ctx, c.b, txID, walletID, amount, name, iban, submittedAt)
 }
 
+func (c *client) SendGatehubWithdrawalRejectedEmail(ctx context.Context, txID, walletID, amount, currency, iban, name string) {
+	ops.SendGatehubWithdrawalRejectedEmail(ctx, c.b, txID, walletID, amount, currency, iban, name)
+}
+
 func (c *client) SendSCTRerouteEmail(ctx context.Context, txID, walletID string) {
 	ops.SendSCTRerouteEmail(ctx, c.b, txID, walletID)
 }
