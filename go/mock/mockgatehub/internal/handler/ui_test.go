@@ -462,3 +462,174 @@ func TestUICardTxAction_UnknownCard(t *testing.T) {
 	h.UICardTxAction(rr, req)
 	assert.Equal(t, http.StatusBadRequest, rr.Code)
 }
+
+// ── Card TX Set Status ────────────────────────────────────────────────────────
+
+func TestUICardTxSetStatus_Complete(t *testing.T) {
+	store := storage.NewMemoryStorage()
+	require.NoError(t, storage.SeedTestUsers(store))
+	_, card := seedCustomerAndCard(t, store, consts.TestUser1ID, consts.CardStatusActive)
+
+	status := "PENDING"
+	tx := &models.CardTransaction{TransactionID: "ctx-status-1", TxStatus: &status}
+	require.NoError(t, store.CreateCardTransaction(tx))
+	require.NoError(t, store.AddCardTransactionIndex(card.ID, tx.TransactionID))
+
+	h := newUIHandler(store)
+	body := "txID=ctx-status-1&status=COMPLETED&userID=" + consts.TestUser1ID
+	req := httptest.NewRequest(http.MethodPost, "/ui/actions/card-transaction/status", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr := httptest.NewRecorder()
+	h.UICardTxSetStatus(rr, req)
+
+	assert.Equal(t, http.StatusSeeOther, rr.Code)
+	assert.Contains(t, rr.Header().Get("Location"), "/ui/users/"+consts.TestUser1ID)
+	updated, err := store.GetCardTransaction("ctx-status-1")
+	require.NoError(t, err)
+	assert.Equal(t, "COMPLETED", *updated.TxStatus)
+}
+
+func TestUICardTxSetStatus_Fail(t *testing.T) {
+	store := storage.NewMemoryStorage()
+	require.NoError(t, storage.SeedTestUsers(store))
+	_, card := seedCustomerAndCard(t, store, consts.TestUser1ID, consts.CardStatusActive)
+
+	status := "PENDING"
+	tx := &models.CardTransaction{TransactionID: "ctx-status-2", TxStatus: &status}
+	require.NoError(t, store.CreateCardTransaction(tx))
+	require.NoError(t, store.AddCardTransactionIndex(card.ID, tx.TransactionID))
+
+	h := newUIHandler(store)
+	body := "txID=ctx-status-2&status=FAILED&userID=" + consts.TestUser1ID
+	req := httptest.NewRequest(http.MethodPost, "/ui/actions/card-transaction/status", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr := httptest.NewRecorder()
+	h.UICardTxSetStatus(rr, req)
+
+	assert.Equal(t, http.StatusSeeOther, rr.Code)
+}
+
+func TestUICardTxSetStatus_MissingFields(t *testing.T) {
+	h := newUIHandler(storage.NewMemoryStorage())
+	req := httptest.NewRequest(http.MethodPost, "/ui/actions/card-transaction/status", strings.NewReader("txID=x"))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr := httptest.NewRecorder()
+	h.UICardTxSetStatus(rr, req)
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+}
+
+func TestUICardTxSetStatus_InvalidStatus(t *testing.T) {
+	h := newUIHandler(storage.NewMemoryStorage())
+	body := "txID=x&status=UNKNOWN&userID=" + consts.TestUser1ID
+	req := httptest.NewRequest(http.MethodPost, "/ui/actions/card-transaction/status", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr := httptest.NewRecorder()
+	h.UICardTxSetStatus(rr, req)
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+}
+
+// ── Withdrawal Set Event ──────────────────────────────────────────────────────
+
+func seedPendingWithdrawal(t *testing.T, store storage.Storage, userID, txID, currency string, amount float64) {
+	t.Helper()
+	require.NoError(t, store.AddBalance(userID, currency, amount))
+	require.NoError(t, store.CreateTransaction(&models.Transaction{
+		ID:          txID,
+		UserID:      userID,
+		Amount:      "50.00",
+		TotalAmount: "50.00",
+		Fee:         "0.00",
+		Currency:    currency,
+		DepositType: consts.DepositTypeWithdrawal,
+		Status:      consts.TransactionStatusPending,
+	}))
+}
+
+func TestUIWithdrawalSetEvent_Complete(t *testing.T) {
+	store := storage.NewMemoryStorage()
+	require.NoError(t, storage.SeedTestUsers(store))
+	seedPendingWithdrawal(t, store, consts.TestUser1ID, "wd-complete-1", "EUR", 100.0)
+
+	h := newUIHandler(store)
+	body := "userID=" + consts.TestUser1ID + "&txID=wd-complete-1&event=core.withdrawal.completed"
+	req := httptest.NewRequest(http.MethodPost, "/ui/actions/withdrawal/status", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr := httptest.NewRecorder()
+	h.UIWithdrawalSetEvent(rr, req)
+
+	assert.Equal(t, http.StatusSeeOther, rr.Code)
+	assert.Contains(t, rr.Header().Get("Location"), "/ui/users/"+consts.TestUser1ID)
+	tx, err := store.GetTransaction("wd-complete-1")
+	require.NoError(t, err)
+	assert.Equal(t, consts.TransactionStatusCompleted, tx.Status)
+}
+
+func TestUIWithdrawalSetEvent_Reject(t *testing.T) {
+	store := storage.NewMemoryStorage()
+	require.NoError(t, storage.SeedTestUsers(store))
+	seedPendingWithdrawal(t, store, consts.TestUser1ID, "wd-reject-1", "EUR", 100.0)
+
+	h := newUIHandler(store)
+	body := "userID=" + consts.TestUser1ID + "&txID=wd-reject-1&event=more-bridge.withdrawal.rejected"
+	req := httptest.NewRequest(http.MethodPost, "/ui/actions/withdrawal/status", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr := httptest.NewRecorder()
+	h.UIWithdrawalSetEvent(rr, req)
+
+	assert.Equal(t, http.StatusSeeOther, rr.Code)
+	assert.Contains(t, rr.Header().Get("Location"), "/ui/users/"+consts.TestUser1ID)
+	tx, err := store.GetTransaction("wd-reject-1")
+	require.NoError(t, err)
+	assert.Equal(t, consts.TransactionStatusFailed, tx.Status)
+}
+
+func TestUIWithdrawalSetEvent_MissingFields(t *testing.T) {
+	h := newUIHandler(storage.NewMemoryStorage())
+	req := httptest.NewRequest(http.MethodPost, "/ui/actions/withdrawal/status", strings.NewReader("userID=x"))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr := httptest.NewRecorder()
+	h.UIWithdrawalSetEvent(rr, req)
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+}
+
+func TestUIWithdrawalSetEvent_InvalidEvent(t *testing.T) {
+	h := newUIHandler(storage.NewMemoryStorage())
+	body := "userID=x&txID=y&event=bogus.event"
+	req := httptest.NewRequest(http.MethodPost, "/ui/actions/withdrawal/status", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr := httptest.NewRecorder()
+	h.UIWithdrawalSetEvent(rr, req)
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+}
+
+func TestUIWithdrawalSetEvent_TxNotFound(t *testing.T) {
+	store := storage.NewMemoryStorage()
+	require.NoError(t, storage.SeedTestUsers(store))
+	h := newUIHandler(store)
+	body := "userID=" + consts.TestUser1ID + "&txID=nonexistent&event=core.withdrawal.completed"
+	req := httptest.NewRequest(http.MethodPost, "/ui/actions/withdrawal/status", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr := httptest.NewRecorder()
+	h.UIWithdrawalSetEvent(rr, req)
+	assert.Equal(t, http.StatusSeeOther, rr.Code)
+	assert.Contains(t, rr.Header().Get("Location"), "/ui/users/"+consts.TestUser1ID)
+}
+
+func TestUIWithdrawalSetEvent_NotPending(t *testing.T) {
+	store := storage.NewMemoryStorage()
+	require.NoError(t, storage.SeedTestUsers(store))
+	require.NoError(t, store.CreateTransaction(&models.Transaction{
+		ID:          "wd-done-1",
+		UserID:      consts.TestUser1ID,
+		DepositType: consts.DepositTypeWithdrawal,
+		Status:      consts.TransactionStatusCompleted,
+	}))
+	h := newUIHandler(store)
+	body := "userID=" + consts.TestUser1ID + "&txID=wd-done-1&event=core.withdrawal.completed"
+	req := httptest.NewRequest(http.MethodPost, "/ui/actions/withdrawal/status", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr := httptest.NewRecorder()
+	h.UIWithdrawalSetEvent(rr, req)
+	assert.Equal(t, http.StatusSeeOther, rr.Code)
+	assert.Contains(t, rr.Header().Get("Location"), "/ui/users/"+consts.TestUser1ID)
+}

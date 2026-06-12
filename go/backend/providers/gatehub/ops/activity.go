@@ -452,6 +452,10 @@ func (a *Activity) CheckGatehubWithdrawalComplete(ctx context.Context, walletID,
 	return nil
 }
 
+func (a *Activity) FetchGatehubTransaction(ctx context.Context, userID, externalTxID string) (*external.Transaction, error) {
+	return a.external.GetTransaction(ctx, userID, externalTxID)
+}
+
 func (a *Activity) LinkGatehubUserToGateway(ctx context.Context, externalUser string) error {
 	return a.external.LinkUserToGateway(ctx, externalUser)
 }
@@ -582,7 +586,21 @@ func (a *Activity) FinalizeGatehubWithdrawal(ctx context.Context, internalTxID s
 	return a.b.Transactions().SetTransactionState(ctx, internalTxID, transactions.StateCompleted)
 }
 
+func (a *Activity) RollbackGatehubWithdrawal(ctx context.Context, internalTxID string) error {
+	err := RollbackReserve(ctx, a.b, internalTxID)
+	if err != nil {
+		return err
+	}
+
+	return a.b.Transactions().SetTransactionState(ctx, internalTxID, transactions.StateFailed)
+}
+
 func (a *Activity) SendWithdrawalSCTITimeoutEmail(ctx context.Context, txID, walletID, amount, name, iban, submittedAt string) error {
 	a.b.Email().SendSCTITimeoutEmail(ctx, txID, walletID, amount, name, iban, submittedAt)
+	return nil
+}
+
+func (a *Activity) SendWithdrawalRejectedEmail(ctx context.Context, txID, walletID, amount, currency, iban, name string) error {
+	a.b.Email().SendGatehubWithdrawalRejectedEmail(ctx, txID, walletID, amount, currency, iban, name)
 	return nil
 }
