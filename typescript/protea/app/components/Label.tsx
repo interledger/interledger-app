@@ -7,6 +7,7 @@ const Label = forwardRef<
   LabelHTMLAttributes<HTMLLabelElement>
 >(({ className, ...props }, ref) => {
   return (
+    // eslint-disable-next-line jsx-a11y/label-has-associated-control -- this is a primitive label; the control is associated by the consumer via htmlFor/{...props}
     <label
       ref={ref}
       className={clsx(

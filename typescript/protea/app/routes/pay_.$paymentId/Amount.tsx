@@ -67,7 +67,7 @@ function reducer(state: AmountState, action: Action): AmountState {
       return { ...state, receive: action.receive! }
     case 'linkedAccount':
       return { ...state, linkedAccount: action.linkedAccount! }
-    case 'network':
+    case 'network': {
       let newSend = state.send
       let newReceive = state.receive
       if (state.focussed == 'send') {
@@ -84,6 +84,7 @@ function reducer(state: AmountState, action: Action): AmountState {
         receive: newReceive,
         totalSendAmount: action.totalSendAmount!
       }
+    }
     default:
       return state
   }
@@ -120,10 +121,10 @@ export const Amount = () => {
     [csrfToken, updatePaymentFetcher]
   )
 
-  let onChangeSendAmountDismissRef = useRef<NodeJS.Timeout>()
+  const onChangeSendAmountDismissRef = useRef<NodeJS.Timeout>()
   const _onChangeSendAmount = useCallback<ChangeEventHandler<HTMLInputElement>>(
     (event) => {
-      let send = event.target.value
+      const send = event.target.value
       dispatchPayment({ type: 'send', send })
 
       if (onChangeSendAmountDismissRef.current) {
@@ -150,12 +151,12 @@ export const Amount = () => {
     ]
   )
 
-  let onChangeReceiveAmountDismissRef = useRef<NodeJS.Timeout>()
+  const onChangeReceiveAmountDismissRef = useRef<NodeJS.Timeout>()
   const _onChangeReceiveAmount = useCallback<
     ChangeEventHandler<HTMLInputElement>
   >(
     (event) => {
-      let receive = event.target.value
+      const receive = event.target.value
       dispatchPayment({ type: 'receive', receive })
 
       if (onChangeReceiveAmountDismissRef.current) {

@@ -24,9 +24,10 @@ Feature: Withdraw Funds
     When I navigate to the deposit page
     And I deposit "100" "EUR" via the deposit iframe
     Then I should see my balance updated with "100" "EUR"
-    
+
     When I navigate to the withdrawal page
     And I withdraw "50" "EUR" via the withdrawal iframe
+    And the GateHub withdrawal event "core.withdrawal.completed" is triggered
     Then I should see my balance updated with "50" "EUR"
 
   @withdrawal @gatehub @fees
@@ -37,7 +38,19 @@ Feature: Withdraw Funds
     Then I should see my balance updated with "100" "EUR"
     When I navigate to the withdrawal page
     And I withdraw "50" "EUR" via the withdrawal iframe
+    And the GateHub withdrawal event "core.withdrawal.completed" is triggered
     Then I should see my balance updated with "49" "EUR"
+
+  @withdrawal @gatehub @rejection
+  Scenario: Withdrawal is rejected and balance is not deducted
+    When I navigate to the deposit page
+    And I deposit "100" "EUR" via the deposit iframe
+    Then I should see my balance updated with "100" "EUR"
+
+    When I navigate to the withdrawal page
+    And I withdraw "50" "EUR" via the withdrawal iframe
+    And the GateHub withdrawal event "more-bridge.withdrawal.rejected" is triggered
+    Then I should see my balance updated with "100" "EUR"
 
   @withdrawal @pti @return
   Scenario: Balance goes negative when deposit is returned after withdrawal from PTI wallet
