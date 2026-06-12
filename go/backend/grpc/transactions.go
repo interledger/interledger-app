@@ -230,6 +230,8 @@ func (s *rpcService) LookupTransaction(ctx context.Context, req *pb.LookupTransa
 	pbTx := transformTransaction(*tx, transfers)
 
 	if tx.Provider == gatehub.ProviderName && tx.Type == transactions.TransactionTypeWithdrawal && tx.ForeignID != "" {
+		paymentChannel := "SEPA"
+		pbTx.PaymentChannel = &paymentChannel
 		ghTx, err := s.b.Gatehub().GetTransaction(ctx, wallet.ID, tx.ForeignID)
 		if err != nil {
 			log.Warn("LookupTransaction: failed to fetch GateHub withdrawal details", zap.Error(err))
@@ -240,9 +242,7 @@ func (s *rpcService) LookupTransaction(ctx context.Context, req *pb.LookupTransa
 			if ghTx.Account.LegalName != "" {
 				pbTx.RecipientName = &ghTx.Account.LegalName
 			}
-			paymentChannel := "SEPA"
-			pbTx.PaymentChannel = &paymentChannel
-			if ghTx.Message != nil {
+			if ghTx.Message != nil && *ghTx.Message != "" {
 				pbTx.Reference = *ghTx.Message
 			}
 		}

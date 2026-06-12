@@ -285,9 +285,11 @@ function Withdrawal() {
           <div className='flex flex-col'>
             {transaction.recipientIban ? (
               <>
-                <span className='text-sm text-medium'>
-                  {transaction.recipientName}
-                </span>
+                {transaction.recipientName && (
+                  <span className='text-sm text-medium'>
+                    {transaction.recipientName}
+                  </span>
+                )}
                 <span className='text-xs text-weak'>
                   IBAN: {transaction.recipientIban}
                 </span>
@@ -439,7 +441,9 @@ function Withdrawal() {
           <CardContent>
             <div className='flex w-full flex-col space-y-1'>
               <span className='text-weak'>
-                {transaction.recipientIban ? 'SEPA Reference' : 'Withdraw note'}
+                {transaction.paymentChannel === 'SEPA'
+                  ? 'SEPA Reference'
+                  : 'Withdraw note'}
               </span>
               <span className='text-medium'>{transaction.reference}</span>
             </div>
