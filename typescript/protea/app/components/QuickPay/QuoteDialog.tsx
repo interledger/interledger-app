@@ -42,7 +42,7 @@ export function QuoteDialog({
             />
             <div className="flex justify-center items-center gap-3 mt-5">
               <Button
-                aria-label="confirm-pay"
+                aria-label="Confirm payment"
                 type="submit"
                 value="confirm"
                 name="intent"
@@ -50,7 +50,7 @@ export function QuoteDialog({
                 Confirm
               </Button>
               <Button
-                aria-label="cancel-pay"
+                aria-label="Cancel payment"
                 type="submit"
                 value="cancel"
                 name="intent"

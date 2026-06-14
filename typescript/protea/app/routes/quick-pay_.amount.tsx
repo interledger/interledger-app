@@ -78,11 +78,11 @@ export default function Page() {
       <GridColumn
         className='col-span-full mt-20 mx-auto'
       >
-        <BackButton title="Back" to="/quick-pay" />
+        <BackButton title="Back" to="/quick-pay" aria-label="Go back to previous step"/>
         <DialPad />
         <div className="flex justify-center gap-2 mt-12 w-64">
           <Button
-            aria-label="request"
+            aria-label="Continue to request"
             onClick={e => handleNavigation(e, `/quick-pay/request`)}
             disabled={Number(amountValue) === 0}
           >
@@ -90,7 +90,7 @@ export default function Page() {
           </Button>
 
           <Button
-            aria-label="pay"
+            aria-label="Continue to payment"
             onClick={e => handleNavigation(e, `/quick-pay/pay`)}
             disabled={Number(amountValue) === 0}
           >

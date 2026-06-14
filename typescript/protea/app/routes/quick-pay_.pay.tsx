@@ -113,7 +113,7 @@ export default function Page() {
       <GridColumn
         className='col-span-full mt-20 mx-auto'
       >
-        <BackButton title="Back" to="/quick-pay/amount" />
+        <BackButton title="Back" to="/quick-pay/amount" aria-label="Go back to previous step"/>
         <AmountDisplay />
         <div className="mx-auto w-full max-w-sm">
           <Form method="POST">
@@ -152,7 +152,7 @@ export default function Page() {
               />
               <div className="flex justify-center">
                 <Button
-                  aria-label="pay"
+                  aria-label="Get a quote"
                   type="submit"
                   name="intent"
                   value="pay"

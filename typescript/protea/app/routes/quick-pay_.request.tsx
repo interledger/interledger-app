@@ -1,6 +1,6 @@
 import type { Route } from './+types/quick-pay_.request'
 import { data, redirect } from 'react-router'
-import { Form, useActionData, useLoaderData } from 'react-router'
+import { Form, useActionData, useLoaderData, useNavigate } from 'react-router'
 import type { MetaFunction } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Button, GridColumn, Layouts, TextField, WalletGrid } from '~/components'
@@ -80,6 +80,7 @@ export default function Page() {
   const pushSnackbar = useScaffoldStore((state) => state.pushSnackbar)
   const [errorsList, setErrorsList] = useState(errors)
   const [note, setNote] = useState('')
+  const navigate = useNavigate()
 
   useEffect(() => { setErrorsList(errors) }, [errors, setErrorsList])
 
@@ -153,7 +154,7 @@ export default function Page() {
                 appendIcon={
                   <>
                     <Button
-                      aria-label="copy payment link"
+                      aria-label="Copy payment link"
                       className="h-7 w-7 bg-transparent"
                       onClick={(e) => copyToClipboard(e, incomingPaymentData.url)}
                       type="button"
@@ -162,7 +163,7 @@ export default function Page() {
                         <Icon>content_copy</Icon>}
                     </Button>
                     <Button
-                      aria-label="share payment link"
+                      aria-label="Share payment link"
                       className="h-7 w-7 bg-transparent"
                       type="button"
                       onClick={(e) => {
@@ -175,8 +176,8 @@ export default function Page() {
                 }
               ></TextField>
               <div className="flex justify-center">
-                <Button type="submit" className="mt-8">
-                  Close
+                <Button type="button" className="mt-8" onClick={() => navigate("/quick-pay")} aria-label="Start a new payment">
+                  Start a new payment
                 </Button>
               </div>
             </Form>) : (
@@ -211,7 +212,7 @@ export default function Page() {
                   successMessage={charactersRemaining(note)}
                 />
                 <div className="flex justify-center">
-                  <Button aria-label="Create Request" type="submit" name="intent" value="request">
+                  <Button aria-label="Create request link" type="submit" name="intent" value="request">
                     Create Request
                   </Button>
                 </div>

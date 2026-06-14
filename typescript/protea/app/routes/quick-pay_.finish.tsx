@@ -120,18 +120,18 @@ export default function Page() {
                 <div className="text-3xl mb-4">Payment successful</div>
                 <div className="mb-10">Your payment was completed.</div>
 
-                <Button type="submit" name="intent" value="finish">Home</Button>
+                <Button type="submit" name="intent" value="finish" aria-label="Start a new payment">Home</Button>
               </>
             ) : (
               <>
-                <BackButton title="Back" to="/quick-pay/pay"/>
+                <BackButton title="Back" to="/quick-pay/pay" aria-label="Go back to payment preview"/>
                 <div className="flex justify-center mb-6"><FinishError className="w-16 h-16" /></div>
                 <div className="text-3xl mb-4 text-red-600">Payment failed</div>
                 <div className="mb-10">
                   {statusAndMessage.message}
                 </div>
 
-                <Button type="submit" name="intent" value="finish">Home</Button>
+                <Button type="submit" name="intent" value="finish" aria-label="Start a new payment">Home</Button>
               </>
             )}
           </Form>)}

@@ -37,7 +37,7 @@ export default function Page() {
   return (
     <WalletGrid>
       <GridColumn className="col-span-full mt-20 mx-auto">
-        <BackButton title="Home" to="/" />
+        <BackButton title="Home" to="/" aria-label="Go to home page"/>
         <div className="text-3xl">Pay anyone, anywhere in the world.</div>
         <Form method="POST" id="ilpay-form" className="mt-16 max-w-96">
           <TextField
@@ -51,6 +51,7 @@ export default function Page() {
           />
 
           <Button
+            aria-label="Go to next step"
             form="ilpay-form"
             type="submit"
             name="intent"
