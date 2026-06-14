@@ -174,6 +174,8 @@ export default function Page() {
                                     name="intent"
                                     value="pay"
                                     disabled={isSubmitting}
+                                    aria-busy={isSubmitting}
+                                    role="status"
                                 >
                                     {isSubmitting ? (
                                         <span className="animate-pulse">Processing...</span>

@@ -136,10 +136,14 @@ type DialPadKeyProps = {
 const DialPadKey = ({ label, id, activeKey }: DialPadKeyProps) => {
   const { amountValue, setAmountValue } = useDialPadStore()
   const isActive = id == activeKey
+  const handleKeyboardNavigation = (e: React.KeyboardEvent<HTMLLIElement>) => {
+    if (e.key === "Enter" || e.key === " ") { handleDialPadInputs(id, amountValue, setAmountValue) }
+  }
 
   return (
     <li
       role="button"
+      aria-label={label == "Backspace" ? "Remove last digit" : label}
       className={clsx('flex items-center justify-center w-16 h-16 rounded-lg cursor-pointer select-none text-base font-medium transition-all duration-100 ease-out',
         isActive ? 'bg-gray-200/60 dark:bg-white/10 text-rose-600 dark:text-rose-600 scale-95'
           : 'text-gray-700 dark:text-gray-300',
@@ -148,6 +152,7 @@ const DialPadKey = ({ label, id, activeKey }: DialPadKeyProps) => {
       tabIndex={0}
       id={id}
       onClick={() => handleDialPadInputs(id, amountValue, setAmountValue)}
+      onKeyDown={(e: React.KeyboardEvent<HTMLLIElement>) => handleKeyboardNavigation(e)}
     >
       {label}
     </li>
@@ -168,7 +173,12 @@ export const AmountDisplay = (args: AmountDisplayProps) => {
     : `${getCurrencySymbol(assetCode)} ${amountValue}`
 
   return (
-    <div className="amount-display w-full whitespace-nowrap flex items-center justify-center text-5xl text-green-1">
+    <div
+      aria-label={value}
+      aria-live="polite"
+      aria-atomic="true"
+      className="amount-display w-full whitespace-nowrap flex items-center justify-center text-5xl text-green-1"
+    >
       {value}
     </div>
   )

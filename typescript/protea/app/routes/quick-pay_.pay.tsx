@@ -124,6 +124,7 @@ export default function Page() {
                 name="senderAddress"
                 value={senderAddress}
                 readOnly
+                aria-readonly="true"
               />
               <TextField
                 label="Pay into"
@@ -147,6 +148,7 @@ export default function Page() {
               />
               <input
                 type="hidden"
+                aria-hidden="true"
                 name="amount"
                 value={Number(amountValue)}
               />
@@ -157,6 +159,8 @@ export default function Page() {
                   name="intent"
                   value="pay"
                   disabled={isSubmitting}
+                  aria-busy={isSubmitting}
+                  role="status"
                 >
                   {isSubmitting ? (
                     <span className="animate-pulse">Processing...</span>

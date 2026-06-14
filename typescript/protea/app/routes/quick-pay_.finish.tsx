@@ -104,26 +104,26 @@ export default function Page() {
     <WalletGrid>
       <GridColumn className="col-span-full mt-20 mx-auto text-center max-w-md">
         {loading ? (
-          <>
+          <div aria-live="polite" aria-label="Checking payment">
             <div className="fixed inset-0 z-[60] flex w-full h-full bg-page">
             </div>
             <div className="z-[70]">
               <div className="animate-spin h-10 w-10 border-b-2 border-current rounded-full mx-auto mb-6" />
               <div className="text-lg">Checking payment...</div>
             </div>
-          </>
+          </div>
         ) : (
           <Form method="post">
             {!statusAndMessage.error ? (
-              <>
+              <div aria-live="polite" aria-label="Payment successful">
                 <div className="flex justify-center mb-6"><FinishCheck className="w-16 h-16" /></div>
                 <div className="text-3xl mb-4">Payment successful</div>
                 <div className="mb-10">Your payment was completed.</div>
 
                 <Button type="submit" name="intent" value="finish" aria-label="Start a new payment">Home</Button>
-              </>
+              </div>
             ) : (
-              <>
+              <div aria-live="polite" aria-label="Payment failed">
                 <BackButton title="Back" to="/quick-pay/pay" aria-label="Go back to payment preview"/>
                 <div className="flex justify-center mb-6"><FinishError className="w-16 h-16" /></div>
                 <div className="text-3xl mb-4 text-red-600">Payment failed</div>
@@ -132,7 +132,7 @@ export default function Page() {
                 </div>
 
                 <Button type="submit" name="intent" value="finish" aria-label="Start a new payment">Home</Button>
-              </>
+              </div>
             )}
           </Form>)}
       </GridColumn>

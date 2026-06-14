@@ -149,12 +149,13 @@ export default function Page() {
               <TextField
                 label="Payment link"
                 readOnly
+                aria-readonly="true"
                 defaultValue={incomingPaymentData.url}
                 className="flex-1 -z-1"
                 appendIcon={
                   <>
                     <Button
-                      aria-label="Copy payment link"
+                      aria-label={copied ? "Payment link was copied" : "Copy payment link"}
                       className="h-7 w-7 bg-transparent"
                       onClick={(e) => copyToClipboard(e, incomingPaymentData.url)}
                       type="button"
@@ -184,6 +185,7 @@ export default function Page() {
             <Form method="POST">
               <input
                 type="hidden"
+                aria-hidden="true"
                 name="amount"
                 value={Number(amountValue)}
               />
@@ -195,6 +197,7 @@ export default function Page() {
                   name="receiverAddress"
                   value={walletAddress}
                   readOnly
+                  aria-readonly="true"
                   defaultValue={walletAddress || ""}
                   errorMessage={formatError(errorsList?.receiverAddress)}
                 />
