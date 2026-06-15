@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/go-playground/validator/v10"
@@ -16,6 +17,8 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.uber.org/zap"
 )
+
+var twilioRequestTimeout = 10 * time.Second
 
 var (
 	ErrInvalidArgument = errors.New("twilio error: invalid argument")
@@ -78,7 +81,7 @@ func NewService(args *ServiceArgs) (Service, error) {
 
 	customClient.SetAccountSid(args.AccountSid)
 	customClient.BaseURL = args.ApiBaseUrl
-	customClient.HTTPClient = otelhttp.DefaultClient
+	customClient.HTTPClient = cloneHTTPClientWithTimeout(otelhttp.DefaultClient, twilioRequestTimeout)
 
 	twilioClient := twilio.NewRestClientWithParams(twilio.ClientParams{
 		Client: customClient,
@@ -96,6 +99,17 @@ func NewService(args *ServiceArgs) (Service, error) {
 		serviceSid:   args.ServiceSid,
 		enabled:      args.Enabled,
 	}, nil
+}
+
+func cloneHTTPClientWithTimeout(base *http.Client, timeout time.Duration) *http.Client {
+	if base == nil {
+		return &http.Client{Timeout: timeout}
+	}
+
+	cloned := *base
+	cloned.Timeout = timeout
+
+	return &cloned
 }
 
 func validateConfiguration(twilioClient *twilio.RestClient, serviceSid string) error {
