@@ -5731,6 +5731,7 @@ type Features struct {
 	ManageWalletCardsEnabled bool                   `protobuf:"varint,11,opt,name=manageWalletCardsEnabled,proto3" json:"manageWalletCardsEnabled,omitempty"`
 	AccountEnabled           bool                   `protobuf:"varint,12,opt,name=accountEnabled,proto3" json:"accountEnabled,omitempty"`
 	AccountsTabEnabled       bool                   `protobuf:"varint,13,opt,name=accountsTabEnabled,proto3" json:"accountsTabEnabled,omitempty"`
+	DeleteAccountEnabled     bool                   `protobuf:"varint,14,opt,name=deleteAccountEnabled,proto3" json:"deleteAccountEnabled,omitempty"`
 	unknownFields            protoimpl.UnknownFields
 	sizeCache                protoimpl.SizeCache
 }
@@ -5852,6 +5853,13 @@ func (x *Features) GetAccountEnabled() bool {
 func (x *Features) GetAccountsTabEnabled() bool {
 	if x != nil {
 		return x.AccountsTabEnabled
+	}
+	return false
+}
+
+func (x *Features) GetDeleteAccountEnabled() bool {
+	if x != nil {
+		return x.DeleteAccountEnabled
 	}
 	return false
 }
@@ -10815,7 +10823,7 @@ const file_backend_v1_backend_proto_rawDesc = "" +
 	"\vhasBalances\x18\t \x01(\bR\vhasBalances\x12&\n" +
 	"\x0eexceededLimits\x18\n" +
 	" \x01(\bR\x0eexceededLimits\x12\x18\n" +
-	"\acountry\x18\v \x01(\tR\acountry\"\xbc\x04\n" +
+	"\acountry\x18\v \x01(\tR\acountry\"\xf0\x04\n" +
 	"\bFeatures\x12 \n" +
 	"\vsendEnabled\x18\x01 \x01(\bR\vsendEnabled\x12&\n" +
 	"\x0ereceiveEnabled\x18\x02 \x01(\bR\x0ereceiveEnabled\x124\n" +
@@ -10830,7 +10838,8 @@ const file_backend_v1_backend_proto_rawDesc = "" +
 	" \x01(\bR\x11zarBalanceEnabled\x12:\n" +
 	"\x18manageWalletCardsEnabled\x18\v \x01(\bR\x18manageWalletCardsEnabled\x12&\n" +
 	"\x0eaccountEnabled\x18\f \x01(\bR\x0eaccountEnabled\x12.\n" +
-	"\x12accountsTabEnabled\x18\r \x01(\bR\x12accountsTabEnabled\"-\n" +
+	"\x12accountsTabEnabled\x18\r \x01(\bR\x12accountsTabEnabled\x122\n" +
+	"\x14deleteAccountEnabled\x18\x0e \x01(\bR\x14deleteAccountEnabled\"-\n" +
 	"\x11CreateCardRequest\x12\x18\n" +
 	"\atokenID\x18\x01 \x01(\tR\atokenID\"/\n" +
 	"\x13InitQuote3DSRequest\x12\x18\n" +

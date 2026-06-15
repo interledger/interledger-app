@@ -56,6 +56,9 @@ func TestRequestAccountDeletion_AlreadyRequested(t *testing.T) {
 	st, ok := status.FromError(err)
 	require.True(t, ok)
 	require.Equal(t, codes.AlreadyExists, st.Code())
+	appErr := statusFindDetail[*pb.AppError](st)
+	require.NotNil(t, appErr)
+	require.Equal(t, errcodes.ErrCodeAccountDeletionAlreadyRequested, appErr.ErrorCode)
 }
 
 // Regression: support notification failure after a successful insert must roll the row back.

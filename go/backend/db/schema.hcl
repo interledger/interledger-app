@@ -1748,6 +1748,11 @@ table "wallet_features" {
     type = boolean
     default = true
   }
+  column "delete_account_enabled" {
+    null = false
+    type = boolean
+    default = false
+  }
   column "created_at" {
     null    = false
     type    = timestamp
