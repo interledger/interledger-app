@@ -281,7 +281,7 @@ export function Scaffold() {
                 </div>
               )}
               {isUser && (
-                <div className='flex items-center '>
+                <div className='flex items-center'>
                   <ButtonRouter to={href('/')}>
                     <span className='text-sm font-medium'>Go to app</span>
                   </ButtonRouter>
