@@ -31,10 +31,10 @@ dependencies:
     version: 1.22.37
   '@react-router/node':
     specifier: ^7.13.1
-    version: 7.13.1(react-router@7.13.1)(typescript@5.2.2)
+    version: 7.13.1(react-router@7.15.0)(typescript@5.2.2)
   '@react-router/serve':
     specifier: ^7.13.1
-    version: 7.13.1(react-router@7.13.1)(typescript@5.2.2)
+    version: 7.13.1(react-router@7.15.0)(typescript@5.2.2)
   '@redis/client':
     specifier: ^1.5.7
     version: 1.5.7
@@ -43,7 +43,7 @@ dependencies:
     version: 1.54.0
   '@sentry/react-router':
     specifier: ^9.3.0
-    version: 9.3.0(@react-router/node@7.13.1)(react-router@7.13.1)(react@18.2.0)
+    version: 9.3.0(@react-router/node@7.13.1)(react-router@7.15.0)(react@18.2.0)
   '@types/node-rsa':
     specifier: ^1.1.4
     version: 1.1.4
@@ -96,8 +96,8 @@ dependencies:
     specifier: ^7.62.0
     version: 7.62.0(react@18.2.0)
   react-router:
-    specifier: ^7.13.1
-    version: 7.13.1(react-dom@18.2.0)(react@18.2.0)
+    specifier: ^7.15.0
+    version: 7.15.0(react-dom@18.2.0)(react@18.2.0)
   shiki:
     specifier: ^0.14.3
     version: 0.14.3
@@ -117,7 +117,7 @@ devDependencies:
     version: 9.39.4
   '@react-router/dev':
     specifier: ^7.13.1
-    version: 7.13.1(@react-router/serve@7.13.1)(@types/node@20.1.7)(react-router@7.13.1)(typescript@5.2.2)(vite@5.4.21)
+    version: 7.13.1(@react-router/serve@7.13.1)(@types/node@20.1.7)(react-router@7.15.0)(typescript@5.2.2)(vite@5.4.21)
   '@react-router/fs-routes':
     specifier: ^7.13.1
     version: 7.13.1(@react-router/dev@7.13.1)(typescript@5.2.2)
@@ -1886,7 +1886,7 @@ packages:
       - supports-color
     dev: false
 
-  /@react-router/dev@7.13.1(@react-router/serve@7.13.1)(@types/node@20.1.7)(react-router@7.13.1)(typescript@5.2.2)(vite@5.4.21):
+  /@react-router/dev@7.13.1(@react-router/serve@7.13.1)(@types/node@20.1.7)(react-router@7.15.0)(typescript@5.2.2)(vite@5.4.21):
     resolution: {integrity: sha512-H+kEvbbOaWGaitOyL6CgqPsHqRUh66HuVRvIEaZEqdoAY/1xChdhmmq6ZumMHzcFHgHlfOcoXgNHlz6ZO4NWcg==}
     engines: {node: '>=20.0.0'}
     hasBin: true
@@ -1917,8 +1917,8 @@ packages:
       '@babel/preset-typescript': 7.28.5(@babel/core@7.29.0)
       '@babel/traverse': 7.29.0
       '@babel/types': 7.29.0
-      '@react-router/node': 7.13.1(react-router@7.13.1)(typescript@5.2.2)
-      '@react-router/serve': 7.13.1(react-router@7.13.1)(typescript@5.2.2)
+      '@react-router/node': 7.13.1(react-router@7.15.0)(typescript@5.2.2)
+      '@react-router/serve': 7.13.1(react-router@7.15.0)(typescript@5.2.2)
       '@remix-run/node-fetch-server': 0.13.0
       arg: 5.0.2
       babel-dead-code-elimination: 1.0.12
@@ -1935,7 +1935,7 @@ packages:
       pkg-types: 2.3.0
       prettier: 3.8.4
       react-refresh: 0.14.2
-      react-router: 7.13.1(react-dom@18.2.0)(react@18.2.0)
+      react-router: 7.15.0(react-dom@18.2.0)(react@18.2.0)
       semver: 7.7.4
       tinyglobby: 0.2.15
       typescript: 5.2.2
@@ -1955,7 +1955,7 @@ packages:
       - terser
     dev: true
 
-  /@react-router/express@7.13.1(express@4.22.1)(react-router@7.13.1)(typescript@5.2.2):
+  /@react-router/express@7.13.1(express@4.22.1)(react-router@7.15.0)(typescript@5.2.2):
     resolution: {integrity: sha512-ujHom4LiEWsbnohNArwNT86QP3WRB5p+rY8AAll6s4gdrzgOXIy3FHDc3up5Lz8juUrZKh0d+B+PZa/IdDSK3A==}
     engines: {node: '>=20.0.0'}
     peerDependencies:
@@ -1966,9 +1966,9 @@ packages:
       typescript:
         optional: true
     dependencies:
-      '@react-router/node': 7.13.1(react-router@7.13.1)(typescript@5.2.2)
+      '@react-router/node': 7.13.1(react-router@7.15.0)(typescript@5.2.2)
       express: 4.22.1
-      react-router: 7.13.1(react-dom@18.2.0)(react@18.2.0)
+      react-router: 7.15.0(react-dom@18.2.0)(react@18.2.0)
       typescript: 5.2.2
 
   /@react-router/fs-routes@7.13.1(@react-router/dev@7.13.1)(typescript@5.2.2):
@@ -1981,12 +1981,12 @@ packages:
       typescript:
         optional: true
     dependencies:
-      '@react-router/dev': 7.13.1(@react-router/serve@7.13.1)(@types/node@20.1.7)(react-router@7.13.1)(typescript@5.2.2)(vite@5.4.21)
+      '@react-router/dev': 7.13.1(@react-router/serve@7.13.1)(@types/node@20.1.7)(react-router@7.15.0)(typescript@5.2.2)(vite@5.4.21)
       minimatch: 9.0.9
       typescript: 5.2.2
     dev: true
 
-  /@react-router/node@7.13.1(react-router@7.13.1)(typescript@5.2.2):
+  /@react-router/node@7.13.1(react-router@7.15.0)(typescript@5.2.2):
     resolution: {integrity: sha512-IWPPf+Q3nJ6q4bwyTf5leeGUfg8GAxSN1RKj5wp9SK915zKK+1u4TCOfOmr8hmC6IW1fcjKV0WChkM0HkReIiw==}
     engines: {node: '>=20.0.0'}
     peerDependencies:
@@ -1997,10 +1997,10 @@ packages:
         optional: true
     dependencies:
       '@mjackson/node-fetch-server': 0.2.0
-      react-router: 7.13.1(react-dom@18.2.0)(react@18.2.0)
+      react-router: 7.15.0(react-dom@18.2.0)(react@18.2.0)
       typescript: 5.2.2
 
-  /@react-router/serve@7.13.1(react-router@7.13.1)(typescript@5.2.2):
+  /@react-router/serve@7.13.1(react-router@7.15.0)(typescript@5.2.2):
     resolution: {integrity: sha512-vh5lr41rioXLz/zNLTYo0zq4yh97AkgEkJK7bhPeXnNbLNtI36WCZ2AeBtSJ4sdx4gx5LZvcjP8zoWFfSbNupA==}
     engines: {node: '>=20.0.0'}
     hasBin: true
@@ -2008,13 +2008,13 @@ packages:
       react-router: 7.13.1
     dependencies:
       '@mjackson/node-fetch-server': 0.2.0
-      '@react-router/express': 7.13.1(express@4.22.1)(react-router@7.13.1)(typescript@5.2.2)
-      '@react-router/node': 7.13.1(react-router@7.13.1)(typescript@5.2.2)
+      '@react-router/express': 7.13.1(express@4.22.1)(react-router@7.15.0)(typescript@5.2.2)
+      '@react-router/node': 7.13.1(react-router@7.15.0)(typescript@5.2.2)
       compression: 1.8.1
       express: 4.22.1
       get-port: 5.1.1
       morgan: 1.10.1
-      react-router: 7.13.1(react-dom@18.2.0)(react@18.2.0)
+      react-router: 7.15.0(react-dom@18.2.0)(react@18.2.0)
       source-map-support: 0.5.21
     transitivePeerDependencies:
       - supports-color
@@ -2555,7 +2555,7 @@ packages:
       '@sentry/core': 9.3.0
     dev: false
 
-  /@sentry/react-router@9.3.0(@react-router/node@7.13.1)(react-router@7.13.1)(react@18.2.0):
+  /@sentry/react-router@9.3.0(@react-router/node@7.13.1)(react-router@7.15.0)(react@18.2.0):
     resolution: {integrity: sha512-RvrnjjAjvSru/kRO0moUqqI1Ex94SvobruBJ/ZZ0CGJrXo6kMr1/srIkYTqtsejRzPvyZISkDPvhUciZyQoYuw==}
     engines: {node: '>=20'}
     peerDependencies:
@@ -2563,7 +2563,7 @@ packages:
       react: '>=18'
       react-router: 7.x
     dependencies:
-      '@react-router/node': 7.13.1(react-router@7.13.1)(typescript@5.2.2)
+      '@react-router/node': 7.13.1(react-router@7.15.0)(typescript@5.2.2)
       '@sentry/browser': 9.3.0
       '@sentry/cli': 2.58.5
       '@sentry/core': 9.3.0
@@ -2571,7 +2571,7 @@ packages:
       '@sentry/vite-plugin': 3.6.1
       glob: 11.0.1
       react: 18.2.0
-      react-router: 7.13.1(react-dom@18.2.0)(react@18.2.0)
+      react-router: 7.15.0(react-dom@18.2.0)(react@18.2.0)
     transitivePeerDependencies:
       - encoding
       - supports-color
@@ -9172,8 +9172,8 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: true
 
-  /react-router@7.13.1(react-dom@18.2.0)(react@18.2.0):
-    resolution: {integrity: sha512-td+xP4X2/6BJvZoX6xw++A2DdEi++YypA69bJUV5oVvqf6/9/9nNlD70YO1e9d3MyamJEBQFEzk6mbfDYbqrSA==}
+  /react-router@7.15.0(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-HW9vYwuM8f4yx66Izy8xfrzCM+SBJluoZcCbww9A1TySax11S5Vgw6fi3ZjMONw9J4gQwngL7PzkyIpJJpJ7RQ==}
     engines: {node: '>=20.0.0'}
     peerDependencies:
       react: '>=18'
