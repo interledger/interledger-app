@@ -289,12 +289,12 @@ func DepositWorkflow(ctx workflow.Context, payment *payments.Payment, wallet *wa
 
 	err := workflow.ExecuteActivity(ctx, a.ValidateLinkedAccounts, payment, wallet.ID).Get(ctx, nil)
 	if err != nil {
-		return temporal.NewNonRetryableApplicationError("Invalid linked account", "ErrInternal", err)		
+		return temporal.NewNonRetryableApplicationError("Invalid linked account", "ErrInternal", err)
 	}
 
 	pitArgs := pti.TransactionArgs{
 		PaymentID:       payment.ID,
-		WalletID:        wallet.ID,	
+		WalletID:        wallet.ID,
 		Amount:          payment.ReceiverAmount,
 		LinkedAccountID: payment.SenderAccount,
 	}
