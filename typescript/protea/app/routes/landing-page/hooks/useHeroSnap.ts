@@ -118,6 +118,14 @@ export function useHeroSnap({
     // past screen 5 when scrolling up from the virtual card section.
     reengageBlockUntil: 0,
 
+    // window.scrollY observed on the previous scroll event. The re-engage
+    // handler uses the sign of (current - previous) to know the user is
+    // scrolling UP into the hero — a viewport-independent signal. The old
+    // rect.bottom-vs-innerHeight check misfired on mobile, where the hero's
+    // 100vh resolves to the large-viewport height while window.innerHeight
+    // shrinks as the URL bar reappears on scroll-up.
+    lastScrollY: 0,
+
     // clientY of the first touch point, recorded in onTouchStart.
     // Compared against onTouchEnd.clientY to compute swipe delta.
     // null when no touch is active or onTouchEnd fires without a preceding start.
@@ -281,27 +289,34 @@ export function useHeroSnap({
 
     // ── Lock lifecycle ────────────────────────────────────────────────
     /**
-     * Re-engage when the user scrolls back up to the hero from below.
+     * Re-engage when the user scrolls back up into the hero.
      *
-     * Re-entry is always from below: the lock never releases upward (screen 1
-     * + up is a no-op), so the page can only be unlocked while the user is
-     * past the hero. Don't infer the direction from geometry — on mobile,
-     * the hero's 100vh resolves to the large-viewport height while
-     * window.innerHeight shrinks when the browser chrome reappears on
-     * scroll-up, and top overscroll bounce pushes rect.top above 0; both
-     * made a `rect.bottom <= innerHeight + 4` check misread re-entry as a
+     * The hero is the first section and the lock only ever releases at the
+     * bottom edge (screen 5 + down); it never releases at the top. So any
+     * return to the hero while unlocked is necessarily an approach from below,
+     * and re-entry always lands on the last screen.
+     *
+     * "From below" is detected from the scroll DIRECTION (scrollY decreasing),
+     * which is independent of viewport height. The previous implementation
+     * inferred direction from `rect.bottom <= window.innerHeight + 4` and chose
+     * screen 1 otherwise; on mobile the hero's 100vh resolves to the
+     * large-viewport height while window.innerHeight shrinks when the URL bar
+     * reappears on scroll-up, so that check misread the upward approach as a
      * top entry and reset the carousel to screen 1.
      */
     const onScroll = () => {
+      const y = window.scrollY
+      const scrollingUp = y < state.lastScrollY
+      state.lastScrollY = y
       if (state.locked) return
       if (performance.now() - state.lastReleaseAt < REENGAGE_COOLDOWN_MS) return
+      if (!scrollingUp) return
       const rect = section.getBoundingClientRect()
       const fullyAtTop =
         rect.top >= 0 && rect.top < window.innerHeight && rect.bottom > 0
       if (!fullyAtTop) return
-      const entryScreen = screenCount as CarouselScreen
-      state.screen = entryScreen
-      setActiveScreen(entryScreen)
+      state.screen = screenCount as CarouselScreen
+      setActiveScreen(screenCount as CarouselScreen)
       state.reengageBlockUntil = performance.now() + REENGAGE_PAUSE_MS
       lockBody()
       window.scrollTo({ top: window.scrollY + rect.top, behavior: 'auto' })
@@ -315,6 +330,7 @@ export function useHeroSnap({
     }
 
     initLockState()
+    state.lastScrollY = window.scrollY
 
     window.addEventListener('wheel', onWheel, { passive: false })
     window.addEventListener('touchstart', onTouchStart, { passive: true })
