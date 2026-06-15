@@ -808,7 +808,7 @@ export function TeamContentRecordComponent({
   return (
     <div
       key={content.id}
-      className='grid w-full grid-cols-4 gap-y-20 px-4  sm:grid-cols-8 lg:grid-cols-12 lg:gap-x-10 lg:gap-y-14 lg:px-0'
+      className='grid w-full grid-cols-4 gap-y-20 px-4 sm:grid-cols-8 lg:grid-cols-12 lg:gap-x-10 lg:gap-y-14 lg:px-0'
     >
       <div className='col-span-full flex flex-col items-center space-y-10 text-center'>
         <AnimatePresence mode='wait'>
