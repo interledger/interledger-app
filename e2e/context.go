@@ -254,6 +254,9 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^that Gatehub charges my user a ([0-9.]+)% withdrawal fee$`, func(feePercent string) error {
 		return sc.thatGatehubChargesWithdrawalFee(feePercent)
 	})
+	ctx.Step(`^the GateHub withdrawal event "([^"]*)" is triggered$`, func(event string) error {
+		return sc.theGatehubWithdrawalEventIsTriggered(event)
+	})
 
 	// P2P Payment steps
 	ctx.Step(`^I navigate to the dashboard$`, func() error { return sc.iNavigateToTheDashboard() })
@@ -271,6 +274,12 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 		return sc.iSelectThePaymentCurrency(currency)
 	})
 	ctx.Step(`^I submit the payment$`, func() error { return sc.iSubmitThePayment() })
+	ctx.Step(`^I rapidly double-click to submit the payment$`, func() error {
+		return sc.iRapidlyDoubleClickToSubmitThePayment()
+	})
+	ctx.Step(`^I should be redirected to the home page and able to navigate away$`, func() error {
+		return sc.iShouldLandOnHomeAndBeAbleToNavigate()
+	})
 	ctx.Step(`^I should see a payment confirmation$`, func() error { return sc.iShouldSeeAPaymentConfirmation() })
 	ctx.Step(`^I wait for the payment to complete$`, func() error { return sc.iWaitForThePaymentToComplete() })
 	ctx.Step(`^the payment form should be accessible$`, func() error { return sc.thePaymentFormShouldBeAccessible() })

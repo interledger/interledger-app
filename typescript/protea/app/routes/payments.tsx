@@ -395,9 +395,9 @@ export default function Page() {
                                 transaction.cardTransactionDetails
                               )
                             : transaction.type === 'sent' ||
-                              transaction.type === 'web_monetization_outgoing'
-                            ? 'text-error'
-                            : 'text-medium'
+                                transaction.type === 'web_monetization_outgoing'
+                              ? 'text-error'
+                              : 'text-medium'
                         )}
                       >
                         {transaction.subtotal}
