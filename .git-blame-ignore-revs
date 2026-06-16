@@ -7,3 +7,5 @@
 
 # style: apply Prettier formatting to protea and botanist (#576)
 e955df25248942f5e8de11d554c4e840b6861a6f
+# chore(format): upgrade prettier to v3 and reformat (#606)
+419b997a8d2b082b1b4deee830e0c0a08a26ca9a
