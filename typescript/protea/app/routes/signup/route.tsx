@@ -56,8 +56,9 @@ export default function Page() {
 }
 
 export async function action(args: Route.ActionArgs) {
-  const { detailsAction, otpAction, passwordAction } =
-    await import('~/routes/signup/route.server')
+  const { detailsAction, otpAction, passwordAction } = await import(
+    '~/routes/signup/route.server'
+  )
   const formName = (await args.request.clone().formData()).get(
     'formName'
   ) as string

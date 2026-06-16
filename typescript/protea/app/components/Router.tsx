@@ -43,7 +43,8 @@ export const Router = forwardRef<
 Router.displayName = 'Router'
 
 interface ButtonRouterProps
-  extends LinkProps, RefAttributes<HTMLAnchorElement> {
+  extends LinkProps,
+    RefAttributes<HTMLAnchorElement> {
   className?: string
   to: string
   children?: ReactNode
@@ -101,8 +102,7 @@ export const OutlineButtonRouter = forwardRef<any, ButtonRouterProps>(
 OutlineButtonRouter.displayName = 'OutlineButtonRouter'
 
 interface RouterProps
-  extends
-    AnchorHTMLAttributes<HTMLAnchorElement>,
+  extends AnchorHTMLAttributes<HTMLAnchorElement>,
     RefAttributes<HTMLAnchorElement> {
   className?: string
   to: string

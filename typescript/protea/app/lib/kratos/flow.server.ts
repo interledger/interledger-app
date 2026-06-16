@@ -24,7 +24,7 @@ export function getCsrfTokenFromFlow(
       node.attributes.name === 'csrf_token'
   )
 
-  return node ? ((node.attributes as UiNodeInputAttributes).value ?? '') : ''
+  return node ? (node.attributes as UiNodeInputAttributes).value ?? '' : ''
 }
 
 /**
@@ -42,7 +42,7 @@ export function getNodeValueFromFlow(
       node.attributes.name === attributeName
   )
 
-  return node ? ((node.attributes as UiNodeInputAttributes).value ?? '') : ''
+  return node ? (node.attributes as UiNodeInputAttributes).value ?? '' : ''
 }
 
 /**

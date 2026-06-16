@@ -33,9 +33,7 @@
   align-items: center;
   justify-content: center;
   text-align: left;
-  transition:
-    transform 0.3s ease,
-    box-shadow 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .open-world-card:hover {

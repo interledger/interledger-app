@@ -157,8 +157,8 @@ export default function Page() {
         {isActive
           ? `Resend in ${remainingSeconds}s`
           : fetcher.state !== 'idle'
-            ? 'Sending...'
-            : 'Resend verification'}
+          ? 'Sending...'
+          : 'Resend verification'}
       </Button>
 
       <OutlineButtonRouter to={href('/logout')} className='mt-4'>

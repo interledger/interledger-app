@@ -17,8 +17,7 @@
 .anim-scroll-fade-up {
   opacity: 0;
   transform: translateY(var(--anim-transform-start, 40px));
-  transition:
-    opacity var(--anim-scroll-duration, 500ms)
+  transition: opacity var(--anim-scroll-duration, 500ms)
       var(--anim-scroll-easing, ease-out),
     transform var(--anim-scroll-duration, 500ms)
       var(--anim-scroll-easing, ease-out);

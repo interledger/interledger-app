@@ -136,7 +136,8 @@ export const Select: FC<SelectProps> = ({
 Select.displayName = 'Select'
 
 interface SelectRouterProps
-  extends LinkProps, RefAttributes<HTMLAnchorElement> {
+  extends LinkProps,
+    RefAttributes<HTMLAnchorElement> {
   className?: string
   to: string
   children?: ReactNode
