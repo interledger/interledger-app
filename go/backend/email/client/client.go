@@ -120,3 +120,7 @@ func (c *client) SendCardTransactionFXEmail(ctx context.Context, walletID, maske
 func (c *client) SendSCTITimeoutEmail(ctx context.Context, txID, walletID, amount, name, iban, submittedAt string) {
 	ops.SendSCTITimeoutEmail(ctx, c.b, txID, walletID, amount, name, iban, submittedAt)
 }
+
+func (c *client) SendGatehubWithdrawalRejectedEmail(ctx context.Context, txID, walletID, amount, currency, iban, name string) {
+	ops.SendGatehubWithdrawalRejectedEmail(ctx, c.b, txID, walletID, amount, currency, iban, name)
+}
