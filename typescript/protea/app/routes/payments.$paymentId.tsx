@@ -162,10 +162,10 @@ export const meta = mergeMeta(({ data }) => {
         typeof d == 'undefined'
           ? 'Payment'
           : // TODO Fix this for withdrawal
-          d.transaction.type == 'sent' ||
-            d.transaction.type == 'web_monetization_outgoing'
-          ? `${d.transaction.subtotal} to ${d.transaction.title}`
-          : `${d.transaction.formattedAmount} from ${d.transaction.title}`
+            d.transaction.type == 'sent' ||
+              d.transaction.type == 'web_monetization_outgoing'
+            ? `${d.transaction.subtotal} to ${d.transaction.title}`
+            : `${d.transaction.formattedAmount} from ${d.transaction.title}`
     }
   ]
 })
