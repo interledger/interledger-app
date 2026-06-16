@@ -122,9 +122,9 @@ export async function generateQR(text: string): Promise<QRdot[][]> {
         //   return this.data[row * this.size + col]
         // }
         let topAdj = qr.modules.get(i - 1, j) ?? 0
-        let leftAdj = j == 0 ? 0 : qr.modules.get(i, j - 1) ?? 0
+        let leftAdj = j == 0 ? 0 : (qr.modules.get(i, j - 1) ?? 0)
         let rightAdj =
-          j == qr.modules.size - 1 ? 0 : qr.modules.get(i, j + 1) ?? 0
+          j == qr.modules.size - 1 ? 0 : (qr.modules.get(i, j + 1) ?? 0)
         let bottomAdj = qr.modules.get(i + 1, j) ?? 0
 
         if (!topAdj && !leftAdj && !rightAdj && !bottomAdj) {

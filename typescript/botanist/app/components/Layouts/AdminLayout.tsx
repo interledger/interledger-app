@@ -26,7 +26,7 @@ export function AdminLayout() {
               Reviews
             </NavDrawer.ListItem>
           </NavDrawer.List>
-          <footer className='flex w-full space-x-3 pl-4 pb-2'>
+          <footer className='flex w-full space-x-3 pb-2 pl-4'>
             <span className='text-xs font-medium text-medium'>
               &copy;Interledger
             </span>
@@ -53,7 +53,7 @@ export function AdminLayout() {
       <NavDrawer.Modal open={openNavModal} setOpen={setOpenNavModal}>
         <NavDrawer>
           <NavDrawer.List>
-            <div className='relative ml-1 mb-8 flex items-center space-x-4'>
+            <div className='relative mb-8 ml-1 flex items-center space-x-4'>
               <IconButton
                 onClick={() => setOpenNavModal(!openNavModal)}
                 aria-label='Close menu'
@@ -75,7 +75,7 @@ export function AdminLayout() {
               Reviews
             </NavDrawer.ListItem>
           </NavDrawer.List>
-          <footer className='flex w-full space-x-3 pl-4 pb-2'>
+          <footer className='flex w-full space-x-3 pb-2 pl-4'>
             <span className='text-xs font-medium text-medium'>
               &copy;Interledger
             </span>

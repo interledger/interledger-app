@@ -17,12 +17,15 @@ import (
 	xago_external "gitlab.com/fynbos/backend/providers/xago/external"
 	xago_workflows "gitlab.com/fynbos/backend/providers/xago/ops"
 	rafiki_workflows "gitlab.com/fynbos/backend/rafiki/ops"
+	"gitlab.com/fynbos/backend/slack"
 	twitter_workflows "gitlab.com/fynbos/backend/twitter/workflows"
 	"go.temporal.io/sdk/worker"
 )
 
 func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago_external.Config, ptiJWK, ptiBaseURL, ptiClientID, chimoneyToken string, jobsCfg jobs.Config) (worker.Worker, error) {
 	w := worker.New(b.Temporal(), "backend", worker.Options{})
+
+	w.RegisterActivity(slack.SendToChannelActivity)
 
 	w.RegisterActivity(kyc_workflows.NewActivity(b))
 	w.RegisterWorkflow(kyc_workflows.SetKYCStatusWorkflow)
