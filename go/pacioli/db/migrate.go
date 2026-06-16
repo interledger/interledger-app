@@ -14,8 +14,8 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/database/cockroachdb"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/google/uuid"
+	"github.com/interledger/interledger-app/go/log"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
 )
 

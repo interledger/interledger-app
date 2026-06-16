@@ -3,9 +3,9 @@ package client
 import (
 	"context"
 
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/limits"
-	"gitlab.com/fynbos/backend/limits/ops"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/limits"
+	"github.com/interledger/interledger-app/go/backend/limits/ops"
 )
 
 var _ limits.Client = client{}

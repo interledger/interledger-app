@@ -12,12 +12,12 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi/v5"
-	"gitlab.com/fynbos/backend/identities"
-	"gitlab.com/fynbos/backend/keys"
-	"gitlab.com/fynbos/backend/rafiki"
-	"gitlab.com/fynbos/backend/wallets"
-	"gitlab.com/fynbos/env"
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/backend/identities"
+	"github.com/interledger/interledger-app/go/backend/keys"
+	"github.com/interledger/interledger-app/go/backend/rafiki"
+	"github.com/interledger/interledger-app/go/backend/wallets"
+	"github.com/interledger/interledger-app/go/env"
+	"github.com/interledger/interledger-app/go/log"
 	"go.uber.org/zap"
 )
 

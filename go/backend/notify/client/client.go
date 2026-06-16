@@ -3,10 +3,10 @@ package client
 import (
 	"context"
 
+	"github.com/interledger/interledger-app/go/backend/notify"
+	"github.com/interledger/interledger-app/go/backend/notify/ops"
+	"github.com/interledger/interledger-app/go/log"
 	"github.com/pusher/pusher-http-go/v5"
-	"gitlab.com/fynbos/backend/notify"
-	"gitlab.com/fynbos/backend/notify/ops"
-	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
 )
 

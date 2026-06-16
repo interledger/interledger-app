@@ -9,13 +9,13 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/providers/pti/external"
+	"github.com/interledger/interledger-app/go/log"
+	"github.com/interledger/interledger-app/go/mock/mockbos/db"
+	"github.com/interledger/interledger-app/go/mock/mockbos/utils"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/providers/pti/external"
-	"gitlab.com/fynbos/log"
-	"gitlab.com/fynbos/mock/mockbos/db"
-	"gitlab.com/fynbos/mock/mockbos/utils"
 	"go.uber.org/zap"
 )
 

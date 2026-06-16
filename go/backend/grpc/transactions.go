@@ -4,11 +4,11 @@ import (
 	"context"
 	"math"
 
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/payments"
-	"gitlab.com/fynbos/backend/transactions"
-	pb "gitlab.com/fynbos/proto/backend/v1"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/db"
+	"github.com/interledger/interledger-app/go/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/transactions"
+	pb "github.com/interledger/interledger-app/go/proto/backend/v1"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 

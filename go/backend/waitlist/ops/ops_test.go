@@ -10,10 +10,10 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/interledger/interledger-app/go/backend/db"
+	"github.com/interledger/interledger-app/go/backend/waitlist"
+	"github.com/interledger/interledger-app/go/backend/waitlist/ops"
 	"github.com/stretchr/testify/assert"
-	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/waitlist"
-	"gitlab.com/fynbos/backend/waitlist/ops"
 )
 
 func TestAddSignup(t *testing.T) {

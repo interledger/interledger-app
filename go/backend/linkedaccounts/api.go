@@ -3,9 +3,9 @@ package linkedaccounts
 import (
 	"context"
 
-	"gitlab.com/fynbos/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/currency"
 
-	"gitlab.com/fynbos/backend/db"
+	"github.com/interledger/interledger-app/go/backend/db"
 )
 
 type Client interface {

@@ -5,9 +5,9 @@ import (
 	"errors"
 	"strings"
 
-	"gitlab.com/fynbos/backend/errcodes"
-	"gitlab.com/fynbos/backend/user"
-	pb "gitlab.com/fynbos/proto/backend/v1"
+	"github.com/interledger/interledger-app/go/backend/errcodes"
+	"github.com/interledger/interledger-app/go/backend/user"
+	pb "github.com/interledger/interledger-app/go/proto/backend/v1"
 
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc"

@@ -3,7 +3,7 @@ package context
 import (
 	"context"
 
-	httplog "gitlab.com/fynbos/backend/providers/http"
+	httplog "github.com/interledger/interledger-app/go/backend/providers/http"
 	"go.temporal.io/sdk/converter"
 	"go.temporal.io/sdk/workflow"
 )

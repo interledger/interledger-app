@@ -1,6 +1,6 @@
 package pti
 
-import "gitlab.com/fynbos/backend/providers/pti/external"
+import "github.com/interledger/interledger-app/go/backend/providers/pti/external"
 
 type (
 	CreateWithdrawalArgs struct {

@@ -16,12 +16,12 @@ import (
 	"time"
 
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/kyc"
+	httplog "github.com/interledger/interledger-app/go/backend/providers/http"
+	"github.com/interledger/interledger-app/go/backend/user"
+	"github.com/interledger/interledger-app/go/log"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/kyc"
-	httplog "gitlab.com/fynbos/backend/providers/http"
-	"gitlab.com/fynbos/backend/user"
-	"gitlab.com/fynbos/log"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 

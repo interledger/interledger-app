@@ -14,13 +14,13 @@ import (
 	"sync"
 	"time"
 
-	"gitlab.com/fynbos/mock/mockgatehub/internal/config"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/consts"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/logger"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/models"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/storage"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/utils"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/webhook"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/config"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/consts"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/logger"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/storage"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/utils"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/webhook"
 
 	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
@@ -127,7 +127,7 @@ func (h *Handler) HealthCheck(w http.ResponseWriter, r *http.Request) {
 	logger.Debug("health check requested")
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`{"status":"ok","service":"gitlab.com/fynbos/mock/mockgatehub"}`))
+	w.Write([]byte(`{"status":"ok","service":"github.com/interledger/interledger-app/go/mock/mockgatehub"}`))
 }
 
 // RootHandler serves the main iframe page for deposit/onboarding

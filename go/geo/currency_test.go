@@ -5,7 +5,7 @@ import (
 	"math/big"
 	"testing"
 
-	geopbv1 "gitlab.com/fynbos/proto/geo/v1"
+	geopbv1 "github.com/interledger/interledger-app/go/proto/geo/v1"
 )
 
 func TestClone(t *testing.T) {
@@ -585,16 +585,16 @@ func TestSetAmountString(t *testing.T) {
 		{"+1,234.56", false, *big.NewInt(123456)},
 
 		// invalid comma placement
-		{",123", true, *big.NewInt(0)},          // leading comma
-		{"1,,234", true, *big.NewInt(0)},         // consecutive commas
-		{"1,23", true, *big.NewInt(0)},           // wrong grouping
-		{"1234,567", true, *big.NewInt(0)},       // first group too large
-		{"1,234,56", true, *big.NewInt(0)},       // last group too small
-		{"1,,,,2.34", true, *big.NewInt(0)},      // multiple consecutive commas
-		{"1.234,56", true, *big.NewInt(0)},       // comma in fractional part
-		{",", true, *big.NewInt(0)},              // just a comma
-		{"-,123", true, *big.NewInt(0)},          // sign then comma
-		{"1,234,", true, *big.NewInt(0)},         // trailing comma
+		{",123", true, *big.NewInt(0)},      // leading comma
+		{"1,,234", true, *big.NewInt(0)},    // consecutive commas
+		{"1,23", true, *big.NewInt(0)},      // wrong grouping
+		{"1234,567", true, *big.NewInt(0)},  // first group too large
+		{"1,234,56", true, *big.NewInt(0)},  // last group too small
+		{"1,,,,2.34", true, *big.NewInt(0)}, // multiple consecutive commas
+		{"1.234,56", true, *big.NewInt(0)},  // comma in fractional part
+		{",", true, *big.NewInt(0)},         // just a comma
+		{"-,123", true, *big.NewInt(0)},     // sign then comma
+		{"1,234,", true, *big.NewInt(0)},    // trailing comma
 
 		// invalid strings
 		{"", true, *big.NewInt(0)},
@@ -685,10 +685,10 @@ func TestCurrencyUnmarshalJSON(t *testing.T) {
 		{`{"asset":"JPY","amount":"500"}`, "JPY", "500", false},
 		{`{"asset":"EUR","amount":"-99.99"}`, "EUR", "-99.99", false},
 		{`{"asset":"USD","amount":"0.00"}`, "USD", "0.00", false},
-		{`{"asset":"XXX","amount":"1.00"}`, "", "", true},  // unsupported asset
-		{`{"asset":"USD","amount":"bad"}`, "", "", true},   // invalid amount
-		{`{"asset":"USD"}`, "", "", true},                  // missing amount
-		{`not json`, "", "", true},                         // malformed
+		{`{"asset":"XXX","amount":"1.00"}`, "", "", true}, // unsupported asset
+		{`{"asset":"USD","amount":"bad"}`, "", "", true},  // invalid amount
+		{`{"asset":"USD"}`, "", "", true},                 // missing amount
+		{`not json`, "", "", true},                        // malformed
 	}
 	for _, tc := range cases {
 		var c Currency

@@ -3,7 +3,7 @@ package ops
 import (
 	"context"
 	"fmt"
-	"gitlab.com/fynbos/backend/notify"
+	"github.com/interledger/interledger-app/go/backend/notify"
 )
 
 func NotifyWallet(_ context.Context, b Backends, walletID string, event notify.NotificationType) error {

@@ -11,13 +11,12 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/consts"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/logger"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/models"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/utils"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/consts"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/logger"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/utils"
 	"go.uber.org/zap"
 )
-
 
 //go:embed web/ui/dashboard.html web/ui/user.html web/ui/kyc_action.html web/ui/card_tx_action.html
 var uiTemplateFS embed.FS
@@ -609,4 +608,3 @@ func (h *Handler) UIWithdrawalSetEvent(w http.ResponseWriter, r *http.Request) {
 
 	http.Redirect(w, r, "/ui/users/"+url.QueryEscape(userID), http.StatusSeeOther)
 }
-

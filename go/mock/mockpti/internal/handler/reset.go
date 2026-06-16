@@ -3,7 +3,7 @@ package handler
 import (
 	"net/http"
 
-	"gitlab.com/fynbos/mock/mockpti/internal/logger"
+	"github.com/interledger/interledger-app/go/mock/mockpti/internal/logger"
 )
 
 // Reset handles POST /test/reset — clears all stored data for scenario isolation.

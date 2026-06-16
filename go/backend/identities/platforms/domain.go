@@ -10,8 +10,8 @@ import (
 	"net"
 	"time"
 
-	"gitlab.com/fynbos/backend/identities"
-	"gitlab.com/fynbos/backend/keys"
+	"github.com/interledger/interledger-app/go/backend/identities"
+	"github.com/interledger/interledger-app/go/backend/keys"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )

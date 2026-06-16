@@ -4,11 +4,11 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	corev1 "gitlab.com/fynbos/backend/api/core/v1"
-	api_middleware "gitlab.com/fynbos/backend/api/middleware"
-	"gitlab.com/fynbos/backend/providers/gatehub"
-	"gitlab.com/fynbos/backend/user"
-	"gitlab.com/fynbos/backend/wallets"
+	corev1 "github.com/interledger/interledger-app/go/backend/api/core/v1"
+	api_middleware "github.com/interledger/interledger-app/go/backend/api/middleware"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
+	"github.com/interledger/interledger-app/go/backend/user"
+	"github.com/interledger/interledger-app/go/backend/wallets"
 )
 
 func NewRouter(uc user.Client, wc wallets.Client, gc gatehub.Client) http.Handler {

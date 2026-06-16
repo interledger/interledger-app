@@ -9,11 +9,11 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/golang/mock/gomock"
+	"github.com/interledger/interledger-app/go/backend/country"
+	"github.com/interledger/interledger-app/go/backend/user"
+	"github.com/interledger/interledger-app/go/backend/wallets"
+	wc_mock "github.com/interledger/interledger-app/go/backend/wallets/client/mock"
 	"github.com/stretchr/testify/assert"
-	"gitlab.com/fynbos/backend/country"
-	"gitlab.com/fynbos/backend/user"
-	"gitlab.com/fynbos/backend/wallets"
-	wc_mock "gitlab.com/fynbos/backend/wallets/client/mock"
 )
 
 func TestWalletMiddleware(t *testing.T) {

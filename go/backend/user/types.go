@@ -1,6 +1,6 @@
 package user
 
-import "gitlab.com/fynbos/backend/country"
+import "github.com/interledger/interledger-app/go/backend/country"
 
 type User struct {
 	ID          string

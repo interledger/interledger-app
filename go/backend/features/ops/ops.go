@@ -7,21 +7,21 @@ import (
 	"fmt"
 	"slices"
 
-	"gitlab.com/fynbos/backend/country"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/wallets"
+	"github.com/interledger/interledger-app/go/backend/country"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	"github.com/interledger/interledger-app/go/backend/wallets"
 
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/log"
 	"go.uber.org/zap"
 
-	"gitlab.com/fynbos/backend/providers/chimoney"
-	"gitlab.com/fynbos/backend/providers/pti"
-	"gitlab.com/fynbos/backend/providers/xago"
+	"github.com/interledger/interledger-app/go/backend/providers/chimoney"
+	"github.com/interledger/interledger-app/go/backend/providers/pti"
+	"github.com/interledger/interledger-app/go/backend/providers/xago"
 
-	"gitlab.com/fynbos/backend/kyc"
+	"github.com/interledger/interledger-app/go/backend/kyc"
 
-	"gitlab.com/fynbos/backend/features"
-	"gitlab.com/fynbos/env"
+	"github.com/interledger/interledger-app/go/backend/features"
+	"github.com/interledger/interledger-app/go/env"
 )
 
 func SetFeatures(ctx context.Context, b Backends, walletID string, feat features.WalletFeatures) (*features.WalletFeatures, error) {

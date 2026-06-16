@@ -9,9 +9,9 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	currency "gitlab.com/fynbos/backend/currency"
-	db "gitlab.com/fynbos/backend/db"
-	linkedaccounts "gitlab.com/fynbos/backend/linkedaccounts"
+	currency "github.com/interledger/interledger-app/go/backend/currency"
+	db "github.com/interledger/interledger-app/go/backend/db"
+	linkedaccounts "github.com/interledger/interledger-app/go/backend/linkedaccounts"
 )
 
 // MockClient is a mock of Client interface.
