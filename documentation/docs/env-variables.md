@@ -119,7 +119,7 @@ The Go backend is the core of the wallet, handling payments, provider integratio
 
 | Variable | Description | Secret | Notes |
 |---|---|---|---|
-| `REDIS_URL` | Redis connection URL for queues and caching | Yes | Local default: `redis://redis:6379/0` (provided by local compose); currently no direct `REDIS_URL` reference under `go/backend` |
+| `REDIS_URL` | Redis connection URL for caching and session data | Yes | Local default: `redis://redis:6379/0` (provided by local compose); consumed by the Go backend via `redis/client` |
 | `ALLOWED_WALLET_IDS` | Comma-separated wallet IDs allowed through regional blocks | No | All environments: empty |
 | `BLOCKED_REGIONS` | Comma-separated ISO country codes to block wallet access from | No | Prod: `US`; all others: empty |
 | `APPLE_APP_ID` | Apple App Site Association app ID for deep-links | No | Prod: `6B7AFCRT3V.app.wallet.interledger`; Sandbox: TBD; Dev: `6B7AFCRT3V.app.wallet.interledger.dev`; Local: `6B7AFCRT3V.app.wallet.interledger.test` |
