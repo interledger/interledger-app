@@ -277,11 +277,9 @@ export function useHeroSnap({
       const rect = section.getBoundingClientRect()
       const fullyAtTop = rect.top >= 0 && rect.top < window.innerHeight && rect.bottom > 0
       if (!fullyAtTop) return
-      const fromBelow = rect.bottom <= window.innerHeight + 4
-      const entryScreen = (fromBelow ? screenCount : 1) as CarouselScreen
-      state.screen = entryScreen
-      setActiveScreen(entryScreen)
-      if (fromBelow) state.reengageBlockUntil = performance.now() + REENGAGE_PAUSE_MS
+      state.screen = screenCount as CarouselScreen
+      setActiveScreen(screenCount as CarouselScreen)
+      state.reengageBlockUntil = performance.now() + REENGAGE_PAUSE_MS
       lockBody()
       window.scrollTo({ top: window.scrollY + rect.top, behavior: "auto" })
     }
