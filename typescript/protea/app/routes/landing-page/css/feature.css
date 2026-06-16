@@ -64,8 +64,7 @@
   width: 100%;
   opacity: 0;
   transform: scale(0.8);
-  transition:
-    opacity 0.8s cubic-bezier(0.34, 1.56, 0.64, 1),
+  transition: opacity 0.8s cubic-bezier(0.34, 1.56, 0.64, 1),
     transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
   transition-delay: 0.8s;
 }
@@ -145,9 +144,7 @@
 }
 
 .animated-hero {
-  transition:
-    background-color 600ms ease,
-    color 600ms ease;
+  transition: background-color 600ms ease, color 600ms ease;
 }
 
 .animated-hero[data-screen='2'] {
@@ -252,6 +249,12 @@
 @media (prefers-reduced-motion: reduce) {
   .feature-widget-bob {
     animation: none;
+  }
+  .feature-widget {
+    opacity: 1;
+    transform: none;
+    transition: none;
+    transition-delay: 0ms;
   }
 }
 
