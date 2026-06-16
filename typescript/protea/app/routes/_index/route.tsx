@@ -19,8 +19,6 @@ import flagStyles from '~/styles/flags.css?url'
 import { AppPage } from './app'
 import { MarketingPage } from './marketing'
 
-
-
 export const links: LinksFunction = () => {
   return [{ rel: 'stylesheet', href: flagStyles }]
 }

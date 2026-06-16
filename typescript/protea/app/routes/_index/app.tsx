@@ -17,6 +17,7 @@ import {
   Icon,
   InterledgerIcon,
   MasterCardLogo,
+  PlaidLinkButton,
   Router,
   SlackIcon,
   TwitterIcon,
@@ -27,6 +28,7 @@ import { usePendingConfirmations } from '~/lib/cards/usePendingConfirmations'
 import { usePusher } from '~/lib/usePusher'
 import type { loader, AppLoaderData } from './route'
 import { KycStatus } from '~/lib/types'
+
 
 export function AppPage() {
   const {
@@ -331,35 +333,7 @@ function CTACards() {
 
   return (
     <>
-      {features.banksEnabled &&
-        features.cardsEnabled &&
-        !walletInfo.hasCard &&
-        !walletInfo.hasBank && (
-          <Card>
-            <CardContent>
-              <div className='flex items-start space-x-4'>
-                <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
-                  <Icon>account_balance</Icon>
-                </div>
-                <div className='flex flex-col space-y-4'>
-                  <p className='text-sm text-medium'>
-                    Connect bank accounts and cards to easily send and receive
-                    payments.
-                  </p>
-                  <Router
-                    className='text-sm font-medium text-primary'
-                    to={href('/accounts')}
-                  >
-                    Connect a bank or card
-                  </Router>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-      {features.cardsEnabled &&
-        !walletInfo.hasCard &&
-        (walletInfo.hasBank || !features.banksEnabled) && (
+      {features.cardsEnabled && !walletInfo.hasCard && (
           <Card>
             <CardContent>
               <div className='flex items-start space-x-4'>
@@ -381,9 +355,7 @@ function CTACards() {
             </CardContent>
           </Card>
         )}
-      {features.banksEnabled &&
-        !walletInfo.hasBank &&
-        (walletInfo.hasCard || !features.cardsEnabled) && (
+      {features.banksEnabled && (
           <Card>
             <CardContent>
               <div className='flex items-start space-x-4'>
@@ -395,16 +367,7 @@ function CTACards() {
                     Connect bank accounts to easily add or withdraw from your
                     balance.
                   </p>
-                  <Router
-                    className='text-sm font-medium text-primary'
-                    to={href(
-                      walletInfo.country === 'US'
-                        ? '/connect/bank/us'
-                        : '/connect/bank/za'
-                    )}
-                  >
-                    Connect a bank account
-                  </Router>
+                  <PlaidLinkButton />
                 </div>
               </div>
             </CardContent>

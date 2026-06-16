@@ -10,7 +10,7 @@ include:
   - kratos.yaml
   - temporal.yaml
   - rafiki.yaml
-  # - ngrok.yaml
+  - ngrok.yaml
 
   # profile: application
   - wallet.yaml
@@ -20,3 +20,4 @@ include:
   - mockgatehub.yaml
   - mockxago.yaml
   - mockpti.yaml
+  - mockplaid.yaml

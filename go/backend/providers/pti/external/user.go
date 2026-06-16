@@ -420,6 +420,14 @@ func (c client) GetUsersPaymentInformation(ctx context.Context, userID, id strin
 	return body, nil
 }
 
+func (c client) CreateBankAccountFromPlaid(ctx context.Context, userID, processorToken string) (*BankAccountPaymentInformation, error) {
+	args := BankAccountPaymentInformation{
+		Type:                "BANK_ACCOUNT",
+		PlaidProcessorToken: processorToken,
+	}
+	return c.CreateBankAccount(ctx, userID, args)
+}
+
 // https://developers.platform.fiant.io/reference/getuserpaymentinformations
 func (c client) CreateBankAccount(ctx context.Context, userID string, args BankAccountPaymentInformation) (*BankAccountPaymentInformation, error) {
 	meta, ok := httplog.MetaForContext(ctx)

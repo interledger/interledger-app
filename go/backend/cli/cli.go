@@ -126,6 +126,15 @@ type StartArgs struct {
 	OperatorTenantID              string
 	AdminAPISecret                string
 	SignatureVersion              string
+	PlaidEnabled                  bool
+	PlaidClientID                 string
+	PlaidSecret                   string
+	PlaidEnv                      string
+	PlaidProducts                 []string
+	PlaidCountryCodes             []string
+	PlaidProcessor                string
+	PlaidAPIURL                   string
+	RedisURL                      string
 	SentryDSN                     string
 	SentryRelease                 string
 	SlackToken                    string
@@ -145,6 +154,21 @@ type StartArgs struct {
 	RafikiAuthDBURL               string
 	TempGatehubAppID              string
 	TempGatehubSecret             string
+}
+
+func splitAndTrim(s, sep string) []string {
+	if s == "" {
+		return nil
+	}
+	parts := strings.Split(s, sep)
+	out := make([]string, 0, len(parts))
+	for _, p := range parts {
+		p = strings.TrimSpace(p)
+		if p != "" {
+			out = append(out, p)
+		}
+	}
+	return out
 }
 
 func ParseStartArgs() (*StartArgs, error) {
@@ -536,6 +560,52 @@ func ParseStartArgs() (*StartArgs, error) {
 
 	signupAgreementIDs := parseSignupAgreementIDs(os.Getenv("SIGNUP_AGREEMENT_IDS"))
 
+	redisURL := os.Getenv("REDIS_URL")
+	if redisURL == "" {
+		redisURL = "redis://redis:6379/0"
+	}
+
+	plaidEnabled := os.Getenv("PLAID_ENABLED") == "true"
+	plaidClientID := os.Getenv("PLAID_CLIENT_ID")
+	plaidSecret := os.Getenv("PLAID_SECRET")
+	plaidEnv := os.Getenv("PLAID_ENV")
+	plaidProductsStr := os.Getenv("PLAID_PRODUCTS")
+	plaidCountryCodesStr := os.Getenv("PLAID_COUNTRY_CODES")
+	plaidProcessor := os.Getenv("PLAID_PROCESSOR")
+	// PLAID_API_URL overrides the SDK base URL (point at mockplaid locally).
+	// Empty = real Plaid environment selected by PLAID_ENV.
+	plaidAPIURL := os.Getenv("PLAID_API_URL")
+
+	plaidProducts := splitAndTrim(plaidProductsStr, ",")
+	plaidCountryCodes := splitAndTrim(plaidCountryCodesStr, ",")
+
+	if plaidEnabled {
+		if plaidClientID == "" {
+			return nil, errors.New("PLAID_CLIENT_ID is required when PLAID_ENABLED=true")
+		}
+		if plaidSecret == "" {
+			return nil, errors.New("PLAID_SECRET is required when PLAID_ENABLED=true")
+		}
+		if plaidEnv == "" {
+			return nil, errors.New("PLAID_ENV is required when PLAID_ENABLED=true (sandbox|production)")
+		}
+		if plaidEnv != "sandbox" && plaidEnv != "production" {
+			return nil, errors.New("PLAID_ENV must be one of: sandbox, production")
+		}
+		if len(plaidProducts) == 0 {
+			return nil, errors.New("PLAID_PRODUCTS is required when PLAID_ENABLED=true (comma-separated)")
+		}
+		if len(plaidCountryCodes) == 0 {
+			return nil, errors.New("PLAID_COUNTRY_CODES is required when PLAID_ENABLED=true (comma-separated)")
+		}
+		if plaidProcessor == "" {
+			plaidProcessor = "fiant"
+		}
+		if plaidProcessor != "fiant" && plaidProcessor != "zero_hash" {
+			return nil, errors.New("PLAID_PROCESSOR must be one of: fiant, zero_hash")
+		}
+	}
+
 	return &StartArgs{
 		Port:                          port,
 		DbConnectionString:            dbUrl,
@@ -623,6 +693,15 @@ func ParseStartArgs() (*StartArgs, error) {
 		RafikiAuthDBURL:               os.Getenv("RAFIKI_AUTH_DB_URL"),
 		TempGatehubAppID:              os.Getenv("TEMP_GATEHUB_APP_ID"),
 		TempGatehubSecret:             os.Getenv("TEMP_GATEHUB_SECRET"),
+		PlaidEnabled:                  plaidEnabled,
+		PlaidClientID:                 plaidClientID,
+		PlaidSecret:                   plaidSecret,
+		PlaidEnv:                      plaidEnv,
+		PlaidProducts:                 plaidProducts,
+		PlaidCountryCodes:             plaidCountryCodes,
+		PlaidProcessor:                plaidProcessor,
+		PlaidAPIURL:                   plaidAPIURL,
+		RedisURL:                      redisURL,
 	}, nil
 }
 

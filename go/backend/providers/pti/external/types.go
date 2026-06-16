@@ -368,6 +368,9 @@ type (
 		BankRoutingNumber     string `json:"bankRoutingNumber,omitempty"`
 		BankRoutingCheckDigit string `json:"bankRoutingCheckDigit,omitempty"`
 		AccountBankName       string `json:"accountBankName,omitempty"`
+		// PlaidProcessorToken is set when the bank account is linked via Plaid
+		// Fiant uses it server-side to call Plaid and hydrate the bank-account fields above
+		PlaidProcessorToken string `json:"plaidProcessorToken,omitempty"`
 	}
 
 	TokenPaymentInformation struct {

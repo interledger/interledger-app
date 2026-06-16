@@ -230,6 +230,9 @@ export function Scaffold() {
             <NavDrawer.ListItem to={href('/support')}>
               Support
             </NavDrawer.ListItem>
+            <NavDrawer.ListItem to={href('/plaid')}>
+              Plaid (POC)
+            </NavDrawer.ListItem>
           </NavDrawer.List>
         </NavDrawerRoot>
       )}
@@ -557,6 +560,9 @@ export function Scaffold() {
                 </NavDrawer.ListItem>
                 <NavDrawer.ListItem to={href('/support')}>
                   Support
+                </NavDrawer.ListItem>
+                <NavDrawer.ListItem to={href('/plaid')}>
+                  Plaid (POC)
                 </NavDrawer.ListItem>
               </NavDrawer.List>
               <footer className='flex w-full space-x-3 pb-2 pl-4'>

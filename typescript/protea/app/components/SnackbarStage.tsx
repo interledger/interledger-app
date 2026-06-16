@@ -27,6 +27,10 @@ const Stage = forwardRef<any>(({ ...motionProps }, ref) => {
         shiftSnackbar()
         navigate(href('/cards'))
         break
+      case 'Set up Plaid':
+        shiftSnackbar()
+        navigate(href('/plaid'))
+        break
       default:
         shiftSnackbar()
     }

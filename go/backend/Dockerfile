@@ -33,7 +33,7 @@ ENTRYPOINT ["/build/backend/entrypoint.sh"]
 FROM base AS builder
 
 ENV GOCACHE=/root/.cache/go-build
-RUN --mount=type=cache,target="/root/.cache/go-build" go build -o main ./backend/main.go
+RUN --mount=type=cache,target="/root/.cache/go-build" go build -o main ./backend
 ENTRYPOINT ["/build/main"]
 
 FROM gcr.io/distroless/cc:nonroot

@@ -34,11 +34,11 @@ import (
 )
 
 const (
-	allFields = "id, wallet_id, name, nickname, mask, provider, provider_id, type, can_send, can_receive, state, send_country, send_currency, send_network, send_availability, receive_country, receive_currency, receive_network, receive_availability, default_send, default_receive, created_at, updated_at, deleted_at"
+	allFields = "id, wallet_id, name, nickname, mask, provider, provider_id, type, can_send, can_receive, state, send_country, send_currency, send_network, send_availability, receive_country, receive_currency, receive_network, receive_availability, default_send, default_receive, created_at, updated_at, deleted_at, plaid_account_id"
 
 	// If you update this, then remember to update the create and createBatch functions.
-	insertFields  = "id, wallet_id, name, nickname, mask, provider, provider_id, type, can_send, can_receive, state, send_country, send_currency, send_network, send_availability, receive_country, receive_currency, receive_network, receive_availability"
-	insertColumns = 19
+	insertFields  = "id, wallet_id, name, nickname, mask, provider, provider_id, type, can_send, can_receive, state, send_country, send_currency, send_network, send_availability, receive_country, receive_currency, receive_network, receive_availability, plaid_account_id"
+	insertColumns = 20
 )
 
 const (
@@ -67,7 +67,7 @@ func Create(ctx context.Context, b Backends, args *linkedaccounts.CreateArgs) (*
 	err = b.DB().GetContext(
 		ctx,
 		&linkedAccount,
-		fmt.Sprintf("INSERT INTO linked_accounts (%s) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19) RETURNING %s;", insertFields, allFields),
+		fmt.Sprintf("INSERT INTO linked_accounts (%s) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20) RETURNING %s;", insertFields, allFields),
 		linkedAccountID,
 		args.WalletID,
 		args.Name,
@@ -87,6 +87,7 @@ func Create(ctx context.Context, b Backends, args *linkedaccounts.CreateArgs) (*
 		args.ReceiveCurrency,
 		args.ReceiveNetwork,
 		args.ReceiveAvailability,
+		sql.NullString{String: args.PlaidAccountID, Valid: args.PlaidAccountID != ""},
 	)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", linkedaccounts.ErrInternal, err.Error())
@@ -129,7 +130,7 @@ func CreateBatch(ctx context.Context, b Backends, args []linkedaccounts.CreateAr
 	var placeholders []string
 	var values []interface{}
 	for i, arg := range args {
-		placeholders = append(placeholders, fmt.Sprintf("($%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d,$%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d)", i*insertColumns+1, i*insertColumns+2, i*insertColumns+3, i*insertColumns+4, i*insertColumns+5, i*insertColumns+6, i*insertColumns+7, i*insertColumns+8, i*insertColumns+9, i*insertColumns+10, i*insertColumns+11, i*insertColumns+12, i*insertColumns+13, i*insertColumns+14, i*insertColumns+15, i*insertColumns+16, i*insertColumns+17, i*insertColumns+18, i*insertColumns+19))
+		placeholders = append(placeholders, fmt.Sprintf("($%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d,$%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d)", i*insertColumns+1, i*insertColumns+2, i*insertColumns+3, i*insertColumns+4, i*insertColumns+5, i*insertColumns+6, i*insertColumns+7, i*insertColumns+8, i*insertColumns+9, i*insertColumns+10, i*insertColumns+11, i*insertColumns+12, i*insertColumns+13, i*insertColumns+14, i*insertColumns+15, i*insertColumns+16, i*insertColumns+17, i*insertColumns+18, i*insertColumns+19, i*insertColumns+20))
 
 		linkedAccountID := arg.ID
 		if linkedAccountID == "" {
@@ -160,7 +161,8 @@ func CreateBatch(ctx context.Context, b Backends, args []linkedaccounts.CreateAr
 			arg.ReceiveCountry,
 			arg.ReceiveCurrency,
 			arg.ReceiveNetwork,
-			arg.ReceiveAvailability)
+			arg.ReceiveAvailability,
+			sql.NullString{String: arg.PlaidAccountID, Valid: arg.PlaidAccountID != ""})
 	}
 
 	var linkedAccounts []linkedaccounts.LinkedAccount
@@ -223,7 +225,7 @@ func Get(ctx context.Context, b Backends, id string) (*linkedaccounts.LinkedAcco
 }
 
 func Delete(ctx context.Context, b Backends, id string) error {
-	_, err := b.DB().ExecContext(ctx, "UPDATE linked_accounts SET deleted_at=now(), default_send=false, default_receive=false WHERE id=$1", id)
+	_, err := b.DB().ExecContext(ctx, "UPDATE linked_accounts SET deleted_at=now(), default_send=false, default_receive=false, plaid_account_id=NULL WHERE id=$1", id)
 	if err != nil {
 		return fmt.Errorf("%w %s", linkedaccounts.ErrInternal, err.Error())
 	}
@@ -264,6 +266,32 @@ func GetByProviderID(ctx context.Context, b Backends, args linkedaccounts.GetByP
 			return nil, linkedaccounts.ErrNotFound
 		}
 
+		return nil, fmt.Errorf("%w %s", linkedaccounts.ErrInternal, err.Error())
+	}
+
+	return &linkedAccount, nil
+}
+
+// GetByPlaidAccountID returns the linked_account row a wallet provisioned from
+// the given Plaid account_id, if any. Used to short-circuit duplicate 
+// Fiant registrations Returns ErrNotFound when the wallet has not linked this Plaid account yet.
+func GetByPlaidAccountID(ctx context.Context, b Backends, walletID, plaidAccountID string) (*linkedaccounts.LinkedAccount, error) {
+	if walletID == "" || plaidAccountID == "" {
+		return nil, fmt.Errorf("%w wallet_id and plaid_account_id are required", linkedaccounts.ErrInvalidArgument)
+	}
+
+	var linkedAccount linkedaccounts.LinkedAccount
+	err := b.DB().GetContext(
+		ctx,
+		&linkedAccount,
+		fmt.Sprintf("SELECT %s FROM linked_accounts WHERE wallet_id=$1 AND plaid_account_id=$2 AND deleted_at IS NULL;", allFields),
+		walletID,
+		plaidAccountID,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, linkedaccounts.ErrNotFound
+		}
 		return nil, fmt.Errorf("%w %s", linkedaccounts.ErrInternal, err.Error())
 	}
 

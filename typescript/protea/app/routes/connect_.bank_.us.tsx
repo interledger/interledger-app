@@ -1,3 +1,6 @@
+// ORPHANED FROM UI — Plaid is the only bank-link path on Home.
+// Still reachable by direct URL and still driven by e2e (e2e/pti_deposit.go).
+// Full removal should be done
 import type { Route } from './+types/connect_.bank_.us'
 import { Code } from '@bufbuild/connect'
 import { redirect } from 'react-router';

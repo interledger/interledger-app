@@ -254,6 +254,11 @@ table "linked_accounts" {
     null = true
     type = timestamp
   }
+  column "plaid_account_id" {
+    null = true
+    type = text
+    comment = "When the linked account was sourced via Plaid (Phase 2 POC), this is the Plaid `accounts[*].account_id` the row was provisioned from. Enables short-circuit dedupe in /plaid/link-to-fiant so the same Plaid account is never registered with Fiant twice."
+  }
   primary_key {
     columns = [column.id]
   }
@@ -268,6 +273,12 @@ table "linked_accounts" {
   index "wallet_can_receive_state" {
     unique  = false
     columns = [column.wallet_id, column.can_receive, column.state]
+  }
+  index "wallet_id_plaid_account_id_uniq" {
+    unique   = true
+    columns  = [column.wallet_id, column.plaid_account_id]
+    where    = "plaid_account_id IS NOT NULL"
+    comment  = "Partial unique index — prevents the same Plaid account being linked twice for one wallet. NULL rows (manual / non-Plaid sources) are exempt."
   }
 }
 table "linked_account_reviews" {
