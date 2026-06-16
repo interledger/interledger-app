@@ -76,6 +76,7 @@ import (
 	"gitlab.com/fynbos/backend/rafiki"
 	rafiki_client "gitlab.com/fynbos/backend/rafiki/client"
 	rafiki_external "gitlab.com/fynbos/backend/rafiki/external"
+	redis_client "gitlab.com/fynbos/backend/redis/client"
 	"gitlab.com/fynbos/backend/signup"
 	signup_client "gitlab.com/fynbos/backend/signup/client"
 	"gitlab.com/fynbos/backend/slack"
@@ -514,6 +515,7 @@ func startWorker(args *cli.StartArgs) {
 type backends struct {
 	val            *validator.Validate
 	db             *sqlx.DB
+	redis          *redis_client.Client
 	twitter        twitter.Client
 	adminAuth      auth.Service
 	agreements     agreements.Client
@@ -682,6 +684,10 @@ func (b backends) PTI() pti.Client {
 	return b.pti
 }
 
+func (b backends) Redis() *redis_client.Client {
+	return b.redis
+}
+
 func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	b := &backends{}
 
@@ -696,6 +702,8 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	if err != nil {
 		log.Fatalln(err)
 	}
+
+	b.redis = redis_client.New(args.RedisURL)
 
 	tp, err := temporal.NewTemporalClient(args.TemporalUrl)
 	if err != nil {
@@ -913,6 +921,12 @@ func CloseBackends(b *backends) {
 	if b.db != nil {
 		if err := b.db.Close(); err != nil {
 			log.Fatalln(err)
+		}
+	}
+
+	if b.redis != nil {
+		if err := b.redis.Close(); err != nil {
+			log.Error("error closing Redis client", zap.Error(err))
 		}
 	}
 }
