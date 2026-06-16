@@ -110,9 +110,13 @@ func redisTarget(redisURL string) string {
 	if err != nil {
 		return "<invalid redis url>"
 	}
+	hostname := parsed.Hostname()
+	if hostname == "" {
+		return "<invalid redis url>"
+	}
 	port := parsed.Port()
 	if port == "" {
 		port = "6379"
 	}
-	return fmt.Sprintf("%s:%s", parsed.Hostname(), port)
+	return fmt.Sprintf("%s:%s", hostname, port)
 }
