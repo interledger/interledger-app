@@ -297,7 +297,8 @@ export function useHeroSnap({
       if (performance.now() - state.lastReleaseAt < REENGAGE_COOLDOWN_MS) return
       if (!isHeroPinnedAtTop()) return
       const rect = section.getBoundingClientRect()
-      const fullyAtTop = rect.top >= 0 && rect.top < window.innerHeight && rect.bottom > 0
+      const fullyAtTop =
+        rect.top >= 0 && rect.top < window.innerHeight && rect.bottom > 0
       if (!fullyAtTop) return
       state.screen = screenCount as CarouselScreen
       setActiveScreen(screenCount as CarouselScreen)
