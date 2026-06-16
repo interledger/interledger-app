@@ -35,7 +35,7 @@
     "@types/node-rsa": "^1.1.4",
     "clsx": "^1.2.1",
     "datocms-structured-text-utils": "^2.0.4",
-    "dompurify": "^3.2.4",
+    "dompurify": "^3.4.9",
     "framer-motion": "^10.16.4",
     "isbot": "^3.6.10",
     "libphonenumber-js": "^1.10.30",
