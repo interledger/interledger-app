@@ -239,10 +239,10 @@ type XagoConvertDetails struct {
 	Complete        bool
 	ConvertID       string
 	Status          string
-	Rate            float64
-	SendAmount      float64
-	SendFee         float64
-	ReceiveAmount   float64
+	Rate            string
+	SendAmount      string
+	SendFee         string
+	ReceiveAmount   string
 	ReceiveCurrency string
 }
 
@@ -262,10 +262,10 @@ func (a *Activity) XagoCheckConvertComplete(ctx context.Context, convertID strin
 			Complete:        true,
 			ConvertID:       details.ConvertID,
 			Status:          details.Status,
-			Rate:            details.Rate,
-			SendAmount:      details.SendAmount,
-			SendFee:         details.SendFee,
-			ReceiveAmount:   details.ReceiveAmount,
+			Rate:            details.Rate.String(),
+			SendAmount:      details.SendAmount.String(),
+			SendFee:         details.SendFee.String(),
+			ReceiveAmount:   details.ReceiveAmount.String(),
 			ReceiveCurrency: details.ReceiveCurrencyCode,
 		}, nil
 	case "failed", "error", "rejected":
@@ -286,8 +286,12 @@ func (a *Activity) StoreActualFXRateAndAmount(ctx context.Context, paymentID str
 		return err
 	}
 
+	// TODO this conversion will lose precision
 	receiveCurrency := currency.ParseCurrency(details.ReceiveCurrency)
-	receiverAmt := currency.FromFloat64(details.ReceiveAmount, receiveCurrency)
+	receiverAmt, err := currency.FromString(details.ReceiveAmount, receiveCurrency)
+	if err != nil {
+		return fmt.Errorf("parsing receiveAmount %q: %w", details.ReceiveAmount, err)
+	}
 
 	_, err = a.b.DB().ExecContext(ctx,
 		"UPDATE payments SET fx_rate=$1, receiver_amount=$2, receiver_currency=$3 WHERE id=$4",
