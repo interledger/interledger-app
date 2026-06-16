@@ -188,7 +188,8 @@
 .status-item {
   opacity: 0;
   transform: translateX(-100px);
-  transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1),
+  transition:
+    transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1),
     opacity 0.6s ease-out;
 }
 .send-receive-list.is-visible .status-item {
@@ -208,7 +209,8 @@
 .hand-phone-frame {
   opacity: 0;
   transform: translateY(80px) rotate(20deg);
-  transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1),
+  transition:
+    transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1),
     opacity 0.8s ease-out;
 }
 .hand-visual-container.is-visible .hand-phone-frame {
@@ -219,7 +221,8 @@
 .currency-circle {
   opacity: 0;
   transform: scale(0);
-  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
+  transition:
+    transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
     opacity 0.5s ease-out;
 }
 .hand-visual-container.is-visible .circle-dollar {
