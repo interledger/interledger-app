@@ -76,7 +76,6 @@ import (
 	"gitlab.com/fynbos/backend/rafiki"
 	rafiki_client "gitlab.com/fynbos/backend/rafiki/client"
 	rafiki_external "gitlab.com/fynbos/backend/rafiki/external"
-	redis_client "gitlab.com/fynbos/backend/redis/client"
 	"gitlab.com/fynbos/backend/signup"
 	signup_client "gitlab.com/fynbos/backend/signup/client"
 	"gitlab.com/fynbos/backend/slack"
@@ -90,6 +89,7 @@ import (
 	twitter_client "gitlab.com/fynbos/backend/twitter/client"
 	"gitlab.com/fynbos/backend/user"
 	user_client "gitlab.com/fynbos/backend/user/client"
+	valkey_client "gitlab.com/fynbos/backend/valkey/client"
 	"gitlab.com/fynbos/backend/vault"
 	"gitlab.com/fynbos/backend/waitlist"
 	waitlist_client "gitlab.com/fynbos/backend/waitlist/client"
@@ -515,7 +515,7 @@ func startWorker(args *cli.StartArgs) {
 type backends struct {
 	val            *validator.Validate
 	db             *sqlx.DB
-	redis          *redis_client.Client
+	redis          *valkey_client.Client
 	twitter        twitter.Client
 	adminAuth      auth.Service
 	agreements     agreements.Client
@@ -684,7 +684,7 @@ func (b backends) PTI() pti.Client {
 	return b.pti
 }
 
-func (b backends) Redis() *redis_client.Client {
+func (b backends) Redis() *valkey_client.Client {
 	return b.redis
 }
 
@@ -703,7 +703,7 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 		log.Fatalln(err)
 	}
 
-	b.redis = redis_client.New(args.RedisURL)
+	b.redis = valkey_client.New(args.ValkeyURL)
 
 	tp, err := temporal.NewTemporalClient(args.TemporalUrl)
 	if err != nil {

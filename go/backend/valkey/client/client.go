@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"strings"
 	"time"
 
 	goredis "github.com/redis/go-redis/v9"
@@ -26,17 +27,18 @@ type Client struct {
 
 // New creates a Redis client, attempts to connect with up to [startupAttempts]
 // retries, and fatals if a connection cannot be established.
-func New(redisURL string) *Client {
-	if redisURL == "" {
-		log.Fatal("REDIS_URL is empty; cannot initialise Redis client")
+func New(valkeyURL string) *Client {
+	if valkeyURL == "" {
+		log.Fatal("VALKEY_URL is empty; cannot initialise Valkey client")
 	}
 
-	target := redisTarget(redisURL)
-	log.Info("initialising Redis client", zap.String("redisTarget", target))
+	redisURL := normalizeValkeyURLScheme(valkeyURL)
+	target := valkeyTarget(redisURL)
+	log.Info("initialising Valkey client", zap.String("valkeyTarget", target))
 
 	opts, err := goredis.ParseURL(redisURL)
 	if err != nil {
-		log.Fatal("failed to parse Redis URL", zap.String("redisTarget", target), zap.Error(err))
+		log.Fatal("failed to parse Valkey URL", zap.String("valkeyTarget", target), zap.Error(err))
 	}
 
 	var lastErr error
@@ -48,18 +50,18 @@ func New(redisURL string) *Client {
 		cancel()
 
 		if pingErr == nil {
-			log.Info("Redis connected",
+			log.Info("Valkey connected",
 				zap.Int("attempt", attempt),
-				zap.String("redisTarget", target),
+				zap.String("valkeyTarget", target),
 			)
 			return &Client{redis: rc}
 		}
 
 		lastErr = pingErr
-		log.Error("failed to connect to Redis during startup",
+		log.Error("failed to connect to Valkey during startup",
 			zap.Int("attempt", attempt),
 			zap.Int("maxAttempts", startupAttempts),
-			zap.String("redisTarget", target),
+			zap.String("valkeyTarget", target),
 			zap.Error(pingErr),
 		)
 
@@ -70,12 +72,31 @@ func New(redisURL string) *Client {
 		}
 	}
 
-	log.Fatal("unable to establish Redis connection at startup; exiting",
-		zap.String("redisTarget", target),
+	log.Fatal("unable to establish Valkey connection at startup; exiting",
+		zap.String("valkeyTarget", target),
 		zap.Int("maxAttempts", startupAttempts),
 		zap.Error(lastErr),
 	)
 	return nil // unreachable — log.Fatal exits the process
+}
+
+// normalizeValkeyURLScheme maps Valkey URL schemes to redis-compatible schemes
+// expected by go-redis ParseURL.
+func normalizeValkeyURLScheme(valkeyURL string) string {
+	const (
+		valkeyPrefix  = "valkey://"
+		valkeysPrefix = "valkeys://"
+	)
+
+	lower := strings.ToLower(valkeyURL)
+	if strings.HasPrefix(lower, valkeysPrefix) {
+		return "rediss://" + valkeyURL[len(valkeysPrefix):]
+	}
+	if strings.HasPrefix(lower, valkeyPrefix) {
+		return "redis://" + valkeyURL[len(valkeyPrefix):]
+	}
+
+	return valkeyURL
 }
 
 // Redis returns the underlying go-redis client for callers that need direct access.
@@ -90,10 +111,10 @@ func (c *Client) Ping(ctx context.Context) error {
 
 	result, err := c.redis.Ping(ctx).Result()
 	if err != nil {
-		return fmt.Errorf("redis ping failed: %w", err)
+		return fmt.Errorf("valkey ping failed: %w", err)
 	}
-	if result != "PONG" {
-		return fmt.Errorf("unexpected Redis ping response: %s", result)
+	if strings.ToUpper(result) != "PONG" {
+		return fmt.Errorf("unexpected Valkey ping response: %s", result)
 	}
 	return nil
 }
@@ -103,16 +124,16 @@ func (c *Client) Close() error {
 	return c.redis.Close()
 }
 
-// redisTarget extracts host:port from a Redis URL for use in log messages,
+// valkeyTarget extracts host:port from a Valkey URL for use in log messages,
 // avoiding leaking credentials or query parameters.
-func redisTarget(redisURL string) string {
-	parsed, err := url.Parse(redisURL)
+func valkeyTarget(valkeyURL string) string {
+	parsed, err := url.Parse(valkeyURL)
 	if err != nil {
-		return "<invalid redis url>"
+		return "<invalid valkey url>"
 	}
 	hostname := parsed.Hostname()
 	if hostname == "" {
-		return "<invalid redis url>"
+		return "<invalid valkey url>"
 	}
 	port := parsed.Port()
 	if port == "" {

@@ -149,7 +149,7 @@ type StartArgs struct {
 	RafikiAuthDBURL               string
 	TempGatehubAppID              string
 	TempGatehubSecret             string
-	RedisURL                      string
+	ValkeyURL                     string
 }
 
 func ParseStartArgs() (*StartArgs, error) {
@@ -551,6 +551,11 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, errors.New("RAFIKI_AUTH_GRAPHQL_URL is required")
 	}
 
+	valkeyURL := os.Getenv("VALKEY_URL")
+	if valkeyURL == "" {
+		return nil, errors.New("VALKEY_URL is required")
+	}
+
 	signupAgreementIDs := parseSignupAgreementIDs(os.Getenv("SIGNUP_AGREEMENT_IDS"))
 
 	return &StartArgs{
@@ -644,7 +649,7 @@ func ParseStartArgs() (*StartArgs, error) {
 		RafikiAuthDBURL:               os.Getenv("RAFIKI_AUTH_DB_URL"),
 		TempGatehubAppID:              os.Getenv("TEMP_GATEHUB_APP_ID"),
 		TempGatehubSecret:             os.Getenv("TEMP_GATEHUB_SECRET"),
-		RedisURL:                      os.Getenv("REDIS_URL"),
+		ValkeyURL:                     valkeyURL,
 	}, nil
 }
 
