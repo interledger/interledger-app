@@ -70,6 +70,7 @@ type StartArgs struct {
 	TwilioSid                     string
 	TwilioSecret                  string
 	TwilioServiceSid              string
+	TwilioEnabled                 bool
 	AdminPolicyAud                string
 	AdminTeamDomain               string
 	EmailEnabled                  bool
@@ -138,6 +139,9 @@ type StartArgs struct {
 	SentryDSN                     string
 	SentryRelease                 string
 	SlackToken                    string
+	SlackChannelSignupKYC         string
+	SlackChannelTransaction       string
+	SlackChannelError             string
 	SlackClientID                 string
 	SlackClientSecret             string
 	SlackRedirectURL              string
@@ -257,19 +261,31 @@ func ParseStartArgs() (*StartArgs, error) {
 		temporalUrl = "temporal:7233"
 	}
 
-	TwilioSid := os.Getenv("TWILIO_ACCOUNT_SID")
-	if TwilioSid == "" {
-		return nil, errors.New("TWILIO_ACCOUNT_SID is required.")
+	twiloEnabled := env.IsProd()
+	if v := os.Getenv("TWILIO_ENABLED"); v != "" {
+		var parseErr error
+		twiloEnabled, parseErr = strconv.ParseBool(v)
+		if parseErr != nil {
+			return nil, errors.New("TWILIO_ENABLED must be a valid boolean (true/false/1/0)")
+		}
 	}
 
-	TwilioSecret := os.Getenv("TWILIO_ACCOUNT_TOKEN")
-	if TwilioSecret == "" {
-		return nil, errors.New("TWILIO_ACCOUNT_TOKEN is required.")
-	}
+	var TwilioSid, TwilioSecret, twilioServiceSid string
+	if twiloEnabled {
+		TwilioSid = os.Getenv("TWILIO_ACCOUNT_SID")
+		if TwilioSid == "" {
+			return nil, errors.New("TWILIO_ACCOUNT_SID is required when TWILIO_ENABLED is true")
+		}
 
-	twilioServiceSid := os.Getenv("TWILIO_SERVICE_SID")
-	if twilioServiceSid == "" {
-		return nil, errors.New("TWILIO_SERVICE_SID is required.")
+		TwilioSecret = os.Getenv("TWILIO_ACCOUNT_TOKEN")
+		if TwilioSecret == "" {
+			return nil, errors.New("TWILIO_ACCOUNT_TOKEN is required when TWILIO_ENABLED is true")
+		}
+
+		twilioServiceSid = os.Getenv("TWILIO_SERVICE_SID")
+		if twilioServiceSid == "" {
+			return nil, errors.New("TWILIO_SERVICE_SID is required when TWILIO_ENABLED is true")
+		}
 	}
 
 	personaBaseURL := os.Getenv("PERSONA_BASE_URL")
@@ -618,6 +634,7 @@ func ParseStartArgs() (*StartArgs, error) {
 		TwilioSid:                     TwilioSid,
 		TwilioSecret:                  TwilioSecret,
 		TwilioServiceSid:              twilioServiceSid,
+		TwilioEnabled:                 twiloEnabled,
 		TwitterClientID:               twitterClientID,
 		TwitterClientSecret:           twitterClientSecret,
 		TwitterRedirectURL:            twitterRedirectURL,
@@ -677,6 +694,9 @@ func ParseStartArgs() (*StartArgs, error) {
 		SentryDSN:                     os.Getenv("SENTRY_DSN"),
 		SentryRelease:                 os.Getenv("SENTRY_RELEASE"),
 		SlackToken:                    os.Getenv("SLACK_TOKEN"),
+		SlackChannelSignupKYC:         os.Getenv("SIGNUP_KYC_SLACK_CHANNEL"),
+		SlackChannelTransaction:       os.Getenv("TRANSACTION_SLACK_CHANNEL"),
+		SlackChannelError:             os.Getenv("ERROR_SLACK_CHANNEL"),
 		SlackClientID:                 os.Getenv("SLACK_CLIENT_ID"),
 		SlackClientSecret:             os.Getenv("SLACK_CLIENT_SECRET"),
 		SlackRedirectURL:              os.Getenv("SLACK_REDIRECT_URL"),

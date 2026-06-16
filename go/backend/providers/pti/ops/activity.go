@@ -555,12 +555,15 @@ func (a *Activity) GetWalletFromPTIUser(ctx context.Context, externalUserID stri
 	return walletID, nil
 }
 
-func (a *Activity) CreateTransaction(ctx context.Context, la *linkedaccounts.LinkedAccount, amount currency.Amount, externalID, note string) error {
-	if amount.Currency != currency.USD {
+func (a *Activity) CreateTransaction(ctx context.Context, walletId string, payment *payments.Payment, externalID string) error {
+	if payment == nil {
+		return temporal.NewNonRetryableApplicationError("Payment is nil", "ErrInternal", fmt.Errorf("%w payment is nil", pti.ErrInternal))
+	}
+	if payment.ReceiverAmount.Currency != currency.USD {
 		return temporal.NewNonRetryableApplicationError("Invalid currency", "ErrInternal", fmt.Errorf("%w invalid currency", pti.ErrInternal))
 	}
 
-	wallet, err := a.b.Wallets().Get(ctx, la.WalletID)
+	wallet, err := a.b.Wallets().Get(ctx, walletId)
 	if errors.Is(err, pti.ErrNotFound) {
 		return temporal.NewNonRetryableApplicationError("Wallet not found", "ErrNotFound", fmt.Errorf("%w No wallet found for pti user", pti.ErrNotFound))
 	}
@@ -579,14 +582,15 @@ func (a *Activity) CreateTransaction(ctx context.Context, la *linkedaccounts.Lin
 		Title:                   "Deposit",
 		DestinationIdentity:     wallet.ID,
 		DestinationIdentityType: payments.IdentityTypeWalletID.String(),
-		Amount:                  amount,
+		Amount:                  payment.ReceiverAmount,
 		ProviderFee:             nil,
 		LinkedAccountTitle:      "US Balance",
+		Note:                    payment.Note,
 		Transfers: []transactions.TransferArgs{
 			{
-				LinkedAccountID: la.ID,
+				LinkedAccountID: payment.ReceiverAccount,
 				ForeignID:       externalID,
-				Amount:          amount,
+				Amount:          payment.ReceiverAmount,
 				Type:            transactions.TransferTypeCreditBalance,
 				State:           transactions.StatePending,
 			},
@@ -768,6 +772,37 @@ func (a *Activity) FinalizePTIDeposit(ctx context.Context, id, walletID string, 
 	return nil
 }
 
+func (a *Activity) ValidateLinkedAccounts(ctx context.Context, payment *payments.Payment, walletId string) error {
+	las, err := a.b.LinkedAccounts().ListByWalletId(ctx, walletId)
+	if err != nil {
+		return fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+
+	var balance *linkedaccounts.LinkedAccount
+	for _, la := range las {
+		if la.Provider == pti.ProviderName && la.Type == pti.AccTypeBalance && la.ID == payment.ReceiverAccount {
+			balance = &la
+			break
+		}
+	}
+	if balance == nil {
+		return fmt.Errorf("%w balance account not found", pti.ErrNotFound)
+	}
+	// only allow withdrawing from bank
+	var bank *linkedaccounts.LinkedAccount
+	for _, la := range las {
+		if la.Provider == pti.ProviderName && la.Type == pti.TypeBank && la.ID == payment.SenderAccount {
+			bank = &la
+			break
+		}
+	}
+	if bank == nil {
+		return fmt.Errorf("%w bank account not found", pti.ErrNotFound)
+	}
+	return nil
+
+}
+
 func (a *Activity) PTIDeposit(ctx context.Context, ptiArgs pti.TransactionArgs) (string, error) {
 	return DepositToWallet(ctx, a.b, a.external, ptiArgs)
 
@@ -830,7 +865,7 @@ func (a *Activity) UpdatePaymentState(ctx context.Context, paymentID string, sta
 func (a *Activity) UpdateTransactionState(ctx context.Context, walletID, transactionID string, state transactions.State) error {
 	info := activity.GetInfo(ctx)
 	if info.Attempt == 1 && state == transactions.StateFailed {
-		slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "wallet-info-bot", fmt.Sprintf("Pti withdrawal failed. %s/wallet/%s/transactions/%s", env.AdminURL(), walletID, transactionID))
+		slack.SendToChannel(ctx, slack.ChannelError, "wallet-info-bot", fmt.Sprintf("Pti withdrawal failed. %s/wallet/%s/transactions/%s", env.AdminURL(), walletID, transactionID))
 	}
 
 	transfers, err := a.b.Transactions().ListTransfers(ctx, transactionID)

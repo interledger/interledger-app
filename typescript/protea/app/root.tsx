@@ -1,19 +1,23 @@
-import type { LinksFunction, LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { captureException } from '@sentry/react-router'
+import clsx from 'clsx'
+import { type ReactNode } from 'react'
+import type {
+  LinksFunction,
+  LoaderFunctionArgs,
+  MetaFunction
+} from 'react-router'
 import {
   Links,
   Meta,
   Scripts,
   ScrollRestoration,
+  data,
   isRouteErrorResponse,
   useLoaderData,
   useNavigation,
   useRouteError,
-  data,
-  type ShouldRevalidateFunction,
-} from 'react-router';
-import { captureException } from '@sentry/react-router'
-import clsx from 'clsx'
-import { type ReactNode } from 'react'
+  type ShouldRevalidateFunction
+} from 'react-router'
 import {
   Card,
   CardContent,
@@ -27,21 +31,26 @@ import {
 } from '~/components'
 import { Scaffold } from '~/components/Scaffold'
 import { TotpChallengeGlobal } from '~/components/TotpChallengeGlobal'
-import { hasUserSession } from '~/lib/kratos/session.server'
+import { isAuthenticated } from '~/lib/kratos/session.server'
 import { getSnackbar } from '~/lib/snackbar.server'
 import styles from '~/styles/app.css?url'
+import type { Route } from './+types/root'
 import { PendingConfirmationsLoader } from './components/PendingConfirmationsLoader'
 import { getFeatures } from './data/wallet.server'
+import { envValue } from './env.server'
 import { Features } from './generated/connect/backend/v1/backend_pb'
 import { isConnectError } from './lib/error.server'
 import { grpc } from './lib/grpc.server'
-import { getPusherArgs } from './lib/pusher.server'
 import { kycApprovedGuard } from './lib/kyc.server'
-import { emailVerificationGuard, recoveryLinkSessionInvalidationGuard, withAAL2Guard } from './lib/totp.server'
-import { usePusher } from './lib/usePusher'
 import { PtiConfigProvider } from './lib/pti-context'
-import { Route } from './+types/root';
-import { envValue } from './env.server'
+import { getPusherArgs } from './lib/pusher.server'
+import {
+  emailVerificationGuard,
+  phoneConfirmationGuard,
+  recoveryLinkSessionInvalidationGuard,
+  withAAL2Guard
+} from './lib/totp.server'
+import { usePusher } from './lib/usePusher'
 
 export const shouldRevalidate: ShouldRevalidateFunction = ({
   actionResult,
@@ -127,7 +136,7 @@ function Document({ children, theme = 'theme-system' }: DocumentProps) {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const isUser = hasUserSession(request)
+  const isUser = await isAuthenticated(request)
   const { snackbar, headers } = await getSnackbar(request)
   const pusherArgs = await getPusherArgs(request)
 
@@ -137,27 +146,31 @@ export async function loader({ request }: LoaderFunctionArgs) {
   let isDisabled = false
   let walletAddress = ''
   const env = {
-    fynbosEnv: envValue("FYNBOS_ENV"),
-    sentryDsn: envValue("SENTRY_DSN"),
-    sentryRelease: envValue("SENTRY_RELEASE"),
-    targetHost: envValue("TARGET_HOST"),
-    supportEmail: envValue("SUPPORT_EMAIL")
+    fynbosEnv: envValue('FYNBOS_ENV'),
+    sentryDsn: envValue('SENTRY_DSN'),
+    sentryRelease: envValue('SENTRY_RELEASE'),
+    targetHost: envValue('TARGET_HOST'),
+    supportEmail: envValue('SUPPORT_EMAIL')
   }
 
   if (!isUser) {
-    return data({
-      isDisabled,
-      walletAddress,
-      isUser: false,
-      features,
-      snackbar,
-      pusherArgs,
-      env
-    }, { headers })
+    return data(
+      {
+        isDisabled,
+        walletAddress,
+        isUser: false,
+        features,
+        snackbar,
+        pusherArgs,
+        env
+      },
+      { headers }
+    )
   }
 
   await recoveryLinkSessionInvalidationGuard(pathname, request)
   await emailVerificationGuard(pathname, request)
+  await phoneConfirmationGuard(pathname, request)
   await withAAL2Guard(pathname, request, async () => {
     await kycApprovedGuard(pathname, request)
     features = await getFeatures(request)
@@ -174,15 +187,18 @@ export async function loader({ request }: LoaderFunctionArgs) {
     }
   })
 
-  return data({
-    isDisabled,
-    walletAddress,
-    isUser,
-    features,
-    snackbar,
-    pusherArgs,
-    env
-  }, { headers })
+  return data(
+    {
+      isDisabled,
+      walletAddress,
+      isUser,
+      features,
+      snackbar,
+      pusherArgs,
+      env
+    },
+    { headers }
+  )
 }
 
 export type RootLoaderData = Route.ComponentProps['loaderData']

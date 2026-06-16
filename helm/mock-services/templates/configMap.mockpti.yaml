@@ -1,0 +1,3 @@
+{{- if and (kindIs "bool" .Values.mockpti.enabled) .Values.mockpti.enabled }}
+{{- include "mock-services.mockpti.configMap" . }}
+{{- end }}

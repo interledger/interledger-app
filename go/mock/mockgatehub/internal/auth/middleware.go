@@ -28,7 +28,9 @@ var PublicEndpoints = map[string]bool{
 
 // PublicEndpointPatterns are path patterns (with placeholders) that don't require authentication
 var PublicEndpointPatterns = []string{
-	"/admin/users/*/fees", // User-specific fee configuration (test support)
+	"/admin/users/*/fees",           // User-specific fee configuration (test support)
+	"/admin/users/*/withdrawals",    // List withdrawals by user (test support)
+	"/admin/withdrawals/*/trigger-event", // Trigger withdrawal event (test support)
 }
 
 // matchesPublicPattern checks if a path matches any of the public endpoint patterns
@@ -64,6 +66,12 @@ func Middleware(validCredentials map[string]string) func(next http.Handler) http
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Skip authentication for public endpoints (exact match)
 			if PublicEndpoints[r.URL.Path] {
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			// Skip authentication for the admin UI (all /ui/ sub-paths)
+			if r.URL.Path == "/ui" || strings.HasPrefix(r.URL.Path, "/ui/") {
 				next.ServeHTTP(w, r)
 				return
 			}

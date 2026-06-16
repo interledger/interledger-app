@@ -10,10 +10,10 @@ name: Deploy
 #
 # Why this exists (vs. the existing bump-deploy-dev job):
 #   - `bump-deploy-dev` in build-and-publish.yml automatically promotes every
-#     release to `development` immediately after publish. Sandbox/production
-#     are intentionally gated and require human intent + a specific version
-#     pick, so we expose a separate manually-dispatched workflow rather than
-#     widening the auto-publish flow.
+#     non-maintenance release to `dev1` immediately after publish.
+#     Sandbox/production are intentionally gated and require human intent +
+#     a specific version pick, so we expose a separate manually-dispatched
+#     workflow rather than widening the auto-publish flow.
 #
 # Inputs:
 #   - environment: target environment (`sandbox` or `production`).
@@ -23,7 +23,7 @@ name: Deploy
 #       `1.11.4` or `v1.11.4` — the leading `v` is stripped before writing
 #       to the appset (Chart.yaml / appset values are stored without `v`).
 #
-# Side effects:
+# Flow:
 #   1. Opens an auto-merge PR in interledger/interledger-app-deploy bumping
 #      `env/<environment>/appsets/wallet-appset.yaml` to the chosen version.
 #   2. Polls the public healthz endpoint until the new release tag is live.
@@ -96,6 +96,7 @@ jobs:
               exit 1
               ;;
           esac
+
 
   # ------------------------------------------------------------------------
   # resolve_version
@@ -340,6 +341,7 @@ jobs:
           yq --version
 
       - name: Update chartVersion in target appset
+        id: update_appset
         working-directory: deploy
         env:
           CHART: ${{ env.CHART_NAME }}
@@ -347,7 +349,7 @@ jobs:
         run: |
           set -euo pipefail
           NEW_VERSION="${VERSION}"
-          echo "chart_version=${NEW_VERSION}" >> "$GITHUB_ENV"
+          echo "chart_version=${NEW_VERSION}" >> "$GITHUB_OUTPUT"
 
           CURRENT=$(yq -r \
             ".spec.generators[].list.elements[] | select(.name == \"${CHART}\") | .chartVersion" \
@@ -362,9 +364,11 @@ jobs:
           if [[ "${CURRENT}" == "${NEW_VERSION}" ]]; then
             echo "Already at ${NEW_VERSION}; skipping appset bump."
             echo "- Appset already at \`${NEW_VERSION}\`; skipped bump PR." >> "$GITHUB_STEP_SUMMARY"
-            echo "skip=true" >> "$GITHUB_ENV"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
+
+          echo "skip=false" >> "$GITHUB_OUTPUT"
 
           yq -i \
             "(.spec.generators[].list.elements[] | select(.name == \"${CHART}\")).chartVersion = \"${NEW_VERSION}\"" \
@@ -378,18 +382,17 @@ jobs:
 
       - name: Open auto-merge PR
         id: open_pr
-        if: env.skip != 'true'
+        if: steps.update_appset.outputs.skip != 'true'
         working-directory: deploy
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          CHART_VERSION: ${{ steps.update_appset.outputs.chart_version }}
           # Branch name encodes both the target environment and the version
           # so concurrent deploys to different environments don't collide,
           # and reruns for the same (env, version) are idempotent.
           BRANCH: chore/deploy-interledger-app-${{ env.TARGET_ENV }}-${{ env.VERSION_TAG }}
         run: |
           set -euo pipefail
-          CHART_VERSION="${chart_version}"
-
           git config user.name  "${{ steps.app-token.outputs.app-slug }}[bot]"
           git config user.email "${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com"
 
@@ -465,10 +468,11 @@ jobs:
   # against a fresh sandbox env that hasn't been bumped yet will time out
   # rather than passing silently.
   #
-  # This job runs unconditionally (no gate on bump_deploy.outputs.pr_url):
-  # if the target environment was already at the requested chartVersion,
-  # bump_deploy is a no-op but we still want to confirm the environment is
-  # actually serving that version and proceed to the Linear sync below.
+  # This job runs whenever `standard` mode is selected, even if
+  # bump_deploy ends up being a no-op because the target environment was
+  # already at the requested chartVersion. In that case we still want to
+  # confirm the environment is actually serving that version before the
+  # Linear sync below.
   # ------------------------------------------------------------------------
   wait_for_rollout:
     name: Wait for ${{ inputs.environment }} rollout
@@ -543,11 +547,12 @@ jobs:
   # as continuous pipelines, so `sync` is the only command used —
   # `update`/`complete` are scheduled-pipeline-only and would fail here.
   #
-  # Ordering: gated on `wait_for_rollout` so we only notify Linear once the
-  # new version is actually serving traffic on the target environment. In a
-  # continuous pipeline `sync` creates the release directly in the
-  # completed stage, so calling it earlier would falsely report the deploy
-  # as done before ArgoCD has rolled it out.
+  # Ordering: Linear is notified only after the new version is actually
+  # serving traffic on the target environment. In a continuous pipeline
+  # `sync` creates the release directly in the completed stage, so calling
+  # it earlier would falsely report the deploy as done before ArgoCD has
+  # rolled it out. This job polls wait_for_rollout's completion to ensure
+  # sequencing.
   #
   # The Linear Release Action needs full commit history to scan for issue
   # identifiers between releases — hence `fetch-depth: 0` and a checkout
@@ -556,6 +561,13 @@ jobs:
   linear_release:
     name: Register release with Linear
     needs: [bump_deploy, resolve_version, wait_for_rollout]
+    if: >-
+      ${{
+        always()
+        && needs.resolve_version.result == 'success'
+        && (needs.bump_deploy.result == 'success' || needs.bump_deploy.result == 'skipped')
+        && (needs.wait_for_rollout.result == 'success' || needs.wait_for_rollout.result == 'skipped')
+      }}
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     permissions:

@@ -699,7 +699,7 @@ func TestCreateCardTransaction_Success(t *testing.T) {
 	h, _ := setupCardsHandler(t)
 
 	body := map[string]interface{}{
-		"cardId":   "card-123",
+		"cardGuid": "card-123",
 		"amount":   "25.50",
 		"currency": "EUR",
 		"type":     0,

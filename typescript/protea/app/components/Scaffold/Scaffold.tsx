@@ -1,19 +1,19 @@
-import type { UIMatch } from 'react-router';
-import {
-  NavLink,
-  Outlet,
-  useMatches,
-  useNavigate,
-  useRouteLoaderData,
-  useSearchParams,
-} from 'react-router';
 import clsx from 'clsx'
 import type { MotionProps } from 'framer-motion'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { FC, ReactNode } from 'react'
 import { forwardRef, useEffect, useState } from 'react'
 import { StructuredText } from 'react-datocms'
-import { href } from 'react-router'
+import type { UIMatch } from 'react-router'
+import {
+  NavLink,
+  Outlet,
+  href,
+  useMatches,
+  useNavigate,
+  useRouteLoaderData,
+  useSearchParams
+} from 'react-router'
 import {
   AnchorRouter,
   ButtonRouter,
@@ -37,7 +37,7 @@ import { useFormStore } from '~/lib/useFormStore'
 import { PayStep, usePayStore } from '~/lib/usePayStore'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { SignupStep, useSignupStore } from '~/lib/useSignupStore'
-import type { RootLoaderData, loader as rootLoader } from '~/root'
+import type { RootLoaderData } from '~/root'
 import { Fade } from '../Animations/Fade'
 import { NavDrawer } from './NavDrawer'
 
@@ -100,7 +100,9 @@ export function Scaffold() {
   const matches = useMatches()
   const navigate = useNavigate()
   const [search] = useSearchParams()
-  const { isUser, snackbar, features } = useRouteLoaderData('root') as RootLoaderData
+  const { isUser, snackbar, features } = useRouteLoaderData(
+    'root'
+  ) as RootLoaderData
 
   const currentPath = matches[matches.length - 1]?.pathname
 
@@ -190,7 +192,7 @@ export function Scaffold() {
       className={clsx(
         'relative inset-0 flex min-h-screen flex-col',
         (layout === Layouts.Marketing || layout === Layouts.Docs) &&
-        'bg-mk-page'
+          'bg-mk-page'
       )}
     >
       {layout === Layouts.Wallet && (
@@ -217,9 +219,7 @@ export function Scaffold() {
               </NavDrawer.ListItem>
             )}
             {features.manageWalletCardsEnabled && (
-              <NavDrawer.ListItem to={href('/cards')}>
-                Cards
-              </NavDrawer.ListItem>
+              <NavDrawer.ListItem to={href('/cards')}>Cards</NavDrawer.ListItem>
             )}
             <NavDrawer.ListItem to={href('/payments')}>
               Payments
@@ -240,13 +240,13 @@ export function Scaffold() {
         className={clsx(
           'sticky top-0 z-40 flex w-full select-none items-center justify-start space-x-4 p-4',
           layout === Layouts.Marketing &&
-          'h-16 border-b border-slate-200 bg-mk-page dark:border-slate-800 lg:h-24',
+            'h-16 border-b border-slate-200 bg-mk-page dark:border-slate-800 lg:h-24',
           layout === Layouts.Focus &&
-          'mx-auto h-16 select-none bg-page sm:mt-[5.5rem] sm:max-w-[29rem]',
+            'mx-auto h-16 select-none bg-page sm:mt-[5.5rem] sm:max-w-[29rem]',
           layout === Layouts.Wallet &&
-          'min-h-16 flex-col justify-end bg-page lg:mt-[5.5rem] lg:pl-[16.25rem]',
+            'min-h-16 flex-col justify-end bg-page lg:mt-[5.5rem] lg:pl-[16.25rem]',
           layout === Layouts.Docs &&
-          'h-16 bg-mk-page lg:mt-[5.5rem] lg:pl-[16.25rem]'
+            'h-16 bg-mk-page lg:mt-[5.5rem] lg:pl-[16.25rem]'
         )}
       >
         {layout === Layouts.Marketing && (
@@ -284,7 +284,7 @@ export function Scaffold() {
                 </div>
               )}
               {isUser && (
-                <div className='flex items-center '>
+                <div className='flex items-center'>
                   <ButtonRouter to={href('/')}>
                     <span className='text-sm font-medium'>Go to app</span>
                   </ButtonRouter>
@@ -417,10 +417,11 @@ export function Scaffold() {
         className={clsx(
           'relative flex w-full grow flex-col',
           layout === Layouts.Marketing &&
-          `mx-auto justify-evenly xl:max-w-[80rem] ${currentPath === '/legal' ? 'mb-10' : ''
-          }`,
+            `mx-auto justify-evenly xl:max-w-[80rem] ${
+              currentPath === '/legal' ? 'mb-10' : ''
+            }`,
           layout === Layouts.Focus &&
-          'mx-auto w-full gap-y-4 px-4 sm:max-w-[29rem] sm:px-0',
+            'mx-auto w-full gap-y-4 px-4 sm:max-w-[29rem] sm:px-0',
           layout === Layouts.Wallet && 'mb-32 w-full px-4 lg:pl-[16.25rem]',
           layout === Layouts.Docs && 'mb-32 w-full px-4 lg:pl-[16.25rem]'
         )}
@@ -431,11 +432,11 @@ export function Scaffold() {
         className={clsx(
           'w-full',
           layout === Layouts.Marketing &&
-          'mx-auto mb-8 flex max-w-[80rem] rounded-2xl bg-mk-footer',
+            'mx-auto mb-8 flex max-w-[80rem] rounded-2xl bg-mk-footer',
           layout === Layouts.Focus &&
-          'mx-auto flex w-full items-center gap-x-3 px-4 py-6 sm:max-w-[29rem] sm:px-0',
+            'mx-auto flex w-full items-center gap-x-3 px-4 py-6 sm:max-w-[29rem] sm:px-0',
           (layout === Layouts.Wallet || layout === Layouts.Docs) &&
-          'fixed bottom-0 z-50 hidden w-56 items-center gap-x-3 px-4 py-6 lg:flex'
+            'fixed bottom-0 z-50 hidden w-56 items-center gap-x-3 px-4 py-6 lg:flex'
         )}
       >
         {layout !== Layouts.Marketing && (

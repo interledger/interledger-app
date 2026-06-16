@@ -1,8 +1,6 @@
-import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import type { ActionFunctionArgs, LoaderFunctionArgs } from 'react-router'
 
-import { json } from '@remix-run/node'
-import { useLoaderData, useSubmit } from '@remix-run/react'
-import { route } from 'routes-gen'
+import { data, href, useLoaderData, useSubmit } from 'react-router'
 import { Grid, Icon, Router } from '~/components'
 import { LinkedAccountReviewState } from '~/lib/types'
 import {
@@ -10,14 +8,14 @@ import {
   ListLinkedAccountReviews
 } from '~/lib/wallet.server'
 
-export async function loader({ request }: LoaderArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
   let pageSize = url.searchParams.get('pageSize') || '50'
   const { reviews } = await ListLinkedAccountReviews(request, {
     pageSize: parseInt(pageSize)
   })
 
-  return json({
+  return data({
     reviews
   })
 }
@@ -37,7 +35,7 @@ export default function Page() {
           </div>
         </div>
         <div className='mt-8 flex flex-col'>
-          <div className='-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8'>
+          <div className='-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8'>
             <div className='inline-block min-w-full py-2 align-middle md:px-6 lg:px-8'>
               <div className='overflow-hidden ring-2 ring-base md:rounded-lg'>
                 <table className='min-w-full divide-y divide-base'>
@@ -51,25 +49,25 @@ export default function Page() {
                       </th>
                       <th
                         scope='col'
-                        className='px-4 py-3.5 text-left text-sm  font-medium text-strong'
+                        className='px-4 py-3.5 text-left text-sm font-medium text-strong'
                       >
                         Current State
                       </th>
                       <th
                         scope='col'
-                        className='px-4 py-3.5 text-left text-sm  font-medium text-strong'
+                        className='px-4 py-3.5 text-left text-sm font-medium text-strong'
                       >
                         Wallet ID
                       </th>
                       <th
                         scope='col'
-                        className='px-4 py-3.5 text-left text-sm  font-medium text-strong'
+                        className='px-4 py-3.5 text-left text-sm font-medium text-strong'
                       >
                         Wallet Name
                       </th>
                       <th
                         scope='col'
-                        className='px-4 py-3.5 text-left text-sm  font-medium text-strong'
+                        className='px-4 py-3.5 text-left text-sm font-medium text-strong'
                       >
                         Mask
                       </th>
@@ -79,7 +77,7 @@ export default function Page() {
                       >
                         Action
                       </th>
-                      <th scope='col' className='relative py-3.5 px-4'>
+                      <th scope='col' className='relative px-4 py-3.5'>
                         <span className='sr-only'>Edit</span>
                       </th>
                     </tr>
@@ -112,7 +110,7 @@ export default function Page() {
                               LinkedAccountReviewState.Verified
                             )
                             submit(formData, {
-                              action: route('/reviews'),
+                              action: href('/reviews'),
                               method: 'POST'
                             })
                           }}
@@ -124,7 +122,7 @@ export default function Page() {
                         </td>
                         <td className='relative whitespace-nowrap p-4 text-right text-sm font-medium'>
                           <Router
-                            to={route('/review/:id/details', {
+                            to={href('/review/:id/details', {
                               id: review.id
                             })}
                             className='text-primary'
@@ -163,7 +161,7 @@ export default function Page() {
   )
 }
 
-export async function action({ request }: ActionArgs) {
+export async function action({ request }: ActionFunctionArgs) {
   const form = await request.formData()
   const reviewID = form.get('reviewID') as string
   const newState = form.get('newState') as LinkedAccountReviewState

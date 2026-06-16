@@ -1,7 +1,4 @@
-import type { Route } from './+types/settings.profile-public'
-import { data } from 'react-router';
-import { useLoaderData } from 'react-router';
-import { href } from 'react-router'
+import { data, href, useLoaderData } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   AnchorRouter,
@@ -14,6 +11,7 @@ import {
 import { Label } from '~/components/Label'
 import { getPublicWalletDetails, getWalletInfo } from '~/data/wallet.server'
 import { mergeMeta } from '~/lib/meta'
+import type { Route } from './+types/settings.profile-public'
 
 export async function loader({ request }: Route.LoaderArgs) {
   const walletInfo = await getWalletInfo(request)

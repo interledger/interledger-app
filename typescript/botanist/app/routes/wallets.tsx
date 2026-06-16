@@ -1,12 +1,10 @@
-import type { LoaderArgs } from '@remix-run/node'
+import type { LoaderFunctionArgs } from 'react-router'
 
 import { Router, Grid } from '~/components'
-import { json } from '@remix-run/node'
-import { Form, useLoaderData, useNavigation } from '@remix-run/react'
+import { data, href, Form, useLoaderData, useNavigation } from 'react-router'
 import { ListWallets } from '~/lib/wallet.server'
-import { route } from 'routes-gen'
 
-export async function loader({ request }: LoaderArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
   const pageSize = url.searchParams.get('pageSize') || '50'
   const pageToken = url.searchParams.get('pageToken') || ''
@@ -17,7 +15,7 @@ export async function loader({ request }: LoaderArgs) {
     search: search || undefined
   })
 
-  return json({
+  return data({
     wallets,
     pageSize,
     search
@@ -57,16 +55,22 @@ export default function Page() {
           </Form>
           {search && (
             <p className='mt-1 text-xs text-medium'>
-              {wallets.wallets.length} result{wallets.wallets.length !== 1 ? 's' : ''} for &ldquo;{search}&rdquo;
+              {wallets.wallets.length} result
+              {wallets.wallets.length !== 1 ? 's' : ''} for &ldquo;{search}
+              &rdquo;
             </p>
           )}
         </div>
 
         <div className='mt-8 flex flex-col'>
-          <div className='-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8'>
+          <div className='-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8'>
             <div className='inline-block min-w-full py-2 align-middle md:px-6 lg:px-8'>
               <div className='overflow-hidden ring-2 ring-base md:rounded-lg'>
-                <table className={`min-w-full divide-y divide-base${isSearching ? ' opacity-50' : ''}`}>
+                <table
+                  className={`min-w-full divide-y divide-base${
+                    isSearching ? 'opacity-50' : ''
+                  }`}
+                >
                   <thead className='bg-app'>
                     <tr>
                       <th
@@ -93,7 +97,7 @@ export default function Page() {
                       >
                         Phone number
                       </th>
-                      <th scope='col' className='relative py-3.5 px-4'>
+                      <th scope='col' className='relative px-4 py-3.5'>
                         <span className='sr-only'>Edit</span>
                       </th>
                     </tr>
@@ -115,7 +119,7 @@ export default function Page() {
                         </td>
                         <td className='relative whitespace-nowrap p-4 text-right text-sm font-medium'>
                           <Router
-                            to={route('/wallet/:id/profile', {
+                            to={href('/wallet/:id/profile', {
                               id: wallet.walletID
                             })}
                             className='text-primary'
@@ -137,7 +141,9 @@ export default function Page() {
                             {wallets.wallets.length === 0 ? 0 : 1}
                           </span>{' '}
                           to{' '}
-                          <span className='font-medium'>{wallets.wallets.length}</span>{' '}
+                          <span className='font-medium'>
+                            {wallets.wallets.length}
+                          </span>{' '}
                           results
                         </p>
                       </td>
@@ -145,7 +151,13 @@ export default function Page() {
                         <div className='flex flex-1 justify-between pr-3 sm:justify-end'>
                           {wallets.nextPageToken && (
                             <Router
-                              to={`/wallets?pageToken=${wallets.nextPageToken}&pageSize=${pageSize}${search ? `&search=${encodeURIComponent(search)}` : ''}`}
+                              to={`/wallets?pageToken=${
+                                wallets.nextPageToken
+                              }&pageSize=${pageSize}${
+                                search
+                                  ? `&search=${encodeURIComponent(search)}`
+                                  : ''
+                              }`}
                               className='relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50'
                             >
                               Next

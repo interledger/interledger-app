@@ -11,7 +11,10 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/twilio/twilio-go"
 	"github.com/twilio/twilio-go/client"
+	verify "github.com/twilio/twilio-go/rest/verify/v2"
+	"gitlab.com/fynbos/log"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.uber.org/zap"
 )
 
 var (
@@ -34,12 +37,14 @@ type (
 		AccountToken string `validate:"required"`
 		ServiceSid   string `validate:"required"`
 		ApiBaseUrl   string // use this to override the default base url
+		Enabled      bool   // when false, all methods return stub responses without calling Twilio
 	}
 
 	service struct {
 		validator    *validator.Validate
 		serviceSid   string
 		twilioClient *twilio.RestClient
+		enabled      bool
 	}
 
 	Verification struct {
@@ -55,10 +60,14 @@ func (v Verification) IsValid() bool {
 }
 
 func NewService(args *ServiceArgs) (Service, error) {
-	validator := validator.New()
-	err := validator.Struct(args)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %s", ErrInvalidArgument, err)
+	if args == nil {
+		return nil, fmt.Errorf("%w: args must not be nil", ErrInvalidArgument)
+	}
+	if args.Enabled {
+		validator := validator.New()
+		if err := validator.Struct(args); err != nil {
+			return nil, fmt.Errorf("%w: %s", ErrInvalidArgument, err)
+		}
 	}
 
 	customClient := &CustomClient{
@@ -76,9 +85,10 @@ func NewService(args *ServiceArgs) (Service, error) {
 	})
 
 	return &service{
-		validator:    validator,
+		validator:    validator.New(),
 		twilioClient: twilioClient,
 		serviceSid:   args.ServiceSid,
+		enabled:      args.Enabled,
 	}, nil
 }
 
@@ -88,37 +98,37 @@ func (s *service) SendVerificationCode(ctx context.Context, phoneNumber string) 
 		return nil, fmt.Errorf("%w: %s", ErrInvalidArgument, err)
 	}
 
-	// if !env.IsProd() && !env.IsSandbox() {
+	if !s.enabled {
 		return &Verification{
 			Sid:         "1234",
 			PhoneNumber: phoneNumber,
 			Status:      "pending",
 		}, nil
-	// }
+	}
 
-	// params := &verify.CreateVerificationParams{}
-	// params.SetTo(phoneNumber)
-	// params.SetChannel("sms")
+	params := &verify.CreateVerificationParams{}
+	params.SetTo(phoneNumber)
+	params.SetChannel("sms")
 
-	// res, err := s.twilioClient.VerifyV2.CreateVerification(s.serviceSid, params)
-	// if err != nil {
-	// 	twilioError, ok := err.(*client.TwilioRestError)
-	// 	if ok {
-	// 		return nil, fmt.Errorf("%w: %s", ErrInternal, twilioError.Message)
-	// 	}
-	// 	return nil, fmt.Errorf("%w: %s", ErrInternal, err)
-	// }
+	res, err := s.twilioClient.VerifyV2.CreateVerification(s.serviceSid, params)
+	if err != nil {
+		twilioError, ok := err.(*client.TwilioRestError)
+		if ok {
+			return nil, fmt.Errorf("%w: %s", ErrInternal, twilioError.Message)
+		}
+		return nil, fmt.Errorf("%w: %s", ErrInternal, err)
+	}
 
-	// var updatedAt time.Time
-	// if res.DateUpdated != nil {
-	// 	updatedAt = *res.DateUpdated
-	// }
-	// return &Verification{
-	// 	Sid:         *res.Sid,
-	// 	PhoneNumber: *res.To,
-	// 	Status:      *res.Status,
-	// 	UpdatedAt:   updatedAt,
-	// }, nil
+	var updatedAt time.Time
+	if res.DateUpdated != nil {
+		updatedAt = *res.DateUpdated
+	}
+	return &Verification{
+		Sid:         *res.Sid,
+		PhoneNumber: *res.To,
+		Status:      *res.Status,
+		UpdatedAt:   updatedAt,
+	}, nil
 }
 
 type CheckVerificationCodeArgs struct {
@@ -128,55 +138,54 @@ type CheckVerificationCodeArgs struct {
 }
 
 func (s *service) CheckVerificationCode(ctx context.Context, args *CheckVerificationCodeArgs) (*Verification, error) {
-	// Short circuit here for environments where there is not twilio integrations
-	// if !env.IsProd() && !env.IsSandbox() {
+	if !s.enabled {
 		return &Verification{
 			Sid:         "1234",
 			PhoneNumber: args.PhoneNumber,
 			Status:      statusApproved,
 		}, nil
-	// }
+	}
 
-	// err := s.validator.Struct(args)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("%w: %s", ErrInvalidArgument, err)
-	// }
+	err := s.validator.Struct(args)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %s", ErrInvalidArgument, err)
+	}
 
-	// params := &verify.CreateVerificationCheckParams{}
-	// params.SetTo(args.PhoneNumber)
-	// params.SetCode(args.Code)
-	// if args.VerificationID != "" {
-	// 	params.SetVerificationSid(args.VerificationID)
-	// }
+	params := &verify.CreateVerificationCheckParams{}
+	params.SetTo(args.PhoneNumber)
+	params.SetCode(args.Code)
+	if args.VerificationID != "" {
+		params.SetVerificationSid(args.VerificationID)
+	}
 
-	// res, err := s.twilioClient.VerifyV2.CreateVerificationCheck(s.serviceSid, params)
-	// if err != nil {
-	// 	twilioError, ok := err.(*client.TwilioRestError)
-	// 	if ok {
-	// 		switch twilioError.Code {
-	// 		case 60202: 	
-	// 			log.Warn("Invalid verification code: ", zap.String("message", twilioError.Message))
-	// 			return nil, fmt.Errorf("%w: %s", ErrInvalidOTP, "Invalid verification code")
-	// 		case 60203:
-	// 			log.Warn("Maximum verification attempts reached: ", zap.String("message", twilioError.Message))
-	// 			return nil, fmt.Errorf("%w: %s", ErrInvalidOTP, "Maximum verification attempts reached")
-	// 		case 60200:
-	// 			log.Warn("Invalid phone number format: ", zap.String("message", twilioError.Message))
-	// 			return nil, fmt.Errorf("%w: %s", ErrInvalidArgument, "Invalid phone number format")
-	// 		default:
-	// 			log.Warn("Twilio verification error", zap.Int("code", twilioError.Code), zap.String("message", twilioError.Message))
-	// 			return nil, fmt.Errorf("%w: %s", ErrInternal, twilioError.Message)
-	// 		}
-	// 	}
-	// 	log.Warn("Code verification error", zap.Error(err))
-	// 	return nil, fmt.Errorf("%w: %s", ErrInternal, err)
-	// }
+	res, err := s.twilioClient.VerifyV2.CreateVerificationCheck(s.serviceSid, params)
+	if err != nil {
+		twilioError, ok := err.(*client.TwilioRestError)
+		if ok {
+			switch twilioError.Code {
+			case 60202:
+				log.Warn("Invalid verification code: ", zap.String("message", twilioError.Message))
+				return nil, fmt.Errorf("%w: %s", ErrInvalidOTP, "Invalid verification code")
+			case 60203:
+				log.Warn("Maximum verification attempts reached: ", zap.String("message", twilioError.Message))
+				return nil, fmt.Errorf("%w: %s", ErrInvalidOTP, "Maximum verification attempts reached")
+			case 60200:
+				log.Warn("Invalid phone number format: ", zap.String("message", twilioError.Message))
+				return nil, fmt.Errorf("%w: %s", ErrInvalidArgument, "Invalid phone number format")
+			default:
+				log.Warn("Twilio verification error", zap.Int("code", twilioError.Code), zap.String("message", twilioError.Message))
+				return nil, fmt.Errorf("%w: %s", ErrInternal, twilioError.Message)
+			}
+		}
+		log.Warn("Code verification error", zap.Error(err))
+		return nil, fmt.Errorf("%w: %s", ErrInternal, err)
+	}
 
-	// return &Verification{
-	// 	Sid:         *res.Sid,
-	// 	PhoneNumber: *res.To,
-	// 	Status:      *res.Status,
-	// }, nil
+	return &Verification{
+		Sid:         *res.Sid,
+		PhoneNumber: *res.To,
+		Status:      *res.Status,
+	}, nil
 }
 
 type ListSuccessfulVerificationAttemptsArgs struct {
@@ -186,7 +195,7 @@ type ListSuccessfulVerificationAttemptsArgs struct {
 }
 
 func (s *service) ListSuccessfulVerificationAttempts(ctx context.Context, args ListSuccessfulVerificationAttemptsArgs) ([]Verification, error) {
-	// if !env.IsProd() && !env.IsSandbox() {
+	if !s.enabled {
 		return []Verification{
 			{
 				Sid:         "1234",
@@ -195,50 +204,50 @@ func (s *service) ListSuccessfulVerificationAttempts(ctx context.Context, args L
 				UpdatedAt:   time.Now(),
 			},
 		}, nil
-	// }
+	}
 
-	// converted := "converted"
-	// params := &verify.ListVerificationAttemptParams{
-	// 	ChannelDataTo:    &args.To,
-	// 	Status:           &converted,
-	// 	Limit:            &args.Limit,
-	// 	DateCreatedAfter: &args.After,
-	// }
+	converted := "converted"
+	params := &verify.ListVerificationAttemptParams{
+		ChannelDataTo:    &args.To,
+		Status:           &converted,
+		Limit:            &args.Limit,
+		DateCreatedAfter: &args.After,
+	}
 
-	// res, err := s.twilioClient.VerifyV2.ListVerificationAttempt(params)
-	// if err != nil {
-	// 	twilioError, ok := err.(*client.TwilioRestError)
-	// 	if ok {
-	// 		return nil, fmt.Errorf("%w: %s", ErrInternal, twilioError.Message)
-	// 	}
-	// 	return nil, fmt.Errorf("%w: %s", ErrInternal, err)
-	// }
+	res, err := s.twilioClient.VerifyV2.ListVerificationAttempt(params)
+	if err != nil {
+		twilioError, ok := err.(*client.TwilioRestError)
+		if ok {
+			return nil, fmt.Errorf("%w: %s", ErrInternal, twilioError.Message)
+		}
+		return nil, fmt.Errorf("%w: %s", ErrInternal, err)
+	}
 
-	// var ret []Verification
-	// for _, ver := range res {
-	// 	ret = append(ret, Verification{
-	// 		Sid:         getString(ver.Sid),
-	// 		PhoneNumber: args.To,
-	// 		Status:      statusApproved,
-	// 		UpdatedAt:   getTime(ver.DateUpdated),
-	// 	})
-	// }
+	var ret []Verification
+	for _, ver := range res {
+		ret = append(ret, Verification{
+			Sid:         getString(ver.Sid),
+			PhoneNumber: args.To,
+			Status:      statusApproved,
+			UpdatedAt:   getTime(ver.DateUpdated),
+		})
+	}
 
-	// return ret, nil
+	return ret, nil
 }
 
-// func getString(arg *string) string {
-// 	if arg != nil {
-// 		return *arg
-// 	}
+func getString(arg *string) string {
+	if arg != nil {
+		return *arg
+	}
 
-// 	return ""
-// }
+	return ""
+}
 
-// func getTime(arg *time.Time) time.Time {
-// 	if arg != nil {
-// 		return *arg
-// 	}
+func getTime(arg *time.Time) time.Time {
+	if arg != nil {
+		return *arg
+	}
 
-// 	return time.Time{}
-// }
+	return time.Time{}
+}

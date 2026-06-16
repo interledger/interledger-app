@@ -1,16 +1,14 @@
-import type { LoaderArgs } from '@remix-run/node'
-import { json } from '@remix-run/node'
-import { Form, useLoaderData, useSubmit } from '@remix-run/react'
+import type { LoaderFunctionArgs } from 'react-router'
+import { data, href, Form, useLoaderData, useSubmit } from 'react-router'
 import {
   GetLinkedAccount,
   GetReview,
   GetWalletDetails
 } from '~/lib/wallet.server'
 import { GridCard, Icon } from '~/components'
-import { route } from 'routes-gen'
 import { LinkedAccountReviewState } from '~/lib/types'
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const review = await GetReview(request, params.id as string)
   const linkedAccount = await GetLinkedAccount(
     request,
@@ -18,7 +16,7 @@ export async function loader({ request, params }: LoaderArgs) {
   )
   const wallet = await GetWalletDetails(request, review.walletID as string)
 
-  return json({
+  return data({
     wallet,
     review,
     linkedAccount
@@ -33,7 +31,7 @@ export default function Page() {
     <>
       <Form
         id='features-form'
-        action={route('/review/:id/details', { id: review.id })}
+        action={href('/review/:id/details', { id: review.id })}
         method='post'
         className='hidden'
       />
@@ -60,7 +58,7 @@ export default function Page() {
           formData.append('newState', LinkedAccountReviewState.Verified)
           formData.append('reason', 'Manually verified.')
           submit(formData, {
-            action: route('/reviews'),
+            action: href('/reviews'),
             method: 'POST'
           })
         }}
@@ -78,12 +76,12 @@ export default function Page() {
           formData.append('newState', LinkedAccountReviewState.Rejected)
           formData.append('reason', 'Manually rejected.')
           submit(formData, {
-            action: route('/reviews'),
+            action: href('/reviews'),
             method: 'POST'
           })
         }}
       >
-        <span className='flex text-red-500 cursor-pointer items-center space-x-2 font-medium text-primary'>
+        <span className='flex cursor-pointer items-center space-x-2 font-medium text-primary text-red-500'>
           <Icon>close</Icon>
           <span>Reject</span>
         </span>

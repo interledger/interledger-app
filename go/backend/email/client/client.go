@@ -107,3 +107,15 @@ func (c *client) SendKYCDocumentsRequiredEmail(ctx context.Context, walletID str
 func (c *client) SendAuthenticatorResetEmail(ctx context.Context, walletID string) {
 	ops.SendAuthenticatorResetEmail(ctx, c.b, walletID)
 }
+
+func (c *client) SendCardTransactionFXEmail(ctx context.Context, walletID, maskedPAN, merchantName, date, surcharge, transactionAmount, billingAmount string) {
+	ops.SendCardTransactionFXEmail(ctx, c.b, walletID, maskedPAN, merchantName, date, surcharge, transactionAmount, billingAmount)
+}
+
+func (c *client) SendSCTITimeoutEmail(ctx context.Context, txID, walletID, amount, name, iban, submittedAt string) {
+	ops.SendSCTITimeoutEmail(ctx, c.b, txID, walletID, amount, name, iban, submittedAt)
+}
+
+func (c *client) SendGatehubWithdrawalRejectedEmail(ctx context.Context, txID, walletID, amount, currency, iban, name string) {
+	ops.SendGatehubWithdrawalRejectedEmail(ctx, c.b, txID, walletID, amount, currency, iban, name)
+}

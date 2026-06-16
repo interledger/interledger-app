@@ -1,12 +1,16 @@
 // ORPHANED FROM UI — Plaid is the only bank-link path on Home.
 // Still reachable by direct URL and still driven by e2e (e2e/pti_deposit.go).
 // Full removal should be done
-import type { Route } from './+types/connect_.bank_.us'
 import { Code } from '@bufbuild/connect'
-import { redirect } from 'react-router';
-import { Form, useActionData, useLoaderData, useNavigation } from 'react-router';
 import { useEffect, useState } from 'react'
-import { href } from 'react-router'
+import {
+  Form,
+  href,
+  redirect,
+  useActionData,
+  useLoaderData,
+  useNavigation
+} from 'react-router'
 import type { ApplicationProps, SelectOptions } from '~/components'
 import {
   Button,
@@ -22,6 +26,7 @@ import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
+import type { Route } from './+types/connect_.bank_.us'
 
 export async function loader({ request }: Route.LoaderArgs) {
   const balancesResponse = await grpc.getBalances(request, {})
@@ -178,7 +183,7 @@ export async function action({ request }: Route.ActionArgs) {
     bankName: ''
   }
 
-  let response = await grpc.createPtiBankAccount(request, {
+  const response = await grpc.createPtiBankAccount(request, {
     accountNumber,
     accountType,
     routingNumber,

@@ -1,8 +1,8 @@
 import { Dialog, Transition } from '@headlessui/react'
-import { NavLink, useNavigation } from 'react-router';
 import { motion } from 'framer-motion'
 import type { Dispatch, FC, ReactNode, SetStateAction } from 'react'
 import { Fragment, useEffect } from 'react'
+import { NavLink, useNavigation } from 'react-router'
 
 type ListItemProps = {
   children?: ReactNode

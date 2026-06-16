@@ -1,15 +1,21 @@
-import type { Route } from './+types/withdraw'
 import { Code } from '@bufbuild/connect'
-import type { PlainMessage } from '@bufbuild/protobuf'
-import { data, redirect } from 'react-router';
-import { Form, useActionData, useLoaderData, useSearchParams, useSubmit } from 'react-router';
+import type { JsonValue, PlainMessage } from '@bufbuild/protobuf'
 import {
   useCallback,
   useEffect,
   useState,
   type ChangeEventHandler
 } from 'react'
-import { href } from 'react-router'
+import {
+  Form,
+  data,
+  href,
+  redirect,
+  useActionData,
+  useLoaderData,
+  useSearchParams,
+  useSubmit
+} from 'react-router'
 import type { ApplicationProps, SelectOptions } from '~/components'
 import {
   Button,
@@ -28,12 +34,8 @@ import {
   getLinkedAccountsForWithdraw,
   type FormattedLinkedAccount
 } from '~/data/accounts.server'
-import type {
-  Amount as RpcAmount
-} from '~/generated/connect/backend/v1/backend_pb';
-import {
-  Balance
-} from '~/generated/connect/backend/v1/backend_pb'
+import type { Amount as RpcAmount } from '~/generated/connect/backend/v1/backend_pb'
+import { Balance } from '~/generated/connect/backend/v1/backend_pb'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
@@ -42,20 +44,20 @@ import type { IframeMessage } from '~/lib/types'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { PaySelect } from '~/routes/pay_.$paymentId/PaySelect'
 import styles from '~/styles/flags.css?url'
-import type { JsonValue } from '@bufbuild/protobuf'
+import type { Route } from './+types/withdraw'
 
 type WithdrawalLoaderData = {
-  balances: FormattedLinkedAccount[];
-  provider: string;
-  balanceAccount: JsonValue;
-  linkedAccounts: FormattedLinkedAccount[];
-  csrfToken: string;
-  balance?: FormattedLinkedAccount | undefined;
+  balances: FormattedLinkedAccount[]
+  provider: string
+  balanceAccount: JsonValue
+  linkedAccounts: FormattedLinkedAccount[]
+  csrfToken: string
+  balance?: FormattedLinkedAccount | undefined
 }
 
 export async function loader(args: Route.LoaderArgs) {
   const providerResponse = await grpc.getOnOffRampProvider(args.request, {})
-  if (isConnectError(providerResponse)) throw providerResponse.error
+  if (isConnectError(providerResponse)) throw providerResponse.errorResponse
 
   if (providerResponse.provider == 'gatehub') {
     return gatehubWithdrawalLoader(args)
@@ -66,7 +68,7 @@ export async function loader(args: Route.LoaderArgs) {
 
 async function gatehubWithdrawalLoader({ request }: Route.LoaderArgs) {
   const widgetResponse = await grpc.getGatehubWithdrawalWidget(request, {})
-  if (isConnectError(widgetResponse)) throw widgetResponse.error
+  if (isConnectError(widgetResponse)) throw widgetResponse.errorResponse
 
   return jsonWithCSRF(request, {
     provider: 'gatehub',
@@ -98,10 +100,13 @@ export const meta = mergeMeta(() => [
   }
 ])
 
-async function addProviderToLoader(request: Request, provider: 'interledger' | 'pti') {
+async function addProviderToLoader(
+  request: Request,
+  provider: 'interledger' | 'pti'
+) {
   const url = new URL(request.url)
   const balanceResponse = await grpc.getBalances(request, {})
-  if (isConnectError(balanceResponse)) throw balanceResponse.error
+  if (isConnectError(balanceResponse)) throw balanceResponse.errorResponse
 
   const balances = await getBalancesForTransfer(request)
 
@@ -174,7 +179,6 @@ function GatehubWithdrawalPage() {
       if (window) {
         window.removeEventListener('message', handler)
       }
-
     }
   })
 
@@ -246,18 +250,27 @@ const formatAmount = (amount?: PlainMessage<RpcAmount>): string => {
 }
 
 const Amount = ({ data }: { data: WithdrawalLoaderData }) => {
-  const { balance, balances, balanceAccount, linkedAccounts, csrfToken, provider } = data
+  const {
+    balance,
+    balances,
+    balanceAccount,
+    linkedAccounts,
+    csrfToken,
+    provider
+  } = data
   // for bigint
-  if(
-    balanceAccount && typeof balanceAccount === 'object' && 
-    !Array.isArray(balanceAccount) && 
-    typeof balanceAccount.balance === 'object' && balanceAccount.balance &&
+  if (
+    balanceAccount &&
+    typeof balanceAccount === 'object' &&
+    !Array.isArray(balanceAccount) &&
+    typeof balanceAccount.balance === 'object' &&
+    balanceAccount.balance &&
     'amount' in balanceAccount.balance
-  ){
-    balanceAccount.balance.amount = String(balanceAccount.balance.amount)  
+  ) {
+    balanceAccount.balance.amount = String(balanceAccount.balance.amount)
   }
 
-  const balanceAcc = Balance.fromJson(balanceAccount);
+  const balanceAcc = Balance.fromJson(balanceAccount)
   const [, setSearchParams] = useSearchParams()
   const actionData = useActionData()
 
@@ -423,7 +436,7 @@ export async function action({ request }: Route.ActionArgs) {
     toLinkedAccount: '',
     note: ''
   }
-  const cc = provider === 'pti' ? 'USD' : 'ZAR';
+  const cc = provider === 'pti' ? 'USD' : 'ZAR'
   const withdrawResponse = await grpc.withdrawBalance(request, {
     fromLinkedAccount: fromLinkedAccount,
     toLinkedAccount: toLinkedAccount,
@@ -475,7 +488,7 @@ async function createGatehubWithdrawal(request: Request, formData: FormData) {
     externalTransactionId: formData.get('withdrawalId') as string
   })
   if (isConnectError(withdrawResponse)) {
-    throw withdrawResponse.error
+    throw withdrawResponse.errorResponse
   }
 
   return redirect(

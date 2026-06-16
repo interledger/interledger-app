@@ -5,7 +5,6 @@ import type { Country } from '~/generated/connect/backend/v1/backend_pb'
 export enum SignupStep {
   LANDING,
   ABOUT,
-  PHONE,
   PASSWORD
 }
 
@@ -53,8 +52,6 @@ export const useSignupStore = create<SignupState & SignupActions>((set) => ({
     set((state) => {
       switch (state.step) {
         case SignupStep.PASSWORD:
-          return { step: SignupStep.PHONE }
-        case SignupStep.PHONE:
           return { step: SignupStep.ABOUT }
         case SignupStep.ABOUT:
           return { step: SignupStep.LANDING }

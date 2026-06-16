@@ -1,14 +1,14 @@
-import { redisClient } from './redis.server'
-import logger from './logger.server'
 import { envValue } from '~/env.server'
+import logger from './logger.server'
+import { redisClient } from './redis.server'
 
 interface RateLimitOptions {
   limit: number
   ttlSeconds: number
 }
 function getRateLimitDefaults(): RateLimitOptions {
-  const limit = Number(envValue("DEFAULT_RATE_LIMIT_REQUESTS")) || 4
-  const ttlSeconds = Number(envValue("DEFAULT_RATE_LIMIT_TIME")) || 3600
+  const limit = Number(envValue('DEFAULT_RATE_LIMIT_REQUESTS')) || 4
+  const ttlSeconds = Number(envValue('DEFAULT_RATE_LIMIT_TIME')) || 3600
 
   return { limit, ttlSeconds }
 }
@@ -16,7 +16,8 @@ function getRateLimitDefaults(): RateLimitOptions {
 const DEFAULT_RATE_LIMIT = getRateLimitDefaults()
 export enum RateLimitKeys {
   RecoveryEmail = 'recovery.email',
-  VerifyEmail = 'verify.email'
+  VerifyEmail = 'verify.email',
+  PhoneOTP = 'phone.otp'
 }
 
 type RateLimitKeyType = `${RateLimitKeys}_${string}`
@@ -43,7 +44,38 @@ export async function rateLimit(
     }
     await redisClient.set(key, count + 1, { EX: ttlSeconds })
   } catch (err) {
-    logger.error({ error: err instanceof Error ? err.message : String(err) }, 'Rate limit check failed')
+    logger.error(
+      { error: err instanceof Error ? err.message : String(err) },
+      'Rate limit check failed'
+    )
+  }
+}
+
+/**
+ * Read-only Redis-based rate-limit check.
+ * Does not increment the counter.
+ *
+ * @param key Unique key per action/user
+ * @param options { limit }
+ * @returns string | undefined - error message if rate limit exceeded, otherwise undefined
+ */
+export async function getRateLimit(
+  key: RateLimitKeyType,
+  options: RateLimitOptions = DEFAULT_RATE_LIMIT
+): Promise<string | undefined> {
+  const { limit } = options
+
+  try {
+    const current = await redisClient.get(key)
+    const count = Number(current) || 0
+    if (count >= limit) {
+      return 'Too many attempts. Please try again later.'
+    }
+  } catch (err) {
+    logger.error(
+      { error: err instanceof Error ? err.message : String(err) },
+      'Rate limit read failed'
+    )
   }
 }
 

@@ -154,6 +154,21 @@ func transformTransaction(tx transactions.Transaction, transfers []transactions.
 		RefundState:             int32(tx.RefundState),
 	}
 
+	if tx.ExchangeRateApplied != "" {
+		ret.ExchangeRateApplied = &tx.ExchangeRateApplied
+	}
+	if tx.ExchangeRateReference != "" {
+		ret.ExchangeRateReference = &tx.ExchangeRateReference
+	}
+	if tx.ExchangeRateSurcharge != "" {
+		ret.ExchangeRateSurcharge = &tx.ExchangeRateSurcharge
+	}
+	if tx.TargetAmount != nil {
+		ret.TargetAmount = tx.TargetAmount.ToPB()
+		v := tx.TargetAmount.Format()
+		ret.FormattedTargetAmount = &v
+	}
+
 	// only adding the send and receive accounts to withdrawals
 	if tx.Type == transactions.TransactionTypeWithdrawal {
 		for _, t := range transfers {
@@ -177,9 +192,11 @@ func transformTransaction(tx transactions.Transaction, transfers []transactions.
 
 	if tx.Type == transactions.TransactionTypeCardTransaction {
 		details := pb.CardTransactionDetails{
-			CardId:        tx.CardTransactionDetails.CardID,
-			CardMaskedPan: tx.CardTransactionDetails.CardMaskedPan,
-			Type:          int64(tx.CardTransactionDetails.Type),
+			CardId:         tx.CardTransactionDetails.CardID,
+			CardMaskedPan:  tx.CardTransactionDetails.CardMaskedPan,
+			Type:           tx.CardTransactionDetails.Type.String(),
+			Operation:      cardOperationToProto(tx.CardTransactionDetails.Operation),
+			Classification: tx.CardTransactionDetails.Classification,
 		}
 		ret.CardTransactionDetails = &details
 	}
@@ -209,4 +226,15 @@ func (s *rpcService) LookupTransaction(ctx context.Context, req *pb.LookupTransa
 	}
 
 	return transformTransaction(*tx, transfers), nil
+}
+
+func cardOperationToProto(op transactions.CardOperation) pb.CardOperation {
+	switch op {
+	case transactions.CardOperationWithdraw:
+		return pb.CardOperation_CARD_OPERATION_WITHDRAW
+	case transactions.CardOperationDeposit:
+		return pb.CardOperation_CARD_OPERATION_DEPOSIT
+	default:
+		return pb.CardOperation_CARD_OPERATION_NONE
+	}
 }

@@ -1,26 +1,42 @@
 import type { LoginFlow } from '@ory/client'
-import type { Route } from './+types/totp_.challenge'
-import { data, redirect, href } from 'react-router'
-import { useActionData, useLoaderData } from 'react-router'
+import {
+  data,
+  href,
+  redirect,
+  useActionData,
+  useLoaderData
+} from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Layouts, OutlineButtonRouter } from '~/components'
 import { TotpChallenge } from '~/components/TotpChallenge'
 import { validateCSRFToken } from '~/lib/csrf.server'
+import {
+  buildHeadersWithCookies,
+  getCookie,
+  isSessionAlreadyExistsMessage,
+  withCookie
+} from '~/lib/kratos/cookie.server'
+import {
+  mapFlowToFieldErrors,
+  printKratosError
+} from '~/lib/kratos/error.server'
 import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.server'
+import { kratosPublic } from '~/lib/kratos/kratos-client.server'
+import type {
+  CreateBrowserLoginFlowResponse,
+  KratosError
+} from '~/lib/kratos/types.server'
+import logger from '~/lib/logger.server'
 import { mergeMeta } from '~/lib/meta'
 import { safeReturnTo } from '~/lib/url.server'
-import { kratosPublic } from '~/lib/kratos/kratos-client.server'
-import { buildHeadersWithCookies, getCookie, isSessionAlreadyExistsMessage, withCookie } from '~/lib/kratos/cookie.server'
-import { mapFlowToFieldErrors, printKratosError } from '~/lib/kratos/error.server'
-import type { CreateBrowserLoginFlowResponse, KratosError } from '~/lib/kratos/types.server'
-import logger from '~/lib/logger.server'
+import type { Route } from './+types/totp_.challenge'
 
 export type TotpAction =
   | {
-    errors: {
-      totp_code?: string
+      errors: {
+        totp_code?: string
+      }
     }
-  }
   | undefined
 
 const getFlowFromRedirect = (flowResponse: CreateBrowserLoginFlowResponse) => {
@@ -29,7 +45,7 @@ const getFlowFromRedirect = (flowResponse: CreateBrowserLoginFlowResponse) => {
   }
 
   if (flowResponse.status === 303 || flowResponse.status === 302) {
-    const location = flowResponse.headers["location"]
+    const location = flowResponse.headers['location']
     if (!location) {
       throw new Error('Expected redirect with flow ID, but got none.')
     }
@@ -51,7 +67,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   if (!cookie) {
     // todo: create a must have cookies guard for most paths
-    throw redirect("/")
+    throw redirect('/')
   }
 
   try {
@@ -59,14 +75,19 @@ export async function loader({ request }: Route.LoaderArgs) {
     if (session.data.authenticator_assurance_level === 'aal2') {
       return redirect(returnTo)
     }
-  } catch (_) { }
+  } catch {
+    // ignore lookup failure and continue
+  }
 
   if (!flowId) {
     let aal2Flow: CreateBrowserLoginFlowResponse
     try {
-      aal2Flow = await kratosPublic.createBrowserLoginFlow({
-        aal: 'aal2',
-      }, withCookie(cookie))
+      aal2Flow = await kratosPublic.createBrowserLoginFlow(
+        {
+          aal: 'aal2'
+        },
+        withCookie(cookie)
+      )
     } catch (err) {
       throw new Error(printKratosError(err))
     }
@@ -78,15 +99,17 @@ export async function loader({ request }: Route.LoaderArgs) {
     searchParams.set('flow', flowFromRedirect)
     const headers = buildHeadersWithCookies(aal2Flow)
 
-    return redirect(`${href('/totp/challenge')}?${searchParams.toString()}`, { headers })
+    return redirect(`${href('/totp/challenge')}?${searchParams.toString()}`, {
+      headers
+    })
   }
 
-  let loginFlow;
+  let loginFlow
   try {
     loginFlow = await kratosPublic.getLoginFlow({ id: flowId, cookie })
   } catch (err) {
     printKratosError(err)
-    throw redirect("/totp/challenge")
+    throw redirect('/totp/challenge')
   }
 
   const flow: LoginFlow = loginFlow.data
@@ -136,12 +159,12 @@ export async function action({ request }: Route.ActionArgs) {
     throw redirect('/totp/challenge')
   }
   if (!totp_code || typeof totp_code !== 'string') {
-    logger.error({ route: "totp.challenge" }, "TOTP code is required")
-    return data({ errors: { totp_code: "TOTP code is required" } })
+    logger.error({ route: 'totp.challenge' }, 'TOTP code is required')
+    return data({ errors: { totp_code: 'TOTP code is required' } })
   }
   if (!csrf_token || typeof csrf_token !== 'string') {
-    logger.error({ route: "totp.challenge" }, "CSRF token is required")
-    return data({ errors: { totp_code: "Unknown error, please retry." } })
+    logger.error({ route: 'totp.challenge' }, 'CSRF token is required')
+    return data({ errors: { totp_code: 'Unknown error, please retry.' } })
   }
 
   const cookie = getCookie(request)
@@ -151,43 +174,61 @@ export async function action({ request }: Route.ActionArgs) {
   await validateCSRFToken(request, form)
 
   try {
-    const submitTotpResponse = await kratosPublic.updateLoginFlow({
-      flow: flow as string,
-      updateLoginFlowBody: {
-        method: 'totp',
-        totp_code: totp_code,
-        csrf_token: csrf_token
-      }
-    }, withCookie(cookie))
+    const submitTotpResponse = await kratosPublic.updateLoginFlow(
+      {
+        flow: flow as string,
+        updateLoginFlowBody: {
+          method: 'totp',
+          totp_code: totp_code,
+          csrf_token: csrf_token
+        }
+      },
+      withCookie(cookie)
+    )
 
     if (submitTotpResponse.data.session) {
       const headers = buildHeadersWithCookies(submitTotpResponse)
       return redirect(returnTo, { headers })
     }
 
-    logger.error({ status: submitTotpResponse.status, route: "totp.challenge" }, "No session after updateLoginFlow", submitTotpResponse.status)
-    return redirect("/totp/challenge")
+    logger.error(
+      { status: submitTotpResponse.status, route: 'totp.challenge' },
+      'No session after updateLoginFlow',
+      submitTotpResponse.status
+    )
+    return redirect('/totp/challenge')
   } catch (err) {
     const kratosError = err as KratosError
     const flowData = kratosError.response.data
     const flowStatus = kratosError.response.status
 
     switch (flowStatus) {
-      case 400:
+      case 400: {
         const errorMapping = { form: '', totp_code: '' }
         mapFlowToFieldErrors(flowData, errorMapping)
         if (isSessionAlreadyExistsMessage(errorMapping.form)) {
           return redirect(returnTo)
         }
-        return data({ errors: { totp_code: errorMapping.totp_code || errorMapping.form || 'Unknown error, please retry.' } })
+        return data({
+          errors: {
+            totp_code:
+              errorMapping.totp_code ||
+              errorMapping.form ||
+              'Unknown error, please retry.'
+          }
+        })
+      }
 
       case 410:
         // Flow expired
-        throw redirect("/totp/challenge")
+        throw redirect('/totp/challenge')
 
       default:
-        logger.error({ status: flowStatus, flowData, route: "totp.challenge" }, "Unknown case when updateLoginFlow")
-        throw redirect("/totp/challenge")
+        logger.error(
+          { status: flowStatus, flowData, route: 'totp.challenge' },
+          'Unknown case when updateLoginFlow'
+        )
+        throw redirect('/totp/challenge')
     }
   }
 }
