@@ -38,11 +38,11 @@ var (
 	CardStatusAccountBlocked   string = "AccountBlocked"
 	CardStatusInCreation       string = "InCreation"
 
-	CardTractionStatusInitial    string = "INITIAL"
-	CardTractionStatusProcessing string = "PROCESSING"
-	CardTractionStatusAcquired   string = "ACQUIRED"
-	CardTractionStatusCompleted  string = "COMPLETED"
-	CardTractionStatusFailed     string = "FAILED"
+	CardTransactionStatusInitial    string = "INITIAL"
+	CardTransactionStatusProcessing string = "PROCESSING"
+	CardTransactionStatusAcquired   string = "ACQUIRED"
+	CardTransactionStatusCompleted  string = "COMPLETED"
+	CardTransactionStatusFailed     string = "FAILED"
 
 	CardTransactionTypePurchase                    int = 0
 	CardTransactionTypeATMWithdrawal               int = 1
@@ -57,6 +57,30 @@ var (
 	CardTransactionTypePreauthorizationCompletion  int = 103
 	CardTransactionTypeTransferToAccount           int = 107
 	CardTransactionTypeTransferFromAccount         int = 108
+
+	CardTransactionOperationWithdraw int = 0
+	CardTransactionOperationDeposit  int = 1
+	CardTransactionOperationNone     int = 2
+
+	CardTransactionClassificationAuthorization string = "Authorization"
+	CardTransactionClassificationReversal      string = "Reversal"
+
+	CardTransactionGHResponseCodeOK    string = "OK"
+	CardTransactionGHResponseCodeCRGUI string = "CRGUI"
+	CardTransactionGHResponseCodeTRXNS string = "TRXNS"
+	CardTransactionGHResponseCodeSYSEX string = "SYSEX"
+
+	CardTransactionResponseCodeOK    string = "OK"
+	CardTransactionResponseCodeWCVV1 string = "WCVV1"
+	CardTransactionResponseCodeWCVV2 string = "WCVV2"
+	CardTransactionResponseCodeWPIN  string = "WPIN"
+	CardTransactionResponseCodeCAEDM string = "CAEDM" // card expiration date doesn't match
+	CardTransactionResponseCodeCAEDI string = "CAEDI" // card expiration date invalid
+	CardTransactionResponseCodeCAEXP string = "CAEXP" // card expired
+	CardTransactionResponseCodeCASUS string = "CASUS" // card frozen
+	CardTransactionResponseCodeCALOS string = "CALOS" // card lost
+	CardTransactionResponseCodeCASTO string = "CASTO" // card stolen
+	CardTransactionResponseCodeCAUSR string = "CAUSR" // card suspended
 )
 
 const (
@@ -156,18 +180,20 @@ type (
 	}
 
 	Transaction struct {
-		ID              string `json:"uuid"`
-		CreatedAt       string `json:"created_at"`
-		CompletedAt     string `json:"completed_at"`
-		Amount          string `json:"amount"`
-		Total           string `json:"total_amount"`
-		Fee             string `json:"fee"`
-		SendingWallet   Wallet `json:"sending_wallet"`
-		ReceivingWallet Wallet `json:"receiving_wallet"`
-		Vault           Vault  `json:"vault"`
-		Status          int    `json:"status"`
-		SubStatus       int    `json:"substatus"`
-		Type            int    `json:"type"`
+		ID              string             `json:"uuid"`
+		CreatedAt       string             `json:"created_at"`
+		CompletedAt     string             `json:"completed_at"`
+		Amount          string             `json:"amount"`
+		Total           string             `json:"total_amount"`
+		Fee             string             `json:"fee"`
+		SendingWallet   Wallet             `json:"sending_wallet"`
+		ReceivingWallet Wallet             `json:"receiving_wallet"`
+		Vault           Vault              `json:"vault"`
+		Account         TransactionAccount `json:"account"`
+		Message         *string            `json:"message"`
+		Status          int                `json:"status"`
+		SubStatus       int                `json:"substatus"`
+		Type            int                `json:"type"`
 	}
 
 	Hub struct {
@@ -395,6 +421,11 @@ type (
 		Card        NewCardArgs `json:"card"`
 	}
 
+	TransactionAccount struct {
+		LegalName string `json:"legal_name"`
+		IBAN      string `json:"iban"`
+	}
+
 	CreateCustomerAndCardArgs struct {
 		WalletAddress string                             `json:"walletAddress"`
 		Account       CardAccount                        `json:"account"`
@@ -465,7 +496,7 @@ type (
 
 	MastercardConversion struct {
 		ConvRate        *string `json:"convRate"`
-		RefConfRate     *string `json:"refConRate"`
+		RefConfRate     *string `json:"refConfRate"`
 		RefConfRateDiff *string `json:"refConfRateDiff"`
 	}
 

@@ -317,7 +317,7 @@ func TestGetTransactionStatement_TransactionsError(t *testing.T) {
 	txMock := transactions_mock.NewMockClient(ctrl)
 	txMock.EXPECT().GetTransaction(gomock.Any(), walletID, "tx-id").Return(nil, errors.New("tx db error"))
 
-	b := Backends{db: testDB, la: laMock, tx: txMock}
+	b := Backends{db: testDB, la: laMock, tc: txMock}
 	_, err = ops.GetTransactionStatement(ctx, b, nil, walletID, "tx-id")
 
 	require.Error(t, err)
@@ -346,7 +346,7 @@ func TestGetTransactionStatement_TransactionNotFound(t *testing.T) {
 	txMock := transactions_mock.NewMockClient(ctrl)
 	txMock.EXPECT().GetTransaction(gomock.Any(), walletID, "tx-id").Return(nil, nil)
 
-	b := Backends{db: testDB, la: laMock, tx: txMock}
+	b := Backends{db: testDB, la: laMock, tc: txMock}
 	_, err = ops.GetTransactionStatement(ctx, b, nil, walletID, "tx-id")
 
 	require.Error(t, err)
@@ -379,7 +379,7 @@ func TestGetTransactionStatement_ExternalNotFound(t *testing.T) {
 	ecMock := ec_mock.NewMockClient(ctrl)
 	ecMock.EXPECT().GetTransferConfirmation(gomock.Any(), externalUserID, foreignTxID).Return(nil, external.ErrNotFound)
 
-	b := Backends{db: testDB, la: laMock, tx: txMock}
+	b := Backends{db: testDB, la: laMock, tc: txMock}
 	_, err = ops.GetTransactionStatement(ctx, b, ecMock, walletID, "tx-id")
 
 	require.Error(t, err)
@@ -412,7 +412,7 @@ func TestGetTransactionStatement_ExternalError(t *testing.T) {
 	ecMock := ec_mock.NewMockClient(ctrl)
 	ecMock.EXPECT().GetTransferConfirmation(gomock.Any(), externalUserID, foreignTxID).Return(nil, errors.New("gatehub error"))
 
-	b := Backends{db: testDB, la: laMock, tx: txMock}
+	b := Backends{db: testDB, la: laMock, tc: txMock}
 	_, err = ops.GetTransactionStatement(ctx, b, ecMock, walletID, "tx-id")
 
 	require.Error(t, err)
@@ -447,7 +447,7 @@ func TestGetTransactionStatement_Success(t *testing.T) {
 	ecMock.EXPECT().GetTransferConfirmation(gomock.Any(), externalUserID, foreignTxID).
 		Return(io.NopCloser(strings.NewReader("pdf-content")), nil)
 
-	b := Backends{db: testDB, la: laMock, tx: txMock}
+	b := Backends{db: testDB, la: laMock, tc: txMock}
 	body, err := ops.GetTransactionStatement(ctx, b, ecMock, walletID, "tx-id")
 
 	require.NoError(t, err)

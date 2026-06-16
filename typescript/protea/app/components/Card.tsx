@@ -1,8 +1,8 @@
-import { NavLink } from 'react-router';
-import type { NavLinkProps } from 'react-router';
 import clsx from 'clsx'
 import type { ButtonHTMLAttributes, HTMLAttributes, RefAttributes } from 'react'
 import { forwardRef, useEffect, useState } from 'react'
+import type { NavLinkProps } from 'react-router'
+import { NavLink } from 'react-router'
 import { Icon } from '~/components/Icon'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 
@@ -38,6 +38,7 @@ const CardTitle = forwardRef<
   HTMLAttributes<HTMLHeadingElement>
 >(({ className, ...props }, ref) => {
   return (
+    // eslint-disable-next-line jsx-a11y/heading-has-content -- heading content is supplied by the consumer via {...props}
     <h2
       ref={ref}
       className={clsx('text-lg font-medium text-strong', className)}

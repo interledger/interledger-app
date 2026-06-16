@@ -1,6 +1,6 @@
-import type { LoaderArgs } from '@remix-run/node'
-import { json } from '@remix-run/node'
-import { Outlet, useLoaderData, useLocation } from '@remix-run/react'
+import type { LoaderFunctionArgs } from 'react-router'
+import { data } from 'react-router'
+import { Outlet, useLoaderData, useLocation } from 'react-router'
 import clsx from 'clsx'
 import { DateTime } from 'luxon'
 import type { FC } from 'react'
@@ -14,10 +14,10 @@ import {
 import type { Payment } from '~/generated/protobuf-ts/backend/admin/v1/backend'
 import { GetPendingPayouts } from '~/lib/wallet.server'
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const payments = await GetPendingPayouts(request)
 
-  return json({ payments })
+  return data({ payments })
 }
 
 const ListItem: FC<Payment> = ({

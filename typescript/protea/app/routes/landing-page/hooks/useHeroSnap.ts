@@ -1,5 +1,5 @@
-import { useEffect, useRef, type RefObject } from "react"
-import type { CarouselScreen } from "../context/PhoneCarouselContext"
+import { useEffect, useRef, type RefObject } from 'react'
+import type { CarouselScreen } from '../context/PhoneCarouselContext'
 
 interface UseHeroSnapArgs {
   sectionRef: RefObject<HTMLElement | null>
@@ -10,7 +10,7 @@ interface UseHeroSnapArgs {
 }
 
 type Direction = 1 | -1
-type KeyIntent = Direction | "first" | "last" | null
+type KeyIntent = Direction | 'first' | 'last' | null
 
 // Wheel deltas smaller than this are noise (e.g. high-precision touchpads at rest).
 const WHEEL_DEAD_ZONE = 4
@@ -33,17 +33,17 @@ const REENGAGE_PAUSE_MS = 800
 
 const intentFromKey = (key: string): KeyIntent => {
   switch (key) {
-    case "ArrowDown":
-    case "PageDown":
-    case " ":
+    case 'ArrowDown':
+    case 'PageDown':
+    case ' ':
       return 1
-    case "ArrowUp":
-    case "PageUp":
+    case 'ArrowUp':
+    case 'PageUp':
       return -1
-    case "Home":
-      return "first"
-    case "End":
-      return "last"
+    case 'Home':
+      return 'first'
+    case 'End':
+      return 'last'
     default:
       return null
   }
@@ -51,7 +51,12 @@ const intentFromKey = (key: string): KeyIntent => {
 
 const isEditableTarget = (t: EventTarget | null): boolean => {
   const el = t as HTMLElement | null
-  return !!el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable)
+  return (
+    !!el &&
+    (el.tagName === 'INPUT' ||
+      el.tagName === 'TEXTAREA' ||
+      el.isContentEditable)
+  )
 }
 
 /**
@@ -65,7 +70,7 @@ export function useHeroSnap({
   activeScreen,
   setActiveScreen,
   screenCount = 5,
-  cooldownMs = 600,
+  cooldownMs = 600
 }: UseHeroSnapArgs) {
   // All mutable per-effect state lives in one ref to avoid stale closures
   // and to keep the timing/locking concerns visible together.
@@ -121,9 +126,9 @@ export function useHeroSnap({
     // Snapshots of original CSS values before lockBody overwrites them.
     // unlockBody restores exactly these to avoid clobbering other code that
     // may have set those properties before the hero mounted.
-    savedBodyOverflow: "",
-    savedHtmlOverflow: "",
-    savedBodyPaddingRight: "",
+    savedBodyOverflow: '',
+    savedHtmlOverflow: '',
+    savedBodyPaddingRight: ''
   })
 
   useEffect(() => {
@@ -143,12 +148,13 @@ export function useHeroSnap({
       state.savedHtmlOverflow = document.documentElement.style.overflow
       state.savedBodyPaddingRight = document.body.style.paddingRight
       // Compensate the disappearing scrollbar so the layout doesn't shift.
-      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth
+      const scrollbarWidth =
+        window.innerWidth - document.documentElement.clientWidth
       if (scrollbarWidth > 0) {
         document.body.style.paddingRight = `${scrollbarWidth}px`
       }
-      document.body.style.overflow = "hidden"
-      document.documentElement.style.overflow = "hidden"
+      document.body.style.overflow = 'hidden'
+      document.documentElement.style.overflow = 'hidden'
     }
 
     const unlockBody = () => {
@@ -170,7 +176,10 @@ export function useHeroSnap({
       const rect = section.getBoundingClientRect()
       state.lastReleaseAt = performance.now()
       unlockBody()
-      window.scrollTo({ top: window.scrollY + rect.bottom + 4, behavior: "auto" })
+      window.scrollTo({
+        top: window.scrollY + rect.bottom + 4,
+        behavior: 'auto'
+      })
     }
 
     /**
@@ -220,7 +229,8 @@ export function useHeroSnap({
       // Reversal always starts a new gesture.
       if (reversed) state.inWheelGesture = false
       // Cooldown elapsed: allow the next advance even during continuous scrolling.
-      if (performance.now() - state.lastAdvanceAt >= cooldownMs) state.inWheelGesture = false
+      if (performance.now() - state.lastAdvanceAt >= cooldownMs)
+        state.inWheelGesture = false
 
       if (state.inWheelGesture) return
 
@@ -256,8 +266,8 @@ export function useHeroSnap({
       const intent = intentFromKey(e.key)
       if (intent === null) return
       e.preventDefault()
-      if (intent === "first") return goToScreen(1)
-      if (intent === "last") return goToScreen(screenCount as CarouselScreen)
+      if (intent === 'first') return goToScreen(1)
+      if (intent === 'last') return goToScreen(screenCount as CarouselScreen)
       const now = performance.now()
       // Held key / OS auto-repeat: swallow.
       if (e.repeat || now - state.lastKeyAt < KEY_GAP_MS) {
@@ -270,10 +280,22 @@ export function useHeroSnap({
     }
 
     // ── Lock lifecycle ────────────────────────────────────────────────
+    const isHeroPinnedAtTop = () => {
+      const rect = section.getBoundingClientRect()
+      return rect.top >= 0 && rect.top < window.innerHeight && rect.bottom > 0
+    }
+
+    // Release a stale lock: Chromium restores scroll position after this effect
+    // locks at the top, stranding the lock past the hero with no other release path.
+    const releaseStaleLock = () => {
+      if (state.locked && !isHeroPinnedAtTop()) unlockBody()
+    }
+
     /** Re-engage when the user scrolls back up to the hero from below. */
     const onScroll = () => {
-      if (state.locked) return
+      if (state.locked) return releaseStaleLock()
       if (performance.now() - state.lastReleaseAt < REENGAGE_COOLDOWN_MS) return
+      if (!isHeroPinnedAtTop()) return
       const rect = section.getBoundingClientRect()
       const fullyAtTop = rect.top >= 0 && rect.top < window.innerHeight && rect.bottom > 0
       if (!fullyAtTop) return
@@ -281,7 +303,7 @@ export function useHeroSnap({
       setActiveScreen(screenCount as CarouselScreen)
       state.reengageBlockUntil = performance.now() + REENGAGE_PAUSE_MS
       lockBody()
-      window.scrollTo({ top: window.scrollY + rect.top, behavior: "auto" })
+      window.scrollTo({ top: window.scrollY + rect.top, behavior: 'auto' })
     }
 
     const initLockState = () => {
@@ -292,21 +314,27 @@ export function useHeroSnap({
     }
 
     initLockState()
+    // Re-sync after scroll restoration (next frame) and BFCache restore (pageshow).
+    const rafId = requestAnimationFrame(releaseStaleLock)
+    const onPageShow = () => releaseStaleLock()
 
-    window.addEventListener("wheel", onWheel, { passive: false })
-    window.addEventListener("touchstart", onTouchStart, { passive: true })
-    window.addEventListener("touchmove", onTouchMove, { passive: false })
-    window.addEventListener("touchend", onTouchEnd, { passive: true })
-    window.addEventListener("keydown", onKeyDown)
-    window.addEventListener("scroll", onScroll, { passive: true })
+    window.addEventListener('wheel', onWheel, { passive: false })
+    window.addEventListener('touchstart', onTouchStart, { passive: true })
+    window.addEventListener('touchmove', onTouchMove, { passive: false })
+    window.addEventListener('touchend', onTouchEnd, { passive: true })
+    window.addEventListener('keydown', onKeyDown)
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('pageshow', onPageShow)
 
     return () => {
-      window.removeEventListener("wheel", onWheel)
-      window.removeEventListener("touchstart", onTouchStart)
-      window.removeEventListener("touchmove", onTouchMove)
-      window.removeEventListener("touchend", onTouchEnd)
-      window.removeEventListener("keydown", onKeyDown)
-      window.removeEventListener("scroll", onScroll)
+      window.removeEventListener('wheel', onWheel)
+      window.removeEventListener('touchstart', onTouchStart)
+      window.removeEventListener('touchmove', onTouchMove)
+      window.removeEventListener('touchend', onTouchEnd)
+      window.removeEventListener('keydown', onKeyDown)
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('pageshow', onPageShow)
+      cancelAnimationFrame(rafId)
       if (state.wheelEndTimer) clearTimeout(state.wheelEndTimer)
       unlockBody()
     }

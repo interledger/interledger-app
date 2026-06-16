@@ -12,31 +12,27 @@ const Turnstile = forwardRef<TurnstileInstance | undefined, TurnstileProps>(
     const turnstileRef = useRef<HTMLDivElement | null>(null)
     const firstRendered = useRef(false)
 
-    useImperativeHandle(
-      ref,
-      () => {
-        if (typeof window === 'undefined' || !scriptStatus) {
-          return
-        }
+    useImperativeHandle(ref, () => {
+      if (typeof window === 'undefined' || !scriptStatus) {
+        return
+      }
 
-        const { turnstile } = window
-        return {
-          reset() {
-            if (!turnstile?.reset) {
-              console.warn('Turnstile has not been loaded')
-              return
-            }
+      const { turnstile } = window
+      return {
+        reset() {
+          if (!turnstile?.reset) {
+            console.warn('Turnstile has not been loaded')
+            return
+          }
 
-            try {
-              turnstile.reset()
-            } catch (error) {
-              console.warn(`Failed to reset Turnstile widget`, error)
-            }
+          try {
+            turnstile.reset()
+          } catch (error) {
+            console.warn(`Failed to reset Turnstile widget`, error)
           }
         }
-      },
-      [scriptStatus]
-    )
+      }
+    }, [scriptStatus])
 
     useEffect(() => {
       if (!siteKey) {

@@ -1,7 +1,7 @@
-import type { LoaderArgs } from '@remix-run/node'
+import type { LoaderFunctionArgs } from 'react-router'
 import { getBackendHealth } from '~/lib/backend-health.server'
 
-export const loader = async ({ request }: LoaderArgs) => {
+export const loader = async ({ request }: LoaderFunctionArgs) => {
   const backendHealth = await getBackendHealth()
 
   if (!backendHealth.ok) {

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -17,6 +18,7 @@ import (
 	"gitlab.com/fynbos/mock/mockgatehub/internal/storage"
 	"gitlab.com/fynbos/mock/mockgatehub/internal/webhook"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -597,9 +599,9 @@ func TestTransactionSCA_WithdrawalSuccess(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, w.Code)
 
-	// Balance should have decreased
+	// Balance is not deducted until the withdrawal event is triggered via the admin endpoint
 	balance, _ := store.GetBalance(consts.TestUser1ID, "USD")
-	assert.Less(t, balance, 10000.0)
+	assert.Equal(t, 10000.0, balance)
 }
 
 func TestTransactionSCA_SkippedWhenNotTriggered(t *testing.T) {
@@ -934,8 +936,10 @@ func TestProcessWithdrawal_Success(t *testing.T) {
 	h.TransactionCompleteHandler(rec, req)
 
 	assert.Equal(t, http.StatusOK, rec.Code)
+	assert.Contains(t, rec.Body.String(), "pending")
+	// Balance is not deducted until the withdrawal event is triggered via the admin endpoint
 	bal, _ := store.GetBalance(consts.TestUser1ID, "USD")
-	assert.InDelta(t, 9950.0, bal, 0.01)
+	assert.Equal(t, 10000.0, bal)
 }
 
 // ── generic paymentType (not deposit/withdrawal) ──
@@ -955,4 +959,254 @@ func TestTransactionComplete_GenericType(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, rec.Code)
 	assert.Contains(t, rec.Body.String(), "Transaction completed")
+}
+
+// ── withdrawal helpers ──
+
+func createPendingWithdrawal(t *testing.T, store storage.Storage, userID, currency, amount string) string {
+	t.Helper()
+	tx := &models.Transaction{
+		UserID:      userID,
+		Amount:      amount,
+		TotalAmount: amount,
+		Fee:         "0.00",
+		Currency:    currency,
+		DepositType: consts.DepositTypeWithdrawal,
+		Type:        consts.TransactionTypeWithdrawal,
+		Status:      consts.TransactionStatusPending,
+	}
+	require.NoError(t, store.CreateTransaction(tx))
+	return tx.ID
+}
+
+func withURLParam(r *http.Request, key, value string) *http.Request {
+	rctx := chi.NewRouteContext()
+	rctx.URLParams.Add(key, value)
+	return r.WithContext(context.WithValue(r.Context(), chi.RouteCtxKey, rctx))
+}
+
+// ── ListWithdrawals ──
+
+func TestListWithdrawals_NoPendingWithdrawals(t *testing.T) {
+	store := storage.NewMemoryStorage()
+	storage.SeedTestUsers(store)
+	h := NewHandler(store, webhook.NewManager("", "s", nil, store, ""))
+
+	req := httptest.NewRequest(http.MethodGet, "/admin/users/"+consts.TestUser1ID+"/withdrawals?status=pending", nil)
+	req = withURLParam(req, "userID", consts.TestUser1ID)
+	rec := httptest.NewRecorder()
+	h.ListWithdrawals(rec, req)
+
+	assert.Equal(t, http.StatusOK, rec.Code)
+	var result []map[string]interface{}
+	require.NoError(t, json.NewDecoder(rec.Body).Decode(&result))
+	assert.Empty(t, result)
+}
+
+func TestListWithdrawals_ReturnsPendingWithdrawals(t *testing.T) {
+	store := storage.NewMemoryStorage()
+	storage.SeedTestUsers(store)
+	h := NewHandler(store, webhook.NewManager("", "s", nil, store, ""))
+
+	createPendingWithdrawal(t, store, consts.TestUser1ID, "USD", "50.00")
+
+	req := httptest.NewRequest(http.MethodGet, "/admin/users/"+consts.TestUser1ID+"/withdrawals?status=pending", nil)
+	req = withURLParam(req, "userID", consts.TestUser1ID)
+	rec := httptest.NewRecorder()
+	h.ListWithdrawals(rec, req)
+
+	assert.Equal(t, http.StatusOK, rec.Code)
+	var result []map[string]interface{}
+	require.NoError(t, json.NewDecoder(rec.Body).Decode(&result))
+	assert.Len(t, result, 1)
+	assert.Equal(t, "50.00", result[0]["amount"])
+}
+
+func TestListWithdrawals_ExcludesCompletedWhenFilteringPending(t *testing.T) {
+	store := storage.NewMemoryStorage()
+	storage.SeedTestUsers(store)
+	h := NewHandler(store, webhook.NewManager("", "s", nil, store, ""))
+
+	txID := createPendingWithdrawal(t, store, consts.TestUser1ID, "USD", "50.00")
+	require.NoError(t, store.UpdateTransactionStatus(txID, consts.TransactionStatusCompleted))
+
+	req := httptest.NewRequest(http.MethodGet, "/admin/users/"+consts.TestUser1ID+"/withdrawals?status=pending", nil)
+	req = withURLParam(req, "userID", consts.TestUser1ID)
+	rec := httptest.NewRecorder()
+	h.ListWithdrawals(rec, req)
+
+	assert.Equal(t, http.StatusOK, rec.Code)
+	var result []map[string]interface{}
+	require.NoError(t, json.NewDecoder(rec.Body).Decode(&result))
+	assert.Empty(t, result)
+}
+
+func TestListWithdrawals_NoStatusFilterReturnsAll(t *testing.T) {
+	store := storage.NewMemoryStorage()
+	storage.SeedTestUsers(store)
+	h := NewHandler(store, webhook.NewManager("", "s", nil, store, ""))
+
+	txID := createPendingWithdrawal(t, store, consts.TestUser1ID, "USD", "50.00")
+	require.NoError(t, store.UpdateTransactionStatus(txID, consts.TransactionStatusCompleted))
+	createPendingWithdrawal(t, store, consts.TestUser1ID, "USD", "30.00")
+
+	req := httptest.NewRequest(http.MethodGet, "/admin/users/"+consts.TestUser1ID+"/withdrawals", nil)
+	req = withURLParam(req, "userID", consts.TestUser1ID)
+	rec := httptest.NewRecorder()
+	h.ListWithdrawals(rec, req)
+
+	assert.Equal(t, http.StatusOK, rec.Code)
+	var result []map[string]interface{}
+	require.NoError(t, json.NewDecoder(rec.Body).Decode(&result))
+	assert.Len(t, result, 2)
+}
+
+func TestListWithdrawals_ExcludesDeposits(t *testing.T) {
+	store := storage.NewMemoryStorage()
+	storage.SeedTestUsers(store)
+	h := NewHandler(store, webhook.NewManager("", "s", nil, store, ""))
+
+	deposit := &models.Transaction{
+		UserID:      consts.TestUser1ID,
+		Amount:      "100.00",
+		TotalAmount: "100.00",
+		Fee:         "0.00",
+		Currency:    "USD",
+		DepositType: consts.DepositTypeExternal,
+		Type:        consts.TransactionTypeDeposit,
+		Status:      consts.TransactionStatusPending,
+	}
+	require.NoError(t, store.CreateTransaction(deposit))
+
+	req := httptest.NewRequest(http.MethodGet, "/admin/users/"+consts.TestUser1ID+"/withdrawals", nil)
+	req = withURLParam(req, "userID", consts.TestUser1ID)
+	rec := httptest.NewRecorder()
+	h.ListWithdrawals(rec, req)
+
+	assert.Equal(t, http.StatusOK, rec.Code)
+	var result []map[string]interface{}
+	require.NoError(t, json.NewDecoder(rec.Body).Decode(&result))
+	assert.Empty(t, result)
+}
+
+// ── TriggerWithdrawalEvent ──
+
+func TestTriggerWithdrawalEvent_Completed(t *testing.T) {
+	store := storage.NewMemoryStorage()
+	storage.SeedTestUsers(store)
+	h := NewHandler(store, webhook.NewManager("", "s", nil, store, ""))
+
+	txID := createPendingWithdrawal(t, store, consts.TestUser1ID, "USD", "50.00")
+
+	body, _ := json.Marshal(map[string]string{"event": consts.WebhookEventWithdrawalCompleted})
+	req := httptest.NewRequest(http.MethodPost, "/admin/withdrawals/"+txID+"/trigger-event", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	req = withURLParam(req, "txID", txID)
+	rec := httptest.NewRecorder()
+	h.TriggerWithdrawalEvent(rec, req)
+
+	assert.Equal(t, http.StatusOK, rec.Code)
+	bal, _ := store.GetBalance(consts.TestUser1ID, "USD")
+	assert.InDelta(t, 9950.0, bal, 0.01)
+	tx, err := store.GetTransaction(txID)
+	require.NoError(t, err)
+	assert.Equal(t, consts.TransactionStatusCompleted, tx.Status)
+}
+
+func TestTriggerWithdrawalEvent_Rejected(t *testing.T) {
+	store := storage.NewMemoryStorage()
+	storage.SeedTestUsers(store)
+	h := NewHandler(store, webhook.NewManager("", "s", nil, store, ""))
+
+	txID := createPendingWithdrawal(t, store, consts.TestUser1ID, "USD", "50.00")
+
+	body, _ := json.Marshal(map[string]string{"event": consts.WebhookEventWithdrawalRejected})
+	req := httptest.NewRequest(http.MethodPost, "/admin/withdrawals/"+txID+"/trigger-event", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	req = withURLParam(req, "txID", txID)
+	rec := httptest.NewRecorder()
+	h.TriggerWithdrawalEvent(rec, req)
+
+	assert.Equal(t, http.StatusOK, rec.Code)
+	bal, _ := store.GetBalance(consts.TestUser1ID, "USD")
+	assert.Equal(t, 10000.0, bal)
+	tx, err := store.GetTransaction(txID)
+	require.NoError(t, err)
+	assert.Equal(t, consts.TransactionStatusFailed, tx.Status)
+}
+
+func TestTriggerWithdrawalEvent_NotFound(t *testing.T) {
+	store := storage.NewMemoryStorage()
+	h := NewHandler(store, webhook.NewManager("", "s", nil, store, ""))
+
+	body, _ := json.Marshal(map[string]string{"event": consts.WebhookEventWithdrawalCompleted})
+	req := httptest.NewRequest(http.MethodPost, "/admin/withdrawals/nonexistent/trigger-event", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	req = withURLParam(req, "txID", "nonexistent")
+	rec := httptest.NewRecorder()
+	h.TriggerWithdrawalEvent(rec, req)
+
+	assert.Equal(t, http.StatusNotFound, rec.Code)
+}
+
+func TestTriggerWithdrawalEvent_NotPending(t *testing.T) {
+	store := storage.NewMemoryStorage()
+	storage.SeedTestUsers(store)
+	h := NewHandler(store, webhook.NewManager("", "s", nil, store, ""))
+
+	txID := createPendingWithdrawal(t, store, consts.TestUser1ID, "USD", "50.00")
+	require.NoError(t, store.UpdateTransactionStatus(txID, consts.TransactionStatusCompleted))
+
+	body, _ := json.Marshal(map[string]string{"event": consts.WebhookEventWithdrawalCompleted})
+	req := httptest.NewRequest(http.MethodPost, "/admin/withdrawals/"+txID+"/trigger-event", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	req = withURLParam(req, "txID", txID)
+	rec := httptest.NewRecorder()
+	h.TriggerWithdrawalEvent(rec, req)
+
+	assert.Equal(t, http.StatusConflict, rec.Code)
+}
+
+func TestTriggerWithdrawalEvent_UnsupportedEvent(t *testing.T) {
+	store := storage.NewMemoryStorage()
+	storage.SeedTestUsers(store)
+	h := NewHandler(store, webhook.NewManager("", "s", nil, store, ""))
+
+	txID := createPendingWithdrawal(t, store, consts.TestUser1ID, "USD", "50.00")
+
+	body, _ := json.Marshal(map[string]string{"event": "unknown.event"})
+	req := httptest.NewRequest(http.MethodPost, "/admin/withdrawals/"+txID+"/trigger-event", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	req = withURLParam(req, "txID", txID)
+	rec := httptest.NewRecorder()
+	h.TriggerWithdrawalEvent(rec, req)
+
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
+}
+
+func TestTriggerWithdrawalEvent_NotAWithdrawal(t *testing.T) {
+	store := storage.NewMemoryStorage()
+	storage.SeedTestUsers(store)
+	h := NewHandler(store, webhook.NewManager("", "s", nil, store, ""))
+
+	deposit := &models.Transaction{
+		UserID:      consts.TestUser1ID,
+		Amount:      "100.00",
+		TotalAmount: "100.00",
+		Fee:         "0.00",
+		Currency:    "USD",
+		DepositType: consts.DepositTypeExternal,
+		Type:        consts.TransactionTypeDeposit,
+		Status:      consts.TransactionStatusPending,
+	}
+	require.NoError(t, store.CreateTransaction(deposit))
+
+	body, _ := json.Marshal(map[string]string{"event": consts.WebhookEventWithdrawalCompleted})
+	req := httptest.NewRequest(http.MethodPost, "/admin/withdrawals/"+deposit.ID+"/trigger-event", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	req = withURLParam(req, "txID", deposit.ID)
+	rec := httptest.NewRecorder()
+	h.TriggerWithdrawalEvent(rec, req)
+
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
 }

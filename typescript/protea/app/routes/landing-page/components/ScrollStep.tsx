@@ -1,4 +1,4 @@
-import type { CarouselScreen } from "../context/PhoneCarouselContext"
+import type { CarouselScreen } from '../context/PhoneCarouselContext'
 
 interface ScrollStepProps {
   /** Which phone carousel screen to activate when this step is in view */
@@ -14,7 +14,7 @@ interface ScrollStepProps {
  */
 export function ScrollStep({ className, children }: ScrollStepProps) {
   return (
-    <div className={className} aria-hidden="true">
+    <div className={className} aria-hidden='true'>
       {children}
     </div>
   )

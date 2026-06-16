@@ -1,5 +1,5 @@
 {
-  "branches": ["main"],
+  "branches": ["+([0-9])?(.{+([0-9]),x}).x", "main"],
   "tagFormat": "v${version}",
   "plugins": [
     [
@@ -33,13 +33,13 @@
     [
       "@semantic-release/exec",
       {
-        "prepareCmd": "sed -i -e 's/^version:.*/version: ${nextRelease.version}/' -e 's/^appVersion:.*/appVersion: v${nextRelease.version}/' helm/interledger-app/Chart.yaml"
+        "prepareCmd": "sed -i -e 's/^version:.*/version: ${nextRelease.version}/' -e 's/^appVersion:.*/appVersion: v${nextRelease.version}/' helm/interledger-app/Chart.yaml helm/mock-services/Chart.yaml"
       }
     ],
     [
       "@semantic-release/git",
       {
-        "assets": ["helm/interledger-app/Chart.yaml"],
+        "assets": ["helm/interledger-app/Chart.yaml", "helm/mock-services/Chart.yaml"],
         "message": "chore(release): ${nextRelease.version} [skip ci]"
       }
     ],

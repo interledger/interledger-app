@@ -1,5 +1,5 @@
 import { Transition, Dialog } from '@headlessui/react'
-import { NavLink, useTransition } from '@remix-run/react'
+import { NavLink, useNavigation } from 'react-router'
 import type { Dispatch, FC, SetStateAction, ReactNode } from 'react'
 import { Fragment, useEffect } from 'react'
 
@@ -43,7 +43,7 @@ const NavDrawerRoot: FC<{
   children: ReactNode
 }> = ({ children }) => {
   return (
-    <ul className='flex h-full min-w-max select-none flex-col justify-between bg-app py-4 px-3 lg:h-screen lg:bg-app'>
+    <ul className='flex h-full min-w-max select-none flex-col justify-between bg-app px-3 py-4 lg:h-screen lg:bg-app'>
       {children}
     </ul>
   )
@@ -58,12 +58,11 @@ type ModalProps = {
 }
 
 const Modal: FC<ModalProps> = ({ children, open, setOpen }) => {
-  const transition = useTransition()
+  const navigation = useNavigation()
 
   useEffect(() => {
-    if (transition.state == 'loading' && transition.type == 'normalLoad')
-      setOpen(false)
-  }, [transition.type, setOpen, transition.state])
+    if (navigation.state === 'loading') setOpen(false)
+  }, [navigation.state, setOpen])
 
   return (
     <Transition.Root show={open} as={Fragment}>

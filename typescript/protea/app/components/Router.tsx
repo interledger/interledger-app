@@ -1,8 +1,8 @@
-import { Link } from 'react-router';
-import type { LinkProps } from 'react-router';
 import clsx from 'clsx'
 import type { AnchorHTMLAttributes, ReactNode, RefAttributes } from 'react'
 import { forwardRef } from 'react'
+import type { LinkProps } from 'react-router'
+import { Link } from 'react-router'
 
 /**
  * TODO: Router refactor:
@@ -43,8 +43,7 @@ export const Router = forwardRef<
 Router.displayName = 'Router'
 
 interface ButtonRouterProps
-  extends LinkProps,
-    RefAttributes<HTMLAnchorElement> {
+  extends LinkProps, RefAttributes<HTMLAnchorElement> {
   className?: string
   to: string
   children?: ReactNode
@@ -102,7 +101,8 @@ export const OutlineButtonRouter = forwardRef<any, ButtonRouterProps>(
 OutlineButtonRouter.displayName = 'OutlineButtonRouter'
 
 interface RouterProps
-  extends AnchorHTMLAttributes<HTMLAnchorElement>,
+  extends
+    AnchorHTMLAttributes<HTMLAnchorElement>,
     RefAttributes<HTMLAnchorElement> {
   className?: string
   to: string

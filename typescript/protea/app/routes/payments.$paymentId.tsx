@@ -1,7 +1,8 @@
 import type { PlainMessage } from '@bufbuild/protobuf'
+import clsx from 'clsx'
 import { useState } from 'react'
 import type { UIMatch } from 'react-router'
-import { Link, data, href, useLoaderData } from 'react-router'
+import { data, href, Link, useLoaderData } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   Alert,
@@ -28,6 +29,10 @@ import {
 } from '~/components'
 import { Label } from '~/components/Label'
 import { type PublicWalletInfo } from '~/generated/connect/backend/v1/backend_pb'
+import {
+  computeCardPaymentLabel,
+  computeCardSubtotalStyles
+} from '~/lib/cards/utils'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
@@ -47,7 +52,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   if (transaction.type == 'withdrawal' || transaction.type == 'deposit') {
     const linkedAccountsResponse = await grpc.getLinkedAccounts(request, {})
     if (isConnectError(linkedAccountsResponse))
-      throw linkedAccountsResponse.error
+      throw linkedAccountsResponse.errorResponse
     senderAccountTitle = linkedAccountsResponse.linkedAccounts.find(
       (account) => account.id == transaction.senderAccountId
     )?.title
@@ -157,10 +162,10 @@ export const meta = mergeMeta(({ data }) => {
         typeof d == 'undefined'
           ? 'Payment'
           : // TODO Fix this for withdrawal
-          d.transaction.type == 'sent' ||
-            d.transaction.type == 'web_monetization_outgoing'
-          ? `${d.transaction.subtotal} to ${d.transaction.title}`
-          : `${d.transaction.formattedAmount} from ${d.transaction.title}`
+            d.transaction.type == 'sent' ||
+              d.transaction.type == 'web_monetization_outgoing'
+            ? `${d.transaction.subtotal} to ${d.transaction.title}`
+            : `${d.transaction.formattedAmount} from ${d.transaction.title}`
     }
   ]
 })
@@ -854,7 +859,12 @@ function CardTransaction() {
       <Card>
         <CardContent>
           <div className='flex items-center justify-between'>
-            <h2 className='text-4xl font-medium text-error'>
+            <h2
+              className={clsx(
+                'text-4xl font-medium',
+                computeCardSubtotalStyles(transaction.cardTransactionDetails)
+              )}
+            >
               {transaction.subtotal}
             </h2>
             <div className='flex flex-col items-end space-y-1'>
@@ -867,24 +877,9 @@ function CardTransaction() {
             </div>
           </div>
         </CardContent>
-        <Label>
-          {transaction.cardTransactionDetails?.type?.toString() === '0' &&
-            'Recipient'}
-          {transaction.cardTransactionDetails?.type?.toString() === '1' &&
-            'Cash at'}
-        </Label>
+        <Label>Merchant</Label>
         <div className='my-1 flex space-x-2 rounded-xl bg-nav p-3'>
-          <div className='flex w-full items-center justify-between text-medium'>
-            <div className='flex space-x-2'>
-              <Icon>
-                {transaction.cardTransactionDetails?.type?.toString() === '0' &&
-                  'local_mall'}
-                {transaction.cardTransactionDetails?.type?.toString() === '1' &&
-                  'atm'}
-              </Icon>
-              <span>{transaction.title}</span>
-            </div>
-          </div>
+          <span className='text-medium'>{transaction.title}</span>
         </div>
       </Card>
       <Card>
@@ -907,7 +902,9 @@ function CardTransaction() {
         )}
         <CardContent>
           <div className='mt-2 flex w-full justify-between'>
-            <span className='text-weak'>Payment from</span>
+            <span className='text-weak'>
+              {computeCardPaymentLabel(transaction.cardTransactionDetails)}
+            </span>
             <span className='text-medium'>{transaction.accountTitle}</span>
           </div>
           <div className='mt-2 flex w-full justify-between'>
@@ -926,6 +923,36 @@ function CardTransaction() {
               </Link>
             </span>
           </div>
+          {transaction.reference && (
+            <div className='mt-2 flex w-full justify-between'>
+              <span className='text-weak'>Note</span>
+              <span className='text-medium'>{transaction.reference}</span>
+            </div>
+          )}
+          {transaction.formattedTargetAmount && (
+            <div className='mt-2 flex w-full justify-between'>
+              <span className='text-weak'>Merchant's charge</span>
+              <span className='text-medium'>
+                {transaction.formattedTargetAmount}
+              </span>
+            </div>
+          )}
+          {transaction.exchangeRateApplied && (
+            <div className='mt-2 flex w-full justify-between'>
+              <span className='text-weak'>Exchange rate</span>
+              <span className='text-medium'>
+                {transaction.exchangeRateApplied}
+              </span>
+            </div>
+          )}
+          {transaction.exchangeRateSurcharge && (
+            <div className='mt-2 flex w-full justify-between'>
+              <span className='text-weak'>ECB surcharge</span>
+              <span className='text-medium'>
+                {transaction.exchangeRateSurcharge}%
+              </span>
+            </div>
+          )}
           <div className='mt-4 flex w-full justify-between font-medium'>
             <span className='text-medium'>Amount</span>
             <span className='text-medium'>{transaction.fundsReceived}</span>

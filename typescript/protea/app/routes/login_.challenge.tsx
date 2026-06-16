@@ -1,16 +1,29 @@
-import type { Route } from './+types/login_.challenge'
-import { data, redirect, href } from 'react-router'
-import { Form, useActionData, useLoaderData } from 'react-router'
+import {
+  Form,
+  data,
+  href,
+  redirect,
+  useActionData,
+  useLoaderData
+} from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts, TextField } from '~/components'
 import { error } from '~/lib/error.server'
-import { kratosPublic } from '~/lib/kratos/kratos-client.server'
-import { getCookie, withCookie, buildHeadersWithCookies } from '~/lib/kratos/cookie.server'
+import {
+  buildHeadersWithCookies,
+  getCookie,
+  withCookie
+} from '~/lib/kratos/cookie.server'
+import {
+  handleFlowError,
+  mapFlowToFieldErrors
+} from '~/lib/kratos/error.server'
 import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.server'
-import { handleFlowError, mapFlowToFieldErrors } from '~/lib/kratos/error.server'
-import { getUserSession, getSessionTraits } from '~/lib/kratos/session.server'
+import { kratosPublic } from '~/lib/kratos/kratos-client.server'
+import { getSessionTraits, getUserSession } from '~/lib/kratos/session.server'
 import logger from '~/lib/logger.server'
 import { mergeMeta } from '~/lib/meta'
+import type { Route } from './+types/login_.challenge'
 
 // 4000001 represents the Kratos message ID when a user already has a privileged session
 const ERROR_ID_SESSION_ALREADY_PRIVILEGED = 4000001
@@ -45,7 +58,10 @@ export async function loader({ request }: Route.LoaderArgs) {
       })
     } catch (err: any) {
       handleFlowError(err, 'login/challenge')
-      logger.error({ error: err, route: 'login.challenge' }, 'Failed to load login challenge flow')
+      logger.error(
+        { error: err, route: 'login.challenge' },
+        'Failed to load login challenge flow'
+      )
       throw new Error('Failed to load login challenge flow')
     }
   }
@@ -61,7 +77,10 @@ export async function loader({ request }: Route.LoaderArgs) {
     })
   } catch (err: any) {
     handleFlowError(err, 'login/challenge')
-    logger.error({ error: err, route: 'login.challenge' }, 'Failed to initialize login challenge flow')
+    logger.error(
+      { error: err, route: 'login.challenge' },
+      'Failed to initialize login challenge flow'
+    )
     throw new Error('Failed to initialize login challenge flow')
   }
 }
@@ -170,7 +189,9 @@ export async function action({ request }: Route.ActionArgs) {
   } catch (err: any) {
     const flowData = err.response?.data
     // User already has a privileged session — not an error
-    if (flowData?.ui?.messages?.[0]?.id === ERROR_ID_SESSION_ALREADY_PRIVILEGED) {
+    if (
+      flowData?.ui?.messages?.[0]?.id === ERROR_ID_SESSION_ALREADY_PRIVILEGED
+    ) {
       return redirect(href('/settings/password'), {
         headers: buildHeadersWithCookies(err.response)
       })

@@ -1,5 +1,8 @@
+printWidth: 80
 semi: false
 singleQuote: true
 jsxSingleQuote: true
 trailingComma: 'none'
 proseWrap: always
+plugins:
+  - prettier-plugin-tailwindcss

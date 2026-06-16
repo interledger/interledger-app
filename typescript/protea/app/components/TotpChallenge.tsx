@@ -1,4 +1,4 @@
-import { Form, useNavigation } from 'react-router';
+import { Form, useNavigation } from 'react-router'
 import { Button, Card, CardContent, Icon, TextField } from '~/components'
 import { Label } from '~/components/Label'
 
@@ -44,7 +44,7 @@ export const TotpChallenge = ({
           />
         </Card>
         <Button type='submit' className='mt-4' disabled={isSubmitting}>
-        {isSubmitting ? 'Verifying…' : 'Verify'}
+          {isSubmitting ? 'Verifying…' : 'Verify'}
         </Button>
       </Form>
     </>

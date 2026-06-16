@@ -1,11 +1,11 @@
 import { Tab } from '@headlessui/react'
-import { useParams } from 'react-router';
 import clsx from 'clsx'
 import type { MotionProps } from 'framer-motion'
 import { AnimatePresence, motion, useAnimate } from 'framer-motion'
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 import type { ResponsiveImageType } from 'react-datocms'
 import { Image, StructuredText } from 'react-datocms'
+import { useParams } from 'react-router'
 import type { SelectOptions } from '~/components'
 import {
   AnchorRouter,
@@ -808,7 +808,7 @@ export function TeamContentRecordComponent({
   return (
     <div
       key={content.id}
-      className='grid w-full grid-cols-4 gap-y-20 px-4  sm:grid-cols-8 lg:grid-cols-12 lg:gap-x-10 lg:gap-y-14 lg:px-0'
+      className='grid w-full grid-cols-4 gap-y-20 px-4 sm:grid-cols-8 lg:grid-cols-12 lg:gap-x-10 lg:gap-y-14 lg:px-0'
     >
       <div className='col-span-full flex flex-col items-center space-y-10 text-center'>
         <AnimatePresence mode='wait'>
@@ -906,7 +906,9 @@ export function TextContentRecordComponent({
         </AnimatePresence>
       )}
       {content.title && (
-        <h2 className='font-display text-4xl font-medium pt-4'>{content.title}</h2>
+        <h2 className='pt-4 font-display text-4xl font-medium'>
+          {content.title}
+        </h2>
       )}
       {content.bodyText && (
         <Prose

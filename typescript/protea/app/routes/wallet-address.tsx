@@ -1,10 +1,7 @@
-import type { Route } from './+types/wallet-address'
 import { Code } from '@bufbuild/connect'
-import { data, redirect } from 'react-router';
-import { useFetcher, useLoaderData } from 'react-router';
 import type { ChangeEventHandler } from 'react'
 import { useCallback } from 'react'
-import { href } from 'react-router'
+import { data, href, redirect, useFetcher, useLoaderData } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   Button,
@@ -17,10 +14,11 @@ import {
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { error, isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
-import { getUserSession, getSessionTraits } from '~/lib/kratos/session.server'
+import { getSessionTraits, getUserSession } from '~/lib/kratos/session.server'
 import { mergeMeta } from '~/lib/meta'
 import { PAYMENT_POINTER_BASE } from '~/lib/paymentPointer.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
+import type { Route } from './+types/wallet-address'
 
 export async function loader({ request }: Route.LoaderArgs) {
   let response = await grpc.getWalletInfo(request, {})
@@ -81,8 +79,7 @@ export const meta = mergeMeta(() => [
 
 export default function Page() {
   const fetcher = useFetcher<typeof action>()
-  const { paymentPointerBase, username, csrfToken } =
-    useLoaderData()
+  const { paymentPointerBase, username, csrfToken } = useLoaderData()
 
   const _onChangeInput = useCallback<ChangeEventHandler<HTMLInputElement>>(
     (event) => {

@@ -1,11 +1,17 @@
-import type { Route } from './+types/me_.$'
-import { data, redirect } from 'react-router';
-import { Form, isRouteErrorResponse, useLoaderData, useParams, useRouteError } from 'react-router';
 import { captureException } from '@sentry/react-router'
 import clsx from 'clsx'
 import type { ResponsiveImageType } from 'react-datocms'
 import { Image } from 'react-datocms'
-import { href } from 'react-router'
+import {
+  Form,
+  data,
+  href,
+  isRouteErrorResponse,
+  redirect,
+  useLoaderData,
+  useParams,
+  useRouteError
+} from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   Button,
@@ -30,6 +36,7 @@ import { grpc } from '~/lib/grpc.server'
 import { getClientIP } from '~/lib/ip.server'
 import { hasUserSession } from '~/lib/kratos/session.server'
 import { mergeMeta } from '~/lib/meta'
+import type { Route } from './+types/me_.$'
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const unsanitizedWalletAddressParam = params['*'] as string
@@ -85,15 +92,14 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta = mergeMeta(
-  ({ data, location }) => [
-    {
-      tagName: 'link',
-      rel: 'monetization',
-      href: (data as { walletAddress?: { address: string } } | undefined)?.walletAddress?.address
-    }
-  ]
-)
+export const meta = mergeMeta(({ data, location }) => [
+  {
+    tagName: 'link',
+    rel: 'monetization',
+    href: (data as { walletAddress?: { address: string } } | undefined)
+      ?.walletAddress?.address
+  }
+])
 
 export default function Page() {
   const {
@@ -225,9 +231,7 @@ export function ErrorBoundary() {
             </div>
           </Card>
           {/* TODO This should prefill the /wallet-address page for the user with the current address*/}
-          <ButtonRouter to={href('/signup')}>
-            Claim wallet address
-          </ButtonRouter>
+          <ButtonRouter to={href('/signup')}>Claim wallet address</ButtonRouter>
         </>
       )
     }

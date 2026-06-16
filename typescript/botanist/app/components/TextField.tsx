@@ -50,7 +50,7 @@ export const TextField = forwardRef<any, TextFieldProps>(
               </div>
             )}
             {prefix && (
-              <span className='z-10 ml-4 -mr-[0.9375rem] text-disabled'>
+              <span className='z-10 -mr-[0.9375rem] ml-4 text-disabled'>
                 {prefix}
               </span>
             )}
@@ -66,7 +66,7 @@ export const TextField = forwardRef<any, TextFieldProps>(
             )}
           </div>
         </div>
-        <div className='h-7 pt-2 pl-2'>
+        <div className='h-7 pl-2 pt-2'>
           {errorMessage && <p className='text-sm text-error'>{errorMessage}</p>}
           {successMessage && !errorMessage && (
             <p className='text-sm text-success'>{successMessage}</p>

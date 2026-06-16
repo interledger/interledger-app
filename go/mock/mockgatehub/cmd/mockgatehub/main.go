@@ -209,6 +209,8 @@ func setupRoutes(r chi.Router, h *handler.Handler) {
 	r.Get("/admin/users/{userID}/fees", h.GetUserFees)
 	r.Put("/admin/users/{userID}/fees", h.SetUserFees)
 	r.Delete("/admin/users/{userID}/fees", h.ClearUserFees)
+	r.Get("/admin/users/{userID}/withdrawals", h.ListWithdrawals)
+	r.Post("/admin/withdrawals/{txID}/trigger-event", h.TriggerWithdrawalEvent)
 	r.Route("/core/v1", func(r chi.Router) {
 		logger.Info("REGISTERING /core/v1 ROUTES")
 		r.Get("/users/{userID}", h.GetUserWallets)
@@ -228,6 +230,18 @@ func setupRoutes(r chi.Router, h *handler.Handler) {
 		logger.Info("REGISTERING /rates/v1 ROUTES")
 		r.Get("/rates/current", h.GetCurrentRates)
 		r.Get("/liquidity_provider/vaults", h.GetVaults)
+	})
+	r.Route("/ui", func(r chi.Router) {
+		r.Get("/", h.UIDashboard)
+		r.Get("/users/{userID}", h.UIUserDetail)
+		r.Get("/actions/kyc", h.UIKYCForm)
+		r.Post("/actions/kyc", h.UIKYCAction)
+		r.Get("/actions/card-transaction", h.UICardTxForm)
+		r.Post("/actions/card-transaction", h.UICardTxAction)
+		r.Post("/actions/card-transaction/preview", h.UICardTxPreview)
+		r.Get("/actions/card-transaction/cards", h.UICardTxCards)
+		r.Post("/actions/card-transaction/status", h.UICardTxSetStatus)
+		r.Post("/actions/withdrawal/status", h.UIWithdrawalSetEvent)
 	})
 	r.Route("/cards/v1", func(r chi.Router) {
 		logger.Info("========== REGISTERING /cards/v1 ROUTES ==========")

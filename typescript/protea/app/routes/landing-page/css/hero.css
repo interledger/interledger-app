@@ -112,7 +112,8 @@
       max(
           var(--hero-text-bottom),
           100vh - var(--phone-height) + var(--phone-peek)
-        ) - 50vh + var(--phone-height) / 2
+        ) -
+        50vh + var(--phone-height) / 2
     );
   }
 }
@@ -204,4 +205,3 @@
     width: calc(100vw - 2 * var(--padding-lg));
   }
 }
-

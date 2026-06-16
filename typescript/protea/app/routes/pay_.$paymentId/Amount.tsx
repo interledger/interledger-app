@@ -1,15 +1,9 @@
-import { useFetcher, useLoaderData } from 'react-router';
-import type { loader } from './route'
 import type { ChangeEventHandler } from 'react'
 import { useCallback, useEffect, useReducer, useRef } from 'react'
-import { href } from 'react-router'
-import {
-  Button,
-  Card,
-  CardContent,
-  TextField
-} from '~/components'
+import { href, useFetcher, useLoaderData } from 'react-router'
+import { Button, Card, CardContent, TextField } from '~/components'
 import { PayStep, usePayStore } from '~/lib/usePayStore'
+import type { loader } from './route'
 
 import type { PlainMessage } from '@bufbuild/protobuf'
 import type { FormattedLinkedAccount } from '~/data/accounts.server'
@@ -21,7 +15,7 @@ import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { PayTextField } from '~/routes/pay_.$paymentId/PayTextField'
 import { PaySelect } from './PaySelect'
 import { PaymentDetailsCard } from './PaymentDetailsCard'
-import { updatePaymentAction } from './action.server';
+import type { updatePaymentAction } from './action.server'
 
 const DEBOUNCE_WAIT = 150
 
@@ -73,7 +67,7 @@ function reducer(state: AmountState, action: Action): AmountState {
       return { ...state, receive: action.receive! }
     case 'linkedAccount':
       return { ...state, linkedAccount: action.linkedAccount! }
-    case 'network':
+    case 'network': {
       let newSend = state.send
       let newReceive = state.receive
       if (state.focussed == 'send') {
@@ -90,6 +84,7 @@ function reducer(state: AmountState, action: Action): AmountState {
         receive: newReceive,
         totalSendAmount: action.totalSendAmount!
       }
+    }
     default:
       return state
   }
@@ -126,10 +121,10 @@ export const Amount = () => {
     [csrfToken, updatePaymentFetcher]
   )
 
-  let onChangeSendAmountDismissRef = useRef<NodeJS.Timeout>()
+  const onChangeSendAmountDismissRef = useRef<NodeJS.Timeout>()
   const _onChangeSendAmount = useCallback<ChangeEventHandler<HTMLInputElement>>(
     (event) => {
-      let send = event.target.value
+      const send = event.target.value
       dispatchPayment({ type: 'send', send })
 
       if (onChangeSendAmountDismissRef.current) {
@@ -156,12 +151,12 @@ export const Amount = () => {
     ]
   )
 
-  let onChangeReceiveAmountDismissRef = useRef<NodeJS.Timeout>()
+  const onChangeReceiveAmountDismissRef = useRef<NodeJS.Timeout>()
   const _onChangeReceiveAmount = useCallback<
     ChangeEventHandler<HTMLInputElement>
   >(
     (event) => {
-      let receive = event.target.value
+      const receive = event.target.value
       dispatchPayment({ type: 'receive', receive })
 
       if (onChangeReceiveAmountDismissRef.current) {
