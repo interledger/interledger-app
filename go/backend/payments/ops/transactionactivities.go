@@ -238,6 +238,20 @@ func (a *Activity) CreatePayoutTransaction(ctx context.Context, paymentID, txID,
 		}
 	}
 
+	exchangeRateApplied := ""
+	exchangeRateReference := ""
+	exchangeRateSurcharge := ""
+
+	// TODO
+	// if la.Provider == xago.ProviderName {
+	// 	d := p.ProviderDetails.Xago.ConvertCurrencyDetails
+	// 	exchangeRateApplied = strconv.FormatFloat(d.Rate, 'f', -1, 64)
+	// 	if d.SendAmount > 0 {
+	// 		surcharge := d.SendFee * 100 / d.SendAmount
+	// 		exchangeRateSurcharge = strconv.FormatFloat(surcharge, 'f', -1, 64)
+	// 	}
+	// }
+
 	fee := currency.FromFloat64(0, currency.USD)
 	return a.b.Transactions().CreateTransaction(ctx, transactions.CreateTransactionArgs{
 		ID:                      txID,
@@ -255,6 +269,10 @@ func (a *Activity) CreatePayoutTransaction(ctx context.Context, paymentID, txID,
 		DestinationIdentity:     p.Receiver.Identifier,
 		DestinationIdentityType: p.Receiver.Type.String(),
 		Reference:               p.Note,
+		ExchangeRateApplied:     exchangeRateApplied,
+		ExchangeRateReference:   exchangeRateReference,
+		ExchangeRateSurcharge:   exchangeRateSurcharge,
+		TargetAmount:            &p.SenderAmount,
 		Transfers: []transactions.TransferArgs{
 			{
 				LinkedAccountID: la.ID,

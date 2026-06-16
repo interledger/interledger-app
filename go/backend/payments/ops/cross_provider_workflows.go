@@ -82,7 +82,7 @@ func crossProviderGatehubToXagoPayOut(ctx workflow.Context, a *Activity, payment
 		}
 		if details.Complete {
 			// TODO check what we need to store. What about the fees?
-			err = workflow.ExecuteActivity(ctx, a.StoreActualFXRateAndAmount, paymentID, details.Rate, details.ReceiveAmount, details.ReceiveCurrency).Get(ctx, nil)
+			err = workflow.ExecuteActivity(ctx, a.StoreActualFXRateAndAmount, paymentID, details).Get(ctx, nil)
 			if err != nil {
 				return "", false, err
 			}
@@ -172,7 +172,7 @@ func crossProviderXagoToGatehubPayOut(ctx workflow.Context, a *Activity, payment
 		}
 		if details.Complete {
 			// TODO check what we need to store. What about the fees?
-			err = workflow.ExecuteActivity(ctx, a.StoreActualFXRateAndAmount, paymentID, details.Rate, details.ReceiveAmount, details.ReceiveCurrency).Get(ctx, nil)
+			err = workflow.ExecuteActivity(ctx, a.StoreActualFXRateAndAmount, paymentID, details).Get(ctx, nil)
 			if err != nil {
 				return "", false, err
 			}

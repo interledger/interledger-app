@@ -237,7 +237,11 @@ func (a *Activity) XagoConvertCurrencyActivity(ctx context.Context, paymentID st
 // XagoConvertDetails holds the result of a completed Xago currency conversion.
 type XagoConvertDetails struct {
 	Complete        bool
+	ConvertID       string
+	Status          string
 	Rate            float64
+	SendAmount      float64
+	SendFee         float64
 	ReceiveAmount   float64
 	ReceiveCurrency string
 }
@@ -256,7 +260,11 @@ func (a *Activity) XagoCheckConvertComplete(ctx context.Context, convertID strin
 	case "complete", "completed", "settled", "success":
 		return XagoConvertDetails{
 			Complete:        true,
+			ConvertID:       details.ConvertID,
+			Status:          details.Status,
 			Rate:            details.Rate,
+			SendAmount:      details.SendAmount,
+			SendFee:         details.SendFee,
 			ReceiveAmount:   details.ReceiveAmount,
 			ReceiveCurrency: details.ReceiveCurrencyCode,
 		}, nil
@@ -272,18 +280,18 @@ func (a *Activity) XagoCheckConvertComplete(ctx context.Context, convertID strin
 }
 
 // StoreActualFXRateAndAmount updates the payment's FX rate and receiver amount with the post-conversion actuals.
-func (a *Activity) StoreActualFXRateAndAmount(ctx context.Context, paymentID string, rate float64, receiveAmount float64, receiveCurrencyStr string) error {
+func (a *Activity) StoreActualFXRateAndAmount(ctx context.Context, paymentID string, details XagoConvertDetails) error {
 	p, err := Lookup(ctx, a.b, paymentID)
 	if err != nil {
 		return err
 	}
 
-	receiveCurrency := currency.ParseCurrency(receiveCurrencyStr)
-	receiverAmt := currency.FromFloat64(receiveAmount, receiveCurrency)
+	receiveCurrency := currency.ParseCurrency(details.ReceiveCurrency)
+	receiverAmt := currency.FromFloat64(details.ReceiveAmount, receiveCurrency)
 
 	_, err = a.b.DB().ExecContext(ctx,
 		"UPDATE payments SET fx_rate=$1, receiver_amount=$2, receiver_currency=$3 WHERE id=$4",
-		rate, receiverAmt.Value, receiverAmt.Currency.String(), p.ID,
+		details.Rate, receiverAmt.Value, receiverAmt.Currency.String(), p.ID,
 	)
 	return err
 }
