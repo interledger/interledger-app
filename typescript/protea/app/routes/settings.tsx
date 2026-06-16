@@ -19,11 +19,11 @@ import {
   WalletGrid
 } from '~/components'
 import { getFeatures, getKycStatus } from '~/data/wallet.server'
+import { AccountDeletionRequestStatus } from '~/generated/connect/backend/v1/backend_pb'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
 import { KycStatus } from '~/lib/types'
-import { AccountDeletionRequestStatus } from '~/generated/connect/backend/v1/backend_pb'
 import type { Route } from './+types/settings'
 
 export async function loader({ request }: Route.LoaderArgs) {
