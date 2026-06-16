@@ -1,7 +1,6 @@
 import { Grid } from '~/components'
-import { NavLink, Outlet, useParams } from '@remix-run/react'
+import { NavLink, Outlet, useParams, href } from 'react-router'
 import type { FC, ReactNode } from 'react'
-import { route } from 'routes-gen'
 
 type TabItemProps = {
   to: string
@@ -33,7 +32,7 @@ export default function Page() {
     <Grid>
       <div className='col-span-full flex'>
         <div className='flex space-x-1 rounded-xl bg-page p-1'>
-          <TabItem to={route('/review/:id/details', { id: id as string })}>
+          <TabItem to={href('/review/:id/details', { id: id as string })}>
             Details
           </TabItem>
         </div>

@@ -1,12 +1,10 @@
-import type { LoaderArgs } from '@remix-run/node'
+import type { LoaderFunctionArgs } from 'react-router'
 
 import { Router, Grid } from '~/components'
-import { json } from '@remix-run/node'
-import { Form, useLoaderData, useNavigation } from '@remix-run/react'
+import { data, href, Form, useLoaderData, useNavigation } from 'react-router'
 import { ListWallets } from '~/lib/wallet.server'
-import { route } from 'routes-gen'
 
-export async function loader({ request }: LoaderArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
   const pageSize = url.searchParams.get('pageSize') || '50'
   const pageToken = url.searchParams.get('pageToken') || ''
@@ -17,7 +15,7 @@ export async function loader({ request }: LoaderArgs) {
     search: search || undefined
   })
 
-  return json({
+  return data({
     wallets,
     pageSize,
     search
@@ -65,12 +63,12 @@ export default function Page() {
         </div>
 
         <div className='mt-8 flex flex-col'>
-          <div className='-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8'>
+          <div className='-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8'>
             <div className='inline-block min-w-full py-2 align-middle md:px-6 lg:px-8'>
               <div className='overflow-hidden ring-2 ring-base md:rounded-lg'>
                 <table
                   className={`min-w-full divide-y divide-base${
-                    isSearching ? ' opacity-50' : ''
+                    isSearching ? 'opacity-50' : ''
                   }`}
                 >
                   <thead className='bg-app'>
@@ -99,7 +97,7 @@ export default function Page() {
                       >
                         Phone number
                       </th>
-                      <th scope='col' className='relative py-3.5 px-4'>
+                      <th scope='col' className='relative px-4 py-3.5'>
                         <span className='sr-only'>Edit</span>
                       </th>
                     </tr>
@@ -121,7 +119,7 @@ export default function Page() {
                         </td>
                         <td className='relative whitespace-nowrap p-4 text-right text-sm font-medium'>
                           <Router
-                            to={route('/wallet/:id/profile', {
+                            to={href('/wallet/:id/profile', {
                               id: wallet.walletID
                             })}
                             className='text-primary'

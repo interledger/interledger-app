@@ -10,6 +10,7 @@ import (
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/gatehub"
+	"gitlab.com/fynbos/backend/providers/gatehub/external"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/pacioli"
 	"go.temporal.io/sdk/temporal"
@@ -142,6 +143,7 @@ func CreateGatehubDeposit(ctx workflow.Context, wh DepositWebhook) (string, erro
 	return txID, nil
 }
 
+// TODO: remove once old withdrawal workflows are drained from the Temporal queue
 func ProcessGatehubWithdrawal(ctx workflow.Context, walletID, transactionID string) error {
 	var a *Activity
 	ao := workflow.ActivityOptions{
@@ -225,6 +227,99 @@ func BackfillAccountWorkflow(ctx workflow.Context, walletID string) error {
 		// if this  we need to go in manually and update the table will
 		return err
 	}
+	return nil
+}
+
+func CompleteGatehubWithdrawalWorkflow(ctx workflow.Context, userID, externalTxID string) error {
+	var a *Activity
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Second,
+	}
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	logger := workflow.GetLogger(ctx)
+	logger.Info("Completing gatehub withdrawal.", "externalTxID", externalTxID)
+
+	var walletID string
+	if err := workflow.ExecuteActivity(ctx, a.GetWalletFromGatehubUser, userID).Get(ctx, &walletID); err != nil {
+		return err
+	}
+
+	var internalTx *transactions.Transaction
+	err := workflow.ExecuteActivity(ctx, a.GetGateHubTransactionByForeignID, walletID, externalTxID).Get(ctx, &internalTx)
+	if err != nil {
+		return err
+	}
+
+	if err = workflow.ExecuteActivity(ctx, a.FinalizeGatehubWithdrawal, internalTx.ID).Get(ctx, nil); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func RejectGatehubWithdrawalWorkflow(ctx workflow.Context, wh MoreBridgeWithdrawalRejectedWebhookData) error {
+	var a *Activity
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Second,
+	}
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	logger := workflow.GetLogger(ctx)
+	logger.Info("Rejecting gatehub withdrawal.", "externalTxID", wh.TxID)
+
+	var walletID string
+	if err := workflow.ExecuteActivity(ctx, a.GetWalletFromGatehubUser, wh.UserID).Get(ctx, &walletID); err != nil {
+		return err
+	}
+
+	var internalTx *transactions.Transaction
+	err := workflow.ExecuteActivity(ctx, a.GetGateHubTransactionByForeignID, walletID, wh.TxID).Get(ctx, &internalTx)
+	if err != nil {
+		return err
+	}
+
+	if err = workflow.ExecuteActivity(ctx, a.RollbackGatehubWithdrawal, internalTx.ID).Get(ctx, nil); err != nil {
+		return err
+	}
+
+	var externalTx *external.Transaction
+	if err = workflow.ExecuteActivity(ctx, a.FetchGatehubTransaction, wh.UserID, wh.TxID).Get(ctx, &externalTx); err != nil {
+		return err
+	}
+
+	return workflow.ExecuteActivity(ctx, a.SendWithdrawalRejectedEmail, internalTx.ID, walletID, wh.Amount, wh.Currency, wh.IBAN, externalTx.Account.LegalName).Get(ctx, nil)
+}
+
+func NotifyWithdrawalSCTITimeoutWorkflow(ctx workflow.Context, wh MoreBridgeWithdrawalSCTITimeoutWebhook) error {
+	var a *Activity
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Second,
+	}
+
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	logger := workflow.GetLogger(ctx)
+	logger.Info("Notify withdrawal SCTI timeout.")
+
+	var walletID string
+	err := workflow.ExecuteActivity(ctx, a.GetWalletFromGatehubUser, wh.UserID).Get(ctx, &walletID)
+	if err != nil {
+		return err
+	}
+
+	var tx transactions.Transaction
+	err = workflow.ExecuteActivity(ctx, a.GetGateHubTransactionByForeignID, walletID, wh.Data.TransactionID).Get(ctx, &tx)
+	if err != nil {
+		return err
+	}
+
+	amount := fmt.Sprintf("%s %s", wh.Data.Amount, wh.Data.Currency)
+	err = workflow.ExecuteActivity(ctx, a.SendWithdrawalSCTITimeoutEmail, tx.ID, walletID, amount, wh.Data.CounterpartyName, wh.Data.CounterpartyIBAN, wh.Data.Timestamp).Get(ctx, nil)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

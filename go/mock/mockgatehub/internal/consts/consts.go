@@ -111,13 +111,15 @@ const (
 
 // Webhook event types
 const (
-	WebhookEventKYCAccepted       = "id.verification.accepted"
-	WebhookEventKYCRejected       = "id.verification.rejected"
-	WebhookEventKYCActionRequired = "id.verification.action_required"
-	WebhookEventDepositCompleted  = "core.deposit.completed"
-	WebhookEventCardCreated       = "cards.card.created"
-	WebhookEventCardTransaction   = "cards.transaction.event"
-	WebhookEventCard3DS           = "cards.3ds.auth_3ds_confirmation"
+	WebhookEventKYCAccepted         = "id.verification.accepted"
+	WebhookEventKYCRejected         = "id.verification.rejected"
+	WebhookEventKYCActionRequired   = "id.verification.action_required"
+	WebhookEventDepositCompleted    = "core.deposit.completed"
+	WebhookEventWithdrawalCompleted = "core.withdrawal.completed"
+	WebhookEventWithdrawalRejected  = "more-bridge.withdrawal.rejected"
+	WebhookEventCardCreated         = "cards.card.created"
+	WebhookEventCardTransaction     = "cards.transaction.event"
+	WebhookEventCard3DS             = "cards.3ds.auth_3ds_confirmation"
 )
 
 // Card status values (GateHub Cards)

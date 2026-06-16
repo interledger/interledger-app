@@ -6,11 +6,89 @@ import { ErrorDescriptions } from '~/lib/error.constants'
 import type { TwillioError } from '~/lib/error.mappers'
 import { isConnectError, isOtpValidationError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
-import { RateLimitKeys, getKey, rateLimit } from '~/lib/rateLimit.server'
+import { getUserSession } from '~/lib/kratos/session.server'
+import {
+  RateLimitKeys,
+  getKey,
+  getRateLimit,
+  rateLimit
+} from '~/lib/rateLimit.server'
 
 type ParsedPhoneResult =
   | { success: true; phone: string }
   | { success: false; error: string }
+
+const PHONE_OTP_LIMITS = {
+  perMinute: { limit: 1, ttlSeconds: 60, retryAfter: 60 },
+  perHour: { limit: 3, ttlSeconds: 60 * 60, retryAfter: 60 * 60 }
+} as const
+
+type OtpRateLimitResult = {
+  error: 'rateLimited'
+  retryAfter: number
+  message: string
+}
+
+const PHONE_OTP_RATE_LIMIT_MESSAGES = {
+  perMinute:
+    'Please wait 1 minute before requesting another verification code.',
+  perHour: 'Too many verification code requests. Please try again in 1 hour.'
+} as const
+
+async function getRateLimitIdentity(request: Request): Promise<string> {
+  const session = await getUserSession(request)
+
+  if (!session?.identity?.id) {
+    throw redirect(href('/login'))
+  }
+
+  return session.identity.id
+}
+
+async function applyPhoneOtpRateLimit(
+  request: Request
+): Promise<OtpRateLimitResult | null> {
+  const identity = await getRateLimitIdentity(request)
+  const hourKey = getKey(RateLimitKeys.PhoneOTP, `${identity}:1h`)
+  const minuteKey = getKey(RateLimitKeys.PhoneOTP, `${identity}:1m`)
+
+  // Check first (without incrementing) so we can control message precedence.
+  const hourRateLimitError = await getRateLimit(
+    hourKey,
+    PHONE_OTP_LIMITS.perHour
+  )
+  if (hourRateLimitError) {
+    return {
+      error: 'rateLimited',
+      retryAfter: PHONE_OTP_LIMITS.perHour.retryAfter,
+      message: PHONE_OTP_RATE_LIMIT_MESSAGES.perHour
+    }
+  }
+
+  const minuteIncrementError = await rateLimit(
+    minuteKey,
+    PHONE_OTP_LIMITS.perMinute
+  )
+  if (minuteIncrementError) {
+    return {
+      error: 'rateLimited',
+      retryAfter: PHONE_OTP_LIMITS.perMinute.retryAfter,
+      message: PHONE_OTP_RATE_LIMIT_MESSAGES.perMinute
+    }
+  }
+
+  // Increment both counters only after checks pass.
+  // Keep hour first so a race condition prefers the more restrictive bucket.
+  const hourIncrementError = await rateLimit(hourKey, PHONE_OTP_LIMITS.perHour)
+  if (hourIncrementError) {
+    return {
+      error: 'rateLimited',
+      retryAfter: PHONE_OTP_LIMITS.perHour.retryAfter,
+      message: PHONE_OTP_RATE_LIMIT_MESSAGES.perHour
+    }
+  }
+  return null
+}
 
 export function parseUserPhone(
   phone: string,
@@ -50,6 +128,15 @@ export async function handleUpdatePhone(request: Request, form: FormData) {
     return { errors: { phone: parsedPhone.error } }
   }
 
+  const otpRateLimitResult = await applyPhoneOtpRateLimit(request)
+  if (otpRateLimitResult) {
+    return {
+      errors: {
+        phone: otpRateLimitResult.message
+      }
+    }
+  }
+
   const updateResponse = await grpc.updateUserPhone(request, {
     phone: parsedPhone.phone
   })
@@ -87,15 +174,13 @@ export async function handleUpdatePhone(request: Request, form: FormData) {
  * Handles the `resend` form intent: rate-limits and re-sends an OTP to `phone`.
  */
 export async function handleResendOtp(request: Request, phone: string) {
-  const rateLimitError = await rateLimit(
-    getKey(RateLimitKeys.PhoneOTP, phone),
-    { limit: 1, ttlSeconds: 60 }
-  )
-  if (rateLimitError) {
+  const otpRateLimitResult = await applyPhoneOtpRateLimit(request)
+  if (otpRateLimitResult) {
     return {
       codeSent: false as const,
       error: 'rateLimited' as const,
-      retryAfter: 60
+      retryAfter: otpRateLimitResult.retryAfter,
+      message: otpRateLimitResult.message
     }
   }
 
