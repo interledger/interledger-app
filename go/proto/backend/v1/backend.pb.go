@@ -4216,6 +4216,9 @@ type Transaction struct {
 	ExchangeRateSurcharge   *string                 `protobuf:"bytes,27,opt,name=exchangeRateSurcharge,proto3,oneof" json:"exchangeRateSurcharge,omitempty"`
 	TargetAmount            *Amount                 `protobuf:"bytes,28,opt,name=targetAmount,proto3,oneof" json:"targetAmount,omitempty"`
 	FormattedTargetAmount   *string                 `protobuf:"bytes,29,opt,name=formattedTargetAmount,proto3,oneof" json:"formattedTargetAmount,omitempty"`
+	RecipientIban           *string                 `protobuf:"bytes,30,opt,name=recipientIban,proto3,oneof" json:"recipientIban,omitempty"`
+	RecipientName           *string                 `protobuf:"bytes,31,opt,name=recipientName,proto3,oneof" json:"recipientName,omitempty"`
+	PaymentChannel          *string                 `protobuf:"bytes,32,opt,name=paymentChannel,proto3,oneof" json:"paymentChannel,omitempty"`
 	unknownFields           protoimpl.UnknownFields
 	sizeCache               protoimpl.SizeCache
 }
@@ -4442,6 +4445,27 @@ func (x *Transaction) GetTargetAmount() *Amount {
 func (x *Transaction) GetFormattedTargetAmount() string {
 	if x != nil && x.FormattedTargetAmount != nil {
 		return *x.FormattedTargetAmount
+	}
+	return ""
+}
+
+func (x *Transaction) GetRecipientIban() string {
+	if x != nil && x.RecipientIban != nil {
+		return *x.RecipientIban
+	}
+	return ""
+}
+
+func (x *Transaction) GetRecipientName() string {
+	if x != nil && x.RecipientName != nil {
+		return *x.RecipientName
+	}
+	return ""
+}
+
+func (x *Transaction) GetPaymentChannel() string {
+	if x != nil && x.PaymentChannel != nil {
+		return *x.PaymentChannel
 	}
 	return ""
 }
@@ -10499,8 +10523,7 @@ const file_backend_v1_backend_proto_rawDesc = "" +
 	"\x0fcard_masked_pan\x18\x02 \x01(\tR\rcardMaskedPan\x12\x12\n" +
 	"\x04type\x18\x03 \x01(\tR\x04type\x127\n" +
 	"\toperation\x18\x04 \x01(\x0e2\x19.backend.v1.CardOperationR\toperation\x12&\n" +
-	"\x0eclassification\x18\x05 \x01(\tR\x0eclassification\"\xad\n" +
-	"\n" +
+	"\x0eclassification\x18\x05 \x01(\tR\x0eclassification\"\xe7\v\n" +
 	"\vTransaction\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04type\x18\x02 \x01(\tR\x04type\x12*\n" +
@@ -10530,13 +10553,19 @@ const file_backend_v1_backend_proto_rawDesc = "" +
 	"\x15exchangeRateReference\x18\x1a \x01(\tH\x02R\x15exchangeRateReference\x88\x01\x01\x129\n" +
 	"\x15exchangeRateSurcharge\x18\x1b \x01(\tH\x03R\x15exchangeRateSurcharge\x88\x01\x01\x12;\n" +
 	"\ftargetAmount\x18\x1c \x01(\v2\x12.backend.v1.AmountH\x04R\ftargetAmount\x88\x01\x01\x129\n" +
-	"\x15formattedTargetAmount\x18\x1d \x01(\tH\x05R\x15formattedTargetAmount\x88\x01\x01B\x19\n" +
+	"\x15formattedTargetAmount\x18\x1d \x01(\tH\x05R\x15formattedTargetAmount\x88\x01\x01\x12)\n" +
+	"\rrecipientIban\x18\x1e \x01(\tH\x06R\rrecipientIban\x88\x01\x01\x12)\n" +
+	"\rrecipientName\x18\x1f \x01(\tH\aR\rrecipientName\x88\x01\x01\x12+\n" +
+	"\x0epaymentChannel\x18  \x01(\tH\bR\x0epaymentChannel\x88\x01\x01B\x19\n" +
 	"\x17_cardTransactionDetailsB\x16\n" +
 	"\x14_exchangeRateAppliedB\x18\n" +
 	"\x16_exchangeRateReferenceB\x18\n" +
 	"\x16_exchangeRateSurchargeB\x0f\n" +
 	"\r_targetAmountB\x18\n" +
-	"\x16_formattedTargetAmountJ\x04\b\b\x10\t\"}\n" +
+	"\x16_formattedTargetAmountB\x10\n" +
+	"\x0e_recipientIbanB\x10\n" +
+	"\x0e_recipientNameB\x11\n" +
+	"\x0f_paymentChannelJ\x04\b\b\x10\t\"}\n" +
 	"\x18ListTransactionsResponse\x12;\n" +
 	"\ftransactions\x18\x01 \x03(\v2\x17.backend.v1.TransactionR\ftransactions\x12$\n" +
 	"\rnextPageToken\x18\x02 \x01(\tR\rnextPageToken\"'\n" +

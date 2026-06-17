@@ -639,6 +639,10 @@ message Transaction {
   optional string exchangeRateSurcharge = 27;
   optional Amount targetAmount = 28;
   optional string formattedTargetAmount = 29;
+
+  optional string recipientIban  = 30;
+  optional string recipientName  = 31;
+  optional string paymentChannel = 32;
 }
 
 message ListTransactionsResponse {

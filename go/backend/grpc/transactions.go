@@ -7,8 +7,11 @@ import (
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/payments"
+	"gitlab.com/fynbos/backend/providers/gatehub"
 	"gitlab.com/fynbos/backend/transactions"
+	"gitlab.com/fynbos/log"
 	pb "gitlab.com/fynbos/proto/backend/v1"
+	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -168,7 +171,6 @@ func transformTransaction(tx transactions.Transaction, transfers []transactions.
 		v := tx.TargetAmount.Format()
 		ret.FormattedTargetAmount = &v
 	}
-
 	// only adding the send and receive accounts to withdrawals
 	if tx.Type == transactions.TransactionTypeWithdrawal {
 		for _, t := range transfers {
@@ -225,7 +227,28 @@ func (s *rpcService) LookupTransaction(ctx context.Context, req *pb.LookupTransa
 		return nil, toGRPCError(err)
 	}
 
-	return transformTransaction(*tx, transfers), nil
+	pbTx := transformTransaction(*tx, transfers)
+
+	if tx.Provider == gatehub.ProviderName && tx.Type == transactions.TransactionTypeWithdrawal && tx.ForeignID != "" {
+		paymentChannel := "SEPA"
+		pbTx.PaymentChannel = &paymentChannel
+		ghTx, err := s.b.Gatehub().GetTransaction(ctx, wallet.ID, tx.ForeignID)
+		if err != nil {
+			log.Warn("LookupTransaction: failed to fetch GateHub withdrawal details", zap.Error(err))
+		} else {
+			if ghTx.Account.IBAN != "" {
+				pbTx.RecipientIban = &ghTx.Account.IBAN
+			}
+			if ghTx.Account.LegalName != "" {
+				pbTx.RecipientName = &ghTx.Account.LegalName
+			}
+			if ghTx.Message != nil && *ghTx.Message != "" {
+				pbTx.Reference = *ghTx.Message
+			}
+		}
+	}
+
+	return pbTx, nil
 }
 
 func cardOperationToProto(op transactions.CardOperation) pb.CardOperation {
