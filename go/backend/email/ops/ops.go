@@ -603,9 +603,6 @@ func SendSCTITimeoutEmail(ctx context.Context, b Backends, txID, walletID, amoun
 		return
 	}
 
-	s := strings.ReplaceAll(iban, " ", "")
-	formattedIBAN := s[:4] + strings.Repeat("X", len(s)-8) + s[len(s)-4:]
-
 	txURL, err := url.JoinPath(env.GetUrl(), "payments", txID)
 	if err != nil {
 		log.Error("Failed to send scti timeout email.", zap.Error(err), zap.String("walletID", walletID))
@@ -614,7 +611,7 @@ func SendSCTITimeoutEmail(ctx context.Context, b Backends, txID, walletID, amoun
 
 	table := []map[string]any{
 		{"label": "Beneficiary Name:", "text": name},
-		{"label": "Beneficiary IBAN:", "text": formattedIBAN},
+		{"label": "Beneficiary IBAN:", "text": maskIBAN(iban)},
 		{"label": "Amount:", "text": amount},
 		{"label": "Submitted:", "text": submittedAt},
 	}
