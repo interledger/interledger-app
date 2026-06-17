@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/providers/pti/external"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/providers/pti/external"
 )
 
 // TODO: asked for 12 may 2025

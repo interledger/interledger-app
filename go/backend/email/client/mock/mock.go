@@ -9,10 +9,10 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	currency "gitlab.com/fynbos/backend/currency"
-	email "gitlab.com/fynbos/backend/email"
-	linkedaccounts "gitlab.com/fynbos/backend/linkedaccounts"
-	payments "gitlab.com/fynbos/backend/payments"
+	currency "github.com/interledger/interledger-app/go/backend/currency"
+	email "github.com/interledger/interledger-app/go/backend/email"
+	linkedaccounts "github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	payments "github.com/interledger/interledger-app/go/backend/payments"
 )
 
 // MockClient is a mock of Client interface.
@@ -158,6 +158,18 @@ func (mr *MockClientMockRecorder) SendDepositReceivedEmail(ctx, walletID, amt, s
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendDepositReceivedEmail", reflect.TypeOf((*MockClient)(nil).SendDepositReceivedEmail), ctx, walletID, amt, sourceAccountName, date)
 }
 
+// SendGatehubWithdrawalRejectedEmail mocks base method.
+func (m *MockClient) SendGatehubWithdrawalRejectedEmail(ctx context.Context, txID, walletID, amount, currency, iban, name string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SendGatehubWithdrawalRejectedEmail", ctx, txID, walletID, amount, currency, iban, name)
+}
+
+// SendGatehubWithdrawalRejectedEmail indicates an expected call of SendGatehubWithdrawalRejectedEmail.
+func (mr *MockClientMockRecorder) SendGatehubWithdrawalRejectedEmail(ctx, txID, walletID, amount, currency, iban, name interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendGatehubWithdrawalRejectedEmail", reflect.TypeOf((*MockClient)(nil).SendGatehubWithdrawalRejectedEmail), ctx, txID, walletID, amount, currency, iban, name)
+}
+
 // SendKYCDocumentsRequiredEmail mocks base method.
 func (m *MockClient) SendKYCDocumentsRequiredEmail(ctx context.Context, walletID string) {
 	m.ctrl.T.Helper()
@@ -231,15 +243,15 @@ func (mr *MockClientMockRecorder) SendPending3DSConfirmation(ctx, walletID, conf
 }
 
 // SendSCTITimeoutEmail mocks base method.
-func (m *MockClient) SendSCTITimeoutEmail(ctx context.Context, txID, walletID, amount, beneficiaryIBAN, beneficiaryName, submittedAt string) {
+func (m *MockClient) SendSCTITimeoutEmail(ctx context.Context, txID, walletID, amount, name, iban, submittedAt string) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "SendSCTITimeoutEmail", ctx, txID, walletID, amount, beneficiaryIBAN, beneficiaryName, submittedAt)
+	m.ctrl.Call(m, "SendSCTITimeoutEmail", ctx, txID, walletID, amount, name, iban, submittedAt)
 }
 
 // SendSCTITimeoutEmail indicates an expected call of SendSCTITimeoutEmail.
-func (mr *MockClientMockRecorder) SendSCTITimeoutEmail(ctx, txID, walletID, amount, beneficiaryIBAN, beneficiaryName, submittedAt interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) SendSCTITimeoutEmail(ctx, txID, walletID, amount, name, iban, submittedAt interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendSCTITimeoutEmail", reflect.TypeOf((*MockClient)(nil).SendSCTITimeoutEmail), ctx, txID, walletID, amount, beneficiaryIBAN, beneficiaryName, submittedAt)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendSCTITimeoutEmail", reflect.TypeOf((*MockClient)(nil).SendSCTITimeoutEmail), ctx, txID, walletID, amount, name, iban, submittedAt)
 }
 
 // SendWithdrawalEmail mocks base method.

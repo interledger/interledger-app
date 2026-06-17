@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"time"
 
-	"gitlab.com/fynbos/backend/country"
-	"gitlab.com/fynbos/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/country"
+	"github.com/interledger/interledger-app/go/backend/currency"
 )
 
 type LinkedAccount struct {

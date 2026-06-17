@@ -6,18 +6,18 @@ import (
 	"net/url"
 	"strings"
 
-	"gitlab.com/fynbos/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/currency"
 
-	"gitlab.com/fynbos/backend/email"
-	"gitlab.com/fynbos/backend/email/sendgrid"
-	"gitlab.com/fynbos/backend/kyc"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/payments"
-	"gitlab.com/fynbos/backend/providers/pti"
-	"gitlab.com/fynbos/backend/providers/xago"
-	"gitlab.com/fynbos/backend/wallets"
-	"gitlab.com/fynbos/env"
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/backend/email"
+	"github.com/interledger/interledger-app/go/backend/email/sendgrid"
+	"github.com/interledger/interledger-app/go/backend/kyc"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	"github.com/interledger/interledger-app/go/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/providers/pti"
+	"github.com/interledger/interledger-app/go/backend/providers/xago"
+	"github.com/interledger/interledger-app/go/backend/wallets"
+	"github.com/interledger/interledger-app/go/env"
+	"github.com/interledger/interledger-app/go/log"
 	"go.uber.org/zap"
 )
 
@@ -638,8 +638,7 @@ func SendSCTITimeoutEmail(ctx context.Context, b Backends, txID, walletID, amoun
 		return
 	}
 
-	s := strings.ReplaceAll(iban, " ", "")
-	formattedIBAN := s[:4] + strings.Repeat("X", len(s)-8) + s[len(s)-4:]
+	formattedIBAN := maskIBAN(iban)
 
 	txURL, err := url.JoinPath(env.GetUrl(), "payments", txID)
 	if err != nil {
@@ -674,4 +673,43 @@ func SendSCTITimeoutEmail(ctx context.Context, b Backends, txID, walletID, amoun
 	if err != nil {
 		log.Error("Failed to send scti timeout email.", zap.Error(err), zap.String("walletID", walletID))
 	}
+}
+
+func SendGatehubWithdrawalRejectedEmail(ctx context.Context, b Backends, txID, walletID, amount, currency, iban, name string) {
+	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
+	if err != nil {
+		log.Error("Failed to send withdrawal rejected email.", zap.Error(err), zap.String("walletID", walletID))
+		return
+	}
+
+	body := fmt.Sprintf("The amount of %s %s was not received by %s in the account %s.", amount, currency, name, maskIBAN(iban))
+	txURL, err := url.JoinPath(env.GetUrl(), "payments", txID)
+	if err != nil {
+		log.Error("Failed to send withdrawal rejected email.", zap.Error(err), zap.String("walletID", walletID))
+		return
+	}
+
+	err = b.External().SendTemplate(ctx, "Withdrawal unsuccessful", sendTo, b.OneTemplateID(), map[string]interface{}{
+		"subject": "Withdrawal unsuccessful",
+		"data": []map[string]interface{}{
+			{"paragraph": greeting},
+			{"paragraph": "We would like to inform you that your withdrawal was unsuccessful."},
+			{"paragraph": body},
+		},
+		"cta": map[string]any{
+			"text": "View payment",
+			"url":  txURL,
+		},
+	}, nil)
+	if err != nil {
+		log.Error("Failed to send withdrawal rejected email.", zap.Error(err), zap.String("walletID", walletID))
+	}
+}
+
+func maskIBAN(iban string) string {
+	s := strings.ReplaceAll(iban, " ", "")
+	if len(s) < 15 { // minimum valid IBAN length (ISO 13616)
+		return s
+	}
+	return s[:4] + strings.Repeat("X", len(s)-8) + s[len(s)-4:]
 }

@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/interledger/interledger-app/go/mock/mockxago/internal/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/mock/mockxago/internal/models"
 )
 
 // Note: Redis tests require a running Redis instance.

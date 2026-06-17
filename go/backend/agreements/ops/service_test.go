@@ -5,12 +5,12 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/interledger/interledger-app/go/backend/agreements"
+	"github.com/interledger/interledger-app/go/backend/agreements/migrations"
+	"github.com/interledger/interledger-app/go/backend/agreements/ops"
+	"github.com/interledger/interledger-app/go/backend/db"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/backend/agreements"
-	"gitlab.com/fynbos/backend/agreements/migrations"
-	"gitlab.com/fynbos/backend/agreements/ops"
-	"gitlab.com/fynbos/backend/db"
 )
 
 func TestSignAgreements(t *testing.T) {

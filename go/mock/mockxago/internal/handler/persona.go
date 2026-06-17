@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"gitlab.com/fynbos/mock/mockxago/internal/logger"
-	"gitlab.com/fynbos/mock/mockxago/web"
+	"github.com/interledger/interledger-app/go/mock/mockxago/internal/logger"
+	"github.com/interledger/interledger-app/go/mock/mockxago/web"
 )
 
 type personaCreateInquiryRequest struct {

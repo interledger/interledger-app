@@ -14,7 +14,7 @@ import (
 
 	"github.com/cucumber/godog"
 	"github.com/google/uuid"
-	"gitlab.com/fynbos/mock/mockxago/internal/logger"
+	"github.com/interledger/interledger-app/go/mock/mockxago/internal/logger"
 	"go.uber.org/zap"
 )
 

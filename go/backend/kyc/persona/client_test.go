@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/interledger/interledger-app/go/backend/kyc/persona"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/backend/kyc/persona"
 )
 
 func TestClient_ValidateWebhook(t *testing.T) {

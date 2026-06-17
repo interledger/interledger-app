@@ -6,16 +6,16 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/db"
+	"github.com/interledger/interledger-app/go/backend/kyc"
+	"github.com/interledger/interledger-app/go/backend/limits"
+	"github.com/interledger/interledger-app/go/backend/limits/ops"
+	"github.com/interledger/interledger-app/go/backend/transactions"
+	tx_client "github.com/interledger/interledger-app/go/backend/transactions/client"
+	users_mock "github.com/interledger/interledger-app/go/backend/user/client/mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/kyc"
-	"gitlab.com/fynbos/backend/limits"
-	"gitlab.com/fynbos/backend/limits/ops"
-	"gitlab.com/fynbos/backend/transactions"
-	tx_client "gitlab.com/fynbos/backend/transactions/client"
-	users_mock "gitlab.com/fynbos/backend/user/client/mock"
 )
 
 func TestExceedsKYCLimits(t *testing.T) {

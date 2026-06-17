@@ -8,12 +8,12 @@ import (
 	"syscall"
 	"time"
 
-	"gitlab.com/fynbos/mock/mockgatehub/internal/auth"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/config"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/handler"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/logger"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/storage"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/webhook"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/auth"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/config"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/handler"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/logger"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/storage"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/webhook"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -30,7 +30,7 @@ func main() {
 		logger.Fatal("failed to initialize logger", zap.Error(err))
 	}
 
-	logger.Info("gitlab.com/fynbos/mock/mockgatehub build info", zap.String("build_time", buildTime))
+	logger.Info("github.com/interledger/interledger-app/go/mock/mockgatehub build info", zap.String("build_time", buildTime))
 
 	logger.Info("starting MockGatehub")
 
@@ -153,7 +153,7 @@ func main() {
 	}
 
 	go func() {
-		logger.Info("gitlab.com/fynbos/mock/mockgatehub listening", zap.String("port", cfg.Port))
+		logger.Info("github.com/interledger/interledger-app/go/mock/mockgatehub listening", zap.String("port", cfg.Port))
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			logger.Fatal("server failed to start", zap.Error(err))
 		}
@@ -209,6 +209,8 @@ func setupRoutes(r chi.Router, h *handler.Handler) {
 	r.Get("/admin/users/{userID}/fees", h.GetUserFees)
 	r.Put("/admin/users/{userID}/fees", h.SetUserFees)
 	r.Delete("/admin/users/{userID}/fees", h.ClearUserFees)
+	r.Get("/admin/users/{userID}/withdrawals", h.ListWithdrawals)
+	r.Post("/admin/withdrawals/{txID}/trigger-event", h.TriggerWithdrawalEvent)
 	r.Route("/core/v1", func(r chi.Router) {
 		logger.Info("REGISTERING /core/v1 ROUTES")
 		r.Get("/users/{userID}", h.GetUserWallets)
@@ -239,6 +241,7 @@ func setupRoutes(r chi.Router, h *handler.Handler) {
 		r.Post("/actions/card-transaction/preview", h.UICardTxPreview)
 		r.Get("/actions/card-transaction/cards", h.UICardTxCards)
 		r.Post("/actions/card-transaction/status", h.UICardTxSetStatus)
+		r.Post("/actions/withdrawal/status", h.UIWithdrawalSetEvent)
 	})
 	r.Route("/cards/v1", func(r chi.Router) {
 		logger.Info("========== REGISTERING /cards/v1 ROUTES ==========")

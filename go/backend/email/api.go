@@ -3,10 +3,10 @@ package email
 import (
 	"context"
 
-	"gitlab.com/fynbos/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/currency"
 
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	"github.com/interledger/interledger-app/go/backend/payments"
 )
 
 type Client interface {
@@ -23,6 +23,7 @@ type Client interface {
 	SendDepositFailedEmail(ctx context.Context, walletID string)
 	SendWithdrawalEmail(ctx context.Context, walletID string, amt currency.Amount, destinationAccount, date string)
 	SendWithdrawalFailedEmail(ctx context.Context, walletID string)
+	SendGatehubWithdrawalRejectedEmail(ctx context.Context, txID, walletID, amount, currency, iban, name string)
 	SendLimitsExceededEmail(ctx context.Context, walletID string)
 	SendCardCreatedEmail(ctx context.Context, walletID, cardID string)
 	SendPending3DSConfirmation(ctx context.Context, walletID, confirmationID string)

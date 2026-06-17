@@ -9,9 +9,9 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/interledger/interledger-app/go/backend/agreements"
+	"github.com/interledger/interledger-app/go/env"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/fynbos/backend/agreements"
-	"gitlab.com/fynbos/env"
 )
 
 //go:embed assets/*

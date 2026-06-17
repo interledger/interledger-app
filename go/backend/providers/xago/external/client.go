@@ -16,12 +16,12 @@ import (
 	"time"
 
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/kyc"
+	httplog "github.com/interledger/interledger-app/go/backend/providers/http"
+	"github.com/interledger/interledger-app/go/backend/user"
+	"github.com/interledger/interledger-app/go/log"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/kyc"
-	httplog "gitlab.com/fynbos/backend/providers/http"
-	"gitlab.com/fynbos/backend/user"
-	"gitlab.com/fynbos/log"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
@@ -154,7 +154,7 @@ func (c *client) refreshAccessToken(ctx context.Context) error {
 		if resp.StatusCode != http.StatusOK {
 			return fmt.Errorf("failed to get xargo access token code (%d - %s)", resp.StatusCode, resp.Status)
 		}
-
+		
 		respBody, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return err
@@ -849,7 +849,7 @@ func (c *client) TestDeposit(ctx context.Context, reqStruct TestDepositReq) erro
 }
 
 func (c *client) UpdateSubAccount(ctx context.Context, accountID string, reqStruct UpdateSubAccountRequest) error {
-	reqURL, err := url.JoinPath(c.identityBaseURL, "company", "accounts", accountID)
+	reqURL, err := url.JoinPath(c.baseURL, "company", "accounts", accountID)
 	if err != nil {
 		return err
 	}
@@ -905,7 +905,11 @@ func (c *client) UpdateSubAccount(ctx context.Context, accountID string, reqStru
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("failed to update xargo inquiry url for  (%s)", accountID)
+		respBody, err := io.ReadAll(resp.Body)
+		if err != nil {
+				return fmt.Errorf("failed to read body on: update xago inquiry url for (%s) response code: %d", accountID, resp.StatusCode)
+		}
+		return fmt.Errorf("failed to update xago inquiry url for  (%s), response code: %d error: %v", accountID, resp.StatusCode, respBody)
 	}
 
 	return nil

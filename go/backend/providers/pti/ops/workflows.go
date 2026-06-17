@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"time"
 
-	"gitlab.com/fynbos/backend/country"
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/payments"
-	"gitlab.com/fynbos/backend/providers/pti"
-	"gitlab.com/fynbos/backend/providers/pti/external"
-	"gitlab.com/fynbos/backend/transactions"
+	"github.com/interledger/interledger-app/go/backend/country"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	"github.com/interledger/interledger-app/go/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/providers/pti"
+	"github.com/interledger/interledger-app/go/backend/providers/pti/external"
+	"github.com/interledger/interledger-app/go/backend/transactions"
+	"github.com/interledger/interledger-app/go/backend/wallets"
 
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
@@ -278,7 +279,7 @@ func MarkTransactionStateWorkflow(ctx workflow.Context, wh pti.TransactionStatus
 	return nil
 }
 
-func DepositWorkflow(ctx workflow.Context, payment *payments.Payment, la *linkedaccounts.LinkedAccount) error {
+func DepositWorkflow(ctx workflow.Context, payment *payments.Payment, wallet *wallets.Wallet) error {
 	var a *Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 10 * time.Second,
@@ -286,19 +287,24 @@ func DepositWorkflow(ctx workflow.Context, payment *payments.Payment, la *linked
 
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
+	err := workflow.ExecuteActivity(ctx, a.ValidateLinkedAccounts, payment, wallet.ID).Get(ctx, nil)
+	if err != nil {
+		return temporal.NewNonRetryableApplicationError("Invalid linked account", "ErrInternal", err)
+	}
+
 	pitArgs := pti.TransactionArgs{
 		PaymentID:       payment.ID,
-		WalletID:        la.WalletID,
+		WalletID:        wallet.ID,
 		Amount:          payment.ReceiverAmount,
-		LinkedAccountID: la.ID,
+		LinkedAccountID: payment.SenderAccount,
 	}
 	var externalTxID string
-	err := workflow.ExecuteActivity(ctx, a.PTIDeposit, pitArgs).Get(ctx, &externalTxID)
+	err = workflow.ExecuteActivity(ctx, a.PTIDeposit, pitArgs).Get(ctx, &externalTxID)
 	if err != nil {
 		return err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.CreateTransaction, la, payment.ReceiverAmount, externalTxID, payment.Note).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.CreateTransaction, wallet.ID, payment, externalTxID).Get(ctx, nil)
 	if err != nil {
 		return err
 	}

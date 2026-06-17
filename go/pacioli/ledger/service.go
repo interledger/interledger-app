@@ -2,9 +2,9 @@ package ledger
 
 import (
 	"context"
-	"gitlab.com/fynbos/pacioli/ledger/tigerroach"
+	"github.com/interledger/interledger-app/go/pacioli/ledger/tigerroach"
 
-	"gitlab.com/fynbos/pacioli"
+	"github.com/interledger/interledger-app/go/pacioli"
 )
 
 // ConfigureLedgers is declarative and will not fail if the ledger exists. It will fail if one exists with

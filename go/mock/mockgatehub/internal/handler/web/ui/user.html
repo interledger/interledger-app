@@ -42,18 +42,35 @@ dt { font-weight: bold; }
 
 <h2>Transactions</h2>
 <table>
-<thead><tr><th>ID</th><th>Amount</th><th>Currency</th><th>Status</th><th>Created</th></tr></thead>
+<thead><tr><th>ID</th><th>Amount</th><th>Currency</th><th>Type</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead>
 <tbody>
 {{range .Transactions}}
 <tr>
   <td>{{.ID}}</td>
   <td>{{.Amount}}</td>
   <td>{{.Currency}}</td>
-  <td>{{.Status}}</td>
+  <td>{{.DepositType}}</td>
+  <td>{{txStatus .Status}}</td>
   <td>{{.CreatedAt}}</td>
+  <td>
+    {{if and (eq .DepositType "withdrawal") (eq .Status 1)}}
+    <form method="POST" action="/ui/actions/withdrawal/status" style="display:inline">
+      <input type="hidden" name="txID" value="{{.ID}}">
+      <input type="hidden" name="userID" value="{{$.User.ID}}">
+      <input type="hidden" name="event" value="core.withdrawal.completed">
+      <button type="submit" class="btn btn-complete">Complete</button>
+    </form>
+    <form method="POST" action="/ui/actions/withdrawal/status" style="display:inline">
+      <input type="hidden" name="txID" value="{{.ID}}">
+      <input type="hidden" name="userID" value="{{$.User.ID}}">
+      <input type="hidden" name="event" value="more-bridge.withdrawal.rejected">
+      <button type="submit" class="btn btn-fail">Fail</button>
+    </form>
+    {{else}}-{{end}}
+  </td>
 </tr>
 {{else}}
-<tr><td colspan="5">No transactions.</td></tr>
+<tr><td colspan="7">No transactions.</td></tr>
 {{end}}
 </tbody>
 </table>

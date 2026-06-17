@@ -5,9 +5,9 @@ import (
 
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"gitlab.com/fynbos/backend/db"
+	"github.com/interledger/interledger-app/go/backend/db"
 
-	pb "gitlab.com/fynbos/proto/backend/admin/v1"
+	pb "github.com/interledger/interledger-app/go/proto/backend/admin/v1"
 )
 
 func (s *AdminRpcService) ListTransactions(ctx context.Context, req *pb.ListTransactionsRequest) (*pb.ListTransactionsResponse, error) {

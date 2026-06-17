@@ -7,13 +7,13 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
+	"github.com/interledger/interledger-app/go/backend/contacts"
+	"github.com/interledger/interledger-app/go/backend/contacts/ops"
+	"github.com/interledger/interledger-app/go/backend/db"
+	"github.com/interledger/interledger-app/go/backend/wallets"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/backend/contacts"
-	"gitlab.com/fynbos/backend/contacts/ops"
-	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/wallets"
 )
 
 type backends struct {

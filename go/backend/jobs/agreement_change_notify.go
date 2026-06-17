@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"gitlab.com/fynbos/backend/agreements"
-	"gitlab.com/fynbos/backend/email"
-	"gitlab.com/fynbos/env"
+	"github.com/interledger/interledger-app/go/backend/agreements"
+	"github.com/interledger/interledger-app/go/backend/email"
+	"github.com/interledger/interledger-app/go/env"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 	"go.uber.org/zap"

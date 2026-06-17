@@ -347,7 +347,7 @@ function PtiPage() {
 
 type KycIntroProps = {
   onClick: () => void
-  ready: Boolean
+  ready: boolean
 }
 
 function KycIntro({ onClick, ready }: KycIntroProps) {

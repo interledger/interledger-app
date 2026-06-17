@@ -3,11 +3,11 @@ package client
 import (
 	"context"
 
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/email"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/payments"
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/email"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	"github.com/interledger/interledger-app/go/backend/payments"
+	"github.com/interledger/interledger-app/go/log"
 	"go.uber.org/zap"
 )
 
@@ -86,4 +86,8 @@ func (n *noopClient) SendCardTransactionFXEmail(_ context.Context, walletID, _, 
 
 func (c *noopClient) SendSCTITimeoutEmail(ctx context.Context, txID, walletID, amount, beneficiaryIBAN, beneficiaryName, submittedAt string) {
 	log.Info("NOT SENDING: SCTI timeout email", zap.String("txID", txID), zap.String("walletID", walletID))
+}
+
+func (n *noopClient) SendGatehubWithdrawalRejectedEmail(_ context.Context, _, walletID, _, _, _, _ string) {
+	log.Info("NOT SENDING: withdrawal rejected email", zap.String("walletID", walletID))
 }
