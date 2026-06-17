@@ -376,24 +376,6 @@ func CreateCardTransaction(ctx workflow.Context, wh CardTransactionEventWebhook)
 		if err = workflow.ExecuteActivity(ctx, a.RecordGatehubCardInformational, txID, ct, recordInformationalArgs).Get(ctx, nil); err != nil {
 			return err
 		}
-
-		if fx != nil {
-			date := ct.CreatedAt
-			if ct.TransactionDateTime != nil {
-				date = *ct.TransactionDateTime
-			}
-			if err = workflow.ExecuteActivity(ctx, a.SendCardTransactionFXEmail, SendCardTransactionFXEmailArgs{
-				WalletID:          ctMeta.WalletID,
-				MaskedPAN:         card.MaskedPan,
-				MerchantName:      ctMeta.MerchantName,
-				Date:              date,
-				Surcharge:         fx.ExchangeRateSurcharge,
-				TransactionAmount: *fx.TargetAmount,
-				BillingAmount:     ctMeta.BillingAmount,
-			}).Get(ctx, nil); err != nil {
-				return err
-			}
-		}
 	default:
 		_ = workflow.ExecuteActivity(notifyCtx, slack.SendToChannelActivity, slack.ChannelError, "wallet-info-bot", fmt.Sprintf("!!! Received card transaction with unsupported operation:\nCard TX ID: %s\nCard ID: %s\nGateHub User ID: %s\nOperation: %d", ct.TransactionID, card.ID, wh.UserID, ct.Operation)).Get(notifyCtx, nil)
 		return temporal.NewNonRetryableApplicationError("Unsupported operation", "ErrInternal", fmt.Errorf("%w unsupported Operation", gatehub.ErrInternal))
