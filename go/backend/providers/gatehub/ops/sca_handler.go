@@ -11,6 +11,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
+	"github.com/interledger/interledger-app/go/backend/user"
 	"github.com/interledger/interledger-app/go/log"
 	"go.uber.org/zap"
 )
@@ -147,7 +148,13 @@ func HandleSCAVerification(ctx context.Context, b Backends, req SCARequest, gate
 
 	err = b.Users().ValidateTotpCode(ctx, userID, *req.Code, t)
 	if err != nil {
-		log.Error("failed to validate totp", zap.String("user", userID), zap.String("walletID", walletID), zap.Error(err))
+		// A wrong code is user input, not an operational issue — log at warn so it
+		// doesn't pollute error dashboards. Anything else is a real failure.
+		if errors.Is(err, user.ErrInvalidTotpCode) {
+			log.Warn("invalid totp code", zap.String("user", userID), zap.String("walletID", walletID))
+		} else {
+			log.Error("failed to validate totp", zap.String("user", userID), zap.String("walletID", walletID), zap.Error(err))
+		}
 		return false
 	}
 

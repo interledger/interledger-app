@@ -19,12 +19,10 @@
 
 A logged-in user can request that their account be deleted from the Settings page. The wallet backend records a pending request and emails the user; actual data deletion is performed manually by support after the row appears. The same RPC is also used by the FE to render a pending-state indicator after the request is submitted.
 
-The flow is **destructive and irreversible**, so the backend gates it on two independent checks:
+The flow is **destructive and irreversible**, so the backend gates it on two layers:
 
-1. The session must be AAL2 (TOTP-confirmed) — enforced by the gRPC user middleware.
-2. The user must have TOTP enrolled in Kratos — enforced explicitly inside the handler.
-
-A user without TOTP enrolment is rejected with a structured error so the FE can show a precise message instead of routing through the AAL2 step-up flow.
+1. Session authentication is enforced by the global gRPC user middleware, which calls Kratos `ToSession`. With Kratos configured for `session.whoami.required_aal: highest_available`, any user who has TOTP enrolled must present an AAL2 session — Kratos returns `session_aal2_required` and the middleware rejects the request (`ErrAAL2Required`) before it reaches the handler. This is a global gate, not specific to this RPC; users with no second factor enrolled still pass on AAL1.
+2. The handler itself explicitly checks that the user has TOTP enrolled in Kratos (`CheckUserTotpEnabled`). This closes the `highest_available` gap above: a user who has not enrolled TOTP is rejected with a structured error (`ErrTotpNotConfigured`) so the FE can show a precise message instead of routing through the AAL2 step-up flow.
 
 ## Status Flow
 
@@ -103,7 +101,7 @@ When `RequestAccountDeletion` succeeds, the backend produces these outputs in or
 1. **`account_deletion_requests` row** with `user_id` = the Kratos identity ID and `status = 'pending'`. The `user_id` column has a unique index so a duplicate request returns `accountdeletion.ErrAlreadyRequested`.
 2. **Support-inbox email** with subject `[<env>] Account deletion requested — user <userID>`. A failure here returns from the handler and triggers a rollback (see below).
 3. **User confirmation email** with subject `We've received your account deletion request`. Best-effort — failures are logged with `userID` but do not fail the RPC.
-4. **Slack notification** posted as `wallet-info-bot` to the `ChannelNotifyEvents` channel, including the user's email and wallet IDs. Best-effort — the wallet-list query that gates this notification can fail; on failure the post is skipped with a warning log.
+4. **Slack notification** posted as `wallet-info-bot` to the `signup_kyc` channel (`slack.ChannelSignupKYC`), including the user ID and wallet IDs. The user's email is intentionally omitted to avoid leaking PII into Slack and application logs (support already receives the email at step 2). Best-effort — the wallet-list query that gates this notification can fail; on failure the post is skipped with a warning log.
 
 Rollback semantics:
 

@@ -3,7 +3,6 @@ package grpc
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/getsentry/sentry-go"
 	"github.com/interledger/interledger-app/go/backend/accountdeletion"
@@ -55,8 +54,11 @@ func (s *rpcService) RequestAccountDeletion(ctx context.Context, _ *pb.RequestAc
 		for _, w := range wallets {
 			walletIDs = append(walletIDs, w.ID)
 		}
+		// Email is intentionally omitted: SendToChannel logs the full message at info
+		// level, so including PII here would leak it into application logs. Support is
+		// already notified by email above.
 		slack.SendToChannel(ctx, slack.ChannelSignupKYC, "wallet-info-bot",
-			fmt.Sprintf("Account deletion requested\nUserID: %s\nEmail: %s\nWalletIDs: %v", u.ID, strings.TrimSpace(u.Email), walletIDs))
+			fmt.Sprintf("Account deletion requested\nUserID: %s\nWalletIDs: %v", u.ID, walletIDs))
 	} else {
 		log.Warn("account deletion: skipping Slack notification because wallet lookup failed",
 			zap.String("user_id", u.ID),
