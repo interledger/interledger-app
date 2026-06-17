@@ -3,7 +3,7 @@ package context
 import (
 	"context"
 
-	httplog "gitlab.com/fynbos/backend/providers/http"
+	httplog "github.com/interledger/interledger-app/go/backend/providers/http"
 	"go.temporal.io/sdk/converter"
 	"go.temporal.io/sdk/workflow"
 )
@@ -15,7 +15,7 @@ type propagator struct{}
 
 // propagationKey is the key used by the propagator to pass values through the
 // Temporal server headers
-const propagationKey = "fynbos-http-log"
+const propagationKey = "ilp-http-log"
 
 // NewHttpLogContextPropagator returns a context propagator that propagates a set of
 // string key-value pairs across a workflow

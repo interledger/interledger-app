@@ -1150,6 +1150,18 @@ export interface Transaction {
      * @generated from protobuf field: optional string formattedTargetAmount = 29;
      */
     formattedTargetAmount?: string;
+    /**
+     * @generated from protobuf field: optional string recipientIban = 30;
+     */
+    recipientIban?: string;
+    /**
+     * @generated from protobuf field: optional string recipientName = 31;
+     */
+    recipientName?: string;
+    /**
+     * @generated from protobuf field: optional string paymentChannel = 32;
+     */
+    paymentChannel?: string;
 }
 /**
  * @generated from protobuf message backend.v1.ListTransactionsResponse
@@ -6913,7 +6925,10 @@ class Transaction$Type extends MessageType<Transaction> {
             { no: 26, name: "exchangeRateReference", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
             { no: 27, name: "exchangeRateSurcharge", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
             { no: 28, name: "targetAmount", kind: "message", T: () => Amount },
-            { no: 29, name: "formattedTargetAmount", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ }
+            { no: 29, name: "formattedTargetAmount", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
+            { no: 30, name: "recipientIban", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
+            { no: 31, name: "recipientName", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
+            { no: 32, name: "paymentChannel", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Transaction>): Transaction {
@@ -7012,6 +7027,15 @@ class Transaction$Type extends MessageType<Transaction> {
                 case /* optional string formattedTargetAmount */ 29:
                     message.formattedTargetAmount = reader.string();
                     break;
+                case /* optional string recipientIban */ 30:
+                    message.recipientIban = reader.string();
+                    break;
+                case /* optional string recipientName */ 31:
+                    message.recipientName = reader.string();
+                    break;
+                case /* optional string paymentChannel */ 32:
+                    message.paymentChannel = reader.string();
+                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -7108,6 +7132,15 @@ class Transaction$Type extends MessageType<Transaction> {
         /* optional string formattedTargetAmount = 29; */
         if (message.formattedTargetAmount !== undefined)
             writer.tag(29, WireType.LengthDelimited).string(message.formattedTargetAmount);
+        /* optional string recipientIban = 30; */
+        if (message.recipientIban !== undefined)
+            writer.tag(30, WireType.LengthDelimited).string(message.recipientIban);
+        /* optional string recipientName = 31; */
+        if (message.recipientName !== undefined)
+            writer.tag(31, WireType.LengthDelimited).string(message.recipientName);
+        /* optional string paymentChannel = 32; */
+        if (message.paymentChannel !== undefined)
+            writer.tag(32, WireType.LengthDelimited).string(message.paymentChannel);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

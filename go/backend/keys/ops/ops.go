@@ -10,14 +10,14 @@ import (
 	"strings"
 	"time"
 
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/log"
 	"go.uber.org/zap"
 
 	"github.com/google/uuid"
-	"gitlab.com/fynbos/backend/keys"
-	"gitlab.com/fynbos/backend/rafiki"
-	"gitlab.com/fynbos/backend/vault"
-	"gitlab.com/fynbos/env"
+	"github.com/interledger/interledger-app/go/backend/keys"
+	"github.com/interledger/interledger-app/go/backend/rafiki"
+	"github.com/interledger/interledger-app/go/backend/vault"
+	"github.com/interledger/interledger-app/go/env"
 )
 
 type keyDB struct {

@@ -10,9 +10,9 @@ import (
 	"strings"
 	"time"
 
-	"gitlab.com/fynbos/mock/mockxago/internal/jobs"
-	"gitlab.com/fynbos/mock/mockxago/internal/logger"
-	"gitlab.com/fynbos/mock/mockxago/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockxago/internal/jobs"
+	"github.com/interledger/interledger-app/go/mock/mockxago/internal/logger"
+	"github.com/interledger/interledger-app/go/mock/mockxago/internal/models"
 )
 
 // JobTypeProcessDeposit is the job type for async deposit processing.

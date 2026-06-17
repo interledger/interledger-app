@@ -13,7 +13,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
-	"gitlab.com/fynbos/backend/providers/pti/external"
+	"github.com/interledger/interledger-app/go/backend/providers/pti/external"
 )
 
 type PTI struct {

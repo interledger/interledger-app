@@ -10,9 +10,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"gitlab.com/fynbos/backend/accountdeletion"
-	"gitlab.com/fynbos/backend/accountdeletion/ops"
-	"gitlab.com/fynbos/backend/db"
+	"github.com/interledger/interledger-app/go/backend/accountdeletion"
+	"github.com/interledger/interledger-app/go/backend/accountdeletion/ops"
+	"github.com/interledger/interledger-app/go/backend/db"
 )
 
 type backends struct {

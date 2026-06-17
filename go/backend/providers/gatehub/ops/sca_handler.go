@@ -10,8 +10,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
-	"gitlab.com/fynbos/backend/providers/gatehub"
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
+	"github.com/interledger/interledger-app/go/log"
 	"go.uber.org/zap"
 )
 

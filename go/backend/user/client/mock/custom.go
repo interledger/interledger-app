@@ -9,11 +9,11 @@ import (
 	"testing"
 	"time"
 
-	"gitlab.com/fynbos/backend/db"
+	"github.com/interledger/interledger-app/go/backend/db"
 
+	"github.com/interledger/interledger-app/go/backend/user"
+	userops "github.com/interledger/interledger-app/go/backend/user/ops"
 	"github.com/machinebox/graphql"
-	"gitlab.com/fynbos/backend/user"
-	userops "gitlab.com/fynbos/backend/user/ops"
 	"google.golang.org/grpc/metadata"
 )
 

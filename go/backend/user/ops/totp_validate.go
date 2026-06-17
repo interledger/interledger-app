@@ -8,7 +8,7 @@ import (
 	"github.com/pquerna/otp"
 	"github.com/pquerna/otp/totp"
 
-	"gitlab.com/fynbos/backend/user"
+	"github.com/interledger/interledger-app/go/backend/user"
 )
 
 func ValidateTotpAgainstURL(totpURL, code string, now time.Time) error {

@@ -326,7 +326,9 @@ export function AppPage() {
                               transaction.cardTransactionDetails
                             )
                           : transaction.type === 'sent' ||
-                              transaction.type === 'web_monetization_outgoing'
+                              transaction.type ===
+                                'web_monetization_outgoing' ||
+                              transaction.type === 'withdrawal'
                             ? 'text-error'
                             : 'text-medium'
                       )}

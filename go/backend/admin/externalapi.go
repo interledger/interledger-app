@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	httplog "gitlab.com/fynbos/backend/providers/http"
-	pb "gitlab.com/fynbos/proto/backend/admin/v1"
+	httplog "github.com/interledger/interledger-app/go/backend/providers/http"
+	pb "github.com/interledger/interledger-app/go/proto/backend/admin/v1"
 )
 
 func (s *AdminRpcService) ListExternalApiCalls(

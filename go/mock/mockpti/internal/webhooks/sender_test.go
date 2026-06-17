@@ -13,7 +13,7 @@ import (
 	"strings"
 	"testing"
 
-	"gitlab.com/fynbos/mock/mockpti/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockpti/internal/models"
 )
 
 func TestSender_SendUserAssessment_NoURL(t *testing.T) {

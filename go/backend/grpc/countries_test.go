@@ -5,10 +5,10 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
+	"github.com/interledger/interledger-app/go/backend/country"
+	backendv1 "github.com/interledger/interledger-app/go/proto/backend/v1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/backend/country"
-	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 )
 
 func TestGetCountries(t *testing.T) {

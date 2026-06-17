@@ -4,10 +4,10 @@ import (
 	"context"
 	"time"
 
-	"gitlab.com/fynbos/backend/country"
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/providers/pti"
-	pti_ops "gitlab.com/fynbos/backend/providers/pti/ops"
+	"github.com/interledger/interledger-app/go/backend/country"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/providers/pti"
+	pti_ops "github.com/interledger/interledger-app/go/backend/providers/pti/ops"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )

@@ -3,8 +3,8 @@ package client
 import (
 	"context"
 
-	"gitlab.com/fynbos/backend/accountdeletion"
-	"gitlab.com/fynbos/backend/accountdeletion/ops"
+	"github.com/interledger/interledger-app/go/backend/accountdeletion"
+	"github.com/interledger/interledger-app/go/backend/accountdeletion/ops"
 )
 
 var _ accountdeletion.Client = client{}

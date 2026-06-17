@@ -3,9 +3,9 @@ package admin
 import (
 	"context"
 
-	"gitlab.com/fynbos/backend/features"
+	"github.com/interledger/interledger-app/go/backend/features"
 
-	pb "gitlab.com/fynbos/proto/backend/admin/v1"
+	pb "github.com/interledger/interledger-app/go/proto/backend/admin/v1"
 )
 
 func (s *AdminRpcService) GetWalletFeatures(ctx context.Context, req *pb.GetWalletFeaturesRequest) (*pb.Features, error) {

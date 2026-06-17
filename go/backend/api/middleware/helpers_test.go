@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"gitlab.com/fynbos/backend/user"
+	"github.com/interledger/interledger-app/go/backend/user"
 )
 
 type stubUserClient struct {

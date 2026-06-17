@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	backendv1 "gitlab.com/fynbos/proto/backend/v1"
+	backendv1 "github.com/interledger/interledger-app/go/proto/backend/v1"
 )
 
 // This will return the ISO3166_2 code for the state. e.g. US-CA.

@@ -10,9 +10,9 @@ import (
 
 	"go.uber.org/zap"
 
-	"gitlab.com/fynbos/backend/user"
-	"gitlab.com/fynbos/backend/user/ops"
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/backend/user"
+	"github.com/interledger/interledger-app/go/backend/user/ops"
+	"github.com/interledger/interledger-app/go/log"
 )
 
 var _ user.Client = &client{}

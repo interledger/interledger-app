@@ -9,10 +9,10 @@ import (
 	"time"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/interledger/interledger-app/go/log"
 	"github.com/twilio/twilio-go"
 	"github.com/twilio/twilio-go/client"
 	verify "github.com/twilio/twilio-go/rest/verify/v2"
-	"gitlab.com/fynbos/log"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.uber.org/zap"
 )

@@ -4,10 +4,10 @@ import (
 	"context"
 	"testing"
 
+	"github.com/interledger/interledger-app/go/backend/agreements/migrations"
+	"github.com/interledger/interledger-app/go/backend/db"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/backend/agreements/migrations"
-	"gitlab.com/fynbos/backend/db"
 )
 
 func TestProdAgreements(t *testing.T) {

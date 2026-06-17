@@ -3,7 +3,7 @@ package grpc
 import (
 	"context"
 
-	pb "gitlab.com/fynbos/proto/backend/v1"
+	pb "github.com/interledger/interledger-app/go/proto/backend/v1"
 )
 
 func (s *rpcService) ListFeatures(ctx context.Context, _ *pb.Empty) (*pb.Features, error) {

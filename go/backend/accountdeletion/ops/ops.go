@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 
-	"gitlab.com/fynbos/backend/accountdeletion"
+	"github.com/interledger/interledger-app/go/backend/accountdeletion"
 )
 
 func Request(ctx context.Context, b Backends, userID string) error {

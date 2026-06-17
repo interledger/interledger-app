@@ -1,4 +1,4 @@
-module gitlab.com/fynbos
+module github.com/interledger/interledger-app/go
 
 go 1.25
 

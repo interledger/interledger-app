@@ -9,12 +9,12 @@ import (
 	"sort"
 	"time"
 
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/log"
 	"go.uber.org/zap"
 
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
+	"github.com/interledger/interledger-app/go/pacioli"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/fynbos/pacioli"
 )
 
 /*

@@ -6,11 +6,11 @@ import (
 	"strings"
 
 	"github.com/getsentry/sentry-go"
-	"gitlab.com/fynbos/backend/accountdeletion"
-	"gitlab.com/fynbos/backend/slack"
-	"gitlab.com/fynbos/backend/user"
-	"gitlab.com/fynbos/log"
-	pb "gitlab.com/fynbos/proto/backend/v1"
+	"github.com/interledger/interledger-app/go/backend/accountdeletion"
+	"github.com/interledger/interledger-app/go/backend/slack"
+	"github.com/interledger/interledger-app/go/backend/user"
+	"github.com/interledger/interledger-app/go/log"
+	pb "github.com/interledger/interledger-app/go/proto/backend/v1"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )

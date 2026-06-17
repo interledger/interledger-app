@@ -11,10 +11,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/interledger/interledger-app/go/backend/currency"
 	"github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/backend/currency"
 )
 
 func TestClientSignature(t *testing.T) {

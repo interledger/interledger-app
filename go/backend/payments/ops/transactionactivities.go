@@ -4,13 +4,13 @@ import (
 	"context"
 	"errors"
 
-	"gitlab.com/fynbos/backend/providers/pti"
+	"github.com/interledger/interledger-app/go/backend/providers/pti"
 
-	"gitlab.com/fynbos/backend/providers/xago"
+	"github.com/interledger/interledger-app/go/backend/providers/xago"
 
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/payments"
-	"gitlab.com/fynbos/backend/transactions"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/transactions"
 )
 
 func (a *Activity) SetReceiveTransactionID(ctx context.Context, paymentID, txID string) error {
