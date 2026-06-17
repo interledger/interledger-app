@@ -6,13 +6,13 @@ import (
 	"fmt"
 	"time"
 
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/log"
 	"go.uber.org/zap"
 
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/kyc"
-	"gitlab.com/fynbos/backend/limits"
-	"gitlab.com/fynbos/backend/transactions"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/kyc"
+	"github.com/interledger/interledger-app/go/backend/limits"
+	"github.com/interledger/interledger-app/go/backend/transactions"
 )
 
 func yearStart() time.Time {

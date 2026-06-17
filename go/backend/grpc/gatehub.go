@@ -3,8 +3,8 @@ package grpc
 import (
 	"context"
 
-	"gitlab.com/fynbos/backend/country"
-	pb "gitlab.com/fynbos/proto/backend/v1"
+	"github.com/interledger/interledger-app/go/backend/country"
+	pb "github.com/interledger/interledger-app/go/proto/backend/v1"
 )
 
 func (r *rpcService) GetGatehubOnboardingWidget(

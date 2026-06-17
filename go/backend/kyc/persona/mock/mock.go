@@ -10,7 +10,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	persona "gitlab.com/fynbos/backend/kyc/persona"
+	persona "github.com/interledger/interledger-app/go/backend/kyc/persona"
 )
 
 // MockClient is a mock of Client interface.

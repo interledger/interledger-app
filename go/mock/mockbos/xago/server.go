@@ -13,13 +13,13 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/interledger/interledger-app/go/backend/providers/xago/external"
+	"github.com/interledger/interledger-app/go/backend/providers/xago/ops"
+	"github.com/interledger/interledger-app/go/log"
+	"github.com/interledger/interledger-app/go/mock/mockbos/db"
+	"github.com/interledger/interledger-app/go/mock/mockbos/utils"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
-	"gitlab.com/fynbos/backend/providers/xago/external"
-	"gitlab.com/fynbos/backend/providers/xago/ops"
-	"gitlab.com/fynbos/log"
-	"gitlab.com/fynbos/mock/mockbos/db"
-	"gitlab.com/fynbos/mock/mockbos/utils"
 	"go.uber.org/zap"
 )
 

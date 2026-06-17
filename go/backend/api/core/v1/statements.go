@@ -8,9 +8,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
-	"gitlab.com/fynbos/backend/api/apperrors"
-	"gitlab.com/fynbos/backend/errcodes"
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/backend/api/apperrors"
+	"github.com/interledger/interledger-app/go/backend/errcodes"
+	"github.com/interledger/interledger-app/go/log"
 	"go.uber.org/zap"
 )
 

@@ -7,16 +7,16 @@ import (
 	"fmt"
 	"strings"
 
-	"gitlab.com/fynbos/backend/country"
-	"gitlab.com/fynbos/backend/db"
+	"github.com/interledger/interledger-app/go/backend/country"
+	"github.com/interledger/interledger-app/go/backend/db"
 
-	"gitlab.com/fynbos/backend/user"
+	"github.com/interledger/interledger-app/go/backend/user"
 
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 
-	"gitlab.com/fynbos/backend/wallets"
+	"github.com/interledger/interledger-app/go/backend/wallets"
 )
 
 func Create(ctx context.Context, b Backends, args wallets.CreateArgs) (*wallets.Wallet, error) {

@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/interledger/interledger-app/go/pacioli/db"
+	"github.com/interledger/interledger-app/go/pacioli/ledger"
+	"github.com/interledger/interledger-app/go/pacioli/seed"
+	test_utils "github.com/interledger/interledger-app/go/pacioli/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/pacioli/db"
-	"gitlab.com/fynbos/pacioli/ledger"
-	"gitlab.com/fynbos/pacioli/seed"
-	test_utils "gitlab.com/fynbos/pacioli/utils"
 )
 
 func TestSeed(t *testing.T) {

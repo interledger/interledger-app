@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"gitlab.com/fynbos/mock/mockpti/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockpti/internal/models"
 )
 
 func TestCreatePaymentInformation_Success(t *testing.T) {

@@ -8,13 +8,13 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
+	"github.com/interledger/interledger-app/go/backend/db"
+	"github.com/interledger/interledger-app/go/backend/keys"
+	"github.com/interledger/interledger-app/go/backend/keys/ops"
+	vaultmock "github.com/interledger/interledger-app/go/backend/vault/mock"
+	"github.com/interledger/interledger-app/go/env"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/keys"
-	"gitlab.com/fynbos/backend/keys/ops"
-	vaultmock "gitlab.com/fynbos/backend/vault/mock"
-	"gitlab.com/fynbos/env"
 )
 
 func TestGeneratePrivateAndListKeys(t *testing.T) {
@@ -61,7 +61,7 @@ func TestCantGeneratePrivateDuplicateKeys(t *testing.T) {
 }
 
 func TestCanAddAndSoftDeleteAPublicKey(t *testing.T) {
-	env.SetEnv(t, "test")	
+	env.SetEnv(t, "test")
 	ctx := context.Background()
 	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx), nil, nil)
 	walletID := uuid.NewString()
@@ -138,7 +138,7 @@ func TestCanSignAndVerifyCustodialKeys(t *testing.T) {
 }
 
 func TestCantSignWithNonCustodialKeys(t *testing.T) {
-	env.SetEnv(t, "test")	
+	env.SetEnv(t, "test")
 	ctx := context.Background()
 	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx), nil, nil)
 	walletID := uuid.NewString()
@@ -158,7 +158,7 @@ func TestCantSignWithNonCustodialKeys(t *testing.T) {
 }
 
 func TestCanVerifyNonCustodialKeys(t *testing.T) {
-	env.SetEnv(t, "test")	
+	env.SetEnv(t, "test")
 	ctx := context.Background()
 	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx), nil, nil)
 	walletID := uuid.NewString()
@@ -185,7 +185,7 @@ func TestCanVerifyNonCustodialKeys(t *testing.T) {
 
 func TestGeneratePrivateVaultKey(t *testing.T) {
 	t.Skip("Skipping test because we are not using vault anymore")
-	env.SetEnv(t, "local")	
+	env.SetEnv(t, "local")
 	ctx := context.Background()
 	mockCtrl := gomock.NewController(t)
 	vc := vaultmock.NewMockClient(mockCtrl)
@@ -214,7 +214,7 @@ func TestGeneratePrivateVaultKey(t *testing.T) {
 
 func TestCanSignAndVerifyCustodialKeysVault(t *testing.T) {
 	t.Skip("Skipping because we are not using vault anymore")
-	env.SetEnv(t, "local")	
+	env.SetEnv(t, "local")
 	ctx := context.Background()
 	mockCtrl := gomock.NewController(t)
 	vc := vaultmock.NewMockClient(mockCtrl)

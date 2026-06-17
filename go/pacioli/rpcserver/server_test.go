@@ -3,14 +3,14 @@ package rpcserver
 import (
 	"context"
 	"fmt"
-	"gitlab.com/fynbos/pacioli"
+	"github.com/interledger/interledger-app/go/pacioli"
 	"testing"
 	"time"
 
 	"github.com/bxcodec/faker/v3"
 	"github.com/google/uuid"
+	pacioliv1 "github.com/interledger/interledger-app/go/proto/pacioli/v1"
 	"github.com/stretchr/testify/assert"
-	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
 	"google.golang.org/grpc/health/grpc_health_v1"
 )
 

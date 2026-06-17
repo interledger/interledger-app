@@ -9,8 +9,8 @@ import (
 	"strconv"
 	"time"
 
-	"gitlab.com/fynbos/backend/kyc"
-	"gitlab.com/fynbos/backend/kyc/persona"
+	"github.com/interledger/interledger-app/go/backend/kyc"
+	"github.com/interledger/interledger-app/go/backend/kyc/persona"
 )
 
 func GetPersonaInquiry(ctx context.Context, b Backends, cl persona.Client, walletID, idempotencyKey string) (*kyc.PersonaInquiry, error) {

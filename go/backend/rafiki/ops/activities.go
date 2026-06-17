@@ -10,13 +10,13 @@ import (
 	"github.com/lib/pq"
 	"go.temporal.io/sdk/temporal"
 
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/log"
 	"go.uber.org/zap"
 
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/payments"
-	"gitlab.com/fynbos/backend/rafiki"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	"github.com/interledger/interledger-app/go/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/rafiki"
 )
 
 type Activity struct {

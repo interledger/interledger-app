@@ -3,22 +3,22 @@ package ops
 import (
 	"testing"
 
-	"gitlab.com/fynbos/backend/email"
+	"github.com/interledger/interledger-app/go/backend/email"
 
-	"gitlab.com/fynbos/backend/transactions"
+	"github.com/interledger/interledger-app/go/backend/transactions"
 
-	"gitlab.com/fynbos/pacioli"
+	"github.com/interledger/interledger-app/go/pacioli"
 
-	linkedaccounts_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
+	linkedaccounts_mock "github.com/interledger/interledger-app/go/backend/linkedaccounts/client/mock"
 
+	"github.com/interledger/interledger-app/go/backend/kyc"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	"github.com/interledger/interledger-app/go/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/providers/xago/external"
+	external_mock "github.com/interledger/interledger-app/go/backend/providers/xago/external/mock"
+	"github.com/interledger/interledger-app/go/backend/user"
+	"github.com/interledger/interledger-app/go/backend/wallets"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/fynbos/backend/kyc"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/payments"
-	"gitlab.com/fynbos/backend/providers/xago/external"
-	external_mock "gitlab.com/fynbos/backend/providers/xago/external/mock"
-	"gitlab.com/fynbos/backend/user"
-	"gitlab.com/fynbos/backend/wallets"
 	temporal "go.temporal.io/sdk/client"
 )
 

@@ -1,10 +1,10 @@
 package ops
 
 import (
+	"github.com/interledger/interledger-app/go/backend/analytics"
+	"github.com/interledger/interledger-app/go/backend/transactions"
+	"github.com/interledger/interledger-app/go/log"
 	segment "github.com/segmentio/analytics-go/v3"
-	"gitlab.com/fynbos/backend/analytics"
-	"gitlab.com/fynbos/backend/transactions"
-	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
 )
 
