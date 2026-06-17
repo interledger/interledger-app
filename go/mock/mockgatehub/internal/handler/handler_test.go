@@ -13,10 +13,10 @@ import (
 	"testing"
 	"time"
 
-	"gitlab.com/fynbos/mock/mockgatehub/internal/consts"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/models"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/storage"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/webhook"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/consts"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/storage"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/webhook"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
@@ -647,7 +647,7 @@ func TestHealthCheck(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, rec.Code)
 	assert.Contains(t, rec.Body.String(), `"status":"ok"`)
-	assert.Contains(t, rec.Body.String(), `"service":"gitlab.com/fynbos/mock/mockgatehub"`)
+	assert.Contains(t, rec.Body.String(), `"service":"github.com/interledger/interledger-app/go/mock/mockgatehub"`)
 	assert.Equal(t, "application/json", rec.Header().Get("Content-Type"))
 }
 

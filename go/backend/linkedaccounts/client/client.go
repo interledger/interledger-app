@@ -4,12 +4,12 @@ import (
 	"context"
 	"time"
 
-	"gitlab.com/fynbos/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/currency"
 
-	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/linkedaccounts/ops"
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/backend/db"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts/ops"
+	"github.com/interledger/interledger-app/go/log"
 	"go.uber.org/zap"
 )
 

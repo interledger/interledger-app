@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 
-	"gitlab.com/fynbos/backend/agreements"
+	"github.com/interledger/interledger-app/go/backend/agreements"
 
 	"github.com/lib/pq"
 )

@@ -3,10 +3,10 @@ package grpc
 import (
 	"context"
 
-	"gitlab.com/fynbos/backend/agreements"
-	"gitlab.com/fynbos/backend/signup"
-	"gitlab.com/fynbos/log"
-	pb "gitlab.com/fynbos/proto/backend/v1"
+	"github.com/interledger/interledger-app/go/backend/agreements"
+	"github.com/interledger/interledger-app/go/backend/signup"
+	"github.com/interledger/interledger-app/go/log"
+	pb "github.com/interledger/interledger-app/go/proto/backend/v1"
 	"go.uber.org/zap"
 )
 

@@ -4,12 +4,12 @@ import (
 	"context"
 	"errors"
 
-	"gitlab.com/fynbos/backend/country"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/providers/pti"
-	"gitlab.com/fynbos/backend/user"
-	"gitlab.com/fynbos/proto/backend/v1"
-	pb "gitlab.com/fynbos/proto/backend/v1"
+	"github.com/interledger/interledger-app/go/backend/country"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	"github.com/interledger/interledger-app/go/backend/providers/pti"
+	"github.com/interledger/interledger-app/go/backend/user"
+	"github.com/interledger/interledger-app/go/proto/backend/v1"
+	pb "github.com/interledger/interledger-app/go/proto/backend/v1"
 )
 
 func (s *rpcService) GetPtiBalances(ctx context.Context, req *backend.Empty) (*backend.GetPtiBalancesResponse, error) {

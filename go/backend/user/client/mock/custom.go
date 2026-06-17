@@ -7,10 +7,10 @@ import (
 	"net/url"
 	"testing"
 
-	"gitlab.com/fynbos/backend/db"
+	"github.com/interledger/interledger-app/go/backend/db"
 
+	"github.com/interledger/interledger-app/go/backend/user"
 	"github.com/machinebox/graphql"
-	"gitlab.com/fynbos/backend/user"
 	"google.golang.org/grpc/metadata"
 )
 

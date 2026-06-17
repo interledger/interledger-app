@@ -11,16 +11,16 @@ import (
 	"strings"
 	"time"
 
-	"gitlab.com/fynbos/backend/rafiki"
-	"gitlab.com/fynbos/backend/wallets"
+	"github.com/interledger/interledger-app/go/backend/rafiki"
+	"github.com/interledger/interledger-app/go/backend/wallets"
 
-	"gitlab.com/fynbos/backend/linkedaccounts"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
 
-	"gitlab.com/fynbos/env"
+	"github.com/interledger/interledger-app/go/env"
 
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/payments"
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/payments"
+	"github.com/interledger/interledger-app/go/log"
 	"go.uber.org/zap"
 )
 
