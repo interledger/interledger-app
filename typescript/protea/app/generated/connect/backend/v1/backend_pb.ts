@@ -3533,6 +3533,21 @@ export class Transaction extends Message<Transaction> {
    */
   formattedTargetAmount?: string;
 
+  /**
+   * @generated from field: optional string recipientIban = 30;
+   */
+  recipientIban?: string;
+
+  /**
+   * @generated from field: optional string recipientName = 31;
+   */
+  recipientName?: string;
+
+  /**
+   * @generated from field: optional string paymentChannel = 32;
+   */
+  paymentChannel?: string;
+
   constructor(data?: PartialMessage<Transaction>) {
     super();
     proto3.util.initPartial(data, this);
@@ -3569,6 +3584,9 @@ export class Transaction extends Message<Transaction> {
     { no: 27, name: "exchangeRateSurcharge", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
     { no: 28, name: "targetAmount", kind: "message", T: Amount, opt: true },
     { no: 29, name: "formattedTargetAmount", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 30, name: "recipientIban", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 31, name: "recipientName", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 32, name: "paymentChannel", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Transaction {
