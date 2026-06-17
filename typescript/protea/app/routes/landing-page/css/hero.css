@@ -138,10 +138,7 @@
      With a 16px buffer above and below, the phone grows up to its 360px cap. */
   .animated-hero[data-screen='1'] .hero-phone-container {
     --mobile-text-bottom: 356px;
-    --phone-height: min(
-      360px,
-      calc(100dvh - var(--mobile-text-bottom) - 32px)
-    );
+    --phone-height: min(360px, calc(100dvh - var(--mobile-text-bottom) - 32px));
     --phone-width: calc(var(--phone-height) / 2.08);
     --phone-offset: calc(var(--mobile-text-bottom) / 2);
   }
@@ -151,10 +148,7 @@
      room for it inside the flex flow. */
   .animated-hero:not([data-screen='1']) .hero-phone-container {
     --mobile-feature-avail: calc(100dvh - var(--nav-height, 72px));
-    --phone-height: min(
-      360px,
-      calc(var(--mobile-feature-avail) * 0.45)
-    );
+    --phone-height: min(360px, calc(var(--mobile-feature-avail) * 0.45));
     --phone-width: calc(var(--phone-height) / 2.08);
     --mobile-feature-gap: max(
       8px,
