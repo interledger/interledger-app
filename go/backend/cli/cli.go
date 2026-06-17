@@ -149,6 +149,7 @@ type StartArgs struct {
 	RafikiAuthDBURL               string
 	TempGatehubAppID              string
 	TempGatehubSecret             string
+	RedisURL                      string
 }
 
 func ParseStartArgs() (*StartArgs, error) {
@@ -643,6 +644,7 @@ func ParseStartArgs() (*StartArgs, error) {
 		RafikiAuthDBURL:               os.Getenv("RAFIKI_AUTH_DB_URL"),
 		TempGatehubAppID:              os.Getenv("TEMP_GATEHUB_APP_ID"),
 		TempGatehubSecret:             os.Getenv("TEMP_GATEHUB_SECRET"),
+		RedisURL:                      os.Getenv("REDIS_URL"),
 	}, nil
 }
 
