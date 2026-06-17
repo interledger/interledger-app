@@ -584,7 +584,7 @@ func (a *Activity) CreateTransaction(ctx context.Context, walletId string, payme
 		DestinationIdentityType: payments.IdentityTypeWalletID.String(),
 		Amount:                  payment.ReceiverAmount,
 		ProviderFee:             nil,
-		LinkedAccountTitle:      "US Balance",
+		LinkedAccountTitle:      "USD Balance",
 		Note:                    payment.Note,
 		Transfers: []transactions.TransferArgs{
 			{
@@ -702,7 +702,7 @@ func (a *Activity) SettleTransaction(ctx context.Context, transactionID, walletI
 		DestinationIdentityType: payments.IdentityTypeWalletID.String(),
 		Amount:                  amount,
 		ProviderFee:             nil,
-		LinkedAccountTitle:      "US Balance",
+		LinkedAccountTitle:      "USD Balance",
 		Transfers: []transactions.TransferArgs{
 			{
 				LinkedAccountID: eurBalance.ID,
@@ -964,7 +964,7 @@ func (a *Activity) ReturnTransaction(ctx context.Context, originalTransactionID,
 		DestinationIdentityType: payments.IdentityTypeWalletID.String(),
 		Amount:                  amount,
 		ProviderFee:             nil,
-		LinkedAccountTitle:      "US Balance",
+		LinkedAccountTitle:      "USD Balance",
 		Transfers: []transactions.TransferArgs{
 			{
 				LinkedAccountID: balance.ID,

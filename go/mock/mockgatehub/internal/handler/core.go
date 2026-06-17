@@ -488,6 +488,14 @@ func (h *Handler) GetTransaction(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
+	if tx.Type == consts.TransactionTypeWithdrawal {
+		response["message"] = tx.Message
+		response["account"] = map[string]interface{}{
+			"iban":       tx.AccountIBAN,
+			"legal_name": tx.AccountLegalName,
+		}
+	}
+
 	h.sendJSON(w, http.StatusOK, response)
 }
 
