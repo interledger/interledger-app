@@ -129,6 +129,7 @@
   font: var(--text-body);
   font-weight: 500;
   gap: 8px;
+  will-change: transform;
 }
 
 .footer-cta:hover {
