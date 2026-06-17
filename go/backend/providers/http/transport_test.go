@@ -9,12 +9,12 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	httplog "gitlab.com/fynbos/backend/providers/http"
+	httplog "github.com/interledger/interledger-app/go/backend/providers/http"
 
+	"github.com/interledger/interledger-app/go/backend/db"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/backend/db"
 )
 
 type testBackends struct {

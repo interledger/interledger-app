@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/alicebob/miniredis/v2"
+	"github.com/interledger/interledger-app/go/mock/mockxago/internal/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/mock/mockxago/internal/models"
 )
 
 func newRedisStoreForTest(t *testing.T) (*RedisStorage, func()) {

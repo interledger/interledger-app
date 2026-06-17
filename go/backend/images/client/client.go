@@ -8,9 +8,9 @@ import (
 	"net/http"
 
 	"github.com/golang/freetype/truetype"
-	"gitlab.com/fynbos/backend/images"
-	"gitlab.com/fynbos/backend/images/ops"
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/backend/images"
+	"github.com/interledger/interledger-app/go/backend/images/ops"
+	"github.com/interledger/interledger-app/go/log"
 )
 
 var _ images.Client = client{}

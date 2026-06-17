@@ -3,8 +3,8 @@ package wallets
 import (
 	"context"
 
-	"gitlab.com/fynbos/backend/country"
-	"gitlab.com/fynbos/backend/db"
+	"github.com/interledger/interledger-app/go/backend/country"
+	"github.com/interledger/interledger-app/go/backend/db"
 )
 
 type Client interface {

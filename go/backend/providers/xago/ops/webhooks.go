@@ -5,13 +5,13 @@ import (
 	"io"
 	"net/http"
 
-	"gitlab.com/fynbos/backend/transactions"
+	"github.com/interledger/interledger-app/go/backend/transactions"
 
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/providers/xago"
-	"gitlab.com/fynbos/log"
-	"gitlab.com/fynbos/pacioli"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	"github.com/interledger/interledger-app/go/backend/providers/xago"
+	"github.com/interledger/interledger-app/go/log"
+	"github.com/interledger/interledger-app/go/pacioli"
 	"go.uber.org/zap"
 )
 

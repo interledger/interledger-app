@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"gitlab.com/fynbos/backend/country"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/providers/pti"
+	"github.com/interledger/interledger-app/go/backend/country"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	"github.com/interledger/interledger-app/go/backend/providers/pti"
 
-	pb "gitlab.com/fynbos/proto/backend/v1"
+	pb "github.com/interledger/interledger-app/go/proto/backend/v1"
 )
 
 func transformLinkedAccount(la linkedaccounts.LinkedAccount) *pb.LinkedAccount {

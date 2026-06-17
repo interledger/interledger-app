@@ -1,13 +1,13 @@
 package ops
 
 import (
-	"gitlab.com/fynbos/backend/wallets"
+	"github.com/interledger/interledger-app/go/backend/wallets"
 	"testing"
 
-	"gitlab.com/fynbos/backend/linkedaccounts"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
 
+	"github.com/interledger/interledger-app/go/backend/kyc"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/fynbos/backend/kyc"
 )
 
 type Backends interface {

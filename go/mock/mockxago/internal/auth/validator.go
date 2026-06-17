@@ -4,8 +4,8 @@ import (
 	"context"
 	"strings"
 
-	"gitlab.com/fynbos/mock/mockxago/internal/models"
-	"gitlab.com/fynbos/mock/mockxago/internal/storage"
+	"github.com/interledger/interledger-app/go/mock/mockxago/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockxago/internal/storage"
 )
 
 // Validator validates authentication tokens

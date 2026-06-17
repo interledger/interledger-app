@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"gitlab.com/fynbos/env"
+	"github.com/interledger/interledger-app/go/env"
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"golang.org/x/oauth2"

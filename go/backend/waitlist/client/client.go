@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"gitlab.com/fynbos/backend/waitlist"
-	"gitlab.com/fynbos/backend/waitlist/ops"
+	"github.com/interledger/interledger-app/go/backend/waitlist"
+	"github.com/interledger/interledger-app/go/backend/waitlist/ops"
 	"go.uber.org/zap"
 )
 

@@ -7,15 +7,15 @@ import (
 	"fmt"
 	"time"
 
-	"gitlab.com/fynbos/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/payments"
 
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/log"
 	"go.uber.org/zap"
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/google/uuid"
+	"github.com/interledger/interledger-app/go/backend/slack"
 	"github.com/lib/pq"
-	"gitlab.com/fynbos/backend/slack"
 )
 
 func CreateAuthURL(ctx context.Context, b Backends, walletID string) (string, error) {

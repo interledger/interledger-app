@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"gitlab.com/fynbos/mock/mockgatehub/internal/logger"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/logger"
 
 	"go.uber.org/zap"
 )

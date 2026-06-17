@@ -6,9 +6,9 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
+	"github.com/interledger/interledger-app/go/backend/agreements"
+	backendv1 "github.com/interledger/interledger-app/go/proto/backend/v1"
 	"github.com/stretchr/testify/assert"
-	"gitlab.com/fynbos/backend/agreements"
-	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 )
 
 func TestGetAgreement(t *testing.T) {

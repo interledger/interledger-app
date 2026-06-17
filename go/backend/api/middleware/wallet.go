@@ -5,11 +5,11 @@ import (
 	"errors"
 	"net/http"
 
-	"gitlab.com/fynbos/backend/api/apperrors"
-	"gitlab.com/fynbos/backend/errcodes"
-	"gitlab.com/fynbos/backend/user"
-	"gitlab.com/fynbos/backend/wallets"
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/backend/api/apperrors"
+	"github.com/interledger/interledger-app/go/backend/errcodes"
+	"github.com/interledger/interledger-app/go/backend/user"
+	"github.com/interledger/interledger-app/go/backend/wallets"
+	"github.com/interledger/interledger-app/go/log"
 	"go.uber.org/zap"
 )
 

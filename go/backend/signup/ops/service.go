@@ -7,14 +7,14 @@ import (
 	"fmt"
 	"strings"
 
-	"gitlab.com/fynbos/backend/slack"
-	"gitlab.com/fynbos/backend/twilio"
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/backend/slack"
+	"github.com/interledger/interledger-app/go/backend/twilio"
+	"github.com/interledger/interledger-app/go/log"
 	"go.uber.org/zap"
 
 	"github.com/google/uuid"
 
-	"gitlab.com/fynbos/backend/signup"
+	"github.com/interledger/interledger-app/go/backend/signup"
 )
 
 type dbSignup struct {

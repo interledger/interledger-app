@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/interledger/interledger-app/go/mock/mockxago/internal/storage"
 	"github.com/stretchr/testify/assert"
-	"gitlab.com/fynbos/mock/mockxago/internal/storage"
 )
 
 // TestSendPersonaAccountTagAdded_Success verifies webhook is sent for account tag added event

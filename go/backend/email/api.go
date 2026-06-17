@@ -3,10 +3,10 @@ package email
 import (
 	"context"
 
-	"gitlab.com/fynbos/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/currency"
 
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	"github.com/interledger/interledger-app/go/backend/payments"
 )
 
 type Client interface {

@@ -7,10 +7,10 @@ import (
 	"strings"
 	"time"
 
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/payments"
-	"gitlab.com/fynbos/backend/providers/pti"
-	"gitlab.com/fynbos/backend/providers/xago"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	"github.com/interledger/interledger-app/go/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/providers/pti"
+	"github.com/interledger/interledger-app/go/backend/providers/xago"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )

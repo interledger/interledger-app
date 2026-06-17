@@ -8,13 +8,13 @@ import (
 	"strconv"
 	"time"
 
-	"gitlab.com/fynbos/backend/kyc/persona"
+	"github.com/interledger/interledger-app/go/backend/kyc/persona"
 
-	"gitlab.com/fynbos/env"
+	"github.com/interledger/interledger-app/go/env"
 
-	"gitlab.com/fynbos/backend/kyc"
-	"gitlab.com/fynbos/backend/kyc/address"
-	"gitlab.com/fynbos/backend/kyc/ops"
+	"github.com/interledger/interledger-app/go/backend/kyc"
+	"github.com/interledger/interledger-app/go/backend/kyc/address"
+	"github.com/interledger/interledger-app/go/backend/kyc/ops"
 )
 
 var _ kyc.Client = client{}

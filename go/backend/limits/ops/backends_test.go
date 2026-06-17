@@ -3,26 +3,26 @@ package ops_test
 import (
 	"testing"
 
-	"gitlab.com/fynbos/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/payments"
 
 	"github.com/google/uuid"
-	wallets_mock "gitlab.com/fynbos/backend/wallets/client/mock"
+	wallets_mock "github.com/interledger/interledger-app/go/backend/wallets/client/mock"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/golang/mock/gomock"
+	"github.com/interledger/interledger-app/go/backend/analytics"
+	analytics_client "github.com/interledger/interledger-app/go/backend/analytics/client"
+	"github.com/interledger/interledger-app/go/backend/email"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/fynbos/backend/analytics"
-	analytics_client "gitlab.com/fynbos/backend/analytics/client"
-	"gitlab.com/fynbos/backend/email"
 
-	"gitlab.com/fynbos/backend/keys"
-	keys_mock "gitlab.com/fynbos/backend/keys/client/mock"
-	"gitlab.com/fynbos/backend/kyc"
-	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
-	"gitlab.com/fynbos/backend/notify"
-	notify_client "gitlab.com/fynbos/backend/notify/client/mock"
-	"gitlab.com/fynbos/backend/user"
-	"gitlab.com/fynbos/backend/wallets"
+	"github.com/interledger/interledger-app/go/backend/keys"
+	keys_mock "github.com/interledger/interledger-app/go/backend/keys/client/mock"
+	"github.com/interledger/interledger-app/go/backend/kyc"
+	kyc_mock "github.com/interledger/interledger-app/go/backend/kyc/client/mock"
+	"github.com/interledger/interledger-app/go/backend/notify"
+	notify_client "github.com/interledger/interledger-app/go/backend/notify/client/mock"
+	"github.com/interledger/interledger-app/go/backend/user"
+	"github.com/interledger/interledger-app/go/backend/wallets"
 )
 
 type testBackends struct {
@@ -77,7 +77,6 @@ func (t testBackends) Email() email.Client {
 }
 
 func NewTestBackends(t *testing.T, db *sqlx.DB, uc user.Client) *testBackends {
-	
 
 	ctrl := gomock.NewController(t)
 	nc := notify_client.NewMockClient(ctrl)

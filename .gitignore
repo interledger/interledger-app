@@ -16,8 +16,6 @@
 # VScode workspace files
 *.code-workspace
 
-.fynbos/**
-
 /node_modules
 typescript/**/node_modules
 

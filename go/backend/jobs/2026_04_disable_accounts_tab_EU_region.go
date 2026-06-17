@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/interledger/interledger-app/go/backend/country"
 	"github.com/lib/pq"
-	"gitlab.com/fynbos/backend/country"
 	"go.temporal.io/sdk/workflow"
 )
 

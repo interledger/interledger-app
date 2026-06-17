@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"gitlab.com/fynbos/env"
+	"github.com/interledger/interledger-app/go/env"
 
 	"github.com/joho/godotenv"
 )
