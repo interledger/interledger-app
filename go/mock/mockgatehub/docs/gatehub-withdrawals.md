@@ -6,25 +6,27 @@ This document describes how the Interledger App Wallet processes **GateHub-based
 
 **🚨 CRITICAL: Withdrawals vs. Deposits Architecture Difference**
 
-| Aspect | Withdrawals | Deposits |
-|--------|-------------|----------|
-| **Webhook** | **\u274c NONE** | \u2705 Required |
-| **Initiation** | Frontend RPC call | Webhook from provider |
-| **Flow** | Iframe → postMessage → Frontend → Backend RPC → Workflow | Provider → Webhook → Workflow |
-| **Transaction Type** | Type `0` (Withdrawal) | Type `1` (Deposit) |
+| Aspect               | Withdrawals                                              | Deposits                      |
+| -------------------- | -------------------------------------------------------- | ----------------------------- |
+| **Webhook**          | **\u274c NONE**                                          | \u2705 Required               |
+| **Initiation**       | Frontend RPC call                                        | Webhook from provider         |
+| **Flow**             | Iframe → postMessage → Frontend → Backend RPC → Workflow | Provider → Webhook → Workflow |
+| **Transaction Type** | Type `0` (Withdrawal)                                    | Type `1` (Deposit)            |
 
 **Why This Matters**: MockGateHub must NOT send webhooks for withdrawals (unlike deposits). The backend workflow is triggered by the frontend's `CreateGatehubWithdrawal` RPC call, not by a webhook. Sending a withdrawal webhook causes the workflow to start BEFORE the transaction exists in the database, resulting in "transaction not found" errors.
 
 **Important**: The Interledger App supports multiple withdrawal providers based on user region:
+
 - **EU users** → GateHub withdrawals (this document)
 - **US users** → PTI withdrawals
 - **Canadian users** → Chimoney withdrawals
 - **Other regions** → Interledger withdrawals
 
 **Key Differences:**
+
 1. **From Deposits**: Withdrawals debit balance; deposits credit balance
 2. **From P2P Payments**: Withdrawals have no receiver assignment (money leaves to external account)
-3. **GateHub vs. PTI**: GateHub uses iframe widget with NO bank account linking required (GateHub manages external accounts). Ilf/PTI require users to connect their bank accounts in the app first.
+3. **GateHub vs. Ilw/PTI**: GateHub uses iframe widget with NO bank account linking required (GateHub manages external accounts). Ilw/PTI require users to connect their bank accounts in the app first.
 
 ## Architecture: Withdrawal vs Deposit vs P2P
 
@@ -45,6 +47,7 @@ if country.EUCountries[w.Country] {
 ```
 
 **Frontend Behavior**:
+
 - `provider == "gatehub"` → Loads GateHub iframe widget (`GatehubWithdrawalPage`)
 - Other providers → Loads frontend form (`IlwWithdrawalPage`) which checks for linked bank accounts
 
@@ -57,23 +60,23 @@ if (data.linkedAccounts.length === 0)
         <p>To withdraw from your balance, first connect a bank account.</p>
       </CardContent>
     </Card>
-  )
+  );
 ```
 
 **Critical**: This bank account check **only applies to PTI/Interledger withdrawals**, NOT GateHub. GateHub manages external bank accounts within their own system—users configure destination accounts directly in the GateHub iframe.
 
 ### Transaction Types Comparison
 
-| Aspect | Withdrawal | Deposit | P2P Payment |
-|--------|-----------|---------|------------|
-| **Initiator** | User via UI | External bank | Wallet user (sender) |
-| **Flow** | GateHub widget → Backend API | Webhook | Direct workflow |
-| **Balance Operation** | Debit (reserve + finalize) | Credit (no reserve) | Debit sender + Credit receiver |
-| **Provider API Calls** | `GetTransaction` (status check) | `POST /transactions` (hosted) | `POST /transactions` (hosted) |
-| **Completion** | Provider wallet status polling | Webhook signals | Workflow signals |
-| **Receiver** | External bank account | Wallet | Internal wallet |
-| **Fee Behavior** | Total = Amount + Fee | Total = Amount (fee is metadata) | No fees (hardcoded 0) |
-| **Pacioli Ledger** | Reserve → Finalize (2 steps) | No reserve (1 step) | Reserve → Finalize → Assign (3 steps) |
+| Aspect                 | Withdrawal                      | Deposit                          | P2P Payment                           |
+| ---------------------- | ------------------------------- | -------------------------------- | ------------------------------------- |
+| **Initiator**          | User via UI                     | External bank                    | Wallet user (sender)                  |
+| **Flow**               | GateHub widget → Backend API    | Webhook                          | Direct workflow                       |
+| **Balance Operation**  | Debit (reserve + finalize)      | Credit (no reserve)              | Debit sender + Credit receiver        |
+| **Provider API Calls** | `GetTransaction` (status check) | `POST /transactions` (hosted)    | `POST /transactions` (hosted)         |
+| **Completion**         | Provider wallet status polling  | Webhook signals                  | Workflow signals                      |
+| **Receiver**           | External bank account           | Wallet                           | Internal wallet                       |
+| **Fee Behavior**       | Total = Amount + Fee            | Total = Amount (fee is metadata) | No fees (hardcoded 0)                 |
+| **Pacioli Ledger**     | Reserve → Finalize (2 steps)    | No reserve (1 step)              | Reserve → Finalize → Assign (3 steps) |
 
 ## Withdrawal User Journey
 
@@ -104,23 +107,26 @@ https://sandbox.gatehub.net/sandbox/withdraw?...
 ### Step 2: Submit via GateHub Widget
 
 User fills in withdrawal details in the iframe:
+
 - Amount to withdraw
 - Destination bank account (from previously-linked accounts)
 - Withdrawal confirmation
 
 **IMPORTANT**: MockGateHub creates the withdrawal transaction immediately with:
+
 - Transaction Type: `0` (Withdrawal - not Deposit type 1)
 - Status: `100` (Completed)
 - **NO WEBHOOK SENT** - Unlike deposits, withdrawals do not trigger webhooks
 
 GateHub iframe processes the submission and responds with:
+
 - `event.data.type === 'WithdrawalCompleted'`
 - `event.data.uuid` (external transaction UUID from MockGateHub)
 
 ```tsx
 // Iframe handler listens for: event.data.type === 'WithdrawalCompleted'
-if (event.data.type === 'WithdrawalCompleted') {
-  const externalTransactionId = event.data.uuid
+if (event.data.type === "WithdrawalCompleted") {
+  const externalTransactionId = event.data.uuid;
   // Post form to /withdraw action with externalTransactionId
 }
 ```
@@ -131,10 +137,10 @@ The UI submits the withdrawal to the backend action handler:
 
 ```tsx
 // Form submission from withdraw.tsx
-post('/withdraw', {
-  provider: 'gatehub',
-  withdrawalId: event.data.uuid,  // External transaction ID from GateHub
-})
+post("/withdraw", {
+  provider: "gatehub",
+  withdrawalId: event.data.uuid, // External transaction ID from GateHub
+});
 ```
 
 **Backend RPC**: `CreateGatehubWithdrawal(externalTransactionId)`
@@ -155,24 +161,24 @@ sequenceDiagram
 
     Frontend->>GRPC: CreateGatehubWithdrawal(externalTransactionId)
     GRPC->>Ops: CreateWithdrawal(walletID, externalTransactionId)
-    
+
     Ops->>GH: GetTransaction(externalTransactionId)
     GH-->>Ops: {amount, fee, status, type, sendingWallet}
-    
+
     Ops->>Ops: validateWithdrawal()
     Note over Ops: Check: EUR, valid user, has balance account, correct wallet
-    
+
     Ops->>DB: CreateTransaction<br/>state=pending<br/>transfers=[debit balance]
     DB-->>Ops: transactionID
-    
+
     Ops->>Temporal: ExecuteWorkflow(ProcessGatehubWithdrawal, walletID, txID)
-    
+
     Temporal->>Ledger: ReserveBalance(amount+fee)
     Ledger-->>Temporal: reserved
-    
+
     Temporal->>GH: GetTransaction(externalID)
     GH-->>Temporal: status check
-    
+
     alt Status == Completed
         Temporal->>Ledger: FinalizeBalance(amount+fee)
         Ledger-->>Temporal: finalized
@@ -182,7 +188,7 @@ sequenceDiagram
         Temporal->>Ledger: RollbackReserve()
         Temporal->>DB: UpdateTransaction(failed)
     end
-    
+
     Ops-->>GRPC: transactionID
     GRPC-->>Frontend: {transactionId}
 ```
@@ -193,7 +199,7 @@ The operation fetches the transaction from GateHub and performs validation:
 
 ```go
 func validateWithdrawal(
-  ctx, backends, externalClient, 
+  ctx, backends, externalClient,
   walletID, externalTransactionID
 ) (amount, linkedAccount, fee, error)
 ```
@@ -208,12 +214,14 @@ func validateWithdrawal(
 6. **Withdrawal is from correct wallet**: `transaction.SendingWallet.Address == walletBalance.ProviderID`
 7. **Extract fee**: Parse `transaction.Fee` from GateHub response
 
-**Returns**: 
+**Returns**:
+
 - `Amount` (the withdrawal amount, scaled to currency precision)
-- `LinkedAccount` (the GateHub balance account to debit)  
+- `LinkedAccount` (the GateHub balance account to debit)
 - `Fee` (the GateHub transaction fee)
 
 **Failure Example**: User tries to withdraw but doesn't have a GateHub EUR Balance account
+
 ```
 Error: "Gatehub balance linked account not found"
 ```
@@ -244,6 +252,7 @@ db.CreateTransaction({
 ```
 
 **Key Fields**:
+
 - `ForeignID`: Links to GateHub's transaction ID for status polling
 - `ProviderFee`: Stores the GateHub fee (charged by GateHub, not the app)
 - `Transfers`: Contains debit operation (no credit transfer like P2P)
@@ -275,6 +284,7 @@ ReserveGatehubBalance(transactionID, walletID)
 ```
 
 **What happens**:
+
 - Look up transaction details from database
 - Extract amount and fee
 - Lock balance in Pacioli ledger: `reserve(amount + fee)` from user's EUR balance
@@ -289,12 +299,14 @@ CheckGatehubWithdrawalComplete(walletID, transactionID)
 ```
 
 **What happens**:
+
 - Fetch transaction status from GateHub: `GetTransaction(externalUserID, foreignID)`
 - Verify status == `100` (completed in GateHub)
 - If status is pending (1), throw error to retry
 - If status is failed (3), throw error to trigger failure handler
 
 **Polling Method**: This is a one-time check. The workflow assumes GateHub has processed the withdrawal by this point. In real GateHub:
+
 - Withdrawal submission to bank is immediate
 - Bank processing happens asynchronously
 - GateHub updates status when bank confirms
@@ -308,11 +320,13 @@ FinalizeGatehubBalance(transactionID, walletID)
 ```
 
 **What happens**:
+
 - Commit the reserved balance: Create Pacioli ledger "post" transfer
 - Move balance from "reserved" to "finalized"
 - User's EUR balance is now permanently reduced by (amount + fee)
 
 **Example**:
+
 ```
 Before: 1000.00 EUR reserved, 0 EUR finalized
 After:  0 EUR reserved, 1000.00 EUR finalized (committed)
@@ -325,18 +339,20 @@ UpdateGatehubWithdrawalState(walletID, transactionID, "completed")
 ```
 
 **What happens**:
+
 - Mark transaction as `completed` in database
 - Triggers balance display update in frontend
 
 **Error Handling**: If any phase fails, `handleFailedWithdrawal` is called:
+
 ```go
 func handleFailedWithdrawal(ctx, activity, walletID, txID) {
   // 1. Rollback reserved balance
   RollbackReserve(txID)
-  
+
   // 2. Update transaction to "failed"
   UpdateTransaction(txID, "failed")
-  
+
   // 3. Send notification (optional)
 }
 ```
@@ -348,39 +364,39 @@ Withdrawal progresses through these balance states:
 ```mermaid
 stateDiagram-v2
     [*] --> Unlocked: Before CreateWithdrawal
-    
+
     Unlocked --> Reserved: ReserveGatehubBalance<br/>Pacioli: lock amount+fee<br/>GateHub: unchanged
-    
+
     Reserved --> Checking: CheckGatehubWithdrawalComplete<br/>Poll GateHub status
-    
+
     Checking --> Checked: GateHub status==100
-    
+
     Checked --> Finalized: FinalizeGatehubBalance<br/>Pacioli: post(debit amount+fee)<br/>GateHub: debit happens externally
-    
+
     Finalized --> Completed: UpdateTransaction(completed)<br/>User sees reduced balance
-    
+
     Completed --> [*]
-    
+
     Checking --> Failed: GateHub not ready
     Failed --> RolledBack: RollbackReserve<br/>Pacioli: unlock
     RolledBack --> [*]
-    
+
     Checking --> Error: Network error
     Error --> RolledBack
 ```
 
 ## Key Differences from Deposits
 
-| Aspect | Withdrawal | Deposit |
-|--------|-----------|---------|
-| **Reserve Phase** | Required (prevent overdraft) | Not used |
-| **Webhook** | **❌ NONE** - Frontend-initiated RPC flow | ✅ Webhook drives completion |
-| **Provider API Call** | `GetTransaction` (validate status) | `POST /transactions` (create hosted) |
-| **Initiation** | User iframe → Frontend RPC → Backend | External source → Webhook → Backend |
-| **Receiver** | None (external account) | User's wallet (internal) |
-| **Total Amount** | amount + fee (what's debited) | amount only (fee is metadata) |
-| **Balance Change** | Immediate (post finalize) | Delayed (webhook triggers assign) |
-| **Timing** | Fast (mins to hours bank side) | Immediate (internal transfer) |
+| Aspect                | Withdrawal                                | Deposit                              |
+| --------------------- | ----------------------------------------- | ------------------------------------ |
+| **Reserve Phase**     | Required (prevent overdraft)              | Not used                             |
+| **Webhook**           | **❌ NONE** - Frontend-initiated RPC flow | ✅ Webhook drives completion         |
+| **Provider API Call** | `GetTransaction` (validate status)        | `POST /transactions` (create hosted) |
+| **Initiation**        | User iframe → Frontend RPC → Backend      | External source → Webhook → Backend  |
+| **Receiver**          | None (external account)                   | User's wallet (internal)             |
+| **Total Amount**      | amount + fee (what's debited)             | amount only (fee is metadata)        |
+| **Balance Change**    | Immediate (post finalize)                 | Delayed (webhook triggers assign)    |
+| **Timing**            | Fast (mins to hours bank side)            | Immediate (internal transfer)        |
 
 ## Database Schema
 
@@ -420,7 +436,7 @@ CREATE POST (debit) transfer:
   status: 'posted'
   timestamp: completion time
 
-Example: 
+Example:
   User balance: 1000.00 EUR
   Withdrawal: 50.00 EUR
   Fee: 1.00 EUR
@@ -444,8 +460,9 @@ fee, err := StringToScaledUInt(trx.Fee)  // "1.00" → 100 (scaled)
 ### Fee Display
 
 **Frontend** (hardcoded):
+
 ```tsx
-<span className='text-medium'>0.00</span>  // Always shows "0.00"
+<span className="text-medium">0.00</span> // Always shows "0.00"
 // Text: "For a limited time, the Interledger Wallet will absorb all fees"
 ```
 
@@ -454,6 +471,7 @@ Store the actual fee from GateHub in `transaction.provider_fee`. The fee is **no
 
 **Transaction Details** (accurate):
 Once completed, transaction detail screens show the actual fee:
+
 ```
 Withdrawal Amount: 50.00 EUR
 Fee: 1.00 EUR
@@ -464,11 +482,11 @@ Net Impact: -51.00 EUR
 
 GateHub transactions return these statuses:
 
-| Code | Meaning | Workflow Response |
-|------|---------|------------------|
-| `1` | Pending | Retry (workflow retries) |
-| `100` | Completed | Proceed to finalize |
-| `3` | Failed | Rollback and error |
+| Code  | Meaning   | Workflow Response        |
+| ----- | --------- | ------------------------ |
+| `1`   | Pending   | Retry (workflow retries) |
+| `100` | Completed | Proceed to finalize      |
+| `3`   | Failed    | Rollback and error       |
 
 **MockGateHub Default**: Creates transactions with status `100` immediately, simulating instant completion.
 
@@ -527,6 +545,7 @@ Response: 400 Bad Request
 MockGateHub provides the GateHub iframe widget for withdrawals, matching GateHub sandbox behavior:
 
 **Widget URL Format**:
+
 ```
 https://mockgatehub.interledger.test/?paymentType=withdrawal&bearer={token}
 ```
@@ -534,6 +553,7 @@ https://mockgatehub.interledger.test/?paymentType=withdrawal&bearer={token}
 **Backend RPC**: `GetGatehubWithdrawalWidget()` generates this URL with an authorization token.
 
 **Important**: The withdrawal iframe lets users enter:
+
 - Withdrawal amount
 - Destination bank account (IBAN/SWIFT) - managed by GateHub, NOT stored in Interledger App
 - Withdrawal confirmation
@@ -566,6 +586,7 @@ Unlike Ilp/PTI withdrawals, GateHub withdrawals work as follows:
 When the iframe submits a withdrawal via `/transaction/complete?paymentType=withdrawal`:
 
 **What MockGateHub Does**:
+
 1. Extracts user from bearer token
 2. Validates amount and currency
 3. Checks user has sufficient balance (amount + fee)
@@ -587,6 +608,7 @@ When the iframe submits a withdrawal via `/transaction/complete?paymentType=with
 7. Returns transaction ID to iframe
 
 **GetTransaction Response Format** (for backend validation):
+
 ```json
 {
   "uuid": "tx-uuid",
@@ -612,6 +634,7 @@ When the iframe submits a withdrawal via `/transaction/complete?paymentType=with
 ```
 
 **Critical Fields for Backend Validation**:
+
 - `type` must be `0` (backend checks `trx.Type != external.TransactionTypeWithdrawal`)
 - `vault.asset_code` must be `"EUR"` (backend checks currency)
 - `sending_wallet.address` must match user's GateHub wallet address
@@ -619,21 +642,25 @@ When the iframe submits a withdrawal via `/transaction/complete?paymentType=with
 
 ### Key Implementation Details
 
-**Transaction Type**: 
+**Transaction Type**:
+
 - Withdrawals use `type: 0` (TransactionTypeWithdrawal)
-- Deposits use `type: 1` (TransactionTypeDeposit)  
+- Deposits use `type: 1` (TransactionTypeDeposit)
 - Hosted transfers use `type: 2` (TransactionTypeHosted)
 
 **Status Code**:
+
 - Withdrawals complete immediately with status `100` (matching GateHub's completed state)
 - In real GateHub, status may progress through pending states (1) before completing
 
 **No Webhook Delivery**:
+
 - MockGateHub does NOT send `core.withdrawal.completed` webhook
 - This matches real GateHub behavior - withdrawals are frontend-initiated
 - Only deposits send webhooks (`core.deposit.completed`)
 
 **Response Format**:
+
 - Must include nested `vault` object with `asset_code` field
 - Must include `sending_wallet` and `receiving_wallet` objects
 - Backend validation fails if these nested objects are missing
@@ -643,6 +670,7 @@ When the iframe submits a withdrawal via `/transaction/complete?paymentType=with
 ### Manual Test Flow
 
 1. **Setup**:
+
    ```bash
    # Set withdrawal fee to 2%
    curl -X PUT http://localhost:8080/admin/fees \
@@ -651,24 +679,26 @@ When the iframe submits a withdrawal via `/transaction/complete?paymentType=with
    ```
 
 2. **Create User & Link Account**:
+
    ```bash
    # Create user
    curl -X POST http://localhost:8080/id/v1/users \
      -d '{"email": "user@example.com"}'
-   
+
    # Get onboarding widget
    curl http://localhost:8080/...?paymentType=onboarding
-   
+
    # Submit KYC via iframe
    curl -X POST http://localhost:8080/iframe/submit \
      -F "status=approved" \
      -F "user_id=..." \
      # User status becomes "accepted"
-   
+
    # Balance account auto-created via webhook
    ```
 
 3. **Create Withdrawal**:
+
    ```bash
    # Simulate GateHub withdrawal request
    curl -X POST http://localhost:8080/core/v1/transactions \
@@ -680,7 +710,7 @@ When the iframe submits a withdrawal via `/transaction/complete?paymentType=with
        "amount": 50.00,
        "currency": "EUR"
      }'
-   
+
    # Response:
    # {
    #   "uuid": "tx-uuid",
@@ -721,22 +751,27 @@ Feature: Withdrawal
 **Cause**: User is seeing the Ilp/PTI withdrawal form instead of the GateHub iframe
 
 **Root Causes**:
+
 1. **Wrong Provider**: User's wallet country is NOT in EU → Backend returns `provider: "interledger"` or `provider: "pti"`
 2. **Missing Country**: Wallet created without proper country code → Defaults to non-EU provider
 
 **Fix for EU Users**:
+
 1. Verify wallet country is set correctly in database (e.g., `"DE"` for Germany)
 2. Confirm `GetOnOffRampProvider()` returns `"gatehub"` for this user
-3. Check frontend loads `GatehubWithdrawalPage` (iframe) not `IlwWithdrawalPage` (form)4. Ensure user completed KYC and has EUR balance account
+3. Check frontend loads `GatehubWithdrawalPage` (iframe) not `IlwWithdrawalPage` (form)
+4. Ensure user completed KYC and has EUR balance account
 
 **Fix for Non-EU Users**:
 This is expected behavior! Non-EU users must:
+
 1. Navigate to `/accounts` page
 2. Click "Connect bank account"
-3. Follow bank linking flow (provider-specific: Plaid for PTI, manual for Ilf)
+3. Follow bank linking flow (provider-specific: Plaid for PTI, manual for Ilw)
 4. Return to withdrawal page - form will now show connected account
 
 **Debug**:
+
 ```bash
 # Check user's wallet country
 psql wallet_backend -c "
@@ -761,18 +796,21 @@ curl -H "Cookie: ory_kratos_session=..." \
 **Cause**: User hasn't completed GateHub onboarding workflow
 
 **When This Occurs**:
+
 - Frontend successfully loads GateHub iframe
 - User completes withdrawal in iframe
 - Frontend calls `CreateGatehubWithdrawal(txID)` on backend- Backend's `validateWithdrawal()` checks for EUR balance linked account
 - Check fails because KYC webhook never created the balance account
 
 **Fix**:
+
 1. User completes onboarding on GateHub widget
 2. System receives `id.verification.accepted` webhook
 3. Workflow `LinkGatehubUserToGateway` creates EUR balance account
 4. Retry withdrawal
 
 **Debug**:
+
 ```bash
 # Check linked accounts
 curl http://localhost:status/admin/wallets/{wallet_id}/linked_accounts
@@ -786,6 +824,7 @@ curl http://localhost/admin/linked_accounts?wallet_id={wallet_id}&provider=gateh
 **Cause**: MockGateHub created transaction with wrong type
 
 **Symptoms**:
+
 ```
 backend: "gatehub: internal error Transaction is not a withdrawal"
 ```
@@ -793,6 +832,7 @@ backend: "gatehub: internal error Transaction is not a withdrawal"
 **Root Cause**: Transaction created with `type: 1` (Deposit) instead of `type: 0` (Withdrawal)
 
 **Fix**: Verify MockGateHub creates withdrawals with correct type:
+
 ```bash
 # Check transaction type in MockGateHub
 curl http://localhost:8080/core/v1/transactions/{tx_uuid} | jq '.type'
@@ -804,6 +844,7 @@ curl http://localhost:8080/core/v1/transactions/{tx_uuid} | jq '.type'
 **Cause**: Transaction response missing nested `vault.asset_code` field
 
 **Symptoms**:
+
 ```
 backend: "gatehub: internal error Invalid currency"
 ```
@@ -811,6 +852,7 @@ backend: "gatehub: internal error Invalid currency"
 **Root Cause**: Backend expects `trx.Vault.AssetCode` but MockGateHub returned flat structure
 
 **Fix**: Verify GetTransaction response includes:
+
 ```json
 {
   "vault": {
@@ -825,11 +867,13 @@ backend: "gatehub: internal error Invalid currency"
 **Cause**: GateHub transaction status not returning 100
 
 **Fix**:
+
 1. Verify MockGateHub returns `status: 100` in GetTransaction response
 2. Check Temporal workflow logs for GetGatehubTransfer activity
 3. For production GateHub, withdrawal may genuinely be pending (bank processing)
 
 **Debug**:
+
 ```bash
 # Check transaction status in MockGateHub
 curl http://localhost:8080/core/v1/transactions/{tx_uuid}
@@ -843,6 +887,7 @@ temporal workflow describe --workflow-id "gatehub_create_withdrawal_{tx_id}"
 **Cause**: MockGateHub incorrectly sending withdrawal webhook
 
 **Symptoms**:
+
 ```
 backend: "Activity error: Transaction not found"
 backend: "Activity error: Gatehub withdrawal not found"
@@ -857,21 +902,23 @@ backend: "Activity error: Gatehub withdrawal not found"
 **Cause**: Workflow completed but balance not debited
 
 **Possible reasons**:
+
 1. Database transaction not committed
 2. Pacioli post transfer failed
 3. Transaction state not updated to "completed"
 
 **Debug**:
+
 ```bash
 # Check transaction state in database
 psql wallet_backend -c "
-  SELECT id, state, provider_fee FROM transactions 
+  SELECT id, state, provider_fee FROM transactions
   WHERE id = '{tx_id}';"
 
 # Check Pacioli ledger for debit post
 psql wallet_backend -c "
-  SELECT * FROM accounts 
-  WHERE user_id = '{wallet_id}' 
+  SELECT * FROM accounts
+  WHERE user_id = '{wallet_id}'
   AND currency = 'EUR';"
 
 # Check workflow execution
@@ -882,16 +929,16 @@ temporal workflow describe --workflow-id "gatehub_create_withdrawal_{tx_id}"
 
 MockGateHub simplifies withdrawal processing for local development:
 
-| Aspect | Real GateHub | MockGateHub |
-|--------|------------|-------------|
-| **Processing Time** | Minutes to hours (bank dependent) | Instant |
-| **Fee Variability** | Per-transaction, per-bank | Fixed percentage |
-| **Status Progression** | 1 → (pending states) → 100 | Immediately 100 |
-| **Webhook Delivery** | **\u274c None for withdrawals** | **\u274c None** (\u2705 Matches real behavior) |
-| **Bank Validation** | Real bank account verification | Simulated |
-| **Transaction Type** | Type `0` for withdrawals | Type `0` (\u2705 Correct) |
-| **Response Format** | Nested vault/wallet objects | Nested objects (\u2705 Correct) |
-| **Error Handling** | Real bank errors (IBAN invalid, etc.) | Simplified |
+| Aspect                 | Real GateHub                          | MockGateHub                                    |
+| ---------------------- | ------------------------------------- | ---------------------------------------------- |
+| **Processing Time**    | Minutes to hours (bank dependent)     | Instant                                        |
+| **Fee Variability**    | Per-transaction, per-bank             | Fixed percentage                               |
+| **Status Progression** | 1 → (pending states) → 100            | Immediately 100                                |
+| **Webhook Delivery**   | **\u274c None for withdrawals**       | **\u274c None** (\u2705 Matches real behavior) |
+| **Bank Validation**    | Real bank account verification        | Simulated                                      |
+| **Transaction Type**   | Type `0` for withdrawals              | Type `0` (\u2705 Correct)                      |
+| **Response Format**    | Nested vault/wallet objects           | Nested objects (\u2705 Correct)                |
+| **Error Handling**     | Real bank errors (IBAN invalid, etc.) | Simplified                                     |
 
 **Key Learning**: During development (Feb 18, 2026), MockGateHub initially sent `core.withdrawal.completed` webhooks, but this was incorrect. Real GateHub does NOT send withdrawal webhooks - the flow is entirely frontend-initiated via RPC. Sending webhooks caused race conditions where the workflow started before the database transaction existed.
 
@@ -910,4 +957,5 @@ MockGateHub simplifies withdrawal processing for local development:
 **Related Documents**: [gatehub-payments.md](gatehub-payments.md), [gatehub-transaction-fees.md](gatehub-transaction-fees.md)
 
 **Recent Updates**:
+
 - **Feb 18, 2026**: Documented critical webhook behavior (withdrawals do NOT send webhooks), correct transaction type (0 not 1), and proper response format with nested objects. Added troubleshooting for common implementation errors discovered during E2E test debugging.
