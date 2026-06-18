@@ -84,7 +84,7 @@ if (data.linkedAccounts.length === 0)
 
 **GateHub**: External bank accounts are managed entirely within GateHub's system. Users configure withdrawal destinations (IBAN, SWIFT, etc.) through the GateHub withdrawal iframe itself. The Interledger App does NOT need to store or manage these bank account details.
 
-**Ilp/PTI**: Users must link their bank accounts in the Interledger App first (via `/accounts` page). These linked accounts are stored in the `linked_accounts` table and used as withdrawal destinations.
+**Ilw/PTI**: Users must link their bank accounts in the Interledger App first (via `/accounts` page). These linked accounts are stored in the `linked_accounts` table and used as withdrawal destinations.
 
 ### Step 1: Load Withdrawal Page
 
@@ -562,7 +562,7 @@ Once submitted, the iframe posts `{ type: 'WithdrawalCompleted', uuid: 'tx-id' }
 
 ### Withdrawal Flow Without Bank Account Linking
 
-Unlike Ilp/PTI withdrawals, GateHub withdrawals work as follows:
+Unlike Ilw/PTI withdrawals, GateHub withdrawals work as follows:
 
 1. Frontend loads GateHub withdrawal iframe (token-authenticated)
 2. User enters amount and selects/enters destination bank account **inside the iframe**
@@ -748,7 +748,7 @@ Feature: Withdrawal
 
 ### Issue: "To withdraw from your balance, first connect a bank account"
 
-**Cause**: User is seeing the Ilp/PTI withdrawal form instead of the GateHub iframe
+**Cause**: User is seeing the Ilw/PTI withdrawal form instead of the GateHub iframe
 
 **Root Causes**:
 
