@@ -69,7 +69,7 @@ services:
       - PORT=${BACKEND_PORT:-8080}
 
       # Data stores
-      - VALKEY_URL=${BACKEND_VALKEY_URL:-valkey://valkey:6379/0}
+      - VALKEY_URL=${BACKEND_VALKEY_URL:-valkey://valkey:6379/2}
       - DB_URL=${BACKEND_DB_URL:-postgres://postgres:postgres@postgres:5432/backend?sslmode=disable}
       - DB_URL_WITH_CERTS=${BACKEND_DB_URL_WITH_CERTS:-postgres://postgres:postgres@postgres:5432/backend?sslmode=disable}
       - PACIOLI_DB_URL=${BACKEND_PACIOLI_DB_URL:-postgres://postgres:postgres@postgres:5432/pacioli?sslmode=disable}
