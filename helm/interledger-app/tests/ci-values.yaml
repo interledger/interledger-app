@@ -22,6 +22,8 @@ backend:
       enabled: "false"
     pti:
       enabled: "false"
+    sendgrid:
+      support_email: "support@ci.interledger.example"
 
 frontend:
   config:
