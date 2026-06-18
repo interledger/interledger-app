@@ -62,12 +62,11 @@ func SetKYCStatusWorkflow(ctx workflow.Context, args SetKYCStatusWorkflowArgs) e
 	} else if oldStatus != kyc.StatusDocumentsRequired && status == kyc.StatusDocumentsRequired {
 		_ = workflow.ExecuteActivity(ctx, a.SendKYCDocumentsRequiredEmail, walletID).Get(ctx, nil)
 	} else if oldStatus != kyc.StatusLevel1 && oldStatus != kyc.StatusLevel2 && (status == kyc.StatusLevel1 || status == kyc.StatusLevel2) {
-		_ = workflow.ExecuteActivity(ctx, a.SendApprovedEmail, walletID).Get(ctx, nil)
-
 		err = workflow.ExecuteActivity(ctx, a.CreateKYCWallets, walletID).Get(ctx, nil)
 		if err != nil {
 			return err
 		}
+		_ = workflow.ExecuteActivity(ctx, a.SendApprovedEmail, walletID).Get(ctx, nil)
 	}
 
 	err = workflow.ExecuteActivity(ctx, a.UpdateRafikiStatus, walletID, status).Get(ctx, nil)
