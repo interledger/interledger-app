@@ -12,10 +12,10 @@ import { grpc } from '~/lib/grpc.server'
 import { KRATOS_URL } from '~/lib/kratos/kratos-client.server'
 import { mergeMeta } from '~/lib/meta'
 import styles from '~/styles/flags.css?url'
-import { ilpDepositAction, xagoTestAccountDepositAction } from './action.server'
+import { ilwDepositAction, xagoTestAccountDepositAction } from './action.server'
 import { GatehubDepositPage } from './gatehub'
-import { IlpDepositPage } from './ilp'
-import { gatehubDepositLoader, ilpDepositLoader } from './loader.server'
+import { IlwDepositPage } from './ilw'
+import { gatehubDepositLoader, ilwDepositLoader } from './loader.server'
 
 export async function loader(args: LoaderFunctionArgs) {
   const session = await fetch(`${KRATOS_URL}/sessions/whoami`, {
@@ -28,7 +28,7 @@ export async function loader(args: LoaderFunctionArgs) {
   if (isConnectError(providerResponse)) throw providerResponse.errorResponse
   if (providerResponse.provider == 'gatehub') {
     return gatehubDepositLoader(args)
-  } else return ilpDepositLoader(args)
+  } else return ilwDepositLoader(args)
 }
 
 export const handle: ApplicationProps = {
@@ -58,7 +58,7 @@ export default function Page() {
     return <GatehubDepositPage />
   }
 
-  return <IlpDepositPage />
+  return <IlwDepositPage />
 }
 
 export async function action(args: ActionFunctionArgs) {
@@ -69,5 +69,5 @@ export async function action(args: ActionFunctionArgs) {
   if (formName === 'xago-test-account-deposit') {
     return xagoTestAccountDepositAction(args)
   }
-  return ilpDepositAction(args)
+  return ilwDepositAction(args)
 }

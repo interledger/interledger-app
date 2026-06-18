@@ -46,7 +46,7 @@ if country.EUCountries[w.Country] {
 
 **Frontend Behavior**:
 - `provider == "gatehub"` → Loads GateHub iframe widget (`GatehubWithdrawalPage`)
-- Other providers → Loads frontend form (`IlpWithdrawalPage`) which checks for linked bank accounts
+- Other providers → Loads frontend form (`IlwWithdrawalPage`) which checks for linked bank accounts
 
 ```tsx
 // typescript/protea/app/routes/withdraw.tsx
@@ -727,7 +727,7 @@ Feature: Withdrawal
 **Fix for EU Users**:
 1. Verify wallet country is set correctly in database (e.g., `"DE"` for Germany)
 2. Confirm `GetOnOffRampProvider()` returns `"gatehub"` for this user
-3. Check frontend loads `GatehubWithdrawalPage` (iframe) not `IlpWithdrawalPage` (form)4. Ensure user completed KYC and has EUR balance account
+3. Check frontend loads `GatehubWithdrawalPage` (iframe) not `IlwWithdrawalPage` (form)4. Ensure user completed KYC and has EUR balance account
 
 **Fix for Non-EU Users**:
 This is expected behavior! Non-EU users must:
