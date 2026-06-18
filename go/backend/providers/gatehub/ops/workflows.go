@@ -259,7 +259,6 @@ func NotifyWithdrawalSCTITimeoutWorkflow(ctx workflow.Context, wh MoreBridgeWith
 	return nil
 }
 
-
 func CompleteGatehubWithdrawalWorkflow(ctx workflow.Context, userID, externalTxID string) error {
 	var a *Activity
 	ao := workflow.ActivityOptions{
@@ -344,10 +343,11 @@ func NotifyWithdrawalReroutedWorkflow(ctx workflow.Context, wh MoreBridgeWithdra
 		return err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.SendWithdrawalSCTITimeoutEmail, tx.ID, walletID).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.SendWithdrawalReroutedEmail, tx.ID, walletID).Get(ctx, nil)
 	if err != nil {
 		return err
 	}
 
 	return nil
 }
+
