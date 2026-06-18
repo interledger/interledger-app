@@ -483,3 +483,97 @@ func (sc *E2EContext) anAuthenticatorResetAuditLogEntryShouldExist() error {
 	debugPrintf("✓ Found %d authenticator reset audit log entry(ies) for wallet %s\n", count, details.ID)
 	return nil
 }
+
+// Exact-text anchor avoids prefix collisions (e.g. cardsEnabled vs addCardsEnabled).
+func (sc *E2EContext) featureToggleSwitch(featureKey string) playwright.Locator {
+	selector := fmt.Sprintf(
+		`div:has(> dt:text-is("%s")) button[role="switch"]`,
+		featureKey,
+	)
+	return sc.page.Locator(selector).First()
+}
+
+func (sc *E2EContext) theFeatureToggleShouldBe(featureKey, expectedState string) error {
+	want := "false"
+	if expectedState == "on" {
+		want = "true"
+	}
+
+	toggle := sc.featureToggleSwitch(featureKey)
+	if err := toggle.WaitFor(playwright.LocatorWaitForOptions{
+		State:   playwright.WaitForSelectorStateVisible,
+		Timeout: playwright.Float(5000),
+	}); err != nil {
+		return fmt.Errorf("feature toggle %q not visible: %w", featureKey, err)
+	}
+
+	got, err := toggle.GetAttribute("aria-checked")
+	if err != nil {
+		return fmt.Errorf("failed to read aria-checked for %q: %w", featureKey, err)
+	}
+	if got != want {
+		return fmt.Errorf("expected feature %q to be %s (aria-checked=%s), got aria-checked=%s",
+			featureKey, expectedState, want, got)
+	}
+	debugPrintf("✓ Feature toggle %q is %s\n", featureKey, expectedState)
+	return nil
+}
+
+// Poll aria-checked: the Switch only flips once the useFetcher round-trip lands.
+func (sc *E2EContext) iToggleTheFeatureOn(featureKey string) error {
+	toggle := sc.featureToggleSwitch(featureKey)
+
+	got, err := toggle.GetAttribute("aria-checked")
+	if err != nil {
+		return fmt.Errorf("failed to read aria-checked for %q: %w", featureKey, err)
+	}
+	if got == "true" {
+		debugPrintf("✓ Feature %q already on; nothing to toggle\n", featureKey)
+		return nil
+	}
+
+	if err := toggle.Click(playwright.LocatorClickOptions{
+		Timeout: playwright.Float(5000),
+	}); err != nil {
+		return fmt.Errorf("failed to click toggle for %q: %w", featureKey, err)
+	}
+
+	// Wait for the DB round-trip to land.
+	deadline := time.Now().Add(10 * time.Second)
+	for time.Now().Before(deadline) {
+		got, err := toggle.GetAttribute("aria-checked")
+		if err == nil && got == "true" {
+			debugPrintf("✓ Feature %q toggled on\n", featureKey)
+			return nil
+		}
+		time.Sleep(250 * time.Millisecond)
+	}
+	return fmt.Errorf("feature %q did not settle to aria-checked=true within 10s", featureKey)
+}
+
+func (sc *E2EContext) theFeatureShouldBeEnabledInTheDatabase(featureKey string) error {
+	walletID, err := sc.resolveCurrentWalletID()
+	if err != nil {
+		return err
+	}
+
+	column, ok := featureKeyToColumn[featureKey]
+	if !ok {
+		return fmt.Errorf("no DB column mapping for feature key %q", featureKey)
+	}
+
+	val, err := sc.getWalletFeatureBool(walletID, column)
+	if err != nil {
+		return fmt.Errorf("failed to read %s for wallet %s: %w", column, walletID, err)
+	}
+	if !val {
+		return fmt.Errorf("expected %s=true for wallet %s, got false", column, walletID)
+	}
+	debugPrintf("✓ DB confirms %s=true for wallet %s\n", column, walletID)
+	return nil
+}
+
+// Proto JSON keys (UI labels) → wallet_features columns.
+var featureKeyToColumn = map[string]string{
+	"deleteAccountEnabled": "delete_account_enabled",
+}

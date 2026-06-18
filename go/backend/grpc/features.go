@@ -35,5 +35,6 @@ func (s *rpcService) ListFeatures(ctx context.Context, _ *pb.Empty) (*pb.Feature
 		ManageWalletCardsEnabled: feat.ManageWalletCardsEnabled,
 		AccountEnabled:           feat.AccountEnabled,
 		AccountsTabEnabled:       feat.AccountsTabEnabled,
+		DeleteAccountEnabled:     feat.DeleteAccountEnabled,
 	}, nil
 }

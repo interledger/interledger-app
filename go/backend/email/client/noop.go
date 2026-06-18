@@ -71,6 +71,11 @@ func (n *noopClient) SendKYCDocumentsRequiredEmail(_ context.Context, walletID s
 	log.Info("NOT SENDING: KYC documents required email", zap.String("walletID", walletID))
 }
 
+func (n *noopClient) SendAccountDeletionRequested(_ context.Context, userID string) error {
+	log.Info("NOT SENDING: account deletion notification to support", zap.String("userID", userID))
+	return nil
+}
+
 func (n *noopClient) SendAuthenticatorResetEmail(_ context.Context, walletID string) {
 	log.Info("NOT SENDING: authenticator reset email", zap.String("walletID", walletID))
 }
