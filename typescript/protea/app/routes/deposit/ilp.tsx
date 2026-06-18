@@ -212,8 +212,7 @@ const Amount = () => {
 }
 
 export function DepositDetails() {
-  const { depositDetails, csrfToken } =
-    useLoaderData<typeof ilpDepositLoader>()
+  const { depositDetails, csrfToken } = useLoaderData<typeof ilpDepositLoader>()
   const { env } = useRouteLoaderData('root') as RootLoaderData
 
   return (

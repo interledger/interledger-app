@@ -12,13 +12,10 @@ import { grpc } from '~/lib/grpc.server'
 import { KRATOS_URL } from '~/lib/kratos/kratos-client.server'
 import { mergeMeta } from '~/lib/meta'
 import styles from '~/styles/flags.css?url'
-import {
-  ilpDepositAction,
-  xagoTestAccountDepositAction
-} from './action.server'
-import { IlpDepositPage } from './ilp'
+import { ilpDepositAction, xagoTestAccountDepositAction } from './action.server'
 import { GatehubDepositPage } from './gatehub'
-import { ilpDepositLoader, gatehubDepositLoader } from './loader.server'
+import { IlpDepositPage } from './ilp'
+import { gatehubDepositLoader, ilpDepositLoader } from './loader.server'
 
 export async function loader(args: LoaderFunctionArgs) {
   const session = await fetch(`${KRATOS_URL}/sessions/whoami`, {
