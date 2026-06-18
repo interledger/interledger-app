@@ -565,6 +565,71 @@ func SendKYCDocumentsRequiredEmail(ctx context.Context, b Backends, walletID str
 	}
 }
 
+func SendAccountDeletionRequestedEmail(ctx context.Context, b Backends, userID string) error {
+	support := strings.TrimSpace(b.SupportEmail())
+	if support == "" {
+		return email.ErrSupportInboxNotConfigured
+	}
+
+	u, err := b.Users().GetUser(ctx, userID)
+	if err != nil {
+		return fmt.Errorf("%w: %w", email.ErrInternal, err)
+	}
+
+	userWallets, err := b.Wallets().List(ctx, userID)
+	if err != nil {
+		return fmt.Errorf("%w: %w", email.ErrInternal, err)
+	}
+
+	paragraphs := []string{
+		"A user requested app account deletion.",
+		"Environment: " + env.GetEnv(),
+		"User ID: " + u.ID,
+		"Email: " + strings.TrimSpace(u.Email),
+		fmt.Sprintf("Wallet count: %d", len(userWallets)),
+	}
+	for _, w := range userWallets {
+		paragraphs = append(paragraphs, "Wallet ID: "+w.ID)
+	}
+
+	sendTo := []sendgrid.Email{{Name: "Support", Address: support}}
+	subject := "[" + env.GetEnv() + "] Account deletion requested — user " + userID
+	supportData := make([]map[string]interface{}, 0, len(paragraphs))
+	for _, p := range paragraphs {
+		supportData = append(supportData, map[string]interface{}{"paragraph": p})
+	}
+	if err := b.External().SendTemplate(ctx, subject, sendTo, b.OneTemplateID(), map[string]interface{}{
+		"subject": subject,
+		"data":    supportData,
+	}, nil); err != nil {
+		return fmt.Errorf("%w: %w", email.ErrInternal, err)
+	}
+
+	// User-facing acknowledgement is courtesy only — log failures, don't fail the RPC.
+	if strings.TrimSpace(u.Email) == "" {
+		log.Warn("skipping account deletion confirmation email; user has no address on file",
+			zap.String("userID", userID))
+		return nil
+	}
+	name := strings.TrimSpace(u.FirstName + " " + u.LastName)
+	confirmTo := []sendgrid.Email{{Name: name, Address: u.Email}}
+	confirmSubject := "We've received your account deletion request"
+	userData := []map[string]interface{}{
+		{"paragraph": "We've received your request to delete your account."},
+		{"paragraph": "If you still have funds in your account, please withdraw them within the next 2–3 days."},
+		{"paragraph": "Our support team will let you know when the process starts."},
+	}
+	if err := b.External().SendTemplate(ctx, confirmSubject, confirmTo, b.OneTemplateID(), map[string]interface{}{
+		"subject": confirmSubject,
+		"data":    userData,
+	}, nil); err != nil {
+		log.Error("Failed to send account deletion confirmation email to user.",
+			zap.Error(err),
+			zap.String("userID", userID))
+	}
+	return nil
+}
+
 func SendAuthenticatorResetEmail(ctx context.Context, b Backends, walletID string) {
 	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
 	if err != nil {

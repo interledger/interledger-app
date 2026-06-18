@@ -17,6 +17,8 @@ message PaginationRequest {
 
 message Empty {}
 
+message RequestAccountDeletionRequest {}
+
 service BackendService {
   rpc UpdateIndividualKYC(UpdateIndividualKYCRequest) returns (Empty);
   rpc GetIndividualKYC(Empty) returns (IndividualKYCResponse);
@@ -172,6 +174,11 @@ service BackendService {
   rpc BlockCard(BlockCardRequest) returns (Empty);
   rpc GetPendingThreeDSConfirmations(Empty) returns (GetPendingThreeDSConfirmationsResponse);
   rpc ThreeDSPaymentConfirmation(ThreeDSPaymentConfirmationRequest) returns (Empty);
+
+  // Records a pending account-deletion request; requires AAL2 + TOTP enrolled.
+  rpc RequestAccountDeletion(RequestAccountDeletionRequest) returns (Empty);
+  // Returns whether the authenticated user has a pending account deletion request.
+  rpc GetAccountDeletionStatus(Empty) returns (AccountDeletionStatus);
 
   // Phone confirmation
   rpc ConfirmUserPhone(ConfirmUserPhoneRequest) returns (Empty);
@@ -784,6 +791,7 @@ message Features {
   bool manageWalletCardsEnabled = 11;
   bool accountEnabled = 12;
   bool accountsTabEnabled = 13;
+  bool deleteAccountEnabled = 14;
 }
 
 message CreateCardRequest {
@@ -938,6 +946,20 @@ message Signup {
   string userId = 7;
   bool completed = 8;
 }
+
+enum AccountDeletionRequestStatus {
+  ACCOUNT_DELETION_REQUEST_STATUS_UNSPECIFIED = 0;
+  ACCOUNT_DELETION_REQUEST_STATUS_PENDING = 1;
+  ACCOUNT_DELETION_REQUEST_STATUS_IN_PROGRESS = 2;
+  ACCOUNT_DELETION_REQUEST_STATUS_COMPLETED = 3;
+}
+
+message AccountDeletionStatus {
+  AccountDeletionRequestStatus status = 1;
+  optional google.protobuf.Timestamp created_at = 2;
+  optional google.protobuf.Timestamp updated_at = 3;
+}
+
 
 message CompleteSignupRequest {
   string id = 1;

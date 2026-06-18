@@ -124,6 +124,8 @@ const (
 	BackendService_BlockCard_FullMethodName                      = "/backend.v1.BackendService/BlockCard"
 	BackendService_GetPendingThreeDSConfirmations_FullMethodName = "/backend.v1.BackendService/GetPendingThreeDSConfirmations"
 	BackendService_ThreeDSPaymentConfirmation_FullMethodName     = "/backend.v1.BackendService/ThreeDSPaymentConfirmation"
+	BackendService_RequestAccountDeletion_FullMethodName         = "/backend.v1.BackendService/RequestAccountDeletion"
+	BackendService_GetAccountDeletionStatus_FullMethodName       = "/backend.v1.BackendService/GetAccountDeletionStatus"
 	BackendService_ConfirmUserPhone_FullMethodName               = "/backend.v1.BackendService/ConfirmUserPhone"
 	BackendService_UpdateUserPhone_FullMethodName                = "/backend.v1.BackendService/UpdateUserPhone"
 )
@@ -263,6 +265,10 @@ type BackendServiceClient interface {
 	BlockCard(ctx context.Context, in *BlockCardRequest, opts ...grpc.CallOption) (*Empty, error)
 	GetPendingThreeDSConfirmations(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetPendingThreeDSConfirmationsResponse, error)
 	ThreeDSPaymentConfirmation(ctx context.Context, in *ThreeDSPaymentConfirmationRequest, opts ...grpc.CallOption) (*Empty, error)
+	// Records a pending account-deletion request; requires AAL2 + TOTP enrolled.
+	RequestAccountDeletion(ctx context.Context, in *RequestAccountDeletionRequest, opts ...grpc.CallOption) (*Empty, error)
+	// Returns whether the authenticated user has a pending account deletion request.
+	GetAccountDeletionStatus(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*AccountDeletionStatus, error)
 	// Phone confirmation
 	ConfirmUserPhone(ctx context.Context, in *ConfirmUserPhoneRequest, opts ...grpc.CallOption) (*Empty, error)
 	UpdateUserPhone(ctx context.Context, in *UpdateUserPhoneRequest, opts ...grpc.CallOption) (*Empty, error)
@@ -1326,6 +1332,26 @@ func (c *backendServiceClient) ThreeDSPaymentConfirmation(ctx context.Context, i
 	return out, nil
 }
 
+func (c *backendServiceClient) RequestAccountDeletion(ctx context.Context, in *RequestAccountDeletionRequest, opts ...grpc.CallOption) (*Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, BackendService_RequestAccountDeletion_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) GetAccountDeletionStatus(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*AccountDeletionStatus, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AccountDeletionStatus)
+	err := c.cc.Invoke(ctx, BackendService_GetAccountDeletionStatus_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *backendServiceClient) ConfirmUserPhone(ctx context.Context, in *ConfirmUserPhoneRequest, opts ...grpc.CallOption) (*Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Empty)
@@ -1481,6 +1507,10 @@ type BackendServiceServer interface {
 	BlockCard(context.Context, *BlockCardRequest) (*Empty, error)
 	GetPendingThreeDSConfirmations(context.Context, *Empty) (*GetPendingThreeDSConfirmationsResponse, error)
 	ThreeDSPaymentConfirmation(context.Context, *ThreeDSPaymentConfirmationRequest) (*Empty, error)
+	// Records a pending account-deletion request; requires AAL2 + TOTP enrolled.
+	RequestAccountDeletion(context.Context, *RequestAccountDeletionRequest) (*Empty, error)
+	// Returns whether the authenticated user has a pending account deletion request.
+	GetAccountDeletionStatus(context.Context, *Empty) (*AccountDeletionStatus, error)
 	// Phone confirmation
 	ConfirmUserPhone(context.Context, *ConfirmUserPhoneRequest) (*Empty, error)
 	UpdateUserPhone(context.Context, *UpdateUserPhoneRequest) (*Empty, error)
@@ -1807,6 +1837,12 @@ func (UnimplementedBackendServiceServer) GetPendingThreeDSConfirmations(context.
 }
 func (UnimplementedBackendServiceServer) ThreeDSPaymentConfirmation(context.Context, *ThreeDSPaymentConfirmationRequest) (*Empty, error) {
 	return nil, status.Error(codes.Unimplemented, "method ThreeDSPaymentConfirmation not implemented")
+}
+func (UnimplementedBackendServiceServer) RequestAccountDeletion(context.Context, *RequestAccountDeletionRequest) (*Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method RequestAccountDeletion not implemented")
+}
+func (UnimplementedBackendServiceServer) GetAccountDeletionStatus(context.Context, *Empty) (*AccountDeletionStatus, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetAccountDeletionStatus not implemented")
 }
 func (UnimplementedBackendServiceServer) ConfirmUserPhone(context.Context, *ConfirmUserPhoneRequest) (*Empty, error) {
 	return nil, status.Error(codes.Unimplemented, "method ConfirmUserPhone not implemented")
@@ -3724,6 +3760,42 @@ func _BackendService_ThreeDSPaymentConfirmation_Handler(srv interface{}, ctx con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_RequestAccountDeletion_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RequestAccountDeletionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).RequestAccountDeletion(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_RequestAccountDeletion_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).RequestAccountDeletion(ctx, req.(*RequestAccountDeletionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_GetAccountDeletionStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).GetAccountDeletionStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_GetAccountDeletionStatus_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).GetAccountDeletionStatus(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _BackendService_ConfirmUserPhone_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ConfirmUserPhoneRequest)
 	if err := dec(in); err != nil {
@@ -4186,6 +4258,14 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ThreeDSPaymentConfirmation",
 			Handler:    _BackendService_ThreeDSPaymentConfirmation_Handler,
+		},
+		{
+			MethodName: "RequestAccountDeletion",
+			Handler:    _BackendService_RequestAccountDeletion_Handler,
+		},
+		{
+			MethodName: "GetAccountDeletionStatus",
+			Handler:    _BackendService_GetAccountDeletionStatus_Handler,
 		},
 		{
 			MethodName: "ConfirmUserPhone",
