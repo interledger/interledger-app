@@ -43,6 +43,8 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/golang/mock/gomock"
+	"github.com/interledger/interledger-app/go/backend/accountdeletion"
+	accountdeletion_mock "github.com/interledger/interledger-app/go/backend/accountdeletion/client/mock"
 	"github.com/interledger/interledger-app/go/backend/admin/auth"
 	"github.com/interledger/interledger-app/go/backend/agreements"
 	agreements_mock "github.com/interledger/interledger-app/go/backend/agreements/client/mock"
@@ -57,7 +59,6 @@ import (
 	transactions_mock "github.com/interledger/interledger-app/go/backend/transactions/client/mock"
 	"github.com/interledger/interledger-app/go/backend/twilio"
 	twitter_mock "github.com/interledger/interledger-app/go/backend/twitter/client/mock"
-	"github.com/interledger/interledger-app/go/backend/user"
 	_user "github.com/interledger/interledger-app/go/backend/user"
 	user_mock "github.com/interledger/interledger-app/go/backend/user/client/mock"
 	test_utils "github.com/interledger/interledger-app/go/backend/utils"
@@ -71,25 +72,26 @@ import (
 )
 
 type TestContainer struct {
-	HealthService      healthcheck.Service
-	AgreementsService  *agreements_mock.MockClient
-	AdminAuthService   auth.Service
-	UserService        user.Client
-	linkedaccounts     *linked_accounts_mock.MockClient
-	TwilioService      *twilio.MockService
-	SignupService      *signup_mock.MockClient
-	WaitlistClient     *waitlist_mock.MockClient
-	TemporalImpl       *mocks.Client
-	KYCClient          *kyc_mock.MockClient
-	EmailClient        *email_mock.MockClient
-	TransactionsClient *transactions_mock.MockClient
-	AnalyticsClient    analytics.Client
-	ContactsClient     *contacts_mock.MockClient
-	limits             *limit_mock.MockClient
-	keys               *keys_mock.MockClient
-	TwitterClient      *twitter_mock.MockClient
-	walletImpl         *wallets_mock.MockClient
-	rafiki             *rafiki_mock.MockClient
+	HealthService         healthcheck.Service
+	AgreementsService     *agreements_mock.MockClient
+	AdminAuthService      auth.Service
+	UserService           *user_mock.MockClient
+	linkedaccounts        *linked_accounts_mock.MockClient
+	TwilioService         *twilio.MockService
+	SignupService         *signup_mock.MockClient
+	WaitlistClient        *waitlist_mock.MockClient
+	TemporalImpl          *mocks.Client
+	KYCClient             *kyc_mock.MockClient
+	EmailClient           *email_mock.MockClient
+	TransactionsClient    *transactions_mock.MockClient
+	AnalyticsClient       analytics.Client
+	ContactsClient        *contacts_mock.MockClient
+	limits                *limit_mock.MockClient
+	keys                  *keys_mock.MockClient
+	TwitterClient         *twitter_mock.MockClient
+	walletImpl            *wallets_mock.MockClient
+	rafiki                *rafiki_mock.MockClient
+	AccountDeletionClient *accountdeletion_mock.MockClient
 }
 
 func (t TestContainer) Xago() xago.Client {
@@ -208,6 +210,10 @@ func (t TestContainer) Chimoney() chimoney.Client {
 	return nil
 }
 
+func (t TestContainer) AccountDeletion() accountdeletion.Client {
+	return t.AccountDeletionClient
+}
+
 type TestContainerOption func(*TestContainer)
 
 func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContainerOption) *TestContainer {
@@ -220,24 +226,26 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 		t.Fatal(err)
 	}
 	c := &TestContainer{
-		HealthService:      hs,
-		AgreementsService:  agreements_mock.NewMockClient(ctrl),
-		AdminAuthService:   auth.NewMockService(),
-		UserService:        user_mock.NewMock(),
-		linkedaccounts:     linked_accounts_mock.NewMockClient(ctrl),
-		TwilioService:      twilio.NewMockService(ctrl),
-		SignupService:      signup_mock.NewMockClient(ctrl),
-		WaitlistClient:     waitlist_mock.NewMockClient(ctrl),
-		TemporalImpl:       &mocks.Client{},
-		KYCClient:          kyc_mock.NewMockClient(ctrl),
-		TransactionsClient: transactions_mock.NewMockClient(ctrl),
-		AnalyticsClient:    analytics_client.New(nil, ""),
-		ContactsClient:     contacts_mock.NewMockClient(ctrl),
-		limits:             limit_mock.NewMockClient(ctrl),
-		keys:               keys_mock.NewMockClient(ctrl),
-		TwitterClient:      twitter_mock.NewMockClient(ctrl),
-		walletImpl:         wallets_mock.NewMockClient(ctrl),
-		rafiki:             rafiki_mock.NewMockClient(ctrl),
+		HealthService:         hs,
+		AgreementsService:     agreements_mock.NewMockClient(ctrl),
+		AdminAuthService:      auth.NewMockService(),
+		UserService:           user_mock.NewMock(),
+		linkedaccounts:        linked_accounts_mock.NewMockClient(ctrl),
+		TwilioService:         twilio.NewMockService(ctrl),
+		SignupService:         signup_mock.NewMockClient(ctrl),
+		WaitlistClient:        waitlist_mock.NewMockClient(ctrl),
+		TemporalImpl:          &mocks.Client{},
+		KYCClient:             kyc_mock.NewMockClient(ctrl),
+		EmailClient:           email_mock.NewMockClient(ctrl),
+		TransactionsClient:    transactions_mock.NewMockClient(ctrl),
+		AnalyticsClient:       analytics_client.New(nil, ""),
+		ContactsClient:        contacts_mock.NewMockClient(ctrl),
+		limits:                limit_mock.NewMockClient(ctrl),
+		keys:                  keys_mock.NewMockClient(ctrl),
+		TwitterClient:         twitter_mock.NewMockClient(ctrl),
+		walletImpl:            wallets_mock.NewMockClient(ctrl),
+		rafiki:                rafiki_mock.NewMockClient(ctrl),
+		AccountDeletionClient: accountdeletion_mock.NewMockClient(ctrl),
 	}
 
 	for _, opt := range opts {

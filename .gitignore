@@ -24,6 +24,9 @@ testmigrations
 documentation/site
 coverage.out
 
+# go test -c artifacts
+*.test
+
 .env
 
 **/.vagrant
