@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/go-playground/validator/v10"
@@ -16,6 +17,8 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.uber.org/zap"
 )
+
+var twilioRequestTimeout = 10 * time.Second
 
 var (
 	ErrInvalidArgument = errors.New("twilio error: invalid argument")
@@ -64,8 +67,8 @@ func NewService(args *ServiceArgs) (Service, error) {
 		return nil, fmt.Errorf("%w: args must not be nil", ErrInvalidArgument)
 	}
 	if args.Enabled {
-		validator := validator.New()
-		if err := validator.Struct(args); err != nil {
+		v := validator.New()
+		if err := v.Struct(args); err != nil {
 			return nil, fmt.Errorf("%w: %s", ErrInvalidArgument, err)
 		}
 	}
@@ -78,11 +81,17 @@ func NewService(args *ServiceArgs) (Service, error) {
 
 	customClient.SetAccountSid(args.AccountSid)
 	customClient.BaseURL = args.ApiBaseUrl
-	customClient.HTTPClient = otelhttp.DefaultClient
+	customClient.HTTPClient = cloneHTTPClientWithTimeout(otelhttp.DefaultClient, twilioRequestTimeout)
 
 	twilioClient := twilio.NewRestClientWithParams(twilio.ClientParams{
 		Client: customClient,
 	})
+
+	if args.Enabled {
+		if err := validateConfiguration(twilioClient, args.ServiceSid); err != nil {
+			return nil, err
+		}
+	}
 
 	return &service{
 		validator:    validator.New(),
@@ -90,6 +99,31 @@ func NewService(args *ServiceArgs) (Service, error) {
 		serviceSid:   args.ServiceSid,
 		enabled:      args.Enabled,
 	}, nil
+}
+
+func cloneHTTPClientWithTimeout(base *http.Client, timeout time.Duration) *http.Client {
+	if base == nil {
+		return &http.Client{Timeout: timeout}
+	}
+
+	cloned := *base
+	cloned.Timeout = timeout
+
+	return &cloned
+}
+
+func validateConfiguration(twilioClient *twilio.RestClient, serviceSid string) error {
+	_, err := twilioClient.VerifyV2.FetchService(serviceSid)
+	if err == nil {
+		return nil
+	}
+
+	var twilioError *client.TwilioRestError
+	if errors.As(err, &twilioError) {
+		return fmt.Errorf("%w: twilio verify service validation failed (code=%d): %s", ErrInvalidArgument, twilioError.Code, twilioError.Message)
+	}
+
+	return fmt.Errorf("%w: twilio verify service validation failed: %s", ErrInternal, err)
 }
 
 func (s *service) SendVerificationCode(ctx context.Context, phoneNumber string) (*Verification, error) {

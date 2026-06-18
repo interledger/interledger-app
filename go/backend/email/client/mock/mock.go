@@ -267,6 +267,18 @@ func (mr *MockClientMockRecorder) SendSCTITimeoutEmail(ctx, txID, walletID, amou
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendSCTITimeoutEmail", reflect.TypeOf((*MockClient)(nil).SendSCTITimeoutEmail), ctx, txID, walletID, amount, name, iban, submittedAt)
 }
 
+// SendSCTRerouteEmail mocks base method.
+func (m *MockClient) SendSCTRerouteEmail(ctx context.Context, txID, walletID string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SendSCTRerouteEmail", ctx, txID, walletID)
+}
+
+// SendSCTRerouteEmail indicates an expected call of SendSCTRerouteEmail.
+func (mr *MockClientMockRecorder) SendSCTRerouteEmail(ctx, txID, walletID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendSCTRerouteEmail", reflect.TypeOf((*MockClient)(nil).SendSCTRerouteEmail), ctx, txID, walletID)
+}
+
 // SendWithdrawalEmail mocks base method.
 func (m *MockClient) SendWithdrawalEmail(ctx context.Context, walletID string, amt currency.Amount, destinationAccount, date string) {
 	m.ctrl.T.Helper()
