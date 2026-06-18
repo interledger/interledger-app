@@ -240,6 +240,17 @@
   transform: scale(1);
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .status-item,
+  .hand-phone-frame,
+  .currency-circle {
+    opacity: 1;
+    transform: none;
+    transition: none;
+    transition-delay: 0ms;
+  }
+}
+
 @media (max-width: 810px) {
   .hand-visual-container {
     width: 100%;
