@@ -19,12 +19,12 @@ This document describes how the Interledger App Wallet processes **GateHub-based
 - **EU users** → GateHub withdrawals (this document)
 - **US users** → PTI withdrawals
 - **Canadian users** → Chimoney withdrawals
-- **Other regions** → Fynbos/Interledger withdrawals
+- **Other regions** → Interledger withdrawals
 
 **Key Differences:**
 1. **From Deposits**: Withdrawals debit balance; deposits credit balance
 2. **From P2P Payments**: Withdrawals have no receiver assignment (money leaves to external account)
-3. **GateHub vs. Fynbos/PTI**: GateHub uses iframe widget with NO bank account linking required (GateHub manages external accounts). Fynbos/PTI require users to connect their bank accounts in the app first.
+3. **GateHub vs. PTI**: GateHub uses iframe widget with NO bank account linking required (GateHub manages external accounts). Ilf/PTI require users to connect their bank accounts in the app first.
 
 ## Architecture: Withdrawal vs Deposit vs P2P
 
@@ -46,7 +46,7 @@ if country.EUCountries[w.Country] {
 
 **Frontend Behavior**:
 - `provider == "gatehub"` → Loads GateHub iframe widget (`GatehubWithdrawalPage`)
-- Other providers → Loads frontend form (`FynbosWithdrawalPage`) which checks for linked bank accounts
+- Other providers → Loads frontend form (`IlpWithdrawalPage`) which checks for linked bank accounts
 
 ```tsx
 // typescript/protea/app/routes/withdraw.tsx
@@ -60,7 +60,7 @@ if (data.linkedAccounts.length === 0)
   )
 ```
 
-**Critical**: This bank account check **only applies to Fynbos/PTI/Interledger withdrawals**, NOT GateHub. GateHub manages external bank accounts within their own system—users configure destination accounts directly in the GateHub iframe.
+**Critical**: This bank account check **only applies to PTI/Interledger withdrawals**, NOT GateHub. GateHub manages external bank accounts within their own system—users configure destination accounts directly in the GateHub iframe.
 
 ### Transaction Types Comparison
 
@@ -81,7 +81,7 @@ if (data.linkedAccounts.length === 0)
 
 **GateHub**: External bank accounts are managed entirely within GateHub's system. Users configure withdrawal destinations (IBAN, SWIFT, etc.) through the GateHub withdrawal iframe itself. The Interledger App does NOT need to store or manage these bank account details.
 
-**Fynbos/PTI**: Users must link their bank accounts in the Interledger App first (via `/accounts` page). These linked accounts are stored in the `linked_accounts` table and used as withdrawal destinations.
+**Ilp/PTI**: Users must link their bank accounts in the Interledger App first (via `/accounts` page). These linked accounts are stored in the `linked_accounts` table and used as withdrawal destinations.
 
 ### Step 1: Load Withdrawal Page
 
@@ -542,7 +542,7 @@ Once submitted, the iframe posts `{ type: 'WithdrawalCompleted', uuid: 'tx-id' }
 
 ### Withdrawal Flow Without Bank Account Linking
 
-Unlike Fynbos/PTI withdrawals, GateHub withdrawals work as follows:
+Unlike Ilp/PTI withdrawals, GateHub withdrawals work as follows:
 
 1. Frontend loads GateHub withdrawal iframe (token-authenticated)
 2. User enters amount and selects/enters destination bank account **inside the iframe**
@@ -718,7 +718,7 @@ Feature: Withdrawal
 
 ### Issue: "To withdraw from your balance, first connect a bank account"
 
-**Cause**: User is seeing the Fynbos/PTI withdrawal form instead of the GateHub iframe
+**Cause**: User is seeing the Ilp/PTI withdrawal form instead of the GateHub iframe
 
 **Root Causes**:
 1. **Wrong Provider**: User's wallet country is NOT in EU → Backend returns `provider: "interledger"` or `provider: "pti"`
@@ -727,13 +727,13 @@ Feature: Withdrawal
 **Fix for EU Users**:
 1. Verify wallet country is set correctly in database (e.g., `"DE"` for Germany)
 2. Confirm `GetOnOffRampProvider()` returns `"gatehub"` for this user
-3. Check frontend loads `GatehubWithdrawalPage` (iframe) not `FynbosWithdrawalPage` (form)4. Ensure user completed KYC and has EUR balance account
+3. Check frontend loads `GatehubWithdrawalPage` (iframe) not `IlpWithdrawalPage` (form)4. Ensure user completed KYC and has EUR balance account
 
 **Fix for Non-EU Users**:
 This is expected behavior! Non-EU users must:
 1. Navigate to `/accounts` page
 2. Click "Connect bank account"
-3. Follow bank linking flow (provider-specific: Plaid for PTI, manual for Fynbos)
+3. Follow bank linking flow (provider-specific: Plaid for PTI, manual for Ilf)
 4. Return to withdrawal page - form will now show connected account
 
 **Debug**:

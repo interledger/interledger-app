@@ -13,12 +13,12 @@ import { KRATOS_URL } from '~/lib/kratos/kratos-client.server'
 import { mergeMeta } from '~/lib/meta'
 import styles from '~/styles/flags.css?url'
 import {
-  fynbosDepositAction,
+  ilpDepositAction,
   xagoTestAccountDepositAction
 } from './action.server'
-import { FynbosDepositPage } from './fynbos'
+import { IlpDepositPage } from './ilp'
 import { GatehubDepositPage } from './gatehub'
-import { fynbosDepositLoader, gatehubDepositLoader } from './loader.server'
+import { ilpDepositLoader, gatehubDepositLoader } from './loader.server'
 
 export async function loader(args: LoaderFunctionArgs) {
   const session = await fetch(`${KRATOS_URL}/sessions/whoami`, {
@@ -31,7 +31,7 @@ export async function loader(args: LoaderFunctionArgs) {
   if (isConnectError(providerResponse)) throw providerResponse.errorResponse
   if (providerResponse.provider == 'gatehub') {
     return gatehubDepositLoader(args)
-  } else return fynbosDepositLoader(args)
+  } else return ilpDepositLoader(args)
 }
 
 export const handle: ApplicationProps = {
@@ -61,7 +61,7 @@ export default function Page() {
     return <GatehubDepositPage />
   }
 
-  return <FynbosDepositPage />
+  return <IlpDepositPage />
 }
 
 export async function action(args: ActionFunctionArgs) {
@@ -72,5 +72,5 @@ export async function action(args: ActionFunctionArgs) {
   if (formName === 'xago-test-account-deposit') {
     return xagoTestAccountDepositAction(args)
   }
-  return fynbosDepositAction(args)
+  return ilpDepositAction(args)
 }
