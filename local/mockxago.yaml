@@ -14,9 +14,10 @@ services:
       - "traefik.http.routers.mockxago.entrypoints=websecure"
       - "traefik.http.services.mockxago.loadbalancer.server.port=8080"
     environment:
-      - CONFIG=/etc/mockxago/config.yaml
+      - CONFIG=/etc/mockxago/config.yaml,/etc/mockxago/config-override.yaml
     volumes:
       - ./config/mockxago.yaml:/etc/mockxago/config.yaml:ro
+      - ./config-override/mockxago.yaml:/etc/mockxago/config-override.yaml:ro
     
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]

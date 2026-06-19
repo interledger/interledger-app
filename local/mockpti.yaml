@@ -14,9 +14,10 @@ services:
       - "traefik.http.routers.mockpti.entrypoints=websecure"
       - "traefik.http.services.mockpti.loadbalancer.server.port=8080"
     environment:
-      - CONFIG=/etc/mockpti/config.yaml
+      - CONFIG=/etc/mockpti/config.yaml,/etc/mockpti/config-override.yaml
     volumes:
       - ./config/mockpti.yaml:/etc/mockpti/config.yaml:ro
+      - ./config-override/mockpti.yaml:/etc/mockpti/config-override.yaml:ro
 
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]

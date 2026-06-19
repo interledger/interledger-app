@@ -11,20 +11,9 @@ import (
 )
 
 // Config holds mockpti configuration.
+// YAML tags are used directly so that configa can parse into this struct.
+// WebhookSigningKey stores the PEM directly when loaded from YAML (no base64 wrapping).
 type Config struct {
-	Port               string
-	LogLevel           string
-	RedisURL           string
-	RedisDB            string
-	ClientID           string
-	WebhookURL         string
-	WebhookSigningKey  string // decoded PEM, populated from MOCKPTI_WEBHOOK_SIGNING_KEY_B64 or yaml webhook_signing_key
-	FormsMutationToken string
-}
-
-// yamlConfig is the YAML-tagged struct used when CONFIG is set.
-// webhook_signing_key stores the PEM directly (no base64 wrapping).
-type yamlConfig struct {
 	Port               string `yaml:"port"`
 	LogLevel           string `yaml:"log_level"`
 	RedisURL           string `yaml:"redis_url"`
@@ -46,44 +35,17 @@ func Load() *Config {
 }
 
 func loadFromFiles(files []string) *Config {
-	parsed, err := configa.Parse[yamlConfig](files)
+	parsed, err := configa.Parse[Config](files)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "fatal: parse mockpti config:", err)
 		os.Exit(1)
 	}
-	y, err := parsed.Resolve(context.Background())
+	cfg, err := parsed.Resolve(context.Background())
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "fatal: resolve mockpti config:", err)
 		os.Exit(1)
 	}
-
-	port := y.Port
-	if port == "" {
-		port = "8080"
-	}
-	logLevel := y.LogLevel
-	if logLevel == "" {
-		logLevel = "info"
-	}
-	redisDB := y.RedisDB
-	if redisDB == "" {
-		redisDB = "0"
-	}
-	clientID := y.ClientID
-	if clientID == "" {
-		clientID = "test-client-id"
-	}
-
-	return &Config{
-		Port:               port,
-		LogLevel:           logLevel,
-		RedisURL:           y.RedisURL,
-		RedisDB:            redisDB,
-		ClientID:           clientID,
-		WebhookURL:         y.WebhookURL,
-		WebhookSigningKey:  y.WebhookSigningKey,
-		FormsMutationToken: y.FormsMutationToken,
-	}
+	return applyDefaults(&cfg)
 }
 
 func loadFromEnv() *Config {
@@ -94,16 +56,33 @@ func loadFromEnv() *Config {
 		}
 	}
 
-	return &Config{
-		Port:               getEnv("MOCKPTI_PORT", "8080"),
-		LogLevel:           getEnv("LOG_LEVEL", "info"),
+	return applyDefaults(&Config{
+		Port:               os.Getenv("MOCKPTI_PORT"),
+		LogLevel:           os.Getenv("LOG_LEVEL"),
 		RedisURL:           os.Getenv("MOCKPTI_REDIS_URL"),
-		RedisDB:            getEnv("MOCKPTI_REDIS_DB", "0"),
-		ClientID:           getEnv("MOCKPTI_CLIENT_ID", "test-client-id"),
+		RedisDB:            os.Getenv("MOCKPTI_REDIS_DB"),
+		ClientID:           os.Getenv("MOCKPTI_CLIENT_ID"),
 		WebhookURL:         os.Getenv("MOCKPTI_WEBHOOK_URL"),
 		WebhookSigningKey:  signingKey,
 		FormsMutationToken: os.Getenv("MOCKPTI_FORMS_MUTATION_TOKEN"),
+	})
+}
+
+// applyDefaults handles post-load derivations shared by both loading paths.
+func applyDefaults(cfg *Config) *Config {
+	if cfg.Port == "" {
+		cfg.Port = "8080"
 	}
+	if cfg.LogLevel == "" {
+		cfg.LogLevel = "info"
+	}
+	if cfg.RedisDB == "" {
+		cfg.RedisDB = "0"
+	}
+	if cfg.ClientID == "" {
+		cfg.ClientID = "test-client-id"
+	}
+	return cfg
 }
 
 // IsFileMode reports whether the CONFIG env var is set, i.e. whether configa
@@ -121,11 +100,4 @@ func splitFiles(v string) []string {
 		}
 	}
 	return files
-}
-
-func getEnv(key, defaultVal string) string {
-	if v := os.Getenv(key); v != "" {
-		return v
-	}
-	return defaultVal
 }

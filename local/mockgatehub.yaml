@@ -14,9 +14,10 @@ services:
       - "traefik.http.routers.mockgatehub.entrypoints=websecure"
       - "traefik.http.services.mockgatehub.loadbalancer.server.port=8080"
     environment:
-      - CONFIG=/etc/mockgatehub/config.yaml
+      - CONFIG=/etc/mockgatehub/config.yaml,/etc/mockgatehub/config-override.yaml
     volumes:
       - ./config/mockgatehub.yaml:/etc/mockgatehub/config.yaml:ro
+      - ./config-override/mockgatehub.yaml:/etc/mockgatehub/config-override.yaml:ro
     
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]

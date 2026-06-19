@@ -12,33 +12,10 @@ import (
 	"github.com/interledger/interledger-app/go/configa"
 )
 
-// Config holds application configuration
+// Config holds application configuration.
+// YAML tags are used directly so that configa can parse into this struct.
+// UseRedis is derived from RedisURL after loading and is never read from YAML.
 type Config struct {
-	Port                  string
-	LogLevel              string
-	RedisURL              string
-	RedisDB               int
-	WebhookURL            string
-	WebhookSecret         string
-	WebhookMinDelaySec    float64
-	UseRedis              bool
-	EnforceAuthentication bool
-	ValidCredentials      map[string]string // appID -> secret
-	DefaultOrganizationID string
-	// PublicBaseURL is the externally reachable base URL of mockgatehub
-	// (no trailing slash). It is used to build absolute URLs in API responses
-	// that are followed directly by the browser (e.g. card-data tokenisation
-	// links).
-	PublicBaseURL string
-	// CardDataTokenSecret is the HMAC secret used to sign card-data JWTs
-	// returned by POST /cards/v1/token/card-data. It must not be a hard-coded
-	// constant: when unset we generate a random value at startup so mock
-	// deployments never share a signing key across processes.
-	CardDataTokenSecret string
-}
-
-// yamlConfig is the YAML-tagged struct used when CONFIG is set.
-type yamlConfig struct {
 	Port                  string            `yaml:"port"`
 	LogLevel              string            `yaml:"log_level"`
 	RedisURL              string            `yaml:"redis_url"`
@@ -47,10 +24,19 @@ type yamlConfig struct {
 	WebhookSecret         string            `yaml:"webhook_secret"`
 	WebhookMinDelaySec    float64           `yaml:"webhook_min_delay_sec"`
 	EnforceAuthentication bool              `yaml:"enforce_authentication"`
-	ValidCredentials      map[string]string `yaml:"valid_credentials"`
+	ValidCredentials      map[string]string `yaml:"valid_credentials"` // appID -> secret
 	DefaultOrganizationID string            `yaml:"default_organization_id"`
-	PublicBaseURL         string            `yaml:"public_base_url"`
-	CardDataTokenSecret   string            `yaml:"card_data_token_secret"`
+	// PublicBaseURL is the externally reachable base URL of mockgatehub
+	// (no trailing slash). It is used to build absolute URLs in API responses
+	// that are followed directly by the browser (e.g. card-data tokenisation
+	// links).
+	PublicBaseURL string `yaml:"public_base_url"`
+	// CardDataTokenSecret is the HMAC secret used to sign card-data JWTs
+	// returned by POST /cards/v1/token/card-data. It must not be a hard-coded
+	// constant: when unset we generate a random value at startup so mock
+	// deployments never share a signing key across processes.
+	CardDataTokenSecret string `yaml:"card_data_token_secret"`
+	UseRedis            bool   `yaml:"-"`
 }
 
 // Load reads configuration. When CONFIG is set it is a comma-separated list
@@ -64,32 +50,17 @@ func Load() *Config {
 }
 
 func loadFromFiles(files []string) *Config {
-	parsed, err := configa.Parse[yamlConfig](files)
+	parsed, err := configa.Parse[Config](files)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "fatal: parse mockgatehub config:", err)
 		os.Exit(1)
 	}
-	y, err := parsed.Resolve(context.Background())
+	cfg, err := parsed.Resolve(context.Background())
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "fatal: resolve mockgatehub config:", err)
 		os.Exit(1)
 	}
-
-	cfg := &Config{
-		Port:                  y.Port,
-		LogLevel:              y.LogLevel,
-		RedisURL:              y.RedisURL,
-		RedisDB:               y.RedisDB,
-		WebhookURL:            y.WebhookURL,
-		WebhookSecret:         y.WebhookSecret,
-		WebhookMinDelaySec:    y.WebhookMinDelaySec,
-		EnforceAuthentication: y.EnforceAuthentication,
-		ValidCredentials:      y.ValidCredentials,
-		DefaultOrganizationID: y.DefaultOrganizationID,
-		PublicBaseURL:         strings.TrimRight(y.PublicBaseURL, "/"),
-		CardDataTokenSecret:   y.CardDataTokenSecret,
-	}
-	return applyDefaults(cfg)
+	return applyDefaults(&cfg)
 }
 
 func loadFromEnv() *Config {
@@ -104,7 +75,7 @@ func loadFromEnv() *Config {
 		EnforceAuthentication: getEnvBool("MOCKGATEHUB_ENFORCE_AUTHENTICATION", true),
 		ValidCredentials:      parseCredentials(getEnv("MOCKGATEHUB_VALID_CREDENTIALS", "local-test-app-id:local-test-app-secret")),
 		DefaultOrganizationID: getEnv("DEFAULT_ORGANIZATION_ID", "default-org"),
-		PublicBaseURL:         strings.TrimRight(getEnv("MOCKGATEHUB_PUBLIC_BASE_URL", "https://mockgatehub.interledger.test"), "/"),
+		PublicBaseURL:         getEnv("MOCKGATEHUB_PUBLIC_BASE_URL", "https://mockgatehub.interledger.test"),
 		CardDataTokenSecret:   getEnv("MOCKGATEHUB_CARD_DATA_TOKEN_SECRET", ""),
 	}
 	return applyDefaults(cfg)
@@ -112,17 +83,18 @@ func loadFromEnv() *Config {
 
 // applyDefaults handles post-load derivations shared by both loading paths.
 func applyDefaults(cfg *Config) *Config {
+	if cfg.Port == "" {
+		cfg.Port = "8080"
+	}
 	if cfg.CardDataTokenSecret == "" {
 		cfg.CardDataTokenSecret = randomSecret(32)
 	}
-
 	// Clamp to 2-second minimum to prevent near-zero delays.
 	if cfg.WebhookMinDelaySec < 2 {
 		cfg.WebhookMinDelaySec = 2
 	}
-
+	cfg.PublicBaseURL = strings.TrimRight(cfg.PublicBaseURL, "/")
 	cfg.UseRedis = cfg.RedisURL != ""
-
 	return cfg
 }
 

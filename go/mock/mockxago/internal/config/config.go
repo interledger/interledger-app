@@ -11,23 +11,8 @@ import (
 )
 
 // Config holds mockxago configuration.
+// YAML tags are used directly so that configa can parse into this struct.
 type Config struct {
-	Port                string
-	LogLevel            string
-	RedisURL            string
-	RedisDB             int
-	PublicKey           string
-	Secret              string
-	TestMode            bool
-	WebhookURL          string
-	WebhookSecret       string
-	WebhookMinDelaySec  float64
-	PersonaWebhookURL   string
-	PersonaWebhookToken string
-}
-
-// yamlConfig is the YAML-tagged struct used when CONFIG is set.
-type yamlConfig struct {
 	Port                string  `yaml:"port"`
 	LogLevel            string  `yaml:"log_level"`
 	RedisURL            string  `yaml:"redis_url"`
@@ -53,80 +38,25 @@ func Load() *Config {
 }
 
 func loadFromFiles(files []string) *Config {
-	parsed, err := configa.Parse[yamlConfig](files)
+	parsed, err := configa.Parse[Config](files)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "fatal: parse mockxago config:", err)
 		os.Exit(1)
 	}
-	y, err := parsed.Resolve(context.Background())
+	cfg, err := parsed.Resolve(context.Background())
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "fatal: resolve mockxago config:", err)
 		os.Exit(1)
 	}
-
-	port := y.Port
-	if port == "" {
-		port = "8080"
-	}
-	logLevel := y.LogLevel
-	if logLevel == "" {
-		logLevel = "info"
-	}
-	publicKey := y.PublicKey
-	if publicKey == "" {
-		publicKey = "test-public-key"
-	}
-	secret := y.Secret
-	if secret == "" {
-		secret = "test-secret"
-	}
-	personaWebhookURL := y.PersonaWebhookURL
-	if personaWebhookURL == "" {
-		personaWebhookURL = "http://backend:8080/webhooks/persona"
-	}
-
-	return &Config{
-		Port:                port,
-		LogLevel:            logLevel,
-		RedisURL:            y.RedisURL,
-		RedisDB:             y.RedisDB,
-		PublicKey:           publicKey,
-		Secret:              secret,
-		TestMode:            y.TestMode,
-		WebhookURL:          y.WebhookURL,
-		WebhookSecret:       y.WebhookSecret,
-		WebhookMinDelaySec:  y.WebhookMinDelaySec,
-		PersonaWebhookURL:   personaWebhookURL,
-		PersonaWebhookToken: y.PersonaWebhookToken,
-	}
+	return applyDefaults(&cfg)
 }
 
 func loadFromEnv() *Config {
-	port := os.Getenv("XAGO_MOCK_PORT")
-	if port == "" {
-		port = "8080"
-	}
-	logLevel := os.Getenv("LOG_LEVEL")
-	if logLevel == "" {
-		logLevel = "info"
-	}
-	publicKey := os.Getenv("XAGO_API_PUBLIC_KEY")
-	if publicKey == "" {
-		publicKey = "test-public-key"
-	}
-	secret := os.Getenv("XAGO_API_SECRET")
-	if secret == "" {
-		secret = "test-secret"
-	}
 	redisDB := 0
 	if s := os.Getenv("MOCKXAGO_REDIS_DB"); s != "" {
 		if v, err := strconv.Atoi(s); err == nil {
 			redisDB = v
 		}
-	}
-	personaWebhookURL := os.Getenv("PERSONA_WEBHOOK_URL")
-	if personaWebhookURL == "" {
-		personaWebhookURL = "http://backend:8080/webhooks/persona"
 	}
 	webhookMinDelaySec := 0.0
 	if s := os.Getenv("WEBHOOK_MIN_DELAY_SEC"); s != "" {
@@ -135,20 +65,40 @@ func loadFromEnv() *Config {
 		}
 	}
 
-	return &Config{
-		Port:                port,
-		LogLevel:            logLevel,
+	return applyDefaults(&Config{
+		Port:                os.Getenv("XAGO_MOCK_PORT"),
+		LogLevel:            os.Getenv("LOG_LEVEL"),
 		RedisURL:            os.Getenv("MOCKXAGO_REDIS_URL"),
 		RedisDB:             redisDB,
-		PublicKey:           publicKey,
-		Secret:              secret,
+		PublicKey:           os.Getenv("XAGO_API_PUBLIC_KEY"),
+		Secret:              os.Getenv("XAGO_API_SECRET"),
 		TestMode:            strings.EqualFold(os.Getenv("XAGO_MOCK_TEST_MODE"), "true"),
 		WebhookURL:          os.Getenv("WEBHOOK_URL"),
 		WebhookSecret:       os.Getenv("WEBHOOK_SECRET"),
 		WebhookMinDelaySec:  webhookMinDelaySec,
-		PersonaWebhookURL:   personaWebhookURL,
+		PersonaWebhookURL:   os.Getenv("PERSONA_WEBHOOK_URL"),
 		PersonaWebhookToken: os.Getenv("PERSONA_WEBHOOK_TOKEN"),
+	})
+}
+
+// applyDefaults handles post-load derivations shared by both loading paths.
+func applyDefaults(cfg *Config) *Config {
+	if cfg.Port == "" {
+		cfg.Port = "8080"
 	}
+	if cfg.LogLevel == "" {
+		cfg.LogLevel = "info"
+	}
+	if cfg.PublicKey == "" {
+		cfg.PublicKey = "test-public-key"
+	}
+	if cfg.Secret == "" {
+		cfg.Secret = "test-secret"
+	}
+	if cfg.PersonaWebhookURL == "" {
+		cfg.PersonaWebhookURL = "http://backend:8080/webhooks/persona"
+	}
+	return cfg
 }
 
 // splitFiles splits the CONFIG env var value into file paths.
