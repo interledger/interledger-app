@@ -7,10 +7,10 @@ import (
 	"os"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/interledger/interledger-app/go/mock/mockbos/db"
+	"github.com/interledger/interledger-app/go/mock/mockbos/pti"
+	"github.com/interledger/interledger-app/go/mock/mockbos/xago"
 	"github.com/jackc/pgx/v5"
-	"gitlab.com/fynbos/mock/mockbos/db"
-	"gitlab.com/fynbos/mock/mockbos/pti"
-	"gitlab.com/fynbos/mock/mockbos/xago"
 )
 
 func main() {

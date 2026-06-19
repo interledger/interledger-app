@@ -10,9 +10,9 @@ import (
 
 	"go.uber.org/zap"
 
-	"gitlab.com/fynbos/backend/user"
-	"gitlab.com/fynbos/backend/user/ops"
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/backend/user"
+	"github.com/interledger/interledger-app/go/backend/user/ops"
+	"github.com/interledger/interledger-app/go/log"
 )
 
 var _ user.Client = &client{}
@@ -90,6 +90,10 @@ func (c *client) Delete2FATotpEnrollment(ctx context.Context, identityID string)
 
 func (c *client) GetTotpURL(ctx context.Context, userID string) (string, error) {
 	return ops.GetTotpURL(ctx, c.b, userID)
+}
+
+func (c *client) ValidateTotpCode(ctx context.Context, userID, code string, now time.Time) error {
+	return ops.ValidateTotpCode(ctx, c.b, userID, code, now)
 }
 
 func (c *client) GetUserIDForWallet(ctx context.Context, walletID string) (string, error) {

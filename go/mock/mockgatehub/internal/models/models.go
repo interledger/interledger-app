@@ -69,4 +69,8 @@ type Transaction struct {
 	DepositType      string    `json:"deposit_type"` // external/hosted
 	Status           int       `json:"status"`       // 0=pending, 1=completed, 2=failed
 	CreatedAt        time.Time `json:"created_at"`
+	// Withdrawal-specific fields
+	AccountIBAN      string `json:"account_iban"`
+	AccountLegalName string `json:"account_legal_name"`
+	Message          string `json:"message"`
 }

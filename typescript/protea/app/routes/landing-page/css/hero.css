@@ -4,6 +4,7 @@
   background: var(--section-bg-hero);
   transition: background-color 600ms ease;
   height: 100vh;
+  height: 100dvh;
   --glow-hero-color: rgba(34, 197, 94, 0.4);
 }
 
@@ -11,6 +12,7 @@
   position: sticky;
   top: 0;
   height: 100vh;
+  height: 100dvh;
   width: 100%;
   overflow: clip;
   display: flex;
@@ -26,6 +28,7 @@
   margin-inline: auto;
   position: relative;
   height: 100vh;
+  height: 100dvh;
   pointer-events: none;
 }
 
@@ -112,7 +115,8 @@
       max(
           var(--hero-text-bottom),
           100vh - var(--phone-height) + var(--phone-peek)
-        ) - 50vh + var(--phone-height) / 2
+        ) -
+        50vh + var(--phone-height) / 2
     );
   }
 }
@@ -128,27 +132,38 @@
 }
 
 @media (max-width: 899px) {
+  /* Screen 1: phone is centered in the empty space below the hero text.
+     --mobile-text-bottom is the measured bottom of the headline+subhead block
+     for this breakpoint (h1 = 56px/68px on tablets, 40px/48px on phones ≤ 479).
+     With a 16px buffer above and below, the phone grows up to its 360px cap. */
   .animated-hero[data-screen='1'] .hero-phone-container {
-    --phone-offset: calc(-10vh + var(--phone-height) / 2);
+    --mobile-text-bottom: 356px;
+    --phone-height: min(360px, calc(100dvh - var(--mobile-text-bottom) - 32px));
+    --phone-width: calc(var(--phone-height) / 2.08);
+    --phone-offset: calc(var(--mobile-text-bottom) / 2);
   }
 
+  /* Phone tracks the feature-panel's space-evenly layout: its top edge sits
+     one gap below the nav, matching the position of the spacer that reserves
+     room for it inside the flex flow. */
   .animated-hero:not([data-screen='1']) .hero-phone-container {
-    --phone-height: min(360px, 40vh);
+    --mobile-feature-avail: calc(100dvh - var(--nav-height, 72px));
+    --phone-height: min(360px, calc(var(--mobile-feature-avail) * 0.45));
     --phone-width: calc(var(--phone-height) / 2.08);
+    --mobile-feature-gap: max(
+      8px,
+      calc((var(--mobile-feature-avail) - var(--phone-height) - 266px) / 4)
+    );
     --phone-offset: calc(
-      var(--nav-height, 72px) + min(10vh, 40px) + (var(--phone-height) / 2) -
-        50vh
+      var(--nav-height, 72px) + var(--mobile-feature-gap) +
+        var(--phone-height) / 2 - 50dvh
     );
   }
+}
 
-  @media (max-height: 720px) {
-    .animated-hero:not([data-screen='1']) .hero-phone-container {
-      --phone-height: min(330px, 40vh);
-      --phone-width: calc(var(--phone-height) / 2.08);
-      --phone-offset: calc(
-        var(--nav-height, 72px) + 12px + (var(--phone-height) / 2) - 50vh
-      );
-    }
+@media (max-width: 479px) {
+  .animated-hero[data-screen='1'] .hero-phone-container {
+    --mobile-text-bottom: 328px;
   }
 }
 

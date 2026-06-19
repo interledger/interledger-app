@@ -11,12 +11,12 @@ import (
 	"strings"
 	"time"
 
-	"gitlab.com/fynbos/backend/country"
-	"gitlab.com/fynbos/backend/kyc"
-	"gitlab.com/fynbos/backend/kyc/persona"
-	"gitlab.com/fynbos/backend/slack"
-	"gitlab.com/fynbos/env"
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/backend/country"
+	"github.com/interledger/interledger-app/go/backend/kyc"
+	"github.com/interledger/interledger-app/go/backend/kyc/persona"
+	"github.com/interledger/interledger-app/go/backend/slack"
+	"github.com/interledger/interledger-app/go/env"
+	"github.com/interledger/interledger-app/go/log"
 	"go.uber.org/zap"
 )
 

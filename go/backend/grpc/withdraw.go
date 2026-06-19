@@ -4,15 +4,15 @@ import (
 	"context"
 	"errors"
 
-	"gitlab.com/fynbos/backend/providers/chimoney"
-	"gitlab.com/fynbos/backend/providers/pti"
+	"github.com/interledger/interledger-app/go/backend/providers/chimoney"
+	"github.com/interledger/interledger-app/go/backend/providers/pti"
 
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/limits"
-	"gitlab.com/fynbos/backend/payments"
-	"gitlab.com/fynbos/backend/providers/xago"
-	"gitlab.com/fynbos/backend/user"
-	pb "gitlab.com/fynbos/proto/backend/v1"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/limits"
+	"github.com/interledger/interledger-app/go/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/providers/xago"
+	"github.com/interledger/interledger-app/go/backend/user"
+	pb "github.com/interledger/interledger-app/go/proto/backend/v1"
 )
 
 func (s *rpcService) WithdrawBalance(ctx context.Context, req *pb.TransferBalanceRequest) (*pb.Payment, error) {

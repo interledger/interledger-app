@@ -3,7 +3,7 @@ package contacts
 import (
 	"database/sql"
 
-	"gitlab.com/fynbos/backend/wallets"
+	"github.com/interledger/interledger-app/go/backend/wallets"
 )
 
 type Contact struct {

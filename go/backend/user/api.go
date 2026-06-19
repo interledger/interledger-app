@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"time"
 )
 
 type Client interface {
@@ -13,6 +14,7 @@ type Client interface {
 	CheckUserTotpEnabled(ctx context.Context, identityID string) (bool, error)
 	Delete2FATotpEnrollment(ctx context.Context, identityID string) error
 	GetTotpURL(ctx context.Context, userID string) (string, error)
+	ValidateTotpCode(ctx context.Context, userID, code string, now time.Time) error
 	GetUserIDForWallet(ctx context.Context, walletID string) (string, error)
 	SetPhoneVerified(ctx context.Context, userID string) error
 	UpdateUserPhone(ctx context.Context, userID string, phone string) error

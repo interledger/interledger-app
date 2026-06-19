@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"gitlab.com/fynbos/mock/mockpti/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockpti/internal/models"
 )
 
 // MemoryStorage is an in-memory implementation of the Storage interface.

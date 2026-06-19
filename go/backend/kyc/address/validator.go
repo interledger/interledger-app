@@ -4,14 +4,14 @@ import (
 	"context"
 	"strings"
 
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/log"
 	"go.uber.org/zap"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
+	"github.com/interledger/interledger-app/go/backend/kyc"
 	street "github.com/smartystreets/smartystreets-go-sdk/us-street-api"
 	"github.com/smartystreets/smartystreets-go-sdk/wireup"
-	"gitlab.com/fynbos/backend/kyc"
 )
 
 type Validator interface {

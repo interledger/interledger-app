@@ -1,14 +1,14 @@
 package ops
 
 import (
-	"gitlab.com/fynbos/backend/keys"
-	"gitlab.com/fynbos/backend/kyc"
-	"gitlab.com/fynbos/backend/wallets"
+	"github.com/interledger/interledger-app/go/backend/keys"
+	"github.com/interledger/interledger-app/go/backend/kyc"
+	"github.com/interledger/interledger-app/go/backend/wallets"
 
-	"gitlab.com/fynbos/backend/user"
+	"github.com/interledger/interledger-app/go/backend/user"
 
-	"gitlab.com/fynbos/backend/analytics"
-	"gitlab.com/fynbos/backend/notify"
+	"github.com/interledger/interledger-app/go/backend/analytics"
+	"github.com/interledger/interledger-app/go/backend/notify"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"

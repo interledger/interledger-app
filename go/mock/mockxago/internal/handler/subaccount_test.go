@@ -13,7 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 
-	"gitlab.com/fynbos/mock/mockxago/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockxago/internal/models"
 )
 
 func setupAuthHandler(t *testing.T) *Handler {
@@ -230,7 +230,7 @@ func TestGetSubAccountByWallet_Isolated(t *testing.T) {
 	h.ListCurrencies(curW, curReq)
 	var currenciesNested []map[string]interface{}
 	json.NewDecoder(curW.Body).Decode(&currenciesNested)
-	
+
 	// Convert nested format to flat for test compatibility
 	currencies := make([]map[string]string, 0, len(currenciesNested))
 	for _, curr := range currenciesNested {

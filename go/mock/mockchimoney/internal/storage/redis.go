@@ -7,7 +7,7 @@ import (
 
 	"github.com/redis/go-redis/v9"
 
-	"gitlab.com/fynbos/mock/mockchimoney/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockchimoney/internal/models"
 )
 
 const chimoneyKeyPrefix = "chimoney"

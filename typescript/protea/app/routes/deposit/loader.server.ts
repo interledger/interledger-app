@@ -22,7 +22,7 @@ export async function gatehubDepositLoader({ request }: LoaderFunctionArgs) {
   })
 }
 
-export async function fynbosDepositLoader({ request }: LoaderFunctionArgs) {
+export async function ilwDepositLoader({ request }: LoaderFunctionArgs) {
   const providerResponse = await grpc.getOnOffRampProvider(request, {})
   if (isConnectError(providerResponse)) throw providerResponse.errorResponse
   const url = new URL(request.url)

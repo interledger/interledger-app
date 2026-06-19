@@ -9,6 +9,7 @@
   justify-content: space-between;
   pointer-events: none;
   height: 100vh;
+  height: 100dvh;
 }
 
 .feature-panel.is-visible {
@@ -53,6 +54,12 @@
   margin: 0 0 20px;
 }
 
+@media (max-width: 899px) {
+  .feature-body {
+    margin: 0;
+  }
+}
+
 .feature-widget {
   display: flex;
   align-items: center;
@@ -64,7 +71,8 @@
   width: 100%;
   opacity: 0;
   transform: scale(0.8);
-  transition: opacity 0.8s cubic-bezier(0.34, 1.56, 0.64, 1),
+  transition:
+    opacity 0.8s cubic-bezier(0.34, 1.56, 0.64, 1),
     transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
   transition-delay: 0.8s;
 }
@@ -144,7 +152,9 @@
 }
 
 .animated-hero {
-  transition: background-color 600ms ease, color 600ms ease;
+  transition:
+    background-color 600ms ease,
+    color 600ms ease;
 }
 
 .animated-hero[data-screen='2'] {
@@ -173,45 +183,53 @@
 }
 
 @media (max-width: 899px) {
+  /* Equal-spacing layout: free vertical space is split evenly between phone,
+     left col, and right col so the panel feels breathable on tall phones
+     without wasting bottom space. */
   .feature-panel {
+    --mobile-feature-avail: calc(100dvh - var(--nav-height, 72px));
+    --mobile-feature-phone-h: min(
+      360px,
+      calc(var(--mobile-feature-avail) * 0.45)
+    );
+    --mobile-feature-cols-h: 266px;
+    --mobile-feature-gap: max(
+      8px,
+      calc(
+        (
+            var(--mobile-feature-avail) - var(--mobile-feature-phone-h) -
+              var(--mobile-feature-cols-h)
+          ) /
+          4
+      )
+    );
+
     flex-direction: column;
-    justify-content: flex-start;
-    padding: calc(var(--nav-height, 72px) + min(10vh, 40px)) 0px 40px;
-    gap: min(24px, 3vh);
-    overflow: visible;
+    justify-content: space-evenly;
+    padding: var(--nav-height, 72px) 0 0;
+    gap: 0;
+    overflow: hidden;
   }
 
   .feature-phone-spacer {
     display: block;
-    flex: 0 0 min(360px, 40vh);
+    flex: 0 0 var(--mobile-feature-phone-h);
     width: 100%;
     order: 1;
   }
 
   .feature-col {
-    padding: 0;
+    padding: 0 var(--padding-lg);
     text-align: center;
     width: 100%;
-    max-width: 340px;
-    flex: 0 0 auto;
+    max-width: 360px;
+    flex: 0 1 auto;
+    min-height: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 16px;
-  }
-
-  /* Adjustments for short screens (iPhone SE, small mobile) */
-  @media (max-height: 720px) {
-    .feature-panel {
-      padding-top: calc(var(--nav-height, 72px) + 12px);
-      gap: 12px;
-    }
-    .feature-phone-spacer {
-      flex-basis: min(330px, 40vh);
-    }
-    .feature-col {
-      gap: 8px;
-    }
+    justify-content: center;
+    gap: 8px;
   }
 
   .feature-col--left {
@@ -249,6 +267,12 @@
 @media (prefers-reduced-motion: reduce) {
   .feature-widget-bob {
     animation: none;
+  }
+  .feature-widget {
+    opacity: 1;
+    transform: none;
+    transition: none;
+    transition-delay: 0ms;
   }
 }
 

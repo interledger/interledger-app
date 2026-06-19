@@ -6,12 +6,12 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
+	"github.com/interledger/interledger-app/go/backend/kyc"
+	"github.com/interledger/interledger-app/go/backend/user"
+	user_mock "github.com/interledger/interledger-app/go/backend/user/client/mock"
+	"github.com/interledger/interledger-app/go/backend/wallets"
+	pb "github.com/interledger/interledger-app/go/proto/backend/v1"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/backend/kyc"
-	"gitlab.com/fynbos/backend/user"
-	user_mock "gitlab.com/fynbos/backend/user/client/mock"
-	"gitlab.com/fynbos/backend/wallets"
-	pb "gitlab.com/fynbos/proto/backend/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

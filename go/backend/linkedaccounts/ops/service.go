@@ -8,25 +8,25 @@ import (
 	"strings"
 	"time"
 
-	"gitlab.com/fynbos/backend/providers/chimoney"
-	"gitlab.com/fynbos/backend/providers/gatehub"
-	"gitlab.com/fynbos/backend/providers/pti"
+	"github.com/interledger/interledger-app/go/backend/providers/chimoney"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
+	"github.com/interledger/interledger-app/go/backend/providers/pti"
 
-	"gitlab.com/fynbos/backend/providers/xago"
+	"github.com/interledger/interledger-app/go/backend/providers/xago"
 
-	"gitlab.com/fynbos/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/currency"
 
-	"gitlab.com/fynbos/backend/rafiki"
+	"github.com/interledger/interledger-app/go/backend/rafiki"
 
-	"gitlab.com/fynbos/backend/slack"
-	"gitlab.com/fynbos/env"
+	"github.com/interledger/interledger-app/go/backend/slack"
+	"github.com/interledger/interledger-app/go/env"
 
-	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/notify"
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/backend/db"
+	"github.com/interledger/interledger-app/go/backend/notify"
+	"github.com/interledger/interledger-app/go/log"
 	"go.uber.org/zap"
 
-	"gitlab.com/fynbos/backend/linkedaccounts"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
 
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/google/uuid"

@@ -7,25 +7,27 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
+	"github.com/interledger/interledger-app/go/backend/db"
+	"github.com/interledger/interledger-app/go/backend/email"
+	email_mock "github.com/interledger/interledger-app/go/backend/email/client/mock"
+	"github.com/interledger/interledger-app/go/backend/kyc"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	la_mock "github.com/interledger/interledger-app/go/backend/linkedaccounts/client/mock"
+	"github.com/interledger/interledger-app/go/backend/notify"
+	"github.com/interledger/interledger-app/go/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub/ops"
+	"github.com/interledger/interledger-app/go/backend/transactions"
+	transactions_mock "github.com/interledger/interledger-app/go/backend/transactions/client/mock"
+	"github.com/interledger/interledger-app/go/backend/user"
+	user_mock "github.com/interledger/interledger-app/go/backend/user/client/mock"
+	"github.com/interledger/interledger-app/go/backend/wallets"
+	wallet_mock "github.com/interledger/interledger-app/go/backend/wallets/client/mock"
+	"github.com/interledger/interledger-app/go/pacioli"
+	pacioli_mock "github.com/interledger/interledger-app/go/pacioli/client/mock"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/email"
-	"gitlab.com/fynbos/backend/kyc"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	la_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
-	"gitlab.com/fynbos/backend/notify"
-	"gitlab.com/fynbos/backend/payments"
-	"gitlab.com/fynbos/backend/providers/gatehub"
-	"gitlab.com/fynbos/backend/providers/gatehub/ops"
-	"gitlab.com/fynbos/backend/transactions"
-	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
-	"gitlab.com/fynbos/backend/user"
-	user_mock "gitlab.com/fynbos/backend/user/client/mock"
-	"gitlab.com/fynbos/backend/wallets"
-	wallet_mock "gitlab.com/fynbos/backend/wallets/client/mock"
-	"gitlab.com/fynbos/pacioli"
 	temporal "go.temporal.io/sdk/client"
 )
 
@@ -156,12 +158,152 @@ func TestGetGateHubTransactionByForeignID(t *testing.T) {
 	})
 }
 
+func TestRollbackGatehubWithdrawal_PacioliError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	const txID = "tx-abc"
+	pc := pacioli_mock.NewMockClient(ctrl)
+	pc.EXPECT().VoidTransfers(gomock.Any(), []string{txID}).Return(nil, errors.New("ledger down"))
+
+	cfg := gatehub.Config{
+		AppID:                  gatehub.TestAppID,
+		Secret:                 gatehub.TestSecret,
+		CardAppID:              gatehub.TestCardAppID,
+		GatewayID:              gatehub.TestGatewayID,
+		CardAccountProductCode: gatehub.TestCardAccountProductCode,
+		PaywiserEuroVaultID:    gatehub.TestPaywiserEuroVaultID,
+		SendingUserID:          gatehub.TestSendingUserID,
+		SendingUserAddress:     gatehub.TestSendingUserAddress,
+		WebhookSecret:          gatehub.TestWebhookSecret,
+		FallbackWebhookURL:     gatehub.TestFallbackWebhookURL,
+		OnOffRampClientID:      gatehub.TestOnOffRampClientID,
+		OnboardingClientID:     gatehub.TestOnboardingClientID,
+		ExchangeClientID:       gatehub.TestExchangeClientID,
+		APIBaseURL:             gatehub.TestAPIBaseURL,
+		OnboardingBaseURL:      gatehub.TestOnboardingBaseURL,
+		OnOffRampBaseURL:       gatehub.TestOnOffRampBaseURL,
+		EUROpsAccount:          gatehub.TestEUROpsAccount,
+		EUROpsLedgerID:         gatehub.TestEUROpsLedgerID,
+	}
+	a := ops.NewActivity(Backends{pc: pc}, cfg)
+	err := a.RollbackGatehubWithdrawal(context.Background(), txID)
+
+	require.Error(t, err)
+	assert.ErrorIs(t, err, gatehub.ErrInternal)
+}
+
+func TestRollbackGatehubWithdrawal_Success(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	const txID = "tx-abc"
+	pc := pacioli_mock.NewMockClient(ctrl)
+	pc.EXPECT().VoidTransfers(gomock.Any(), []string{txID}).Return([]pacioli.TransferResult{}, nil)
+
+	tc := transactions_mock.NewMockClient(ctrl)
+	tc.EXPECT().SetTransactionState(gomock.Any(), txID, transactions.StateFailed).Return(nil)
+
+	cfg := gatehub.Config{
+		AppID:                  gatehub.TestAppID,
+		Secret:                 gatehub.TestSecret,
+		CardAppID:              gatehub.TestCardAppID,
+		GatewayID:              gatehub.TestGatewayID,
+		CardAccountProductCode: gatehub.TestCardAccountProductCode,
+		PaywiserEuroVaultID:    gatehub.TestPaywiserEuroVaultID,
+		SendingUserID:          gatehub.TestSendingUserID,
+		SendingUserAddress:     gatehub.TestSendingUserAddress,
+		WebhookSecret:          gatehub.TestWebhookSecret,
+		FallbackWebhookURL:     gatehub.TestFallbackWebhookURL,
+		OnOffRampClientID:      gatehub.TestOnOffRampClientID,
+		OnboardingClientID:     gatehub.TestOnboardingClientID,
+		ExchangeClientID:       gatehub.TestExchangeClientID,
+		APIBaseURL:             gatehub.TestAPIBaseURL,
+		OnboardingBaseURL:      gatehub.TestOnboardingBaseURL,
+		OnOffRampBaseURL:       gatehub.TestOnOffRampBaseURL,
+		EUROpsAccount:          gatehub.TestEUROpsAccount,
+		EUROpsLedgerID:         gatehub.TestEUROpsLedgerID,
+	}
+	a := ops.NewActivity(Backends{pc: pc, tc: tc}, cfg)
+	err := a.RollbackGatehubWithdrawal(context.Background(), txID)
+
+	require.NoError(t, err)
+}
+
+func TestSendWithdrawalSCTITimeoutEmail(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	ec := email_mock.NewMockClient(ctrl)
+	ec.EXPECT().SendSCTITimeoutEmail(gomock.Any(), "tx-1", "wallet-1", "100", "John Doe", "GB29NWBK60161331926819", "2024-01-01T10:00:00Z")
+
+	cfg := gatehub.Config{
+		AppID:                  gatehub.TestAppID,
+		Secret:                 gatehub.TestSecret,
+		CardAppID:              gatehub.TestCardAppID,
+		GatewayID:              gatehub.TestGatewayID,
+		CardAccountProductCode: gatehub.TestCardAccountProductCode,
+		PaywiserEuroVaultID:    gatehub.TestPaywiserEuroVaultID,
+		SendingUserID:          gatehub.TestSendingUserID,
+		SendingUserAddress:     gatehub.TestSendingUserAddress,
+		WebhookSecret:          gatehub.TestWebhookSecret,
+		FallbackWebhookURL:     gatehub.TestFallbackWebhookURL,
+		OnOffRampClientID:      gatehub.TestOnOffRampClientID,
+		OnboardingClientID:     gatehub.TestOnboardingClientID,
+		ExchangeClientID:       gatehub.TestExchangeClientID,
+		APIBaseURL:             gatehub.TestAPIBaseURL,
+		OnboardingBaseURL:      gatehub.TestOnboardingBaseURL,
+		OnOffRampBaseURL:       gatehub.TestOnOffRampBaseURL,
+		EUROpsAccount:          gatehub.TestEUROpsAccount,
+		EUROpsLedgerID:         gatehub.TestEUROpsLedgerID,
+	}
+	a := ops.NewActivity(Backends{ec: ec}, cfg)
+	err := a.SendWithdrawalSCTITimeoutEmail(context.Background(), "tx-1", "wallet-1", "100", "John Doe", "GB29NWBK60161331926819", "2024-01-01T10:00:00Z")
+
+	require.NoError(t, err)
+}
+
+func TestSendWithdrawalRejectedEmail(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	ec := email_mock.NewMockClient(ctrl)
+	ec.EXPECT().SendGatehubWithdrawalRejectedEmail(gomock.Any(), "tx-1", "wallet-1", "100", "EUR", "GB29NWBK60161331926819", "John Doe")
+
+	cfg := gatehub.Config{
+		AppID:                  gatehub.TestAppID,
+		Secret:                 gatehub.TestSecret,
+		CardAppID:              gatehub.TestCardAppID,
+		GatewayID:              gatehub.TestGatewayID,
+		CardAccountProductCode: gatehub.TestCardAccountProductCode,
+		PaywiserEuroVaultID:    gatehub.TestPaywiserEuroVaultID,
+		SendingUserID:          gatehub.TestSendingUserID,
+		SendingUserAddress:     gatehub.TestSendingUserAddress,
+		WebhookSecret:          gatehub.TestWebhookSecret,
+		FallbackWebhookURL:     gatehub.TestFallbackWebhookURL,
+		OnOffRampClientID:      gatehub.TestOnOffRampClientID,
+		OnboardingClientID:     gatehub.TestOnboardingClientID,
+		ExchangeClientID:       gatehub.TestExchangeClientID,
+		APIBaseURL:             gatehub.TestAPIBaseURL,
+		OnboardingBaseURL:      gatehub.TestOnboardingBaseURL,
+		OnOffRampBaseURL:       gatehub.TestOnOffRampBaseURL,
+		EUROpsAccount:          gatehub.TestEUROpsAccount,
+		EUROpsLedgerID:         gatehub.TestEUROpsLedgerID,
+	}
+	a := ops.NewActivity(Backends{ec: ec}, cfg)
+	err := a.SendWithdrawalRejectedEmail(context.Background(), "tx-1", "wallet-1", "100", "EUR", "GB29NWBK60161331926819", "John Doe")
+
+	require.NoError(t, err)
+}
+
 type Backends struct {
 	db    *sqlx.DB
 	users *user_mock.MockClient
 	la    *la_mock.MockClient
 	wc    *wallet_mock.MockClient
 	tc    *transactions_mock.MockClient
+	pc    pacioli.Client
+	ec    email.Client
 }
 
 func (b Backends) Payments() payments.Client {
@@ -189,7 +331,7 @@ func (b Backends) Wallets() wallets.Client {
 }
 
 func (b Backends) Pacioli() pacioli.Client {
-	return nil
+	return b.pc
 }
 
 func (b Backends) KYC() kyc.Client {
@@ -201,7 +343,7 @@ func (b Backends) Transactions() transactions.Client {
 }
 
 func (b Backends) Email() email.Client {
-	return nil
+	return b.ec
 }
 
 func (b Backends) LinkGatehubUserToGateway() transactions.Client {

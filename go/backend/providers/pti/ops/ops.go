@@ -10,19 +10,19 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/payments"
-	"gitlab.com/fynbos/backend/providers/pti"
-	"gitlab.com/fynbos/backend/providers/pti/external"
-	"gitlab.com/fynbos/backend/transactions"
-	"gitlab.com/fynbos/backend/wallets"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	"github.com/interledger/interledger-app/go/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/providers/pti"
+	"github.com/interledger/interledger-app/go/backend/providers/pti/external"
+	"github.com/interledger/interledger-app/go/backend/transactions"
+	"github.com/interledger/interledger-app/go/backend/wallets"
 
-	"gitlab.com/fynbos/env"
+	"github.com/interledger/interledger-app/go/env"
 
-	"gitlab.com/fynbos/backend/slack"
+	"github.com/interledger/interledger-app/go/backend/slack"
 
-	"gitlab.com/fynbos/pacioli"
+	"github.com/interledger/interledger-app/go/pacioli"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/serviceerror"
 	"go.temporal.io/sdk/client"
@@ -693,32 +693,6 @@ func CreateBankAccount(ctx context.Context, b Backends, args pti.CreateBankAccou
 }
 
 func CreateDeposit(ctx context.Context, b Backends, wallet *wallets.Wallet, payment *payments.Payment) error {
-	las, err := b.LinkedAccounts().ListByWalletId(ctx, wallet.ID)
-	if err != nil {
-		return fmt.Errorf("%w %s", pti.ErrInternal, err)
-	}
-
-	var balance *linkedaccounts.LinkedAccount
-	for _, la := range las {
-		if la.Provider == pti.ProviderName && la.Type == pti.AccTypeBalance {
-			balance = &la
-			break
-		}
-	}
-	// only allow withdrawing from bank
-	var bank *linkedaccounts.LinkedAccount
-	for _, la := range las {
-		if la.Provider == pti.ProviderName && la.Type == pti.TypeBank {
-			bank = &la
-			break
-		}
-	}
-	if balance == nil {
-		return fmt.Errorf("%w balance account not found", pti.ErrNotFound)
-	}
-	if bank == nil {
-		return fmt.Errorf("%w source account not found or is not a bank account", pti.ErrNotFound)
-	}
 
 	workflowOptions := client.StartWorkflowOptions{
 		ID:                       "pti_create_deposit_" + payment.Receiver.WalletID,
@@ -726,7 +700,7 @@ func CreateDeposit(ctx context.Context, b Backends, wallet *wallets.Wallet, paym
 		WorkflowExecutionTimeout: time.Hour,
 	}
 
-	_, err = b.Temporal().ExecuteWorkflow(ctx, workflowOptions, DepositWorkflow, payment, bank)
+	_, err := b.Temporal().ExecuteWorkflow(ctx, workflowOptions, DepositWorkflow, payment, wallet)
 	if err != nil {
 		return err
 	}

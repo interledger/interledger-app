@@ -6,18 +6,18 @@ import (
 	"net/url"
 	"strings"
 
-	"gitlab.com/fynbos/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/currency"
 
-	"gitlab.com/fynbos/backend/email"
-	"gitlab.com/fynbos/backend/email/sendgrid"
-	"gitlab.com/fynbos/backend/kyc"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/payments"
-	"gitlab.com/fynbos/backend/providers/pti"
-	"gitlab.com/fynbos/backend/providers/xago"
-	"gitlab.com/fynbos/backend/wallets"
-	"gitlab.com/fynbos/env"
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/backend/email"
+	"github.com/interledger/interledger-app/go/backend/email/sendgrid"
+	"github.com/interledger/interledger-app/go/backend/kyc"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	"github.com/interledger/interledger-app/go/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/providers/pti"
+	"github.com/interledger/interledger-app/go/backend/providers/xago"
+	"github.com/interledger/interledger-app/go/backend/wallets"
+	"github.com/interledger/interledger-app/go/env"
+	"github.com/interledger/interledger-app/go/log"
 	"go.uber.org/zap"
 )
 
@@ -565,6 +565,71 @@ func SendKYCDocumentsRequiredEmail(ctx context.Context, b Backends, walletID str
 	}
 }
 
+func SendAccountDeletionRequestedEmail(ctx context.Context, b Backends, userID string) error {
+	support := strings.TrimSpace(b.SupportEmail())
+	if support == "" {
+		return email.ErrSupportInboxNotConfigured
+	}
+
+	u, err := b.Users().GetUser(ctx, userID)
+	if err != nil {
+		return fmt.Errorf("%w: %w", email.ErrInternal, err)
+	}
+
+	userWallets, err := b.Wallets().List(ctx, userID)
+	if err != nil {
+		return fmt.Errorf("%w: %w", email.ErrInternal, err)
+	}
+
+	paragraphs := []string{
+		"A user requested app account deletion.",
+		"Environment: " + env.GetEnv(),
+		"User ID: " + u.ID,
+		"Email: " + strings.TrimSpace(u.Email),
+		fmt.Sprintf("Wallet count: %d", len(userWallets)),
+	}
+	for _, w := range userWallets {
+		paragraphs = append(paragraphs, "Wallet ID: "+w.ID)
+	}
+
+	sendTo := []sendgrid.Email{{Name: "Support", Address: support}}
+	subject := "[" + env.GetEnv() + "] Account deletion requested — user " + userID
+	supportData := make([]map[string]interface{}, 0, len(paragraphs))
+	for _, p := range paragraphs {
+		supportData = append(supportData, map[string]interface{}{"paragraph": p})
+	}
+	if err := b.External().SendTemplate(ctx, subject, sendTo, b.OneTemplateID(), map[string]interface{}{
+		"subject": subject,
+		"data":    supportData,
+	}, nil); err != nil {
+		return fmt.Errorf("%w: %w", email.ErrInternal, err)
+	}
+
+	// User-facing acknowledgement is courtesy only — log failures, don't fail the RPC.
+	if strings.TrimSpace(u.Email) == "" {
+		log.Warn("skipping account deletion confirmation email; user has no address on file",
+			zap.String("userID", userID))
+		return nil
+	}
+	name := strings.TrimSpace(u.FirstName + " " + u.LastName)
+	confirmTo := []sendgrid.Email{{Name: name, Address: u.Email}}
+	confirmSubject := "We've received your account deletion request"
+	userData := []map[string]interface{}{
+		{"paragraph": "We've received your request to delete your account."},
+		{"paragraph": "If you still have funds in your account, please withdraw them within the next 2–3 days."},
+		{"paragraph": "Our support team will let you know when the process starts."},
+	}
+	if err := b.External().SendTemplate(ctx, confirmSubject, confirmTo, b.OneTemplateID(), map[string]interface{}{
+		"subject": confirmSubject,
+		"data":    userData,
+	}, nil); err != nil {
+		log.Error("Failed to send account deletion confirmation email to user.",
+			zap.Error(err),
+			zap.String("userID", userID))
+	}
+	return nil
+}
+
 func SendAuthenticatorResetEmail(ctx context.Context, b Backends, walletID string) {
 	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
 	if err != nil {
@@ -594,4 +659,116 @@ func SendAuthenticatorResetEmail(ctx context.Context, b Backends, walletID strin
 	if err != nil {
 		log.Error("Failed to send authenticator reset email.", zap.Error(err), zap.String("walletID", walletID))
 	}
+}
+
+func SendSCTITimeoutEmail(ctx context.Context, b Backends, txID, walletID, amount, name, iban, submittedAt string) {
+	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
+	if err != nil {
+		log.Error("Failed to send scti timeout email.", zap.Error(err), zap.String("walletID", walletID))
+		return
+	}
+
+	txURL, err := url.JoinPath(env.GetUrl(), "payments", txID)
+	if err != nil {
+		log.Error("Failed to send scti timeout email.", zap.Error(err), zap.String("walletID", walletID))
+		return
+	}
+
+	table := []map[string]any{
+		{"label": "Beneficiary Name:", "text": name},
+		{"label": "Beneficiary IBAN:", "text": maskIBAN(iban)},
+		{"label": "Amount:", "text": amount},
+		{"label": "Submitted:", "text": submittedAt},
+	}
+
+	data := []map[string]any{
+		{"paragraph": greeting},
+		{"paragraph": "We wanted to let you know that your instant payment is still being processed. We did not receive confirmation within 10 seconds, but this does not mean the payment has failed."},
+		{"table": table},
+		{"paragraph": "The payment status will update automatically once the final outcome is available. Please do not resend the payment until you receive confirmation of the final status."},
+		{"paragraph": "If you need any help, please contact us."},
+		{"paragraph": "Thank you for your patience."},
+	}
+
+	err = b.External().SendTemplate(ctx, "SCTI Payment Still In Processing", sendTo, b.OneTemplateID(), map[string]any{
+		"subject": "SCTI Payment Still In Processing",
+		"data":    data,
+		"cta": map[string]any{
+			"text": "View payment",
+			"url":  txURL,
+		},
+	}, nil)
+	if err != nil {
+		log.Error("Failed to send scti timeout email.", zap.Error(err), zap.String("walletID", walletID))
+	}
+}
+
+func SendGatehubWithdrawalRejectedEmail(ctx context.Context, b Backends, txID, walletID, amount, currency, iban, name string) {
+	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
+	if err != nil {
+		log.Error("Failed to send withdrawal rejected email.", zap.Error(err), zap.String("walletID", walletID))
+		return
+	}
+
+	body := fmt.Sprintf("The amount of %s %s was not received by %s in the account %s.", amount, currency, name, maskIBAN(iban))
+	txURL, err := url.JoinPath(env.GetUrl(), "payments", txID)
+	if err != nil {
+		log.Error("Failed to send withdrawal rejected email.", zap.Error(err), zap.String("walletID", walletID))
+		return
+	}
+
+	err = b.External().SendTemplate(ctx, "Withdrawal unsuccessful", sendTo, b.OneTemplateID(), map[string]interface{}{
+		"subject": "Withdrawal unsuccessful",
+		"data": []map[string]interface{}{
+			{"paragraph": greeting},
+			{"paragraph": "We would like to inform you that your withdrawal was unsuccessful."},
+			{"paragraph": body},
+		},
+		"cta": map[string]any{
+			"text": "View payment",
+			"url":  txURL,
+		},
+	}, nil)
+	if err != nil {
+		log.Error("Failed to send withdrawal rejected email.", zap.Error(err), zap.String("walletID", walletID))
+	}
+}
+
+func SendSCTRerouteEmail(ctx context.Context, b Backends, txID, walletID string) {
+	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
+	if err != nil {
+		log.Error("Failed to send sct reroute email.", zap.Error(err), zap.String("walletID", walletID))
+		return
+	}
+
+	txURL, err := url.JoinPath(env.GetUrl(), "payments", txID)
+	if err != nil {
+		log.Error("Failed to send sct reroute email.", zap.Error(err), zap.String("walletID", walletID))
+		return
+	}
+
+	data := []map[string]any{
+		{"paragraph": greeting},
+		{"paragraph": "Your payment is processed as a SEPA Credit Transfer Instant by default. However, due to technical limitations your payment will be processed as a standard SEPA Credit Transfer."},
+	}
+
+	err = b.External().SendTemplate(ctx, "Payment rerouted to standard SEPA Credit Transfer", sendTo, b.OneTemplateID(), map[string]any{
+		"subject": "Payment rerouted to standard SEPA Credit Transfer",
+		"data":    data,
+		"cta": map[string]any{
+			"text": "View payment",
+			"url":  txURL,
+		},
+	}, nil)
+	if err != nil {
+		log.Error("Failed to send sct reroute email.", zap.Error(err), zap.String("walletID", walletID))
+	}
+}
+
+func maskIBAN(iban string) string {
+	s := strings.ReplaceAll(iban, " ", "")
+	if len(s) < 15 { // minimum valid IBAN length (ISO 13616)
+		return s
+	}
+	return s[:4] + strings.Repeat("X", len(s)-8) + s[len(s)-4:]
 }

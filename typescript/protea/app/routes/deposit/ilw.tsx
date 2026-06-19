@@ -29,10 +29,10 @@ import type { FormattedLinkedAccount } from '~/data/accounts.server'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import type { RootLoaderData } from '~/root'
 import { PaySelect } from '../pay_.$paymentId/PaySelect'
-import type { fynbosDepositLoader } from './loader.server'
+import type { ilwDepositLoader } from './loader.server'
 
-export function FynbosDepositPage() {
-  const { depositDetails } = useLoaderData<typeof fynbosDepositLoader>()
+export function IlwDepositPage() {
+  const { depositDetails } = useLoaderData<typeof ilwDepositLoader>()
 
   const [setLoading] = useScaffoldStore((state) => [state.setLoading])
 
@@ -56,7 +56,7 @@ const Amount = () => {
     linkedAccounts,
     csrfToken,
     provider
-  } = useLoaderData<typeof fynbosDepositLoader>()
+  } = useLoaderData<typeof ilwDepositLoader>()
   const [, setSearchParams] = useSearchParams()
   const actionData = useActionData<any>()
 
@@ -212,8 +212,7 @@ const Amount = () => {
 }
 
 export function DepositDetails() {
-  const { depositDetails, csrfToken } =
-    useLoaderData<typeof fynbosDepositLoader>()
+  const { depositDetails, csrfToken } = useLoaderData<typeof ilwDepositLoader>()
   const { env } = useRouteLoaderData('root') as RootLoaderData
 
   return (

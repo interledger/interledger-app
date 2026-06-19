@@ -6,8 +6,8 @@ import (
 	"math"
 	"time"
 
-	"gitlab.com/fynbos/backend/payments"
-	"gitlab.com/fynbos/backend/payments/ops"
+	"github.com/interledger/interledger-app/go/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/payments/ops"
 )
 
 var _ payments.Client = client{}

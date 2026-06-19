@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"gitlab.com/fynbos/backend/appcontext"
-	"gitlab.com/fynbos/backend/errcodes"
-	"gitlab.com/fynbos/log"
-	pb "gitlab.com/fynbos/proto/backend/v1"
+	"github.com/interledger/interledger-app/go/backend/appcontext"
+	"github.com/interledger/interledger-app/go/backend/errcodes"
+	"github.com/interledger/interledger-app/go/log"
+	pb "github.com/interledger/interledger-app/go/proto/backend/v1"
 	"go.uber.org/zap"
 
 	"google.golang.org/grpc"

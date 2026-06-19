@@ -7,12 +7,12 @@ import (
 	"net/http"
 	"time"
 
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/providers/gatehub"
-	"gitlab.com/fynbos/backend/providers/gatehub/external"
-	ops "gitlab.com/fynbos/backend/providers/gatehub/ops"
-	httplogger "gitlab.com/fynbos/backend/providers/http"
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub/external"
+	ops "github.com/interledger/interledger-app/go/backend/providers/gatehub/ops"
+	httplogger "github.com/interledger/interledger-app/go/backend/providers/http"
+	"github.com/interledger/interledger-app/go/log"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
