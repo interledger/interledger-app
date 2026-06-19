@@ -1,11 +1,15 @@
 package config
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/base64"
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/interledger/interledger-app/go/configa"
 )
 
 // Config holds application configuration
@@ -33,8 +37,62 @@ type Config struct {
 	CardDataTokenSecret string
 }
 
-// Load reads configuration from environment variables
+// yamlConfig is the YAML-tagged struct used when CONFIG is set.
+type yamlConfig struct {
+	Port                  string            `yaml:"port"`
+	LogLevel              string            `yaml:"log_level"`
+	RedisURL              string            `yaml:"redis_url"`
+	RedisDB               int               `yaml:"redis_db"`
+	WebhookURL            string            `yaml:"webhook_url"`
+	WebhookSecret         string            `yaml:"webhook_secret"`
+	WebhookMinDelaySec    float64           `yaml:"webhook_min_delay_sec"`
+	EnforceAuthentication bool              `yaml:"enforce_authentication"`
+	ValidCredentials      map[string]string `yaml:"valid_credentials"`
+	DefaultOrganizationID string            `yaml:"default_organization_id"`
+	PublicBaseURL         string            `yaml:"public_base_url"`
+	CardDataTokenSecret   string            `yaml:"card_data_token_secret"`
+}
+
+// Load reads configuration. When CONFIG is set it is a comma-separated list
+// of YAML files (later files overlay earlier ones); otherwise individual
+// environment variables are read.
 func Load() *Config {
+	if v := os.Getenv("CONFIG"); v != "" {
+		return loadFromFiles(splitFiles(v))
+	}
+	return loadFromEnv()
+}
+
+func loadFromFiles(files []string) *Config {
+	parsed, err := configa.Parse[yamlConfig](files)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "fatal: parse mockgatehub config:", err)
+		os.Exit(1)
+	}
+	y, err := parsed.Resolve(context.Background())
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "fatal: resolve mockgatehub config:", err)
+		os.Exit(1)
+	}
+
+	cfg := &Config{
+		Port:                  y.Port,
+		LogLevel:              y.LogLevel,
+		RedisURL:              y.RedisURL,
+		RedisDB:               y.RedisDB,
+		WebhookURL:            y.WebhookURL,
+		WebhookSecret:         y.WebhookSecret,
+		WebhookMinDelaySec:    y.WebhookMinDelaySec,
+		EnforceAuthentication: y.EnforceAuthentication,
+		ValidCredentials:      y.ValidCredentials,
+		DefaultOrganizationID: y.DefaultOrganizationID,
+		PublicBaseURL:         strings.TrimRight(y.PublicBaseURL, "/"),
+		CardDataTokenSecret:   y.CardDataTokenSecret,
+	}
+	return applyDefaults(cfg)
+}
+
+func loadFromEnv() *Config {
 	cfg := &Config{
 		Port:                  getEnv("MOCKGATEHUB_PORT", "8080"),
 		LogLevel:              getEnv("LOG_LEVEL", "info"),
@@ -49,29 +107,36 @@ func Load() *Config {
 		PublicBaseURL:         strings.TrimRight(getEnv("MOCKGATEHUB_PUBLIC_BASE_URL", "https://mockgatehub.interledger.test"), "/"),
 		CardDataTokenSecret:   getEnv("MOCKGATEHUB_CARD_DATA_TOKEN_SECRET", ""),
 	}
+	return applyDefaults(cfg)
+}
 
-	// If no card-data token secret was supplied, generate a random one so
-	// mock deployments never ship with a known signing key. If randomness
-	// is unavailable (should never happen) fall back to a process-unique
-	// value so mockgatehub still boots.
+// applyDefaults handles post-load derivations shared by both loading paths.
+func applyDefaults(cfg *Config) *Config {
 	if cfg.CardDataTokenSecret == "" {
 		cfg.CardDataTokenSecret = randomSecret(32)
 	}
 
-	// Validate WebhookMinDelaySec: enforce minimum of 2 seconds to prevent
-	// negative values or zero from bypassing intended minimum delay behavior.
-	// Clamp to 2-second minimum if env var is misconfigured.
+	// Clamp to 2-second minimum to prevent near-zero delays.
 	if cfg.WebhookMinDelaySec < 2 {
 		cfg.WebhookMinDelaySec = 2
 	}
 
-	// Use Redis if URL is provided
 	cfg.UseRedis = cfg.RedisURL != ""
 
 	return cfg
 }
 
-// getEnv gets environment variable with fallback
+// splitFiles splits the CONFIG env var value into file paths.
+func splitFiles(v string) []string {
+	var files []string
+	for _, f := range strings.Split(v, ",") {
+		if f = strings.TrimSpace(f); f != "" {
+			files = append(files, f)
+		}
+	}
+	return files
+}
+
 func getEnv(key, defaultVal string) string {
 	if val := os.Getenv(key); val != "" {
 		return val
@@ -79,7 +144,6 @@ func getEnv(key, defaultVal string) string {
 	return defaultVal
 }
 
-// getEnvInt gets integer environment variable with fallback
 func getEnvInt(key string, defaultVal int) int {
 	if val := os.Getenv(key); val != "" {
 		if intVal, err := strconv.Atoi(val); err == nil {
@@ -89,7 +153,6 @@ func getEnvInt(key string, defaultVal int) int {
 	return defaultVal
 }
 
-// getEnvFloat gets float64 environment variable with fallback
 func getEnvFloat(key string, defaultVal float64) float64 {
 	if val := os.Getenv(key); val != "" {
 		if floatVal, err := strconv.ParseFloat(val, 64); err == nil {
@@ -99,7 +162,6 @@ func getEnvFloat(key string, defaultVal float64) float64 {
 	return defaultVal
 }
 
-// getEnvBool gets boolean environment variable with fallback
 func getEnvBool(key string, defaultVal bool) bool {
 	if val := os.Getenv(key); val != "" {
 		return val == "true" || val == "1" || val == "yes"
@@ -107,13 +169,11 @@ func getEnvBool(key string, defaultVal bool) bool {
 	return defaultVal
 }
 
-// parseCredentials parses credentials from format: "appId1:secret1,appId2:secret2"
 func parseCredentials(credStr string) map[string]string {
 	creds := make(map[string]string)
 	if credStr == "" {
 		return creds
 	}
-
 	for _, pair := range splitString(credStr, ',') {
 		parts := splitString(pair, ':')
 		if len(parts) == 2 {
@@ -123,9 +183,6 @@ func parseCredentials(credStr string) map[string]string {
 	return creds
 }
 
-// randomSecret returns a base64-encoded cryptographically random byte string
-// of the requested size. Falls back to a deterministic process-local value
-// only if the system RNG fails, which should never happen on Linux.
 func randomSecret(nBytes int) string {
 	b := make([]byte, nBytes)
 	if _, err := rand.Read(b); err != nil {
@@ -134,7 +191,6 @@ func randomSecret(nBytes int) string {
 	return base64.RawURLEncoding.EncodeToString(b)
 }
 
-// splitString splits a string by delimiter (helper for parsing)
 func splitString(s string, delim byte) []string {
 	var result []string
 	var current []byte

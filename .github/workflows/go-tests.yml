@@ -8,6 +8,12 @@ on:
       - '.github/workflows/mock-tester.yml'
 
 jobs:
+  configa-tests:
+    uses: ./.github/workflows/go-test-template.yml
+    with:
+      test_path: './go/configa'
+      coverage_key: 'configa'
+
   backend-tests:
     uses: ./.github/workflows/go-test-template.yml
     with:
