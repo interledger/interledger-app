@@ -43,14 +43,14 @@
 }
 
 .feature-heading {
-  color: var(--color-neutral-900);
+  color: var(--feature-fg, var(--color-neutral-900));
   font: var(--text-h2);
   letter-spacing: var(--text-h2-ls);
   margin: 0;
 }
 
 .feature-body {
-  color: var(--color-neutral-900);
+  color: var(--feature-fg, var(--color-neutral-900));
   margin: 0 0 20px;
 }
 
@@ -159,18 +159,22 @@
 
 .animated-hero[data-screen='2'] {
   background: var(--feature-screen-1-bg);
+  --feature-fg: var(--feature-screen-1-fg);
 }
 
 .animated-hero[data-screen='3'] {
   background: var(--feature-screen-2-bg);
+  --feature-fg: var(--feature-screen-2-fg);
 }
 
 .animated-hero[data-screen='4'] {
   background: var(--feature-screen-3-bg);
+  --feature-fg: var(--feature-screen-3-fg);
 }
 
 .animated-hero[data-screen='5'] {
   background: var(--feature-screen-4-bg);
+  --feature-fg: var(--feature-screen-4-fg);
 }
 
 /* Feature 1 has two zones: enter (160px) + dwell (320px) */
