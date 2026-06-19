@@ -16,7 +16,7 @@ import { mergeMeta } from '~/lib/meta'
 import type { Route } from './+types/settings.keys'
 
 export async function loader({ request }: Route.LoaderArgs) {
-  let response = await grpc.listConnections(request, {})
+  const response = await grpc.listConnections(request, {})
 
   if (isConnectError(response)) throw response.errorResponse
 

@@ -64,7 +64,7 @@ export function qrSvg(qr: QRdot[][]): string {
   svg += logo((qrLen * blockSize) / 2)
   for (let i = 0; i < qrLen; i++) {
     for (let j = 0; j < qrLen; j++) {
-      let center = Math.floor(qrLen / 2)
+      const center = Math.floor(qrLen / 2)
       if (
         i >= center - 3 &&
         i <= center + 3 &&
@@ -88,13 +88,13 @@ export async function generateQR(text: string): Promise<QRdot[][]> {
   })
 
   // Set Defaults
-  let qrArr: QRdot[][] = []
+  const qrArr: QRdot[][] = []
   let eyeSize = 0
 
   let i = 0
   while (eyeSize == 0) {
-    let current = qr.modules.get(0, i)
-    let next = qr.modules.get(0, i + 1)
+    const current = qr.modules.get(0, i)
+    const next = qr.modules.get(0, i + 1)
     if (current != next) {
       eyeSize = i + 1
     }
@@ -105,7 +105,7 @@ export async function generateQR(text: string): Promise<QRdot[][]> {
     qrArr.push([])
     for (let j = 0; j < qr.modules.size; j++) {
       let shape: Radius = 'rounded-none'
-      let fill = qr.modules.get(i, j) > 0
+      const fill = qr.modules.get(i, j) > 0
       // Top left eye
       if (i <= eyeSize && j <= eyeSize) {
         shape = 'rounded-none'
@@ -121,11 +121,11 @@ export async function generateQR(text: string): Promise<QRdot[][]> {
         // BitMatrix.prototype.get = function (row, col) {
         //   return this.data[row * this.size + col]
         // }
-        let topAdj = qr.modules.get(i - 1, j) ?? 0
-        let leftAdj = j == 0 ? 0 : (qr.modules.get(i, j - 1) ?? 0)
-        let rightAdj =
+        const topAdj = qr.modules.get(i - 1, j) ?? 0
+        const leftAdj = j == 0 ? 0 : (qr.modules.get(i, j - 1) ?? 0)
+        const rightAdj =
           j == qr.modules.size - 1 ? 0 : (qr.modules.get(i, j + 1) ?? 0)
-        let bottomAdj = qr.modules.get(i + 1, j) ?? 0
+        const bottomAdj = qr.modules.get(i + 1, j) ?? 0
 
         if (!topAdj && !leftAdj && !rightAdj && !bottomAdj) {
           // TODO possibly use other new shapes for this case

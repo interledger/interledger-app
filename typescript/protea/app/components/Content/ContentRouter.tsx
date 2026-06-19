@@ -22,7 +22,7 @@ export function ContentRouter({
   className
 }: ContentRouterProps) {
   const target = to.target ? '_blank' : '_self'
-  let { toUrl, internal } = sanitizeCMSLinks(to.url as string)
+  const { toUrl, internal } = sanitizeCMSLinks(to.url as string)
   if (to.button) {
     if (outline) {
       return (

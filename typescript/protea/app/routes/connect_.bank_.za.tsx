@@ -172,7 +172,7 @@ export async function action({ request }: Route.ActionArgs) {
     bankName: ''
   }
 
-  let response = await grpc.addXagoBankAccount(request, {
+  const response = await grpc.addXagoBankAccount(request, {
     accountNumber,
     branchCode,
     bankName

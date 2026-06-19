@@ -16,7 +16,7 @@ export type GetCardTokenResponse = {
 }
 
 export async function action({ request }: Route.ActionArgs) {
-  let form = await request.formData()
+  const form = await request.formData()
   const cardId = form.get('cardId') as string
   const tokenType = Number(form.get('tokenType')) as CardTokenType
   const publicKey = form.get('publicKey') as string

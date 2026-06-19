@@ -9,7 +9,7 @@ import { mergeMeta } from '~/lib/meta'
 import type { Route } from './+types/settings.grants'
 
 export async function loader({ request }: Route.LoaderArgs) {
-  let response = await grpc.listRafikiGrants(request, {})
+  const response = await grpc.listRafikiGrants(request, {})
 
   if (isConnectError(response)) throw response.errorResponse
 

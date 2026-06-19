@@ -478,9 +478,9 @@ export function ShowCaseDesktop({
 }: {
   content: ShowcaseContentRecord
 }) {
-  let [selectedIndex, setSelectedIndex] = useState(0)
+  const [selectedIndex, setSelectedIndex] = useState(0)
 
-  let onChange = useCallback(
+  const onChange = useCallback(
     (selectedIndex: number) => {
       setSelectedIndex(selectedIndex)
     },
@@ -570,14 +570,14 @@ export function ShowCaseMobile({
 }: {
   content: ShowcaseContentRecord
 }) {
-  let [activeIndex, setActiveIndex] = useState(0)
-  let slideContainerRef = useRef<HTMLDivElement>(null)
-  let slideRefs = useRef<(HTMLDivElement | null)[]>([])
+  const [activeIndex, setActiveIndex] = useState(0)
+  const slideContainerRef = useRef<HTMLDivElement>(null)
+  const slideRefs = useRef<(HTMLDivElement | null)[]>([])
 
   useEffect(() => {
-    let observer = new window.IntersectionObserver(
+    const observer = new window.IntersectionObserver(
       (entries) => {
-        for (let entry of entries) {
+        for (const entry of entries) {
           if (entry.isIntersecting) {
             setActiveIndex(
               slideRefs.current.indexOf(entry.target as HTMLDivElement)
@@ -592,7 +592,7 @@ export function ShowCaseMobile({
       }
     )
 
-    for (let slide of slideRefs.current) {
+    for (const slide of slideRefs.current) {
       if (slide) {
         observer.observe(slide)
       }

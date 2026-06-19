@@ -33,7 +33,7 @@ type Country = {
 
 export async function loader({ request }: Route.LoaderArgs) {
   await requireNoUserSession(request)
-  let response = await grpc.getCountries(request, {})
+  const response = await grpc.getCountries(request, {})
 
   if (isConnectError(response)) throw response.errorResponse
 
@@ -47,7 +47,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   let isMugAvailable = false
   if (mugId != null) {
-    let response = await grpc.isMugAvailable(request, {
+    const response = await grpc.isMugAvailable(request, {
       mugId: mugId
     })
 
@@ -271,7 +271,7 @@ export async function action({ request }: Route.ActionArgs) {
     email: ''
   }
 
-  let response = await grpc.joinWaitlist(request, {
+  const response = await grpc.joinWaitlist(request, {
     email,
     countryCode: country,
     fullName,

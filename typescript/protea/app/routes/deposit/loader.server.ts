@@ -59,12 +59,12 @@ export async function fynbosDepositLoader({ request }: LoaderFunctionArgs) {
   )
 
   if (linkedAccounts.length == 0 && balanceAccount.countryCode == 'ZA') {
-    let details = await grpc.getXagoDepositDetails(request, {
+    const details = await grpc.getXagoDepositDetails(request, {
       linkedAccount: balanceAccount.linkedAccount
     })
     if (isConnectError(details)) throw details.errorResponse
 
-    let ret = details.details.filter(
+    const ret = details.details.filter(
       (d) => d.currency == balanceAccount?.currency
     )
     depositDetails = ret[0]

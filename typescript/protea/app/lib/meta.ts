@@ -10,11 +10,11 @@ export const mergeMeta = <
   leafMetaFn: MetaFunction<Loader, ParentsLoaders>
 ): MetaFunction<Loader, ParentsLoaders> => {
   return (arg) => {
-    let leafMeta = leafMetaFn(arg)
+    const leafMeta = leafMetaFn(arg)
 
     return arg.matches.reduceRight((acc, match) => {
-      for (let parentMeta of match.meta) {
-        let index = (acc ?? []).findIndex(
+      for (const parentMeta of match.meta) {
+        const index = (acc ?? []).findIndex(
           (meta) =>
             ('name' in meta &&
               'name' in parentMeta &&

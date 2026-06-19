@@ -13,7 +13,7 @@ export type OperationResponse = {
 }
 
 export async function action({ request }: Route.ActionArgs) {
-  let form = await request.formData()
+  const form = await request.formData()
   const cardId = form.get('cardId') as string
   const operation = form.get('operation') as Operation
 

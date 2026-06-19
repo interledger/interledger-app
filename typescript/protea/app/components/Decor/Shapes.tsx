@@ -201,7 +201,7 @@ export function WalletShapes() {
 
   const [loading] = useScaffoldStore((state) => [state.loading])
 
-  let throttleRef = useRef<NodeJS.Timeout>()
+  const throttleRef = useRef<NodeJS.Timeout>()
 
   const [scope, animate] = useAnimate()
 

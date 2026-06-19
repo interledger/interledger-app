@@ -1,85 +1,13 @@
-// /plaid — POC route for Plaid Link integration.
-//
-// Loader fetches the current Plaid link state from the backend so the page
-// can show "Connect a bank" vs the linked-bank panel without a flash.
-//
-// Action dispatches by `intent`:
-//   create_link_token  → mint a Plaid Link token (button click)
-//   exchange           → exchange the public_token returned by Plaid Link
-//   fetch_product      → call /plaid/{accounts|auth|balance|identity|transactions}
-//   disconnect         → tear down on Plaid + backend stores
-//
-// UI components arrive in F5a–F5c; this file currently renders a minimal
-// status surface so the route is navigable and the loader/action wiring can
-// be exercised. Snackbars wired in F6.
-
-import { useEffect, useState } from 'react'
-import {
-  Form,
-  href,
-  useActionData,
-  useLoaderData,
-  useNavigation
-} from 'react-router'
+import { href } from 'react-router'
 
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { ErrorHandler, ErrorMapper, UserFacingError } from '~/lib/error-handling/bff-error'
 import type { ServerResponse } from '~/lib/error-handling/types'
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Layouts,
-  WalletGrid,
-  GridColumn,
-  OutlineButton,
-  PlaidLinkButton,
-  EndpointButton,
-  ProductCard,
-  DebugPanel,
-  TextButton
-} from '~/components'
-import type { ApplicationProps } from '~/components'
 import { getUserSession } from '~/lib/kratos/session.server'
-import { mergeMeta } from '~/lib/meta'
-import plaid, { isPlaidError, type PlaidState } from '~/lib/plaid.server'
-import { usePlaidStore, type PlaidProduct } from '~/lib/usePlaidStore'
+import plaid, { isPlaidError } from '~/lib/plaid.server'
+import { type PlaidProduct } from '~/lib/usePlaidStore'
 import type { Route } from './+types/plaid'
-
-export const handle: ApplicationProps = {
-  layout: Layouts.Wallet,
-  scaffold: {
-    header: { title: 'Plaid (POC)' }
-  }
-}
-
-export const meta = mergeMeta(() => [{ title: 'Plaid (POC)' }])
-
-interface LoaderData {
-  state: PlaidState
-  /** Kratos user id (rendered in the debug panel). */
-  userId: string
-  /** Surfaced on action errors so the component can render them. */
-  error?: { message: string; status: number; errorCode: string }
-}
-
-export async function loader({ request }: Route.LoaderArgs): Promise<ServerResponse<LoaderData>> {
-  const session = await getUserSession(request)
-  const userId = session?.identity?.id ?? ''
-  const state = await plaid.getState(request)
-  if (isPlaidError(state)) {
-    const userFacingError = ErrorMapper.plaid.toUserFacingError(state)
-    return ErrorHandler(request, userFacingError, {
-      cb: () => ({
-        success: false as const,
-        error: UserFacingError('Plaid state not available, please try again or contact support if the issue persists.')
-      })
-    }) as any
-  }
-  return { success: true, data: { state, userId } }
-}
 
 /* ─── action ─────────────────────────────────────────────────────────── */
 
@@ -200,7 +128,6 @@ export async function action({ request }: Route.ActionArgs): Promise<ActionData 
       if (isPlaidError(linked)) {
         return ErrorHandler(request, ErrorMapper.plaid.toUserFacingError(linked)) as any
       }
-      // Already linked → stay on page, inline snackbar via hook
       if (linked.already_linked) {
         return {
           success: true,
@@ -212,7 +139,6 @@ export async function action({ request }: Route.ActionArgs): Promise<ActionData 
           }
         }
       }
-      // New link → redirect to /accounts so user sees the row immediately
       return redirectWithSnackbar(request, href('/accounts'), {
         message: 'Bank account linked',
         icon: 'check'
@@ -263,134 +189,10 @@ export async function action({ request }: Route.ActionArgs): Promise<ActionData 
       if (isPlaidError(result)) {
         return ErrorHandler(request, ErrorMapper.plaid.toUserFacingError(result)) as any
       }
-      // Force a fresh load so the loader observes the unlinked state.
-      return redirectWithSnackbar(request, href('/plaid'), { message: 'Bank disconnected' })
+      return redirectWithSnackbar(request, href('/accounts'), { message: 'Bank disconnected' })
     }
 
     default:
       return ErrorHandler(request, UserFacingError(`unknown intent: ${intent}`, 400)) as any
   }
-}
-
-/* ─── component ──────────────────────────────────────────────────────── */
-
-export default function PlaidRoute() {
-  const loaderData = useLoaderData<typeof loader>()
-  const actionResponse = useActionData<typeof action>()
-  const actionData = actionResponse?.success ? actionResponse.data : undefined
-  const navigation = useNavigation()
-  const isSubmitting = navigation.state === 'submitting'
-
-  if (loaderData.success === false) {
-    return (
-      <WalletGrid>
-        <GridColumn className='col-span-full'>
-          <Card>
-            <CardHeader><CardTitle>Status</CardTitle></CardHeader>
-            <CardContent>{loaderData.error?.message}</CardContent>
-          </Card>
-        </GridColumn>
-      </WalletGrid>
-    )
-  }
-
-  const { state, userId } = loaderData.data
-
-  const {
-    itemId,
-    institutionName,
-    linkedAt,
-    activeProduct,
-    setLinked,
-    clearLinked,
-    setLastResponse
-  } = usePlaidStore()
-
-  const [showDebug, setShowDebug] = useState(false)
-
-  // Mirror canonical backend state into the Zustand store.
-  useEffect(() => {
-    if (state.linked && state.item_id) {
-      setLinked({
-        itemId: state.item_id,
-        institutionName: state.institution_name ?? null,
-        linkedAt: state.linked_at ?? null
-      })
-    } else {
-      clearLinked()
-    }
-  }, [state.linked, state.item_id, state.institution_name, state.linked_at, setLinked, clearLinked])
-
-  // Save successful product fetch responses into the Zustand store.
-  useEffect(() => {
-    if (actionData?.intent === 'fetch_product' && actionData.ok) {
-      setLastResponse(actionData.product, actionData.response)
-    }
-  }, [actionData, setLastResponse])
-
-  return (
-    <WalletGrid>
-      <GridColumn className='col-span-full'>
-        <Card>
-          <CardHeader>
-            <CardTitle>Status</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {state.linked ? (
-              <div className='flex flex-col gap-2'>
-                <p>
-                  Linked to <strong>{institutionName || 'an institution'}</strong>
-                </p>
-                <p>Item: <code className='break-all'>{itemId}</code></p>
-                {linkedAt && <p>Linked at: <code>{linkedAt}</code></p>}
-                <Form method='post' className='mt-2'>
-                  <input type='hidden' name='intent' value='disconnect' />
-                  <OutlineButton type='submit' disabled={isSubmitting}>
-                    Disconnect
-                  </OutlineButton>
-                </Form>
-              </div>
-            ) : (
-              <div className='flex flex-col gap-3'>
-                <p>No bank linked yet.</p>
-                <PlaidLinkButton />
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {state.linked && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Endpoints</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className='grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5'>
-                {PRODUCT_KEYS.map((p) => (
-                  <EndpointButton key={p} product={p} />
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {activeProduct && (
-          <ProductCard key={activeProduct} product={activeProduct} />
-        )}
-
-        <div className='mt-6 flex justify-end'>
-          <TextButton
-            onClick={() => setShowDebug((v) => !v)}
-            aria-expanded={showDebug}
-          >
-            {showDebug ? 'Hide debug' : 'Show debug'}
-          </TextButton>
-        </div>
-
-        {showDebug && (
-          <DebugPanel userId={userId} state={state} actionData={actionData} />
-        )}
-      </GridColumn>
-    </WalletGrid>
-  )
 }

@@ -127,7 +127,7 @@ export function Scaffold() {
   )
 
   // TODO should use second last match for scaffold if current match is nested (Only on desktop)
-  let currentMatch = matches[matches.length - 1] as UIMatch<
+  const currentMatch = matches[matches.length - 1] as UIMatch<
     any,
     ApplicationProps
   >
@@ -229,9 +229,6 @@ export function Scaffold() {
             </NavDrawer.ListItem>
             <NavDrawer.ListItem to={href('/support')}>
               Support
-            </NavDrawer.ListItem>
-            <NavDrawer.ListItem to={href('/plaid')}>
-              Plaid (POC)
             </NavDrawer.ListItem>
           </NavDrawer.List>
         </NavDrawerRoot>
@@ -561,9 +558,6 @@ export function Scaffold() {
                 </NavDrawer.ListItem>
                 <NavDrawer.ListItem to={href('/support')}>
                   Support
-                </NavDrawer.ListItem>
-                <NavDrawer.ListItem to={href('/plaid')}>
-                  Plaid (POC)
                 </NavDrawer.ListItem>
               </NavDrawer.List>
               <footer className='flex w-full space-x-3 pb-2 pl-4'>

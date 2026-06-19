@@ -5,10 +5,10 @@ import type { Route } from './+types/api_.fern'
 
 export async function action({ request }: Route.ActionArgs) {
   try {
-    let expectedDsn = envValue('SENTRY_DSN') || ''
-    let envelope = await request.text()
-    let header = envelope.split('\n')[0]
-    let headerObject = JSON.parse(header)
+    const expectedDsn = envValue('SENTRY_DSN') || ''
+    const envelope = await request.text()
+    const header = envelope.split('\n')[0]
+    const headerObject = JSON.parse(header)
     if (typeof headerObject.dsn == 'undefined' || headerObject.dsn == '') {
       return new Response(null, { status: 404 })
     }
@@ -18,8 +18,8 @@ export async function action({ request }: Route.ActionArgs) {
       return new Response(null, { status: 404 })
     }
 
-    let url = new URL(expectedDsn)
-    let projectID = url.pathname.replace('/', ``)
+    const url = new URL(expectedDsn)
+    const projectID = url.pathname.replace('/', ``)
     await fetch(`https://${url.hostname}/api/${projectID}/envelope`, {
       method: 'POST',
       body: envelope,

@@ -26,11 +26,11 @@ export async function loader({ request }: Route.LoaderArgs) {
   await getUserSession(request)
 
   const url = new URL(request.url)
-  let interactId = url.searchParams.get('interactId') || ''
-  let nonce = url.searchParams.get('nonce') || ''
-  let clientName = url.searchParams.get('clientName') || ''
-  let clientUri = url.searchParams.get('clientUri') || ''
-  let grants = await getInteraction(interactId, nonce)
+  const interactId = url.searchParams.get('interactId') || ''
+  const nonce = url.searchParams.get('nonce') || ''
+  const clientName = url.searchParams.get('clientName') || ''
+  const clientUri = url.searchParams.get('clientUri') || ''
+  const grants = await getInteraction(interactId, nonce)
 
   // there should be a grant. Throw 404 for now.
   if (grants.length < 1) {
@@ -177,7 +177,7 @@ function formatAmount(amount: Amount): string {
     currency = amount.assetCode
   }
 
-  let amt = parseInt(amount.value) * Math.pow(10, -amount.assetScale)
+  const amt = parseInt(amount.value) * Math.pow(10, -amount.assetScale)
   return `${currency} ${amt.toFixed(2)}`
 }
 
@@ -185,17 +185,17 @@ export async function action({ request }: Route.ActionArgs) {
   const form = await request.formData()
   const action = String(form.get('action') || '')
   const url = new URL(request.url)
-  let interactId = url.searchParams.get('interactId') || ''
-  let nonce = url.searchParams.get('nonce') || ''
+  const interactId = url.searchParams.get('interactId') || ''
+  const nonce = url.searchParams.get('nonce') || ''
 
-  let grants = await getInteraction(interactId, nonce)
+  const grants = await getInteraction(interactId, nonce)
 
   // there should be a grant. Throw 404 for now.
   if (grants.length < 1) {
     throw data({}, 404)
   }
 
-  let walletInfo = await getWalletInfo(request)
+  const walletInfo = await getWalletInfo(request)
   let ownsResource = false
   grants.forEach((a) => {
     if (a.identifier?.includes(walletInfo.url)) {
@@ -206,7 +206,7 @@ export async function action({ request }: Route.ActionArgs) {
     throw data({}, 403)
   }
 
-  let userDecision: 'accept' | 'reject' =
+  const userDecision: 'accept' | 'reject' =
     action == 'approve' ? 'accept' : 'reject'
   await consent(interactId, nonce, userDecision)
 

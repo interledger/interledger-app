@@ -8,7 +8,7 @@ import { useScaffoldStore } from '~/lib/useScaffoldStore'
 
 const Stage = forwardRef<any>(({ ...motionProps }, ref) => {
   const [snackbar, setSnackbar] = useState<SnackbarType | null>(null)
-  let dismissRef = useRef<NodeJS.Timeout>()
+  const dismissRef = useRef<NodeJS.Timeout>()
   const navigate = useNavigate()
 
   const [snackbars, shiftSnackbar] = useScaffoldStore((state) => [
@@ -25,10 +25,6 @@ const Stage = forwardRef<any>(({ ...motionProps }, ref) => {
       case 'View cards':
         shiftSnackbar()
         navigate(href('/cards'))
-        break
-      case 'Set up Plaid':
-        shiftSnackbar()
-        navigate(href('/plaid'))
         break
       default:
         shiftSnackbar()
