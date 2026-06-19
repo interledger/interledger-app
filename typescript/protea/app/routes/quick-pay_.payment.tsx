@@ -105,7 +105,7 @@ export const meta: MetaFunction = mergeMeta(() => [
 ])
 
 export default function Page() {
-    const { assetCode, isQuote, quoteData, paymentData, paymentId } = useLoaderData<typeof loader>()
+    const { assetCode, isQuote, quoteData, paymentData } = useLoaderData<typeof loader>()
     const { walletAddress } = useRouteLoaderData('root') as RootLoaderData
     const actionData = useActionData<ActionData>()
     const navigation = useNavigation()

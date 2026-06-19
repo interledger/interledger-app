@@ -63,12 +63,11 @@ export const meta: MetaFunction = mergeMeta(() => [
 ])
 
 export default function Page() {
-  const { paymentId, hash, interactRef, isRequestPayment, result, currentGrant } = useLoaderData<typeof loader>()
+  const { paymentId, hash, interactRef, result, currentGrant } = useLoaderData<typeof loader>()
   const fetcher = useFetcher()
   const fetcherData = fetcher.data as unknown as FinishActionData
   const [loading, setLoading] = useState(true)
   const [statusAndMessage, setStatusAndMessage] = useState({ error: false, message: '' })
-  const clearSessionKeys: Array<keyof QuickPaySession> = ['receiverAddress', 'quote']
 
   useEffect(() => {
     if (fetcherData && fetcherData.message) {

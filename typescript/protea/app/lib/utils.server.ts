@@ -187,5 +187,3 @@ export const routeAllowed = (featureName: string) => {
     throw redirect('/')
   }
 }
-
-type FormDataObject = Record<string, FormDataEntryValue>

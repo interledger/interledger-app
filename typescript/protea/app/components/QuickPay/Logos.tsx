@@ -1106,7 +1106,7 @@ export const XagoLogo: FC<LogoProps> = ({ className, height }) => {
       xmlnsXlink='http://www.w3.org/1999/xlink'
       className={clsx('flex-none', className)}
     >
-      <g clip-path='url(#clip0_2083_209)'>
+      <g clipPath='url(#clip0_2083_209)'>
         <path
           d='M78.0191 0.398731C87.6406 -0.182301 93.9005 10.4846 88.6547 18.6153C83.9609 25.8915 73.2129 25.7796 68.6775 18.4033C64.0001 10.7953 69.1536 0.93417 78.0191 0.398731ZM78.1257 6.01872C74.9607 6.31348 72.775 9.50067 72.9414 12.5495C73.1959 17.2147 78.2916 20.2731 82.1902 17.1871C86.7287 13.5955 84.1926 5.45307 78.1257 6.01872Z'
           className='fill-current'
