@@ -134,11 +134,9 @@
   --feature-screen-3-bg: var(--color-ocean-100);
   --feature-screen-4-bg: var(--color-orchid-100);
 
-  /* Per-panel text colors, paired with each background for WCAG AA contrast.
-     Ratios: black/aqua-mint 13.3, black/rose-mint 19.2, white/ocean 11.5,
-     white/orchid 6.7. */
-  --feature-screen-1-fg: var(--color-neutral-900);
-  --feature-screen-2-fg: var(--color-neutral-900);
+  /* Only the dark panels override the text color to white; the light panels
+     (aqua-mint, rose-mint) keep dark text via the --color-neutral-900 fallback
+     in .feature-heading/.feature-body. Ratios: white/ocean 11.5, white/orchid 6.7. */
   --feature-screen-3-fg: var(--color-white);
   --feature-screen-4-fg: var(--color-white);
 
@@ -168,14 +166,10 @@
     --feature-screen-2-bg: var(--color-periwikinle-150);
     --feature-screen-3-bg: var(--color-ocean-100);
     --feature-screen-4-bg: var(--color-royal-purple-100);
-
-    /* Dark mode: every feature background is dark, so text is white throughout.
-       Ratios: white on deep-teal-150 5.2, periwinkle-150 5.3, ocean 11.5,
-       royal-purple 13.1. */
-    --feature-screen-1-fg: var(--color-white);
-    --feature-screen-2-fg: var(--color-white);
-    --feature-screen-3-fg: var(--color-white);
-    --feature-screen-4-fg: var(--color-white);
+    /* Every feature background is dark here, so all panels resolve to white:
+       the light panels via the neutral-900 fallback (white in dark mode), the
+       dark panels via --feature-screen-3/4-fg above. Ratios all ≥5:1
+       (deep-teal-150 5.2, periwinkle-150 5.3, ocean 11.5, royal-purple 13.1). */
 
     --section-bg-other-features: var(--color-ocean-100);
 

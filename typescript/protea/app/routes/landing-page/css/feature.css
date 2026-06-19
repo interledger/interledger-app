@@ -157,16 +157,17 @@
     color 600ms ease;
 }
 
+/* Light panels (aqua-mint, rose-mint): no --feature-fg — text falls back to
+   --color-neutral-900 (dark in light mode, white in dark mode). */
 .animated-hero[data-screen='2'] {
   background: var(--feature-screen-1-bg);
-  --feature-fg: var(--feature-screen-1-fg);
 }
 
 .animated-hero[data-screen='3'] {
   background: var(--feature-screen-2-bg);
-  --feature-fg: var(--feature-screen-2-fg);
 }
 
+/* Dark panels (ocean, orchid): override text to white. */
 .animated-hero[data-screen='4'] {
   background: var(--feature-screen-3-bg);
   --feature-fg: var(--feature-screen-3-fg);
