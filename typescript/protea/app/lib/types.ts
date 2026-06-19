@@ -1,6 +1,11 @@
-import { PendingGrant, IncomingPayment, Quote, type WalletAddress } from '@interledger/open-payments'
+import {
+  IncomingPayment,
+  PendingGrant,
+  Quote,
+  type WalletAddress
+} from '@interledger/open-payments'
 
-export type IframeMessageType = 'WithdrawalCompleted' | 'StripeDepositCompleted';
+export type IframeMessageType = 'WithdrawalCompleted' | 'StripeDepositCompleted'
 
 export interface IframeMessage {
   type: IframeMessageType

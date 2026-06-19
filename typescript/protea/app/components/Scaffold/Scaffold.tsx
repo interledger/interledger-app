@@ -42,7 +42,12 @@ import { Fade } from '../Animations/Fade'
 import { NavDrawer } from './NavDrawer'
 
 export type ApplicationProps = {
-  layout: Layouts | ((match: UIMatch<any, ApplicationProps>, context?: {isUser: boolean }) => Layouts)
+  layout:
+    | Layouts
+    | ((
+        match: UIMatch<any, ApplicationProps>,
+        context?: { isUser: boolean }
+      ) => Layouts)
   scaffold?: ScaffoldProps
 }
 
@@ -148,7 +153,8 @@ export function Scaffold() {
   const layoutHandle = currentMatch?.handle?.layout
 
   let layout: Layouts
-  if (typeof layoutHandle === 'function') layout = layoutHandle(currentMatch, {isUser})
+  if (typeof layoutHandle === 'function')
+    layout = layoutHandle(currentMatch, { isUser })
   else layout = layoutHandle
 
   const actionHandle = scaffold?.header?.actions
@@ -267,8 +273,9 @@ export function Scaffold() {
               {/*<HeaderPopover />*/}
               {/*<HeaderLink to={href('/docs')} title='Docs' />*/}
               {/*<HeaderLink to={href('/blog')} title='Blog' />*/}
-              {showQuickPay &&
-                <HeaderLink to={href('/quick-pay')} title='Quick Pay' />}
+              {showQuickPay && (
+                <HeaderLink to={href('/quick-pay')} title='Quick Pay' />
+              )}
               <HeaderLink to={href('/contact')} title='Contact' />
             </div>
             <div className='ml-auto hidden items-center lg:flex'>
@@ -571,98 +578,92 @@ export function Scaffold() {
                 </Router>
               </footer>
             </>
-          )
-          }
+          )}
 
-          {
-            layout === Layouts.Docs && (
-              <>
-                <NavDrawer.List>
-                  {!isUser && (
-                    <div className='flex flex-col space-y-2'>
-                      <Router
-                        className='flex h-11 w-full items-center justify-center'
-                        to={href('/login')}
-                      >
-                        <span className='font-medium text-medium'>Log in</span>
-                      </Router>
-                      <ButtonRouter className='h-11' to={href('/signup')}>
-                        Sign up
-                      </ButtonRouter>
-                    </div>
-                  )}
-                  {isUser && (
-                    <div className='flex flex-col space-y-2'>
-                      <ButtonRouter className='h-11' to={href('/')}>
-                        Go to app
-                      </ButtonRouter>
-                    </div>
-                  )}
-                </NavDrawer.List>
-              </>
-            )
-          }
-          {
-            layout === Layouts.Marketing && (
-              <>
-                <NavDrawer.List>
-                  <div className='relative mb-8 ml-1 flex items-center space-x-4'>
-                    <IconButton
-                      onClick={() => setOpenNavModal(!openNavModal)}
-                      aria-label='Close menu'
+          {layout === Layouts.Docs && (
+            <>
+              <NavDrawer.List>
+                {!isUser && (
+                  <div className='flex flex-col space-y-2'>
+                    <Router
+                      className='flex h-11 w-full items-center justify-center'
+                      to={href('/login')}
                     >
-                      menu_open
-                    </IconButton>
-                    <div className='ml-4 lg:ml-0'>
-                      <Router to={href('/')} aria-label='Interledger App logo'>
-                        <InterledgerWalletLogo className='h-8' />
-                      </Router>
-                    </div>
+                      <span className='font-medium text-medium'>Log in</span>
+                    </Router>
+                    <ButtonRouter className='h-11' to={href('/signup')}>
+                      Sign up
+                    </ButtonRouter>
                   </div>
-                  <NavDrawer.ListItem to={href('/')}>Home</NavDrawer.ListItem>
-                  {/*<NavDrawer.ListItem to='/about'>About</NavDrawer.ListItem>*/}
-                  {/* <NavDrawer.ListItem to='/wallet'>Wallet</NavDrawer.ListItem> */}
-                  {/* <NavDrawer.ListItem to='/wealth'>Wealth</NavDrawer.ListItem> */}
-                  {/*<NavDrawer.ListItem to={href('/docs')}>*/}
-                  {/*  Docs*/}
-                  {/*</NavDrawer.ListItem>*/}
-                  {
-                    showQuickPay &&
-                    <NavDrawer.ListItem to={href('/quick-pay')}>
-                      Quick Pay
-                    </NavDrawer.ListItem>
-                  }
-                  <NavDrawer.ListItem to={href('/contact')}>
-                    Contact
+                )}
+                {isUser && (
+                  <div className='flex flex-col space-y-2'>
+                    <ButtonRouter className='h-11' to={href('/')}>
+                      Go to app
+                    </ButtonRouter>
+                  </div>
+                )}
+              </NavDrawer.List>
+            </>
+          )}
+          {layout === Layouts.Marketing && (
+            <>
+              <NavDrawer.List>
+                <div className='relative mb-8 ml-1 flex items-center space-x-4'>
+                  <IconButton
+                    onClick={() => setOpenNavModal(!openNavModal)}
+                    aria-label='Close menu'
+                  >
+                    menu_open
+                  </IconButton>
+                  <div className='ml-4 lg:ml-0'>
+                    <Router to={href('/')} aria-label='Interledger App logo'>
+                      <InterledgerWalletLogo className='h-8' />
+                    </Router>
+                  </div>
+                </div>
+                <NavDrawer.ListItem to={href('/')}>Home</NavDrawer.ListItem>
+                {/*<NavDrawer.ListItem to='/about'>About</NavDrawer.ListItem>*/}
+                {/* <NavDrawer.ListItem to='/wallet'>Wallet</NavDrawer.ListItem> */}
+                {/* <NavDrawer.ListItem to='/wealth'>Wealth</NavDrawer.ListItem> */}
+                {/*<NavDrawer.ListItem to={href('/docs')}>*/}
+                {/*  Docs*/}
+                {/*</NavDrawer.ListItem>*/}
+                {showQuickPay && (
+                  <NavDrawer.ListItem to={href('/quick-pay')}>
+                    Quick Pay
                   </NavDrawer.ListItem>
-                </NavDrawer.List>
-                <NavDrawer.List>
-                  {!isUser && (
-                    <div className='flex flex-col space-y-2'>
-                      <Router
-                        className='flex h-11 w-full items-center justify-center'
-                        to={href('/login')}
-                      >
-                        <span className='font-medium text-medium'>Log in</span>
-                      </Router>
-                      <ButtonRouter className='h-11' to={href('/signup')}>
-                        Sign up
-                      </ButtonRouter>
-                    </div>
-                  )}
-                  {isUser && (
-                    <div className='flex flex-col space-y-2'>
-                      <ButtonRouter className='h-11' to={href('/')}>
-                        Go to app
-                      </ButtonRouter>
-                    </div>
-                  )}
-                </NavDrawer.List>
-              </>
-            )
-          }
-        </NavDrawer >
-      </NavDrawer.Modal >
+                )}
+                <NavDrawer.ListItem to={href('/contact')}>
+                  Contact
+                </NavDrawer.ListItem>
+              </NavDrawer.List>
+              <NavDrawer.List>
+                {!isUser && (
+                  <div className='flex flex-col space-y-2'>
+                    <Router
+                      className='flex h-11 w-full items-center justify-center'
+                      to={href('/login')}
+                    >
+                      <span className='font-medium text-medium'>Log in</span>
+                    </Router>
+                    <ButtonRouter className='h-11' to={href('/signup')}>
+                      Sign up
+                    </ButtonRouter>
+                  </div>
+                )}
+                {isUser && (
+                  <div className='flex flex-col space-y-2'>
+                    <ButtonRouter className='h-11' to={href('/')}>
+                      Go to app
+                    </ButtonRouter>
+                  </div>
+                )}
+              </NavDrawer.List>
+            </>
+          )}
+        </NavDrawer>
+      </NavDrawer.Modal>
       <div
         className={clsx(
           'fixed bottom-4 left-0 z-50 mx-auto flex w-full flex-col items-end justify-center gap-y-4 overflow-y-visible px-4 text-center lg:bottom-auto lg:top-4 lg:items-center',
@@ -684,7 +685,7 @@ export function Scaffold() {
           </CommandPalette>
         )}
       </div>
-    </div >
+    </div>
   )
 }
 

@@ -13,12 +13,14 @@ interface DialPadActions {
 
 const dialPadInitialState: DialPadState = {
   amountValue: '0',
-  assetCode: 'USD',
+  assetCode: 'USD'
 }
 
-export const useDialPadStore = create<DialPadState & DialPadActions>()((set) => ({
-  ...dialPadInitialState,
-  setAmountValue: (amountValue) => set({ amountValue }),
-  setAssetCode: (assetCode) => set({ assetCode }),
-  reset: () => set({ ...dialPadInitialState }),
-}))
+export const useDialPadStore = create<DialPadState & DialPadActions>()(
+  (set) => ({
+    ...dialPadInitialState,
+    setAmountValue: (amountValue) => set({ amountValue }),
+    setAssetCode: (assetCode) => set({ assetCode }),
+    reset: () => set({ ...dialPadInitialState })
+  })
+)

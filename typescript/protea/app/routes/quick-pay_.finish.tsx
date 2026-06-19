@@ -1,16 +1,21 @@
-import type { Route } from './+types/quick-pay_.finish'
-import { data, redirect } from 'react-router'
-import { Form, useFetcher, useLoaderData } from 'react-router'
-import type { MetaFunction } from 'react-router'
 import { useEffect, useState } from 'react'
-import { finishPayment, checkOutgoingPayment } from '~/lib/open-payments.server'
-import { commitSession, getSession } from '~/session.server'
-import { type ApplicationProps, Button, GridColumn, Layouts, WalletGrid } from '~/components'
-import { mergeMeta } from '~/lib/meta'
+import type { MetaFunction } from 'react-router'
+import { Form, data, redirect, useFetcher, useLoaderData } from 'react-router'
+import {
+  Button,
+  GridColumn,
+  Layouts,
+  WalletGrid,
+  type ApplicationProps
+} from '~/components'
 import { BackButton, FinishCheck, FinishError } from '~/components/QuickPay'
 import logger from '~/lib/logger.server'
-import { routeAllowed } from '~/lib/utils.server'
+import { mergeMeta } from '~/lib/meta'
+import { checkOutgoingPayment, finishPayment } from '~/lib/open-payments.server'
 import { QuickPaySession } from '~/lib/types'
+import { routeAllowed } from '~/lib/utils.server'
+import { commitSession, getSession } from '~/session.server'
+import type { Route } from './+types/quick-pay_.finish'
 
 export type FinishActionData = {
   message?: string
@@ -32,8 +37,8 @@ export async function loader({ request }: Route.LoaderArgs) {
   if (!currentGrant) {
     throw data(
       {
-        code: "QUICKPAY_SESSION_ERROR",
-        title: "Invalid payment grant."
+        code: 'QUICKPAY_SESSION_ERROR',
+        title: 'Invalid payment grant.'
       },
       { status: 400 }
     )
@@ -50,7 +55,8 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 export const handle: ApplicationProps = {
-  layout: (_match, context) => context?.isUser ? Layouts.Wallet : Layouts.Marketing,
+  layout: (_match, context) =>
+    context?.isUser ? Layouts.Wallet : Layouts.Marketing,
   scaffold: {
     header: { title: 'Interledger Pay' }
   }
@@ -63,22 +69,32 @@ export const meta: MetaFunction = mergeMeta(() => [
 ])
 
 export default function Page() {
-  const { paymentId, hash, interactRef, result, currentGrant } = useLoaderData<typeof loader>()
+  const { paymentId, hash, interactRef, result, currentGrant } =
+    useLoaderData<typeof loader>()
   const fetcher = useFetcher()
   const fetcherData = fetcher.data as unknown as FinishActionData
   const [loading, setLoading] = useState(true)
-  const [statusAndMessage, setStatusAndMessage] = useState({ error: false, message: '' })
+  const [statusAndMessage, setStatusAndMessage] = useState({
+    error: false,
+    message: ''
+  })
 
   useEffect(() => {
     if (fetcherData && fetcherData.message) {
-      setStatusAndMessage({ error: fetcherData.error || false, message: fetcherData.message })
+      setStatusAndMessage({
+        error: fetcherData.error || false,
+        message: fetcherData.message
+      })
       setLoading(false)
     }
   }, [fetcherData])
 
   useEffect(() => {
     if (result === 'grant_rejected') {
-      setStatusAndMessage({ error: true, message: 'Payment was successfully declined.' })
+      setStatusAndMessage({
+        error: true,
+        message: 'Payment was successfully declined.'
+      })
       setLoading(false)
     } else if (!fetcherData) {
       const waitTime = currentGrant?.continue?.wait ?? 1
@@ -101,39 +117,45 @@ export default function Page() {
 
   return (
     <WalletGrid>
-      <GridColumn className="col-span-full mt-20 mx-auto text-center max-w-md">
+      <GridColumn className='col-span-full mx-auto mt-20 max-w-md text-center'>
         {loading ? (
           <>
-            <div className="fixed inset-0 z-[60] flex w-full h-full bg-page">
-            </div>
-            <div className="z-[70]">
-              <div className="animate-spin h-10 w-10 border-b-2 border-current rounded-full mx-auto mb-6" />
-              <div className="text-lg">Checking payment...</div>
+            <div className='fixed inset-0 z-[60] flex h-full w-full bg-page'></div>
+            <div className='z-[70]'>
+              <div className='mx-auto mb-6 h-10 w-10 animate-spin rounded-full border-b-2 border-current' />
+              <div className='text-lg'>Checking payment...</div>
             </div>
           </>
         ) : (
-          <Form method="post">
+          <Form method='post'>
             {!statusAndMessage.error ? (
               <>
-                <div className="flex justify-center mb-6"><FinishCheck className="w-16 h-16" /></div>
-                <div className="text-3xl mb-4">Payment successful</div>
-                <div className="mb-10">Your payment was completed.</div>
+                <div className='mb-6 flex justify-center'>
+                  <FinishCheck className='h-16 w-16' />
+                </div>
+                <div className='mb-4 text-3xl'>Payment successful</div>
+                <div className='mb-10'>Your payment was completed.</div>
 
-                <Button type="submit" name="intent" value="finish">Home</Button>
+                <Button type='submit' name='intent' value='finish'>
+                  Home
+                </Button>
               </>
             ) : (
               <>
-                <BackButton title="Back" to="/quick-pay/pay"/>
-                <div className="flex justify-center mb-6"><FinishError className="w-16 h-16" /></div>
-                <div className="text-3xl mb-4 text-red-600">Payment failed</div>
-                <div className="mb-10">
-                  {statusAndMessage.message}
+                <BackButton title='Back' to='/quick-pay/pay' />
+                <div className='mb-6 flex justify-center'>
+                  <FinishError className='h-16 w-16' />
                 </div>
+                <div className='mb-4 text-3xl text-red-600'>Payment failed</div>
+                <div className='mb-10'>{statusAndMessage.message}</div>
 
-                <Button type="submit" name="intent" value="finish">Home</Button>
+                <Button type='submit' name='intent' value='finish'>
+                  Home
+                </Button>
               </>
             )}
-          </Form>)}
+          </Form>
+        )}
       </GridColumn>
     </WalletGrid>
   )
@@ -157,8 +179,8 @@ export async function action({ request }: Route.ActionArgs) {
     if (!quote || !grant || !walletAddressInfo) {
       throw data(
         {
-          code: "QUICKPAY_SESSION_ERROR",
-          title: "Payment session expired."
+          code: 'QUICKPAY_SESSION_ERROR',
+          title: 'Payment session expired.'
         },
         { status: 400 }
       )
@@ -187,7 +209,6 @@ export async function action({ request }: Route.ActionArgs) {
         message: 'Internal server error'
       })
     }
-
   }
 
   if (intent === 'finish') {
@@ -197,5 +218,4 @@ export async function action({ request }: Route.ActionArgs) {
       headers: { 'Set-Cookie': await commitSession(session) }
     })
   }
-
 }

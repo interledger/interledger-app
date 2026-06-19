@@ -1,11 +1,11 @@
-import { z } from 'zod'
 import { type WalletAddress } from '@interledger/open-payments'
-import { Errors, FormattedAmount, FormatAmountArgs } from './types'
 import { redirect } from 'react-router'
-import { getCurrencySymbol } from '~/lib/helpers'
+import { z } from 'zod'
 import { envBool } from '~/env.server'
+import { getCurrencySymbol } from '~/lib/helpers'
+import { Errors, FormatAmountArgs, FormattedAmount } from './types'
 
-export class WalletAddressFormatError extends Error { }
+export class WalletAddressFormatError extends Error {}
 
 export const walletSchema = z.object({
   walletAddress: z
@@ -49,8 +49,8 @@ export const requestSchema = z.object({
 })
 
 export const requestPaymentSchema = paymentSchema.extend({
-  senderAddress: paymentSchema.shape.senderAddress.optional(),
-});
+  senderAddress: paymentSchema.shape.senderAddress.optional()
+})
 
 function checkHrefFormat(href: string): void {
   let url: URL
@@ -112,14 +112,12 @@ async function isValidWalletAddress(
 export function createError(key: string, message: string): Errors {
   return {
     [key]: {
-      errors: [message],
-    },
+      errors: [message]
+    }
   }
 }
 
-export const isWalletAddress = (
-  o: WalletAddress
-): o is WalletAddress => {
+export const isWalletAddress = (o: WalletAddress): o is WalletAddress => {
   return !!(
     o.id &&
     typeof o.id === 'string' &&

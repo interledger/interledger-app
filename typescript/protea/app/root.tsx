@@ -25,13 +25,14 @@ import {
   CardHeader,
   CardTitle,
   Error,
-  QuickPayError,
   GridColumn,
   InterledgerLogo,
+  QuickPayError,
   WalletGrid
 } from '~/components'
 import { Scaffold } from '~/components/Scaffold'
 import { TotpChallengeGlobal } from '~/components/TotpChallengeGlobal'
+import { envBool } from '~/env.server'
 import { isAuthenticated } from '~/lib/kratos/session.server'
 import { getSnackbar } from '~/lib/snackbar.server'
 import styles from '~/styles/app.css?url'
@@ -43,7 +44,6 @@ import { Features } from './generated/connect/backend/v1/backend_pb'
 import { isConnectError } from './lib/error.server'
 import { grpc } from './lib/grpc.server'
 import { kycApprovedGuard } from './lib/kyc.server'
-import { envBool } from '~/env.server'
 import { PtiConfigProvider } from './lib/pti-context'
 import { getPusherArgs } from './lib/pusher.server'
 import {
@@ -157,16 +157,19 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
 
   if (!isUser) {
-    return data({
-      isDisabled,
-      walletAddress,
-      isUser: false,
-      features,
-      snackbar,
-      pusherArgs,
-      showQuickPay,
-      env
-    }, { headers })
+    return data(
+      {
+        isDisabled,
+        walletAddress,
+        isUser: false,
+        features,
+        snackbar,
+        pusherArgs,
+        showQuickPay,
+        env
+      },
+      { headers }
+    )
   }
 
   await recoveryLinkSessionInvalidationGuard(pathname, request)
@@ -188,16 +191,19 @@ export async function loader({ request }: LoaderFunctionArgs) {
     }
   })
 
-  return data({
-    isDisabled,
-    walletAddress,
-    isUser,
-    features,
-    snackbar,
-    pusherArgs,
-    showQuickPay,
-    env
-  }, { headers })
+  return data(
+    {
+      isDisabled,
+      walletAddress,
+      isUser,
+      features,
+      snackbar,
+      pusherArgs,
+      showQuickPay,
+      env
+    },
+    { headers }
+  )
 }
 
 export type RootLoaderData = Route.ComponentProps['loaderData']
@@ -235,7 +241,7 @@ export function ErrorBoundary() {
   captureException(error)
 
   if (isRouteErrorResponse(error)) {
-    return error.data?.code === "QUICKPAY_SESSION_ERROR" ? (
+    return error.data?.code === 'QUICKPAY_SESSION_ERROR' ? (
       <Document>
         <QuickPayError
           status={error.status}

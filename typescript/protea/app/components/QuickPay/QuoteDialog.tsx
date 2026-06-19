@@ -1,9 +1,8 @@
 import { Form } from 'react-router'
 import { Button } from '../Buttons'
+import { CardHeader } from '../Card'
 import { Dialog } from '../Dialog'
 import { TextField } from '../TextField'
-import { CardHeader } from '../Card'
-
 
 export type QuoteArgs = {
   receiverName: string
@@ -20,40 +19,35 @@ export function QuoteDialog({
   showDialog,
   setShowDialog
 }: QuoteArgs) {
-
   return (
     <Dialog open={showDialog} setOpen={setShowDialog}>
-      <div className="flex h-full flex-col justify-center gap-10 p-2">
-        <div className="mx-auto w-full max-w-sm">
+      <div className='flex h-full flex-col justify-center gap-10 p-2'>
+        <div className='mx-auto w-full max-w-sm'>
           <CardHeader className='mb-2'>
             <h1 className='text-xl font-medium'>Confirm payment</h1>
           </CardHeader>
-          <Form method="POST" >
-            <TextField
-              label="You send:"
-              defaultValue={debitAmount}
-              readOnly
-            />
+          <Form method='POST'>
+            <TextField label='You send:' defaultValue={debitAmount} readOnly />
             <TextField
               className='mt-1'
               label={`${receiverName} receives (approximately): `}
               defaultValue={receiveAmount}
               readOnly
             />
-            <div className="flex justify-center items-center gap-3 mt-5">
+            <div className='mt-5 flex items-center justify-center gap-3'>
               <Button
-                aria-label="confirm-pay"
-                type="submit"
-                value="confirm"
-                name="intent"
+                aria-label='confirm-pay'
+                type='submit'
+                value='confirm'
+                name='intent'
               >
                 Confirm
               </Button>
               <Button
-                aria-label="cancel-pay"
-                type="submit"
-                value="cancel"
-                name="intent"
+                aria-label='cancel-pay'
+                type='submit'
+                value='cancel'
+                name='intent'
                 onClick={() => setShowDialog(false)}
               >
                 Cancel
@@ -62,8 +56,6 @@ export function QuoteDialog({
           </Form>
         </div>
       </div>
-
     </Dialog>
-
   )
 }

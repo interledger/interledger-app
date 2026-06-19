@@ -1,17 +1,16 @@
-import type { Route } from './+types/quick-pay_.amount'
-import { data } from 'react-router'
-import { useLoaderData, useNavigate } from 'react-router'
-import type { MetaFunction } from 'react-router'
 import { useEffect } from 'react'
 import { flushSync } from 'react-dom'
+import type { MetaFunction } from 'react-router'
+import { data, useLoaderData, useNavigate } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Button, GridColumn, Layouts, WalletGrid } from '~/components'
 import { BackButton } from '~/components/QuickPay'
 import { DialPad, DialPadIds } from '~/components/QuickPay/Dialpad'
-import { useDialPadStore } from '~/lib/useDialPadStore'
 import { mergeMeta } from '~/lib/meta'
-import { getSession } from '~/session.server'
+import { useDialPadStore } from '~/lib/useDialPadStore'
 import { routeAllowed } from '~/lib/utils.server'
+import { getSession } from '~/session.server'
+import type { Route } from './+types/quick-pay_.amount'
 
 export async function loader({ request }: Route.LoaderArgs) {
   routeAllowed('OP_INTPAY_ENABLED')
@@ -22,19 +21,20 @@ export async function loader({ request }: Route.LoaderArgs) {
   if (walletAddressInfo === undefined || assetCode === undefined) {
     throw data(
       {
-        code: "QUICKPAY_SESSION_ERROR",
-        title: "Payment session expired."
+        code: 'QUICKPAY_SESSION_ERROR',
+        title: 'Payment session expired.'
       },
       { status: 400 }
     )
   }
   return data({
-    assetCode,
+    assetCode
   } as const)
 }
 
 export const handle: ApplicationProps = {
-  layout: (_match, context) => context?.isUser ? Layouts.Wallet : Layouts.Marketing,
+  layout: (_match, context) =>
+    context?.isUser ? Layouts.Wallet : Layouts.Marketing,
   scaffold: {
     header: { title: 'Interledger Pay' }
   }
@@ -77,23 +77,21 @@ export default function Page() {
 
   return (
     <WalletGrid>
-      <GridColumn
-        className='col-span-full mt-20 mx-auto'
-      >
-        <BackButton title="Back" to="/quick-pay"/>
+      <GridColumn className='col-span-full mx-auto mt-20'>
+        <BackButton title='Back' to='/quick-pay' />
         <DialPad />
-        <div className="flex justify-center gap-2 mt-12 w-64">
+        <div className='mt-12 flex w-64 justify-center gap-2'>
           <Button
-            aria-label="request"
-            onClick={e => handleNavigation(e, `/quick-pay/request`)}
+            aria-label='request'
+            onClick={(e) => handleNavigation(e, `/quick-pay/request`)}
             disabled={Number(amountValue) === 0}
           >
             Request
           </Button>
 
           <Button
-            aria-label="pay"
-            onClick={e => handleNavigation(e, `/quick-pay/pay`)}
+            aria-label='pay'
+            onClick={(e) => handleNavigation(e, `/quick-pay/pay`)}
             disabled={Number(amountValue) === 0}
           >
             Pay

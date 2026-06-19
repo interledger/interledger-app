@@ -1,20 +1,51 @@
-import type { Route } from './+types/quick-pay_.pay'
-import { data, redirect } from 'react-router'
-import { Form, useActionData, useLoaderData, useNavigation } from 'react-router'
-import type { MetaFunction } from 'react-router'
 import { useEffect, useState } from 'react'
+import type { MetaFunction } from 'react-router'
+import {
+  Form,
+  data,
+  redirect,
+  useActionData,
+  useLoaderData,
+  useNavigation
+} from 'react-router'
 import { z } from 'zod'
-import { ActionMessage, type ApplicationProps, Button, GridColumn, Layouts, TextField, WalletGrid } from '~/components'
-import { AmountDisplay, QuoteDialog, PayWithInterledgerMark } from '~/components/QuickPay/'
-import { useDialPadStore } from '~/lib/useDialPadStore'
-import { mergeMeta } from '~/lib/meta'
-import { fetchQuote, getValidWalletAddress, initializePayment } from '~/lib/open-payments.server'
-import { paymentSchema, formatAmount, createError, routeAllowed } from '~/lib/utils.server'
-import { commitSession, getSession } from '~/session.server'
-import { type ActionData, QuickPaySession } from '~/lib/types'
-import { formatError, NOTE_MAX_CHARACTERS, charactersRemaining } from '~/lib/helpers'
-import logger from '~/lib/logger.server'
+import {
+  ActionMessage,
+  Button,
+  GridColumn,
+  Layouts,
+  TextField,
+  WalletGrid,
+  type ApplicationProps
+} from '~/components'
 import { BackButton } from '~/components/QuickPay'
+import {
+  AmountDisplay,
+  PayWithInterledgerMark,
+  QuoteDialog
+} from '~/components/QuickPay/'
+import {
+  NOTE_MAX_CHARACTERS,
+  charactersRemaining,
+  formatError
+} from '~/lib/helpers'
+import logger from '~/lib/logger.server'
+import { mergeMeta } from '~/lib/meta'
+import {
+  fetchQuote,
+  getValidWalletAddress,
+  initializePayment
+} from '~/lib/open-payments.server'
+import { QuickPaySession, type ActionData } from '~/lib/types'
+import { useDialPadStore } from '~/lib/useDialPadStore'
+import {
+  createError,
+  formatAmount,
+  paymentSchema,
+  routeAllowed
+} from '~/lib/utils.server'
+import { commitSession, getSession } from '~/session.server'
+import type { Route } from './+types/quick-pay_.pay'
 
 export async function loader({ request }: Route.LoaderArgs) {
   routeAllowed('OP_INTPAY_ENABLED')
@@ -31,8 +62,8 @@ export async function loader({ request }: Route.LoaderArgs) {
   if (walletAddressInfo === undefined) {
     throw data(
       {
-        code: "QUICKPAY_SESSION_ERROR",
-        title: "Payment session expired."
+        code: 'QUICKPAY_SESSION_ERROR',
+        title: 'Payment session expired.'
       },
       { status: 400 }
     )
@@ -45,8 +76,8 @@ export async function loader({ request }: Route.LoaderArgs) {
     if (quote === undefined) {
       throw data(
         {
-          code: "QUICKPAY_SESSION_ERROR",
-          title: "Payment session expired."
+          code: 'QUICKPAY_SESSION_ERROR',
+          title: 'Payment session expired.'
         },
         { status: 400 }
       )
@@ -77,7 +108,8 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 export const handle: ApplicationProps = {
-  layout: (_match, context) => context?.isUser ? Layouts.Wallet : Layouts.Marketing,
+  layout: (_match, context) =>
+    context?.isUser ? Layouts.Wallet : Layouts.Marketing,
   scaffold: {
     header: { title: 'Interledger Pay' }
   }
@@ -90,17 +122,20 @@ export const meta: MetaFunction = mergeMeta(() => [
 ])
 
 export default function Page() {
-  const { senderAddress, receiveAmount, debitAmount, receiverName, isQuote } = useLoaderData<typeof loader>()
+  const { senderAddress, receiveAmount, debitAmount, receiverName, isQuote } =
+    useLoaderData<typeof loader>()
   const actionData = useActionData<ActionData>()
   const navigation = useNavigation()
-  const isSubmitting = navigation.state === "submitting"
+  const isSubmitting = navigation.state === 'submitting'
   const { amountValue } = useDialPadStore()
   const [modalOpen, setModalOpen] = useState(false)
   const errors = actionData?.errors
   const [errorsList, setErrorsList] = useState(errors)
   const [note, setNote] = useState('')
 
-  useEffect(() => { setErrorsList(errors) }, [errors, setErrorsList])
+  useEffect(() => {
+    setErrorsList(errors)
+  }, [errors, setErrorsList])
 
   useEffect(() => {
     setModalOpen(Boolean(isQuote))
@@ -110,32 +145,30 @@ export default function Page() {
 
   return (
     <WalletGrid>
-      <GridColumn
-        className='col-span-full mt-20 mx-auto'
-      >
-        <BackButton title="Back" to="/quick-pay/amount" />
+      <GridColumn className='col-span-full mx-auto mt-20'>
+        <BackButton title='Back' to='/quick-pay/amount' />
         <AmountDisplay />
-        <div className="mx-auto w-full max-w-sm">
-          <Form method="POST">
-            <div className="flex flex-col gap-4">
+        <div className='mx-auto w-full max-w-sm'>
+          <Form method='POST'>
+            <div className='flex flex-col gap-4'>
               <TextField
-                type="text"
-                label="Pay from"
-                name="senderAddress"
+                type='text'
+                label='Pay from'
+                name='senderAddress'
                 value={senderAddress}
                 readOnly
               />
               <TextField
-                label="Pay into"
-                name="receiverAddress"
-                placeholder="Enter receiver wallet address"
+                label='Pay into'
+                name='receiverAddress'
+                placeholder='Enter receiver wallet address'
                 autoFocus
                 errorMessage={formatError(errorsList?.receiverAddress)}
               />
               <TextField
-                label="Payment note"
-                name="note"
-                placeholder="Note"
+                label='Payment note'
+                name='note'
+                placeholder='Note'
                 value={note}
                 maxLength={NOTE_MAX_CHARACTERS}
                 onChange={(e) => {
@@ -145,25 +178,21 @@ export default function Page() {
                 errorMessage={formatError(errorsList?.note)}
                 successMessage={charactersRemaining(note)}
               />
-              <input
-                type="hidden"
-                name="amount"
-                value={Number(amountValue)}
-              />
-              <div className="flex justify-center">
+              <input type='hidden' name='amount' value={Number(amountValue)} />
+              <div className='flex justify-center'>
                 <Button
-                  aria-label="pay"
-                  type="submit"
-                  name="intent"
-                  value="pay"
+                  aria-label='pay'
+                  type='submit'
+                  name='intent'
+                  value='pay'
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? (
-                    <span className="animate-pulse">Processing...</span>
+                    <span className='animate-pulse'>Processing...</span>
                   ) : (
                     <>
-                      <span className="text-md">Pay with</span>
-                      <PayWithInterledgerMark className="h-8 w-40 mx-2" />
+                      <span className='text-md'>Pay with</span>
+                      <PayWithInterledgerMark className='mx-2 h-8 w-40' />
                     </>
                   )}
                 </Button>
@@ -180,7 +209,8 @@ export default function Page() {
           debitAmount={debitAmount || ''}
         />
       </GridColumn>
-    </WalletGrid>)
+    </WalletGrid>
+  )
 }
 
 export async function action({ request }: Route.ActionArgs) {
@@ -215,17 +245,26 @@ export async function action({ request }: Route.ActionArgs) {
       sessionData.receiverAddress = receiverAddress
       session.set('quickPay', sessionData)
     } catch (err) {
-      return data({ errors: createError("receiverAddress", "Your wallet address is not valid.") })
+      return data({
+        errors: createError(
+          'receiverAddress',
+          'Your wallet address is not valid.'
+        )
+      })
     }
 
     try {
       const quote = await fetchQuote(result.data, receiverAddress)
       sessionData.quote = quote
       session.set('quickPay', sessionData)
-
     } catch (err) {
       logger.error({ err }, 'Error getting quote.')
-      return data({ errors: createError("actionError", "An error occurred, please try again.") })
+      return data({
+        errors: createError(
+          'actionError',
+          'An error occurred, please try again.'
+        )
+      })
     }
     return redirect(`/quick-pay/pay?quote=true`, {
       headers: { 'Set-Cookie': await commitSession(session) }
@@ -235,8 +274,8 @@ export async function action({ request }: Route.ActionArgs) {
   if (sessionData?.quote === undefined) {
     throw data(
       {
-        code: "QUICKPAY_SESSION_ERROR",
-        title: "Payment session expired."
+        code: 'QUICKPAY_SESSION_ERROR',
+        title: 'Payment session expired.'
       },
       { status: 400 }
     )
@@ -247,8 +286,8 @@ export async function action({ request }: Route.ActionArgs) {
     if (quote === undefined || walletAddressInfo === undefined) {
       throw data(
         {
-          code: "QUICKPAY_SESSION_ERROR",
-          title: "Payment session expired."
+          code: 'QUICKPAY_SESSION_ERROR',
+          title: 'Payment session expired.'
         },
         { status: 400 }
       )
@@ -259,7 +298,10 @@ export async function action({ request }: Route.ActionArgs) {
     walletAddress: String(walletAddressInfo?.id),
     quote
   })
-  sessionData.grants = { ...(sessionData?.grants || {}), [paymentId]: outgoingPaymentGrant }
+  sessionData.grants = {
+    ...(sessionData?.grants || {}),
+    [paymentId]: outgoingPaymentGrant
+  }
   session.set('quickPay', sessionData)
   return redirect(outgoingPaymentGrant.interact.redirect, {
     headers: { 'Set-Cookie': await commitSession(session) }

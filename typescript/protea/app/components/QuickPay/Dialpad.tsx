@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import { useEffect, useState } from 'react'
-import { useDialPadStore } from '~/lib/useDialPadStore'
 import { getCurrencySymbol } from '~/lib/helpers'
+import { useDialPadStore } from '~/lib/useDialPadStore'
 
 export enum DialPadIds {
   Backspace = 'Backspace',
@@ -17,7 +17,12 @@ export enum DialPadIds {
   Eight = '8',
   Nine = '9'
 }
-const handleDialPadInputs = (id: string, amountValue: string, setAmountValue: (amount: string) => void, triggerKey?: (key: string) => void,) => {
+const handleDialPadInputs = (
+  id: string,
+  amountValue: string,
+  setAmountValue: (amount: string) => void,
+  triggerKey?: (key: string) => void
+) => {
   if (triggerKey) {
     triggerKey(id)
   }
@@ -54,10 +59,11 @@ export const DialPad = () => {
     setTimeout(() => {
       setActiveKey(null)
     }, 500)
-  };
+  }
 
   useEffect(() => {
-    const eventHandleDialPadInputs = (e: KeyboardEvent) => handleDialPadInputs(e.key, amountValue, setAmountValue, triggerKey)
+    const eventHandleDialPadInputs = (e: KeyboardEvent) =>
+      handleDialPadInputs(e.key, amountValue, setAmountValue, triggerKey)
 
     document.addEventListener('keydown', eventHandleDialPadInputs)
 
@@ -66,7 +72,7 @@ export const DialPad = () => {
     }
   }, [amountValue, setAmountValue, triggerKey])
   return (
-    <div className="flex flex-col text-xl">
+    <div className='flex flex-col text-xl'>
       <AmountDisplay />
       <DialPadRow
         first={DialPadIds.One}
@@ -89,7 +95,7 @@ export const DialPad = () => {
       <DialPadRow
         first={DialPadIds.Dot}
         second={DialPadIds.Zero}
-        third="<"
+        third='<'
         idThird={DialPadIds.Backspace}
         activeKey={activeKey}
       />
@@ -118,10 +124,22 @@ const DialPadRow = ({
 }: DialPadRowProps) => {
   return (
     <div>
-      <ul className="flex justify-between">
-        <DialPadKey label={first} id={idFirst ? idFirst : first} activeKey={activeKey} />
-        <DialPadKey label={second} id={idSecond ? idSecond : second} activeKey={activeKey} />
-        <DialPadKey label={third} id={idThird ? idThird : third} activeKey={activeKey} />
+      <ul className='flex justify-between'>
+        <DialPadKey
+          label={first}
+          id={idFirst ? idFirst : first}
+          activeKey={activeKey}
+        />
+        <DialPadKey
+          label={second}
+          id={idSecond ? idSecond : second}
+          activeKey={activeKey}
+        />
+        <DialPadKey
+          label={third}
+          id={idThird ? idThird : third}
+          activeKey={activeKey}
+        />
       </ul>
     </div>
   )
@@ -137,22 +155,28 @@ const DialPadKey = ({ label, id, activeKey }: DialPadKeyProps) => {
   const { amountValue, setAmountValue } = useDialPadStore()
   const isActive = id == activeKey
   const handleKeyboardNavigation = (e: React.KeyboardEvent<HTMLLIElement>) => {
-    if (e.key === "Enter" || e.key === " ") { handleDialPadInputs(id, amountValue, setAmountValue) }
+    if (e.key === 'Enter' || e.key === ' ') {
+      handleDialPadInputs(id, amountValue, setAmountValue)
+    }
   }
 
   return (
     <li>
       <span
-        role="button"
-        className={clsx('flex items-center justify-center w-16 h-16 rounded-lg cursor-pointer select-none text-base font-medium transition-all duration-100 ease-out',
-          isActive ? 'bg-gray-200/60 dark:bg-white/10 text-rose-600 dark:text-rose-600 scale-95'
+        role='button'
+        className={clsx(
+          'flex h-16 w-16 cursor-pointer select-none items-center justify-center rounded-lg text-base font-medium transition-all duration-100 ease-out',
+          isActive
+            ? 'scale-95 bg-gray-200/60 text-rose-600 dark:bg-white/10 dark:text-rose-600'
             : 'text-gray-700 dark:text-gray-300',
-          'hover:bg-gray-200/60 dark:hover:bg-white/10 hover:text-rose-600 dark:hover:text-rose-600 active:scale-95'
+          'hover:bg-gray-200/60 hover:text-rose-600 active:scale-95 dark:hover:bg-white/10 dark:hover:text-rose-600'
         )}
         tabIndex={0}
         id={id}
         onClick={() => handleDialPadInputs(id, amountValue, setAmountValue)}
-        onKeyDown={(e: React.KeyboardEvent<HTMLLIElement>) => handleKeyboardNavigation(e)}
+        onKeyDown={(e: React.KeyboardEvent<HTMLLIElement>) =>
+          handleKeyboardNavigation(e)
+        }
       >
         {label}
       </span>
@@ -174,7 +198,7 @@ export const AmountDisplay = (args: AmountDisplayProps) => {
     : `${getCurrencySymbol(assetCode)} ${amountValue}`
 
   return (
-    <div className="amount-display w-full whitespace-nowrap flex items-center justify-center text-5xl text-green-1">
+    <div className='amount-display text-green-1 flex w-full items-center justify-center whitespace-nowrap text-5xl'>
       {value}
     </div>
   )
