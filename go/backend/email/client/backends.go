@@ -15,8 +15,9 @@ type Backends interface {
 
 type opsBackends struct {
 	Backends
-	external   sendgrid.Client
-	templateID string
+	external     sendgrid.Client
+	templateID   string
+	supportEmail string
 }
 
 func (o *opsBackends) External() sendgrid.Client {
@@ -25,4 +26,8 @@ func (o *opsBackends) External() sendgrid.Client {
 
 func (o *opsBackends) OneTemplateID() string {
 	return o.templateID
+}
+
+func (o *opsBackends) SupportEmail() string {
+	return o.supportEmail
 }

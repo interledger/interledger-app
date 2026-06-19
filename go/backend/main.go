@@ -20,6 +20,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
 	aasa_assetlinks "github.com/interledger/interledger-app/go/backend/aasa_assetlinks"
+	"github.com/interledger/interledger-app/go/backend/accountdeletion"
+	accountdeletion_client "github.com/interledger/interledger-app/go/backend/accountdeletion/client"
 	"github.com/interledger/interledger-app/go/backend/admin"
 	"github.com/interledger/interledger-app/go/backend/admin/auth"
 	"github.com/interledger/interledger-app/go/backend/agreements"
@@ -571,6 +573,8 @@ type backends struct {
 	gatehubConfig  gatehub.Config
 	chimoney       chimoney.Client
 	aasaConfig     aasa_assetlinks.Config
+
+	accountDeletion accountdeletion.Client
 }
 
 func (b backends) Chimoney() chimoney.Client {
@@ -705,6 +709,10 @@ func (b backends) PTI() pti.Client {
 	return b.pti
 }
 
+func (b backends) AccountDeletion() accountdeletion.Client {
+	return b.accountDeletion
+}
+
 func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	b := &backends{}
 
@@ -735,6 +743,8 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	b.linkedaccounts = linked_account_client.New(b)
 
 	b.signup = signup_client.New(b)
+
+	b.accountDeletion = accountdeletion_client.New(b)
 
 	b.waitlist = waitlist_client.New(b, log.Logger())
 
@@ -822,6 +832,7 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 		args.SendgridFromName,
 		args.SendgridFromEmail,
 		args.SendgridOneTemplateID,
+		args.SupportEmail,
 	)
 
 	log.Debug("initialising transactions")

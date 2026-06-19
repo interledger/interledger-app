@@ -21,7 +21,7 @@ type client struct {
 func New(
 	b Backends,
 	emailEnabled bool,
-	sendgridAPIKey, sendgridFromName, sendgridFromEmail, sendgridOneTemplateID string,
+	sendgridAPIKey, sendgridFromName, sendgridFromEmail, sendgridOneTemplateID, supportEmail string,
 ) email.Client {
 	if !emailEnabled {
 		return &noopClient{}
@@ -30,9 +30,10 @@ func New(
 	externalClient := sendgrid.NewClient(sendgridAPIKey, sendgridFromName, sendgridFromEmail)
 
 	ob := &opsBackends{
-		Backends:   b,
-		external:   externalClient,
-		templateID: sendgridOneTemplateID,
+		Backends:     b,
+		external:     externalClient,
+		templateID:   sendgridOneTemplateID,
+		supportEmail: supportEmail,
 	}
 
 	return &client{
@@ -108,6 +109,10 @@ func (c *client) SendAgreementChangedEmail(ctx context.Context, userID string, a
 	return ops.SendAgreementChangedEmail(ctx, c.b, userID, agreements, deadlineDate)
 }
 
+func (c *client) SendAccountDeletionRequested(ctx context.Context, userID string) error {
+	return ops.SendAccountDeletionRequestedEmail(ctx, c.b, userID)
+}
+
 func (c *client) SendAuthenticatorResetEmail(ctx context.Context, walletID string) {
 	ops.SendAuthenticatorResetEmail(ctx, c.b, walletID)
 }
@@ -122,4 +127,8 @@ func (c *client) SendSCTITimeoutEmail(ctx context.Context, txID, walletID, amoun
 
 func (c *client) SendGatehubWithdrawalRejectedEmail(ctx context.Context, txID, walletID, amount, currency, iban, name string) {
 	ops.SendGatehubWithdrawalRejectedEmail(ctx, c.b, txID, walletID, amount, currency, iban, name)
+}
+
+func (c *client) SendSCTRerouteEmail(ctx context.Context, txID, walletID string) {
+	ops.SendSCTRerouteEmail(ctx, c.b, txID, walletID)
 }

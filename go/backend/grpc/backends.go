@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"github.com/go-playground/validator/v10"
+	"github.com/interledger/interledger-app/go/backend/accountdeletion"
 	"github.com/interledger/interledger-app/go/backend/admin/auth"
 	"github.com/interledger/interledger-app/go/backend/agreements"
 	"github.com/interledger/interledger-app/go/backend/analytics"
@@ -62,4 +63,5 @@ type Backends interface {
 	PTI() pti.Client
 	Gatehub() gatehub.Client
 	Chimoney() chimoney.Client
+	AccountDeletion() accountdeletion.Client
 }

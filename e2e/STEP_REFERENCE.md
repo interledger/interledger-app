@@ -123,6 +123,25 @@ workflow + DB-marker path, not real SMTP delivery.) The After hook clears the
 test-published agreement and any `last_notified_agreement_id` references so the
 row doesn't leak across runs.
 
+### Account Deletion
+```gherkin
+Given the delete-account feature is enabled for my wallet
+Given an account-deletion request exists for me with status "pending"
+Then the "Delete account" settings link should be visible
+Then the "Delete account" settings link should not be visible
+When I click the destructive "Delete account" button
+When I complete the TOTP step-up challenge
+Then the pending account-deletion indicator should be visible
+Then an account-deletion request should exist for me with status "pending"
+```
+
+### Botanist Admin — Feature Toggles
+```gherkin
+Then the "deleteAccountEnabled" feature toggle should be off
+When I toggle the "deleteAccountEnabled" feature on
+Then the "deleteAccountEnabled" feature should be enabled in the database for my wallet
+```
+
 ### Screenshots
 ```gherkin
 And I take a screenshot "kyc-completed-dashboard"

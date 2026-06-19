@@ -26,6 +26,7 @@ func (s *AdminRpcService) GetWalletFeatures(ctx context.Context, req *pb.GetWall
 		ManageWalletCardsEnabled: feat.ManageWalletCardsEnabled,
 		AccountEnabled:           feat.AccountEnabled,
 		AccountsTabEnabled:       feat.AccountsTabEnabled,
+		DeleteAccountEnabled:     feat.DeleteAccountEnabled,
 		WalletID:                 req.WalletID,
 	}, nil
 }
@@ -43,6 +44,7 @@ func (s *AdminRpcService) SetWalletFeatures(ctx context.Context, req *pb.Feature
 		ManageWalletCardsEnabled: req.ManageWalletCardsEnabled,
 		AccountEnabled:           req.AccountEnabled,
 		AccountsTabEnabled:       req.AccountsTabEnabled,
+		DeleteAccountEnabled:     req.DeleteAccountEnabled,
 	})
 	if err != nil {
 		return nil, err
@@ -60,6 +62,7 @@ func (s *AdminRpcService) SetWalletFeatures(ctx context.Context, req *pb.Feature
 		ManageWalletCardsEnabled: feat.ManageWalletCardsEnabled,
 		AccountEnabled:           feat.AccountEnabled,
 		AccountsTabEnabled:       feat.AccountsTabEnabled,
+		DeleteAccountEnabled:     feat.DeleteAccountEnabled,
 		WalletID:                 req.WalletID,
 	}, nil
 }
