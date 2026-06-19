@@ -21,6 +21,25 @@ func min(a, b int) int {
 	return b
 }
 
+// commaFormatAmount inserts comma thousand separators into an integer amount string.
+// "1000" → "1,000", "2500" → "2,500". Returns the original string unchanged if it
+// cannot be parsed as an integer or is less than 1000.
+func commaFormatAmount(amount string) string {
+	n, err := strconv.ParseInt(amount, 10, 64)
+	if err != nil || n < 1000 {
+		return amount
+	}
+	s := strconv.FormatInt(n, 10)
+	var result []byte
+	for i := range s {
+		if i > 0 && (len(s)-i)%3 == 0 {
+			result = append(result, ',')
+		}
+		result = append(result, s[i])
+	}
+	return string(result)
+}
+
 // iNavigateToTheDepositPage navigates to the deposit page
 func (sc *E2EContext) iNavigateToTheDepositPage() error {
 	debugPrintln("\n💰 Navigating to deposit page...")
@@ -166,6 +185,10 @@ func (sc *E2EContext) iShouldSeeMyBalanceUpdatedWithAmount(amount, currency stri
 	amountVariants := []string{amount}
 	if !strings.Contains(amount, ".") {
 		amountVariants = append(amountVariants, amount+".00")
+		// Currency amounts >= 1000 are displayed with comma thousand separators (e.g. "1,000.00").
+		if commaSep := commaFormatAmount(amount); commaSep != amount {
+			amountVariants = append(amountVariants, commaSep, commaSep+".00")
+		}
 	}
 
 	findBalanceMatch := func() bool {
