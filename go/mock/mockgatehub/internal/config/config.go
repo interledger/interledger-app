@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/interledger/interledger-app/go/configa"
@@ -39,18 +38,20 @@ type Config struct {
 	UseRedis            bool   `yaml:"-"`
 }
 
-// Load reads configuration. When CONFIG is set it is a comma-separated list
-// of YAML files (later files overlay earlier ones); otherwise individual
-// environment variables are read.
+// Load reads configuration from YAML files specified in the CONFIG environment variable.
+// CONFIG should be a comma-separated list of file paths; later files overlay earlier ones.
 func Load() *Config {
-	if v := os.Getenv("CONFIG"); v != "" {
-		return loadFromFiles(splitFiles(v))
+	filesStr := os.Getenv("CONFIG")
+	if filesStr == "" {
+		fmt.Fprintln(os.Stderr, "fatal: CONFIG environment variable is required")
+		os.Exit(1)
 	}
-	return loadFromEnv()
+	return loadFromFiles(splitFiles(filesStr))
 }
 
 func loadFromFiles(files []string) *Config {
-	parsed, err := configa.Parse[Config](files)
+	secretClient := configa.NewInClusterSecretClient()
+	parsed, err := configa.Parse[Config](files, configa.WithSecretClient(secretClient))
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "fatal: parse mockgatehub config:", err)
 		os.Exit(1)
@@ -61,24 +62,6 @@ func loadFromFiles(files []string) *Config {
 		os.Exit(1)
 	}
 	return applyDefaults(&cfg)
-}
-
-func loadFromEnv() *Config {
-	cfg := &Config{
-		Port:                  getEnv("MOCKGATEHUB_PORT", "8080"),
-		LogLevel:              getEnv("LOG_LEVEL", "info"),
-		RedisURL:              getEnv("MOCKGATEHUB_REDIS_URL", ""),
-		RedisDB:               getEnvInt("MOCKGATEHUB_REDIS_DB", 0),
-		WebhookURL:            getEnv("WEBHOOK_URL", ""),
-		WebhookSecret:         getEnv("WEBHOOK_SECRET", "mock-secret"),
-		WebhookMinDelaySec:    getEnvFloat("WEBHOOK_MIN_DELAY_SEC", 0.05),
-		EnforceAuthentication: getEnvBool("MOCKGATEHUB_ENFORCE_AUTHENTICATION", true),
-		ValidCredentials:      parseCredentials(getEnv("MOCKGATEHUB_VALID_CREDENTIALS", "local-test-app-id:local-test-app-secret")),
-		DefaultOrganizationID: getEnv("DEFAULT_ORGANIZATION_ID", "default-org"),
-		PublicBaseURL:         getEnv("MOCKGATEHUB_PUBLIC_BASE_URL", "https://mockgatehub.interledger.test"),
-		CardDataTokenSecret:   getEnv("MOCKGATEHUB_CARD_DATA_TOKEN_SECRET", ""),
-	}
-	return applyDefaults(cfg)
 }
 
 // applyDefaults handles post-load derivations shared by both loading paths.
@@ -109,73 +92,10 @@ func splitFiles(v string) []string {
 	return files
 }
 
-func getEnv(key, defaultVal string) string {
-	if val := os.Getenv(key); val != "" {
-		return val
-	}
-	return defaultVal
-}
-
-func getEnvInt(key string, defaultVal int) int {
-	if val := os.Getenv(key); val != "" {
-		if intVal, err := strconv.Atoi(val); err == nil {
-			return intVal
-		}
-	}
-	return defaultVal
-}
-
-func getEnvFloat(key string, defaultVal float64) float64 {
-	if val := os.Getenv(key); val != "" {
-		if floatVal, err := strconv.ParseFloat(val, 64); err == nil {
-			return floatVal
-		}
-	}
-	return defaultVal
-}
-
-func getEnvBool(key string, defaultVal bool) bool {
-	if val := os.Getenv(key); val != "" {
-		return val == "true" || val == "1" || val == "yes"
-	}
-	return defaultVal
-}
-
-func parseCredentials(credStr string) map[string]string {
-	creds := make(map[string]string)
-	if credStr == "" {
-		return creds
-	}
-	for _, pair := range splitString(credStr, ',') {
-		parts := splitString(pair, ':')
-		if len(parts) == 2 {
-			creds[parts[0]] = parts[1]
-		}
-	}
-	return creds
-}
-
 func randomSecret(nBytes int) string {
 	b := make([]byte, nBytes)
 	if _, err := rand.Read(b); err != nil {
 		return "mockgatehub-rng-unavailable"
 	}
 	return base64.RawURLEncoding.EncodeToString(b)
-}
-
-func splitString(s string, delim byte) []string {
-	var result []string
-	var current []byte
-	for i := 0; i < len(s); i++ {
-		if s[i] == delim {
-			result = append(result, string(current))
-			current = []byte{}
-		} else {
-			current = append(current, s[i])
-		}
-	}
-	if len(current) > 0 {
-		result = append(result, string(current))
-	}
-	return result
 }

@@ -2,7 +2,6 @@ package config
 
 import (
 	"context"
-	"encoding/base64"
 	"fmt"
 	"os"
 	"strings"
@@ -24,18 +23,20 @@ type Config struct {
 	FormsMutationToken string `yaml:"forms_mutation_token"`
 }
 
-// Load reads configuration. When CONFIG is set it is a comma-separated list
-// of YAML files (later files overlay earlier ones); otherwise individual
-// environment variables are read.
+// Load reads configuration from YAML files specified in the CONFIG environment variable.
+// CONFIG should be a comma-separated list of file paths; later files overlay earlier ones.
 func Load() *Config {
-	if v := os.Getenv("CONFIG"); v != "" {
-		return loadFromFiles(splitFiles(v))
+	filesStr := os.Getenv("CONFIG")
+	if filesStr == "" {
+		fmt.Fprintln(os.Stderr, "fatal: CONFIG environment variable is required")
+		os.Exit(1)
 	}
-	return loadFromEnv()
+	return loadFromFiles(splitFiles(filesStr))
 }
 
 func loadFromFiles(files []string) *Config {
-	parsed, err := configa.Parse[Config](files)
+	secretClient := configa.NewInClusterSecretClient()
+	parsed, err := configa.Parse[Config](files, configa.WithSecretClient(secretClient))
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "fatal: parse mockpti config:", err)
 		os.Exit(1)
@@ -46,26 +47,6 @@ func loadFromFiles(files []string) *Config {
 		os.Exit(1)
 	}
 	return applyDefaults(&cfg)
-}
-
-func loadFromEnv() *Config {
-	var signingKey string
-	if b64 := os.Getenv("MOCKPTI_WEBHOOK_SIGNING_KEY_B64"); b64 != "" {
-		if decoded, err := base64.StdEncoding.DecodeString(b64); err == nil {
-			signingKey = string(decoded)
-		}
-	}
-
-	return applyDefaults(&Config{
-		Port:               os.Getenv("MOCKPTI_PORT"),
-		LogLevel:           os.Getenv("LOG_LEVEL"),
-		RedisURL:           os.Getenv("MOCKPTI_REDIS_URL"),
-		RedisDB:            os.Getenv("MOCKPTI_REDIS_DB"),
-		ClientID:           os.Getenv("MOCKPTI_CLIENT_ID"),
-		WebhookURL:         os.Getenv("MOCKPTI_WEBHOOK_URL"),
-		WebhookSigningKey:  signingKey,
-		FormsMutationToken: os.Getenv("MOCKPTI_FORMS_MUTATION_TOKEN"),
-	})
 }
 
 // applyDefaults handles post-load derivations shared by both loading paths.
@@ -83,12 +64,6 @@ func applyDefaults(cfg *Config) *Config {
 		cfg.ClientID = "test-client-id"
 	}
 	return cfg
-}
-
-// IsFileMode reports whether the CONFIG env var is set, i.e. whether configa
-// is being used. main.go uses this to skip the env-var-based key validation.
-func IsFileMode() bool {
-	return os.Getenv("CONFIG") != ""
 }
 
 // splitFiles splits the CONFIG env var value into file paths.

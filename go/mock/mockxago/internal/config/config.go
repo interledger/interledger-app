@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/interledger/interledger-app/go/configa"
@@ -27,18 +26,20 @@ type Config struct {
 	PersonaWebhookToken string  `yaml:"persona_webhook_token"`
 }
 
-// Load reads configuration. When CONFIG is set it is a comma-separated list
-// of YAML files (later files overlay earlier ones); otherwise individual
-// environment variables are read.
+// Load reads configuration from YAML files specified in the CONFIG environment variable.
+// CONFIG should be a comma-separated list of file paths; later files overlay earlier ones.
 func Load() *Config {
-	if v := os.Getenv("CONFIG"); v != "" {
-		return loadFromFiles(splitFiles(v))
+	filesStr := os.Getenv("CONFIG")
+	if filesStr == "" {
+		fmt.Fprintln(os.Stderr, "fatal: CONFIG environment variable is required")
+		os.Exit(1)
 	}
-	return loadFromEnv()
+	return loadFromFiles(splitFiles(filesStr))
 }
 
 func loadFromFiles(files []string) *Config {
-	parsed, err := configa.Parse[Config](files)
+	secretClient := configa.NewInClusterSecretClient()
+	parsed, err := configa.Parse[Config](files, configa.WithSecretClient(secretClient))
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "fatal: parse mockxago config:", err)
 		os.Exit(1)
@@ -49,36 +50,6 @@ func loadFromFiles(files []string) *Config {
 		os.Exit(1)
 	}
 	return applyDefaults(&cfg)
-}
-
-func loadFromEnv() *Config {
-	redisDB := 0
-	if s := os.Getenv("MOCKXAGO_REDIS_DB"); s != "" {
-		if v, err := strconv.Atoi(s); err == nil {
-			redisDB = v
-		}
-	}
-	webhookMinDelaySec := 0.0
-	if s := os.Getenv("WEBHOOK_MIN_DELAY_SEC"); s != "" {
-		if v, err := strconv.ParseFloat(s, 64); err == nil {
-			webhookMinDelaySec = v
-		}
-	}
-
-	return applyDefaults(&Config{
-		Port:                os.Getenv("XAGO_MOCK_PORT"),
-		LogLevel:            os.Getenv("LOG_LEVEL"),
-		RedisURL:            os.Getenv("MOCKXAGO_REDIS_URL"),
-		RedisDB:             redisDB,
-		PublicKey:           os.Getenv("XAGO_API_PUBLIC_KEY"),
-		Secret:              os.Getenv("XAGO_API_SECRET"),
-		TestMode:            strings.EqualFold(os.Getenv("XAGO_MOCK_TEST_MODE"), "true"),
-		WebhookURL:          os.Getenv("WEBHOOK_URL"),
-		WebhookSecret:       os.Getenv("WEBHOOK_SECRET"),
-		WebhookMinDelaySec:  webhookMinDelaySec,
-		PersonaWebhookURL:   os.Getenv("PERSONA_WEBHOOK_URL"),
-		PersonaWebhookToken: os.Getenv("PERSONA_WEBHOOK_TOKEN"),
-	})
 }
 
 // applyDefaults handles post-load derivations shared by both loading paths.

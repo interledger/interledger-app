@@ -37,20 +37,6 @@ func main() {
 }
 
 func runServer() {
-	// When CONFIG is set the signing key is loaded from the YAML file and
-	// validated there. Only check the env var on the legacy path.
-	if !config.IsFileMode() {
-		b64Key := os.Getenv("MOCKPTI_WEBHOOK_SIGNING_KEY_B64")
-		if b64Key == "" {
-			fmt.Fprintln(os.Stderr, "fatal: MOCKPTI_WEBHOOK_SIGNING_KEY_B64 is required")
-			os.Exit(1)
-		}
-		if _, err := base64.StdEncoding.DecodeString(b64Key); err != nil {
-			fmt.Fprintf(os.Stderr, "fatal: MOCKPTI_WEBHOOK_SIGNING_KEY_B64 is not valid base64: %v\n", err)
-			os.Exit(1)
-		}
-	}
-
 	cfg := config.Load()
 
 	if err := logger.Initialize(cfg.LogLevel); err != nil {
