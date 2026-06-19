@@ -16,7 +16,6 @@ import {
   Icon,
   InterledgerIcon,
   MasterCardLogo,
-  PlaidLinkButton,
   Router,
   SlackIcon,
   TwitterIcon,
@@ -391,7 +390,12 @@ function CTACards() {
                     Connect bank accounts to easily add or withdraw from your
                     balance.
                   </p>
-                  <PlaidLinkButton />
+                  <Router
+                    className='text-sm font-medium text-primary'
+                    to={href('/connect/bank')}
+                  >
+                    Connect a bank
+                  </Router>
                 </div>
               </div>
             </CardContent>

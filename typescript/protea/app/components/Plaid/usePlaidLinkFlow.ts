@@ -12,19 +12,25 @@ type SerializedActionData = Exclude<ActionData, Promise<Response>>
 
 const PLAID_ACTION_PATH = '/plaid'
 
-// usePlaidLinkFlow orchestrates the Plaid Link round-trip:
-//   1. user clicks Connect → POST {intent: create_link_token} to /plaid action
-//   2. action returns a link_token; the hook stashes it in the store
-//   3. usePlaidLink picks up the token and (once the iframe is ready) opens
-//      the Plaid Link modal
-//   4. user finishes Link → react-plaid-link fires onSuccess(public_token, metadata)
-//   5. hook POSTs {intent: exchange, public_token, account_id} to /plaid action
-//   6. action exchanges + persists; React Router auto-revalidates the loader;
-//      the /plaid route's useEffect flips the store into the "linked" state.
-//
-// On any exit or error path the store's `isLinking` flag is cleared and
-// `lastError` is populated for the snackbar/debug card
-export function usePlaidLinkFlow() {
+
+interface PlaidLinkFlowOptions {
+  onCancel?: () => void
+  onError?: (message: string) => void
+}
+
+/**
+ * Hook that orchestrates the Plaid round-trip:
+ *   1. user clicks Connect → POST {intent: create_link_token} to /plaid action
+ *   2. action returns a link_token; the hook stashes it in the store
+ *   3. usePlaidLink picks up the token and (once the iframe is ready) opens
+ *      the Plaid Link modal
+ *   4. user finishes Link → react-plaid-link fires onSuccess(public_token, metadata)
+ *   5. hook POSTs {intent: exchange, public_token, account_id} to /plaid action
+ *   6. action exchanges + persists; React Router auto-revalidates the loader;
+ *      the /plaid route's useEffect flips the store into the "linked" state.
+ */
+export function usePlaidLinkFlow(opts: PlaidLinkFlowOptions = {}) {
+  const { onCancel, onError } = opts
   const linkFetcher = useFetcher<SerializedActionData>()
   const exchangeFetcher = useFetcher<SerializedActionData>()
 
@@ -85,6 +91,9 @@ export function usePlaidLinkFlow() {
         const msg = err.display_message || err.error_message || 'Plaid Link exited with error'
         setLastError(msg)
         pushSnackbar({ id: v4(), message: msg })
+        onError?.(msg)
+      } else {
+        onCancel?.()
       }
     }
   })
