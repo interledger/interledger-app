@@ -11,6 +11,7 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"time"
 )
 
 var (
@@ -97,6 +98,7 @@ func (c *InClusterSecretClient) loadCredentials() {
 		c.defaultNS = strings.TrimSpace(string(nsBytes))
 		c.apiBase = fmt.Sprintf("https://%s:%s", host, port)
 		c.client = &http.Client{
+			Timeout: 10 * time.Second,
 			Transport: &http.Transport{
 				TLSClientConfig: &tls.Config{
 					RootCAs: pool,

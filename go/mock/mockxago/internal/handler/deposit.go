@@ -171,7 +171,7 @@ func (h *Handler) NewProcessDepositHandler() jobs.JobHandler {
 func (h *Handler) sendDepositCompletedWebhook(accountID string, amount float64, currency, transactionID, depositReference string) {
 	webhookURL := h.webhookURL
 	if webhookURL == "" {
-		logger.Warnf("WEBHOOK_URL not configured, skipping webhook for deposit %s", transactionID)
+		logger.Warnf("webhook_url not configured, skipping webhook for deposit %s", transactionID)
 		return
 	}
 

@@ -34,7 +34,7 @@ ${KUBECTL} wait deployment \
 PF_PIDS=()
 
 cleanup() {
-  for pid in "${PF_PIDS[@]:-}"; do
+  for pid in "${PF_PIDS[@]}"; do
     kill "$pid" 2>/dev/null || true
   done
 }

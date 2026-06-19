@@ -13,6 +13,7 @@ jobs:
     with:
       test_path: './go/configa'
       coverage_key: 'configa'
+      db_name: 'configa'
 
   backend-tests:
     uses: ./.github/workflows/go-test-template.yml

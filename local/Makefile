@@ -70,12 +70,10 @@ help:
 	hosts \
 
 prep:
-	@if [ ! -d "config-override" ]; then \
-		mkdir config-override; \
-		touch config-override/mockgatehub.yaml; \
-		touch config-override/mockpti.yaml; \
-		touch config-override/mockxago.yaml; \
-	fi
+	@mkdir -p config-override
+	@touch config-override/mockgatehub.yaml
+	@touch config-override/mockpti.yaml
+	@touch config-override/mockxago.yaml
 
 infrastructure: prep
 	$(COMPOSE) --profile infrastructure up

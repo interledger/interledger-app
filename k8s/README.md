@@ -30,7 +30,7 @@ make up
 ```
 
 This command:
-1. Creates a local kind cluster named `interledger-ci` (Kubernetes v1.36.1)
+1. Creates a local kind cluster named `interledger-ci`
 2. Builds Docker images for all three mock services (mockpti, mockgatehub, mockxago)
 3. Loads images into the cluster
 4. Deploys Valkey (Redis) using Helm
