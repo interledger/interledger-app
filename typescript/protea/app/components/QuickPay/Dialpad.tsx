@@ -136,20 +136,26 @@ type DialPadKeyProps = {
 const DialPadKey = ({ label, id, activeKey }: DialPadKeyProps) => {
   const { amountValue, setAmountValue } = useDialPadStore()
   const isActive = id == activeKey
+  const handleKeyboardNavigation = (e: React.KeyboardEvent<HTMLLIElement>) => {
+    if (e.key === "Enter" || e.key === " ") { handleDialPadInputs(id, amountValue, setAmountValue) }
+  }
 
   return (
-    <li
-      role="button"
-      className={clsx('flex items-center justify-center w-16 h-16 rounded-lg cursor-pointer select-none text-base font-medium transition-all duration-100 ease-out',
-        isActive ? 'bg-gray-200/60 dark:bg-white/10 text-rose-600 dark:text-rose-600 scale-95'
-          : 'text-gray-700 dark:text-gray-300',
-        'hover:bg-gray-200/60 dark:hover:bg-white/10 hover:text-rose-600 dark:hover:text-rose-600 active:scale-95'
-      )}
-      tabIndex={0}
-      id={id}
-      onClick={() => handleDialPadInputs(id, amountValue, setAmountValue)}
-    >
-      {label}
+    <li>
+      <span
+        role="button"
+        className={clsx('flex items-center justify-center w-16 h-16 rounded-lg cursor-pointer select-none text-base font-medium transition-all duration-100 ease-out',
+          isActive ? 'bg-gray-200/60 dark:bg-white/10 text-rose-600 dark:text-rose-600 scale-95'
+            : 'text-gray-700 dark:text-gray-300',
+          'hover:bg-gray-200/60 dark:hover:bg-white/10 hover:text-rose-600 dark:hover:text-rose-600 active:scale-95'
+        )}
+        tabIndex={0}
+        id={id}
+        onClick={() => handleDialPadInputs(id, amountValue, setAmountValue)}
+        onKeyDown={(e: React.KeyboardEvent<HTMLLIElement>) => handleKeyboardNavigation(e)}
+      >
+        {label}
+      </span>
     </li>
   )
 }
