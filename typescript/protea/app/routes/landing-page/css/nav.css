@@ -203,7 +203,7 @@
 .nav-link--mobile {
   font-size: var(--nav-mobile-link-size);
   font-weight: 500;
-  color: var(--nav-mobile-link-color);
+  color: var(--nav-overlay-text);
   padding: 8px 0;
   width: 100%;
 }
