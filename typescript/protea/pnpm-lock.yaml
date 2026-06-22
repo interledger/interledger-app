@@ -5,7 +5,7 @@ neverBuiltDependencies:
 
 overrides:
   axios@1.14.1: 1.14.0
-  axios@0.30.4: 0.30.3
+  axios@0.30.4: 0.32.0
 
 dependencies:
   '@bufbuild/connect':
