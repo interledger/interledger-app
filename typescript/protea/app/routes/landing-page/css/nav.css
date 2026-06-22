@@ -109,7 +109,10 @@
   text-decoration: none;
   white-space: nowrap;
   cursor: pointer;
-  transition: background 150ms ease;
+  transition:
+    background 150ms ease,
+    transform 150ms ease;
+  will-change: transform;
 }
 
 .nav-cta:hover {
@@ -203,7 +206,7 @@
 .nav-link--mobile {
   font-size: var(--nav-mobile-link-size);
   font-weight: 500;
-  color: var(--nav-mobile-link-color);
+  color: var(--nav-overlay-text);
   padding: 8px 0;
   width: 100%;
 }
