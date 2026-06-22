@@ -66,6 +66,7 @@ func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago
 	w.RegisterWorkflow(jobs.PtiDropOldDataWorkflow)
 	w.RegisterWorkflow(jobs.EnableSendVerificationEmailToUnverifiedUserJob)
 	w.RegisterWorkflow(jobs.UpdateGateHubOrganizationConfig)
+	w.RegisterWorkflow(jobs.NotifyAgreementChangedWorkflow)
 	w.RegisterWorkflow(jobs.DisabledAccountsTabWorkflow)
 
 	// Payment Engine

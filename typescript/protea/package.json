@@ -93,7 +93,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "jsdom": "^22.0.0",
     "pino-pretty": "^10.3.1",
-    "postcss": "^8.4.23",
+    "postcss": "^8.5.10",
     "prettier": "^3.8.4",
     "prettier-plugin-organize-imports": "^4.3.0",
     "prettier-plugin-tailwindcss": "^0.8.0",
@@ -115,7 +115,7 @@
   "pnpm": {
     "overrides": {
       "axios@1.14.1": "1.14.0",
-      "axios@0.30.4": "0.30.3"
+      "axios@0.30.4": "0.32.0"
     },
     "neverBuiltDependencies": [
       "plain-crypto-js"
