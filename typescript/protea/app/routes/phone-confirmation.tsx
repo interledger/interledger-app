@@ -225,10 +225,10 @@ export default function Page() {
             {resendFetcher.state !== 'idle'
               ? 'Sending...'
               : isActive
-              ? `Resend in ${formatCountdown(remainingSeconds)}`
-              : otpSent
-              ? 'Resend code'
-              : 'Send code'}
+                ? `Resend in ${formatCountdown(remainingSeconds)}`
+                : otpSent
+                  ? 'Resend code'
+                  : 'Send code'}
           </Button>
         </resendFetcher.Form>
       )}

@@ -7,10 +7,10 @@ export function isResendRateLimitedResult(
 ): result is Extract<ResendOtpResult, { error: 'rateLimited' }> {
   return Boolean(
     result &&
-      typeof result === 'object' &&
-      'error' in result &&
-      result.error === 'rateLimited' &&
-      'retryAfter' in result &&
-      typeof result.retryAfter === 'number'
+    typeof result === 'object' &&
+    'error' in result &&
+    result.error === 'rateLimited' &&
+    'retryAfter' in result &&
+    typeof result.retryAfter === 'number'
   )
 }
