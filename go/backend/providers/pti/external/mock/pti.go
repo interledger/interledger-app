@@ -146,7 +146,7 @@ func CreateStartAssessmentHandler(p *PTI) http.HandlerFunc {
 
 func CreateProxyWebhooks(p *PTI) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		r.URL.Host = os.Getenv("FYNBOS_BACKEND_HOST")
+		r.URL.Host = os.Getenv("ILW_BACKEND_HOST")
 		r.URL.Scheme = "http"
 		resp, err := http.DefaultClient.Do(r)
 		if err != nil {

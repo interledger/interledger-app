@@ -243,7 +243,7 @@ export function DepositDetails() {
           </div>
         </CardContent>
       </Card>
-      {env.fynbosEnv !== 'prod' ? (
+      {env.ilwEnv !== 'prod' ? (
         <Form
           id='xago-test-account-deposit'
           action={href('/deposit')}

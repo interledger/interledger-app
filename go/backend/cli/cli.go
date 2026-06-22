@@ -163,16 +163,16 @@ func ParseStartArgs() (*StartArgs, error) {
 	}
 
 	// Configure the env package before calling any env.Is* helpers below.
-	fynbosEnvValue := os.Getenv("FYNBOS_ENV")
-	switch fynbosEnvValue {
+	ilwEnvValue := os.Getenv("ILW_ENV")
+	switch ilwEnvValue {
 	case "prod", "sandbox", "dev", "local", "test":
 		// valid
 	case "":
-		return nil, errors.New("FYNBOS_ENV is required; must be one of: prod, sandbox, dev, local, test")
+		return nil, errors.New("ILW_ENV is required; must be one of: prod, sandbox, dev, local, test")
 	default:
-		return nil, fmt.Errorf("FYNBOS_ENV=%q is invalid; must be one of: prod, sandbox, dev, local, test", fynbosEnvValue)
+		return nil, fmt.Errorf("ILW_ENV=%q is invalid; must be one of: prod, sandbox, dev, local, test", ilwEnvValue)
 	}
-	env.SetFynbosEnv(fynbosEnvValue)
+	env.SetIlwEnv(ilwEnvValue)
 
 	allowedWalletIDsRaw := os.Getenv("ALLOWED_WALLET_IDS")
 	if allowedWalletIDsRaw != "" {

@@ -146,7 +146,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   let isDisabled = false
   let walletAddress = ''
   const env = {
-    fynbosEnv: envValue('FYNBOS_ENV'),
+    ilwEnv: envValue('ILW_ENV'),
     sentryDsn: envValue('SENTRY_DSN'),
     sentryRelease: envValue('SENTRY_RELEASE'),
     targetHost: envValue('TARGET_HOST'),

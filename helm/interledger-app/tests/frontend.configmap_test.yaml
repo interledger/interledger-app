@@ -41,14 +41,14 @@ tests:
           path: data.LOG_PRETTY
           value: "true"
 
-  - it: 'Should contain FYNBOS_ENV'
+  - it: 'Should contain ILW_ENV'
     set:
       frontend:
         config:
           environment: "production"
     asserts:
       - equal:
-          path: data.FYNBOS_ENV
+          path: data.ILW_ENV
           value: "production"
 
   - it: 'Should contain BACKEND_GRPC_URL'

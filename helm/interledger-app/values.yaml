@@ -797,7 +797,7 @@ backend:
       contentMap:
         - key: APPLICATION_URL
           valueRef: backend.config.application_url
-        - key: FYNBOS_ENV
+        - key: ILW_ENV
           valueRef: backend.config.environment
         - key: KRATOS_URL
           valueRef: backend.config.kratos.url
@@ -1092,7 +1092,7 @@ frontend:
           valueRef: frontend.config.rafiki.auth.endpoint
         - key: BACKEND_GRPC_URL
           valueRef: frontend.config.backend.grpc.url
-        - key: FYNBOS_ENV
+        - key: ILW_ENV
           valueRef: frontend.config.environment
         - key: LOG_LEVEL
           valueRef: frontend.config.log_level
