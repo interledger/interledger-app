@@ -10,21 +10,20 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/db"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	linkedaccounts_mock "github.com/interledger/interledger-app/go/backend/linkedaccounts/client/mock"
+	"github.com/interledger/interledger-app/go/backend/providers/chimoney"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
+	rafiki_external "github.com/interledger/interledger-app/go/backend/rafiki/external"
+	external_mock "github.com/interledger/interledger-app/go/backend/rafiki/external/mock"
+	"github.com/interledger/interledger-app/go/backend/rafiki/ops"
+	temporal_mock "github.com/interledger/interledger-app/go/backend/temporal/mock"
+	"github.com/interledger/interledger-app/go/env"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	linkedaccounts_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
-	"gitlab.com/fynbos/backend/providers/chimoney"
-	"gitlab.com/fynbos/backend/providers/gatehub"
-	rafiki_external "gitlab.com/fynbos/backend/rafiki/external"
-	external_mock "gitlab.com/fynbos/backend/rafiki/external/mock"
-	temporal_mock "gitlab.com/fynbos/backend/temporal/mock"
 	"go.temporal.io/sdk/client"
-
-	"gitlab.com/fynbos/backend/rafiki/ops"
-	"gitlab.com/fynbos/env"
 )
 
 func setRafikiNodeFlag(t *testing.T, enabled bool) {
