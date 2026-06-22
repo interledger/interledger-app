@@ -17,7 +17,7 @@
     "test:report": "playwright show-report"
   },
   "dependencies": {
-    "@grpc/grpc-js": "^1.8.14",
+    "@grpc/grpc-js": "^1.9.16",
     "@headlessui/react": "^1.7.14",
     "@protobuf-ts/grpc-transport": "^2.9.0",
     "@protobuf-ts/runtime": "^2.9.0",
