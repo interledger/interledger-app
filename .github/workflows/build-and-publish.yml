@@ -97,14 +97,14 @@ jobs:
             BUILDOS=${{ matrix.platform.os }}
           outputs: type=docker,dest=/tmp/${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}.tar
       - name: store-cdn-key
-        if: matrix.package.type == 'ts'
+        if: matrix.package.type == 'ts' && needs.determine_version.outputs.dockerPush == 'true'
         run: |
           cd ${{ matrix.package.context }}
           echo "${{ secrets.GCP_CDN_UPLOADER_KEY_JSON_B64 }}" > ./gsa-key.json.b64
           base64 --decode ./gsa-key.json.b64 > ./gsa-key.json
           sha256sum ./gsa-key.json
       - name: Build TypeScript Docker image
-        if: matrix.package.type == 'ts'
+        if: matrix.package.type == 'ts' && needs.determine_version.outputs.dockerPush != 'true'
         uses: docker/build-push-action@v7
         with:
           push: false
@@ -116,7 +116,24 @@ jobs:
             IMAGE_HASH=${{ needs.determine_version.outputs.version }}
             BUILDARCH=${{ matrix.platform.arch }}
             BUILDOS=${{ matrix.platform.os }}
-            UPLOAD_SOURCEMAPS=${{ needs.determine_version.outputs.dockerPush }}
+            UPLOAD_SOURCEMAPS=false
+            SENTRY_PROJECT=${{ matrix.package.sentry_project }}
+            SENTRY_RELEASE=${{ needs.determine_version.outputs.version }}
+          outputs: type=docker,dest=/tmp/${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}.tar
+      - name: Build TypeScript Docker image (with CDN and sourcemap upload)
+        if: matrix.package.type == 'ts' && needs.determine_version.outputs.dockerPush == 'true'
+        uses: docker/build-push-action@v7
+        with:
+          push: false
+          platforms: ${{ matrix.platform.os }}/${{ matrix.platform.arch }}
+          context: ${{ matrix.package.context }}
+          file: ${{ matrix.package.file }}
+          tags: interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}:${{ needs.determine_version.outputs.version }}
+          build-args: |
+            IMAGE_HASH=${{ needs.determine_version.outputs.version }}
+            BUILDARCH=${{ matrix.platform.arch }}
+            BUILDOS=${{ matrix.platform.os }}
+            UPLOAD_SOURCEMAPS=true
             SENTRY_ORG=${{ secrets.SENTRY_ORG }}
             SENTRY_PROJECT=${{ matrix.package.sentry_project }}
             SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
