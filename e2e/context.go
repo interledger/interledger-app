@@ -63,6 +63,10 @@ type E2EContext struct {
 	screenshotCount int    // Track number of screenshots taken in this scenario
 	screenshotDir   string // Per-scenario screenshot directory
 	totpSecret      string // TOTP secret for the current user
+
+	// Agreement-change workflow: ID of the agreement most recently published in
+	// this scenario; used by subsequent steps that trigger and assert the workflow.
+	pendingAgreementID string
 }
 
 // InitializeScenario sets up the scenario context
@@ -82,6 +86,14 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.After(func(goCtx context.Context, scenario *godog.Scenario, err error) (context.Context, error) {
 		if sc == nil {
 			return goCtx, nil
+		}
+		// Delete any agreement row injected by aNewAgreementVersionIsPublished
+		// before closing the DB — otherwise the row leaks and re-fires the
+		// startup workflow trigger on every backend restart.
+		if sc.pendingAgreementID != "" && sc.db != nil {
+			if cleanupErr := sc.cleanupTestAgreement(sc.pendingAgreementID); cleanupErr != nil {
+				debugPrintf("   ⚠️  cleanupTestAgreement(%s) failed: %v\n", sc.pendingAgreementID, cleanupErr)
+			}
 		}
 		// Cleanup in reverse order
 		if sc.page != nil {
@@ -550,6 +562,20 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	})
 	ctx.Step(`^an authenticator reset audit log entry should exist$`, func() error {
 		return sc.anAuthenticatorResetAuditLogEntryShouldExist()
+	})
+
+	// Agreements
+	ctx.Step(`^an agreement signature should exist for myself for "([^"]*)"$`, func(agreementID string) error {
+		return sc.anAgreementSignatureShouldExistForMyselfFor(agreementID)
+	})
+	ctx.Step(`^a new "([^"]*)" agreement version "([^"]*)" is published$`, func(name, version string) error {
+		return sc.aNewAgreementVersionIsPublished(name, version)
+	})
+	ctx.Step(`^the agreement change notification workflow runs$`, func() error {
+		return sc.theAgreementChangeNotificationWorkflowRuns()
+	})
+	ctx.Step(`^I should be marked notified for the new agreement$`, func() error {
+		return sc.iShouldBeMarkedNotifiedForTheNewAgreement()
 	})
 
 	// Account deletion steps

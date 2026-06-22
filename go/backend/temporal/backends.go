@@ -2,6 +2,7 @@ package temporal
 
 import (
 	"github.com/go-playground/validator/v10"
+	"github.com/interledger/interledger-app/go/backend/agreements"
 	"github.com/interledger/interledger-app/go/backend/analytics"
 	"github.com/interledger/interledger-app/go/backend/contacts"
 	"github.com/interledger/interledger-app/go/backend/email"
@@ -31,6 +32,7 @@ import (
 )
 
 type Backends interface {
+	Agreements() agreements.Client
 	Twitter() twitter.Client
 	Validator() *validator.Validate
 	DB() *sqlx.DB
