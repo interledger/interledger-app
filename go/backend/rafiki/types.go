@@ -1,6 +1,6 @@
 package rafiki
 
-import "gitlab.com/fynbos/backend/currency"
+import "github.com/interledger/interledger-app/go/backend/currency"
 
 const (
 	Provider          = "rafiki"

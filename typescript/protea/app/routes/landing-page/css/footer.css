@@ -89,7 +89,7 @@
 }
 
 .footer-links a:hover {
-  color: var(--color-neutral-100);
+  color: var(--color-white);
 }
 
 .footer-divider {
@@ -129,6 +129,7 @@
   font: var(--text-body);
   font-weight: 500;
   gap: 8px;
+  will-change: transform;
 }
 
 .footer-cta:hover {

@@ -163,6 +163,7 @@ The Go backend is the core of the wallet, handling payments, provider integratio
 | `SENDGRID_FROM_NAME` | Display name for outgoing emails (e.g. "Interledger Wallet"). Required when `EMAIL_ENABLED` is not `false`. | No | Local default: `Interledger Wallet` |
 | `SENDGRID_FROM_EMAIL` | Sender email address for outgoing emails. Required when `EMAIL_ENABLED` is not `false`. | No | Local default: `support@interledger.app` |
 | `SENDGRID_ONE_TEMPLATE_ID` | SendGrid Dynamic Template ID used by backend transactional emails. Required when `EMAIL_ENABLED` is not `false`. | No | Local default: `d-12030774d225454ea91720034b9adb97` |
+| `SUPPORT_EMAIL` | Support inbox address that backend notifications (e.g. account deletion requests) are sent to. Required when `EMAIL_ENABLED` is not `false`. | No | Prod/Sandbox/Dev: `support@interledger.app`; Local: `support@interledger.app` |
 
 ### Segment (Analytics)
 

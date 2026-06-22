@@ -236,6 +236,7 @@ backend:
       from_name: ""
       from_email: ""
       one_template_id: ""
+      support_email: ""
 
     pusher:
       addr_ref: "pusherAddr"
@@ -893,6 +894,8 @@ backend:
           valueRef: backend.config.sendgrid.from_email
         - key: SENDGRID_ONE_TEMPLATE_ID
           valueRef: backend.config.sendgrid.one_template_id
+        - key: SUPPORT_EMAIL
+          valueRef: backend.config.sendgrid.support_email
         - key: PERSONA_BASE_URL
           valueRef: backend.config.persona.base_url
         - key: SIGNUP_AGREEMENT_IDS

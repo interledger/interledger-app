@@ -11,9 +11,9 @@ import (
 	time "time"
 
 	gomock "github.com/golang/mock/gomock"
-	currency "gitlab.com/fynbos/backend/currency"
-	gatehub "gitlab.com/fynbos/backend/providers/gatehub"
-	external "gitlab.com/fynbos/backend/providers/gatehub/external"
+	currency "github.com/interledger/interledger-app/go/backend/currency"
+	gatehub "github.com/interledger/interledger-app/go/backend/providers/gatehub"
+	external "github.com/interledger/interledger-app/go/backend/providers/gatehub/external"
 )
 
 // MockClient is a mock of Client interface.

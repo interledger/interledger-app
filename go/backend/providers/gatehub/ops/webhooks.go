@@ -14,12 +14,12 @@ import (
 	"net/http"
 	"strings"
 
-	"gitlab.com/fynbos/backend/kyc"
-	"gitlab.com/fynbos/backend/providers/gatehub"
-	"gitlab.com/fynbos/backend/providers/gatehub/external"
-	"gitlab.com/fynbos/backend/slack"
-	"gitlab.com/fynbos/env"
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/backend/kyc"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub/external"
+	"github.com/interledger/interledger-app/go/backend/slack"
+	"github.com/interledger/interledger-app/go/env"
+	"github.com/interledger/interledger-app/go/log"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/serviceerror"
 	"go.temporal.io/sdk/client"
@@ -194,6 +194,22 @@ type (
 		Currency string `json:"currency"`
 		Amount   string `json:"amount"`
 	}
+
+	MoreBridgeWithdrawalReroutedWebhook struct {
+		ID          string                                  `json:"uuid"`
+		EventType   string                                  `json:"event_type"`
+		Timestamp   string                                  `json:"timestamp"`
+		UserID      string                                  `json:"user_uuid"`
+		Environment string                                  `json:"environment"`
+		Data        MoreBridgeWithdrawalReroutedWebhookData `json:"data"`
+	}
+
+	MoreBridgeWithdrawalReroutedWebhookData struct {
+		ID             string `json:"id"`
+		OriginalScheme string `json:"originalScheme"`
+		Scheme         string `json:"scheme"`
+		Reason         string `json:"reason"`
+	}
 )
 
 func NewWebhook(b Backends, cfg gatehub.Config) http.HandlerFunc {
@@ -276,6 +292,8 @@ func NewWebhook(b Backends, cfg gatehub.Config) http.HandlerFunc {
 			HandleWithdrawalSCTITimeout(r.Context(), b, body, w)
 		case "more-bridge.withdrawal.rejected":
 			HandleWithdrawalRejected(r.Context(), b, body, w)
+		case "more-bridge.withdrawal.rerouted":
+			HandleWithdrawalRerouted(r.Context(), b, body, w)
 		default:
 			log.Warn("gatehub webhook. Unhandled webhook type", zap.String("event_type", wh.EventType), zap.String("payload", string(body)))
 		}
@@ -753,4 +771,50 @@ func forwardWebhookToFallback(ctx context.Context, body []byte, headers http.Hea
 
 	log.Info("Webhook successfully forwarded", zap.String("url", fallbackURL), zap.Int("status", resp.StatusCode))
 	return nil
+}
+
+func HandleWithdrawalRerouted(ctx context.Context, b Backends, raw json.RawMessage, w http.ResponseWriter) {
+	var wh MoreBridgeWithdrawalReroutedWebhookData
+	err := json.Unmarshal(raw, &wh)
+	if err != nil {
+		log.Error("gatehub webhook: Failed to unmarshal scti timeout event webhook", zap.String("webhook", string(raw)), zap.Error(err))
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	wo := client.StartWorkflowOptions{
+		ID:                    "gatehub_withdrawal_rerouted_" + wh.ID,
+		TaskQueue:             "backend",
+		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
+	}
+
+	var workflowStatus enums.WorkflowExecutionStatus
+	wflow, err := b.Temporal().DescribeWorkflowExecution(ctx, wo.ID, "")
+	switch err.(type) {
+	case *serviceerror.Internal,
+		*serviceerror.Unavailable,
+		*serviceerror.InvalidArgument:
+
+		log.Error("Failed to handle gatehub card transaction event webhook", zap.Error(err))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	case *serviceerror.NotFound:
+		// do nothing
+	default:
+		if wflow != nil {
+			workflowStatus = wflow.GetWorkflowExecutionInfo().Status
+		}
+	}
+
+	// execute workflow if it's not running
+	if workflowStatus != enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
+		_, err = b.Temporal().ExecuteWorkflow(ctx, wo, NotifyWithdrawalReroutedWorkflow, wh)
+		if err != nil {
+			log.Error("Failed to handle gatehub card transaction event webhook", zap.Error(err))
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	}
+
+	w.WriteHeader(http.StatusOK)
 }

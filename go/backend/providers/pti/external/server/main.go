@@ -11,8 +11,8 @@ import (
 	"syscall"
 	"time"
 
-	"gitlab.com/fynbos/backend/providers/pti/external/mock"
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/backend/providers/pti/external/mock"
+	"github.com/interledger/interledger-app/go/log"
 	"go.uber.org/zap"
 )
 

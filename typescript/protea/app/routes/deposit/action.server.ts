@@ -15,7 +15,7 @@ function stringToBigInt(amount: string) {
   return BigInt(parseFloat(amount) * 100)
 }
 
-export async function fynbosDepositAction({ request }: ActionFunctionArgs) {
+export async function ilwDepositAction({ request }: ActionFunctionArgs) {
   const form = await request.formData()
   const depositAmount = String(form.get('depositAmount') || '')
   const toLinkedAccount = form.get('toLinkedAccount') as string

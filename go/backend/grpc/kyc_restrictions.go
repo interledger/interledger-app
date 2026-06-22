@@ -3,7 +3,7 @@ package grpc
 import (
 	"context"
 
-	"gitlab.com/fynbos/backend/kyc"
+	"github.com/interledger/interledger-app/go/backend/kyc"
 )
 
 func (s *rpcService) validateKYCTransactionRestrictions(ctx context.Context, walletID string) error {

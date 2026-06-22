@@ -3,12 +3,12 @@ package rpcserver
 import (
 	"context"
 
-	"gitlab.com/fynbos/pacioli"
+	"github.com/interledger/interledger-app/go/pacioli"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 
-	"gitlab.com/fynbos/pacioli/healthcheck"
-	"gitlab.com/fynbos/pacioli/ledger"
-	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
+	"github.com/interledger/interledger-app/go/pacioli/healthcheck"
+	"github.com/interledger/interledger-app/go/pacioli/ledger"
+	pacioliv1 "github.com/interledger/interledger-app/go/proto/pacioli/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/health/grpc_health_v1"

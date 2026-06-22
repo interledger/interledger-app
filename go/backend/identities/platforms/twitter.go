@@ -11,13 +11,13 @@ import (
 	"regexp"
 	"time"
 
-	"gitlab.com/fynbos/backend/keys"
-	"gitlab.com/fynbos/backend/twitter"
+	"github.com/interledger/interledger-app/go/backend/keys"
+	"github.com/interledger/interledger-app/go/backend/twitter"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/temporal"
 
+	"github.com/interledger/interledger-app/go/backend/identities"
 	twitterscraper "github.com/n0madic/twitter-scraper"
-	"gitlab.com/fynbos/backend/identities"
 	"go.temporal.io/sdk/workflow"
 )
 

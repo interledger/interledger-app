@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/interledger/interledger-app/go/backend/providers/chimoney/external"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/backend/providers/chimoney/external"
 	"gotest.tools/assert"
 )
 

@@ -5,8 +5,8 @@ import (
 	"io"
 	"time"
 
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/providers/gatehub/external"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub/external"
 )
 
 type Client interface {

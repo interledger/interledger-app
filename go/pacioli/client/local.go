@@ -7,8 +7,8 @@ import (
 
 	"github.com/jmoiron/sqlx"
 
-	"gitlab.com/fynbos/pacioli"
-	"gitlab.com/fynbos/pacioli/ledger"
+	"github.com/interledger/interledger-app/go/pacioli"
+	"github.com/interledger/interledger-app/go/pacioli/ledger"
 )
 
 var _ pacioli.Client = localClient{}

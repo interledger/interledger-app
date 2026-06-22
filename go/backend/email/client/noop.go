@@ -3,11 +3,11 @@ package client
 import (
 	"context"
 
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/email"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/payments"
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/email"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	"github.com/interledger/interledger-app/go/backend/payments"
+	"github.com/interledger/interledger-app/go/log"
 	"go.uber.org/zap"
 )
 
@@ -71,6 +71,11 @@ func (n *noopClient) SendKYCDocumentsRequiredEmail(_ context.Context, walletID s
 	log.Info("NOT SENDING: KYC documents required email", zap.String("walletID", walletID))
 }
 
+func (n *noopClient) SendAccountDeletionRequested(_ context.Context, userID string) error {
+	log.Info("NOT SENDING: account deletion notification to support", zap.String("userID", userID))
+	return nil
+}
+
 func (n *noopClient) SendAuthenticatorResetEmail(_ context.Context, walletID string) {
 	log.Info("NOT SENDING: authenticator reset email", zap.String("walletID", walletID))
 }
@@ -85,4 +90,8 @@ func (c *noopClient) SendSCTITimeoutEmail(ctx context.Context, txID, walletID, a
 
 func (n *noopClient) SendGatehubWithdrawalRejectedEmail(_ context.Context, _, walletID, _, _, _, _ string) {
 	log.Info("NOT SENDING: withdrawal rejected email", zap.String("walletID", walletID))
+}
+
+func (c *noopClient) SendSCTRerouteEmail(ctx context.Context, txID, walletID string) {
+	log.Info("NOT SENDING: SCT reroute email", zap.String("txID", txID), zap.String("walletID", walletID))
 }

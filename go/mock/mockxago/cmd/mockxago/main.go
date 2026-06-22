@@ -13,10 +13,10 @@ import (
 	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
 
-	"gitlab.com/fynbos/mock/mockxago/internal/handler"
-	"gitlab.com/fynbos/mock/mockxago/internal/jobs"
-	"gitlab.com/fynbos/mock/mockxago/internal/logger"
-	"gitlab.com/fynbos/mock/mockxago/internal/storage"
+	"github.com/interledger/interledger-app/go/mock/mockxago/internal/handler"
+	"github.com/interledger/interledger-app/go/mock/mockxago/internal/jobs"
+	"github.com/interledger/interledger-app/go/mock/mockxago/internal/logger"
+	"github.com/interledger/interledger-app/go/mock/mockxago/internal/storage"
 )
 
 func main() {

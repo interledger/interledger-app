@@ -4,11 +4,11 @@ import (
 	"context"
 	temporal "go.temporal.io/sdk/client"
 
+	"github.com/interledger/interledger-app/go/backend/twitter"
+	"github.com/interledger/interledger-app/go/backend/twitter/external"
+	external_client "github.com/interledger/interledger-app/go/backend/twitter/external/client"
+	"github.com/interledger/interledger-app/go/backend/twitter/ops"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/fynbos/backend/twitter"
-	"gitlab.com/fynbos/backend/twitter/external"
-	external_client "gitlab.com/fynbos/backend/twitter/external/client"
-	"gitlab.com/fynbos/backend/twitter/ops"
 )
 
 var _ twitter.Client = &Client{}

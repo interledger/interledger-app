@@ -29,6 +29,7 @@ nav:
       - Signup Flow: signup-guide.md
       - KYC & Identity Verification: kyc-guide.md
       - KYC Resubmission Flow: kyc-resubmission-flow.md
+      - Account Deletion Flow: account-deletion-guide.md
   - Architecture:
       - Wallets, Accounts & Addresses: wallets-accounts-addresses-guide.md
       - Dual-Ledger System: ledger-system-guide.md

@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"gitlab.com/fynbos/mock/mockgatehub/internal/logger"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/logger"
 
 	"go.uber.org/zap"
 )
@@ -28,8 +28,8 @@ var PublicEndpoints = map[string]bool{
 
 // PublicEndpointPatterns are path patterns (with placeholders) that don't require authentication
 var PublicEndpointPatterns = []string{
-	"/admin/users/*/fees",           // User-specific fee configuration (test support)
-	"/admin/users/*/withdrawals",    // List withdrawals by user (test support)
+	"/admin/users/*/fees",                // User-specific fee configuration (test support)
+	"/admin/users/*/withdrawals",         // List withdrawals by user (test support)
 	"/admin/withdrawals/*/trigger-event", // Trigger withdrawal event (test support)
 }
 
