@@ -5,8 +5,7 @@ import { ErrorHandler, ErrorMapper, UserFacingError } from '~/lib/error-handling
 import type { ServerResponse } from '~/lib/error-handling/types'
 
 import { getUserSession } from '~/lib/kratos/session.server'
-import plaid, { isPlaidError } from '~/lib/plaid.server'
-import { type PlaidProduct } from '~/lib/usePlaidStore'
+import plaid, { isPlaidError, type PlaidProduct } from '~/lib/plaid.server'
 import type { Route } from './+types/plaid'
 
 /* ─── action ─────────────────────────────────────────────────────────── */

@@ -4,7 +4,6 @@ import { usePlaidLink } from 'react-plaid-link'
 import { v4 } from 'uuid'
 
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
-import { usePlaidStore } from '~/lib/usePlaidStore'
 
 import type { ActionData } from '~/routes/plaid'
 
@@ -21,24 +20,20 @@ interface PlaidLinkFlowOptions {
 /**
  * Hook that orchestrates the Plaid round-trip:
  *   1. user clicks Connect → POST {intent: create_link_token} to /plaid action
- *   2. action returns a link_token; the hook stashes it in the store
+ *   2. action returns a link_token; the hook stashes it in local state
  *   3. usePlaidLink picks up the token and (once the iframe is ready) opens
  *      the Plaid Link modal
  *   4. user finishes Link → react-plaid-link fires onSuccess(public_token, metadata)
  *   5. hook POSTs {intent: exchange, public_token, account_id} to /plaid action
- *   6. action exchanges + persists; React Router auto-revalidates the loader;
- *      the /plaid route's useEffect flips the store into the "linked" state.
+ *   6. action exchanges + persists; React Router auto-revalidates the loader.
  */
 export function usePlaidLinkFlow(opts: PlaidLinkFlowOptions = {}) {
   const { onCancel, onError } = opts
   const linkFetcher = useFetcher<SerializedActionData>()
   const exchangeFetcher = useFetcher<SerializedActionData>()
 
-  const linkToken = usePlaidStore((s) => s.linkToken)
-  const isLinking = usePlaidStore((s) => s.isLinking)
-  const setLinkToken = usePlaidStore((s) => s.setLinkToken)
-  const setIsLinking = usePlaidStore((s) => s.setIsLinking)
-  const setLastError = usePlaidStore((s) => s.setLastError)
+  const [linkToken, setLinkToken] = useState<string | null>(null)
+  const [isLinking, setIsLinking] = useState(false)
   const pushSnackbar = useScaffoldStore((s) => s.pushSnackbar)
 
   // Tracks the user's intent to open Link after the token round-trips. We
@@ -60,12 +55,11 @@ export function usePlaidLinkFlow(opts: PlaidLinkFlowOptions = {}) {
       return
     }
     if (!data.success) {
-      setLastError(data.error.message)
       setIsLinking(false)
       pendingOpenRef.current = false
       pushSnackbar({ id: v4(), message: data.error.message })
     }
-  }, [linkFetcher.data, setLinkToken, setLastError, setIsLinking, pushSnackbar])
+  }, [linkFetcher.data, pushSnackbar])
 
   const { open, ready, error: scriptError } = usePlaidLink({
     token: linkToken,
@@ -89,7 +83,6 @@ export function usePlaidLinkFlow(opts: PlaidLinkFlowOptions = {}) {
       setLinkToken(null)
       if (err) {
         const msg = err.display_message || err.error_message || 'Plaid Link exited with error'
-        setLastError(msg)
         pushSnackbar({ id: v4(), message: msg })
         onError?.(msg)
       } else {
@@ -127,32 +120,29 @@ export function usePlaidLinkFlow(opts: PlaidLinkFlowOptions = {}) {
       return
     }
     if (!data.success) {
-      setLastError(data.error.message)
       setIsLinking(false)
       pushSnackbar({ id: v4(), message: data.error.message })
     }
-  }, [exchangeFetcher.data, setLinkToken, setIsLinking, setLastError, pushSnackbar])
+  }, [exchangeFetcher.data, pushSnackbar])
 
   // Surface SDK-level load failures (CDN unreachable, blocked by extension, etc)
   useEffect(() => {
     if (scriptError) {
       const msg = `Plaid SDK failed to load: ${scriptError.message ?? 'unknown error'}`
-      setLastError(msg)
       setIsLinking(false)
       pendingOpenRef.current = false
       pushSnackbar({ id: v4(), message: msg })
     }
-  }, [scriptError, setLastError, setIsLinking, pushSnackbar])
+  }, [scriptError, pushSnackbar])
 
   const connect = useCallback(() => {
     setPlaidInstanceReady(false)
     setIsLinking(true)
-    setLastError(null)
     pendingOpenRef.current = true
     const fd = new FormData()
     fd.append('intent', 'create_link_token')
     linkFetcher.submit(fd, { method: 'POST', action: PLAID_ACTION_PATH })
-  }, [linkFetcher, setIsLinking, setLastError])
+  }, [linkFetcher])
 
   const submitting =
     linkFetcher.state !== 'idle' || exchangeFetcher.state !== 'idle'
