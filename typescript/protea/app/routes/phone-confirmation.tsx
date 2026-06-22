@@ -246,7 +246,7 @@ export async function action({ request }: Route.ActionArgs) {
 
   if (intent === 'resend') {
     const resendPhone = (form.get('phone') as string) || phone
-    return handleResendOtp(request, resendPhone)
+    return await handleResendOtp(request, resendPhone)
   }
 
   // intent === 'verify'

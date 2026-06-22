@@ -1,6 +1,6 @@
 import { Code } from '@bufbuild/connect'
 import type { CountryCode, ParseError } from 'libphonenumber-js'
-import { parsePhoneNumberWithError } from 'libphonenumber-js'
+import { parsePhoneNumberWithError } from 'libphonenumber-js/max'
 import { href, redirect } from 'react-router'
 import { ErrorDescriptions } from '~/lib/error.constants'
 import type { TwillioError } from '~/lib/error.mappers'
@@ -174,6 +174,8 @@ export async function handleUpdatePhone(request: Request, form: FormData) {
  * Handles the `resend` form intent: rate-limits and re-sends an OTP to `phone`.
  */
 export async function handleResendOtp(request: Request, phone: string) {
+  const errors: Partial<TwillioError> = { otp: '' }
+  const normalizedPhone = phone.replace(/\s+/g, '')
   const otpRateLimitResult = await applyPhoneOtpRateLimit(request)
   if (otpRateLimitResult) {
     return {
@@ -184,8 +186,29 @@ export async function handleResendOtp(request: Request, phone: string) {
     }
   }
 
-  const response = await grpc.sendPhoneVerification(request, { to: phone })
-  if (isConnectError(response)) throw response.errorResponse
+  const response = await grpc.sendPhoneVerification(request, {
+    to: normalizedPhone
+  })
+
+  if (isConnectError(response)) {
+    if (response.code === Code.InvalidArgument) {
+      return response.error(
+        { errors },
+        {},
+        {
+          action: 'Update mobile number',
+          message:
+            'Your mobile number format is invalid. Please update it and try again.'
+        }
+      )
+    } else {
+      return response.error(
+        { errors },
+        {},
+        { action: 'Contact support', message: ErrorDescriptions.DEFAULT }
+      )
+    }
+  }
 
   return { codeSent: true as const }
 }
