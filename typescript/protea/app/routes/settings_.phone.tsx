@@ -81,8 +81,8 @@ export default function Page() {
     Boolean(updateFetcher.data.codeSent)
   const updatedPhone =
     updateFetcher.data &&
-    'phone' in updateFetcher.data &&
-    typeof updateFetcher.data.phone === 'string'
+      'phone' in updateFetcher.data &&
+      typeof updateFetcher.data.phone === 'string'
       ? updateFetcher.data.phone
       : undefined
   const otpError =
@@ -93,6 +93,16 @@ export default function Page() {
     resendFetcher.data && 'message' in resendFetcher.data
       ? resendFetcher.data.message
       : undefined
+  const resendCodeSent =
+    resendFetcher.data &&
+    'codeSent' in resendFetcher.data &&
+    resendFetcher.data.codeSent === true
+  const resendRateLimited =
+    resendFetcher.data &&
+    'error' in resendFetcher.data &&
+    resendFetcher.data.error === 'rateLimited' &&
+    'retryAfter' in resendFetcher.data &&
+    typeof resendFetcher.data.retryAfter === 'number'
 
   useEffect(() => {
     if (updateCodeSent && updatedPhone) {
@@ -103,18 +113,15 @@ export default function Page() {
   }, [start, updateCodeSent, updatedPhone])
 
   useEffect(() => {
-    if (resendFetcher.data?.codeSent) {
+    if (resendCodeSent) {
       start(RESEND_DELAY)
       return
     }
 
-    if (
-      resendFetcher.data?.error === 'rateLimited' &&
-      typeof resendFetcher.data.retryAfter === 'number'
-    ) {
+    if (resendRateLimited) {
       start(resendFetcher.data.retryAfter * 1000)
     }
-  }, [resendFetcher.data, start])
+  }, [resendCodeSent, resendRateLimited, resendFetcher.data, start])
 
   const isResendDisabled = isActive || resendFetcher.state !== 'idle'
 
@@ -232,7 +239,7 @@ export async function action({ request }: Route.ActionArgs) {
 
   if (intent === 'resend') {
     const phone = form.get('phone') as string
-    return handleResendOtp(request, phone)
+    return await handleResendOtp(request, phone)
   }
 
   // intent === 'verify'
