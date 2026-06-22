@@ -102,7 +102,7 @@ func Create(ctx context.Context, b Backends, args *linkedaccounts.CreateArgs) (*
 		log.Error("pending payment notification failed for linked account", zap.String("walletId", args.WalletID), zap.Error(err))
 	}
 
-	slack.SendToChannel(ctx, slack.ChannelSignupKYC, "wallet-info-bot", fmt.Sprintf(":credit_card: Linked Account Created\nName: %s\nProvider: %s\nLink: %s", args.Name, args.Provider, env.AdminURL()+"/wallet/"+args.WalletID+"/linked-accounts"))
+	slack.SendToChannel(ctx, slack.ChannelSignupKYC, "wallet-info-bot", fmt.Sprintf(":credit_card: Linked Account Created\nProvider: %s\nLink: %s", args.Provider, env.AdminURL()+"/wallet/"+args.WalletID+"/linked-accounts"))
 
 	isBalanceAccount := (linkedAccount.Provider == xago.ProviderName && linkedAccount.Type == xago.AccTypeBalance) || (linkedAccount.Provider == pti.ProviderName && linkedAccount.Type == pti.AccTypeBalance)
 	if linkedAccount.State == linkedaccounts.OwnershipReviewRequired && !isBalanceAccount {
@@ -193,7 +193,7 @@ func CreateBatch(ctx context.Context, b Backends, args []linkedaccounts.CreateAr
 
 		notifiedWallets[la.WalletID] = true
 
-		slack.SendToChannel(ctx, slack.ChannelSignupKYC, "wallet-info-bot", fmt.Sprintf(":credit_card: Linked Account Created\nName: %s\nProvider: %s\nLink: %s", la.Name, la.Provider, env.AdminURL()+"/wallet/"+la.WalletID+"/linked-accounts"))
+		slack.SendToChannel(ctx, slack.ChannelSignupKYC, "wallet-info-bot", fmt.Sprintf(":credit_card: Linked Account Created\nProvider: %s\nLink: %s", la.Provider, env.AdminURL()+"/wallet/"+la.WalletID+"/linked-accounts"))
 	}
 
 	return linkedAccounts, nil
