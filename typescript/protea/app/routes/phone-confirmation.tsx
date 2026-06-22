@@ -32,6 +32,7 @@ import {
   handleVerifyOtp
 } from '~/lib/phone.server'
 import { safeReturnTo } from '~/lib/url.server'
+import { isResendRateLimitedResult } from '~/lib/resend-otp-result'
 import { formatCountdown, useCountdown } from '~/lib/useCountdown'
 import styles from '~/styles/flags.css?url'
 import type { Route } from './+types/phone-confirmation'
@@ -93,26 +94,19 @@ export default function Page() {
   const [otpSent, setOtpSent] = useState(false)
   const [currentPhone, setCurrentPhone] = useState(phone)
   const [showChangePhone, setShowChangePhone] = useState(false)
+  const resendData = resendFetcher.data
   const otpError =
     actionData && 'errors' in actionData
       ? (actionData.errors as { otp?: string } | undefined)?.otp
       : undefined
   const resendError =
-    resendFetcher && resendFetcher.data && 'message' in resendFetcher.data
-      ? resendFetcher.data.message
+    resendData && 'message' in resendData
+      ? resendData.message
       : undefined
   const resendCodeSent =
-    resendFetcher.data &&
-    'codeSent' in resendFetcher.data &&
-    resendFetcher.data.codeSent === true
-  const resendRateLimited =
-    resendFetcher.data &&
-    'error' in resendFetcher.data &&
-    resendFetcher.data.error === 'rateLimited' &&
-    'retryAfter' in resendFetcher.data &&
-    typeof resendFetcher.data.retryAfter === 'number'
-  const resendRetryAfter = resendRateLimited
-    ? resendFetcher.data.retryAfter
+    resendData && 'codeSent' in resendData && resendData.codeSent === true
+  const resendRetryAfter = isResendRateLimitedResult(resendData)
+    ? resendData.retryAfter
     : undefined
 
   // Start countdown after a successful send/resend or a rate-limit response.
