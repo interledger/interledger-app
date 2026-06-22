@@ -37,6 +37,7 @@ import styles from '~/styles/flags.css?url'
 import type { Route } from './+types/phone-confirmation'
 
 const RESEND_DELAY = 60 * 1000 // 1 minute
+const OPEN_CHANGE_PHONE_EVENT = 'phone-confirmation:open-change-phone'
 
 export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url)
@@ -137,6 +138,15 @@ export default function Page() {
       start(RESEND_DELAY)
     }
   }, [updateFetcher.data, start])
+
+  useEffect(() => {
+    const openChangePhone = () => setShowChangePhone(true)
+    window.addEventListener(OPEN_CHANGE_PHONE_EVENT, openChangePhone)
+
+    return () => {
+      window.removeEventListener(OPEN_CHANGE_PHONE_EVENT, openChangePhone)
+    }
+  }, [])
 
   const isResendDisabled = isActive || resendFetcher.state !== 'idle'
   const actionPath = `/phone-confirmation?returnTo=${encodeURIComponent(
