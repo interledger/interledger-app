@@ -55,7 +55,7 @@ dependencies:
     version: 2.0.4
   dompurify:
     specifier: ^3.2.4
-    version: 3.4.0
+    version: 3.4.8
   framer-motion:
     specifier: ^10.16.4
     version: 10.16.4(react-dom@18.2.0)(react@18.2.0)
@@ -6034,8 +6034,8 @@ packages:
       webidl-conversions: 7.0.0
     dev: true
 
-  /dompurify@3.4.0:
-    resolution: {integrity: sha512-nolgK9JcaUXMSmW+j1yaSvaEaoXYHwWyGJlkoCTghc97KgGDDSnpoU/PlEnw63Ah+TGKFOyY+X5LnxaWbCSfXg==}
+  /dompurify@3.4.8:
+    resolution: {integrity: sha512-yb1cEmaOum7wFvOCSQxyfgVlv5D47Rc30iZWoMpbDIWTnJ6grDDQyu2KFJzB2k7u0pMuJcQ1zphH//fFnw2tjQ==}
     optionalDependencies:
       '@types/trusted-types': 2.0.7
     dev: false
