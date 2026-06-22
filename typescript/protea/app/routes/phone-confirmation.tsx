@@ -97,7 +97,7 @@ export default function Page() {
       ? (actionData.errors as { otp?: string } | undefined)?.otp
       : undefined
   const resendError =
-    resendFetcher.data && 'message' in resendFetcher.data
+    resendFetcher && resendFetcher.data && 'message' in resendFetcher.data
       ? resendFetcher.data.message
       : undefined
   const resendCodeSent =
@@ -110,6 +110,9 @@ export default function Page() {
     resendFetcher.data.error === 'rateLimited' &&
     'retryAfter' in resendFetcher.data &&
     typeof resendFetcher.data.retryAfter === 'number'
+  const resendRetryAfter = resendRateLimited
+    ? resendFetcher.data.retryAfter
+    : undefined
 
   // Start countdown after a successful send/resend or a rate-limit response.
   useEffect(() => {
@@ -119,11 +122,11 @@ export default function Page() {
       return
     }
 
-    if (resendRateLimited) {
+    if (typeof resendRetryAfter === 'number') {
       setOtpSent(true)
-      start(resendFetcher.data.retryAfter * 1000)
+      start(resendRetryAfter * 1000)
     }
-  }, [resendCodeSent, resendRateLimited, resendFetcher.data, start])
+  }, [resendCodeSent, resendRetryAfter, start])
 
   // After phone update: refresh displayed number, hide form, show OTP field
   useEffect(() => {

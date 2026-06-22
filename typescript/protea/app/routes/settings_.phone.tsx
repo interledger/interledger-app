@@ -90,7 +90,7 @@ export default function Page() {
       ? (actionData.errors as { otp?: string } | undefined)?.otp
       : undefined
   const resendError =
-    resendFetcher.data && 'message' in resendFetcher.data
+    resendFetcher && resendFetcher.data && 'message' in resendFetcher.data
       ? resendFetcher.data.message
       : undefined
   const resendCodeSent =
@@ -103,6 +103,9 @@ export default function Page() {
     resendFetcher.data.error === 'rateLimited' &&
     'retryAfter' in resendFetcher.data &&
     typeof resendFetcher.data.retryAfter === 'number'
+  const resendRetryAfter = resendRateLimited
+    ? resendFetcher.data.retryAfter
+    : undefined
 
   useEffect(() => {
     if (updateCodeSent && updatedPhone) {
@@ -118,10 +121,10 @@ export default function Page() {
       return
     }
 
-    if (resendRateLimited) {
-      start(resendFetcher.data.retryAfter * 1000)
+    if (typeof resendRetryAfter === 'number') {
+      start(resendRetryAfter * 1000)
     }
-  }, [resendCodeSent, resendRateLimited, resendFetcher.data, start])
+  }, [resendCodeSent, resendRetryAfter, start])
 
   const isResendDisabled = isActive || resendFetcher.state !== 'idle'
 
