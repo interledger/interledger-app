@@ -27,8 +27,8 @@ import {
   handleUpdatePhone,
   handleVerifyOtp
 } from '~/lib/phone.server'
-import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { isResendRateLimitedResult } from '~/lib/resend-otp-result'
+import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { formatCountdown, useCountdown } from '~/lib/useCountdown'
 import styles from '~/styles/flags.css?url'
 import type { Route } from './+types/settings_.phone'
@@ -83,8 +83,8 @@ export default function Page() {
     Boolean(updateFetcher.data.codeSent)
   const updatedPhone =
     updateFetcher.data &&
-      'phone' in updateFetcher.data &&
-      typeof updateFetcher.data.phone === 'string'
+    'phone' in updateFetcher.data &&
+    typeof updateFetcher.data.phone === 'string'
       ? updateFetcher.data.phone
       : undefined
   const otpError =
@@ -92,9 +92,7 @@ export default function Page() {
       ? (actionData.errors as { otp?: string } | undefined)?.otp
       : undefined
   const resendError =
-    resendData && 'message' in resendData
-      ? resendData.message
-      : undefined
+    resendData && 'message' in resendData ? resendData.message : undefined
   const resendCodeSent =
     resendData && 'codeSent' in resendData && resendData.codeSent === true
   const resendRetryAfter = isResendRateLimitedResult(resendData)

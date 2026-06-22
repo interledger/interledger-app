@@ -31,8 +31,8 @@ import {
   handleUpdatePhone,
   handleVerifyOtp
 } from '~/lib/phone.server'
-import { safeReturnTo } from '~/lib/url.server'
 import { isResendRateLimitedResult } from '~/lib/resend-otp-result'
+import { safeReturnTo } from '~/lib/url.server'
 import { formatCountdown, useCountdown } from '~/lib/useCountdown'
 import styles from '~/styles/flags.css?url'
 import type { Route } from './+types/phone-confirmation'
@@ -100,9 +100,7 @@ export default function Page() {
       ? (actionData.errors as { otp?: string } | undefined)?.otp
       : undefined
   const resendError =
-    resendData && 'message' in resendData
-      ? resendData.message
-      : undefined
+    resendData && 'message' in resendData ? resendData.message : undefined
   const resendCodeSent =
     resendData && 'codeSent' in resendData && resendData.codeSent === true
   const resendRetryAfter = isResendRateLimitedResult(resendData)
@@ -227,10 +225,10 @@ export default function Page() {
             {resendFetcher.state !== 'idle'
               ? 'Sending...'
               : isActive
-                ? `Resend in ${formatCountdown(remainingSeconds)}`
-                : otpSent
-                  ? 'Resend code'
-                  : 'Send code'}
+              ? `Resend in ${formatCountdown(remainingSeconds)}`
+              : otpSent
+              ? 'Resend code'
+              : 'Send code'}
           </Button>
         </resendFetcher.Form>
       )}
