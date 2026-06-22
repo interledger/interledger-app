@@ -45,11 +45,11 @@ tests:
     set:
       frontend:
         config:
-          environment: "production"
+          environment: "prod"
     asserts:
       - equal:
           path: data.ILW_ENV
-          value: "production"
+          value: "prod"
 
   - it: 'Should contain BACKEND_GRPC_URL'
     asserts:
