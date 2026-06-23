@@ -70,7 +70,6 @@ import (
 	"gitlab.com/fynbos/backend/providers/plaid"
 	plaid_client "gitlab.com/fynbos/backend/providers/plaid/client"
 	plaid_ops "gitlab.com/fynbos/backend/providers/plaid/ops"
-	plaid_store "gitlab.com/fynbos/backend/providers/plaid/store"
 	"gitlab.com/fynbos/backend/providers/pti"
 	pti_client "gitlab.com/fynbos/backend/providers/pti/client"
 	pti_ops "gitlab.com/fynbos/backend/providers/pti/ops"
@@ -236,7 +235,7 @@ func start(args *cli.StartArgs) {
 			}
 			linker = fl
 		}
-		router.Mount("/api/plaid", plaid_ops.NewRouter(b.plaidClient, b.plaidStore, b.Users(), linker, args.PlaidProcessor))
+		router.Mount("/api/plaid", plaid_ops.NewRouter(b.plaidClient, b.Users(), linker, args.PlaidProcessor))
 	}
 
 	router.NotFound(wallet_handler.WalletRedirectHandler(b))
@@ -566,7 +565,6 @@ type backends struct {
 	chimoney       chimoney.Client
 	plaidConfig    plaid.Config
 	plaidClient    plaid.Client
-	plaidStore     plaid.TokenStore
 	aasaConfig     aasa_assetlinks.Config
 }
 
@@ -933,18 +931,12 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 			log.Fatalln(err)
 		}
 		b.plaidClient = plaidC
-		plaidStore, err := plaid_store.NewRedis(args.RedisURL)
-		if err != nil {
-			log.Fatalln(err)
-		}
-		b.plaidStore = plaidStore
 		log.Info("plaid client initialized",
 			zap.String("env", args.PlaidEnv),
 			zap.Strings("products", args.PlaidProducts),
 			zap.Strings("country_codes", args.PlaidCountryCodes),
 			zap.String("processor", args.PlaidProcessor),
 			zap.String("api_url", args.PlaidAPIURL),
-			zap.String("store", "redis"),
 		)
 	} else {
 		log.Debug("Plaid disabled (PLAID_ENABLED=false)")

@@ -59,42 +59,10 @@ export function isPlaidError(response: unknown): response is PlaidError {
   )
 }
 
-/** Shape returned by GET /plaid/state. */
-export interface PlaidState {
-  linked: boolean
-  item_id?: string
-  institution_name?: string
-  linked_at?: string
-}
-
 /** Shape returned by POST /plaid/link-token. */
 export interface PlaidLinkToken {
   link_token: string
   expiration: string
-}
-
-/** Shape returned by POST /plaid/exchange. */
-export interface PlaidExchangeResult {
-  item_id: string
-  institution_name: string
-}
-
-/** Shape returned by GET /plaid/transactions. */
-export interface PlaidTransactionsResult {
-  added: unknown[]
-  modified: unknown[]
-  removed: unknown[]
-  next_cursor: string
-}
-
-/** Shape returned by DELETE /plaid/disconnect. */
-export interface PlaidDisconnectResult {
-  disconnected: boolean
-}
-
-/** Shape returned by GET /plaid/registered */
-export interface PlaidRegisteredResult {
-  plaid_account_ids: string[]
 }
 
 /** Shape returned by POST /plaid/link-to-fiant */
@@ -106,21 +74,11 @@ export interface PlaidLinkToFiantResult {
 
 /** Body accepted by POST /plaid/link-to-fiant. */
 export interface PlaidLinkToFiantArgs {
+  public_token: string
   account_id: string
   account_name?: string
   account_mask?: string
 }
-
-/** Plaid product responses are passed through verbatim (SDK shapes). */
-export type PlaidProductResponse = unknown
-
-/** Endpoints whose response shape we don't model strictly. */
-export type PlaidProduct =
-  | 'accounts'
-  | 'auth'
-  | 'balance'
-  | 'identity'
-  | 'transactions'
 
 /**
  * plaidFetch is the single transport used by every wrapper below. It forwards
@@ -176,60 +134,10 @@ async function plaidFetch<T>(
 }
 
 
-function getState(request: Request): Promise<PlaidState | PlaidError> {
-  return plaidFetch<PlaidState>(request, `${PLAID_API_PATH}/state`)
-}
-
 function createLinkToken(request: Request): Promise<PlaidLinkToken | PlaidError> {
   return plaidFetch<PlaidLinkToken>(request, `${PLAID_API_PATH}/link-token`, {
     method: 'POST'
   })
-}
-
-function exchangePublicToken(
-  request: Request,
-  publicToken: string
-): Promise<PlaidExchangeResult | PlaidError> {
-  return plaidFetch<PlaidExchangeResult>(request, `${PLAID_API_PATH}/exchange`, {
-    method: 'POST',
-    body: JSON.stringify({ public_token: publicToken })
-  })
-}
-
-function getAccounts(request: Request): Promise<PlaidProductResponse | PlaidError> {
-  return plaidFetch<PlaidProductResponse>(request, `${PLAID_API_PATH}/accounts`)
-}
-
-function getAuth(request: Request): Promise<PlaidProductResponse | PlaidError> {
-  return plaidFetch<PlaidProductResponse>(request, `${PLAID_API_PATH}/auth`)
-}
-
-function getBalance(request: Request): Promise<PlaidProductResponse | PlaidError> {
-  return plaidFetch<PlaidProductResponse>(request, `${PLAID_API_PATH}/balance`)
-}
-
-function getIdentity(request: Request): Promise<PlaidProductResponse | PlaidError> {
-  return plaidFetch<PlaidProductResponse>(request, `${PLAID_API_PATH}/identity`)
-}
-
-function getTransactions(
-  request: Request
-): Promise<PlaidTransactionsResult | PlaidError> {
-  return plaidFetch<PlaidTransactionsResult>(request, `${PLAID_API_PATH}/transactions`)
-}
-
-function disconnect(
-  request: Request
-): Promise<PlaidDisconnectResult | PlaidError> {
-  return plaidFetch<PlaidDisconnectResult>(request, `${PLAID_API_PATH}/disconnect`, {
-    method: 'DELETE'
-  })
-}
-
-function getRegistered(
-  request: Request
-): Promise<PlaidRegisteredResult | PlaidError> {
-  return plaidFetch<PlaidRegisteredResult>(request, `${PLAID_API_PATH}/registered`)
 }
 
 function linkToFiant(
@@ -243,15 +151,6 @@ function linkToFiant(
 }
 
 export default {
-  getState,
   createLinkToken,
-  exchangePublicToken,
-  getAccounts,
-  getAuth,
-  getBalance,
-  getIdentity,
-  getTransactions,
-  disconnect,
-  getRegistered,
   linkToFiant,
 }

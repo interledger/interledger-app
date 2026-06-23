@@ -10,50 +10,25 @@ import (
 	"testing"
 	"time"
 
-	"gitlab.com/fynbos/backend/providers/plaid"
 	"gitlab.com/fynbos/backend/providers/plaid/ops"
 	"gitlab.com/fynbos/backend/user"
-
-	plaidsdk "github.com/plaid/plaid-go/v42/plaid"
 )
 
 // --- fakes -----------------------------------------------------------------
 
 type fakeClient struct {
 	createProcessorToken func(ctx context.Context, accessToken, accountID, processor string) (string, error)
-	removeItemErr        error
 
+	exchangeCalls  int
 	processorCalls int
-	removeCalls    int
 }
 
 func (f *fakeClient) CreateLinkToken(context.Context, string) (string, time.Time, error) {
 	return "link-token", time.Now().UTC(), nil
 }
 func (f *fakeClient) ExchangePublicToken(context.Context, string) (string, string, error) {
+	f.exchangeCalls++
 	return "access-token", "item-id", nil
-}
-func (f *fakeClient) GetInstitutionForItem(context.Context, string) (string, string, error) {
-	return "ins_1", "Test Bank", nil
-}
-func (f *fakeClient) GetAccounts(context.Context, string) (*plaidsdk.AccountsGetResponse, error) {
-	return &plaidsdk.AccountsGetResponse{}, nil
-}
-func (f *fakeClient) GetAuth(context.Context, string) (*plaidsdk.AuthGetResponse, error) {
-	return &plaidsdk.AuthGetResponse{}, nil
-}
-func (f *fakeClient) GetBalance(context.Context, string) (*plaidsdk.AccountsGetResponse, error) {
-	return &plaidsdk.AccountsGetResponse{}, nil
-}
-func (f *fakeClient) GetIdentity(context.Context, string) (*plaidsdk.IdentityGetResponse, error) {
-	return &plaidsdk.IdentityGetResponse{}, nil
-}
-func (f *fakeClient) SyncTransactions(context.Context, string) (*plaid.TransactionsSyncResult, error) {
-	return &plaid.TransactionsSyncResult{}, nil
-}
-func (f *fakeClient) RemoveItem(context.Context, string) error {
-	f.removeCalls++
-	return f.removeItemErr
 }
 func (f *fakeClient) CreateProcessorToken(ctx context.Context, accessToken, accountID, processor string) (string, error) {
 	f.processorCalls++
@@ -61,22 +36,6 @@ func (f *fakeClient) CreateProcessorToken(ctx context.Context, accessToken, acco
 		return f.createProcessorToken(ctx, accessToken, accountID, processor)
 	}
 	return "processor-token", nil
-}
-
-type fakeStore struct {
-	set     plaid.TokenSet
-	found   bool
-	getErr  error
-	deleted bool
-}
-
-func (s *fakeStore) Get(context.Context, string) (plaid.TokenSet, bool, error) {
-	return s.set, s.found, s.getErr
-}
-func (s *fakeStore) Put(context.Context, string, plaid.TokenSet) error { return nil }
-func (s *fakeStore) Delete(context.Context, string) error {
-	s.deleted = true
-	return nil
 }
 
 type fakeLinker struct {
@@ -113,7 +72,7 @@ func withUser(req *http.Request, id string) *http.Request {
 // --- tests -----------------------------------------------------------------
 
 func TestCreateLinkToken_Unauthenticated(t *testing.T) {
-	h := ops.New(&fakeClient{}, &fakeStore{}, &fakeLinker{}, "fiant")
+	h := ops.New(&fakeClient{}, &fakeLinker{}, "fiant")
 
 	rec := httptest.NewRecorder()
 	// No user in context.
@@ -124,43 +83,14 @@ func TestCreateLinkToken_Unauthenticated(t *testing.T) {
 	}
 }
 
-func TestGetState_NotLinked(t *testing.T) {
-	h := ops.New(&fakeClient{}, &fakeStore{found: false}, &fakeLinker{}, "fiant")
-
-	rec := httptest.NewRecorder()
-	h.GetState(rec, withUser(httptest.NewRequest(http.MethodGet, "/state", nil), "u1"))
-
-	if rec.Code != http.StatusOK {
-		t.Fatalf("expected 200, got %d", rec.Code)
-	}
-	var body plaid.State
-	if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
-		t.Fatalf("decode: %v", err)
-	}
-	if body.Linked {
-		t.Fatalf("expected linked=false")
-	}
-}
-
-func TestGetAccounts_NoLinkedItem(t *testing.T) {
-	h := ops.New(&fakeClient{}, &fakeStore{found: false}, &fakeLinker{}, "fiant")
-
-	rec := httptest.NewRecorder()
-	h.GetAccounts(rec, withUser(httptest.NewRequest(http.MethodGet, "/accounts", nil), "u1"))
-
-	if rec.Code != http.StatusNotFound {
-		t.Fatalf("expected 404 when no item linked, got %d", rec.Code)
-	}
-}
-
 func TestLinkToFiant_IdempotentHit(t *testing.T) {
 	client := &fakeClient{}
 	linker := &fakeLinker{existing: &ops.LinkedIDs{LinkedAccountID: "la-1", PaymentInformationID: "pi-1"}}
-	store := &fakeStore{found: true, set: plaid.TokenSet{AccessToken: "tok"}}
-	h := ops.New(client, store, linker, "fiant")
+	h := ops.New(client, linker, "fiant")
 
 	rec := httptest.NewRecorder()
-	req := withUser(httptest.NewRequest(http.MethodPost, "/link-to-fiant", strings.NewReader(`{"account_id":"acc-1"}`)), "u1")
+	req := withUser(httptest.NewRequest(http.MethodPost, "/link-to-fiant",
+		strings.NewReader(`{"public_token":"pub-tok","account_id":"acc-1"}`)), "u1")
 	h.LinkToFiant(rec, req)
 
 	if rec.Code != http.StatusOK {
@@ -176,7 +106,10 @@ func TestLinkToFiant_IdempotentHit(t *testing.T) {
 	if !body.AlreadyLinked {
 		t.Fatalf("expected already_linked=true")
 	}
-	// Idempotent hit must NOT touch Plaid or Fiant.
+	// Idempotent hit must NOT exchange, mint, or register.
+	if client.exchangeCalls != 0 {
+		t.Fatalf("expected no ExchangePublicToken on idempotent hit, got %d", client.exchangeCalls)
+	}
 	if client.processorCalls != 0 {
 		t.Fatalf("expected no processor-token mint on idempotent hit, got %d", client.processorCalls)
 	}
@@ -188,15 +121,18 @@ func TestLinkToFiant_IdempotentHit(t *testing.T) {
 func TestLinkToFiant_FreshRegister(t *testing.T) {
 	client := &fakeClient{}
 	linker := &fakeLinker{existing: nil}
-	store := &fakeStore{found: true, set: plaid.TokenSet{AccessToken: "tok"}}
-	h := ops.New(client, store, linker, "fiant")
+	h := ops.New(client, linker, "fiant")
 
 	rec := httptest.NewRecorder()
-	req := withUser(httptest.NewRequest(http.MethodPost, "/link-to-fiant", strings.NewReader(`{"account_id":"acc-1"}`)), "u1")
+	req := withUser(httptest.NewRequest(http.MethodPost, "/link-to-fiant",
+		strings.NewReader(`{"public_token":"pub-tok","account_id":"acc-1"}`)), "u1")
 	h.LinkToFiant(rec, req)
 
 	if rec.Code != http.StatusOK {
 		t.Fatalf("expected 200, got %d (%s)", rec.Code, rec.Body.String())
+	}
+	if client.exchangeCalls != 1 {
+		t.Fatalf("expected exactly one ExchangePublicToken, got %d", client.exchangeCalls)
 	}
 	if client.processorCalls != 1 {
 		t.Fatalf("expected exactly one processor-token mint, got %d", client.processorCalls)
@@ -210,11 +146,11 @@ func TestLinkToFiant_MintFailure_MapsToBadGateway(t *testing.T) {
 	client := &fakeClient{createProcessorToken: func(context.Context, string, string, string) (string, error) {
 		return "", errors.New("plaid down")
 	}}
-	store := &fakeStore{found: true, set: plaid.TokenSet{AccessToken: "tok"}}
-	h := ops.New(client, store, &fakeLinker{}, "fiant")
+	h := ops.New(client, &fakeLinker{}, "fiant")
 
 	rec := httptest.NewRecorder()
-	req := withUser(httptest.NewRequest(http.MethodPost, "/link-to-fiant", strings.NewReader(`{"account_id":"acc-1"}`)), "u1")
+	req := withUser(httptest.NewRequest(http.MethodPost, "/link-to-fiant",
+		strings.NewReader(`{"public_token":"pub-tok","account_id":"acc-1"}`)), "u1")
 	h.LinkToFiant(rec, req)
 
 	if rec.Code != http.StatusBadGateway {
@@ -224,38 +160,14 @@ func TestLinkToFiant_MintFailure_MapsToBadGateway(t *testing.T) {
 
 func TestLinkToFiant_NotConfigured(t *testing.T) {
 	// No linker / no processor → 503.
-	h := ops.New(&fakeClient{}, &fakeStore{}, nil, "")
+	h := ops.New(&fakeClient{}, nil, "")
 
 	rec := httptest.NewRecorder()
-	req := withUser(httptest.NewRequest(http.MethodPost, "/link-to-fiant", strings.NewReader(`{"account_id":"acc-1"}`)), "u1")
+	req := withUser(httptest.NewRequest(http.MethodPost, "/link-to-fiant",
+		strings.NewReader(`{"public_token":"pub-tok","account_id":"acc-1"}`)), "u1")
 	h.LinkToFiant(rec, req)
 
 	if rec.Code != http.StatusServiceUnavailable {
 		t.Fatalf("expected 503 when linker not configured, got %d", rec.Code)
-	}
-}
-
-func TestDisconnect_SoftFailsItemRemove(t *testing.T) {
-	client := &fakeClient{removeItemErr: errors.New("item already gone")}
-	store := &fakeStore{found: true, set: plaid.TokenSet{AccessToken: "tok", ItemID: "item-1"}}
-	h := ops.New(client, store, &fakeLinker{}, "fiant")
-
-	rec := httptest.NewRecorder()
-	h.Disconnect(rec, withUser(httptest.NewRequest(http.MethodDelete, "/disconnect", nil), "u1"))
-
-	if rec.Code != http.StatusOK {
-		t.Fatalf("expected 200 despite Plaid ItemRemove failure, got %d", rec.Code)
-	}
-	if !store.deleted {
-		t.Fatalf("expected local token store entry to be deleted")
-	}
-	var body struct {
-		Disconnected bool `json:"disconnected"`
-	}
-	if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
-		t.Fatalf("decode: %v", err)
-	}
-	if !body.Disconnected {
-		t.Fatalf("expected disconnected=true")
 	}
 }

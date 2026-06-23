@@ -7,11 +7,11 @@ import (
 	"time"
 
 	plaidsdk "github.com/plaid/plaid-go/v42/plaid"
+	"go.uber.org/zap"
 
 	"gitlab.com/fynbos/backend/providers/plaid"
+	"gitlab.com/fynbos/log"
 )
-
-const maxPages = 50
 
 type Client struct {
 	sdk          *plaidsdk.APIClient
@@ -99,89 +99,6 @@ func (c *Client) ExchangePublicToken(ctx context.Context, publicToken string) (s
 	return resp.AccessToken, resp.ItemId, nil
 }
 
-func (c *Client) GetInstitutionForItem(ctx context.Context, accessToken string) (string, string, error) {
-	itemResp, _, err := c.sdk.PlaidApi.ItemGet(ctx).ItemGetRequest(*plaidsdk.NewItemGetRequest(accessToken)).Execute()
-	if err != nil {
-		return "", "", fmt.Errorf("plaid: ItemGet: %w", wrapPlaidError(err))
-	}
-	institutionID := itemResp.Item.GetInstitutionId()
-	if institutionID == "" {
-		return "", "", nil
-	}
-	instResp, _, err := c.sdk.PlaidApi.InstitutionsGetById(ctx).
-		InstitutionsGetByIdRequest(*plaidsdk.NewInstitutionsGetByIdRequest(institutionID, c.countryCodes)).
-		Execute()
-	if err != nil {
-		return institutionID, "", fmt.Errorf("plaid: InstitutionsGetById: %w", wrapPlaidError(err))
-	}
-	return institutionID, instResp.Institution.Name, nil
-}
-
-func (c *Client) GetAccounts(ctx context.Context, accessToken string) (*plaidsdk.AccountsGetResponse, error) {
-	resp, _, err := c.sdk.PlaidApi.AccountsGet(ctx).
-		AccountsGetRequest(*plaidsdk.NewAccountsGetRequest(accessToken)).
-		Execute()
-	if err != nil {
-		return nil, fmt.Errorf("plaid: AccountsGet: %w", wrapPlaidError(err))
-	}
-	return &resp, nil
-}
-
-func (c *Client) GetAuth(ctx context.Context, accessToken string) (*plaidsdk.AuthGetResponse, error) {
-	resp, _, err := c.sdk.PlaidApi.AuthGet(ctx).
-		AuthGetRequest(*plaidsdk.NewAuthGetRequest(accessToken)).
-		Execute()
-	if err != nil {
-		return nil, fmt.Errorf("plaid: AuthGet: %w", wrapPlaidError(err))
-	}
-	return &resp, nil
-}
-
-func (c *Client) GetBalance(ctx context.Context, accessToken string) (*plaidsdk.AccountsGetResponse, error) {
-	resp, _, err := c.sdk.PlaidApi.AccountsBalanceGet(ctx).
-		AccountsBalanceGetRequest(*plaidsdk.NewAccountsBalanceGetRequest(accessToken)).
-		Execute()
-	if err != nil {
-		return nil, fmt.Errorf("plaid: AccountsBalanceGet: %w", wrapPlaidError(err))
-	}
-	return &resp, nil
-}
-
-func (c *Client) GetIdentity(ctx context.Context, accessToken string) (*plaidsdk.IdentityGetResponse, error) {
-	resp, _, err := c.sdk.PlaidApi.IdentityGet(ctx).
-		IdentityGetRequest(*plaidsdk.NewIdentityGetRequest(accessToken)).
-		Execute()
-	if err != nil {
-		return nil, fmt.Errorf("plaid: IdentityGet: %w", wrapPlaidError(err))
-	}
-	return &resp, nil
-}
-
-func (c *Client) SyncTransactions(ctx context.Context, accessToken string) (*plaid.TransactionsSyncResult, error) {
-	result := &plaid.TransactionsSyncResult{}
-	cursor := ""
-	for page := range maxPages {
-		req := plaidsdk.NewTransactionsSyncRequest(accessToken)
-		if cursor != "" {
-			req.SetCursor(cursor)
-		}
-		resp, _, err := c.sdk.PlaidApi.TransactionsSync(ctx).TransactionsSyncRequest(*req).Execute()
-		if err != nil {
-			return nil, fmt.Errorf("plaid: TransactionsSync (page %d): %w", page, wrapPlaidError(err))
-		}
-
-		result.Added = append(result.Added, resp.Added...)
-		result.Modified = append(result.Modified, resp.Modified...)
-		result.Removed = append(result.Removed, resp.Removed...)
-		cursor = resp.NextCursor
-		if !resp.HasMore {
-			result.NextCursor = cursor
-			return result, nil
-		}
-	}
-	return nil, fmt.Errorf("plaid: TransactionsSync exceeded %d pages", maxPages)
-}
-
 // CreateProcessorToken calls Plaid `/processor/token/create` to mint a
 // long-lived, account-scoped credential for a partner processor (e.g. "fiant").
 // The returned processor_token is bound to exactly one (item, account_id,
@@ -197,14 +114,3 @@ func (c *Client) CreateProcessorToken(ctx context.Context, accessToken, accountI
 	return resp.ProcessorToken, nil
 }
 
-// Invalidates an Item on Plaid. After this call the access_token can no longer be used.
-func (c *Client) RemoveItem(ctx context.Context, accessToken string) error {
-	_, _, err := c.sdk.PlaidApi.ItemRemove(ctx).
-		ItemRemoveRequest(*plaidsdk.NewItemRemoveRequest(accessToken)).
-		Execute()
-	if err != nil {
-		return fmt.Errorf("plaid: ItemRemove: %w", wrapPlaidError(err))
-	}
-
-	return nil
-}

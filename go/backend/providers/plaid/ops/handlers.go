@@ -17,19 +17,19 @@ import (
 )
 
 var (
-	errMintFailed  = errors.New("plaid processor token mint failed")
-	errFiantFailed = errors.New("fiant registration failed")
+	errExchangeFailed = errors.New("plaid public-token exchange failed")
+	errMintFailed     = errors.New("plaid processor token mint failed")
+	errFiantFailed    = errors.New("fiant registration failed")
 )
 
 type Handlers struct {
 	client    plaid.Client
-	store     plaid.TokenStore
 	linker    FiantLinker
 	processor string
 }
 
-func New(client plaid.Client, store plaid.TokenStore, linker FiantLinker, processor string) *Handlers {
-	return &Handlers{client: client, store: store, linker: linker, processor: processor}
+func New(client plaid.Client, linker FiantLinker, processor string) *Handlers {
+	return &Handlers{client: client, linker: linker, processor: processor}
 }
 
 func (h *Handlers) CreateLinkToken(w http.ResponseWriter, r *http.Request) {
@@ -67,200 +67,12 @@ func writeJSON(w http.ResponseWriter, status int, body any) {
 	}
 }
 
-func (h *Handlers) ExchangePublicToken(w http.ResponseWriter, r *http.Request) {
-	u, err := ops.UserForContext(r.Context())
-	if err != nil {
-		apperrors.WriteAppError(w, r, http.StatusUnauthorized, errcodes.ErrCodeUnauthorized, "unauthenticated")
-		return
-	}
-
-	var body struct {
-		PublicToken string `json:"public_token"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.PublicToken == "" {
-		apperrors.WriteAppError(w, r, http.StatusBadRequest, errcodes.ErrCodeBadRequest, "public_token is required")
-		return
-	}
-
-	accessToken, itemID, err := h.client.ExchangePublicToken(r.Context(), body.PublicToken)
-	if err != nil {
-		log.Error("plaid: ExchangePublicToken failed",
-			zap.String("user_id", u.ID),
-			zap.Error(err),
-		)
-		apperrors.WriteAppError(w, r, http.StatusBadGateway, errcodes.ErrCodeInternal, "plaid public-token exchange failed")
-		return
-	}
-
-	institutionID, institutionName, err := h.client.GetInstitutionForItem(r.Context(), accessToken)
-	if err != nil {
-		log.Warn("plaid: GetInstitutionForItem failed (continuing)",
-			zap.String("user_id", u.ID),
-			zap.String("item_id", itemID),
-			zap.Error(err),
-		)
-	}
-
-	if err := h.store.Put(r.Context(), u.ID, plaid.TokenSet{
-		AccessToken:     accessToken,
-		ItemID:          itemID,
-		InstitutionID:   institutionID,
-		InstitutionName: institutionName,
-		LinkedAt:        time.Now().UTC(),
-	}); err != nil {
-		log.Error("plaid: TokenStore.Put failed",
-			zap.String("user_id", u.ID),
-			zap.String("item_id", itemID),
-			zap.Error(err),
-		)
-		apperrors.WriteAppError(w, r, http.StatusInternalServerError, errcodes.ErrCodeInternal, "failed to persist plaid link")
-		return
-	}
-
-	log.Info("plaid item linked",
-		zap.String("user_id", u.ID),
-		zap.String("item_id", itemID),
-		zap.String("institution_id", institutionID),
-		zap.String("institution_name", institutionName),
-	)
-	writeJSON(w, http.StatusOK, struct {
-		ItemID          string `json:"item_id"`
-		InstitutionName string `json:"institution_name"`
-	}{ItemID: itemID, InstitutionName: institutionName})
-}
-
-func (h *Handlers) GetState(w http.ResponseWriter, r *http.Request) {
-	u, err := ops.UserForContext(r.Context())
-	if err != nil {
-		apperrors.WriteAppError(w, r, http.StatusUnauthorized, errcodes.ErrCodeUnauthorized, "unauthenticated")
-		return
-	}
-
-	t, ok, err := h.store.Get(r.Context(), u.ID)
-	if err != nil {
-		log.Error("plaid: TokenStore.Get failed",
-			zap.String("user_id", u.ID),
-			zap.Error(err),
-		)
-		apperrors.WriteAppError(w, r, http.StatusInternalServerError, errcodes.ErrCodeInternal, "failed to read plaid state")
-		return
-	}
-	if !ok {
-		writeJSON(w, http.StatusOK, plaid.State{Linked: false})
-		return
-	}
-	linkedAt := t.LinkedAt
-	writeJSON(w, http.StatusOK, plaid.State{
-		Linked:          true,
-		ItemID:          t.ItemID,
-		InstitutionName: t.InstitutionName,
-		LinkedAt:        &linkedAt,
-	})
-}
-
-func (h *Handlers) requireLinkedUser(w http.ResponseWriter, r *http.Request) (userID, accessToken string, ok bool) {
-	u, err := ops.UserForContext(r.Context())
-	if err != nil {
-		apperrors.WriteAppError(w, r, http.StatusUnauthorized, errcodes.ErrCodeUnauthorized, "unauthenticated")
-		return "", "", false
-	}
-	t, found, err := h.store.Get(r.Context(), u.ID)
-	if err != nil {
-		log.Error("plaid: TokenStore.Get failed",
-			zap.String("user_id", u.ID),
-			zap.Error(err),
-		)
-		apperrors.WriteAppError(w, r, http.StatusInternalServerError, errcodes.ErrCodeInternal, "failed to read plaid state")
-		return "", "", false
-	}
-	if !found {
-		apperrors.WriteAppError(w, r, http.StatusNotFound, errcodes.ErrCodeNotFound, "no plaid item linked for this user")
-		return "", "", false
-	}
-	return u.ID, t.AccessToken, true
-}
-
-func (h *Handlers) onPlaidErr(w http.ResponseWriter, r *http.Request, endpoint, userID string, err error) {
-	log.Error("plaid: SDK call failed",
-		zap.String("endpoint", endpoint),
-		zap.String("user_id", userID),
-		zap.Error(err),
-	)
-	apperrors.WriteAppError(w, r, http.StatusBadGateway, errcodes.ErrCodeInternal, "plaid request failed")
-}
-
-func (h *Handlers) GetAccounts(w http.ResponseWriter, r *http.Request) {
-	userID, accessToken, ok := h.requireLinkedUser(w, r)
-	if !ok {
-		return
-	}
-	resp, err := h.client.GetAccounts(r.Context(), accessToken)
-	if err != nil {
-		h.onPlaidErr(w, r, "AccountsGet", userID, err)
-		return
-	}
-	writeJSON(w, http.StatusOK, resp)
-}
-
-func (h *Handlers) GetAuth(w http.ResponseWriter, r *http.Request) {
-	userID, accessToken, ok := h.requireLinkedUser(w, r)
-	if !ok {
-		return
-	}
-	resp, err := h.client.GetAuth(r.Context(), accessToken)
-	if err != nil {
-		h.onPlaidErr(w, r, "AuthGet", userID, err)
-		return
-	}
-	writeJSON(w, http.StatusOK, resp)
-}
-
-func (h *Handlers) GetBalance(w http.ResponseWriter, r *http.Request) {
-	userID, accessToken, ok := h.requireLinkedUser(w, r)
-	if !ok {
-		return
-	}
-	resp, err := h.client.GetBalance(r.Context(), accessToken)
-	if err != nil {
-		h.onPlaidErr(w, r, "AccountsBalanceGet", userID, err)
-		return
-	}
-	writeJSON(w, http.StatusOK, resp)
-}
-
-func (h *Handlers) GetIdentity(w http.ResponseWriter, r *http.Request) {
-	userID, accessToken, ok := h.requireLinkedUser(w, r)
-	if !ok {
-		return
-	}
-	resp, err := h.client.GetIdentity(r.Context(), accessToken)
-	if err != nil {
-		h.onPlaidErr(w, r, "IdentityGet", userID, err)
-		return
-	}
-	writeJSON(w, http.StatusOK, resp)
-}
-
-func (h *Handlers) GetTransactions(w http.ResponseWriter, r *http.Request) {
-	userID, accessToken, ok := h.requireLinkedUser(w, r)
-	if !ok {
-		return
-	}
-	res, err := h.client.SyncTransactions(r.Context(), accessToken)
-	if err != nil {
-		h.onPlaidErr(w, r, "TransactionsSync", userID, err)
-		return
-	}
-	writeJSON(w, http.StatusOK, res)
-}
-
 // LinkToFiant — POST /plaid/link-to-fiant. Body:
 //
-//	{ "account_id": "...", "account_name": "...", "account_mask": "..." }
+//	{ "public_token": "...", "account_id": "...", "account_name": "...", "account_mask": "..." }
 //
-// Registers a Plaid-authorised account with Fiant by
-// minting a `processor/token` and forwarding it via Fiant's payment-information
-// endpoint.Returns:
+// Exchanges the public_token in-request (no store), mints a processor token, and
+// registers the account with Fiant. Returns:
 //
 //	{ "linked_account_id": "...", "payment_information_id": "...", "already_linked": bool }
 //
@@ -279,17 +91,13 @@ func (h *Handlers) LinkToFiant(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var body struct {
+		PublicToken string `json:"public_token"`
 		AccountID   string `json:"account_id"`
 		AccountName string `json:"account_name"`
 		AccountMask string `json:"account_mask"`
 	}
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.AccountID == "" {
-		apperrors.WriteAppError(w, r, http.StatusBadRequest, errcodes.ErrCodeBadRequest, "account_id is required")
-		return
-	}
-
-	_, accessToken, ok := h.requireLinkedUser(w, r)
-	if !ok {
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.AccountID == "" || body.PublicToken == "" {
+		apperrors.WriteAppError(w, r, http.StatusBadRequest, errcodes.ErrCodeBadRequest, "public_token and account_id are required")
 		return
 	}
 
@@ -305,6 +113,11 @@ func (h *Handlers) LinkToFiant(w http.ResponseWriter, r *http.Request) {
 		if existing != nil {
 			result, alreadyLinked = existing, true
 			return nil
+		}
+
+		accessToken, _, err := h.client.ExchangePublicToken(ctx, body.PublicToken)
+		if err != nil {
+			return fmt.Errorf("%w: %w", errExchangeFailed, err)
 		}
 
 		processorToken, err := h.client.CreateProcessorToken(ctx, accessToken, body.AccountID, h.processor)
@@ -327,6 +140,13 @@ func (h *Handlers) LinkToFiant(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		switch {
+		case errors.Is(err, errExchangeFailed):
+			log.Error("plaid: ExchangePublicToken failed in link-to-fiant",
+				zap.String("user_id", u.ID),
+				zap.String("plaid_account_id", body.AccountID),
+				zap.Error(err),
+			)
+			apperrors.WriteAppError(w, r, http.StatusBadGateway, errcodes.ErrCodeInternal, "plaid public-token exchange failed")
 		case errors.Is(err, errMintFailed):
 			log.Error("plaid: CreateProcessorToken failed",
 				zap.String("user_id", u.ID),
@@ -407,55 +227,3 @@ func (h *Handlers) GetRegistered(w http.ResponseWriter, r *http.Request) {
 	}{PlaidAccountIDs: ids})
 }
 
-// Disconnect removes the Item on Plaid's side and always deletes the local
-// TokenStore entry. Plaid's ItemRemove is soft-failed: it returns
-// `{"disconnected": true}` once the local store is clean even if Plaid returned
-// an error, so a partial failure can never leave a user permanently stuck.
-func (h *Handlers) Disconnect(w http.ResponseWriter, r *http.Request) {
-	u, err := ops.UserForContext(r.Context())
-	if err != nil {
-		apperrors.WriteAppError(w, r, http.StatusUnauthorized, errcodes.ErrCodeUnauthorized, "unauthenticated")
-		return
-	}
-
-	t, found, err := h.store.Get(r.Context(), u.ID)
-	if err != nil {
-		log.Error("plaid: TokenStore.Get failed",
-			zap.String("user_id", u.ID),
-			zap.Error(err),
-		)
-		apperrors.WriteAppError(w, r, http.StatusInternalServerError, errcodes.ErrCodeInternal, "failed to read plaid state")
-		return
-	}
-
-	if found {
-		if err := h.client.RemoveItem(r.Context(), t.AccessToken); err != nil {
-			// Soft-fail: token may already be invalid on Plaid's side; we still
-			// want to drop our local record so the user can re-link.
-			log.Warn("plaid: ItemRemove failed (continuing with local delete)",
-				zap.String("user_id", u.ID),
-				zap.String("item_id", t.ItemID),
-				zap.Error(err),
-			)
-		}
-	}
-
-	if err := h.store.Delete(r.Context(), u.ID); err != nil {
-		log.Error("plaid: TokenStore.Delete failed",
-			zap.String("user_id", u.ID),
-			zap.Error(err),
-		)
-		apperrors.WriteAppError(w, r, http.StatusInternalServerError, errcodes.ErrCodeInternal, "failed to clear plaid link")
-		return
-	}
-
-	// TODO: inform Fiant about the token removal; this method may belong in the plaid-fiant client.
-
-	log.Info("plaid item disconnected",
-		zap.String("user_id", u.ID),
-		zap.String("item_id", t.ItemID),
-	)
-	writeJSON(w, http.StatusOK, struct {
-		Disconnected bool `json:"disconnected"`
-	}{Disconnected: true})
-}
