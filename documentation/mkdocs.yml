@@ -33,12 +33,14 @@ nav:
   - Architecture:
       - Wallets, Accounts & Addresses: wallets-accounts-addresses-guide.md
       - Dual-Ledger System: ledger-system-guide.md
+      - Agreements & Legal Consent: agreements-guide.md
   - Payments:
       - Payments & Transactions: payments-guide.md
       - Transaction Types Reference: transaction-types-reference.md
       - Provider Comparison: provider-payments-reference.md
   - Integrations:
       - GateHub Cards: gatehub-cards-guide.md
+      - Rafiki Full Node Upgrade: rafiki-full-node-upgrade-guide.md
   - Operations:
       - Payment Troubleshooting: payment-troubleshooting-guide.md
   - Developers:

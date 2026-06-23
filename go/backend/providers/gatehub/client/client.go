@@ -2,7 +2,6 @@ package client
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -12,7 +11,6 @@ import (
 	"github.com/interledger/interledger-app/go/backend/providers/gatehub/external"
 	ops "github.com/interledger/interledger-app/go/backend/providers/gatehub/ops"
 	httplogger "github.com/interledger/interledger-app/go/backend/providers/http"
-	"github.com/interledger/interledger-app/go/log"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
@@ -21,79 +19,31 @@ var _ gatehub.Client = Client{}
 type Client struct {
 	b        ops.Backends
 	external external.Client
-	config   gatehub.Config
 }
 
 func New(b ops.Backends, cfg gatehub.Config) *Client {
-	// Validate required Gatehub configuration
-	if cfg.PaywiserEuroVaultID == "" {
-		log.Error("PaywiserEuroVaultID is not set in Gatehub configuration")
-		return nil
-	}
-	if cfg.GatewayID == "" {
-		log.Error("GatewayID is not set in Gatehub configuration")
-		return nil
-	}
-	if cfg.CardAccountProductCode == "" {
-		log.Error("CardAccountProductCode is not set in Gatehub configuration")
-		return nil
-	}
-	if cfg.OnOffRampClientID == "" {
-		log.Error("OnOffRampClientID is not set in Gatehub configuration")
-		return nil
-	}
-	if cfg.OnboardingClientID == "" {
-		log.Error("OnboardingClientID is not set in Gatehub configuration")
-		return nil
-	}
-	if cfg.ExchangeClientID == "" {
-		log.Error("ExchangeClientID is not set in Gatehub configuration")
-		return nil
-	}
-	if cfg.APIBaseURL == "" {
-		log.Error("APIBaseURL is not set in Gatehub configuration")
-		return nil
-	}
-	if cfg.OnboardingBaseURL == "" {
-		log.Error("OnboardingBaseURL is not set in Gatehub configuration")
-		return nil
-	}
-	if cfg.OnOffRampBaseURL == "" {
-		log.Error("OnOffRampBaseURL is not set in Gatehub configuration")
-		return nil
-	}
-
-	log.Info(fmt.Sprintf("Initialized Gatehub with EUR vault ID: %.8s...", cfg.PaywiserEuroVaultID))
-
-	extClient := external.NewClient(
-		cfg.AppID,
-		cfg.Secret,
-		cfg.CardAppID,
-		cfg.GatewayID,
-		cfg.CardAccountProductCode,
-		cfg.PaywiserEuroVaultID,
-		cfg.OnOffRampClientID,
-		cfg.OnboardingClientID,
-		cfg.ExchangeClientID,
-		cfg.APIBaseURL,
-		cfg.OnboardingBaseURL,
-		cfg.OnOffRampBaseURL,
-		cfg.OrganizationID,
-		&http.Client{
-			Transport: otelhttp.NewTransport(
-				httplogger.NewTransport(http.DefaultTransport, b, nil),
-			),
-		},
-	)
-	if extClient == nil {
-		log.Error("failed to initialize Gatehub external client")
-		return nil
-	}
-
 	return &Client{
-		b:        b,
-		external: extClient,
-		config:   cfg,
+		b: b,
+		external: external.NewClient(
+			cfg.AppID,
+			cfg.Secret,
+			cfg.CardAppID,
+			cfg.GatewayID,
+			cfg.CardAccountProductCode,
+			cfg.PaywiserEuroVaultID,
+			cfg.OnOffRampClientID,
+			cfg.OnboardingClientID,
+			cfg.ExchangeClientID,
+			cfg.APIBaseURL,
+			cfg.OnboardingBaseURL,
+			cfg.OnOffRampBaseURL,
+			cfg.OrganizationID,
+			&http.Client{
+				Transport: otelhttp.NewTransport(
+					httplogger.NewTransport(http.DefaultTransport, b, nil),
+				),
+			},
+		),
 	}
 }
 
@@ -215,4 +165,8 @@ func (c Client) GetAccountStatement(ctx context.Context, walletID string, year, 
 
 func (c Client) GetTransactionStatement(ctx context.Context, walletID string, txID string) (io.ReadCloser, error) {
 	return ops.GetTransactionStatement(ctx, c.b, c.external, walletID, txID)
+}
+
+func (c Client) ExternalClient() external.Client {
+	return c.external
 }

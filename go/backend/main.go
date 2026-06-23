@@ -2,12 +2,16 @@ package main
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"net"
 	"net/http"
 	"os"
 	"os/signal"
+	"sort"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -103,6 +107,7 @@ import (
 	pacioli_db "github.com/interledger/interledger-app/go/pacioli/db"
 	"github.com/interledger/interledger-app/go/tracing"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
+	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
 	"go.uber.org/zap"
@@ -191,6 +196,24 @@ func start(args *cli.StartArgs) {
 
 	b := NewBackends(args, false)
 	defer CloseBackends(b)
+
+	// Atomically claim unnotified agreements
+	var newAgreementIDs []string
+	if err := b.DB().SelectContext(context.Background(), &newAgreementIDs, "UPDATE agreements SET notified = true WHERE notified = false RETURNING id"); err != nil {
+		log.Warn("failed to claim unnotified agreements", zap.Error(err))
+	} else if len(newAgreementIDs) > 0 {
+		deadlineDate := time.Now().UTC().Add(jobs.AgreementChangeDeadlineDays * 24 * time.Hour).Format("January 2, 2006")
+		sort.Strings(newAgreementIDs)
+		h := sha256.Sum256([]byte(strings.Join(newAgreementIDs, ",")))
+		wo := client.StartWorkflowOptions{
+			ID:                    "agreement_change_notify_" + hex.EncodeToString(h[:8]),
+			TaskQueue:             "backend",
+			WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_ALLOW_DUPLICATE_FAILED_ONLY,
+		}
+		if _, err := b.Temporal().ExecuteWorkflow(context.Background(), wo, jobs.NotifyAgreementChangedWorkflow, newAgreementIDs, deadlineDate, 0, nil, nil); err != nil {
+			log.Warn("failed to start agreement change notification workflow", zap.Error(err), zap.Strings("agreementIDs", newAgreementIDs))
+		}
+	}
 
 	router := chi.NewRouter()
 	router.Routes()
@@ -345,7 +368,7 @@ func migrate(args *cli.MigrationArgs) {
 		log.Fatalln(err)
 	}
 
-	err = agreements_migrations.MigrateFromEmbeddedMarkdowns(context.Background(), dbConn)
+	_, err = agreements_migrations.MigrateFromEmbeddedMarkdowns(context.Background(), dbConn)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -491,7 +514,7 @@ func startWorker(args *cli.StartArgs) {
 	serveHTTP(&http.Server{Addr: ":8081", Handler: router}, &wg)
 
 	log.Info("Worker creating")
-	w, err := temporal.NewTemporalWorker(b, b.gatehubConfig, b.xagoConfig, args.PTIJWK, args.PTIBaseURL, args.PTIClientID, args.ChimoneyToken, jobs.Config{
+	w, err := temporal.NewTemporalWorker(b, b.gatehubConfig, b.xagoConfig, args.PTIJWK, args.PTIBaseURL, args.PTIClientID, args.ChimoneyToken, args.RafikiNodeEnabled, jobs.Config{
 		KratosURL:         args.KratosUrl,
 		KratosAdminURL:    args.KratosAdminUrl,
 		PTIJWK:            args.PTIJWK,
@@ -879,25 +902,27 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 
 	log.Debug("initialising Gatehub")
 	b.gatehubConfig = gatehub.Config{
-		AppID:                  args.GatehubAppID,
-		Secret:                 args.GatehubSecret,
-		CardAppID:              args.GatehubCardAppID,
-		GatewayID:              args.GatehubGatewayID,
-		CardAccountProductCode: args.GatehubCardAccountProductCode,
-		PaywiserEuroVaultID:    args.GatehubPaywiserEuroVaultID,
-		SendingUserID:          args.GatehubSendingUserID,
-		SendingUserAddress:     args.GatehubSendingUserAddress,
-		WebhookSecret:          args.GatehubWebhookSecret,
-		FallbackWebhookURL:     args.GatehubFallbackWebhookURL,
-		OnOffRampClientID:      args.GatehubOnOffRampClientID,
-		OnboardingClientID:     args.GatehubOnboardingClientID,
-		ExchangeClientID:       args.GatehubExchangeClientID,
-		APIBaseURL:             args.GatehubAPIBaseURL,
-		OnboardingBaseURL:      args.GatehubOnboardingBaseURL,
-		OnOffRampBaseURL:       args.GatehubOnOffRampBaseURL,
-		EUROpsAccount:          args.GatehubEUROpsAccount,
-		EUROpsLedgerID:         args.GatehubEUROpsLedgerID,
-		OrganizationID:         args.GatehubOrganizationID,
+		AppID:                   args.GatehubAppID,
+		Secret:                  args.GatehubSecret,
+		CardAppID:               args.GatehubCardAppID,
+		GatewayID:               args.GatehubGatewayID,
+		CardAccountProductCode:  args.GatehubCardAccountProductCode,
+		PaywiserEuroVaultID:     args.GatehubPaywiserEuroVaultID,
+		SendingUserID:           args.GatehubSendingUserID,
+		SendingUserAddress:      args.GatehubSendingUserAddress,
+		IntermediaryUserID:      args.GatehubIntermediaryUserID,
+		IntermediaryUserAddress: args.GatehubIntermediaryUserAddress,
+		WebhookSecret:           args.GatehubWebhookSecret,
+		FallbackWebhookURL:      args.GatehubFallbackWebhookURL,
+		OnOffRampClientID:       args.GatehubOnOffRampClientID,
+		OnboardingClientID:      args.GatehubOnboardingClientID,
+		ExchangeClientID:        args.GatehubExchangeClientID,
+		APIBaseURL:              args.GatehubAPIBaseURL,
+		OnboardingBaseURL:       args.GatehubOnboardingBaseURL,
+		OnOffRampBaseURL:        args.GatehubOnOffRampBaseURL,
+		EUROpsAccount:           args.GatehubEUROpsAccount,
+		EUROpsLedgerID:          args.GatehubEUROpsLedgerID,
+		OrganizationID:          args.GatehubOrganizationID,
 	}
 	b.gatehub = gatehub_client.New(b, b.gatehubConfig)
 	if b.gatehub == nil {

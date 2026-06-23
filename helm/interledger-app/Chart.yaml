@@ -5,8 +5,8 @@ home: https://github.com/interledger/interledger-app
 
 type: application
 # version and appVersion is linked because we are doing this in the same repo
-version: 1.29.4
-appVersion: v1.29.4
+version: 1.31.0
+appVersion: v1.31.0
 
 dependencies:
   - name: common
