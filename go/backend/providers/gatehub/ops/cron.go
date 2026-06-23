@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"gitlab.com/fynbos/backend/providers/gatehub/external"
-	"gitlab.com/fynbos/backend/slack"
-	"gitlab.com/fynbos/backend/transactions"
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub/external"
+	"github.com/interledger/interledger-app/go/backend/slack"
+	"github.com/interledger/interledger-app/go/backend/transactions"
+	"github.com/interledger/interledger-app/go/log"
 
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/client"
@@ -57,16 +57,20 @@ func GatehubClearingCardTransactionsPollWorkflow(ctx workflow.Context) error {
 		StartToCloseTimeout: 30 * time.Second,
 		RetryPolicy:         &temporal.RetryPolicy{MaximumAttempts: 3},
 	})
+	notifyCtx := workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Second,
+		RetryPolicy:         &temporal.RetryPolicy{MaximumAttempts: 1},
+	})
 
 	for _, tx := range txs {
 		var cardTx *external.CardTransaction
 		if err := workflow.ExecuteActivity(loopCtx, a.GetCardTransaction, tx.UserID, tx.ID).Get(loopCtx, &cardTx); err != nil {
-			slack.SendToChannel(context.Background(), slack.ChannelError, "wallet-info-bot", fmt.Sprintf("!!! Failed to fetch card transaction from GateHub\nGateHub TX ID: %s\nGateHub User ID: %s", tx.ID, tx.UserID))
+			_ = workflow.ExecuteActivity(notifyCtx, slack.SendToChannelActivity, slack.ChannelError, "wallet-info-bot", fmt.Sprintf("!!! Failed to fetch card transaction from GateHub\nGateHub TX ID: %s\nGateHub User ID: %s", tx.ID, tx.UserID)).Get(notifyCtx, nil)
 			continue
 		}
 
 		if cardTx.TxStatus == nil {
-			slack.SendToChannel(context.Background(), slack.ChannelError, "wallet-info-bot", fmt.Sprintf("!!! Card transaction has no status\nGateHub TX ID: %s\nGateHub User ID: %s", tx.ID, tx.UserID))
+			_ = workflow.ExecuteActivity(notifyCtx, slack.SendToChannelActivity, slack.ChannelError, "wallet-info-bot", fmt.Sprintf("!!! Card transaction has no status\nGateHub TX ID: %s\nGateHub User ID: %s", tx.ID, tx.UserID)).Get(notifyCtx, nil)
 			continue
 		}
 
@@ -139,23 +143,27 @@ func GatehubRealtimeCardTransactionsPollWorkflow(ctx workflow.Context) error {
 		StartToCloseTimeout: 30 * time.Second,
 		RetryPolicy:         &temporal.RetryPolicy{MaximumAttempts: 3},
 	})
+	notifyCtx := workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Second,
+		RetryPolicy:         &temporal.RetryPolicy{MaximumAttempts: 1},
+	})
 
 	for _, tx := range txs {
 		var cardTx *external.CardTransaction
 		if err := workflow.ExecuteActivity(loopCtx, a.GetCardTransaction, tx.UserID, tx.ID).Get(loopCtx, &cardTx); err != nil {
-			slack.SendToChannel(context.Background(), slack.ChannelError, "wallet-info-bot", fmt.Sprintf("!!! Failed to fetch card transaction from GateHub\nGateHub TX ID: %s\nGateHub User ID: %s", tx.ID, tx.UserID))
+			_ = workflow.ExecuteActivity(notifyCtx, slack.SendToChannelActivity, slack.ChannelError, "wallet-info-bot", fmt.Sprintf("!!! Failed to fetch card transaction from GateHub\nGateHub TX ID: %s\nGateHub User ID: %s", tx.ID, tx.UserID)).Get(notifyCtx, nil)
 			continue
 		}
 
 		if cardTx.TxStatus == nil {
-			slack.SendToChannel(context.Background(), slack.ChannelError, "wallet-info-bot", fmt.Sprintf("!!! Card transaction has no status\nGateHub TX ID: %s\nGateHub User ID: %s", tx.ID, tx.UserID))
+			_ = workflow.ExecuteActivity(notifyCtx, slack.SendToChannelActivity, slack.ChannelError, "wallet-info-bot", fmt.Sprintf("!!! Card transaction has no status\nGateHub TX ID: %s\nGateHub User ID: %s", tx.ID, tx.UserID)).Get(notifyCtx, nil)
 			continue
 		}
 
 		isMasterCardSend := cardTx.Type == external.CardTransactionTypeTransferFromAccount || cardTx.Type == external.CardTransactionTypeTransferToAccount
 		isReversal := cardTx.TransactionClassification != nil && *cardTx.TransactionClassification == external.CardTransactionClassificationReversal
 		if isMasterCardSend && isReversal {
-			slack.SendToChannel(context.Background(), slack.ChannelError, "wallet-info-bot", fmt.Sprintf("!!! Unexpected reversal for MasterCard transfer card transaction\nGateHub TX ID: %s\nGateHub User ID: %s\nType: %d", tx.ID, tx.UserID, cardTx.Type))
+			_ = workflow.ExecuteActivity(notifyCtx, slack.SendToChannelActivity, slack.ChannelError, "wallet-info-bot", fmt.Sprintf("!!! Unexpected reversal for MasterCard transfer card transaction\nGateHub TX ID: %s\nGateHub User ID: %s\nType: %d", tx.ID, tx.UserID, cardTx.Type)).Get(notifyCtx, nil)
 			continue
 		}
 
@@ -174,7 +182,7 @@ func GatehubRealtimeCardTransactionsPollWorkflow(ctx workflow.Context) error {
 		var activityErr error
 		if isReversal {
 			if cardTx.RefTransactionID == nil {
-				slack.SendToChannel(context.Background(), slack.ChannelError, "wallet-info-bot", fmt.Sprintf("!!! Reversal card transaction has no ref transaction id\nGateHub TX ID: %s\nGateHub User ID: %s", tx.ID, tx.UserID))
+				_ = workflow.ExecuteActivity(notifyCtx, slack.SendToChannelActivity, slack.ChannelError, "wallet-info-bot", fmt.Sprintf("!!! Reversal card transaction has no ref transaction id\nGateHub TX ID: %s\nGateHub User ID: %s", tx.ID, tx.UserID)).Get(notifyCtx, nil)
 				continue
 			}
 			var originalInternalTx *transactions.Transaction

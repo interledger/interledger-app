@@ -1,15 +1,16 @@
 package ops
 
 import (
-	"gitlab.com/fynbos/backend/email/sendgrid"
-	"gitlab.com/fynbos/backend/kyc"
-	"gitlab.com/fynbos/backend/user"
-	"gitlab.com/fynbos/backend/wallets"
+	"github.com/interledger/interledger-app/go/backend/email/sendgrid"
+	"github.com/interledger/interledger-app/go/backend/kyc"
+	"github.com/interledger/interledger-app/go/backend/user"
+	"github.com/interledger/interledger-app/go/backend/wallets"
 )
 
 type Backends interface {
 	External() sendgrid.Client
 	OneTemplateID() string
+	SupportEmail() string
 	Users() user.Client
 	KYC() kyc.Client
 	Wallets() wallets.Client

@@ -3,6 +3,7 @@ package handler
 import (
 	"embed"
 	"encoding/json"
+	"fmt"
 	"html/template"
 	"net/http"
 	"net/url"
@@ -10,10 +11,10 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/consts"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/logger"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/models"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/utils"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/consts"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/logger"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/utils"
 	"go.uber.org/zap"
 )
 
@@ -151,6 +152,18 @@ func (h *Handler) UIUserDetail(w http.ResponseWriter, r *http.Request) {
 				return true
 			}
 			return *status != "COMPLETED" && *status != "FAILED"
+		},
+		"txStatus": func(status int) string {
+			switch status {
+			case consts.TransactionStatusPending:
+				return "pending"
+			case consts.TransactionStatusCompleted:
+				return "completed"
+			case consts.TransactionStatusFailed:
+				return "failed"
+			default:
+				return fmt.Sprintf("%d", status)
+			}
 		},
 	}
 	tmpl, err := template.New("user.html").Funcs(funcMap).ParseFS(uiTemplateFS, "web/ui/user.html")
@@ -515,4 +528,83 @@ func (h *Handler) UICardTxSetStatus(w http.ResponseWriter, r *http.Request) {
 	)
 
 	http.Redirect(w, r, "/ui/users/"+userID, http.StatusSeeOther)
+}
+
+func (h *Handler) UIWithdrawalSetEvent(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		return
+	}
+
+	userID := r.FormValue("userID")
+	txID := r.FormValue("txID")
+	event := r.FormValue("event")
+
+	if userID == "" || txID == "" || event == "" {
+		http.Error(w, "userID, txID, and event are required", http.StatusBadRequest)
+		return
+	}
+
+	switch event {
+	case consts.WebhookEventWithdrawalCompleted, consts.WebhookEventWithdrawalRejected:
+	default:
+		http.Error(w, "unsupported event type", http.StatusBadRequest)
+		return
+	}
+
+	tx, err := h.store.GetTransaction(txID)
+	if err != nil || tx == nil {
+		http.Redirect(w, r, "/ui/users/"+url.QueryEscape(userID), http.StatusSeeOther)
+		return
+	}
+
+	if tx.DepositType != consts.DepositTypeWithdrawal || tx.Status != consts.TransactionStatusPending {
+		http.Redirect(w, r, "/ui/users/"+url.QueryEscape(userID), http.StatusSeeOther)
+		return
+	}
+
+	switch event {
+	case consts.WebhookEventWithdrawalCompleted:
+		totalAmount, err := strconv.ParseFloat(tx.TotalAmount, 64)
+		if err != nil {
+			logger.Error("ui: failed to parse total amount", zap.String("tx_id", txID), zap.Error(err))
+			http.Error(w, "Failed to parse transaction amount", http.StatusInternalServerError)
+			return
+		}
+		if err := h.store.DeductBalance(tx.UserID, tx.Currency, totalAmount); err != nil {
+			logger.Error("ui: failed to deduct balance", zap.String("tx_id", txID), zap.Error(err))
+			http.Error(w, "Failed to deduct balance", http.StatusInternalServerError)
+			return
+		}
+		if err := h.store.UpdateTransactionStatus(txID, consts.TransactionStatusCompleted); err != nil {
+			logger.Error("ui: failed to update transaction status", zap.String("tx_id", txID), zap.Error(err))
+			http.Error(w, "Failed to update transaction status", http.StatusInternalServerError)
+			return
+		}
+		h.webhookManager.SendAsync(consts.WebhookEventWithdrawalCompleted, tx.UserID, map[string]interface{}{
+			"tx_uuid":    txID,
+			"amount":     tx.Amount,
+			"currency":   tx.Currency,
+			"address":    tx.ReceivingAddress,
+			"total_fees": tx.Fee,
+		}, 0)
+		logger.Info("ui: withdrawal completed", zap.String("tx_id", txID), zap.String("user_id", tx.UserID))
+
+	case consts.WebhookEventWithdrawalRejected:
+		if err := h.store.UpdateTransactionStatus(txID, consts.TransactionStatusFailed); err != nil {
+			logger.Error("ui: failed to update transaction status", zap.String("tx_id", txID), zap.Error(err))
+			http.Error(w, "Failed to update transaction status", http.StatusInternalServerError)
+			return
+		}
+		h.webhookManager.SendAsync(consts.WebhookEventWithdrawalRejected, tx.UserID, map[string]interface{}{
+			"txUuid":   txID,
+			"userUuid": tx.UserID,
+			"status":   "PENDING",
+			"currency": tx.Currency,
+			"amount":   tx.Amount,
+		}, 0)
+		logger.Info("ui: withdrawal rejected", zap.String("tx_id", txID), zap.String("user_id", tx.UserID))
+	}
+
+	http.Redirect(w, r, "/ui/users/"+url.QueryEscape(userID), http.StatusSeeOther)
 }

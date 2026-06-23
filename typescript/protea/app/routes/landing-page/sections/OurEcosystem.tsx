@@ -31,7 +31,7 @@ export function OurEcosystem() {
   ]
 
   return (
-    <PageSection>
+    <PageSection className='our-ecosystem-section'>
       <div className='our-ecosystem-header'>
         <h2 className='text-h2 section-heading'>Our ecosystem</h2>
         <p className='text-h4'>

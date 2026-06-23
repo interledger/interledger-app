@@ -32,6 +32,11 @@ export interface PaginationRequest {
 export interface Empty {
 }
 /**
+ * @generated from protobuf message backend.v1.RequestAccountDeletionRequest
+ */
+export interface RequestAccountDeletionRequest {
+}
+/**
  * @generated from protobuf message backend.v1.ThreeDSPaymentConfirmationRequest
  */
 export interface ThreeDSPaymentConfirmationRequest {
@@ -1145,6 +1150,18 @@ export interface Transaction {
      * @generated from protobuf field: optional string formattedTargetAmount = 29;
      */
     formattedTargetAmount?: string;
+    /**
+     * @generated from protobuf field: optional string recipientIban = 30;
+     */
+    recipientIban?: string;
+    /**
+     * @generated from protobuf field: optional string recipientName = 31;
+     */
+    recipientName?: string;
+    /**
+     * @generated from protobuf field: optional string paymentChannel = 32;
+     */
+    paymentChannel?: string;
 }
 /**
  * @generated from protobuf message backend.v1.ListTransactionsResponse
@@ -1598,6 +1615,10 @@ export interface Features {
      * @generated from protobuf field: bool accountsTabEnabled = 13;
      */
     accountsTabEnabled: boolean;
+    /**
+     * @generated from protobuf field: bool deleteAccountEnabled = 14;
+     */
+    deleteAccountEnabled: boolean;
 }
 /**
  * @generated from protobuf message backend.v1.CreateCardRequest
@@ -2050,6 +2071,23 @@ export interface Signup {
      * @generated from protobuf field: bool completed = 8;
      */
     completed: boolean;
+}
+/**
+ * @generated from protobuf message backend.v1.AccountDeletionStatus
+ */
+export interface AccountDeletionStatus {
+    /**
+     * @generated from protobuf field: backend.v1.AccountDeletionRequestStatus status = 1;
+     */
+    status: AccountDeletionRequestStatus;
+    /**
+     * @generated from protobuf field: optional google.protobuf.Timestamp created_at = 2;
+     */
+    createdAt?: Timestamp;
+    /**
+     * @generated from protobuf field: optional google.protobuf.Timestamp updated_at = 3;
+     */
+    updatedAt?: Timestamp;
 }
 /**
  * @generated from protobuf message backend.v1.CompleteSignupRequest
@@ -3001,6 +3039,27 @@ export enum CardOperation {
      */
     DEPOSIT = 2
 }
+/**
+ * @generated from protobuf enum backend.v1.AccountDeletionRequestStatus
+ */
+export enum AccountDeletionRequestStatus {
+    /**
+     * @generated from protobuf enum value: ACCOUNT_DELETION_REQUEST_STATUS_UNSPECIFIED = 0;
+     */
+    UNSPECIFIED = 0,
+    /**
+     * @generated from protobuf enum value: ACCOUNT_DELETION_REQUEST_STATUS_PENDING = 1;
+     */
+    PENDING = 1,
+    /**
+     * @generated from protobuf enum value: ACCOUNT_DELETION_REQUEST_STATUS_IN_PROGRESS = 2;
+     */
+    IN_PROGRESS = 2,
+    /**
+     * @generated from protobuf enum value: ACCOUNT_DELETION_REQUEST_STATUS_COMPLETED = 3;
+     */
+    COMPLETED = 3
+}
 // @generated message type with reflection information, may provide speed optimized methods
 class PaginationRequest$Type extends MessageType<PaginationRequest> {
     constructor() {
@@ -3081,6 +3140,32 @@ class Empty$Type extends MessageType<Empty> {
  * @generated MessageType for protobuf message backend.v1.Empty
  */
 export const Empty = new Empty$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class RequestAccountDeletionRequest$Type extends MessageType<RequestAccountDeletionRequest> {
+    constructor() {
+        super("backend.v1.RequestAccountDeletionRequest", []);
+    }
+    create(value?: PartialMessage<RequestAccountDeletionRequest>): RequestAccountDeletionRequest {
+        const message = {};
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<RequestAccountDeletionRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: RequestAccountDeletionRequest): RequestAccountDeletionRequest {
+        return target ?? this.create();
+    }
+    internalBinaryWrite(message: RequestAccountDeletionRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.RequestAccountDeletionRequest
+ */
+export const RequestAccountDeletionRequest = new RequestAccountDeletionRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class ThreeDSPaymentConfirmationRequest$Type extends MessageType<ThreeDSPaymentConfirmationRequest> {
     constructor() {
@@ -6840,7 +6925,10 @@ class Transaction$Type extends MessageType<Transaction> {
             { no: 26, name: "exchangeRateReference", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
             { no: 27, name: "exchangeRateSurcharge", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
             { no: 28, name: "targetAmount", kind: "message", T: () => Amount },
-            { no: 29, name: "formattedTargetAmount", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ }
+            { no: 29, name: "formattedTargetAmount", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
+            { no: 30, name: "recipientIban", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
+            { no: 31, name: "recipientName", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
+            { no: 32, name: "paymentChannel", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Transaction>): Transaction {
@@ -6939,6 +7027,15 @@ class Transaction$Type extends MessageType<Transaction> {
                 case /* optional string formattedTargetAmount */ 29:
                     message.formattedTargetAmount = reader.string();
                     break;
+                case /* optional string recipientIban */ 30:
+                    message.recipientIban = reader.string();
+                    break;
+                case /* optional string recipientName */ 31:
+                    message.recipientName = reader.string();
+                    break;
+                case /* optional string paymentChannel */ 32:
+                    message.paymentChannel = reader.string();
+                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -7035,6 +7132,15 @@ class Transaction$Type extends MessageType<Transaction> {
         /* optional string formattedTargetAmount = 29; */
         if (message.formattedTargetAmount !== undefined)
             writer.tag(29, WireType.LengthDelimited).string(message.formattedTargetAmount);
+        /* optional string recipientIban = 30; */
+        if (message.recipientIban !== undefined)
+            writer.tag(30, WireType.LengthDelimited).string(message.recipientIban);
+        /* optional string recipientName = 31; */
+        if (message.recipientName !== undefined)
+            writer.tag(31, WireType.LengthDelimited).string(message.recipientName);
+        /* optional string paymentChannel = 32; */
+        if (message.paymentChannel !== undefined)
+            writer.tag(32, WireType.LengthDelimited).string(message.paymentChannel);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -8229,11 +8335,12 @@ class Features$Type extends MessageType<Features> {
             { no: 10, name: "zarBalanceEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 11, name: "manageWalletCardsEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 12, name: "accountEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 13, name: "accountsTabEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+            { no: 13, name: "accountsTabEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 14, name: "deleteAccountEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
         ]);
     }
     create(value?: PartialMessage<Features>): Features {
-        const message = { sendEnabled: false, receiveEnabled: false, linkedAccountsEnabled: false, cardsEnabled: false, banksEnabled: false, identitiesEnabled: false, twitterEnabled: false, addCardsEnabled: false, interacEnabled: false, zarBalanceEnabled: false, manageWalletCardsEnabled: false, accountEnabled: false, accountsTabEnabled: false };
+        const message = { sendEnabled: false, receiveEnabled: false, linkedAccountsEnabled: false, cardsEnabled: false, banksEnabled: false, identitiesEnabled: false, twitterEnabled: false, addCardsEnabled: false, interacEnabled: false, zarBalanceEnabled: false, manageWalletCardsEnabled: false, accountEnabled: false, accountsTabEnabled: false, deleteAccountEnabled: false };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Features>(this, message, value);
@@ -8282,6 +8389,9 @@ class Features$Type extends MessageType<Features> {
                     break;
                 case /* bool accountsTabEnabled */ 13:
                     message.accountsTabEnabled = reader.bool();
+                    break;
+                case /* bool deleteAccountEnabled */ 14:
+                    message.deleteAccountEnabled = reader.bool();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -8334,6 +8444,9 @@ class Features$Type extends MessageType<Features> {
         /* bool accountsTabEnabled = 13; */
         if (message.accountsTabEnabled !== false)
             writer.tag(13, WireType.Varint).bool(message.accountsTabEnabled);
+        /* bool deleteAccountEnabled = 14; */
+        if (message.deleteAccountEnabled !== false)
+            writer.tag(14, WireType.Varint).bool(message.deleteAccountEnabled);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -9805,6 +9918,67 @@ class Signup$Type extends MessageType<Signup> {
  * @generated MessageType for protobuf message backend.v1.Signup
  */
 export const Signup = new Signup$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class AccountDeletionStatus$Type extends MessageType<AccountDeletionStatus> {
+    constructor() {
+        super("backend.v1.AccountDeletionStatus", [
+            { no: 1, name: "status", kind: "enum", T: () => ["backend.v1.AccountDeletionRequestStatus", AccountDeletionRequestStatus, "ACCOUNT_DELETION_REQUEST_STATUS_"] },
+            { no: 2, name: "created_at", kind: "message", T: () => Timestamp },
+            { no: 3, name: "updated_at", kind: "message", T: () => Timestamp }
+        ]);
+    }
+    create(value?: PartialMessage<AccountDeletionStatus>): AccountDeletionStatus {
+        const message = { status: 0 };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<AccountDeletionStatus>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: AccountDeletionStatus): AccountDeletionStatus {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* backend.v1.AccountDeletionRequestStatus status */ 1:
+                    message.status = reader.int32();
+                    break;
+                case /* optional google.protobuf.Timestamp created_at */ 2:
+                    message.createdAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.createdAt);
+                    break;
+                case /* optional google.protobuf.Timestamp updated_at */ 3:
+                    message.updatedAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.updatedAt);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: AccountDeletionStatus, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* backend.v1.AccountDeletionRequestStatus status = 1; */
+        if (message.status !== 0)
+            writer.tag(1, WireType.Varint).int32(message.status);
+        /* optional google.protobuf.Timestamp created_at = 2; */
+        if (message.createdAt)
+            Timestamp.internalBinaryWrite(message.createdAt, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        /* optional google.protobuf.Timestamp updated_at = 3; */
+        if (message.updatedAt)
+            Timestamp.internalBinaryWrite(message.updatedAt, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.AccountDeletionStatus
+ */
+export const AccountDeletionStatus = new AccountDeletionStatus$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class CompleteSignupRequest$Type extends MessageType<CompleteSignupRequest> {
     constructor() {
@@ -13011,6 +13185,8 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "BlockCard", options: {}, I: BlockCardRequest, O: Empty },
     { name: "GetPendingThreeDSConfirmations", options: {}, I: Empty, O: GetPendingThreeDSConfirmationsResponse },
     { name: "ThreeDSPaymentConfirmation", options: {}, I: ThreeDSPaymentConfirmationRequest, O: Empty },
+    { name: "RequestAccountDeletion", options: {}, I: RequestAccountDeletionRequest, O: Empty },
+    { name: "GetAccountDeletionStatus", options: {}, I: Empty, O: AccountDeletionStatus },
     { name: "ConfirmUserPhone", options: {}, I: ConfirmUserPhoneRequest, O: Empty },
     { name: "UpdateUserPhone", options: {}, I: UpdateUserPhoneRequest, O: Empty }
 ]);

@@ -3,10 +3,10 @@ package email
 import (
 	"context"
 
-	"gitlab.com/fynbos/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/currency"
 
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	"github.com/interledger/interledger-app/go/backend/payments"
 )
 
 type Client interface {
@@ -23,10 +23,21 @@ type Client interface {
 	SendDepositFailedEmail(ctx context.Context, walletID string)
 	SendWithdrawalEmail(ctx context.Context, walletID string, amt currency.Amount, destinationAccount, date string)
 	SendWithdrawalFailedEmail(ctx context.Context, walletID string)
+	SendGatehubWithdrawalRejectedEmail(ctx context.Context, txID, walletID, amount, currency, iban, name string)
 	SendLimitsExceededEmail(ctx context.Context, walletID string)
 	SendCardCreatedEmail(ctx context.Context, walletID, cardID string)
 	SendPending3DSConfirmation(ctx context.Context, walletID, confirmationID string)
 	SendKYCDocumentsRequiredEmail(ctx context.Context, walletID string)
+	SendAgreementChangedEmail(ctx context.Context, userID string, agreements []AgreementLink, deadlineDate string) error
+	SendAccountDeletionRequested(ctx context.Context, userID string) error
 	SendAuthenticatorResetEmail(ctx context.Context, walletID string)
 	SendCardTransactionFXEmail(ctx context.Context, walletID, maskedPAN, merchantName, date, surcharge, transactionAmount, billingAmount string)
+	SendSCTITimeoutEmail(ctx context.Context, txID, walletID, amount, name, iban, submittedAt string)
+	SendSCTRerouteEmail(ctx context.Context, txID, walletID string)
+}
+
+// AgreementLink is a single agreement to show in the agreement-change email (display name + URL).
+type AgreementLink struct {
+	DisplayName string
+	TermsURL    string
 }

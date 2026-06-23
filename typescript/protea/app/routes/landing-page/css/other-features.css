@@ -13,13 +13,22 @@
   font-family: 'Poppins', sans-serif !important;
   opacity: 0;
   transform: translateY(24px);
-  transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1),
+  transition:
+    opacity 1s cubic-bezier(0.16, 1, 0.3, 1),
     transform 1s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .other-features-banner.is-visible {
   opacity: 1;
   transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .other-features-banner {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
 }
 
 .other-features-header {

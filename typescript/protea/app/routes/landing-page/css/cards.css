@@ -106,6 +106,21 @@
   transform: translate(-50%, -50%) rotate(0deg) scale(1);
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .physical-card-layer {
+    transition: none;
+    transition-delay: 0ms;
+  }
+  .physical-card-layer:nth-child(1) {
+    transform: translate(calc(-50% - 129px), calc(-50% - 65.5px)) rotate(0deg)
+      scale(1);
+  }
+  .physical-card-layer:nth-child(2) {
+    transform: translate(calc(-50% + 129px), calc(-50% - 65.5px)) rotate(0deg)
+      scale(1);
+  }
+}
+
 @media (min-width: 900px) and (max-width: 1199px) {
   .cards-fan-container {
     height: 650px;

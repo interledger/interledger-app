@@ -9,21 +9,21 @@ import (
 	"strings"
 	"time"
 
-	"gitlab.com/fynbos/backend/kyc"
-	"gitlab.com/fynbos/backend/slack"
+	"github.com/interledger/interledger-app/go/backend/kyc"
+	"github.com/interledger/interledger-app/go/backend/slack"
 
-	"gitlab.com/fynbos/backend/notify"
+	"github.com/interledger/interledger-app/go/backend/notify"
 
-	"gitlab.com/fynbos/backend/wallets"
+	"github.com/interledger/interledger-app/go/backend/wallets"
 
-	"gitlab.com/fynbos/backend/linkedaccounts"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
 
 	"github.com/google/uuid"
+	"github.com/interledger/interledger-app/go/backend/identities"
+	"github.com/interledger/interledger-app/go/backend/identities/platforms"
+	"github.com/interledger/interledger-app/go/env"
+	"github.com/interledger/interledger-app/go/log"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/fynbos/backend/identities"
-	"gitlab.com/fynbos/backend/identities/platforms"
-	"gitlab.com/fynbos/env"
-	"gitlab.com/fynbos/log"
 	"go.temporal.io/api/enums/v1"
 	temporal_client "go.temporal.io/sdk/client"
 	"go.uber.org/zap"

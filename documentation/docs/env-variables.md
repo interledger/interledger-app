@@ -163,12 +163,19 @@ The Go backend is the core of the wallet, handling payments, provider integratio
 | `SENDGRID_FROM_NAME` | Display name for outgoing emails (e.g. "Interledger Wallet"). Required when `EMAIL_ENABLED` is not `false`. | No | Local default: `Interledger Wallet` |
 | `SENDGRID_FROM_EMAIL` | Sender email address for outgoing emails. Required when `EMAIL_ENABLED` is not `false`. | No | Local default: `support@interledger.app` |
 | `SENDGRID_ONE_TEMPLATE_ID` | SendGrid Dynamic Template ID used by backend transactional emails. Required when `EMAIL_ENABLED` is not `false`. | No | Local default: `d-12030774d225454ea91720034b9adb97` |
+| `SUPPORT_EMAIL` | Support inbox address that backend notifications (e.g. account deletion requests) are sent to. Required when `EMAIL_ENABLED` is not `false`. | No | Prod/Sandbox/Dev: `support@interledger.app`; Local: `support@interledger.app` |
 
 ### Segment (Analytics)
 
 | Variable | Description | Secret | Notes |
 |---|---|---|---|
 | `SEGMENT_KEY` | Segment write key for server-side event tracking | Yes | Local default: `test-segment-key` |
+
+### Backend Feature Flags
+
+| Variable | Description | Secret | Notes |
+|---|---|---|---|
+| `RAFIKI_NODE_ENABLED` | Enables Rafiki full-node event orchestration flows (incoming finalized and outgoing lifecycle workflows with GateHub signal handshake). When disabled, legacy non-node payment flow is preserved. | No | Default: `false`; set `true` only in environments where node flow rollout is intended |
 
 ### Persona (Identity Verification)
 
@@ -227,6 +234,8 @@ GateHub is used for EUR XRPL transactions, onboarding, and debit card issuing.
 | `GATEHUB_CARD_APP_ID` | GateHub card app ID header value (separate from main app) | Yes | Local default: `local-test-card-app-id` |
 | `GATEHUB_SENDING_USER_ID` | Managed GateHub user UUID used for backfill payment operations | Yes | Dev: `5dd8e7f7-ead5-4f8d-b956-1acfecc231b4`; Local: `test-sending-user-id`; Prod/Sandbox: secret |
 | `GATEHUB_SENDING_USER_ADDRESS` | XRPL wallet address of the managed sending user | Yes | Dev: `191968355`; Local: `rN7n7otQDd6FczFgLdVZGMbpKRtFVfT4hb`; Prod/Sandbox: secret |
+| `GATEHUB_INTERMEDIARY_USER_ID` | Managed GateHub user UUID used as the intermediary account in Rafiki full-node payment flows. Required in production when `RAFIKI_NODE_ENABLED=true`. | Yes | Local default: `test-sending-user-id`; Prod/Sandbox/Dev: secret |
+| `GATEHUB_INTERMEDIARY_USER_ADDRESS` | XRPL wallet address of the managed intermediary user for Rafiki full-node payment flows. Required in production when `RAFIKI_NODE_ENABLED=true`. | Yes | Local default: `rN7n7otQDd6FczFgLdVZGMbpKRtFVfT4hb`; Prod/Sandbox/Dev: secret |
 
 ### Xago (Payment Provider)
 

@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"github.com/go-playground/validator/v10"
-	"gitlab.com/fynbos/backend/identities"
-	backendv1 "gitlab.com/fynbos/proto/backend/v1"
+	"github.com/interledger/interledger-app/go/backend/identities"
+	backendv1 "github.com/interledger/interledger-app/go/proto/backend/v1"
 	"net/url"
 	"strings"
 )

@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"gitlab.com/fynbos/mock/mockchimoney/internal/jobs"
-	"gitlab.com/fynbos/mock/mockchimoney/internal/logger"
+	"github.com/interledger/interledger-app/go/mock/mockchimoney/internal/jobs"
+	"github.com/interledger/interledger-app/go/mock/mockchimoney/internal/logger"
 
 	"go.uber.org/zap"
 )

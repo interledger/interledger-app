@@ -1,8 +1,8 @@
 package db_test
 
 import (
+	"github.com/interledger/interledger-app/go/backend/db"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/backend/db"
 	"testing"
 )
 

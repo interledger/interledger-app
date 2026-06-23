@@ -8,7 +8,7 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
-	"gitlab.com/fynbos/backend/providers/pti/external"
+	"github.com/interledger/interledger-app/go/backend/providers/pti/external"
 )
 
 func SetupDevMock(t *testing.T) *MockClient {

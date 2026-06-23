@@ -21,11 +21,11 @@ import (
 	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
 
-	"gitlab.com/fynbos/mock/mockpti/internal/config"
-	"gitlab.com/fynbos/mock/mockpti/internal/handler"
-	"gitlab.com/fynbos/mock/mockpti/internal/jobs"
-	"gitlab.com/fynbos/mock/mockpti/internal/logger"
-	"gitlab.com/fynbos/mock/mockpti/internal/storage"
+	"github.com/interledger/interledger-app/go/mock/mockpti/internal/config"
+	"github.com/interledger/interledger-app/go/mock/mockpti/internal/handler"
+	"github.com/interledger/interledger-app/go/mock/mockpti/internal/jobs"
+	"github.com/interledger/interledger-app/go/mock/mockpti/internal/logger"
+	"github.com/interledger/interledger-app/go/mock/mockpti/internal/storage"
 )
 
 func main() {

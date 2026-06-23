@@ -693,3 +693,246 @@ func (sc *E2EContext) getKYCStatusByWalletID(walletID string) (int, error) {
 	debugPrintf("   📋 KYC status for wallet %s: %d\n", walletID, status)
 	return status, nil
 }
+
+// AgreementSignature mirrors a row in the agreement_signatures table.
+type AgreementSignature struct {
+	ID                      string
+	AgreementID             string
+	UserID                  string
+	IPAddress               sql.NullString
+	LastNotifiedAgreementID sql.NullString
+}
+
+// getAgreementSignaturesForUser returns every agreement_signatures row for the given Kratos user ID.
+func (sc *E2EContext) getAgreementSignaturesForUser(userID string) ([]AgreementSignature, error) {
+	if err := sc.ensureDB(); err != nil {
+		return nil, fmt.Errorf("getAgreementSignaturesForUser: %w", err)
+	}
+
+	rows, err := sc.db.Query(
+		`SELECT id, agreement_id, user_id, ip_address, last_notified_agreement_id
+		 FROM agreement_signatures WHERE user_id = $1 ORDER BY created_at`,
+		userID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("getAgreementSignaturesForUser: query error: %w", err)
+	}
+	defer rows.Close()
+
+	var sigs []AgreementSignature
+	for rows.Next() {
+		var s AgreementSignature
+		if err := rows.Scan(&s.ID, &s.AgreementID, &s.UserID, &s.IPAddress, &s.LastNotifiedAgreementID); err != nil {
+			return nil, fmt.Errorf("getAgreementSignaturesForUser: scan error: %w", err)
+		}
+		sigs = append(sigs, s)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("getAgreementSignaturesForUser: rows error: %w", err)
+	}
+	return sigs, nil
+}
+
+// insertAgreement inserts a new agreements row with notified=false so that the
+// agreement-change-notify workflow trigger will pick it up. If the row already
+// exists (e.g. a prior test run with a colliding id), every column is refreshed
+// — otherwise a stale name would silently redirect the workflow at a different
+// agreement than the one the test thinks it published.
+//
+// git_file_path MUST be non-NULL: production only ever inserts agreements with a
+// path set (agreements/migrations/migrations.go), and Agreements().Get does
+// `SELECT * INTO agreements.Agreement{GitFilePath string}` — a NULL would fail
+// the scan with "converting NULL to string is unsupported", which surfaces as a
+// LoadAgreementChangeMetadata activity error when the notify workflow runs. We
+// mirror production's "<id>.md" shape; the value is otherwise unused by the test.
+func (sc *E2EContext) insertAgreement(id, name, version, content string) error {
+	if err := sc.ensureDB(); err != nil {
+		return fmt.Errorf("insertAgreement: %w", err)
+	}
+	gitFilePath := fmt.Sprintf("%s.md", id)
+	_, err := sc.db.Exec(
+		`INSERT INTO agreements (id, name, version, content, git_file_path, notified) VALUES ($1, $2, $3, $4, $5, false)
+		 ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, version = EXCLUDED.version, content = EXCLUDED.content, git_file_path = EXCLUDED.git_file_path, notified = false`,
+		id, name, version, content, gitFilePath,
+	)
+	if err != nil {
+		return fmt.Errorf("insertAgreement: %w", err)
+	}
+	return nil
+}
+
+// EU wallets only. The INSERT branch mirrors features/ops.Features()'s EU
+// defaults verbatim — once any wallet_features row exists the backend reads
+// from it and skips country defaults, so a sparse row would erase the
+// wallet's other capabilities.
+func (sc *E2EContext) enableDeleteAccountForWallet(walletID string) error {
+	if err := sc.ensureDB(); err != nil {
+		return fmt.Errorf("enableDeleteAccountForWallet: %w", err)
+	}
+
+	_, err := sc.db.Exec(`
+		INSERT INTO wallet_features (
+			wallet_id, send_enabled, receive_enabled, linked_accounts_enabled,
+			cards_enabled, banks_enabled, identities_enabled, twitter_enabled,
+			add_cards_enabled, interac_enabled, manage_wallet_cards_enabled,
+			accounts_tab_enabled, delete_account_enabled
+		) VALUES ($1, true, true, false, false, false, true, true, false, false, true, false, true)
+		ON CONFLICT (wallet_id) DO UPDATE SET
+			delete_account_enabled = true,
+			updated_at = now()
+	`, walletID)
+	if err != nil {
+		return fmt.Errorf("enableDeleteAccountForWallet: %w", err)
+	}
+
+	debugPrintf("   ✓ Enabled delete_account_enabled for wallet %s\n", walletID)
+	return nil
+}
+
+func (sc *E2EContext) getAccountDeletionStatus(kratosUserID string) (string, error) {
+	if err := sc.ensureDB(); err != nil {
+		return "", fmt.Errorf("getAccountDeletionStatus: %w", err)
+	}
+
+	var status string
+	err := sc.db.QueryRow(
+		`SELECT status FROM account_deletion_requests WHERE user_id = $1`,
+		kratosUserID,
+	).Scan(&status)
+	if err != nil {
+		return "", err
+	}
+	return status, nil
+}
+
+func (sc *E2EContext) seedAccountDeletionRequest(kratosUserID, status string) error {
+	if err := sc.ensureDB(); err != nil {
+		return fmt.Errorf("seedAccountDeletionRequest: %w", err)
+	}
+
+	_, err := sc.db.Exec(`
+		INSERT INTO account_deletion_requests (user_id, status) VALUES ($1, $2)
+		ON CONFLICT (user_id) DO UPDATE SET status = EXCLUDED.status, updated_at = now()
+	`, kratosUserID, status)
+	if err != nil {
+		return fmt.Errorf("seedAccountDeletionRequest: %w", err)
+	}
+	return nil
+}
+
+// cleanupTestAgreement removes the agreement row injected by a scenario, along
+// with every agreement_signatures reference. Schema (db/schema.hcl:37-48)
+// defines TWO FKs from agreement_signatures back to agreements
+// (fk_last_notified_agreement and fk_agreement), both with on_delete=NO_ACTION,
+// so both must be cleared before the agreements DELETE — otherwise a future
+// test that signs the test agreement leaves the row leaked with notified=false.
+// Errors are best-effort: scenario teardown swallows them.
+func (sc *E2EContext) cleanupTestAgreement(id string) error {
+	if err := sc.ensureDB(); err != nil {
+		return fmt.Errorf("cleanupTestAgreement: %w", err)
+	}
+	if _, err := sc.db.Exec(`UPDATE agreement_signatures SET last_notified_agreement_id = NULL WHERE last_notified_agreement_id = $1`, id); err != nil {
+		return fmt.Errorf("cleanupTestAgreement: clear last_notified references: %w", err)
+	}
+	if _, err := sc.db.Exec(`DELETE FROM agreement_signatures WHERE agreement_id = $1`, id); err != nil {
+		return fmt.Errorf("cleanupTestAgreement: clear agreement_id references: %w", err)
+	}
+	if _, err := sc.db.Exec(`DELETE FROM agreements WHERE id = $1`, id); err != nil {
+		return fmt.Errorf("cleanupTestAgreement: delete agreement: %w", err)
+	}
+	return nil
+}
+
+// pollKratosUserID waits for signups.user_id to be populated by gRPC CompleteSignup.
+// CompleteSignup is invoked by the frontend AFTER Kratos identity creation, so
+// theSignupShouldBeSubmitted (which only waits for the Kratos row) can return
+// while signups.user_id is still NULL. Uses sql.NullString so a NULL scan does
+// not panic with 'converting NULL to string is unsupported' (see e2e/AGENTS.md).
+func (sc *E2EContext) pollKratosUserID(email string, timeout time.Duration) (string, error) {
+	if err := sc.ensureDB(); err != nil {
+		return "", fmt.Errorf("pollKratosUserID: %w", err)
+	}
+	deadline := time.Now().Add(timeout)
+	for {
+		var id sql.NullString
+		err := sc.db.QueryRow("SELECT user_id FROM signups WHERE email = $1", email).Scan(&id)
+		if err == nil && id.Valid && id.String != "" {
+			return id.String, nil
+		}
+		if err != nil && err != sql.ErrNoRows {
+			return "", fmt.Errorf("pollKratosUserID: query error for %s: %w", email, err)
+		}
+		if time.Now().After(deadline) {
+			return "", fmt.Errorf("pollKratosUserID: signups.user_id remained NULL for %s after %v — grpc.CompleteSignup likely did not run server-side", email, timeout)
+		}
+		time.Sleep(500 * time.Millisecond)
+	}
+}
+
+// waitForAgreementSignature polls until the user has a signature for the given
+// agreement_id, or until timeout. Covers two consecutive race windows: (1) the
+// signups.user_id UPDATE in CompleteSignup, and (2) the agreement_signatures
+// INSERT that runs immediately after within the same gRPC call (a separate DB
+// transaction, so visibility is staggered by milliseconds under load).
+func (sc *E2EContext) waitForAgreementSignature(email, agreementID string, timeout time.Duration) error {
+	if err := sc.ensureDB(); err != nil {
+		return fmt.Errorf("waitForAgreementSignature: %w", err)
+	}
+	deadline := time.Now().Add(timeout)
+	var lastUserID string
+	var lastSeen []string
+	for {
+		// Reset diagnostics at the top of each iteration so the eventual
+		// timeout error reflects the current DB state, not a stale snapshot
+		// from a prior iteration that succeeded then degraded.
+		lastUserID = ""
+		lastSeen = lastSeen[:0]
+		var id sql.NullString
+		if err := sc.db.QueryRow("SELECT user_id FROM signups WHERE email = $1", email).Scan(&id); err == nil && id.Valid && id.String != "" {
+			lastUserID = id.String
+			sigs, sigErr := sc.getAgreementSignaturesForUser(id.String)
+			if sigErr == nil {
+				for _, s := range sigs {
+					if s.AgreementID == agreementID {
+						debugPrintf("   ✓ Found agreement signature %s for user %s\n", agreementID, id.String)
+						return nil
+					}
+					lastSeen = append(lastSeen, s.AgreementID)
+				}
+			}
+		}
+		if time.Now().After(deadline) {
+			return fmt.Errorf("waitForAgreementSignature: timed out after %v waiting for signature %q for %s (resolved user_id=%q, last seen signatures: %v)",
+				timeout, agreementID, email, lastUserID, lastSeen)
+		}
+		time.Sleep(500 * time.Millisecond)
+	}
+}
+
+// Returns false + nil if no row exists (country defaults apply).
+func (sc *E2EContext) getWalletFeatureBool(walletID, column string) (bool, error) {
+	if err := sc.ensureDB(); err != nil {
+		return false, fmt.Errorf("getWalletFeatureBool: %w", err)
+	}
+
+	// SQL-injection defense: the column name is interpolated, not bound.
+	allowed := map[string]bool{
+		"delete_account_enabled": true,
+	}
+	if !allowed[column] {
+		return false, fmt.Errorf("getWalletFeatureBool: column %q not allowed", column)
+	}
+
+	var val bool
+	err := sc.db.QueryRow(
+		"SELECT "+column+" FROM wallet_features WHERE wallet_id = $1",
+		walletID,
+	).Scan(&val)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+		return false, fmt.Errorf("getWalletFeatureBool: %w", err)
+	}
+	return val, nil
+}

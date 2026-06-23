@@ -31,7 +31,7 @@ export default function Page() {
         </div>
       </div>
       <div className='mt-8 flex flex-col'>
-        <div className='-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8'>
+        <div className='-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8'>
           <div className='inline-block min-w-full py-2 align-middle md:px-6 lg:px-8'>
             <div className='overflow-hidden ring-2 ring-base md:rounded-lg'>
               <table className='min-w-full divide-y divide-base'>
@@ -45,7 +45,7 @@ export default function Page() {
                     </th>
                     <th
                       scope='col'
-                      className='px-4 py-3.5 text-left text-sm  font-medium text-strong'
+                      className='px-4 py-3.5 text-left text-sm font-medium text-strong'
                     >
                       Operation
                     </th>

@@ -8,11 +8,11 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
+	"github.com/interledger/interledger-app/go/backend/db"
+	"github.com/interledger/interledger-app/go/backend/twitter"
+	external_mock "github.com/interledger/interledger-app/go/backend/twitter/external/client/mock"
+	"github.com/interledger/interledger-app/go/backend/twitter/ops"
 	"github.com/stretchr/testify/assert"
-	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/twitter"
-	external_mock "gitlab.com/fynbos/backend/twitter/external/client/mock"
-	"gitlab.com/fynbos/backend/twitter/ops"
 	"golang.org/x/oauth2"
 )
 

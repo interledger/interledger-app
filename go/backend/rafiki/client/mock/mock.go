@@ -10,9 +10,9 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	rafiki "gitlab.com/fynbos/backend/rafiki"
-	transactions "gitlab.com/fynbos/backend/transactions"
-	wallets "gitlab.com/fynbos/backend/wallets"
+	rafiki "github.com/interledger/interledger-app/go/backend/rafiki"
+	transactions "github.com/interledger/interledger-app/go/backend/transactions"
+	wallets "github.com/interledger/interledger-app/go/backend/wallets"
 )
 
 // MockClient is a mock of Client interface.
@@ -223,4 +223,61 @@ func (m *MockClient) WebhookHandler() http.HandlerFunc {
 func (mr *MockClientMockRecorder) WebhookHandler() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WebhookHandler", reflect.TypeOf((*MockClient)(nil).WebhookHandler))
+}
+
+// GetIncomingPayment mocks base method.
+func (m *MockClient) GetIncomingPayment(ctx context.Context, id string) (*rafiki.IncomingPayment, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetIncomingPayment", ctx, id)
+	ret0, _ := ret[0].(*rafiki.IncomingPayment)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetIncomingPayment indicates an expected call of GetIncomingPayment.
+func (mr *MockClientMockRecorder) GetIncomingPayment(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIncomingPayment", reflect.TypeOf((*MockClient)(nil).GetIncomingPayment), ctx, id)
+}
+
+// CancelOutgoingPayment mocks base method.
+func (m *MockClient) CancelOutgoingPayment(ctx context.Context, paymentPointerID, reason string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CancelOutgoingPayment", ctx, paymentPointerID, reason)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CancelOutgoingPayment indicates an expected call of CancelOutgoingPayment.
+func (mr *MockClientMockRecorder) CancelOutgoingPayment(ctx, paymentPointerID, reason interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CancelOutgoingPayment", reflect.TypeOf((*MockClient)(nil).CancelOutgoingPayment), ctx, paymentPointerID, reason)
+}
+
+// WithdrawIncomingPaymentLiquidity mocks base method.
+func (m *MockClient) WithdrawIncomingPaymentLiquidity(ctx context.Context, incomingPaymentID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WithdrawIncomingPaymentLiquidity", ctx, incomingPaymentID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// WithdrawIncomingPaymentLiquidity indicates an expected call of WithdrawIncomingPaymentLiquidity.
+func (mr *MockClientMockRecorder) WithdrawIncomingPaymentLiquidity(ctx, incomingPaymentID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithdrawIncomingPaymentLiquidity", reflect.TypeOf((*MockClient)(nil).WithdrawIncomingPaymentLiquidity), ctx, incomingPaymentID)
+}
+
+// WithdrawOutgoingPaymentLiquidity mocks base method.
+func (m *MockClient) WithdrawOutgoingPaymentLiquidity(ctx context.Context, outgoingPaymentID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WithdrawOutgoingPaymentLiquidity", ctx, outgoingPaymentID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// WithdrawOutgoingPaymentLiquidity indicates an expected call of WithdrawOutgoingPaymentLiquidity.
+func (mr *MockClientMockRecorder) WithdrawOutgoingPaymentLiquidity(ctx, outgoingPaymentID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithdrawOutgoingPaymentLiquidity", reflect.TypeOf((*MockClient)(nil).WithdrawOutgoingPaymentLiquidity), ctx, outgoingPaymentID)
 }

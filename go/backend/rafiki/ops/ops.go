@@ -9,21 +9,21 @@ import (
 	"strconv"
 	"time"
 
-	"gitlab.com/fynbos/backend/providers/chimoney"
-	"gitlab.com/fynbos/backend/providers/gatehub"
-	"gitlab.com/fynbos/backend/providers/pti"
-	"gitlab.com/fynbos/backend/providers/xago"
+	"github.com/interledger/interledger-app/go/backend/providers/chimoney"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
+	"github.com/interledger/interledger-app/go/backend/providers/pti"
+	"github.com/interledger/interledger-app/go/backend/providers/xago"
 
-	"gitlab.com/fynbos/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/currency"
 
-	"gitlab.com/fynbos/backend/transactions"
+	"github.com/interledger/interledger-app/go/backend/transactions"
 
-	"gitlab.com/fynbos/backend/db"
+	"github.com/interledger/interledger-app/go/backend/db"
 
-	"gitlab.com/fynbos/backend/kyc"
+	"github.com/interledger/interledger-app/go/backend/kyc"
 
-	"gitlab.com/fynbos/backend/rafiki"
-	"gitlab.com/fynbos/backend/wallets"
+	"github.com/interledger/interledger-app/go/backend/rafiki"
+	"github.com/interledger/interledger-app/go/backend/wallets"
 )
 
 func CreatePaymentPointer(ctx context.Context, b Backends, w wallets.Wallet) (string, error) {
@@ -95,6 +95,9 @@ func GetWalletAddress(ctx context.Context, b Backends, walletID string) (*rafiki
 }
 
 func LookupWalletID(ctx context.Context, b Backends, paymentPointerID string) (string, error) {
+	if b.DB() == nil {
+		return "", fmt.Errorf("%w db not configured", rafiki.ErrInternal)
+	}
 	var wid string
 	err := b.DB().GetContext(ctx, &wid, "SELECT wallet_id FROM rafiki_payment_pointers WHERE payment_pointer_id=$1", paymentPointerID)
 	if err != nil {
@@ -105,6 +108,9 @@ func LookupWalletID(ctx context.Context, b Backends, paymentPointerID string) (s
 }
 
 func LookupPaymentPointerID(ctx context.Context, b Backends, walletID string) (string, error) {
+	if b.DB() == nil {
+		return "", fmt.Errorf("%w db not configured", rafiki.ErrInternal)
+	}
 	var ppID string
 	err := b.DB().GetContext(ctx, &ppID, "SELECT payment_pointer_id FROM rafiki_payment_pointers WHERE wallet_id=$1", walletID)
 	if err != nil && errors.Is(err, sql.ErrNoRows) {
@@ -118,13 +124,13 @@ func LookupPaymentPointerID(ctx context.Context, b Backends, walletID string) (s
 }
 
 func FundOutgoingPayment(ctx context.Context, b Backends, paymentID string) error {
-	var eventIDs []string
-	err := b.DB().SelectContext(ctx, &eventIDs, "SELECT event_id FROM rafiki_outgoing_payments WHERE payment_id=$1", paymentID)
+	var outgoingPaymentIDs []string
+	err := b.DB().SelectContext(ctx, &outgoingPaymentIDs, "SELECT id FROM rafiki_outgoing_payments WHERE payment_id=$1", paymentID)
 	if err != nil {
 		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
 	}
 
-	for _, id := range eventIDs {
+	for _, id := range outgoingPaymentIDs {
 		err = b.External().FundOutgoingPayment(ctx, id)
 		if err != nil {
 			return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
@@ -375,7 +381,32 @@ func RevokeGrant(ctx context.Context, b Backends, grantID string) error {
 
 func UpdateWalletAddressStatus(ctx context.Context, b Backends, walletId rafiki.UpdateAddressStatus, status bool) error {
 	return b.External().UpdateWalletAddressStatus(ctx, walletId, status)
+}
 
+func GetIncomingPayment(ctx context.Context, b Backends, id string) (*rafiki.IncomingPayment, error) {
+	ip, err := b.External().GetIncomingPayment(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return &rafiki.IncomingPayment{
+		ID:              ip.Id,
+		WalletAddressID: ip.WalletAddressId,
+		State:           rafiki.IncomingPaymentState(ip.State),
+		ExpiresAt:       ip.ExpiresAt,
+		CreatedAt:       ip.CreatedAt,
+	}, nil
+}
+
+func CancelOutgoingPayment(ctx context.Context, b Backends, paymentPointerID, reason string) error {
+	return b.External().CancelOutgoingPayment(ctx, paymentPointerID, reason)
+}
+
+func WithdrawIncomingPaymentLiquidity(ctx context.Context, b Backends, incomingPaymentID string) error {
+	return b.External().WithdrawIncomingPaymentLiquidity(ctx, incomingPaymentID, 0)
+}
+
+func WithdrawOutgoingPaymentLiquidity(ctx context.Context, b Backends, outgoingPaymentID string) error {
+	return b.External().WithdrawOutgoingPaymentLiquidity(ctx, outgoingPaymentID, 0)
 }
 
 func ListPendingWebMonetization(ctx context.Context, b Backends, walletID string) ([]transactions.Transaction, error) {

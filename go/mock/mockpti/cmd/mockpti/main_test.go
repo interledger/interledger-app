@@ -9,9 +9,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"gitlab.com/fynbos/mock/mockpti/internal/config"
-	"gitlab.com/fynbos/mock/mockpti/internal/handler"
-	"gitlab.com/fynbos/mock/mockpti/internal/storage"
+	"github.com/interledger/interledger-app/go/mock/mockpti/internal/config"
+	"github.com/interledger/interledger-app/go/mock/mockpti/internal/handler"
+	"github.com/interledger/interledger-app/go/mock/mockpti/internal/storage"
 )
 
 func TestHealthEndpoint(t *testing.T) {

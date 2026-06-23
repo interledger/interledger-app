@@ -94,7 +94,7 @@ export const Select: FC<SelectProps> = ({
           </Transition>
         </div>
       </Listbox>
-      <div className='h-7 pt-2 pl-2'>
+      <div className='h-7 pl-2 pt-2'>
         {errorMessage && <p className='text-sm text-error'>{errorMessage}</p>}
       </div>
     </div>

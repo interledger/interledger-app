@@ -13,10 +13,10 @@ import (
 	"strings"
 	"time"
 
-	"gitlab.com/fynbos/mock/mockxago/internal/logger"
-	"gitlab.com/fynbos/mock/mockxago/internal/models"
-	"gitlab.com/fynbos/mock/mockxago/internal/storage"
-	"gitlab.com/fynbos/mock/mockxago/internal/utils"
+	"github.com/interledger/interledger-app/go/mock/mockxago/internal/logger"
+	"github.com/interledger/interledger-app/go/mock/mockxago/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockxago/internal/storage"
+	"github.com/interledger/interledger-app/go/mock/mockxago/internal/utils"
 )
 
 func (h *Handler) ensureTestMode(w http.ResponseWriter) bool {

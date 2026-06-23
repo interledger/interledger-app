@@ -13,9 +13,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/interledger/interledger-app/go/backend/providers/chimoney/external"
+	"github.com/interledger/interledger-app/go/backend/providers/chimoney/ops"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/backend/providers/chimoney/external"
-	"gitlab.com/fynbos/backend/providers/chimoney/ops"
 	"gotest.tools/assert"
 )
 

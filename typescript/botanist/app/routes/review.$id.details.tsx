@@ -81,7 +81,7 @@ export default function Page() {
           })
         }}
       >
-        <span className='flex text-red-500 cursor-pointer items-center space-x-2 font-medium text-primary'>
+        <span className='flex cursor-pointer items-center space-x-2 font-medium text-primary text-red-500'>
           <Icon>close</Icon>
           <span>Reject</span>
         </span>
