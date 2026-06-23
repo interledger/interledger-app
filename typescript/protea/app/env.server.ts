@@ -29,7 +29,10 @@ const knownEnvKeysOptional: string[] = [
   'PUSHER_APP_CLUSTER',
   'DEFAULT_RATE_LIMIT_REQUESTS',
   'DEFAULT_RATE_LIMIT_TIME',
-  'GOOGLE_MAPS_API_KEY'
+  'GOOGLE_MAPS_API_KEY',
+  // Plaid on/off (mirrors the backend's PLAID_ENABLED). true => bank-link via Plaid,
+  // false/unset => manual bank-details form. Read server-side via envBool.
+  'PLAID_ENABLED'
 ]
 
 const knownEnvKeysEnabled = {

@@ -7,10 +7,7 @@ import (
 	"time"
 
 	plaidsdk "github.com/plaid/plaid-go/v42/plaid"
-	"go.uber.org/zap"
-
 	"gitlab.com/fynbos/backend/providers/plaid"
-	"gitlab.com/fynbos/log"
 )
 
 type Client struct {

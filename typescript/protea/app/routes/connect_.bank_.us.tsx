@@ -1,6 +1,3 @@
-// ORPHANED FROM UI — Plaid is the only bank-link path on Home.
-// Still reachable by direct URL and still driven by e2e (e2e/pti_deposit.go).
-// Full removal should be done
 import { Code } from '@bufbuild/connect'
 import { useEffect, useState } from 'react'
 import {
@@ -20,6 +17,7 @@ import {
   Select,
   TextField
 } from '~/components'
+import { envBool } from '~/env.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
@@ -29,6 +27,9 @@ import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import type { Route } from './+types/connect_.bank_.us'
 
 export async function loader({ request }: Route.LoaderArgs) {
+  // When Plaid is the active bank-link path, the manual form is unreachable.
+  if (envBool('PLAID_ENABLED')) throw redirect(href('/connect/bank'))
+
   const balancesResponse = await grpc.getBalances(request, {})
   if (
     isConnectError(balancesResponse) ||

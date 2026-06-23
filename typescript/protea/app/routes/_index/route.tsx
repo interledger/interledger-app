@@ -8,6 +8,7 @@ import {
   getTransactionsWithPending,
   getWalletInfo
 } from '~/data/wallet.server'
+import { envBool } from '~/env.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { hasUserSession } from '~/lib/kratos/session.server'
@@ -60,7 +61,9 @@ async function appLoader({ request }: LoaderFunctionArgs) {
     kycStatus: kycStatus.kycStatus,
     pusherArgs,
     features,
-    balances: balanceResponse.balances
+    balances: balanceResponse.balances,
+    // Global deploy-time flag (not per-wallet): picks the bank-link flow in the UI.
+    plaidEnabled: envBool('PLAID_ENABLED')
   })
 }
 

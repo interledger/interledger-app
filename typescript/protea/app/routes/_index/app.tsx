@@ -350,9 +350,18 @@ export function AppPage() {
 }
 
 function CTACards() {
-  const { features, walletInfo } = useLoaderData<
+  const { features, walletInfo, plaidEnabled } = useLoaderData<
     typeof loader
   >() as AppLoaderData
+
+  // Plaid is US-only. US: Plaid when enabled, else the manual US form. ZA always
+  // uses its manual form (Plaid never served ZA).
+  const bankHref =
+    walletInfo.country === 'US'
+      ? plaidEnabled
+        ? href('/connect/bank')
+        : href('/connect/bank/us')
+      : href('/connect/bank/za')
 
   return (
     <>
@@ -392,7 +401,7 @@ function CTACards() {
                   </p>
                   <Router
                     className='text-sm font-medium text-primary'
-                    to={href('/connect/bank')}
+                    to={bankHref}
                   >
                     Connect a bank
                   </Router>

@@ -267,9 +267,11 @@ For deployed environments the `PTI_JWK`, `PTI_PUBLIC_KEY_JWK`, and `PTI_BASE_URL
 
 Plaid integration is a proof-of-concept (see `documentation/poc/plaid/`). The feature is gated behind `PLAID_ENABLED`. When disabled (the default), no runtime validation is performed and the `/plaid/*` HTTP routes are not registered. The current POC only targets Plaid Sandbox.
 
+`PLAID_ENABLED` is read by **two** services and they MUST agree per environment: the **backend** uses it to wire the Plaid provider/routes, and **Protea** reads its own `PLAID_ENABLED` (server-side) to pick the US bank-link flow in the UI — `true` = Plaid (`/connect/bank`), `false` = manual bank-details form (`/connect/bank/us`). If they disagree the UI and backend mismatch. In local both default off the same `BACKEND_PLAID_ENABLED` root var (`local/wallet.yaml`, `local/protea.yaml`); in deploy configs set the var on both workloads.
+
 | Variable | Description | Secret | Notes |
 |---|---|---|---|
-| `PLAID_ENABLED` | Enables Plaid POC integration, runtime config validation, and `/plaid/*` HTTP routes | No | Default: `false`. Local POC: `true`; all deployed environments: `false` until POC promoted |
+| `PLAID_ENABLED` | Backend: enables Plaid POC integration, runtime config validation, and `/plaid/*` HTTP routes. Protea: selects the US bank-link flow (Plaid vs manual). Must match across both services. | No | Default: `false`. Local POC: `true`; all deployed environments: `false` until POC promoted |
 | `PLAID_CLIENT_ID` | Plaid API client ID from the Plaid dashboard | Yes | Local POC: developer's sandbox client ID (1Password / personal); not set in deployed environments |
 | `PLAID_SECRET` | Plaid API secret matching the chosen `PLAID_ENV` | Yes | Local POC: developer's sandbox secret; not set in deployed environments |
 | `PLAID_ENV` | Plaid environment selector (`sandbox` or `production`) | No | Local POC: `sandbox`; deployed: unset |

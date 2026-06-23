@@ -4,12 +4,16 @@ import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts } from '~/components'
 import { usePlaidLinkFlow } from '~/components/Plaid/usePlaidLinkFlow'
 import { getFeatures } from '~/data/wallet.server'
+import { envBool } from '~/env.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
 import type { Route } from './+types/connect_.bank'
 
 export async function loader({ request }: Route.LoaderArgs) {
+  // Gate 0: Plaid must be the active bank-link path; otherwise this page is dead.
+  if (!envBool('PLAID_ENABLED')) throw redirect(href('/'))
+
   // Gate 1: bank linking must be enabled (same flag as the Home card).
   const features = await getFeatures(request)
   if (!features.banksEnabled) throw redirect(href('/'))
