@@ -1,15 +1,15 @@
 package client
 
 import (
-	"gitlab.com/fynbos/backend/analytics"
-	analytics_client "gitlab.com/fynbos/backend/analytics/client"
-	"gitlab.com/fynbos/backend/keys"
+	"github.com/interledger/interledger-app/go/backend/analytics"
+	analytics_client "github.com/interledger/interledger-app/go/backend/analytics/client"
+	"github.com/interledger/interledger-app/go/backend/keys"
 	"testing"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/interledger/interledger-app/go/backend/user/ops"
 	"github.com/jmoiron/sqlx"
 	kratos "github.com/ory/kratos-client-go"
-	"gitlab.com/fynbos/backend/user/ops"
 )
 
 type Backends interface {

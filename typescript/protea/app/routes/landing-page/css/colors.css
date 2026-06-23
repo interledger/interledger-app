@@ -134,13 +134,17 @@
   --feature-screen-3-bg: var(--color-ocean-100);
   --feature-screen-4-bg: var(--color-orchid-100);
 
+  /* Only the dark panels override the text color to white; the light panels
+     (aqua-mint, rose-mint) keep dark text via the --color-neutral-900 fallback
+     in .feature-heading/.feature-body. Ratios: white/ocean 11.5, white/orchid 6.7. */
+  --feature-screen-3-fg: var(--color-white);
+  --feature-screen-4-fg: var(--color-white);
+
   --nav-bg: rgba(255, 255, 255, 0.72);
   --nav-text: var(--color-neutral-150);
   --nav-overlay-bg: rgba(248, 248, 248, 0.97);
   --nav-overlay-text: var(--color-neutral-150);
   --nav-overlay-border: rgba(0, 0, 0, 0.08);
-  --nav-mobile-link-color: #c9c9c9;
-
   --color-footer-link: #c9c9c9;
 }
 
@@ -154,10 +158,16 @@
     --color-neutral-900: #ffffff;
 
     --main-screen-1-bg: var(--color-aqua-mint-100);
-    --feature-screen-1-bg: var(--color-deep-teal-100);
-    --feature-screen-2-bg: var(--color-periwikinle-100);
+    /* Deepened from the -100 tints: white text on the -100s only reached
+       ~3.7/4.4:1; the -150 tints lift it over the 4.5:1 AA threshold. */
+    --feature-screen-1-bg: var(--color-deep-teal-150);
+    --feature-screen-2-bg: var(--color-periwikinle-150);
     --feature-screen-3-bg: var(--color-ocean-100);
     --feature-screen-4-bg: var(--color-royal-purple-100);
+    /* Every feature background is dark here, so all panels resolve to white:
+       the light panels via the neutral-900 fallback (white in dark mode), the
+       dark panels via --feature-screen-3/4-fg above. Ratios all ≥5:1
+       (deep-teal-150 5.2, periwinkle-150 5.3, ocean 11.5, royal-purple 13.1). */
 
     --section-bg-other-features: var(--color-ocean-100);
 

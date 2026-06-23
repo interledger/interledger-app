@@ -321,6 +321,38 @@ proto3.util.setEnumType(CardOperation, "backend.v1.CardOperation", [
 ]);
 
 /**
+ * @generated from enum backend.v1.AccountDeletionRequestStatus
+ */
+export enum AccountDeletionRequestStatus {
+  /**
+   * @generated from enum value: ACCOUNT_DELETION_REQUEST_STATUS_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: ACCOUNT_DELETION_REQUEST_STATUS_PENDING = 1;
+   */
+  PENDING = 1,
+
+  /**
+   * @generated from enum value: ACCOUNT_DELETION_REQUEST_STATUS_IN_PROGRESS = 2;
+   */
+  IN_PROGRESS = 2,
+
+  /**
+   * @generated from enum value: ACCOUNT_DELETION_REQUEST_STATUS_COMPLETED = 3;
+   */
+  COMPLETED = 3,
+}
+// Retrieve enum metadata with: proto3.getEnumType(AccountDeletionRequestStatus)
+proto3.util.setEnumType(AccountDeletionRequestStatus, "backend.v1.AccountDeletionRequestStatus", [
+  { no: 0, name: "ACCOUNT_DELETION_REQUEST_STATUS_UNSPECIFIED" },
+  { no: 1, name: "ACCOUNT_DELETION_REQUEST_STATUS_PENDING" },
+  { no: 2, name: "ACCOUNT_DELETION_REQUEST_STATUS_IN_PROGRESS" },
+  { no: 3, name: "ACCOUNT_DELETION_REQUEST_STATUS_COMPLETED" },
+]);
+
+/**
  * @generated from message backend.v1.PaginationRequest
  */
 export class PaginationRequest extends Message<PaginationRequest> {
@@ -391,6 +423,37 @@ export class Empty extends Message<Empty> {
 
   static equals(a: Empty | PlainMessage<Empty> | undefined, b: Empty | PlainMessage<Empty> | undefined): boolean {
     return proto3.util.equals(Empty, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.RequestAccountDeletionRequest
+ */
+export class RequestAccountDeletionRequest extends Message<RequestAccountDeletionRequest> {
+  constructor(data?: PartialMessage<RequestAccountDeletionRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.RequestAccountDeletionRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RequestAccountDeletionRequest {
+    return new RequestAccountDeletionRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): RequestAccountDeletionRequest {
+    return new RequestAccountDeletionRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): RequestAccountDeletionRequest {
+    return new RequestAccountDeletionRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: RequestAccountDeletionRequest | PlainMessage<RequestAccountDeletionRequest> | undefined, b: RequestAccountDeletionRequest | PlainMessage<RequestAccountDeletionRequest> | undefined): boolean {
+    return proto3.util.equals(RequestAccountDeletionRequest, a, b);
   }
 }
 
@@ -3533,6 +3596,21 @@ export class Transaction extends Message<Transaction> {
    */
   formattedTargetAmount?: string;
 
+  /**
+   * @generated from field: optional string recipientIban = 30;
+   */
+  recipientIban?: string;
+
+  /**
+   * @generated from field: optional string recipientName = 31;
+   */
+  recipientName?: string;
+
+  /**
+   * @generated from field: optional string paymentChannel = 32;
+   */
+  paymentChannel?: string;
+
   constructor(data?: PartialMessage<Transaction>) {
     super();
     proto3.util.initPartial(data, this);
@@ -3569,6 +3647,9 @@ export class Transaction extends Message<Transaction> {
     { no: 27, name: "exchangeRateSurcharge", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
     { no: 28, name: "targetAmount", kind: "message", T: Amount, opt: true },
     { no: 29, name: "formattedTargetAmount", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 30, name: "recipientIban", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 31, name: "recipientName", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 32, name: "paymentChannel", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Transaction {
@@ -4635,6 +4716,11 @@ export class Features extends Message<Features> {
    */
   accountsTabEnabled = false;
 
+  /**
+   * @generated from field: bool deleteAccountEnabled = 14;
+   */
+  deleteAccountEnabled = false;
+
   constructor(data?: PartialMessage<Features>) {
     super();
     proto3.util.initPartial(data, this);
@@ -4656,6 +4742,7 @@ export class Features extends Message<Features> {
     { no: 11, name: "manageWalletCardsEnabled", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 12, name: "accountEnabled", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 13, name: "accountsTabEnabled", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 14, name: "deleteAccountEnabled", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Features {
@@ -5876,6 +5963,55 @@ export class Signup extends Message<Signup> {
 
   static equals(a: Signup | PlainMessage<Signup> | undefined, b: Signup | PlainMessage<Signup> | undefined): boolean {
     return proto3.util.equals(Signup, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.AccountDeletionStatus
+ */
+export class AccountDeletionStatus extends Message<AccountDeletionStatus> {
+  /**
+   * @generated from field: backend.v1.AccountDeletionRequestStatus status = 1;
+   */
+  status = AccountDeletionRequestStatus.UNSPECIFIED;
+
+  /**
+   * @generated from field: optional google.protobuf.Timestamp created_at = 2;
+   */
+  createdAt?: Timestamp;
+
+  /**
+   * @generated from field: optional google.protobuf.Timestamp updated_at = 3;
+   */
+  updatedAt?: Timestamp;
+
+  constructor(data?: PartialMessage<AccountDeletionStatus>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.AccountDeletionStatus";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "status", kind: "enum", T: proto3.getEnumType(AccountDeletionRequestStatus) },
+    { no: 2, name: "created_at", kind: "message", T: Timestamp, opt: true },
+    { no: 3, name: "updated_at", kind: "message", T: Timestamp, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AccountDeletionStatus {
+    return new AccountDeletionStatus().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): AccountDeletionStatus {
+    return new AccountDeletionStatus().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): AccountDeletionStatus {
+    return new AccountDeletionStatus().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: AccountDeletionStatus | PlainMessage<AccountDeletionStatus> | undefined, b: AccountDeletionStatus | PlainMessage<AccountDeletionStatus> | undefined): boolean {
+    return proto3.util.equals(AccountDeletionStatus, a, b);
   }
 }
 

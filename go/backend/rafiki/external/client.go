@@ -8,12 +8,12 @@ import (
 	"sync"
 
 	"github.com/Khan/genqlient/graphql"
-	"gitlab.com/fynbos/backend/country"
-	"gitlab.com/fynbos/backend/keys"
-	"gitlab.com/fynbos/backend/rafiki"
-	"gitlab.com/fynbos/backend/slack"
-	"gitlab.com/fynbos/backend/wallets"
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/backend/country"
+	"github.com/interledger/interledger-app/go/backend/keys"
+	"github.com/interledger/interledger-app/go/backend/rafiki"
+	"github.com/interledger/interledger-app/go/backend/slack"
+	"github.com/interledger/interledger-app/go/backend/wallets"
+	"github.com/interledger/interledger-app/go/log"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.uber.org/zap"
 )

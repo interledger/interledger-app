@@ -3,22 +3,22 @@ package temporal
 import (
 	"fmt"
 
+	"github.com/interledger/interledger-app/go/log"
 	"github.com/lestrrat-go/jwx/v3/jwk"
-	"gitlab.com/fynbos/log"
 
-	"gitlab.com/fynbos/backend/identities/platforms"
-	"gitlab.com/fynbos/backend/jobs"
-	kyc_workflows "gitlab.com/fynbos/backend/kyc/ops"
-	payments_workflows "gitlab.com/fynbos/backend/payments/ops"
-	chimoney_workflows "gitlab.com/fynbos/backend/providers/chimoney/ops"
-	"gitlab.com/fynbos/backend/providers/gatehub"
-	gatehub_workflows "gitlab.com/fynbos/backend/providers/gatehub/ops"
-	pti_workflows "gitlab.com/fynbos/backend/providers/pti/ops"
-	xago_external "gitlab.com/fynbos/backend/providers/xago/external"
-	xago_workflows "gitlab.com/fynbos/backend/providers/xago/ops"
-	rafiki_workflows "gitlab.com/fynbos/backend/rafiki/ops"
-	"gitlab.com/fynbos/backend/slack"
-	twitter_workflows "gitlab.com/fynbos/backend/twitter/workflows"
+	"github.com/interledger/interledger-app/go/backend/identities/platforms"
+	"github.com/interledger/interledger-app/go/backend/jobs"
+	kyc_workflows "github.com/interledger/interledger-app/go/backend/kyc/ops"
+	payments_workflows "github.com/interledger/interledger-app/go/backend/payments/ops"
+	chimoney_workflows "github.com/interledger/interledger-app/go/backend/providers/chimoney/ops"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
+	gatehub_workflows "github.com/interledger/interledger-app/go/backend/providers/gatehub/ops"
+	pti_workflows "github.com/interledger/interledger-app/go/backend/providers/pti/ops"
+	xago_external "github.com/interledger/interledger-app/go/backend/providers/xago/external"
+	xago_workflows "github.com/interledger/interledger-app/go/backend/providers/xago/ops"
+	rafiki_workflows "github.com/interledger/interledger-app/go/backend/rafiki/ops"
+	"github.com/interledger/interledger-app/go/backend/slack"
+	twitter_workflows "github.com/interledger/interledger-app/go/backend/twitter/workflows"
 	"go.temporal.io/sdk/worker"
 )
 
@@ -66,6 +66,7 @@ func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago
 	w.RegisterWorkflow(jobs.PtiDropOldDataWorkflow)
 	w.RegisterWorkflow(jobs.EnableSendVerificationEmailToUnverifiedUserJob)
 	w.RegisterWorkflow(jobs.UpdateGateHubOrganizationConfig)
+	w.RegisterWorkflow(jobs.NotifyAgreementChangedWorkflow)
 	w.RegisterWorkflow(jobs.DisabledAccountsTabWorkflow)
 
 	// Payment Engine
@@ -133,6 +134,7 @@ func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago
 	w.RegisterWorkflow(gatehub_workflows.GatehubClearingCardTransactionsPollWorkflow)
 	w.RegisterWorkflow(gatehub_workflows.GatehubRealtimeCardTransactionsPollWorkflow)
 	w.RegisterWorkflow(gatehub_workflows.NotifyWithdrawalSCTITimeoutWorkflow)
+	w.RegisterWorkflow(gatehub_workflows.NotifyWithdrawalReroutedWorkflow)
 
 	gatehub_workflows.StartClearingCardTransactionsPolling(b)
 	gatehub_workflows.StartRealtimeCardTransactionsPolling(b)

@@ -1,9 +1,9 @@
 package webhook
 
 import (
-	"gitlab.com/fynbos/backend/analytics"
-	"gitlab.com/fynbos/backend/user"
-	"gitlab.com/fynbos/backend/wallets"
+	"github.com/interledger/interledger-app/go/backend/analytics"
+	"github.com/interledger/interledger-app/go/backend/user"
+	"github.com/interledger/interledger-app/go/backend/wallets"
 )
 
 type Backends interface {

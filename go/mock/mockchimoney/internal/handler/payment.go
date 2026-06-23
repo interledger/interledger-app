@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"gitlab.com/fynbos/mock/mockchimoney/internal/models"
-	"gitlab.com/fynbos/mock/mockchimoney/internal/storage"
-	"gitlab.com/fynbos/mock/mockchimoney/web"
+	"github.com/interledger/interledger-app/go/mock/mockchimoney/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockchimoney/internal/storage"
+	"github.com/interledger/interledger-app/go/mock/mockchimoney/web"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"

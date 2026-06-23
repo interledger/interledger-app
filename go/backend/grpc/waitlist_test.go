@@ -7,8 +7,8 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/golang/mock/gomock"
+	pb "github.com/interledger/interledger-app/go/proto/backend/v1"
 	"github.com/stretchr/testify/assert"
-	pb "gitlab.com/fynbos/proto/backend/v1"
 )
 
 func TestJoinWaitlist(t *testing.T) {

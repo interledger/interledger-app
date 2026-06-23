@@ -5,65 +5,66 @@ import (
 	"net"
 	"testing"
 
-	"gitlab.com/fynbos/backend/providers/chimoney"
+	"github.com/interledger/interledger-app/go/backend/providers/chimoney"
 
-	"gitlab.com/fynbos/backend/providers/gatehub"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
 
-	pti "gitlab.com/fynbos/backend/providers/pti"
-	"gitlab.com/fynbos/backend/providers/xago"
+	pti "github.com/interledger/interledger-app/go/backend/providers/pti"
+	"github.com/interledger/interledger-app/go/backend/providers/xago"
 
-	"gitlab.com/fynbos/backend/rafiki"
+	"github.com/interledger/interledger-app/go/backend/rafiki"
 
-	"gitlab.com/fynbos/backend/payments"
-	"gitlab.com/fynbos/backend/slack"
+	"github.com/interledger/interledger-app/go/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/slack"
 
-	"gitlab.com/fynbos/backend/features"
-	"gitlab.com/fynbos/backend/twitter"
-	"gitlab.com/fynbos/backend/wallets"
-	wallets_mock "gitlab.com/fynbos/backend/wallets/client/mock"
+	"github.com/interledger/interledger-app/go/backend/features"
+	"github.com/interledger/interledger-app/go/backend/twitter"
+	"github.com/interledger/interledger-app/go/backend/wallets"
+	wallets_mock "github.com/interledger/interledger-app/go/backend/wallets/client/mock"
 
-	"gitlab.com/fynbos/backend/contacts"
-	contacts_mock "gitlab.com/fynbos/backend/contacts/client/mock"
-	"gitlab.com/fynbos/backend/identities"
-	"gitlab.com/fynbos/backend/keys"
-	keys_mock "gitlab.com/fynbos/backend/keys/client/mock"
+	"github.com/interledger/interledger-app/go/backend/contacts"
+	contacts_mock "github.com/interledger/interledger-app/go/backend/contacts/client/mock"
+	"github.com/interledger/interledger-app/go/backend/identities"
+	"github.com/interledger/interledger-app/go/backend/keys"
+	keys_mock "github.com/interledger/interledger-app/go/backend/keys/client/mock"
 
-	"gitlab.com/fynbos/backend/limits"
-	limit_mock "gitlab.com/fynbos/backend/limits/client/mock"
+	"github.com/interledger/interledger-app/go/backend/limits"
+	limit_mock "github.com/interledger/interledger-app/go/backend/limits/client/mock"
 
-	"gitlab.com/fynbos/backend/analytics"
-	analytics_client "gitlab.com/fynbos/backend/analytics/client"
+	"github.com/interledger/interledger-app/go/backend/analytics"
+	analytics_client "github.com/interledger/interledger-app/go/backend/analytics/client"
 
-	"gitlab.com/fynbos/backend/email"
-	"gitlab.com/fynbos/backend/transactions"
+	"github.com/interledger/interledger-app/go/backend/email"
+	"github.com/interledger/interledger-app/go/backend/transactions"
 
-	"gitlab.com/fynbos/backend/kyc"
+	"github.com/interledger/interledger-app/go/backend/kyc"
 
 	"github.com/jmoiron/sqlx"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/golang/mock/gomock"
-	"gitlab.com/fynbos/backend/admin/auth"
-	"gitlab.com/fynbos/backend/agreements"
-	agreements_mock "gitlab.com/fynbos/backend/agreements/client/mock"
-	email_mock "gitlab.com/fynbos/backend/email/client/mock"
-	"gitlab.com/fynbos/backend/healthcheck"
-	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	linked_accounts_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
-	rafiki_mock "gitlab.com/fynbos/backend/rafiki/client/mock"
-	"gitlab.com/fynbos/backend/signup"
-	signup_mock "gitlab.com/fynbos/backend/signup/client/mock"
-	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
-	"gitlab.com/fynbos/backend/twilio"
-	twitter_mock "gitlab.com/fynbos/backend/twitter/client/mock"
-	"gitlab.com/fynbos/backend/user"
-	_user "gitlab.com/fynbos/backend/user"
-	user_mock "gitlab.com/fynbos/backend/user/client/mock"
-	test_utils "gitlab.com/fynbos/backend/utils"
-	"gitlab.com/fynbos/backend/waitlist"
-	waitlist_mock "gitlab.com/fynbos/backend/waitlist/client/mock"
-	backendv1 "gitlab.com/fynbos/proto/backend/v1"
+	"github.com/interledger/interledger-app/go/backend/accountdeletion"
+	accountdeletion_mock "github.com/interledger/interledger-app/go/backend/accountdeletion/client/mock"
+	"github.com/interledger/interledger-app/go/backend/admin/auth"
+	"github.com/interledger/interledger-app/go/backend/agreements"
+	agreements_mock "github.com/interledger/interledger-app/go/backend/agreements/client/mock"
+	email_mock "github.com/interledger/interledger-app/go/backend/email/client/mock"
+	"github.com/interledger/interledger-app/go/backend/healthcheck"
+	kyc_mock "github.com/interledger/interledger-app/go/backend/kyc/client/mock"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	linked_accounts_mock "github.com/interledger/interledger-app/go/backend/linkedaccounts/client/mock"
+	rafiki_mock "github.com/interledger/interledger-app/go/backend/rafiki/client/mock"
+	"github.com/interledger/interledger-app/go/backend/signup"
+	signup_mock "github.com/interledger/interledger-app/go/backend/signup/client/mock"
+	transactions_mock "github.com/interledger/interledger-app/go/backend/transactions/client/mock"
+	"github.com/interledger/interledger-app/go/backend/twilio"
+	twitter_mock "github.com/interledger/interledger-app/go/backend/twitter/client/mock"
+	_user "github.com/interledger/interledger-app/go/backend/user"
+	user_mock "github.com/interledger/interledger-app/go/backend/user/client/mock"
+	test_utils "github.com/interledger/interledger-app/go/backend/utils"
+	"github.com/interledger/interledger-app/go/backend/waitlist"
+	waitlist_mock "github.com/interledger/interledger-app/go/backend/waitlist/client/mock"
+	backendv1 "github.com/interledger/interledger-app/go/proto/backend/v1"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/mocks"
 	"google.golang.org/grpc"
@@ -71,25 +72,26 @@ import (
 )
 
 type TestContainer struct {
-	HealthService      healthcheck.Service
-	AgreementsService  *agreements_mock.MockClient
-	AdminAuthService   auth.Service
-	UserService        user.Client
-	linkedaccounts     *linked_accounts_mock.MockClient
-	TwilioService      *twilio.MockService
-	SignupService      *signup_mock.MockClient
-	WaitlistClient     *waitlist_mock.MockClient
-	TemporalImpl       *mocks.Client
-	KYCClient          *kyc_mock.MockClient
-	EmailClient        *email_mock.MockClient
-	TransactionsClient *transactions_mock.MockClient
-	AnalyticsClient    analytics.Client
-	ContactsClient     *contacts_mock.MockClient
-	limits             *limit_mock.MockClient
-	keys               *keys_mock.MockClient
-	TwitterClient      *twitter_mock.MockClient
-	walletImpl         *wallets_mock.MockClient
-	rafiki             *rafiki_mock.MockClient
+	HealthService         healthcheck.Service
+	AgreementsService     *agreements_mock.MockClient
+	AdminAuthService      auth.Service
+	UserService           *user_mock.MockClient
+	linkedaccounts        *linked_accounts_mock.MockClient
+	TwilioService         *twilio.MockService
+	SignupService         *signup_mock.MockClient
+	WaitlistClient        *waitlist_mock.MockClient
+	TemporalImpl          *mocks.Client
+	KYCClient             *kyc_mock.MockClient
+	EmailClient           *email_mock.MockClient
+	TransactionsClient    *transactions_mock.MockClient
+	AnalyticsClient       analytics.Client
+	ContactsClient        *contacts_mock.MockClient
+	limits                *limit_mock.MockClient
+	keys                  *keys_mock.MockClient
+	TwitterClient         *twitter_mock.MockClient
+	walletImpl            *wallets_mock.MockClient
+	rafiki                *rafiki_mock.MockClient
+	AccountDeletionClient *accountdeletion_mock.MockClient
 }
 
 func (t TestContainer) Xago() xago.Client {
@@ -208,6 +210,10 @@ func (t TestContainer) Chimoney() chimoney.Client {
 	return nil
 }
 
+func (t TestContainer) AccountDeletion() accountdeletion.Client {
+	return t.AccountDeletionClient
+}
+
 type TestContainerOption func(*TestContainer)
 
 func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContainerOption) *TestContainer {
@@ -220,24 +226,26 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 		t.Fatal(err)
 	}
 	c := &TestContainer{
-		HealthService:      hs,
-		AgreementsService:  agreements_mock.NewMockClient(ctrl),
-		AdminAuthService:   auth.NewMockService(),
-		UserService:        user_mock.NewMock(),
-		linkedaccounts:     linked_accounts_mock.NewMockClient(ctrl),
-		TwilioService:      twilio.NewMockService(ctrl),
-		SignupService:      signup_mock.NewMockClient(ctrl),
-		WaitlistClient:     waitlist_mock.NewMockClient(ctrl),
-		TemporalImpl:       &mocks.Client{},
-		KYCClient:          kyc_mock.NewMockClient(ctrl),
-		TransactionsClient: transactions_mock.NewMockClient(ctrl),
-		AnalyticsClient:    analytics_client.New(nil, ""),
-		ContactsClient:     contacts_mock.NewMockClient(ctrl),
-		limits:             limit_mock.NewMockClient(ctrl),
-		keys:               keys_mock.NewMockClient(ctrl),
-		TwitterClient:      twitter_mock.NewMockClient(ctrl),
-		walletImpl:         wallets_mock.NewMockClient(ctrl),
-		rafiki:             rafiki_mock.NewMockClient(ctrl),
+		HealthService:         hs,
+		AgreementsService:     agreements_mock.NewMockClient(ctrl),
+		AdminAuthService:      auth.NewMockService(),
+		UserService:           user_mock.NewMock(),
+		linkedaccounts:        linked_accounts_mock.NewMockClient(ctrl),
+		TwilioService:         twilio.NewMockService(ctrl),
+		SignupService:         signup_mock.NewMockClient(ctrl),
+		WaitlistClient:        waitlist_mock.NewMockClient(ctrl),
+		TemporalImpl:          &mocks.Client{},
+		KYCClient:             kyc_mock.NewMockClient(ctrl),
+		EmailClient:           email_mock.NewMockClient(ctrl),
+		TransactionsClient:    transactions_mock.NewMockClient(ctrl),
+		AnalyticsClient:       analytics_client.New(nil, ""),
+		ContactsClient:        contacts_mock.NewMockClient(ctrl),
+		limits:                limit_mock.NewMockClient(ctrl),
+		keys:                  keys_mock.NewMockClient(ctrl),
+		TwitterClient:         twitter_mock.NewMockClient(ctrl),
+		walletImpl:            wallets_mock.NewMockClient(ctrl),
+		rafiki:                rafiki_mock.NewMockClient(ctrl),
+		AccountDeletionClient: accountdeletion_mock.NewMockClient(ctrl),
 	}
 
 	for _, opt := range opts {

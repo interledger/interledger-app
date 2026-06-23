@@ -63,6 +63,10 @@ type E2EContext struct {
 	screenshotCount int    // Track number of screenshots taken in this scenario
 	screenshotDir   string // Per-scenario screenshot directory
 	totpSecret      string // TOTP secret for the current user
+
+	// Agreement-change workflow: ID of the agreement most recently published in
+	// this scenario; used by subsequent steps that trigger and assert the workflow.
+	pendingAgreementID string
 }
 
 // InitializeScenario sets up the scenario context
@@ -82,6 +86,14 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.After(func(goCtx context.Context, scenario *godog.Scenario, err error) (context.Context, error) {
 		if sc == nil {
 			return goCtx, nil
+		}
+		// Delete any agreement row injected by aNewAgreementVersionIsPublished
+		// before closing the DB — otherwise the row leaks and re-fires the
+		// startup workflow trigger on every backend restart.
+		if sc.pendingAgreementID != "" && sc.db != nil {
+			if cleanupErr := sc.cleanupTestAgreement(sc.pendingAgreementID); cleanupErr != nil {
+				debugPrintf("   ⚠️  cleanupTestAgreement(%s) failed: %v\n", sc.pendingAgreementID, cleanupErr)
+			}
 		}
 		// Cleanup in reverse order
 		if sc.page != nil {
@@ -550,6 +562,69 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	})
 	ctx.Step(`^an authenticator reset audit log entry should exist$`, func() error {
 		return sc.anAuthenticatorResetAuditLogEntryShouldExist()
+	})
+
+	// Agreements
+	ctx.Step(`^an agreement signature should exist for myself for "([^"]*)"$`, func(agreementID string) error {
+		return sc.anAgreementSignatureShouldExistForMyselfFor(agreementID)
+	})
+	ctx.Step(`^a new "([^"]*)" agreement version "([^"]*)" is published$`, func(name, version string) error {
+		return sc.aNewAgreementVersionIsPublished(name, version)
+	})
+	ctx.Step(`^the agreement change notification workflow runs$`, func() error {
+		return sc.theAgreementChangeNotificationWorkflowRuns()
+	})
+	ctx.Step(`^I should be marked notified for the new agreement$`, func() error {
+		return sc.iShouldBeMarkedNotifiedForTheNewAgreement()
+	})
+
+	// Account deletion steps
+	ctx.Step(`^the delete-account feature is enabled for my wallet$`, func() error {
+		return sc.iEnableDeleteAccountFeatureForMyWallet()
+	})
+	ctx.Step(`^an account-deletion request exists for me with status "([^"]*)"$`, func(status string) error {
+		return sc.aPendingAccountDeletionRequestExistsForMeWithStatus(status)
+	})
+	ctx.Step(`^the "Delete account" settings link should be visible$`, func() error {
+		return sc.theDeleteAccountSettingsLinkShouldBeVisible()
+	})
+	ctx.Step(`^the "Delete account" settings link should not be visible$`, func() error {
+		return sc.theDeleteAccountSettingsLinkShouldNotBeVisible()
+	})
+	ctx.Step(`^I click the destructive "Delete account" button$`, func() error {
+		return sc.iClickTheDestructiveDeleteAccountButton()
+	})
+	ctx.Step(`^I complete the TOTP step-up challenge$`, func() error {
+		return sc.iCompleteTheTOTPStepUpChallenge()
+	})
+	ctx.Step(`^the pending account-deletion indicator should be visible$`, func() error {
+		return sc.thePendingAccountDeletionIndicatorShouldBeVisible()
+	})
+	ctx.Step(`^the in-progress account-deletion indicator should be visible$`, func() error {
+		return sc.theInProgressAccountDeletionIndicatorShouldBeVisible()
+	})
+	ctx.Step(`^an account-deletion request should exist for me with status "([^"]*)"$`, func(status string) error {
+		return sc.anAccountDeletionRequestShouldExistForMeWithStatus(status)
+	})
+	ctx.Step(`^no account-deletion request should exist for me$`, func() error {
+		return sc.noAccountDeletionRequestShouldExistForMe()
+	})
+	ctx.Step(`^my TOTP enrollment is removed$`, func() error {
+		return sc.myTOTPEnrollmentIsRemoved()
+	})
+	ctx.Step(`^the TOTP step-up popup should not appear$`, func() error {
+		return sc.theTOTPStepUpPopupShouldNotAppear()
+	})
+
+	// Botanist feature toggle steps
+	ctx.Step(`^the "([^"]*)" feature toggle should be (on|off)$`, func(key, state string) error {
+		return sc.theFeatureToggleShouldBe(key, state)
+	})
+	ctx.Step(`^I toggle the "([^"]*)" feature on$`, func(key string) error {
+		return sc.iToggleTheFeatureOn(key)
+	})
+	ctx.Step(`^the "([^"]*)" feature should be enabled in the database for my wallet$`, func(key string) error {
+		return sc.theFeatureShouldBeEnabledInTheDatabase(key)
 	})
 }
 

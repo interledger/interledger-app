@@ -16,10 +16,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"gitlab.com/fynbos/mock/mockxago/internal/logger"
-	"gitlab.com/fynbos/mock/mockxago/internal/models"
-	"gitlab.com/fynbos/mock/mockxago/internal/storage"
-	"gitlab.com/fynbos/mock/mockxago/web"
+	"github.com/interledger/interledger-app/go/mock/mockxago/internal/logger"
+	"github.com/interledger/interledger-app/go/mock/mockxago/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockxago/internal/storage"
+	"github.com/interledger/interledger-app/go/mock/mockxago/web"
 )
 
 // KYCIframe serves the KYC verification iframe

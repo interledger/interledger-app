@@ -12,11 +12,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/interledger/interledger-app/go/mock/mockxago/internal/jobs"
+	"github.com/interledger/interledger-app/go/mock/mockxago/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockxago/internal/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/mock/mockxago/internal/jobs"
-	"gitlab.com/fynbos/mock/mockxago/internal/models"
-	"gitlab.com/fynbos/mock/mockxago/internal/storage"
 )
 
 func TestSimulateTestDeposit(t *testing.T) {

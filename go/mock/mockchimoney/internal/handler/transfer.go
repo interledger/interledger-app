@@ -5,7 +5,7 @@ import (
 	"errors"
 	"net/http"
 
-	"gitlab.com/fynbos/mock/mockchimoney/internal/storage"
+	"github.com/interledger/interledger-app/go/mock/mockchimoney/internal/storage"
 )
 
 type transferRequest struct {

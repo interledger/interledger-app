@@ -2,12 +2,16 @@ package main
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"net"
 	"net/http"
 	"os"
 	"os/signal"
+	"sort"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -15,100 +19,103 @@ import (
 	"github.com/getsentry/sentry-go"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
+	aasa_assetlinks "github.com/interledger/interledger-app/go/backend/aasa_assetlinks"
+	"github.com/interledger/interledger-app/go/backend/accountdeletion"
+	accountdeletion_client "github.com/interledger/interledger-app/go/backend/accountdeletion/client"
+	"github.com/interledger/interledger-app/go/backend/admin"
+	"github.com/interledger/interledger-app/go/backend/admin/auth"
+	"github.com/interledger/interledger-app/go/backend/agreements"
+	agreements_client "github.com/interledger/interledger-app/go/backend/agreements/client"
+	agreements_migrations "github.com/interledger/interledger-app/go/backend/agreements/migrations"
+	"github.com/interledger/interledger-app/go/backend/analytics"
+	analytics_client "github.com/interledger/interledger-app/go/backend/analytics/client"
+	analytics_webhook "github.com/interledger/interledger-app/go/backend/analytics/webhook"
+	"github.com/interledger/interledger-app/go/backend/api"
+	"github.com/interledger/interledger-app/go/backend/cli"
+	"github.com/interledger/interledger-app/go/backend/contacts"
+	contacts_client "github.com/interledger/interledger-app/go/backend/contacts/client"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/db"
+	"github.com/interledger/interledger-app/go/backend/jobs"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/riandyrn/otelchi"
 	"github.com/uptrace/opentelemetry-go-extra/otelsql"
 	"github.com/uptrace/opentelemetry-go-extra/otelsqlx"
-	aasa_assetlinks "gitlab.com/fynbos/backend/aasa_assetlinks"
-	"gitlab.com/fynbos/backend/admin"
-	"gitlab.com/fynbos/backend/admin/auth"
-	"gitlab.com/fynbos/backend/agreements"
-	agreements_client "gitlab.com/fynbos/backend/agreements/client"
-	agreements_migrations "gitlab.com/fynbos/backend/agreements/migrations"
-	"gitlab.com/fynbos/backend/analytics"
-	analytics_client "gitlab.com/fynbos/backend/analytics/client"
-	analytics_webhook "gitlab.com/fynbos/backend/analytics/webhook"
-	"gitlab.com/fynbos/backend/api"
-	"gitlab.com/fynbos/backend/cli"
-	"gitlab.com/fynbos/backend/contacts"
-	contacts_client "gitlab.com/fynbos/backend/contacts/client"
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/jobs"
 
-	"gitlab.com/fynbos/backend/email"
-	email_client "gitlab.com/fynbos/backend/email/client"
-	"gitlab.com/fynbos/backend/features"
-	features_client "gitlab.com/fynbos/backend/features/client"
-	_grpc "gitlab.com/fynbos/backend/grpc"
-	"gitlab.com/fynbos/backend/healthcheck"
-	"gitlab.com/fynbos/backend/identities"
-	identities_client "gitlab.com/fynbos/backend/identities/client"
-	"gitlab.com/fynbos/backend/images"
-	img_client "gitlab.com/fynbos/backend/images/client"
-	"gitlab.com/fynbos/backend/keys"
-	keys_client "gitlab.com/fynbos/backend/keys/client"
-	"gitlab.com/fynbos/backend/kyc"
-	kyc_client "gitlab.com/fynbos/backend/kyc/client"
-	kyc_ops "gitlab.com/fynbos/backend/kyc/ops"
-	"gitlab.com/fynbos/backend/kyc/persona"
-	"gitlab.com/fynbos/backend/limits"
-	limits_client "gitlab.com/fynbos/backend/limits/client"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	linked_account_client "gitlab.com/fynbos/backend/linkedaccounts/client"
-	"gitlab.com/fynbos/backend/notify"
-	notify_client "gitlab.com/fynbos/backend/notify/client"
-	"gitlab.com/fynbos/backend/payments"
-	payments_client "gitlab.com/fynbos/backend/payments/client"
-	"gitlab.com/fynbos/backend/providers/chimoney"
-	chimoney_client "gitlab.com/fynbos/backend/providers/chimoney/client"
-	chimoney_ops "gitlab.com/fynbos/backend/providers/chimoney/ops"
-	"gitlab.com/fynbos/backend/providers/gatehub"
-	gatehub_client "gitlab.com/fynbos/backend/providers/gatehub/client"
-	gatehub_ops "gitlab.com/fynbos/backend/providers/gatehub/ops"
-	"gitlab.com/fynbos/backend/providers/pti"
-	pti_client "gitlab.com/fynbos/backend/providers/pti/client"
-	pti_ops "gitlab.com/fynbos/backend/providers/pti/ops"
-	"gitlab.com/fynbos/backend/providers/xago"
-	xago_client "gitlab.com/fynbos/backend/providers/xago/client"
-	xago_external "gitlab.com/fynbos/backend/providers/xago/external"
-	"gitlab.com/fynbos/backend/rafiki"
-	rafiki_client "gitlab.com/fynbos/backend/rafiki/client"
-	rafiki_external "gitlab.com/fynbos/backend/rafiki/external"
-	"gitlab.com/fynbos/backend/signup"
-	signup_client "gitlab.com/fynbos/backend/signup/client"
-	"gitlab.com/fynbos/backend/slack"
-	slack_client "gitlab.com/fynbos/backend/slack/client"
-	slack_external "gitlab.com/fynbos/backend/slack/external"
-	"gitlab.com/fynbos/backend/temporal"
-	"gitlab.com/fynbos/backend/transactions"
-	transactions_client "gitlab.com/fynbos/backend/transactions/client"
-	_twilio "gitlab.com/fynbos/backend/twilio"
-	"gitlab.com/fynbos/backend/twitter"
-	twitter_client "gitlab.com/fynbos/backend/twitter/client"
-	"gitlab.com/fynbos/backend/user"
-	user_client "gitlab.com/fynbos/backend/user/client"
-	"gitlab.com/fynbos/backend/vault"
-	"gitlab.com/fynbos/backend/waitlist"
-	waitlist_client "gitlab.com/fynbos/backend/waitlist/client"
-	"gitlab.com/fynbos/backend/wallets"
-	wallets_client "gitlab.com/fynbos/backend/wallets/client"
-	wallet_handler "gitlab.com/fynbos/backend/wallets/handler"
-	"gitlab.com/fynbos/log"
-	"gitlab.com/fynbos/pacioli"
-	pacioli_client "gitlab.com/fynbos/pacioli/client"
-	pacioli_db "gitlab.com/fynbos/pacioli/db"
-	"gitlab.com/fynbos/tracing"
+	"github.com/interledger/interledger-app/go/backend/email"
+	email_client "github.com/interledger/interledger-app/go/backend/email/client"
+	"github.com/interledger/interledger-app/go/backend/features"
+	features_client "github.com/interledger/interledger-app/go/backend/features/client"
+	_grpc "github.com/interledger/interledger-app/go/backend/grpc"
+	"github.com/interledger/interledger-app/go/backend/healthcheck"
+	"github.com/interledger/interledger-app/go/backend/identities"
+	identities_client "github.com/interledger/interledger-app/go/backend/identities/client"
+	"github.com/interledger/interledger-app/go/backend/images"
+	img_client "github.com/interledger/interledger-app/go/backend/images/client"
+	"github.com/interledger/interledger-app/go/backend/keys"
+	keys_client "github.com/interledger/interledger-app/go/backend/keys/client"
+	"github.com/interledger/interledger-app/go/backend/kyc"
+	kyc_client "github.com/interledger/interledger-app/go/backend/kyc/client"
+	kyc_ops "github.com/interledger/interledger-app/go/backend/kyc/ops"
+	"github.com/interledger/interledger-app/go/backend/kyc/persona"
+	"github.com/interledger/interledger-app/go/backend/limits"
+	limits_client "github.com/interledger/interledger-app/go/backend/limits/client"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	linked_account_client "github.com/interledger/interledger-app/go/backend/linkedaccounts/client"
+	"github.com/interledger/interledger-app/go/backend/notify"
+	notify_client "github.com/interledger/interledger-app/go/backend/notify/client"
+	"github.com/interledger/interledger-app/go/backend/payments"
+	payments_client "github.com/interledger/interledger-app/go/backend/payments/client"
+	"github.com/interledger/interledger-app/go/backend/providers/chimoney"
+	chimoney_client "github.com/interledger/interledger-app/go/backend/providers/chimoney/client"
+	chimoney_ops "github.com/interledger/interledger-app/go/backend/providers/chimoney/ops"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
+	gatehub_client "github.com/interledger/interledger-app/go/backend/providers/gatehub/client"
+	gatehub_ops "github.com/interledger/interledger-app/go/backend/providers/gatehub/ops"
+	"github.com/interledger/interledger-app/go/backend/providers/pti"
+	pti_client "github.com/interledger/interledger-app/go/backend/providers/pti/client"
+	pti_ops "github.com/interledger/interledger-app/go/backend/providers/pti/ops"
+	"github.com/interledger/interledger-app/go/backend/providers/xago"
+	xago_client "github.com/interledger/interledger-app/go/backend/providers/xago/client"
+	xago_external "github.com/interledger/interledger-app/go/backend/providers/xago/external"
+	"github.com/interledger/interledger-app/go/backend/rafiki"
+	rafiki_client "github.com/interledger/interledger-app/go/backend/rafiki/client"
+	rafiki_external "github.com/interledger/interledger-app/go/backend/rafiki/external"
+	"github.com/interledger/interledger-app/go/backend/signup"
+	signup_client "github.com/interledger/interledger-app/go/backend/signup/client"
+	"github.com/interledger/interledger-app/go/backend/slack"
+	slack_client "github.com/interledger/interledger-app/go/backend/slack/client"
+	slack_external "github.com/interledger/interledger-app/go/backend/slack/external"
+	"github.com/interledger/interledger-app/go/backend/temporal"
+	"github.com/interledger/interledger-app/go/backend/transactions"
+	transactions_client "github.com/interledger/interledger-app/go/backend/transactions/client"
+	_twilio "github.com/interledger/interledger-app/go/backend/twilio"
+	"github.com/interledger/interledger-app/go/backend/twitter"
+	twitter_client "github.com/interledger/interledger-app/go/backend/twitter/client"
+	"github.com/interledger/interledger-app/go/backend/user"
+	user_client "github.com/interledger/interledger-app/go/backend/user/client"
+	"github.com/interledger/interledger-app/go/backend/vault"
+	"github.com/interledger/interledger-app/go/backend/waitlist"
+	waitlist_client "github.com/interledger/interledger-app/go/backend/waitlist/client"
+	"github.com/interledger/interledger-app/go/backend/wallets"
+	wallets_client "github.com/interledger/interledger-app/go/backend/wallets/client"
+	wallet_handler "github.com/interledger/interledger-app/go/backend/wallets/handler"
+	"github.com/interledger/interledger-app/go/log"
+	"github.com/interledger/interledger-app/go/pacioli"
+	pacioli_client "github.com/interledger/interledger-app/go/pacioli/client"
+	pacioli_db "github.com/interledger/interledger-app/go/pacioli/db"
+	"github.com/interledger/interledger-app/go/tracing"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
+	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 
 	// bradu
+	fiant "github.com/interledger/interledger-app/go/backend/providers/fiant/v1"
 	"github.com/lestrrat-go/jwx/v3/jwk"
-	fiant "gitlab.com/fynbos/backend/providers/fiant/v1"
 )
 
 func main() {
@@ -189,6 +196,24 @@ func start(args *cli.StartArgs) {
 
 	b := NewBackends(args, false)
 	defer CloseBackends(b)
+
+	// Atomically claim unnotified agreements
+	var newAgreementIDs []string
+	if err := b.DB().SelectContext(context.Background(), &newAgreementIDs, "UPDATE agreements SET notified = true WHERE notified = false RETURNING id"); err != nil {
+		log.Warn("failed to claim unnotified agreements", zap.Error(err))
+	} else if len(newAgreementIDs) > 0 {
+		deadlineDate := time.Now().UTC().Add(jobs.AgreementChangeDeadlineDays * 24 * time.Hour).Format("January 2, 2006")
+		sort.Strings(newAgreementIDs)
+		h := sha256.Sum256([]byte(strings.Join(newAgreementIDs, ",")))
+		wo := client.StartWorkflowOptions{
+			ID:                    "agreement_change_notify_" + hex.EncodeToString(h[:8]),
+			TaskQueue:             "backend",
+			WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_ALLOW_DUPLICATE_FAILED_ONLY,
+		}
+		if _, err := b.Temporal().ExecuteWorkflow(context.Background(), wo, jobs.NotifyAgreementChangedWorkflow, newAgreementIDs, deadlineDate, 0, nil, nil); err != nil {
+			log.Warn("failed to start agreement change notification workflow", zap.Error(err), zap.Strings("agreementIDs", newAgreementIDs))
+		}
+	}
 
 	router := chi.NewRouter()
 	router.Routes()
@@ -343,7 +368,7 @@ func migrate(args *cli.MigrationArgs) {
 		log.Fatalln(err)
 	}
 
-	err = agreements_migrations.MigrateFromEmbeddedMarkdowns(context.Background(), dbConn)
+	_, err = agreements_migrations.MigrateFromEmbeddedMarkdowns(context.Background(), dbConn)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -548,6 +573,8 @@ type backends struct {
 	gatehubConfig  gatehub.Config
 	chimoney       chimoney.Client
 	aasaConfig     aasa_assetlinks.Config
+
+	accountDeletion accountdeletion.Client
 }
 
 func (b backends) Chimoney() chimoney.Client {
@@ -682,6 +709,10 @@ func (b backends) PTI() pti.Client {
 	return b.pti
 }
 
+func (b backends) AccountDeletion() accountdeletion.Client {
+	return b.accountDeletion
+}
+
 func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	b := &backends{}
 
@@ -712,6 +743,8 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	b.linkedaccounts = linked_account_client.New(b)
 
 	b.signup = signup_client.New(b)
+
+	b.accountDeletion = accountdeletion_client.New(b)
 
 	b.waitlist = waitlist_client.New(b, log.Logger())
 
@@ -799,6 +832,7 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 		args.SendgridFromName,
 		args.SendgridFromEmail,
 		args.SendgridOneTemplateID,
+		args.SupportEmail,
 	)
 
 	log.Debug("initialising transactions")

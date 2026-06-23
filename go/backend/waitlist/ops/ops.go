@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 
-	"gitlab.com/fynbos/backend/waitlist"
+	"github.com/interledger/interledger-app/go/backend/waitlist"
 )
 
 func AddSignup(ctx context.Context, b Backends, email, country, fullName, mugID string, betaOptIn bool) error {

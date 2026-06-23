@@ -3,13 +3,13 @@ package client
 import (
 	"context"
 
-	"gitlab.com/fynbos/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/payments"
 
+	"github.com/interledger/interledger-app/go/backend/slack/external"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/fynbos/backend/slack/external"
 
-	"gitlab.com/fynbos/backend/slack"
-	"gitlab.com/fynbos/backend/slack/ops"
+	"github.com/interledger/interledger-app/go/backend/slack"
+	"github.com/interledger/interledger-app/go/backend/slack/ops"
 )
 
 type Backends interface {

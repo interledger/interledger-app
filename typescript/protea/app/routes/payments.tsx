@@ -59,7 +59,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   const pages = parseInt(url.searchParams.get('pages') || '1')
 
   const kycStatus = await getKycStatus(request)
-  let pageInfo = {
+  const pageInfo = {
     // pageToken is only set by fetcher so initial page loads this should be blank
     pageToken: url.searchParams.get('pageToken') || '',
     pageSize: 30
@@ -121,7 +121,7 @@ export const meta = mergeMeta(() => [
 
 export default function Page() {
   const initialPage = useLoaderData<typeof loader>()
-  let [, setSearchParams] = useSearchParams()
+  const [, setSearchParams] = useSearchParams()
   const fetcher = useFetcher<typeof loader>()
   const [transactions, setTransactions] = useState(initialPage.transactions)
   const [nextPageToken, setNextPageToken] = useState<string>(
@@ -395,7 +395,9 @@ export default function Page() {
                                 transaction.cardTransactionDetails
                               )
                             : transaction.type === 'sent' ||
-                                transaction.type === 'web_monetization_outgoing'
+                                transaction.type ===
+                                  'web_monetization_outgoing' ||
+                                transaction.type === 'withdrawal'
                               ? 'text-error'
                               : 'text-medium'
                         )}

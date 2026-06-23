@@ -6,7 +6,7 @@ import (
 	"math/big"
 	"strings"
 
-	geopbv1 "gitlab.com/fynbos/proto/geo/v1"
+	geopbv1 "github.com/interledger/interledger-app/go/proto/geo/v1"
 )
 
 // Currency represents a monetary unit with a specific Asset and amount.

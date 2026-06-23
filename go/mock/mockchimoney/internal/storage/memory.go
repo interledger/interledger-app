@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	"gitlab.com/fynbos/mock/mockchimoney/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockchimoney/internal/models"
 )
 
 // MemoryStore is an in-memory Store implementation guarded by a mutex.

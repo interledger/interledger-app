@@ -9,19 +9,19 @@ import (
 	"strings"
 	"time"
 
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/kyc"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/payments"
-	"gitlab.com/fynbos/backend/providers/gatehub"
-	"gitlab.com/fynbos/backend/providers/gatehub/external"
-	httplogger "gitlab.com/fynbos/backend/providers/http"
-	"gitlab.com/fynbos/backend/slack"
-	"gitlab.com/fynbos/backend/transactions"
-	"gitlab.com/fynbos/backend/wallets"
-	"gitlab.com/fynbos/env"
-	"gitlab.com/fynbos/log"
-	"gitlab.com/fynbos/pacioli"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/kyc"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	"github.com/interledger/interledger-app/go/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub/external"
+	httplogger "github.com/interledger/interledger-app/go/backend/providers/http"
+	"github.com/interledger/interledger-app/go/backend/slack"
+	"github.com/interledger/interledger-app/go/backend/transactions"
+	"github.com/interledger/interledger-app/go/backend/wallets"
+	"github.com/interledger/interledger-app/go/env"
+	"github.com/interledger/interledger-app/go/log"
+	"github.com/interledger/interledger-app/go/pacioli"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/temporal"
@@ -586,6 +586,11 @@ func (a *Activity) FinalizeGatehubWithdrawal(ctx context.Context, internalTxID s
 	return a.b.Transactions().SetTransactionState(ctx, internalTxID, transactions.StateCompleted)
 }
 
+func (a *Activity) SendWithdrawalSCTITimeoutEmail(ctx context.Context, txID, walletID, amount, name, iban, submittedAt string) error {
+	a.b.Email().SendSCTITimeoutEmail(ctx, txID, walletID, amount, name, iban, submittedAt)
+	return nil
+}
+
 func (a *Activity) RollbackGatehubWithdrawal(ctx context.Context, internalTxID string) error {
 	err := RollbackReserve(ctx, a.b, internalTxID)
 	if err != nil {
@@ -595,12 +600,12 @@ func (a *Activity) RollbackGatehubWithdrawal(ctx context.Context, internalTxID s
 	return a.b.Transactions().SetTransactionState(ctx, internalTxID, transactions.StateFailed)
 }
 
-func (a *Activity) SendWithdrawalSCTITimeoutEmail(ctx context.Context, txID, walletID, amount, name, iban, submittedAt string) error {
-	a.b.Email().SendSCTITimeoutEmail(ctx, txID, walletID, amount, name, iban, submittedAt)
+func (a *Activity) SendWithdrawalRejectedEmail(ctx context.Context, txID, walletID, amount, currency, iban, name string) error {
+	a.b.Email().SendGatehubWithdrawalRejectedEmail(ctx, txID, walletID, amount, currency, iban, name)
 	return nil
 }
 
-func (a *Activity) SendWithdrawalRejectedEmail(ctx context.Context, txID, walletID, amount, currency, iban, name string) error {
-	a.b.Email().SendGatehubWithdrawalRejectedEmail(ctx, txID, walletID, amount, currency, iban, name)
+func (a *Activity) SendWithdrawalReroutedEmail(ctx context.Context, txID, walletID string) error {
+	a.b.Email().SendSCTRerouteEmail(ctx, txID, walletID)
 	return nil
 }

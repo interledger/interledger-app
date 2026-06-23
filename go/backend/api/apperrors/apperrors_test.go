@@ -8,15 +8,15 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/interledger/interledger-app/go/backend/appcontext"
+	"github.com/interledger/interledger-app/go/backend/errcodes"
+	"github.com/interledger/interledger-app/go/backend/kyc"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
+	"github.com/interledger/interledger-app/go/backend/user"
+	"github.com/interledger/interledger-app/go/backend/wallets"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/backend/appcontext"
-	"gitlab.com/fynbos/backend/errcodes"
-	"gitlab.com/fynbos/backend/kyc"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/providers/gatehub"
-	"gitlab.com/fynbos/backend/user"
-	"gitlab.com/fynbos/backend/wallets"
 )
 
 type appErrorBody struct {

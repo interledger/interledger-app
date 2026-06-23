@@ -3,8 +3,8 @@ package client
 import (
 	"context"
 
-	"gitlab.com/fynbos/backend/agreements"
-	"gitlab.com/fynbos/backend/agreements/ops"
+	"github.com/interledger/interledger-app/go/backend/agreements"
+	"github.com/interledger/interledger-app/go/backend/agreements/ops"
 )
 
 var _ agreements.Client = client{}
@@ -29,4 +29,16 @@ func (c client) GetSignatures(ctx context.Context, userID string) ([]agreements.
 
 func (c client) Get(ctx context.Context, id string) (*agreements.Agreement, error) {
 	return ops.Get(ctx, c.b, id)
+}
+
+func (c client) ListAffectedUserIDsPaginated(ctx context.Context, changes []agreements.AgreementChange, limit, offset int) ([]string, error) {
+	return ops.ListAffectedUserIDsPaginated(ctx, c.b, changes, limit, offset)
+}
+
+func (c client) GetAgreementNamesSignedByUsersFromSet(ctx context.Context, userIDs []string, changes []agreements.AgreementChange) (map[string][]string, error) {
+	return ops.GetAgreementNamesSignedByUsersFromSet(ctx, c.b, userIDs, changes)
+}
+
+func (c client) MarkUsersNotified(ctx context.Context, userIDs []string, changes []agreements.AgreementChange) error {
+	return ops.MarkUsersNotified(ctx, c.b, userIDs, changes)
 }

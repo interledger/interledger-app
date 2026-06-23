@@ -7,12 +7,12 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/interledger/interledger-app/go/backend/db"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub/ops"
+	user_mock "github.com/interledger/interledger-app/go/backend/user/client/mock"
 	"github.com/pquerna/otp"
 	"github.com/pquerna/otp/totp"
 	"github.com/stretchr/testify/assert"
-	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/providers/gatehub/ops"
-	user_mock "gitlab.com/fynbos/backend/user/client/mock"
 )
 
 var userID = uuid.NewString()

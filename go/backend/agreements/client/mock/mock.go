@@ -9,7 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	agreements "gitlab.com/fynbos/backend/agreements"
+	agreements "github.com/interledger/interledger-app/go/backend/agreements"
 )
 
 // MockClient is a mock of Client interface.
@@ -77,4 +77,48 @@ func (m *MockClient) Sign(ctx context.Context, args *agreements.SignArgs) error 
 func (mr *MockClientMockRecorder) Sign(ctx, args interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Sign", reflect.TypeOf((*MockClient)(nil).Sign), ctx, args)
+}
+
+// ListAffectedUserIDsPaginated mocks base method.
+func (m *MockClient) ListAffectedUserIDsPaginated(ctx context.Context, changes []agreements.AgreementChange, limit, offset int) ([]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListAffectedUserIDsPaginated", ctx, changes, limit, offset)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListAffectedUserIDsPaginated indicates an expected call of ListAffectedUserIDsPaginated.
+func (mr *MockClientMockRecorder) ListAffectedUserIDsPaginated(ctx, changes, limit, offset interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAffectedUserIDsPaginated", reflect.TypeOf((*MockClient)(nil).ListAffectedUserIDsPaginated), ctx, changes, limit, offset)
+}
+
+// GetAgreementNamesSignedByUsersFromSet mocks base method.
+func (m *MockClient) GetAgreementNamesSignedByUsersFromSet(ctx context.Context, userIDs []string, changes []agreements.AgreementChange) (map[string][]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAgreementNamesSignedByUsersFromSet", ctx, userIDs, changes)
+	ret0, _ := ret[0].(map[string][]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAgreementNamesSignedByUsersFromSet indicates an expected call of GetAgreementNamesSignedByUsersFromSet.
+func (mr *MockClientMockRecorder) GetAgreementNamesSignedByUsersFromSet(ctx, userIDs, changes interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAgreementNamesSignedByUsersFromSet", reflect.TypeOf((*MockClient)(nil).GetAgreementNamesSignedByUsersFromSet), ctx, userIDs, changes)
+}
+
+// MarkUsersNotified mocks base method.
+func (m *MockClient) MarkUsersNotified(ctx context.Context, userIDs []string, changes []agreements.AgreementChange) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "MarkUsersNotified", ctx, userIDs, changes)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// MarkUsersNotified indicates an expected call of MarkUsersNotified.
+func (mr *MockClientMockRecorder) MarkUsersNotified(ctx, userIDs, changes interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MarkUsersNotified", reflect.TypeOf((*MockClient)(nil).MarkUsersNotified), ctx, userIDs, changes)
 }

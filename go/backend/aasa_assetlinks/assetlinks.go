@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/log"
 	"go.uber.org/zap"
 )
 

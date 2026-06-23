@@ -7,19 +7,19 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
+	"github.com/interledger/interledger-app/go/backend/country"
+	"github.com/interledger/interledger-app/go/backend/db"
+	"github.com/interledger/interledger-app/go/backend/kyc"
+	"github.com/interledger/interledger-app/go/backend/kyc/ops"
+	"github.com/interledger/interledger-app/go/backend/kyc/persona"
+	persona_mock "github.com/interledger/interledger-app/go/backend/kyc/persona/mock"
+	signup_mock "github.com/interledger/interledger-app/go/backend/signup/client/mock"
+	"github.com/interledger/interledger-app/go/backend/wallets"
+	wallet_mock "github.com/interledger/interledger-app/go/backend/wallets/client/mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/backend/country"
-	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/kyc"
-	"gitlab.com/fynbos/backend/kyc/ops"
-	"gitlab.com/fynbos/backend/kyc/persona"
-	persona_mock "gitlab.com/fynbos/backend/kyc/persona/mock"
-	signup_mock "gitlab.com/fynbos/backend/signup/client/mock"
-	"gitlab.com/fynbos/backend/wallets"
-	wallet_mock "gitlab.com/fynbos/backend/wallets/client/mock"
 
-	user_mock "gitlab.com/fynbos/backend/user/client/mock"
+	user_mock "github.com/interledger/interledger-app/go/backend/user/client/mock"
 )
 
 func TestGetPersonaInquiry(t *testing.T) {

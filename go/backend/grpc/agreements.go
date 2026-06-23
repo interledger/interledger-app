@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
-	"gitlab.com/fynbos/backend/agreements"
-	backendv1 "gitlab.com/fynbos/proto/backend/v1"
+	"github.com/interledger/interledger-app/go/backend/agreements"
+	backendv1 "github.com/interledger/interledger-app/go/proto/backend/v1"
 )
 
 func (s *rpcService) GetAgreement(
