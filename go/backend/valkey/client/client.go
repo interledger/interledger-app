@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/interledger/interledger-app/go/log"
 	goredis "github.com/redis/go-redis/v9"
-	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
 )
 
