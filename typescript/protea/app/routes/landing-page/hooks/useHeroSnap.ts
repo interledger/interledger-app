@@ -204,7 +204,12 @@ export function useHeroSnap({
      * Cooldown (600ms) covers the full inertia lifetime so one flick = one advance.
      */
     const onWheel = (e: WheelEvent) => {
-      if (!state.locked) return
+      if (!state.locked) {
+        // At scrollY 0 an upward wheel fires no `scroll` event, so onScroll can't
+        // re-engage — re-engage from the wheel instead. Dead-zone vs noise.
+        if (e.deltaY <= -WHEEL_DEAD_ZONE && tryReengage()) e.preventDefault()
+        return
+      }
       if (performance.now() < state.reengageBlockUntil) {
         e.preventDefault()
         return
@@ -238,8 +243,8 @@ export function useHeroSnap({
       navigate(dir)
     }
 
+    // Recorded even when unlocked, so the re-engage path can read swipe direction.
     const onTouchStart = (e: TouchEvent) => {
-      if (!state.locked) return
       state.touchStartY = e.touches[0]?.clientY ?? null
     }
 
@@ -248,14 +253,21 @@ export function useHeroSnap({
     }
 
     const onTouchEnd = (e: TouchEvent) => {
-      if (!state.locked) return
-      if (performance.now() < state.reengageBlockUntil) return
       const startY = state.touchStartY
       state.touchStartY = null
       if (startY == null) return
       const endY = e.changedTouches[0]?.clientY ?? startY
       const delta = startY - endY
       if (Math.abs(delta) < TOUCH_THRESHOLD_PX) return
+
+      if (!state.locked) {
+        // Wheel counterpart: a swipe up toward the hero (delta < 0) at the top
+        // fires no `scroll` event, so re-engage from the touch instead.
+        if (delta < 0) tryReengage()
+        return
+      }
+
+      if (performance.now() < state.reengageBlockUntil) return
       if (performance.now() - state.lastAdvanceAt < cooldownMs) return
       navigate(delta > 0 ? 1 : -1)
     }
@@ -291,20 +303,25 @@ export function useHeroSnap({
       if (state.locked && !isHeroPinnedAtTop()) unlockBody()
     }
 
-    /** Re-engage when the user scrolls back up to the hero from below. */
-    const onScroll = () => {
-      if (state.locked) return releaseStaleLock()
-      if (performance.now() - state.lastReleaseAt < REENGAGE_COOLDOWN_MS) return
-      if (!isHeroPinnedAtTop()) return
+    /** Re-engage the hero lock when scrolled back to the top. Returns true if it did. */
+    const tryReengage = (): boolean => {
+      if (state.locked) return false
+      if (performance.now() - state.lastReleaseAt < REENGAGE_COOLDOWN_MS)
+        return false
+      if (!isHeroPinnedAtTop()) return false
       const rect = section.getBoundingClientRect()
-      const fullyAtTop =
-        rect.top >= 0 && rect.top < window.innerHeight && rect.bottom > 0
-      if (!fullyAtTop) return
       state.screen = screenCount as CarouselScreen
       setActiveScreen(screenCount as CarouselScreen)
       state.reengageBlockUntil = performance.now() + REENGAGE_PAUSE_MS
       lockBody()
       window.scrollTo({ top: window.scrollY + rect.top, behavior: 'auto' })
+      return true
+    }
+
+    /** Re-engage when the user scrolls back up to the hero from below. */
+    const onScroll = () => {
+      if (state.locked) return releaseStaleLock()
+      tryReengage()
     }
 
     const initLockState = () => {
