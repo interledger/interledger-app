@@ -11,16 +11,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/interledger/interledger-app/go/backend/rafiki"
-	"github.com/interledger/interledger-app/go/backend/wallets"
-
-	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
-
-	"github.com/interledger/interledger-app/go/env"
-
 	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
 	"github.com/interledger/interledger-app/go/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
+	"github.com/interledger/interledger-app/go/backend/rafiki"
+	"github.com/interledger/interledger-app/go/env"
 	"github.com/interledger/interledger-app/go/log"
+	"go.temporal.io/api/enums/v1"
+	"go.temporal.io/sdk/client"
 	"go.uber.org/zap"
 )
 
@@ -50,6 +49,16 @@ type amount struct {
 	AssetScale int    `json:"assetScale"`
 }
 
+type incomingPaymentData struct {
+	ID              string    `json:"id"`
+	WalletAddressID string    `json:"walletAddressId"`
+	CreatedAt       time.Time `json:"createdAt"`
+	ExpiresAt       time.Time `json:"expiresAt"`
+	IncomingAmount  *amount   `json:"incomingAmount,omitempty"`
+	ReceivedAmount  amount    `json:"receivedAmount"`
+	Completed       bool      `json:"completed"`
+}
+
 func EventWebhook(b Backends) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodOptions {
@@ -76,44 +85,296 @@ func EventWebhook(b Backends) http.HandlerFunc {
 			return
 		}
 
-		switch hook.Type {
-		case "outgoing_payment.created":
-			err = outgoingPayment(r.Context(), b, hook)
-		default:
-			log.Info("rafiki unsupported webhook type", zap.String("type", hook.Type))
-			w.WriteHeader(http.StatusOK)
-			return
-		}
-		if err != nil {
-			log.Error("failed to handle rafiki webhook", zap.String("hook", hook.Type), zap.Error(err))
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		w.WriteHeader(http.StatusOK)
+		ctx, cancel := context.WithTimeout(context.WithoutCancel(r.Context()), 5*time.Minute)
+		defer cancel()
+		statusCode := processWebhook(ctx, b, hook)
+		w.WriteHeader(statusCode)
 	}
 }
 
-func getReceiverWalletFromIncomingPayment(ctx context.Context, b Backends, incomingPaymentURL string) (*wallets.Wallet, error) {
-	const urlPart = "incoming-payments"
-	id := incomingPaymentURL
-	if strings.Contains(incomingPaymentURL, urlPart) {
-		parts := strings.Split(incomingPaymentURL, "/")
-		id = parts[len(parts)-1]
+func processWebhook(ctx context.Context, b Backends, hook webhook) int {
+	nodeEnabled := env.IsRafikiNodeEnabled()
+
+	switch hook.Type {
+	case "incoming_payment.created":
+		isGatehub, err := isGatehubIncomingWebhook(ctx, b, hook)
+		if err != nil {
+			log.Error("failed to resolve provider for incoming_payment.created", zap.Error(err))
+			return http.StatusBadRequest
+		}
+		if !isGatehub {
+			log.Info("skipping incoming_payment.created for non-gatehub provider")
+			return http.StatusOK
+		}
+
+		if err := incomingPaymentCreated(ctx, b, hook); err != nil {
+			log.Error("failed to handle incoming_payment.created", zap.Error(err))
+		}
+		return http.StatusOK
+
+	case "incoming_payment.completed", "incoming_payment.expired":
+		if !nodeEnabled {
+			log.Info("rafiki node flow disabled; skipping incoming payment finalized webhook",
+				zap.String("type", hook.Type))
+			return http.StatusOK
+		}
+
+		isGatehub, err := isGatehubIncomingWebhook(ctx, b, hook)
+		if err != nil {
+			log.Error("failed to resolve provider for incoming payment finalized webhook",
+				zap.String("type", hook.Type),
+				zap.Error(err))
+			return http.StatusBadRequest
+		}
+		if !isGatehub {
+			log.Info("skipping incoming payment finalized webhook for non-gatehub provider",
+				zap.String("type", hook.Type))
+			return http.StatusOK
+		}
+
+		return startRafikiWorkflow(ctx, b, hook, func() (string, interface{}) {
+			var ip incomingPaymentData
+			if err := json.Unmarshal(hook.Data, &ip); err != nil {
+				return "", nil
+			}
+			wfID := fmt.Sprintf("rafiki_incoming_payment_finalized_%s", ip.ID)
+			return wfID, RafikiIncomingPaymentFinalizedArgs{
+				IncomingPayment: ip,
+				WebhookType:     hook.Type,
+			}
+		})
+
+	case "outgoing_payment.created":
+		if !nodeEnabled {
+			if err := outgoingPayment(ctx, b, hook); err != nil {
+				log.Error("failed to handle outgoing_payment.created while rafiki node flow is disabled", zap.Error(err))
+				return http.StatusBadRequest
+			}
+			return http.StatusOK
+		}
+
+		isGatehubToGatehub, err := isGatehubToGatehubOutgoingWebhook(ctx, b, hook)
+		if err != nil {
+			log.Error("failed to resolve provider for outgoing_payment.created", zap.Error(err))
+			return http.StatusBadRequest
+		}
+
+		if !isGatehubToGatehub {
+			if err := outgoingPayment(ctx, b, hook); err != nil {
+				log.Error("failed to handle outgoing_payment.created for non-gatehub provider", zap.Error(err))
+				return http.StatusBadRequest
+			}
+			return http.StatusOK
+		}
+
+		return startRafikiWorkflow(ctx, b, hook, func() (string, interface{}) {
+			var op outgoingPaymentData
+			if err := json.Unmarshal(hook.Data, &op); err != nil {
+				return "", nil
+			}
+			wfID := fmt.Sprintf("rafiki_outgoing_payment_created_%s", op.ID)
+			return wfID, op
+		})
+
+	case "outgoing_payment.completed":
+		if !nodeEnabled {
+			log.Info("rafiki node flow disabled; skipping outgoing_payment.completed")
+			return http.StatusOK
+		}
+
+		isGatehubToGatehub, err := isGatehubToGatehubOutgoingWebhook(ctx, b, hook)
+		if err != nil {
+			log.Error("failed to resolve provider for outgoing_payment.completed", zap.Error(err))
+			return http.StatusBadRequest
+		}
+		if !isGatehubToGatehub {
+			log.Info("skipping outgoing_payment.completed for non-gatehub provider")
+			return http.StatusOK
+		}
+
+		return startRafikiWorkflow(ctx, b, hook, func() (string, interface{}) {
+			var op outgoingPaymentData
+			if err := json.Unmarshal(hook.Data, &op); err != nil {
+				return "", nil
+			}
+			wfID := fmt.Sprintf("rafiki_outgoing_payment_completed_%s", op.ID)
+			return wfID, op
+		})
+
+	case "outgoing_payment.failed":
+		if !nodeEnabled {
+			log.Info("rafiki node flow disabled; skipping outgoing_payment.failed")
+			return http.StatusOK
+		}
+
+		isGatehubToGatehub, err := isGatehubToGatehubOutgoingWebhook(ctx, b, hook)
+		if err != nil {
+			log.Error("failed to resolve provider for outgoing_payment.failed", zap.Error(err))
+			return http.StatusBadRequest
+		}
+		if !isGatehubToGatehub {
+			log.Info("skipping outgoing_payment.failed for non-gatehub provider")
+			return http.StatusOK
+		}
+
+		return startRafikiWorkflow(ctx, b, hook, func() (string, interface{}) {
+			var op outgoingPaymentData
+			if err := json.Unmarshal(hook.Data, &op); err != nil {
+				return "", nil
+			}
+			wfID := fmt.Sprintf("rafiki_outgoing_payment_failed_%s", op.ID)
+			return wfID, op
+		})
+
+	default:
+		log.Info("rafiki unsupported webhook type", zap.String("type", hook.Type))
+		return http.StatusOK
+	}
+}
+
+func isGatehubToGatehubOutgoingWebhook(ctx context.Context, b Backends, hook webhook) (bool, error) {
+	var op outgoingPaymentData
+	if err := json.Unmarshal(hook.Data, &op); err != nil {
+		return false, err
 	}
 
-	ip, err := b.External().GetIncomingPayment(ctx, id)
+	senderAcc, receiverAcc, err := getAccounts(ctx, b, op)
 	if err != nil {
-		log.Error("failed to get incoming payment", zap.Error(err))
-		return nil, err
+		return false, err
+	}
+	return senderAcc.Provider == gatehub.ProviderName && receiverAcc.Provider == gatehub.ProviderName, nil
+}
+
+func isGatehubIncomingWebhook(ctx context.Context, b Backends, hook webhook) (bool, error) {
+	var ip incomingPaymentData
+	if err := json.Unmarshal(hook.Data, &ip); err != nil {
+		return false, err
 	}
 
-	walletID, err := LookupWalletID(ctx, b, ip.WalletAddressId)
+	assetCode := incomingPaymentAssetCode(ip)
+	acc, err := getLinkedAccountByWalletAddressAndAsset(ctx, b, ip.WalletAddressID, assetCode, false)
 	if err != nil {
-		log.Error("failed to lookup receiver wallet ID from incoming payment", zap.Error(err))
-		return nil, err
+		return false, err
+	}
+	return acc.Provider == gatehub.ProviderName, nil
+}
+
+func incomingPaymentAssetCode(ip incomingPaymentData) string {
+	if ip.IncomingAmount != nil && ip.IncomingAmount.AssetCode != "" {
+		return ip.IncomingAmount.AssetCode
+	}
+	return ip.ReceivedAmount.AssetCode
+}
+
+func getLinkedAccountByWalletAddressAndAsset(
+	ctx context.Context,
+	b Backends,
+	walletAddressID, assetCode string,
+	isSender bool,
+) (*linkedaccounts.LinkedAccount, error) {
+	walletID, err := LookupWalletID(ctx, b, walletAddressID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to lookup wallet by payment pointer %s: %w", walletAddressID, err)
 	}
 
-	return b.Wallets().Get(ctx, walletID)
+	accs, err := b.LinkedAccounts().ListBalances(ctx, walletID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list balances for wallet %s: %w", walletID, err)
+	}
+
+	for i := range accs {
+		acc := accs[i]
+		if isSender && acc.SendCurrency.String() == assetCode && acc.Type == "balance" {
+			return &acc, nil
+		}
+		if !isSender && acc.ReceiveCurrency.String() == assetCode && acc.Type == "balance" {
+			return &acc, nil
+		}
+	}
+
+	direction := "receive"
+	if isSender {
+		direction = "send"
+	}
+	return nil, fmt.Errorf("%w failed to find linked account for %s asset=%s", rafiki.ErrNotFound, direction, assetCode)
+}
+
+func startRafikiWorkflow(ctx context.Context, b Backends, hook webhook, prepare func() (string, interface{})) int {
+	wfID, args := prepare()
+	if wfID == "" || args == nil {
+		log.Error("failed to prepare rafiki workflow args", zap.String("type", hook.Type))
+		return http.StatusBadRequest
+	}
+
+	var workflowFn interface{}
+	switch hook.Type {
+	case "incoming_payment.completed", "incoming_payment.expired":
+		workflowFn = RafikiIncomingPaymentFinalizedWorkflow
+	case "outgoing_payment.created":
+		workflowFn = RafikiOutgoingPaymentCreatedWorkflow
+	case "outgoing_payment.completed":
+		workflowFn = RafikiOutgoingPaymentCompletedWorkflow
+	case "outgoing_payment.failed":
+		workflowFn = RafikiOutgoingPaymentFailedWorkflow
+	default:
+		log.Error("no workflow registered for webhook type", zap.String("type", hook.Type))
+		return http.StatusBadRequest
+	}
+
+	wo := client.StartWorkflowOptions{
+		ID:                    wfID,
+		TaskQueue:             "backend",
+		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_UNSPECIFIED,
+	}
+
+	_, err := b.Temporal().ExecuteWorkflow(ctx, wo, workflowFn, args)
+	if err != nil {
+		log.Error("failed to start rafiki workflow",
+			zap.String("type", hook.Type),
+			zap.String("workflowID", wfID),
+			zap.Error(err))
+		return http.StatusBadRequest
+	}
+
+	log.Info("started rafiki workflow",
+		zap.String("type", hook.Type),
+		zap.String("workflowID", wfID))
+	return http.StatusOK
+}
+
+func incomingPaymentCreated(ctx context.Context, b Backends, hook webhook) error {
+	if b.DB() == nil {
+		return fmt.Errorf("%w db not configured", rafiki.ErrInternal)
+	}
+
+	var ip incomingPaymentData
+	if err := json.Unmarshal(hook.Data, &ip); err != nil {
+		log.Error("failed to unmarshal rafiki incoming payment created", zap.Error(err))
+		return err
+	}
+
+	incomingAsset := ""
+	if ip.IncomingAmount != nil {
+		incomingAsset = ip.IncomingAmount.AssetCode
+	}
+	if incomingAsset == "" {
+		incomingAsset = ip.ReceivedAmount.AssetCode
+	}
+
+	// TODO This might not be needed
+	_, err := b.DB().ExecContext(ctx,
+		`INSERT INTO rafiki_incoming_payments (payment_id, payment_pointer_id, received_amount, received_amount_asset, completed)
+		 SELECT $1, $2, 0, $3, false
+		 WHERE NOT EXISTS (SELECT 1 FROM rafiki_incoming_payments WHERE payment_id = $1)`,
+		ip.ID, ip.WalletAddressID, incomingAsset)
+	if err != nil {
+		log.Error("failed to insert incoming payment record",
+			zap.String("incomingPaymentId", ip.ID),
+			zap.Error(err))
+		return err
+	}
+
+	return nil
 }
 
 func getAccounts(ctx context.Context, b Backends, op outgoingPaymentData) (*linkedaccounts.LinkedAccount, *linkedaccounts.LinkedAccount, error) {
@@ -123,7 +384,7 @@ func getAccounts(ctx context.Context, b Backends, op outgoingPaymentData) (*link
 		return nil, nil, err
 	}
 
-	receiverWallet, err := getReceiverWalletFromIncomingPayment(ctx, b, op.Receiver)
+	receiverWalletID, err := getReceiverWalletIDFromIncomingPayment(ctx, b, op.Receiver)
 	if err != nil {
 		log.Error("failed to lookup wallet ID from rafiki receiver wallet address", zap.Error(err))
 		return nil, nil, err
@@ -145,7 +406,7 @@ func getAccounts(ctx context.Context, b Backends, op outgoingPaymentData) (*link
 		return nil, nil, fmt.Errorf("%w failed to find sender account for currency=%s", rafiki.ErrNotFound, op.DebitAmount.AssetCode)
 	}
 
-	receiverAccs, err := b.LinkedAccounts().ListBalances(ctx, receiverWallet.ID)
+	receiverAccs, err := b.LinkedAccounts().ListBalances(ctx, receiverWalletID)
 	if err != nil {
 		log.Error("failed to lookup balance accounts for receiver", zap.Error(err))
 		return nil, nil, err
@@ -162,6 +423,26 @@ func getAccounts(ctx context.Context, b Backends, op outgoingPaymentData) (*link
 	}
 
 	return &senderAcc, &receiverAcc, nil
+}
+
+func getReceiverWalletIDFromIncomingPayment(ctx context.Context, b Backends, receiver string) (string, error) {
+	receiverPaymentID := receiver
+	if strings.Contains(receiver, "incoming-payments") {
+		parts := strings.Split(strings.TrimSuffix(receiver, "/"), "/")
+		receiverPaymentID = parts[len(parts)-1]
+	}
+
+	ip, err := b.External().GetIncomingPayment(ctx, receiverPaymentID)
+	if err != nil {
+		return "", err
+	}
+
+	walletID, err := LookupWalletID(ctx, b, ip.WalletAddressId)
+	if err != nil {
+		return "", err
+	}
+
+	return walletID, nil
 }
 
 func immediatePayment(ctx context.Context, b Backends, op outgoingPaymentData) error {

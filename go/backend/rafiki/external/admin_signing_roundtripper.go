@@ -35,6 +35,10 @@ type adminSigningRoundTripper struct {
 }
 
 func (rt *adminSigningRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
+	if rt.operatorTenantID == "" || rt.adminAPISecret == "" || rt.signatureVersion == "" {
+		return rt.base.RoundTrip(req)
+	}
+
 	var bodyBytes []byte
 	if req.Body != nil {
 		b, err := io.ReadAll(req.Body)

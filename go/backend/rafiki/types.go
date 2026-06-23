@@ -41,3 +41,20 @@ type UpdateAddressStatus struct {
 	ID   string `db:"payment_pointer_id"`
 	Name string `db:"name"`
 }
+
+type IncomingPaymentState string
+
+const (
+	IncomingPaymentStatePending    IncomingPaymentState = "PENDING"
+	IncomingPaymentStateProcessing IncomingPaymentState = "PROCESSING"
+	IncomingPaymentStateCompleted  IncomingPaymentState = "COMPLETED"
+	IncomingPaymentStateExpired    IncomingPaymentState = "EXPIRED"
+)
+
+type IncomingPayment struct {
+	ID              string
+	WalletAddressID string
+	State           IncomingPaymentState
+	ExpiresAt       string
+	CreatedAt       string
+}

@@ -5,7 +5,8 @@ generatetestmigrations:
 	@echo "Generating test migrations"
 	mkdir -p db/testmigrations
 	rm -rf db/testmigrations/*
-	atlas migrate diff create_all --dir "file://db/testmigrations" --to "file://db/schema.hcl" --dev-url="postgres://postgres:password@$(PG_HOST):5432?sslmode=disable"
+	@# Use Docker dev URL so no pre-running Postgres is required (Atlas spins up an ephemeral container).
+	atlas migrate diff create_all --dir "file://db/testmigrations" --to "file://db/schema.hcl" --dev-url="docker://postgres/15/dev?search_path=public"
 	@echo "Done"
 
 test: testenvup generatetestmigrations
