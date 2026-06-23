@@ -13,7 +13,5 @@ dependencies:
     repository: https://interledger.github.io/charts/interledger
 
 maintainers:
-  - name: Stephan Butler
-    email: stephan@interledger.foundation
-  - name: Radu Popa
-    email: radu@interledger.foundation
+  - name: Interledger Foundation
+    url: https://interledger.org

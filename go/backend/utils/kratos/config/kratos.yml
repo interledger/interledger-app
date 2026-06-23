@@ -94,4 +94,4 @@ identity:
 courier:
   smtp:
     connection_uri: smtps://test:test@mailslurper:1025/?skip_ssl_verify=true&legacy_ssl=true
-    from_address: no-reply@fynbos.dev
+    from_address: no-reply@interledger.test

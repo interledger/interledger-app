@@ -1,6 +1,6 @@
 ledgers:
   - id: 1
-    name: "Fynbos ledger"
+    name: "Interledger ledger"
     asset: "840"
     scale: 2
 

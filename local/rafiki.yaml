@@ -53,8 +53,6 @@ services:
       - AUTH_SERVER_URL=https://auth.local.ilp.link
       - IDENTITY_SERVER_URL=https://interledger.test/consent
 
-      # WTF is this?
-      # Who designed this shit?
       - DATABASE_CLEANUP_WORKERS=1
       
       - INCOMING_PAYMENT_INTERACTION=false

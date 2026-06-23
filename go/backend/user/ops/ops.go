@@ -208,7 +208,7 @@ func ListUsers(ctx context.Context, b Backends, walletID string) ([]user.User, e
 		return []user.User{
 			{
 				ID:          "6b5ada19-1638-4c09-a0f6-9cdbb34abc42",
-				Email:       "openpayments.dev@fynbos.dev",
+				Email:       "openpayments.dev@interledger.test",
 				PhoneNumber: "",
 			},
 		}, nil

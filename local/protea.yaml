@@ -42,7 +42,7 @@ services:
       # Auth and realtime
       - COOKIE_SECRETS=${PROTEA_COOKIE_SECRETS:-"[\"localsecret\"]"}
       - RAFIKI_AUTH_SECRET=${PROTEA_RAFIKI_AUTH_SECRET:-my-super-secret-identity-key}
-      - PUSHER_APP_KEY=${PROTEA_PUSHER_APP_KEY:-91988d6075551d29760a}
+      - PUSHER_APP_KEY=${PROTEA_PUSHER_APP_KEY:-<pusher-app-key>}
       - PUSHER_APP_CLUSTER=${PROTEA_PUSHER_APP_CLUSTER:-eu}
 
       # Persona SDK URL override (MockXago serves Persona-compatible SDK in local)
@@ -67,7 +67,6 @@ services:
       - DEFAULT_RATE_LIMIT_TIME=${PROTEA_DEFAULT_RATE_LIMIT_TIME:-3600}
 
       # LEGACY (unused / pending removal)
-      - DATO_API_TOKEN=${PROTEA_DATO_API_TOKEN:-b96709bce873f5280722da965b0e9d}
       - BT_TOKEN=${PROTEA_BT_TOKEN:-}
       - CF_TURNSTILE_SITE_KEY=${PROTEA_CF_TURNSTILE_SITE_KEY:-}
       - CF_TURNSTILE_SECRET_KEY=${PROTEA_CF_TURNSTILE_SECRET_KEY:-}

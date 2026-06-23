@@ -26,7 +26,7 @@ func TestCreateAuthURL(t *testing.T) {
 		ClientID:     uuid.NewString(),
 		WalletID:     uuid.NewString(),
 		Scopes:       []string{"tweet.read"},
-		RedirectURL:  "https://fynbos.app/twitter/callback",
+		RedirectURL:  "https://interledger.app/twitter/callback",
 		AuthEndpoint: "https://twitter.com/i/oauth2/authorize",
 	})
 	if err != nil {
@@ -50,7 +50,7 @@ func TestCreateToken(t *testing.T) {
 		ClientID:     uuid.NewString(),
 		WalletID:     uuid.NewString(),
 		Scopes:       []string{"tweet.read"},
-		RedirectURL:  "https://fynbos.app/twitter/callback",
+		RedirectURL:  "https://interledger.app/twitter/callback",
 		AuthEndpoint: "https://twitter.com/i/oauth2/authorize",
 		State:        state,
 	})
@@ -100,7 +100,7 @@ func TestGetWalletConnections(t *testing.T) {
 		ClientID:     uuid.NewString(),
 		WalletID:     walletId,
 		Scopes:       []string{"tweet.read", "tweet.write"},
-		RedirectURL:  "https://fynbos.app/twitter/callback",
+		RedirectURL:  "https://interledger.app/twitter/callback",
 		AuthEndpoint: "https://twitter.com/i/oauth2/authorize",
 		State:        state,
 	})

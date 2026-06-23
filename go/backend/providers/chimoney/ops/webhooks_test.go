@@ -336,7 +336,7 @@ func TestWithdrawEventUnmarshal(t *testing.T) {
 				"issueID": "8bb8011d-4319-4116-89be-9abcd2df0ee5_4_1770363416510",
 				"meta": {
 					"issuer": "8bb8011d-4319-4116-89be-9abcd2df0ee5",
-					"email": "adrian@interledger.foundation",
+					"email": "test-user@interledger.test",
 					"name": "Test User",
 					"type": "interac",
 					"fee": 1

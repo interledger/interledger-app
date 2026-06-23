@@ -1,5 +1,5 @@
 {
-  "$id": "https://fynbos.dev/users/email-password/identity.schema.json",
+  "$id": "https://interledger.app/users/email-password/identity.schema.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "User",
   "type": "object",

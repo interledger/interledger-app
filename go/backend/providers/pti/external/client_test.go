@@ -102,7 +102,7 @@ func TestPutUser(t *testing.T) {
 			Last:  "Prawns",
 		},
 		Emails: []Email{{
-			Address: "jimmy@openpayments.dev",
+			Address: "jimmy@interledger.test",
 			Default: true,
 		}},
 		Addresses: []Address{
@@ -194,7 +194,7 @@ func TestCreateUserAndWallet(t *testing.T) {
 		},
 		Emails: []Email{
 			{
-				Address: "jane@openpayments.dev",
+				Address: "jane@interledger.test",
 				Default: true,
 			},
 		},
@@ -249,7 +249,7 @@ func TestDeposit(t *testing.T) {
 	requestID := "9c18c969-dca9-4a94-8c13-f5ca1c247521"
 	_, err = client.WalletDeposit(ctx, DepositArgs{
 		RequestID:        requestID,
-		ScenarioID:       "fynbos_deposit",
+		ScenarioID:       "interledger_deposit",
 		UserID:           ptiUserID,
 		ExternalWalletID: ptiWalletID,
 		Amount: currency.Amount{
@@ -263,7 +263,7 @@ func TestDeposit(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, requestID, trx.RequestID)
 
-	transactionID := "fynbos_test_123"
+	transactionID := "interledger_test_123"
 	_, err = client.UpdateTransactionStatus(ctx, UpdateTxStatusArgs{
 		RequestID:     requestID,
 		TransactionID: transactionID,
@@ -296,7 +296,7 @@ func TestWalletTransfer(t *testing.T) {
 	requestID := "92984a38-e4f1-4e9e-a106-12ff1e3937ec"
 	transferArgs := TransferArgs{
 		RequestID:  requestID,
-		ScenarioID: "fynbos_deposit",
+		ScenarioID: "interledger_deposit",
 		Amount:     1.00,
 		USDValue:   1.00,
 		Date:       time.Now().Format(time.RFC3339),

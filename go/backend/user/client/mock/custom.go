@@ -46,7 +46,7 @@ func (mc *MockClient) EnrollTotp(userID string) {
 func (mc *MockClient) GetUser(_ context.Context, userID string) (*user.User, error) {
 	return &user.User{
 		ID:          userID,
-		Email:       "info@fynbos.com",
+		Email:       "info@interledger.test",
 		PhoneNumber: "+27836321959",
 	}, nil
 
@@ -57,7 +57,7 @@ func (mc *MockClient) ListAllUsers(ctx context.Context, pagination db.Pagination
 	for _, uid := range mc.WalletUser {
 		res = append(res, user.User{
 			ID:          uid,
-			Email:       "info@fynbos.com",
+			Email:       "info@interledger.test",
 			PhoneNumber: "+27836321959",
 		})
 	}
@@ -74,7 +74,7 @@ func (mc *MockClient) ListUsers(ctx context.Context, walletID string) ([]user.Us
 	return []user.User{
 		{
 			ID:          uid,
-			Email:       "info@fynbos.com",
+			Email:       "info@interledger.test",
 			PhoneNumber: "+27836321959",
 		},
 	}, nil

@@ -1,11 +1,4 @@
 
-IMAGE_REPO := 823058932981.dkr.ecr.eu-west-1.amazonaws.com/pacioli
-IMAGE_HASH := latest
-
-pull:
-	@echo "Pulling required images"
-	docker pull 823058932981.dkr.ecr.eu-west-1.amazonaws.com/cockroach:v22.2.0
-	@echo "Pull complete"
 
 testci: 
 	@echo "Running tests"
@@ -38,12 +31,3 @@ lint:
 	golangci-lint run --go=1.17 ./...
 	@echo "Lint complete"
 
-build:
-	@echo "Building image"
-	DOCKER_BUILDKIT=1 docker build -t "$(IMAGE_REPO):$(IMAGE_HASH)" -f ./Dockerfile ./../
-	@echo "Image built"
-
-push:
-	@echo "Pushing image"
-	docker push "$(IMAGE_REPO):$(IMAGE_HASH)"
-	@echo "Image pushed"

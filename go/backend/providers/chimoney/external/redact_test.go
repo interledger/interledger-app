@@ -18,7 +18,7 @@ func TestRedact(t *testing.T) {
 		{
 			name: "values",
 			input: `{
-   	"email":"maynard@tool.com",
+   	"email":"test@interledger.test",
    	"name":"Maynard Keenan",
    	"phoneNumber":"+1234556",
 	"firstName":"Maynard"
