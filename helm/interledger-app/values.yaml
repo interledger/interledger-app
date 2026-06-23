@@ -255,6 +255,13 @@ backend:
 
     persona:
       base_url: "https://api.withpersona.com/api/v1/"
+
+      # PERSONA_SANDBOX_ZA_FAKE_ZA_ID is a Persona sandbox workaround. Persona's sandbox environment
+      # always returns an American user profile, so the South African ID field is null.
+      # Setting this to true makes the backend generate a synthetic ZA ID instead,
+      # which is required for Xago subaccount creation. Has no effect in production.
+      personaSandboxFakeZAID: "false"
+
       token_ref: "personaToken"
       webhook_token_ref: "personaWebhookToken"
 
@@ -910,6 +917,8 @@ backend:
           valueRef: backend.config.slack.channel_error
         - key: ADMIN_BASE_URL
           valueRef: backend.config.admin.base_url
+        - key: PERSONA_SANDBOX_ZA_FAKE_ZA_ID
+          valueRef: backend.config.persona.personaSandboxFakeZAID
 
 # =============================================================================
 # FRONTEND — Protea user-facing wallet
