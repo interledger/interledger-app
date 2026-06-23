@@ -2,6 +2,7 @@ import { redirect } from 'react-router'
 import { href } from 'react-router'
 import { captureMessage } from '@sentry/react-router'
 import { CLEAR_SESSION_COOKIE_HEADER } from './kratos/kratos-client.server'
+import logger from './logger.server'
 
 const BACKEND_HTTP_URL = process.env.BACKEND_HTTP_URL || 'http://backend:8080'
 const PLAID_API_PATH = '/api/plaid'
@@ -91,46 +92,51 @@ async function plaidFetch<T>(
   path: string,
   init: RequestInit = {}
 ): Promise<T | PlaidError> {
-  const cookie = request.headers.get('cookie') || ''
-  const headers = new Headers(init.headers)
-  if (cookie) headers.set('cookie', cookie)
-  if (init.body && !headers.has('content-type')) {
-    headers.set('content-type', 'application/json')
-  }
-
-  const res = await fetch(`${BACKEND_HTTP_URL}${path}`, {
-    ...init,
-    headers
-  })
-
-  const text = await res.text()
-  let body: unknown = null
-  if (text.length > 0) {
-    try {
-      body = JSON.parse(text)
-    } catch {
-      // Surface as a PlaidError so callers don't have to special-case non-JSON
-      // 5xx pages.
-      return new PlaidError(request, res.status, 'INTERNAL', text || res.statusText)
+  try {
+    const cookie = request.headers.get('cookie') || ''
+    const headers = new Headers(init.headers)
+    if (cookie) headers.set('cookie', cookie)
+    if (init.body && !headers.has('content-type')) {
+      headers.set('content-type', 'application/json')
     }
-  }
 
-  if (!res.ok) {
-    const errBody = (body ?? {}) as {
-      error_code?: string
-      message?: string
-      req_id?: string
+    const res = await fetch(`${BACKEND_HTTP_URL}${path}`, {
+      ...init,
+      headers
+    })
+
+    const text = await res.text()
+    let body: unknown = null
+    if (text.length > 0) {
+      try {
+        body = JSON.parse(text)
+      } catch {
+        return new PlaidError(request, res.status, 'INTERNAL', text || res.statusText)
+      }
     }
-    return new PlaidError(
-      request,
-      res.status,
-      errBody.error_code || 'INTERNAL',
-      errBody.message || res.statusText,
-      errBody.req_id
-    )
-  }
 
-  return body as T
+    if (!res.ok) {
+      const errBody = (body ?? {}) as {
+        error_code?: string
+        message?: string
+        req_id?: string
+      }
+      return new PlaidError(
+        request,
+        res.status,
+        errBody.error_code || 'INTERNAL',
+        errBody.message || res.statusText,
+        errBody.req_id
+      )
+    }
+
+    return body as T
+  } catch (err) {
+    if (err instanceof Response) throw err
+    const message = err instanceof Error ? err.message : String(err)
+    logger.error({ err, path }, 'plaidFetch: unexpected error')
+    return new PlaidError(request, 500, 'NETWORK_ERROR', message)
+  }
 }
 
 

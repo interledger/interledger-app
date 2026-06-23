@@ -65,7 +65,10 @@ export async function action({ request }: Route.ActionArgs): Promise<ActionData 
         account_mask: String(form.get('account_mask') || '') || undefined
       })
       if (isPlaidError(linked)) {
-        return ErrorHandler(request, ErrorMapper.plaid.toUserFacingError(linked)) as any
+        ErrorMapper.plaid.toUserFacingError(linked)
+        return redirectWithSnackbar(request, href('/accounts'), {
+          message: 'Bank account linking failed. Please try again.'
+        })
       }
       if (linked.already_linked) {
         return {
