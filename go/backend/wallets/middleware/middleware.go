@@ -5,11 +5,11 @@ import (
 	"errors"
 	"strings"
 
-	"gitlab.com/fynbos/backend/wallets"
+	"github.com/interledger/interledger-app/go/backend/wallets"
 
 	"github.com/gogo/status"
-	"gitlab.com/fynbos/backend/user"
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/backend/user"
+	"github.com/interledger/interledger-app/go/log"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"

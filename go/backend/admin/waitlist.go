@@ -2,7 +2,7 @@ package admin
 
 import (
 	"context"
-	adminv1 "gitlab.com/fynbos/proto/backend/admin/v1"
+	adminv1 "github.com/interledger/interledger-app/go/proto/backend/admin/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"

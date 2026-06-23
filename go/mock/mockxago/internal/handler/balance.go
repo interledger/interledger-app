@@ -6,9 +6,9 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 
-	"gitlab.com/fynbos/mock/mockxago/internal/logger"
-	"gitlab.com/fynbos/mock/mockxago/internal/models"
-	"gitlab.com/fynbos/mock/mockxago/internal/storage"
+	"github.com/interledger/interledger-app/go/mock/mockxago/internal/logger"
+	"github.com/interledger/interledger-app/go/mock/mockxago/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockxago/internal/storage"
 )
 
 // GetBalance handles GET /xago/v1/accounts/{accountId}/balance

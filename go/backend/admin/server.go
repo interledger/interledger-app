@@ -1,8 +1,8 @@
 package admin
 
 import (
-	"gitlab.com/fynbos/backend/healthcheck"
-	adminv1 "gitlab.com/fynbos/proto/backend/admin/v1"
+	"github.com/interledger/interledger-app/go/backend/healthcheck"
+	adminv1 "github.com/interledger/interledger-app/go/proto/backend/admin/v1"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health/grpc_health_v1"

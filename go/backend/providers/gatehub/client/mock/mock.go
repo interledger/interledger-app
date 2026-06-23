@@ -11,9 +11,9 @@ import (
 	time "time"
 
 	gomock "github.com/golang/mock/gomock"
-	currency "gitlab.com/fynbos/backend/currency"
-	gatehub "gitlab.com/fynbos/backend/providers/gatehub"
-	external "gitlab.com/fynbos/backend/providers/gatehub/external"
+	currency "github.com/interledger/interledger-app/go/backend/currency"
+	gatehub "github.com/interledger/interledger-app/go/backend/providers/gatehub"
+	external "github.com/interledger/interledger-app/go/backend/providers/gatehub/external"
 )
 
 // MockClient is a mock of Client interface.
@@ -477,4 +477,18 @@ func (m *MockClient) ValidateCardProductCode(ctx context.Context, cardProductCod
 func (mr *MockClientMockRecorder) ValidateCardProductCode(ctx, cardProductCode interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ValidateCardProductCode", reflect.TypeOf((*MockClient)(nil).ValidateCardProductCode), ctx, cardProductCode)
+}
+
+// ExternalClient mocks base method.
+func (m *MockClient) ExternalClient() external.Client {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ExternalClient")
+	ret0, _ := ret[0].(external.Client)
+	return ret0
+}
+
+// ExternalClient indicates an expected call of ExternalClient.
+func (mr *MockClientMockRecorder) ExternalClient() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExternalClient", reflect.TypeOf((*MockClient)(nil).ExternalClient))
 }

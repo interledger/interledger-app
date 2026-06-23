@@ -9,7 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	kyc "gitlab.com/fynbos/backend/kyc"
+	kyc "github.com/interledger/interledger-app/go/backend/kyc"
 )
 
 // MockAddressValidator is a mock of AddressValidator interface.

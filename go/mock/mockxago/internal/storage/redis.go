@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/interledger/interledger-app/go/mock/mockxago/internal/models"
 	"github.com/redis/go-redis/v9"
-	"gitlab.com/fynbos/mock/mockxago/internal/models"
 )
 
 // RedisStorage is a Redis-backed implementation of the Storage interface

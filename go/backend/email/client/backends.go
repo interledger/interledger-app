@@ -1,10 +1,10 @@
 package client
 
 import (
-	"gitlab.com/fynbos/backend/email/sendgrid"
-	"gitlab.com/fynbos/backend/kyc"
-	"gitlab.com/fynbos/backend/user"
-	"gitlab.com/fynbos/backend/wallets"
+	"github.com/interledger/interledger-app/go/backend/email/sendgrid"
+	"github.com/interledger/interledger-app/go/backend/kyc"
+	"github.com/interledger/interledger-app/go/backend/user"
+	"github.com/interledger/interledger-app/go/backend/wallets"
 )
 
 type Backends interface {
@@ -15,8 +15,9 @@ type Backends interface {
 
 type opsBackends struct {
 	Backends
-	external   sendgrid.Client
-	templateID string
+	external     sendgrid.Client
+	templateID   string
+	supportEmail string
 }
 
 func (o *opsBackends) External() sendgrid.Client {
@@ -25,4 +26,8 @@ func (o *opsBackends) External() sendgrid.Client {
 
 func (o *opsBackends) OneTemplateID() string {
 	return o.templateID
+}
+
+func (o *opsBackends) SupportEmail() string {
+	return o.supportEmail
 }

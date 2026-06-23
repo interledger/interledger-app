@@ -5,9 +5,9 @@ import (
 	"errors"
 
 	"github.com/google/uuid"
-	"gitlab.com/fynbos/backend/identities"
-	"gitlab.com/fynbos/backend/twitter"
-	backendv1 "gitlab.com/fynbos/proto/backend/v1"
+	"github.com/interledger/interledger-app/go/backend/identities"
+	"github.com/interledger/interledger-app/go/backend/twitter"
+	backendv1 "github.com/interledger/interledger-app/go/proto/backend/v1"
 )
 
 func (s *rpcService) CreateTwitterAuthURL(

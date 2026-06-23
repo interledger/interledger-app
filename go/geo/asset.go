@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"math/big"
 
-	geopbv1 "gitlab.com/fynbos/proto/geo/v1"
+	geopbv1 "github.com/interledger/interledger-app/go/proto/geo/v1"
 )
 
 /*

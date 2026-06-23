@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"gitlab.com/fynbos/mock/mockpti/internal/logger"
-	"gitlab.com/fynbos/mock/mockpti/internal/models"
-	"gitlab.com/fynbos/mock/mockpti/internal/utils"
+	"github.com/interledger/interledger-app/go/mock/mockpti/internal/logger"
+	"github.com/interledger/interledger-app/go/mock/mockpti/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockpti/internal/utils"
 )
 
 // CreateJWT handles POST /auth/jwt.

@@ -5,8 +5,8 @@ import (
 	"io"
 	"time"
 
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/providers/gatehub/external"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub/external"
 )
 
 type Client interface {
@@ -30,6 +30,7 @@ type Client interface {
 	ValidateCardProductCode(ctx context.Context, cardProductCode string) error
 	GetPendingThreeDSConfirmations(ctx context.Context, userID string) ([]external.PendingThreeDSConfirmation, error)
 	ThreeDSPaymentConfirmation(ctx context.Context, userID, txID string, confirmed bool) error
+	UpdateOrganizationConfiguration(ctx context.Context, apiBaseURL, twoFAType string) (*external.UpdateOrganizationConfigurationResponse, error)
 
 	ReserveBalance(ctx context.Context, linkedAccountID, txID string, amt currency.Amount, timeout time.Duration) (*Balance, error)
 	FinaliseReserve(ctx context.Context, txID string) error
@@ -37,7 +38,7 @@ type Client interface {
 	AssignBalance(ctx context.Context, linkedAccountID, trxID string, amount currency.Amount) (*Balance, error)
 	LinkUserToGatewayByWalletID(ctx context.Context, walletID string) error
 	LinkUserToGatewayByExternalID(ctx context.Context, ExternalID string) error
-	UpdateOrganizationConfiguration(ctx context.Context, apiBaseURL, twoFAType string) (*external.UpdateOrganizationConfigurationResponse, error)
+	ExternalClient() external.Client
 	GetAccountConfirmation(ctx context.Context, walletID string) (io.ReadCloser, error)
 	GetAccountStatement(ctx context.Context, walletID string, year, month int) (io.ReadCloser, error)
 	GetTransactionStatement(ctx context.Context, walletID string, txID string) (io.ReadCloser, error)

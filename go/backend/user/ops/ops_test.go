@@ -11,15 +11,15 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
+	"github.com/interledger/interledger-app/go/backend/analytics"
+	analytics_client "github.com/interledger/interledger-app/go/backend/analytics/client"
+	"github.com/interledger/interledger-app/go/backend/db"
+	"github.com/interledger/interledger-app/go/backend/keys"
+	"github.com/interledger/interledger-app/go/backend/user"
 	"github.com/jmoiron/sqlx"
 	kratos "github.com/ory/kratos-client-go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/backend/analytics"
-	analytics_client "gitlab.com/fynbos/backend/analytics/client"
-	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/keys"
-	"gitlab.com/fynbos/backend/user"
 )
 
 func TestUpdateUserPhone_StatusMapping(t *testing.T) {

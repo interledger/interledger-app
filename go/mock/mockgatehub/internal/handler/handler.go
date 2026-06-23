@@ -8,19 +8,21 @@ import (
 	"io"
 	"net/http"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 
-	"gitlab.com/fynbos/mock/mockgatehub/internal/config"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/consts"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/logger"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/models"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/storage"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/utils"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/webhook"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/config"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/consts"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/logger"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/storage"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/utils"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/webhook"
 
+	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
 )
 
@@ -125,7 +127,7 @@ func (h *Handler) HealthCheck(w http.ResponseWriter, r *http.Request) {
 	logger.Debug("health check requested")
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`{"status":"ok","service":"gitlab.com/fynbos/mock/mockgatehub"}`))
+	w.Write([]byte(`{"status":"ok","service":"github.com/interledger/interledger-app/go/mock/mockgatehub"}`))
 }
 
 // RootHandler serves the main iframe page for deposit/onboarding
@@ -569,7 +571,10 @@ func (h *Handler) processWithdrawal(w http.ResponseWriter, bearer string, txReq 
 		ReceivingAddress: walletAddress,
 		Type:             consts.TransactionTypeWithdrawal,
 		DepositType:      consts.DepositTypeWithdrawal,
-		Status:           consts.TransactionStatusCompleted,
+		Status:           consts.TransactionStatusPending,
+		AccountIBAN:      "GB29NWBK60161331926819",
+		AccountLegalName: "Jane Smith",
+		Message:          "Mock Reference",
 	}
 
 	if err := h.store.CreateTransaction(tx); err != nil {
@@ -578,26 +583,12 @@ func (h *Handler) processWithdrawal(w http.ResponseWriter, bearer string, txReq 
 		return
 	}
 
-	if err := h.store.DeductBalance(userUUID, txReq.Currency, totalAmount); err != nil {
-		logger.Error("failed to deduct balance for withdrawal", zap.String("user_id", userUUID), zap.Error(err))
-		h.sendErrorWithCORS(w, http.StatusInternalServerError, "Failed to deduct balance")
-		return
-	}
-
-	h.webhookManager.SendAsync(consts.WebhookEventWithdrawalCompleted, userUUID, map[string]interface{}{
-		"tx_uuid":    txID,
-		"amount":     amountStr,
-		"currency":   txReq.Currency,
-		"address":    walletAddress,
-		"total_fees": feeStr,
-	}, 2)
-
-	logger.Info("withdrawal completed and webhook sent", zap.String("user_id", userUUID), zap.String("transaction_id", txID), zap.String("amount", amountStr), zap.String("currency", txReq.Currency))
+	logger.Info("withdrawal created as pending", zap.String("user_id", userUUID), zap.String("transaction_id", txID), zap.String("amount", amountStr), zap.String("currency", txReq.Currency))
 
 	// Return success response with transaction ID for iframe
 	h.sendJSONWithCORS(w, http.StatusOK, map[string]string{
 		"status":         "success",
-		"message":        "Withdrawal completed",
+		"message":        "Withdrawal pending",
 		"transaction_id": txID, // Frontend needs this for CreateGatehubWithdrawal
 		"uuid":           txID, // Alias for compatibility
 	})
@@ -634,4 +625,125 @@ func min(a, b int) int {
 		return a
 	}
 	return b
+}
+
+// ListWithdrawals returns withdrawals for a user, optionally filtered by status.
+// GET /admin/users/{userID}/withdrawals?status=pending
+func (h *Handler) ListWithdrawals(w http.ResponseWriter, r *http.Request) {
+	userID := chi.URLParam(r, "userID")
+	statusFilter := r.URL.Query().Get("status")
+
+	txs, err := h.store.ListTransactionsByUser(userID)
+	if err != nil {
+		logger.Error("admin: failed to list transactions", zap.String("user_id", userID), zap.Error(err))
+		h.sendError(w, http.StatusInternalServerError, "failed to list transactions")
+		return
+	}
+
+	var withdrawals []*models.Transaction
+	for _, tx := range txs {
+		if tx.DepositType != consts.DepositTypeWithdrawal {
+			continue
+		}
+		if statusFilter == "pending" && tx.Status != consts.TransactionStatusPending {
+			continue
+		}
+		withdrawals = append(withdrawals, tx)
+	}
+
+	if withdrawals == nil {
+		withdrawals = []*models.Transaction{}
+	}
+
+	sort.Slice(withdrawals, func(i, j int) bool {
+		return withdrawals[i].CreatedAt.After(withdrawals[j].CreatedAt)
+	})
+
+	h.sendJSON(w, http.StatusOK, withdrawals)
+}
+
+// TriggerWithdrawalEvent fires a withdrawal webhook for a pending transaction.
+// POST /admin/withdrawals/{txID}/trigger-event
+// Body: {"event": "core.withdrawal.completed" | "more-bridge.withdrawal.rejected"}
+func (h *Handler) TriggerWithdrawalEvent(w http.ResponseWriter, r *http.Request) {
+	txID := chi.URLParam(r, "txID")
+
+	var req struct {
+		Event string `json:"event"`
+	}
+	if err := h.decodeJSON(r, &req); err != nil {
+		h.sendError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	switch req.Event {
+	case consts.WebhookEventWithdrawalCompleted, consts.WebhookEventWithdrawalRejected:
+	default:
+		h.sendError(w, http.StatusBadRequest, "unsupported event; use core.withdrawal.completed or more-bridge.withdrawal.rejected")
+		return
+	}
+
+	tx, err := h.store.GetTransaction(txID)
+	if err != nil {
+		h.sendError(w, http.StatusNotFound, "transaction not found")
+		return
+	}
+
+	if tx.DepositType != consts.DepositTypeWithdrawal {
+		h.sendError(w, http.StatusBadRequest, "transaction is not a withdrawal")
+		return
+	}
+
+	if tx.Status != consts.TransactionStatusPending {
+		h.sendError(w, http.StatusConflict, "transaction is not pending")
+		return
+	}
+
+	switch req.Event {
+	case consts.WebhookEventWithdrawalCompleted:
+		totalAmount, err := strconv.ParseFloat(tx.TotalAmount, 64)
+		if err != nil {
+			logger.Error("admin: failed to parse total amount", zap.String("tx_id", txID), zap.Error(err))
+			h.sendError(w, http.StatusInternalServerError, "failed to parse transaction amount")
+			return
+		}
+		if err := h.store.DeductBalance(tx.UserID, tx.Currency, totalAmount); err != nil {
+			logger.Error("admin: failed to deduct balance", zap.String("tx_id", txID), zap.Error(err))
+			h.sendError(w, http.StatusInternalServerError, "failed to deduct balance")
+			return
+		}
+		if err := h.store.UpdateTransactionStatus(txID, consts.TransactionStatusCompleted); err != nil {
+			logger.Error("admin: failed to update transaction status", zap.String("tx_id", txID), zap.Error(err))
+			h.sendError(w, http.StatusInternalServerError, "failed to update transaction status")
+			return
+		}
+		h.webhookManager.SendAsync(consts.WebhookEventWithdrawalCompleted, tx.UserID, map[string]interface{}{
+			"tx_uuid":    txID,
+			"amount":     tx.Amount,
+			"currency":   tx.Currency,
+			"address":    tx.ReceivingAddress,
+			"total_fees": tx.Fee,
+		}, 0)
+		logger.Info("admin: withdrawal completed", zap.String("tx_id", txID), zap.String("user_id", tx.UserID))
+
+	case consts.WebhookEventWithdrawalRejected:
+		if err := h.store.UpdateTransactionStatus(txID, consts.TransactionStatusFailed); err != nil {
+			logger.Error("admin: failed to update transaction status", zap.String("tx_id", txID), zap.Error(err))
+			h.sendError(w, http.StatusInternalServerError, "failed to update transaction status")
+			return
+		}
+		h.webhookManager.SendAsync(consts.WebhookEventWithdrawalRejected, tx.UserID, map[string]interface{}{
+			"txUuid":   txID,
+			"userUuid": tx.UserID,
+			"status":   "PENDING",
+			"currency": tx.Currency,
+			"amount":   tx.Amount,
+		}, 0)
+		logger.Info("admin: withdrawal rejected", zap.String("tx_id", txID), zap.String("user_id", tx.UserID))
+	}
+
+	h.sendJSON(w, http.StatusOK, map[string]string{
+		"tx_id": txID,
+		"event": req.Event,
+	})
 }

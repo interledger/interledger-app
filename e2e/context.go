@@ -63,6 +63,10 @@ type E2EContext struct {
 	screenshotCount int    // Track number of screenshots taken in this scenario
 	screenshotDir   string // Per-scenario screenshot directory
 	totpSecret      string // TOTP secret for the current user
+
+	// Agreement-change workflow: ID of the agreement most recently published in
+	// this scenario; used by subsequent steps that trigger and assert the workflow.
+	pendingAgreementID string
 }
 
 // InitializeScenario sets up the scenario context
@@ -82,6 +86,14 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.After(func(goCtx context.Context, scenario *godog.Scenario, err error) (context.Context, error) {
 		if sc == nil {
 			return goCtx, nil
+		}
+		// Delete any agreement row injected by aNewAgreementVersionIsPublished
+		// before closing the DB — otherwise the row leaks and re-fires the
+		// startup workflow trigger on every backend restart.
+		if sc.pendingAgreementID != "" && sc.db != nil {
+			if cleanupErr := sc.cleanupTestAgreement(sc.pendingAgreementID); cleanupErr != nil {
+				debugPrintf("   ⚠️  cleanupTestAgreement(%s) failed: %v\n", sc.pendingAgreementID, cleanupErr)
+			}
 		}
 		// Cleanup in reverse order
 		if sc.page != nil {
@@ -254,6 +266,9 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^that Gatehub charges my user a ([0-9.]+)% withdrawal fee$`, func(feePercent string) error {
 		return sc.thatGatehubChargesWithdrawalFee(feePercent)
 	})
+	ctx.Step(`^the GateHub withdrawal event "([^"]*)" is triggered$`, func(event string) error {
+		return sc.theGatehubWithdrawalEventIsTriggered(event)
+	})
 
 	// P2P Payment steps
 	ctx.Step(`^I navigate to the dashboard$`, func() error { return sc.iNavigateToTheDashboard() })
@@ -271,6 +286,12 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 		return sc.iSelectThePaymentCurrency(currency)
 	})
 	ctx.Step(`^I submit the payment$`, func() error { return sc.iSubmitThePayment() })
+	ctx.Step(`^I rapidly double-click to submit the payment$`, func() error {
+		return sc.iRapidlyDoubleClickToSubmitThePayment()
+	})
+	ctx.Step(`^I should be redirected to the home page and able to navigate away$`, func() error {
+		return sc.iShouldLandOnHomeAndBeAbleToNavigate()
+	})
 	ctx.Step(`^I should see a payment confirmation$`, func() error { return sc.iShouldSeeAPaymentConfirmation() })
 	ctx.Step(`^I wait for the payment to complete$`, func() error { return sc.iWaitForThePaymentToComplete() })
 	ctx.Step(`^the payment form should be accessible$`, func() error { return sc.thePaymentFormShouldBeAccessible() })
@@ -292,6 +313,29 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	})
 	ctx.Step(`^I should see text "([^"]*)" on the page$`, func(text string) error {
 		return sc.iShouldSeeTextOnThePage(text)
+	})
+
+	// Rafiki full node payment steps
+	ctx.Step(`^I get my own wallet address$`, func() error {
+		return sc.iGetMyOwnWalletAddress()
+	})
+	ctx.Step(`^I fill in my own wallet address as the receiver$`, func() error {
+		return sc.iFillInMyOwnWalletAddressAsTheReceiver()
+	})
+	ctx.Step(`^I search for my own wallet address in the payment form$`, func() error {
+		return sc.iSearchForMyOwnWalletAddressInThePaymentForm()
+	})
+	ctx.Step(`^I should see no payment result for my own wallet address$`, func() error {
+		return sc.iShouldSeeNoPaymentResultForMyOwnWalletAddress()
+	})
+	ctx.Step(`^I should see a completed outgoing transaction for "([^"]*)" "([^"]*)" in my payments history$`, func(amount, currency string) error {
+		return sc.iShouldSeeACompletedOutgoingTransactionFor(amount, currency)
+	})
+	ctx.Step(`^I should not see a completed outgoing transaction for "([^"]*)" "([^"]*)" in my payments history$`, func(amount, currency string) error {
+		return sc.iShouldNotSeeACompletedOutgoingTransactionFor(amount, currency)
+	})
+	ctx.Step(`^I wait "([^"]*)" seconds for the payment workflow to complete$`, func(seconds string) error {
+		return sc.iWaitSeconds(seconds)
 	})
 
 	// Bank account linking steps (Xago ZA)
@@ -541,6 +585,69 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	})
 	ctx.Step(`^an authenticator reset audit log entry should exist$`, func() error {
 		return sc.anAuthenticatorResetAuditLogEntryShouldExist()
+	})
+
+	// Agreements
+	ctx.Step(`^an agreement signature should exist for myself for "([^"]*)"$`, func(agreementID string) error {
+		return sc.anAgreementSignatureShouldExistForMyselfFor(agreementID)
+	})
+	ctx.Step(`^a new "([^"]*)" agreement version "([^"]*)" is published$`, func(name, version string) error {
+		return sc.aNewAgreementVersionIsPublished(name, version)
+	})
+	ctx.Step(`^the agreement change notification workflow runs$`, func() error {
+		return sc.theAgreementChangeNotificationWorkflowRuns()
+	})
+	ctx.Step(`^I should be marked notified for the new agreement$`, func() error {
+		return sc.iShouldBeMarkedNotifiedForTheNewAgreement()
+	})
+
+	// Account deletion steps
+	ctx.Step(`^the delete-account feature is enabled for my wallet$`, func() error {
+		return sc.iEnableDeleteAccountFeatureForMyWallet()
+	})
+	ctx.Step(`^an account-deletion request exists for me with status "([^"]*)"$`, func(status string) error {
+		return sc.aPendingAccountDeletionRequestExistsForMeWithStatus(status)
+	})
+	ctx.Step(`^the "Delete account" settings link should be visible$`, func() error {
+		return sc.theDeleteAccountSettingsLinkShouldBeVisible()
+	})
+	ctx.Step(`^the "Delete account" settings link should not be visible$`, func() error {
+		return sc.theDeleteAccountSettingsLinkShouldNotBeVisible()
+	})
+	ctx.Step(`^I click the destructive "Delete account" button$`, func() error {
+		return sc.iClickTheDestructiveDeleteAccountButton()
+	})
+	ctx.Step(`^I complete the TOTP step-up challenge$`, func() error {
+		return sc.iCompleteTheTOTPStepUpChallenge()
+	})
+	ctx.Step(`^the pending account-deletion indicator should be visible$`, func() error {
+		return sc.thePendingAccountDeletionIndicatorShouldBeVisible()
+	})
+	ctx.Step(`^the in-progress account-deletion indicator should be visible$`, func() error {
+		return sc.theInProgressAccountDeletionIndicatorShouldBeVisible()
+	})
+	ctx.Step(`^an account-deletion request should exist for me with status "([^"]*)"$`, func(status string) error {
+		return sc.anAccountDeletionRequestShouldExistForMeWithStatus(status)
+	})
+	ctx.Step(`^no account-deletion request should exist for me$`, func() error {
+		return sc.noAccountDeletionRequestShouldExistForMe()
+	})
+	ctx.Step(`^my TOTP enrollment is removed$`, func() error {
+		return sc.myTOTPEnrollmentIsRemoved()
+	})
+	ctx.Step(`^the TOTP step-up popup should not appear$`, func() error {
+		return sc.theTOTPStepUpPopupShouldNotAppear()
+	})
+
+	// Botanist feature toggle steps
+	ctx.Step(`^the "([^"]*)" feature toggle should be (on|off)$`, func(key, state string) error {
+		return sc.theFeatureToggleShouldBe(key, state)
+	})
+	ctx.Step(`^I toggle the "([^"]*)" feature on$`, func(key string) error {
+		return sc.iToggleTheFeatureOn(key)
+	})
+	ctx.Step(`^the "([^"]*)" feature should be enabled in the database for my wallet$`, func(key string) error {
+		return sc.theFeatureShouldBeEnabledInTheDatabase(key)
 	})
 }
 

@@ -1,8 +1,8 @@
 package analytics
 
 import (
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/transactions"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/transactions"
 )
 
 type IdentifyArgs struct {

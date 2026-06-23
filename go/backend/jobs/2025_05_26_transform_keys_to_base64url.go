@@ -4,8 +4,8 @@ import (
 	"encoding/base64"
 	"time"
 
-	"gitlab.com/fynbos/backend/keys"
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/backend/keys"
+	"github.com/interledger/interledger-app/go/log"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 	"go.uber.org/zap"

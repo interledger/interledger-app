@@ -18,7 +18,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"gitlab.com/fynbos/mock/mockxago/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockxago/internal/models"
 )
 
 func TestPersonaGetInquiryIframe_UsesInquiryID(t *testing.T) {

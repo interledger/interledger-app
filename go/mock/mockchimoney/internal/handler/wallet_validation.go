@@ -4,7 +4,7 @@ import (
 	"context"
 	"strings"
 
-	"gitlab.com/fynbos/mock/mockchimoney/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockchimoney/internal/models"
 )
 
 func requireTrimmedField(value string) (string, bool) {
