@@ -1,0 +1,75 @@
+# CI overrides for helm/mock-services
+#
+# Applied on top of helm/mock-services/values.yaml when deploying to the local
+# kind cluster.  Only keys that differ from the chart defaults are listed here.
+#
+# Images are built locally (make build) and loaded into kind (make load).
+# imagePullPolicy is overridden to IfNotPresent so the kubelet uses the loaded
+# image rather than attempting to pull from the private GCP registry.
+#
+# All config values are non-sensitive placeholders suitable for local testing
+# only.  Do not use these values in any real environment.
+
+mockpti:
+  enabled: true
+  serviceAccount:
+    create: true
+  secretAccess:
+    - mock-secrets
+  server:
+    image:
+      tag: ci
+    imagePullPolicy: IfNotPresent
+  config:
+    log_level: "debug"
+    redis_url: "{{ secret \"mock-secrets\" \"redisUrl\" }}"
+    redis_db: "5"
+    client_id: "ci-client-id"
+    webhook_url: "http://ci.local/webhook"
+    webhook_signing_key: "ci-test-signing-key"
+    forms_mutation_token: "ci-forms-token"
+
+mockgatehub:
+  enabled: true
+  serviceAccount:
+    create: true
+  secretAccess:
+    - mock-secrets
+  server:
+    image:
+      tag: ci
+    imagePullPolicy: IfNotPresent
+  config:
+    log_level: "debug"
+    redis_url: "{{ secret \"mock-secrets\" \"redisUrl\" }}"
+    redis_db: 2
+    webhook_url: "http://ci.local/webhook"
+    webhook_secret: "ci-webhook-secret"
+    webhook_min_delay_sec: 2
+    enforce_authentication: true
+    valid_credentials:
+      ci-app-id: ci-app-secret
+    default_organization_id: "ci-org"
+    public_base_url: "http://mockgatehub.ci.local"
+
+mockxago:
+  enabled: true
+  serviceAccount:
+    create: true
+  secretAccess:
+    - mock-secrets
+  server:
+    image:
+      tag: ci
+    imagePullPolicy: IfNotPresent
+  config:
+    log_level: "debug"
+    redis_url: "{{ secret \"mock-secrets\" \"redisUrl\" }}"
+    redis_db: 4
+    public_key: "ci-public-key"
+    secret: "ci-secret"
+    test_mode: true
+    webhook_url: "http://ci.local/webhook"
+    webhook_secret: "ci-webhook-secret"
+    webhook_min_delay_sec: 2
+    persona_webhook_url: "http://ci.local/webhooks/persona"

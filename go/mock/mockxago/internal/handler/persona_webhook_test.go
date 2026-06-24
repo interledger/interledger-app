@@ -26,7 +26,7 @@ func TestSendPersonaAccountTagAdded_Success(t *testing.T) {
 	defer server.Close()
 
 	store := storage.NewMemoryStorage()
-	handler := NewHandler(store, nil)
+	handler := NewHandler(store, nil, testConfig())
 	handler.sendPersonaAccountTagAdded("wallet123", server.URL, "test-secret")
 
 	time.Sleep(100 * time.Millisecond)
@@ -59,7 +59,7 @@ func TestSendPersonaAccountTagAdded_SignatureFormat(t *testing.T) {
 	defer server.Close()
 
 	store := storage.NewMemoryStorage()
-	handler := NewHandler(store, nil)
+	handler := NewHandler(store, nil, testConfig())
 	handler.sendPersonaAccountTagAdded("wallet456", server.URL, "persona-test-secret")
 
 	time.Sleep(100 * time.Millisecond)
@@ -97,7 +97,7 @@ func TestSendPersonaAccountTagAdded_PayloadStructure(t *testing.T) {
 	defer server.Close()
 
 	store := storage.NewMemoryStorage()
-	handler := NewHandler(store, nil)
+	handler := NewHandler(store, nil, testConfig())
 	handler.sendPersonaAccountTagAdded("wallet789", server.URL, "secret")
 
 	time.Sleep(100 * time.Millisecond)
@@ -132,7 +132,7 @@ func TestSendPersonaAccountTagAdded_PayloadStructure(t *testing.T) {
 // TestSendPersonaAccountTagAdded_InvalidURL does not panic on bad URL
 func TestSendPersonaAccountTagAdded_InvalidURL(t *testing.T) {
 	store := storage.NewMemoryStorage()
-	handler := NewHandler(store, nil)
+	handler := NewHandler(store, nil, testConfig())
 
 	// Should not panic or crash with invalid URL
 	handler.sendPersonaAccountTagAdded("wallet000", "http://[invalid:url]:9999", "secret")
@@ -148,7 +148,7 @@ func TestSendPersonaAccountTagAdded_ServerErrorHandling(t *testing.T) {
 	defer server.Close()
 
 	store := storage.NewMemoryStorage()
-	handler := NewHandler(store, nil)
+	handler := NewHandler(store, nil, testConfig())
 
 	// Should not panic on server error
 	handler.sendPersonaAccountTagAdded("wallet001", server.URL, "secret")
@@ -164,7 +164,7 @@ func TestSendPersonaAccountTagAdded_ClientErrorHandling(t *testing.T) {
 	defer server.Close()
 
 	store := storage.NewMemoryStorage()
-	handler := NewHandler(store, nil)
+	handler := NewHandler(store, nil, testConfig())
 
 	// Should not panic on client error
 	handler.sendPersonaAccountTagAdded("wallet002", server.URL, "secret")
@@ -188,7 +188,7 @@ func TestSendPersonaAccountTagAdded_TimestampGeneration(t *testing.T) {
 	defer server.Close()
 
 	store := storage.NewMemoryStorage()
-	handler := NewHandler(store, nil)
+	handler := NewHandler(store, nil, testConfig())
 
 	// Send multiple webhooks with microsecond delay
 	for i := 0; i < 3; i++ {
@@ -238,7 +238,7 @@ func TestSendPersonaAccountTagAdded_DifferentWalletsAndSecrets(t *testing.T) {
 			defer server.Close()
 
 			store := storage.NewMemoryStorage()
-			handler := NewHandler(store, nil)
+			handler := NewHandler(store, nil, testConfig())
 			handler.sendPersonaAccountTagAdded(tt.walletID, server.URL, tt.secret)
 
 			time.Sleep(100 * time.Millisecond)

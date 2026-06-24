@@ -11,7 +11,8 @@ COPY go/go.mod go/go.sum ./go/
 # Download dependencies
 RUN cd go && go mod download
 
-# Copy mockgatehub source from monorepo
+# Copy configa (shared library) and mockgatehub source from monorepo
+COPY go/configa ./go/configa/
 COPY go/mock/mockgatehub ./go/mock/mockgatehub/
 
 # Build

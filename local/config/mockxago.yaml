@@ -1,0 +1,15 @@
+log_level: debug
+
+redis_url: redis:6379
+redis_db: 4
+
+public_key: test-public-key
+secret: test-secret
+test_mode: true
+
+webhook_url: http://backend:8080/webhooks/xago
+webhook_secret: xago-webhook-secret
+webhook_min_delay_sec: 2
+
+persona_webhook_url: http://backend:8080/webhooks/persona
+persona_webhook_token: test-persona-webhook-token
