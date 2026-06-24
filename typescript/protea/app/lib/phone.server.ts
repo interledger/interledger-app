@@ -95,9 +95,14 @@ export function parseUserPhone(
   country: string
 ): ParsedPhoneResult {
   try {
+    const parsedPhone = parsePhoneNumberWithError(
+      phone,
+      country as CountryCode
+    ).number
+
     return {
       success: true,
-      phone: parsePhoneNumberWithError(phone, country as CountryCode).number
+      phone: parsedPhone.replace(/[\s\-()]/g, '')
     }
   } catch (err) {
     switch ((err as ParseError).message) {
@@ -175,8 +180,9 @@ export async function handleUpdatePhone(request: Request, form: FormData) {
  */
 export async function handleResendOtp(request: Request, phone: string) {
   const errors: Partial<TwillioError> = { otp: '' }
-  const normalizedPhone = phone.replace(/\s+/g, '')
+  const normalizedPhone = phone.replace(/[\s\-()]/g, '')
   const otpRateLimitResult = await applyPhoneOtpRateLimit(request)
+
   if (otpRateLimitResult) {
     return {
       codeSent: false as const,
