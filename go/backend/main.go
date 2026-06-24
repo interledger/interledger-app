@@ -82,7 +82,6 @@ import (
 	"github.com/interledger/interledger-app/go/backend/rafiki"
 	rafiki_client "github.com/interledger/interledger-app/go/backend/rafiki/client"
 	rafiki_external "github.com/interledger/interledger-app/go/backend/rafiki/external"
-	redis_client "github.com/interledger/interledger-app/go/backend/redis/client"
 	"github.com/interledger/interledger-app/go/backend/signup"
 	signup_client "github.com/interledger/interledger-app/go/backend/signup/client"
 	"github.com/interledger/interledger-app/go/backend/slack"
@@ -96,6 +95,7 @@ import (
 	twitter_client "github.com/interledger/interledger-app/go/backend/twitter/client"
 	"github.com/interledger/interledger-app/go/backend/user"
 	user_client "github.com/interledger/interledger-app/go/backend/user/client"
+	valkey_client "github.com/interledger/interledger-app/go/backend/valkey/client"
 	"github.com/interledger/interledger-app/go/backend/vault"
 	"github.com/interledger/interledger-app/go/backend/waitlist"
 	waitlist_client "github.com/interledger/interledger-app/go/backend/waitlist/client"
@@ -540,7 +540,7 @@ func startWorker(args *cli.StartArgs) {
 type backends struct {
 	val            *validator.Validate
 	db             *sqlx.DB
-	redis          *redis_client.Client
+	redis          *valkey_client.Client
 	twitter        twitter.Client
 	adminAuth      auth.Service
 	agreements     agreements.Client
@@ -715,7 +715,7 @@ func (b backends) AccountDeletion() accountdeletion.Client {
 	return b.accountDeletion
 }
 
-func (b backends) Redis() *redis_client.Client {
+func (b backends) Redis() *valkey_client.Client {
 	return b.redis
 }
 
@@ -734,7 +734,7 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 		log.Fatalln(err)
 	}
 
-	b.redis = redis_client.New(args.RedisURL)
+	b.redis = valkey_client.New(args.ValkeyURL)
 
 	tp, err := temporal.NewTemporalClient(args.TemporalUrl)
 	if err != nil {

@@ -279,7 +279,7 @@ backend:
 
     signup_agreement_ids: ""
 
-    redis_url_ref: "redisURL"
+    valkey_url_ref: "valkeyURL"
 
   server:
     enabled: true
@@ -482,11 +482,11 @@ backend:
           secretKeyRef:
             name: '{{ include "common.fullname" . }}-backend'
             key: "{{ .Values.backend.config.admin.team_domain_ref }}"
-      - name: REDIS_URL
+      - name: VALKEY_URL
         valueFrom:
           secretKeyRef:
             name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.redis_url_ref }}"
+            key: "{{ .Values.backend.config.valkey_url_ref }}"
       - name: OPERATOR_TENANT_ID
         valueFrom:
           secretKeyRef:
@@ -760,11 +760,11 @@ backend:
           secretKeyRef:
             name: '{{ include "common.fullname" . }}-backend'
             key: "{{ .Values.backend.config.admin.team_domain_ref }}"
-      - name: REDIS_URL
+      - name: VALKEY_URL
         valueFrom:
           secretKeyRef:
             name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.redis_url_ref }}"
+            key: "{{ .Values.backend.config.valkey_url_ref }}"
       - name: OPERATOR_TENANT_ID
         valueFrom:
           secretKeyRef:
