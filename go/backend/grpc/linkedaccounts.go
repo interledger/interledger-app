@@ -6,6 +6,7 @@ import (
 
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/linkedaccounts"
+	plaidlinks_ops "gitlab.com/fynbos/backend/plaidlinks/ops"
 	"gitlab.com/fynbos/backend/providers/pti"
 
 	pb "gitlab.com/fynbos/proto/backend/v1"
@@ -123,8 +124,17 @@ func (s *rpcService) DeleteLinkedAccount(ctx context.Context, req *pb.DeleteLink
 	}
 
 	err = s.b.LinkedAccounts().Delete(ctx, la.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
 
-	return &pb.Empty{}, toGRPCError(err)
+	// Free the Plaid dedupe slot so the same account can be re-linked. s.b
+	// satisfies the duck-typed plaidlinks Backends via DB()/Validator().
+	if err := plaidlinks_ops.SoftDeleteByLinkedAccountID(ctx, s.b, la.ID); err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &pb.Empty{}, nil
 }
 
 func (s *rpcService) SetNicknameLinkedAccount(ctx context.Context, req *pb.SetNicknameLinkedAccountRequest) (*pb.LinkedAccount, error) {

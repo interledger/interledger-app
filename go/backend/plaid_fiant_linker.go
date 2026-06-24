@@ -13,6 +13,8 @@ import (
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	linkedaccounts_ops "gitlab.com/fynbos/backend/linkedaccounts/ops"
+	"gitlab.com/fynbos/backend/plaidlinks"
+	plaidlinks_ops "gitlab.com/fynbos/backend/plaidlinks/ops"
 	plaid_ops "gitlab.com/fynbos/backend/providers/plaid/ops"
 	"gitlab.com/fynbos/backend/providers/pti"
 	pti_external "gitlab.com/fynbos/backend/providers/pti/external"
@@ -49,7 +51,7 @@ func newPlaidFiantLinker(b *backends, ptiBaseURL, ptiClientID, ptiJWK string) (*
 // processor-token mint → Fiant register sequence so two concurrent requests for
 // the same Plaid account can't both call Fiant and create duplicate
 // payment-information records. The partial unique index
-// `wallet_id_plaid_account_id_uniq` is the final backstop; this lock prevents
+// `plaid_links_wallet_plaid_uniq` is the final backstop; this lock prevents
 // the wasted/orphaning external calls before that index ever trips.
 func (l *plaidFiantLinker) WithAccountLock(ctx context.Context, userID, plaidAccountID string, fn func(context.Context) error) error {
 	tx, err := l.b.DB().BeginTxx(ctx, nil)
@@ -86,11 +88,18 @@ func (l *plaidFiantLinker) ExistingLink(ctx context.Context, userID, plaidAccoun
 		return nil, err
 	}
 
-	la, err := linkedaccounts_ops.GetByPlaidAccountID(ctx, l.b, walletID, plaidAccountID)
+	link, err := plaidlinks_ops.GetByPlaidAccountID(ctx, l.b, walletID, plaidAccountID)
 	if err != nil {
-		if errors.Is(err, linkedaccounts.ErrNotFound) {
+		if errors.Is(err, plaidlinks.ErrNotFound) {
 			return nil, nil
 		}
+		return nil, err
+	}
+
+	// The plaid_link points at a linked_accounts row; fetch it for its Fiant
+	// payment-information id (provider_id).
+	la, err := linkedaccounts_ops.Get(ctx, l.b, link.LinkedAccountID)
+	if err != nil {
 		return nil, err
 	}
 	return &plaid_ops.LinkedIDs{
@@ -134,7 +143,6 @@ func (l *plaidFiantLinker) Register(ctx context.Context, args plaid_ops.LinkPlai
 		Provider:            pti.ProviderName,
 		ProviderID:          bank.ID,
 		Type:                pti.TypeBank,
-		PlaidAccountID:      args.PlaidAccountID,
 		State:               linkedaccounts.Verified,
 		CanSend:             true,
 		CanReceive:          true,
@@ -151,6 +159,18 @@ func (l *plaidFiantLinker) Register(ctx context.Context, args plaid_ops.LinkPlai
 		return nil, fmt.Errorf("plaid/fiant linker: persist linked_account: %w", err)
 	}
 
+	// Persist the Plaid-specific link separately. Non-atomic across the two
+	// tables: if this insert fails the linked account already exists, but the
+	// partial unique index + dedupe-on-retry (ExistingLink) are the backstop.
+	_, err = plaidlinks_ops.Create(ctx, l.b, &plaidlinks.CreateArgs{
+		LinkedAccountID: la.ID,
+		WalletID:        walletID,
+		PlaidAccountID:  args.PlaidAccountID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("plaid/fiant linker: persist plaid_link: %w", err)
+	}
+
 	return &plaid_ops.LinkedIDs{
 		LinkedAccountID:      la.ID,
 		PaymentInformationID: bank.ID,
@@ -165,16 +185,7 @@ func (l *plaidFiantLinker) ListLinkedPlaidAccountIDs(ctx context.Context, userID
 		}
 		return nil, err
 	}
-	var ids []string
-	err = l.b.DB().SelectContext(
-		ctx,
-		&ids,
-		`SELECT plaid_account_id FROM linked_accounts
-		 WHERE wallet_id = $1
-		   AND plaid_account_id IS NOT NULL
-		   AND deleted_at IS NULL;`,
-		walletID,
-	)
+	ids, err := plaidlinks_ops.ListPlaidAccountIDsByWallet(ctx, l.b, walletID)
 	if err != nil {
 		return nil, fmt.Errorf("plaid/fiant linker: list plaid account ids: %w", err)
 	}

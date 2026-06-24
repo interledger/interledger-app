@@ -33,8 +33,6 @@ type LinkedAccount struct {
 	CreatedAt           time.Time         `db:"created_at"`
 	UpdatedAt           time.Time         `db:"updated_at"`
 	DeletedAt           sql.NullTime      `db:"deleted_at"`
-	// PlaidAccountID is the Plaid `accounts[*].account_id` (NULL for accounts linked through any other path)
-	PlaidAccountID sql.NullString `db:"plaid_account_id"`
 }
 
 func (la *LinkedAccount) Title() string {
@@ -81,7 +79,6 @@ type CreateArgs struct {
 	ReceiveCurrency     currency.Currency
 	ReceiveAvailability FundsAvailability
 	ReceiveNetwork      string
-	PlaidAccountID string
 }
 
 type GetByProviderIDArgs struct {

@@ -254,11 +254,6 @@ table "linked_accounts" {
     null = true
     type = timestamp
   }
-  column "plaid_account_id" {
-    null = true
-    type = text
-    comment = "When the linked account was sourced via Plaid (Phase 2 POC), this is the Plaid `accounts[*].account_id` the row was provisioned from. Enables short-circuit dedupe in /plaid/link-to-fiant so the same Plaid account is never registered with Fiant twice."
-  }
   primary_key {
     columns = [column.id]
   }
@@ -274,11 +269,61 @@ table "linked_accounts" {
     unique  = false
     columns = [column.wallet_id, column.can_receive, column.state]
   }
-  index "wallet_id_plaid_account_id_uniq" {
-    unique   = true
-    columns  = [column.wallet_id, column.plaid_account_id]
-    where    = "plaid_account_id IS NOT NULL"
-    comment  = "Partial unique index — prevents the same Plaid account being linked twice for one wallet. NULL rows (manual / non-Plaid sources) are exempt."
+}
+table "plaid_links" {
+  schema = schema.public
+  comment = "Plaid-specific link data, 1:1 with a linked_accounts row. Keeps the provider-agnostic linked_accounts table free of the Plaid-only account id. Used for per-wallet dedupe in /plaid/link-to-fiant."
+  column "id" {
+    null    = false
+    type    = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "linked_account_id" {
+    null = false
+    type = uuid
+  }
+  column "wallet_id" {
+    null    = false
+    type    = uuid
+    comment = "Denormalized from linked_accounts so per-wallet dedupe and ListByWallet need no join."
+  }
+  column "plaid_account_id" {
+    null    = false
+    type    = text
+    comment = "The Plaid `accounts[*].account_id` the linked account was provisioned from."
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now()::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now()::TIMESTAMP")
+  }
+  column "deleted_at" {
+    null = true
+    type = timestamp
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  foreign_key "plaid_links_linked_account_fk" {
+    columns     = [column.linked_account_id]
+    ref_columns = [table.linked_accounts.column.id]
+    on_update   = NO_ACTION
+    on_delete   = NO_ACTION
+  }
+  index "plaid_links_wallet_plaid_uniq" {
+    unique  = true
+    columns = [column.wallet_id, column.plaid_account_id]
+    where   = "deleted_at IS NULL"
+    comment = "Per-wallet dedupe — the same Plaid account cannot be linked twice while live. Soft-deleted rows are exempt so re-linking after delete works."
+  }
+  index "plaid_links_linked_account_id" {
+    unique  = false
+    columns = [column.linked_account_id]
   }
 }
 table "linked_account_reviews" {

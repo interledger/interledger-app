@@ -34,7 +34,8 @@ type FiantLinker interface {
 	ExistingLink(ctx context.Context, userID, plaidAccountID string) (*LinkedIDs, error)
 
 	// Register completes the cross-system write: it posts the processor token
-	// to Fiant and persists a linked_account row stamped with `plaid_account_id` for future dedupe.
+	// to Fiant, persists a linked_account row, and records a plaid_links row
+	// (plaid_account_id) for future dedupe.
 	Register(ctx context.Context, args LinkPlaidArgs) (*LinkedIDs, error)
 
 	// ListLinkedPlaidAccountIDs returns the Plaid account_ids that the user
