@@ -274,6 +274,7 @@ backend:
 
     sentry:
       dsn_ref: "sentryDSN"
+      env: ""
 
     pti:
       enabled: "false"
@@ -811,6 +812,8 @@ backend:
           valueRef: backend.config.application_url
         - key: FYNBOS_ENV
           valueRef: backend.config.environment
+        - key: SENTRY_ENVIRONMENT
+          valueRef: backend.config.sentry.env
         - key: KRATOS_URL
           valueRef: backend.config.kratos.url
         - key: KRATOS_ADMIN_URL
