@@ -14,8 +14,7 @@ const knownEnvKeysRequired: string[] = [
   'TARGET_HOST',
   'SUPPORT_EMAIL',
   'PAYMENT_POINTER_BASE',
-  'PTI_CLIENT_ID',
-  'PUSHER_APP_KEY'
+  'PTI_CLIENT_ID'
 ]
 
 const knownEnvKeysOptional: string[] = [
@@ -26,6 +25,7 @@ const knownEnvKeysOptional: string[] = [
   'MOCKXAGO_ENDPOINT',
   'LOG_LEVEL',
   'LOG_PRETTY',
+  'PUSHER_APP_KEY',
   'PUSHER_APP_CLUSTER',
   'DEFAULT_RATE_LIMIT_REQUESTS',
   'DEFAULT_RATE_LIMIT_TIME',

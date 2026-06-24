@@ -42,7 +42,7 @@ services:
       # Auth and realtime
       - COOKIE_SECRETS=${PROTEA_COOKIE_SECRETS:-"[\"localsecret\"]"}
       - RAFIKI_AUTH_SECRET=${PROTEA_RAFIKI_AUTH_SECRET:-my-super-secret-identity-key}
-      - PUSHER_APP_KEY=${PROTEA_PUSHER_APP_KEY:-<pusher-app-key>}
+      - PUSHER_APP_KEY=${PROTEA_PUSHER_APP_KEY:-}
       - PUSHER_APP_CLUSTER=${PROTEA_PUSHER_APP_CLUSTER:-eu}
 
       # Persona SDK URL override (MockXago serves Persona-compatible SDK in local)

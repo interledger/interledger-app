@@ -58,7 +58,7 @@ Protea is a Remix application serving the user-facing wallet UI.
 | `CHOKIDAR_USEPOLLING` | Enable filesystem polling for hot-reload in containers (dev only) | No | Local only: `true`; not applicable in deployed environments |
 | `COOKIE_SECRETS` | JSON array of strings used to sign session cookies. Rotate periodically. | Yes | Local default: `["localsecret"]` |
 | `RAFIKI_AUTH_SECRET` | Shared secret between Protea and the Rafiki auth service | Yes | Local default: `my-super-secret-identity-key` |
-| `PUSHER_APP_KEY` | Pusher application key for real-time push notifications (public-facing) | Yes | Local default: `<pusher-app-key>` |
+| `PUSHER_APP_KEY` | Pusher application key for real-time push notifications (public-facing). Optional - realtime degrades gracefully when unset. | Yes | Local default: empty |
 | `PUSHER_APP_CLUSTER` | Pusher cluster region for the application | Yes | Local default: `eu` |
 | `REDIS_URL` | Redis connection URL used for session storage and caching | Yes | Local default: `redis://redis:6379/2` |
 | `SENTRY_DSN` | Sentry DSN for client-side and server-side error reporting. **Not set in local** — Sentry is disabled when this is empty. | Yes | Not set locally; required in deployed environments |
