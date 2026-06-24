@@ -36,6 +36,9 @@ type StartArgs struct {
 	TbClusterID        uint32
 	LogLevel           string
 	LogOutputPath      string
+	SentryRelease      string
+	SentryEnvironment  string
+	OtelEnabled        bool
 }
 
 func ParseStartArgs() (*StartArgs, error) {
@@ -62,5 +65,8 @@ func ParseStartArgs() (*StartArgs, error) {
 		DbConnectionString: dbUrl,
 		LogLevel:           logLevel,
 		LogOutputPath:      logOutputPath,
+		SentryRelease:      os.Getenv("SENTRY_RELEASE"),
+		SentryEnvironment:  os.Getenv("SENTRY_ENVIRONMENT"),
+		OtelEnabled:        os.Getenv("OTEL_ENABLED") == "true",
 	}, nil
 }

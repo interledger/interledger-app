@@ -91,7 +91,7 @@ func start(args *cli.StartArgs) {
 		log.Fatalln(err)
 	}
 
-	traceShutdown, err := tracing.InitTraceProvider("pacioli")
+	traceShutdown, err := tracing.InitTraceProvider("pacioli", args.SentryRelease, args.SentryEnvironment, args.OtelEnabled)
 	if err != nil {
 		log.Fatalln(err)
 	}
