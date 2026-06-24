@@ -158,6 +158,9 @@ export default function Page() {
                   alt='Interledger Wallet mug'
                   // TODO: Use our own CDN
                   src='https://mockcdn.interledger.test/marketing/enamel-mug-waitlist.webp'
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none'
+                  }}
                 />
               </div>
               <span className='mt-6 text-medium'>

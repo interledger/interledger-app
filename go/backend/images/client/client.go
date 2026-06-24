@@ -12,6 +12,7 @@ import (
 	"github.com/interledger/interledger-app/go/backend/images"
 	"github.com/interledger/interledger-app/go/backend/images/ops"
 	"github.com/interledger/interledger-app/go/log"
+	"go.uber.org/zap"
 )
 
 var _ images.Client = client{}
@@ -28,7 +29,7 @@ func New(b ops.Backends) images.Client {
 	// Load the files
 	assets, err := loadAssets()
 	if err != nil {
-		log.Error("images: failed to load assets; identity image generation disabled")
+		log.Error("images: failed to load assets; identity image generation disabled", zap.Error(err))
 		return &client{b: b}
 	}
 

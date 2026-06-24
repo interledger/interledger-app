@@ -47,7 +47,7 @@ func (mc *MockClient) GetUser(_ context.Context, userID string) (*user.User, err
 	return &user.User{
 		ID:          userID,
 		Email:       "info@interledger.test",
-		PhoneNumber: "+27836321959",
+		PhoneNumber: "+15555550100",
 	}, nil
 
 }
@@ -58,7 +58,7 @@ func (mc *MockClient) ListAllUsers(ctx context.Context, pagination db.Pagination
 		res = append(res, user.User{
 			ID:          uid,
 			Email:       "info@interledger.test",
-			PhoneNumber: "+27836321959",
+			PhoneNumber: "+15555550100",
 		})
 	}
 
@@ -75,7 +75,7 @@ func (mc *MockClient) ListUsers(ctx context.Context, walletID string) ([]user.Us
 		{
 			ID:          uid,
 			Email:       "info@interledger.test",
-			PhoneNumber: "+27836321959",
+			PhoneNumber: "+15555550100",
 		},
 	}, nil
 }
