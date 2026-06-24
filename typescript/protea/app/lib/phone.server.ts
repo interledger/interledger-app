@@ -1,6 +1,6 @@
 import { Code } from '@bufbuild/connect'
 import type { CountryCode, ParseError } from 'libphonenumber-js'
-import { parsePhoneNumberWithError } from 'libphonenumber-js/max'
+import { parsePhoneNumberWithError } from 'libphonenumber-js'
 import { href, redirect } from 'react-router'
 import { ErrorDescriptions } from '~/lib/error.constants'
 import type { TwillioError } from '~/lib/error.mappers'
