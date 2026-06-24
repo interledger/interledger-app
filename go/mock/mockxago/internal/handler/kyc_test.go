@@ -23,7 +23,7 @@ import (
 
 func TestKYCIframe_Success(t *testing.T) {
 	store := storage.NewMemoryStorage()
-	h := NewHandler(store, jobs.NewQueue(store))
+	h := NewHandler(store, jobs.NewQueue(store), testConfig())
 
 	// Request with token and user_id
 	req := httptest.NewRequest(http.MethodGet, "/kyc/iframe?token=test_token_123&user_id=wallet_123", nil)
@@ -37,7 +37,7 @@ func TestKYCIframe_Success(t *testing.T) {
 
 func TestKYCIframe_MissingToken(t *testing.T) {
 	store := storage.NewMemoryStorage()
-	h := NewHandler(store, jobs.NewQueue(store))
+	h := NewHandler(store, jobs.NewQueue(store), testConfig())
 
 	// Request without token parameter
 	req := httptest.NewRequest(http.MethodGet, "/kyc/iframe?user_id=wallet_123", nil)
@@ -51,7 +51,7 @@ func TestKYCIframe_MissingToken(t *testing.T) {
 
 func TestKYCIframe_MissingUserID(t *testing.T) {
 	store := storage.NewMemoryStorage()
-	h := NewHandler(store, jobs.NewQueue(store))
+	h := NewHandler(store, jobs.NewQueue(store), testConfig())
 
 	// Request without user_id
 	req := httptest.NewRequest(http.MethodGet, "/kyc/iframe?token=test_token", nil)
@@ -67,7 +67,7 @@ func TestKYCIframe_MissingUserID(t *testing.T) {
 
 func TestKYCIframeSubmit_Success(t *testing.T) {
 	store := storage.NewMemoryStorage()
-	h := NewHandler(store, jobs.NewQueue(store))
+	h := NewHandler(store, jobs.NewQueue(store), testConfig())
 
 	// Create request with form data
 	formData := url.Values{
@@ -95,7 +95,7 @@ func TestKYCIframeSubmit_Success(t *testing.T) {
 
 func TestKYCIframeSubmit_CreatesSubAccount(t *testing.T) {
 	store := storage.NewMemoryStorage()
-	h := NewHandler(store, jobs.NewQueue(store))
+	h := NewHandler(store, jobs.NewQueue(store), testConfig())
 
 	walletID := "wallet_create_kyc"
 	formData := url.Values{
@@ -126,7 +126,7 @@ func TestKYCIframeSubmit_CreatesSubAccount(t *testing.T) {
 
 func TestKYCIframeSubmit_UpdatesExistingSubAccount(t *testing.T) {
 	store := storage.NewMemoryStorage()
-	h := NewHandler(store, jobs.NewQueue(store))
+	h := NewHandler(store, jobs.NewQueue(store), testConfig())
 
 	walletID := "wallet_update_kyc"
 
@@ -171,7 +171,7 @@ func TestKYCIframeSubmit_UpdatesExistingSubAccount(t *testing.T) {
 
 func TestKYCIframeSubmit_MissingWalletID(t *testing.T) {
 	store := storage.NewMemoryStorage()
-	h := NewHandler(store, jobs.NewQueue(store))
+	h := NewHandler(store, jobs.NewQueue(store), testConfig())
 
 	// Form without user_id
 	formData := url.Values{
@@ -192,7 +192,7 @@ func TestKYCIframeSubmit_MissingWalletID(t *testing.T) {
 
 func TestKYCIframeSubmit_MissingFirstName(t *testing.T) {
 	store := storage.NewMemoryStorage()
-	h := NewHandler(store, jobs.NewQueue(store))
+	h := NewHandler(store, jobs.NewQueue(store), testConfig())
 
 	formData := url.Values{
 		"user_id":   {"wallet_123"},
@@ -212,7 +212,7 @@ func TestKYCIframeSubmit_MissingFirstName(t *testing.T) {
 
 func TestKYCIframeSubmit_MissingLastName(t *testing.T) {
 	store := storage.NewMemoryStorage()
-	h := NewHandler(store, jobs.NewQueue(store))
+	h := NewHandler(store, jobs.NewQueue(store), testConfig())
 
 	formData := url.Values{
 		"user_id":    {"wallet_123"},
@@ -232,7 +232,7 @@ func TestKYCIframeSubmit_MissingLastName(t *testing.T) {
 
 func TestKYCIframeSubmit_InvalidFormData(t *testing.T) {
 	store := storage.NewMemoryStorage()
-	h := NewHandler(store, jobs.NewQueue(store))
+	h := NewHandler(store, jobs.NewQueue(store), testConfig())
 
 	// Send raw invalid data
 	body := bytes.NewBufferString("invalid form data without proper encoding")
@@ -248,7 +248,7 @@ func TestKYCIframeSubmit_InvalidFormData(t *testing.T) {
 
 func TestKYCIframeSubmit_MultipartForm(t *testing.T) {
 	store := storage.NewMemoryStorage()
-	h := NewHandler(store, jobs.NewQueue(store))
+	h := NewHandler(store, jobs.NewQueue(store), testConfig())
 
 	// Build a simple multipart form body
 	body := bytes.NewBufferString("")
@@ -288,7 +288,7 @@ func TestKYCIframeSubmit_MultipartForm(t *testing.T) {
 
 func TestKYCIframeSubmit_WithDOB(t *testing.T) {
 	store := storage.NewMemoryStorage()
-	h := NewHandler(store, jobs.NewQueue(store))
+	h := NewHandler(store, jobs.NewQueue(store), testConfig())
 
 	formData := url.Values{
 		"user_id":    {"wallet_dob"},
@@ -316,7 +316,7 @@ func TestKYCIframeSubmit_WithDOB(t *testing.T) {
 
 func TestKYCIframeSubmit_WhitespaceHandling(t *testing.T) {
 	store := storage.NewMemoryStorage()
-	h := NewHandler(store, jobs.NewQueue(store))
+	h := NewHandler(store, jobs.NewQueue(store), testConfig())
 
 	// Names with extra whitespace
 	formData := url.Values{

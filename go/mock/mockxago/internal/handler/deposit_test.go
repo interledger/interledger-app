@@ -129,7 +129,7 @@ func TestSimulateTestDeposit(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			store := storage.NewMemoryStorage()
-			h := NewHandler(store, jobs.NewQueue(store))
+			h := NewHandler(store, jobs.NewQueue(store), testConfig())
 
 			// Setup test account if needed
 			if tt.setupAccount {
@@ -176,7 +176,7 @@ func TestSimulateTestDeposit(t *testing.T) {
 
 func TestSimulateTestDeposit_DepositRecorded(t *testing.T) {
 	store := storage.NewMemoryStorage()
-	h := NewHandler(store, jobs.NewQueue(store))
+	h := NewHandler(store, jobs.NewQueue(store), testConfig())
 
 	// Create test account
 	subAccount := &models.SubAccount{
@@ -265,7 +265,7 @@ func TestListCompanyDeposits(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			store := storage.NewMemoryStorage()
-			h := NewHandler(store, jobs.NewQueue(store))
+			h := NewHandler(store, jobs.NewQueue(store), testConfig())
 
 			// Setup deposits
 			for i := 0; i < tt.setupDeposits; i++ {
@@ -301,7 +301,7 @@ func TestListCompanyDeposits(t *testing.T) {
 
 func TestListCompanyDeposits_RequiresAuth(t *testing.T) {
 	store := storage.NewMemoryStorage()
-	h := NewHandler(store, jobs.NewQueue(store))
+	h := NewHandler(store, jobs.NewQueue(store), testConfig())
 
 	req := httptest.NewRequest(http.MethodGet, "/v1/company/deposits", nil)
 	w := httptest.NewRecorder()
@@ -337,7 +337,7 @@ func TestSimulateTestDeposit_WebhookConfiguration(t *testing.T) {
 	}()
 
 	store := storage.NewMemoryStorage()
-	h := NewHandler(store, jobs.NewQueue(store))
+	h := NewHandler(store, jobs.NewQueue(store), testConfig())
 
 	// Create test account
 	subAccount := &models.SubAccount{
@@ -373,7 +373,7 @@ func TestSimulateTestDeposit_WebhookConfiguration(t *testing.T) {
 
 func TestNewProcessDepositHandler_ReturnsFunctionHandler(t *testing.T) {
 	store := storage.NewMemoryStorage()
-	h := NewHandler(store, jobs.NewQueue(store))
+	h := NewHandler(store, jobs.NewQueue(store), testConfig())
 
 	// NewProcessDepositHandler returns a JobHandler function
 	handler := h.NewProcessDepositHandler()
@@ -386,7 +386,7 @@ func TestNewProcessDepositHandler_ReturnsFunctionHandler(t *testing.T) {
 
 func TestNewProcessDepositHandler_ProcessesDepositJob(t *testing.T) {
 	store := storage.NewMemoryStorage()
-	h := NewHandler(store, jobs.NewQueue(store))
+	h := NewHandler(store, jobs.NewQueue(store), testConfig())
 
 	// Create test account
 	subAccount := &models.SubAccount{
@@ -440,7 +440,7 @@ func TestNewProcessDepositHandler_ProcessesDepositJob(t *testing.T) {
 
 func TestNewProcessDepositHandler_WithMultipleDeposits(t *testing.T) {
 	store := storage.NewMemoryStorage()
-	h := NewHandler(store, jobs.NewQueue(store))
+	h := NewHandler(store, jobs.NewQueue(store), testConfig())
 
 	// Create test account
 	subAccount := &models.SubAccount{
@@ -500,7 +500,7 @@ func TestNewProcessDepositHandler_WithMultipleDeposits(t *testing.T) {
 
 func TestSimulateTestDeposit_MultipleDeposits(t *testing.T) {
 	store := storage.NewMemoryStorage()
-	h := NewHandler(store, jobs.NewQueue(store))
+	h := NewHandler(store, jobs.NewQueue(store), testConfig())
 
 	// Create test account
 	subAccount := &models.SubAccount{
@@ -532,7 +532,7 @@ func TestSimulateTestDeposit_MultipleDeposits(t *testing.T) {
 
 func TestSimulateTestDeposit_InvalidAmount(t *testing.T) {
 	store := storage.NewMemoryStorage()
-	h := NewHandler(store, jobs.NewQueue(store))
+	h := NewHandler(store, jobs.NewQueue(store), testConfig())
 
 	// Create test account
 	subAccount := &models.SubAccount{
@@ -575,7 +575,7 @@ func TestSimulateTestDeposit_InvalidAmount(t *testing.T) {
 
 func TestSimulateTestDeposit_MissingAccountID(t *testing.T) {
 	store := storage.NewMemoryStorage()
-	h := NewHandler(store, jobs.NewQueue(store))
+	h := NewHandler(store, jobs.NewQueue(store), testConfig())
 
 	body := map[string]interface{}{
 		"amount":       1000.00,
@@ -591,7 +591,7 @@ func TestSimulateTestDeposit_MissingAccountID(t *testing.T) {
 
 func TestSimulateTestDeposit_InvalidJSON(t *testing.T) {
 	store := storage.NewMemoryStorage()
-	h := NewHandler(store, jobs.NewQueue(store))
+	h := NewHandler(store, jobs.NewQueue(store), testConfig())
 
 	req := httptest.NewRequest(http.MethodPost, "/v1/company/accounts/testdeposit", bytes.NewReader([]byte("invalid json")))
 	w := httptest.NewRecorder()
@@ -602,7 +602,7 @@ func TestSimulateTestDeposit_InvalidJSON(t *testing.T) {
 
 func TestListCompanyDeposits_Success(t *testing.T) {
 	store := storage.NewMemoryStorage()
-	h := NewHandler(store, jobs.NewQueue(store))
+	h := NewHandler(store, jobs.NewQueue(store), testConfig())
 
 	// Create test account and deposits
 	subAccount := &models.SubAccount{

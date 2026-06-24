@@ -6,13 +6,13 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strconv"
 	"syscall"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
 
+	"github.com/interledger/interledger-app/go/mock/mockxago/internal/config"
 	"github.com/interledger/interledger-app/go/mock/mockxago/internal/handler"
 	"github.com/interledger/interledger-app/go/mock/mockxago/internal/jobs"
 	"github.com/interledger/interledger-app/go/mock/mockxago/internal/logger"
@@ -20,100 +20,55 @@ import (
 )
 
 func main() {
-	// Initialize logger with configured log level
-	logLevel := os.Getenv("LOG_LEVEL")
-	if logLevel == "" {
-		logLevel = "info" // Default to info level
-	}
-	if err := logger.Initialize(logLevel); err != nil {
+	cfg := config.Load()
+
+	if err := logger.Initialize(cfg.LogLevel); err != nil {
 		logger.Fatalln(err)
 	}
 
-	// Load configuration
-	port := os.Getenv("XAGO_MOCK_PORT")
-	if port == "" {
-		port = "8080"
-	}
-
-	publicKey := os.Getenv("XAGO_API_PUBLIC_KEY")
-	if publicKey == "" {
-		publicKey = "test-public-key"
-		logger.Infof("Using default XAGO_API_PUBLIC_KEY: %s", publicKey)
-	}
-
-	secret := os.Getenv("XAGO_API_SECRET")
-	if secret == "" {
-		secret = "test-secret"
-		logger.Infof("Using default XAGO_API_SECRET: %s", secret)
-	}
-
-	// Initialize storage (memory or Redis)
 	var store storage.Storage
-	redisURL := os.Getenv("MOCKXAGO_REDIS_URL")
-	if redisURL != "" {
-		redisDB := 0
-		if dbStr := os.Getenv("MOCKXAGO_REDIS_DB"); dbStr != "" {
-			var err error
-			redisDB, err = strconv.Atoi(dbStr)
-			if err != nil {
-				logger.Fatal("invalid MOCKXAGO_REDIS_DB value", zap.String("value", dbStr), zap.Error(err))
-			}
-		}
+	if cfg.RedisURL != "" {
 		var err error
-		store, err = storage.NewRedisStorage(redisURL, redisDB)
+		store, err = storage.NewRedisStorage(cfg.RedisURL, cfg.RedisDB)
 		if err != nil {
 			logger.Fatal("failed to initialize Redis storage", zap.Error(err))
 		}
-		logger.Infof("Initialized Redis storage at %s (DB %d)", redisURL, redisDB)
+		logger.Infof("Initialized Redis storage at %s (DB %d)", cfg.RedisURL, cfg.RedisDB)
 	} else {
 		store = storage.NewMemoryStorage()
 		logger.Infof("Initialized in-memory storage")
 	}
 
-	// Initialize job queue and worker
 	queue := jobs.NewQueue(store)
 	worker := jobs.NewWorker(queue)
-
-	// Initialize router
 	router := chi.NewRouter()
+	h := handler.NewHandler(store, queue, cfg)
 
-	// Create handler
-	h := handler.NewHandler(store, queue)
-
-	// Register job handlers BEFORE starting worker
 	worker.RegisterHandler(handler.JobTypeProcessDeposit, h.NewProcessDepositHandler())
 	logger.Infof("Registered deposit job handler")
 
-	// Start job worker in background
 	worker.StartAsync()
 	logger.Infof("Job worker started")
 
-	// Setup routes
 	setupRoutes(router, h)
 
-	// Create server
 	server := &http.Server{
-		Addr:    ":" + port,
+		Addr:    ":" + cfg.Port,
 		Handler: router,
 	}
 
-	// Start server in goroutine
 	go func() {
-		logger.Infof("Starting MockXago server on port %s", port)
+		logger.Infof("Starting MockXago server on port %s", cfg.Port)
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			logger.Fatalln(err)
 		}
 	}()
 
-	// Wait for interrupt signal
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 	<-sigChan
 
-	// Graceful shutdown
 	logger.Infof("Shutting down server...")
-
-	// Stop worker first
 	worker.Stop()
 	logger.Infof("Job worker stopped")
 

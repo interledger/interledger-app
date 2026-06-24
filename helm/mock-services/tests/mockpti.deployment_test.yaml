@@ -55,25 +55,35 @@ tests:
           path: spec.replicas
           value: 1
 
-  - it: 'Should reference the mockpti ConfigMap via envFrom'
-    template: deployment.mockpti.yaml
-    asserts:
-      - equal:
-          path: spec.template.spec.containers[0].envFrom[0].configMapRef.name
-          value: wallet-mockpti-config
-
-  - it: 'Should source MOCKPTI_WEBHOOK_SIGNING_KEY_B64 from the mockpti Secret'
+  - it: 'Should set CONFIG env var pointing to the mounted config file'
     template: deployment.mockpti.yaml
     asserts:
       - equal:
           path: spec.template.spec.containers[0].env[0].name
-          value: MOCKPTI_WEBHOOK_SIGNING_KEY_B64
+          value: CONFIG
       - equal:
-          path: spec.template.spec.containers[0].env[0].valueFrom.secretKeyRef.name
-          value: wallet-mockpti
+          path: spec.template.spec.containers[0].env[0].value
+          value: /etc/mockpti/config.yaml
+
+  - it: 'Should mount the config ConfigMap as a volume'
+    template: deployment.mockpti.yaml
+    asserts:
       - equal:
-          path: spec.template.spec.containers[0].env[0].valueFrom.secretKeyRef.key
-          value: mockptiWebhookSigningKeyB64
+          path: spec.template.spec.volumes[0].name
+          value: config
+      - equal:
+          path: spec.template.spec.volumes[0].configMap.name
+          value: wallet-mockpti-config
+
+  - it: 'Should mount the config volume into the container'
+    template: deployment.mockpti.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0].name
+          value: config
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0].mountPath
+          value: /etc/mockpti
 
   - it: 'Should provide readinessProbe and livenessProbe on /health'
     template: deployment.mockpti.yaml
@@ -120,3 +130,26 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].image
           value: europe-west4-docker.pkg.dev/wallet-dev-462809/interledger-app/mockpti:v1.2.3
+
+  - it: 'Should set serviceAccountName when serviceAccount.create is true'
+    template: deployment.mockpti.yaml
+    set:
+      mockpti:
+        serviceAccount:
+          create: true
+    asserts:
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: wallet-mockpti
+
+  - it: 'Should set serviceAccountName when an external SA name is provided'
+    template: deployment.mockpti.yaml
+    set:
+      mockpti:
+        serviceAccount:
+          create: false
+          name: my-workload-identity-ksa
+    asserts:
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: my-workload-identity-ksa

@@ -55,38 +55,35 @@ tests:
           path: spec.replicas
           value: 1
 
-  - it: 'Should reference the mockgatehub ConfigMap via envFrom'
-    template: deployment.mockgatehub.yaml
-    asserts:
-      - equal:
-          path: spec.template.spec.containers[0].envFrom[0].configMapRef.name
-          value: wallet-mockgatehub-config
-
-  - it: 'Should source WEBHOOK_SECRET from the mockgatehub Secret'
+  - it: 'Should set CONFIG env var pointing to the mounted config file'
     template: deployment.mockgatehub.yaml
     asserts:
       - equal:
           path: spec.template.spec.containers[0].env[0].name
-          value: WEBHOOK_SECRET
+          value: CONFIG
       - equal:
-          path: spec.template.spec.containers[0].env[0].valueFrom.secretKeyRef.name
-          value: wallet-mockgatehub
-      - equal:
-          path: spec.template.spec.containers[0].env[0].valueFrom.secretKeyRef.key
-          value: webhookSecret
+          path: spec.template.spec.containers[0].env[0].value
+          value: /etc/mockgatehub/config.yaml
 
-  - it: 'Should source MOCKGATEHUB_VALID_CREDENTIALS from the mockgatehub Secret'
+  - it: 'Should mount the config ConfigMap as a volume'
     template: deployment.mockgatehub.yaml
     asserts:
       - equal:
-          path: spec.template.spec.containers[0].env[1].name
-          value: MOCKGATEHUB_VALID_CREDENTIALS
+          path: spec.template.spec.volumes[0].name
+          value: config
       - equal:
-          path: spec.template.spec.containers[0].env[1].valueFrom.secretKeyRef.name
-          value: wallet-mockgatehub
+          path: spec.template.spec.volumes[0].configMap.name
+          value: wallet-mockgatehub-config
+
+  - it: 'Should mount the config volume into the container'
+    template: deployment.mockgatehub.yaml
+    asserts:
       - equal:
-          path: spec.template.spec.containers[0].env[1].valueFrom.secretKeyRef.key
-          value: validCredentials
+          path: spec.template.spec.containers[0].volumeMounts[0].name
+          value: config
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0].mountPath
+          value: /etc/mockgatehub
 
   - it: 'Should provide readinessProbe and livenessProbe on /health'
     template: deployment.mockgatehub.yaml
