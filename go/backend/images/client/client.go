@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"image"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/golang/freetype/truetype"
 	"github.com/interledger/interledger-app/go/backend/images"
@@ -17,6 +19,8 @@ import (
 
 var _ images.Client = client{}
 var errAssetsUnavailable = errors.New("images: assets unavailable")
+
+var assetHTTPClient = &http.Client{Timeout: 10 * time.Second}
 
 type client struct {
 	b  ops.Backends
@@ -132,11 +136,15 @@ func loadAssets() (*images.Assets, error) {
 }
 
 func loadImageFromURL(url string) (img image.Image, err error) {
-	resp, err := http.Get(url)
+	resp, err := assetHTTPClient.Get(url)
 	if err != nil {
 		return
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("images: GET %s returned status %d", url, resp.StatusCode)
+	}
 
 	pix, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -148,11 +156,15 @@ func loadImageFromURL(url string) (img image.Image, err error) {
 }
 
 func loadFontFromURL(url string) (*truetype.Font, error) {
-	resp, err := http.Get(url)
+	resp, err := assetHTTPClient.Get(url)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("images: GET %s returned status %d", url, resp.StatusCode)
+	}
 
 	fontBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
