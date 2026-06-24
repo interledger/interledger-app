@@ -183,6 +183,9 @@ backend:
       operator_tenant_id_ref: "rafikiOperatorTenantID"
       admin_api_secret_ref: "rafikiAdminAPISecret"
       signature_version_ref: "rafikiSignatureVersion"
+      # Feature flag: enables full-node event orchestration (GateHub lifecycle workflows).
+      # Set to "true" only in environments where the node flow rollout is intended.
+      node_enabled: "false"
 
     temporal:
       url: "temporal:7233"
@@ -206,6 +209,8 @@ backend:
       organization_id: ""
       sending_user_id: ""
       sending_user_address: ""
+      intermediary_user_id: ""
+      intermediary_user_address: ""
       eur_ops_account: ""
       eur_ops_ledger_id: ""
       on_off_ramp_client_id: ""
@@ -250,6 +255,13 @@ backend:
 
     persona:
       base_url: "https://api.withpersona.com/api/v1/"
+
+      # PERSONA_SANDBOX_ZA_FAKE_ZA_ID is a Persona sandbox workaround. Persona's sandbox environment
+      # always returns an American user profile, so the South African ID field is null.
+      # Setting this to true makes the backend generate a synthetic ZA ID instead,
+      # which is required for Xago subaccount creation. Has no effect in production.
+      personaSandboxFakeZAID: "false"
+
       token_ref: "personaToken"
       webhook_token_ref: "personaWebhookToken"
 
@@ -849,6 +861,10 @@ backend:
           valueRef: backend.config.gatehub.sending_user_id
         - key: GATEHUB_SENDING_USER_ADDRESS
           valueRef: backend.config.gatehub.sending_user_address
+        - key: GATEHUB_INTERMEDIARY_USER_ID
+          valueRef: backend.config.gatehub.intermediary_user_id
+        - key: GATEHUB_INTERMEDIARY_USER_ADDRESS
+          valueRef: backend.config.gatehub.intermediary_user_address
         - key: GATEHUB_EUR_OPS_ACCOUNT
           valueRef: backend.config.gatehub.eur_ops_account
         - key: GATEHUB_EUR_OPS_LEDGER_ID
@@ -875,6 +891,8 @@ backend:
           valueRef: backend.config.pti.forms_url
         - key: PORT
           valueRef: backend.config.port
+        - key: RAFIKI_NODE_ENABLED
+          valueRef: backend.config.rafiki.node_enabled
         - key: EMAIL_ENABLED
           valueRef: backend.config.email.enabled
         - key: SENDGRID_FROM_NAME
@@ -899,6 +917,8 @@ backend:
           valueRef: backend.config.slack.channel_error
         - key: ADMIN_BASE_URL
           valueRef: backend.config.admin.base_url
+        - key: PERSONA_SANDBOX_ZA_FAKE_ZA_ID
+          valueRef: backend.config.persona.personaSandboxFakeZAID
 
 # =============================================================================
 # FRONTEND — Protea user-facing wallet

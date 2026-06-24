@@ -18,6 +18,7 @@ func GetUrl() string {
 var ilwEnv = "prod"
 var blockedRegions = []string{}
 var allowedWalletIds = []string{}
+var rafikiNodeEnabled = false
 
 var allowedEnvs = []string{
 	"prod",    // Live production environment
@@ -47,12 +48,20 @@ func SetBlockedRegions(regions []string) {
 	blockedRegions = regions
 }
 
+func SetRafikiNodeEnabled(enabled bool) {
+	rafikiNodeEnabled = enabled
+}
+
 func GetAllowedWalletIds() []string {
 	return allowedWalletIds
 }
 
 func GetBlockedRegions() []string {
 	return blockedRegions
+}
+
+func IsRafikiNodeEnabled() bool {
+	return rafikiNodeEnabled
 }
 
 func GetEnv() string {

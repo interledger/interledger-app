@@ -10,6 +10,7 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 	currency "github.com/interledger/interledger-app/go/backend/currency"
+	email "github.com/interledger/interledger-app/go/backend/email"
 	linkedaccounts "github.com/interledger/interledger-app/go/backend/linkedaccounts"
 	payments "github.com/interledger/interledger-app/go/backend/payments"
 )
@@ -301,4 +302,18 @@ func (m *MockClient) SendWithdrawalFailedEmail(ctx context.Context, walletID str
 func (mr *MockClientMockRecorder) SendWithdrawalFailedEmail(ctx, walletID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendWithdrawalFailedEmail", reflect.TypeOf((*MockClient)(nil).SendWithdrawalFailedEmail), ctx, walletID)
+}
+
+// SendAgreementChangedEmail mocks base method.
+func (m *MockClient) SendAgreementChangedEmail(ctx context.Context, userID string, agreements []email.AgreementLink, deadlineDate string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SendAgreementChangedEmail", ctx, userID, agreements, deadlineDate)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SendAgreementChangedEmail indicates an expected call of SendAgreementChangedEmail.
+func (mr *MockClientMockRecorder) SendAgreementChangedEmail(ctx, userID, agreements, deadlineDate interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendAgreementChangedEmail", reflect.TypeOf((*MockClient)(nil).SendAgreementChangedEmail), ctx, userID, agreements, deadlineDate)
 }

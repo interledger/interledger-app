@@ -30,8 +30,18 @@ table "agreement_signatures" {
   primary_key {
     columns = [column.id]
   }
+  column "last_notified_agreement_id" {
+    null = true
+    type = text
+  }
   foreign_key "fk_agreement" {
     columns     = [column.agreement_id]
+    ref_columns = [table.agreements.column.id]
+    on_update   = NO_ACTION
+    on_delete   = NO_ACTION
+  }
+  foreign_key "fk_last_notified_agreement" {
+    columns     = [column.last_notified_agreement_id]
     ref_columns = [table.agreements.column.id]
     on_update   = NO_ACTION
     on_delete   = NO_ACTION
@@ -71,6 +81,11 @@ table "agreements" {
   column "git_file_path" {
     null = true
     type = text
+  }
+  column "notified" {
+    null    = false
+    type    = boolean
+    default = true
   }
   primary_key {
     columns = [column.id]
@@ -3046,6 +3061,25 @@ table "chi_money_interac_emails" {
   }
 }
 
+table "rafiki_gatehub_transfers" {
+  schema = schema.public
+  column "gatehub_tx_id" {
+    null = false
+    type = text
+  }
+  column "workflow_id" {
+    null = false
+    type = text
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now()::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.gatehub_tx_id]
+  }
+}
 table "atlas_schema_history" {
   schema = schema.public
   column "id" {
