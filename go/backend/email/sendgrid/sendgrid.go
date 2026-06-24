@@ -4,10 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
+	"strings"
 
+	"github.com/interledger/interledger-app/go/log"
 	"github.com/sendgrid/rest"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.uber.org/zap"
 
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -43,6 +47,12 @@ func (c *client) SendTemplate(ctx context.Context, subject string, to []Email, t
 	msg.SetTemplateID(templateID)
 
 	for _, t := range to {
+		log.Info("Dispatching email via SendGrid",
+			zap.String("to", maskEmailAddress(t.Address)),
+			zap.String("templateID", templateID),
+			zap.String("subject", subject),
+		)
+
 		p := mail.NewPersonalization()
 		p.DynamicTemplateData = templateData
 		p.AddTos(mail.NewEmail(t.Name, t.Address))
@@ -53,10 +63,82 @@ func (c *client) SendTemplate(ctx context.Context, subject string, to []Email, t
 		msg.AddAttachment(&attachment)
 	}
 
-	_, err := c.mailer.SendWithContext(ctx, msg)
+	resp, err := c.mailer.SendWithContext(ctx, msg)
 	if err != nil {
 		return fmt.Errorf("%w %s", ErrExternal, err)
 	}
 
+	if resp == nil {
+		return fmt.Errorf("%w nil response from sendgrid", ErrExternal)
+	}
+
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
+		return fmt.Errorf(
+			"%w status=%d body=%q",
+			ErrExternal,
+			resp.StatusCode,
+			truncateBody(resp.Body, 512),
+		)
+	}
+
+	messageID := firstHeaderValue(resp.Headers, "X-Message-Id")
+	log.Info("SendGrid accepted email dispatch",
+		zap.Int("status", resp.StatusCode),
+		zap.String("messageID", messageID),
+		zap.Strings("to", maskEmailAddresses(to)),
+		zap.String("templateID", templateID),
+		zap.String("subject", subject),
+	)
+
 	return nil
+}
+
+func firstHeaderValue(headers map[string][]string, key string) string {
+	for headerKey, values := range headers {
+		if strings.EqualFold(headerKey, key) {
+			if len(values) == 0 {
+				return ""
+			}
+			return strings.TrimSpace(values[0])
+		}
+	}
+
+	return ""
+}
+
+func maskEmailAddresses(to []Email) []string {
+	masked := make([]string, 0, len(to))
+	for _, recipient := range to {
+		masked = append(masked, maskEmailAddress(recipient.Address))
+	}
+
+	return masked
+}
+
+func maskEmailAddress(addr string) string {
+	parts := strings.SplitN(addr, "@", 2)
+	if len(parts) != 2 {
+		if len(addr) <= 3 {
+			return addr + "***"
+		}
+		return addr[:3] + "***"
+	}
+
+	localPart := parts[0]
+	domain := parts[1]
+
+	prefixLen := 3
+	if len(localPart) < prefixLen {
+		prefixLen = len(localPart)
+	}
+
+	return localPart[:prefixLen] + "***@" + domain
+}
+
+func truncateBody(body string, maxLen int) string {
+	if maxLen <= 0 || len(body) <= maxLen {
+		return body
+	}
+
+	return body[:maxLen] + "..."
 }
