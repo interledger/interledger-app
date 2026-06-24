@@ -3,40 +3,38 @@ package tracing
 import (
 	"context"
 	"fmt"
-	"github.com/interledger/interledger-app/go/env"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
 )
 
-func InitTraceProvider(serviceName string) (func(context.Context) error, error) {
+func InitTraceProvider(serviceName, version, environment string, enabled bool) (func(context.Context) error, error) {
+	if !enabled {
+		return func(ctx context.Context) error { return nil }, nil
+	}
+
 	ctx := context.Background()
 
 	res, err := resource.New(ctx,
+		resource.WithFromEnv(),
 		resource.WithAttributes(
-			// the service name used to display traces in backends
 			semconv.ServiceNameKey.String(serviceName),
+			semconv.ServiceVersionKey.String(version),
+			semconv.DeploymentEnvironmentKey.String(environment),
 		),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create resource: %w", err)
 	}
 
-	var traceExporter sdktrace.SpanExporter
-
-	if env.IsDev() || env.IsProd() {
-		client := otlptracegrpc.NewClient()
-		traceExporter, err = otlptrace.New(ctx, client)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create trace exporter: %w", err)
-		}
-	} else {
-		traceExporter = tracetest.NewNoopExporter()
+	client := otlptracegrpc.NewClient()
+	traceExporter, err := otlptrace.New(ctx, client)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create trace exporter: %w", err)
 	}
 
 	// Register the trace exporter with a TracerProvider, using a batch

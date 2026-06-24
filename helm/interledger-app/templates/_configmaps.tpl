@@ -12,7 +12,7 @@ data:
   PAYMENT_POINTER_BASE: {{ .Values.frontend.config.payment_pointer_base | quote }}
   RAFIKI_AUTH_ENDPOINT: {{ .Values.frontend.config.rafiki.auth.endpoint | quote }}
   BACKEND_GRPC_URL: {{ default (printf "http://%s-backend-service-grpc:8443" (include "common.fullname" .)) .Values.frontend.config.backend.grpc.url | quote }}
-  FYNBOS_ENV: {{ .Values.frontend.config.environment | quote }}
+  FYNBOS_ENV: {{ .Values.common.environment.behaviour | quote }}
   LOG_LEVEL: {{ .Values.frontend.config.log_level | quote }}
   LOG_PRETTY: {{ .Values.frontend.config.log_pretty | toString | quote }}
   PTI_CLIENT_ID: {{ .Values.frontend.config.pti.client_id | quote }}
@@ -24,7 +24,7 @@ data:
   PUBLIC_OP_AUTH_HOST: {{ .Values.frontend.config.public_op_auth_host | quote }}
   PERSONA_SDK_URL: {{ .Values.frontend.config.persona_sdk_url | quote }}
   MOCKXAGO_ENDPOINT: {{ .Values.frontend.config.mockxago_endpoint | quote }}
-  SENTRY_ENV_LABEL: {{ .Values.frontend.config.sentry_env_label | quote }}
+  SENTRY_ENV_LABEL: {{ .Values.common.environment.label | quote }}
 {{- end }}
 
 {{- define "interledger-app.admin.configMap" -}}

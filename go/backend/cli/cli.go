@@ -136,6 +136,7 @@ type StartArgs struct {
 	SentryDSN                      string
 	SentryRelease                  string
 	SentryEnvironment              string
+	OtelEnabled                    bool
 	SlackToken                     string
 	SlackChannelSignupKYC          string
 	SlackChannelTransaction        string
@@ -659,6 +660,7 @@ func ParseStartArgs() (*StartArgs, error) {
 		SentryDSN:                      os.Getenv("SENTRY_DSN"),
 		SentryRelease:                  os.Getenv("SENTRY_RELEASE"),
 		SentryEnvironment:              os.Getenv("SENTRY_ENVIRONMENT"),
+		OtelEnabled:                    os.Getenv("OTEL_ENABLED") == "true",
 		SlackToken:                     os.Getenv("SLACK_TOKEN"),
 		SlackChannelSignupKYC:          os.Getenv("SIGNUP_KYC_SLACK_CHANNEL"),
 		SlackChannelTransaction:        os.Getenv("TRANSACTION_SLACK_CHANNEL"),

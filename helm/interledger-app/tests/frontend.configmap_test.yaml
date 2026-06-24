@@ -43,9 +43,9 @@ tests:
 
   - it: 'Should contain FYNBOS_ENV'
     set:
-      frontend:
-        config:
-          environment: "production"
+      common:
+        environment:
+          behaviour: "production"
     asserts:
       - equal:
           path: data.FYNBOS_ENV
@@ -150,17 +150,17 @@ tests:
           path: data.MOCKXAGO_ENDPOINT
           value: ""
 
-  - it: 'Should contain SENTRY_ENV_LABEL as empty by default'
+  - it: 'Should contain SENTRY_ENV_LABEL as unknown by default'
     asserts:
       - equal:
           path: data.SENTRY_ENV_LABEL
-          value: ""
+          value: "unknown"
 
   - it: 'Should contain SENTRY_ENV_LABEL when set'
     set:
-      frontend:
-        config:
-          sentry_env_label: "prod"
+      common:
+        environment:
+          label: "prod"
     asserts:
       - equal:
           path: data.SENTRY_ENV_LABEL

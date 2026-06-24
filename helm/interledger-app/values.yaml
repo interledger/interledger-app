@@ -11,6 +11,16 @@
 # =============================================================================
 
 # =============================================================================
+# COMMON — Shared settings used by all components
+# =============================================================================
+common:
+  environment:
+    # Controls application behaviour (e.g. feature flags, provider selection).
+    behaviour: "dev"
+    # Used exclusively for labelling telemetry and logging (Sentry, Honeycomb).
+    label: "unknown"
+
+# =============================================================================
 # ADMIN — Botanist admin portal
 # =============================================================================
 admin:
@@ -140,7 +150,6 @@ backend:
 
   config:
     application_url: ""
-    environment: dev
     log_level: "info"
     port: "8080"
     apple_app_id: ""
@@ -191,6 +200,7 @@ backend:
       url: "temporal:7233"
 
     otel:
+      enabled: "false"
       exporter_otlp_endpoint: "grpc://api.honeycomb.io:443"
       exporter_otlp_headers_ref: "otelExporterHeaders"
       service_name: "backend"
@@ -274,7 +284,6 @@ backend:
 
     sentry:
       dsn_ref: "sentryDSN"
-      env: ""
 
     pti:
       enabled: "false"
@@ -811,9 +820,9 @@ backend:
         - key: APPLICATION_URL
           valueRef: backend.config.application_url
         - key: FYNBOS_ENV
-          valueRef: backend.config.environment
+          valueRef: common.environment.behaviour
         - key: SENTRY_ENVIRONMENT
-          valueRef: backend.config.sentry.env
+          valueRef: common.environment.label
         - key: KRATOS_URL
           valueRef: backend.config.kratos.url
         - key: KRATOS_ADMIN_URL
@@ -822,6 +831,8 @@ backend:
           valueRef: backend.config.log_level
         - key: TEMPORAL_URL
           valueRef: backend.config.temporal.url
+        - key: OTEL_ENABLED
+          valueRef: backend.config.otel.enabled
         - key: OTEL_EXPORTER_OTLP_ENDPOINT
           valueRef: backend.config.otel.exporter_otlp_endpoint
         - key: OTEL_SERVICE_NAME
@@ -965,7 +976,6 @@ frontend:
     payment_pointer_base: development.ilp.link
 
     sentry_dsn_ref: sentryDSN
-    sentry_env_label: ""
 
     segment_api_key_ref: segmentAPIKey
 
@@ -978,8 +988,6 @@ frontend:
       auth:
         endpoint: http://rafiki-auth-service:3009
         secret_ref: rafikiAuthSecret
-
-    environment: dev
 
     # Base URL of the app itself (scheme + host). Used to build self-referential
     # links in legal and contact pages. Required.
@@ -1116,7 +1124,7 @@ frontend:
         - key: BACKEND_GRPC_URL
           valueRef: frontend.config.backend.grpc.url
         - key: FYNBOS_ENV
-          valueRef: frontend.config.environment
+          valueRef: common.environment.behaviour
         - key: LOG_LEVEL
           valueRef: frontend.config.log_level
         - key: LOG_PRETTY
@@ -1140,4 +1148,4 @@ frontend:
         - key: MOCKXAGO_ENDPOINT
           valueRef: frontend.config.mockxago_endpoint
         - key: SENTRY_ENV_LABEL
-          valueRef: frontend.config.sentry_env_label
+          valueRef: common.environment.label
