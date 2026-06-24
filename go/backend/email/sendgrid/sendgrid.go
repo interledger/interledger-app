@@ -46,13 +46,15 @@ func (c *client) SendTemplate(ctx context.Context, subject string, to []Email, t
 	msg.Subject = subject
 	msg.SetTemplateID(templateID)
 
-	for _, t := range to {
-		log.Info("Dispatching email via SendGrid",
-			zap.String("to", maskEmailAddress(t.Address)),
-			zap.String("templateID", templateID),
-			zap.String("subject", subject),
-		)
+	maskedRecipients := maskEmailAddresses(to)
+	recipientCount := len(to)
+	log.Info("Dispatching email via SendGrid",
+		zap.Int("recipientCount", recipientCount),
+		zap.Strings("to", maskedRecipients),
+		zap.String("templateID", templateID),
+	)
 
+	for _, t := range to {
 		p := mail.NewPersonalization()
 		p.DynamicTemplateData = templateData
 		p.AddTos(mail.NewEmail(t.Name, t.Address))
@@ -73,11 +75,18 @@ func (c *client) SendTemplate(ctx context.Context, subject string, to []Email, t
 	}
 
 	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
+		log.Debug("SendGrid rejected email dispatch",
+			zap.Int("status", resp.StatusCode),
+			zap.String("body", truncateBody(resp.Body, 512)),
+			zap.Int("recipientCount", recipientCount),
+			zap.Strings("to", maskedRecipients),
+			zap.String("templateID", templateID),
+		)
+
 		return fmt.Errorf(
-			"%w status=%d body=%q",
+			"%w status=%d",
 			ErrExternal,
 			resp.StatusCode,
-			truncateBody(resp.Body, 512),
 		)
 	}
 
@@ -85,9 +94,9 @@ func (c *client) SendTemplate(ctx context.Context, subject string, to []Email, t
 	log.Info("SendGrid accepted email dispatch",
 		zap.Int("status", resp.StatusCode),
 		zap.String("messageID", messageID),
-		zap.Strings("to", maskEmailAddresses(to)),
+		zap.Int("recipientCount", recipientCount),
+		zap.Strings("to", maskedRecipients),
 		zap.String("templateID", templateID),
-		zap.String("subject", subject),
 	)
 
 	return nil

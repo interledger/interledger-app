@@ -47,8 +47,8 @@ func TestSendTemplateReturnsErrorForNon2xxStatus(t *testing.T) {
 	if !strings.Contains(errMsg, "status=401") {
 		t.Fatalf("expected status code in error, got: %s", errMsg)
 	}
-	if !strings.Contains(errMsg, "invalid api key") {
-		t.Fatalf("expected response body in error, got: %s", errMsg)
+	if strings.Contains(errMsg, "invalid api key") {
+		t.Fatalf("expected response body not to be included in error, got: %s", errMsg)
 	}
 }
 
