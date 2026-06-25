@@ -143,7 +143,7 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		res.BanksEnabled = false
 		res.CardsEnabled = false
 		res.AddCardsEnabled = false
-		res.ManageWalletCardsEnabled = true
+		res.ManageWalletCardsEnabled = false
 		res.DeleteAccountEnabled = false
 		res.AccountEnabled = true
 		res.AccountsTabEnabled = false
