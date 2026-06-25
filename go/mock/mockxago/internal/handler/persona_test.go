@@ -18,7 +18,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/interledger/interledger-app/go/mock/mockxago/internal/jobs"
 	"github.com/interledger/interledger-app/go/mock/mockxago/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockxago/internal/storage"
 )
 
 func TestPersonaGetInquiryIframe_UsesInquiryID(t *testing.T) {
@@ -549,9 +551,11 @@ func TestPersonaInquirySubmit_FiresInquiryApprovedWebhook(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	}))
 	defer server.Close()
-	t.Setenv("PERSONA_WEBHOOK_URL", server.URL)
 
-	h := setupTestHandler(t)
+	store := storage.NewMemoryStorage()
+	cfg := testConfig()
+	cfg.PersonaWebhookURL = server.URL
+	h := NewHandler(store, jobs.NewQueue(store), cfg)
 	submitInquiryForm(t, h, "wallet-inq-approved", "Thabo", "Mbeki", "1990-01-15", "42 Nelson Mandela Dr")
 
 	select {
@@ -579,9 +583,11 @@ func TestPersonaInquirySubmit_FiresFullWebhookChain(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	}))
 	defer server.Close()
-	t.Setenv("PERSONA_WEBHOOK_URL", server.URL)
 
-	h := setupTestHandler(t)
+	store := storage.NewMemoryStorage()
+	cfg := testConfig()
+	cfg.PersonaWebhookURL = server.URL
+	h := NewHandler(store, jobs.NewQueue(store), cfg)
 	submitInquiryForm(t, h, "wallet-full-chain", "Thabo", "Mbeki", "1990-01-15", "42 Nelson Mandela Dr")
 
 	// Collect both events; account.tag-added is delayed 2s after inquiry.approved
@@ -612,9 +618,11 @@ func TestPersonaInquirySubmit_WebhookContainsWalletID(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	}))
 	defer server.Close()
-	t.Setenv("PERSONA_WEBHOOK_URL", server.URL)
 
-	h := setupTestHandler(t)
+	store := storage.NewMemoryStorage()
+	cfg := testConfig()
+	cfg.PersonaWebhookURL = server.URL
+	h := NewHandler(store, jobs.NewQueue(store), cfg)
 	submitInquiryForm(t, h, walletID, "Thabo", "Mbeki", "1990-01-15", "42 Nelson Mandela Dr")
 
 	// Wait for account.tag-added (second event, arrives ~2s after submit)

@@ -4,8 +4,8 @@ description: Mock provider services (mockpti, mockgatehub, mockxago) for non-pro
 home: https://github.com/interledger/interledger-app
 
 type: application
-version: 1.31.0
-appVersion: v1.31.0
+version: 1.32.2
+appVersion: v1.32.2
 
 dependencies:
   - name: common

@@ -55,55 +55,35 @@ tests:
           path: spec.replicas
           value: 1
 
-  - it: 'Should reference the mockxago ConfigMap via envFrom'
-    template: deployment.mockxago.yaml
-    asserts:
-      - equal:
-          path: spec.template.spec.containers[0].envFrom[0].configMapRef.name
-          value: wallet-mockxago-config
-
-  - it: 'Should source WEBHOOK_SECRET from the mockxago Secret'
+  - it: 'Should set CONFIG env var pointing to the mounted config file'
     template: deployment.mockxago.yaml
     asserts:
       - equal:
           path: spec.template.spec.containers[0].env[0].name
-          value: WEBHOOK_SECRET
+          value: CONFIG
       - equal:
-          path: spec.template.spec.containers[0].env[0].valueFrom.secretKeyRef.name
-          value: wallet-mockxago
-      - equal:
-          path: spec.template.spec.containers[0].env[0].valueFrom.secretKeyRef.key
-          value: webhookSecret
+          path: spec.template.spec.containers[0].env[0].value
+          value: /etc/mockxago/config.yaml
 
-  - it: 'Should source XAGO_API_PUBLIC_KEY from the mockxago Secret'
+  - it: 'Should mount the config ConfigMap as a volume'
     template: deployment.mockxago.yaml
     asserts:
       - equal:
-          path: spec.template.spec.containers[0].env[1].name
-          value: XAGO_API_PUBLIC_KEY
+          path: spec.template.spec.volumes[0].name
+          value: config
       - equal:
-          path: spec.template.spec.containers[0].env[1].valueFrom.secretKeyRef.name
-          value: wallet-mockxago
+          path: spec.template.spec.volumes[0].configMap.name
+          value: wallet-mockxago-config
 
-  - it: 'Should source XAGO_API_SECRET from the mockxago Secret'
+  - it: 'Should mount the config volume into the container'
     template: deployment.mockxago.yaml
     asserts:
       - equal:
-          path: spec.template.spec.containers[0].env[2].name
-          value: XAGO_API_SECRET
+          path: spec.template.spec.containers[0].volumeMounts[0].name
+          value: config
       - equal:
-          path: spec.template.spec.containers[0].env[2].valueFrom.secretKeyRef.name
-          value: wallet-mockxago
-
-  - it: 'Should source PERSONA_WEBHOOK_TOKEN from the mockxago Secret'
-    template: deployment.mockxago.yaml
-    asserts:
-      - equal:
-          path: spec.template.spec.containers[0].env[3].name
-          value: PERSONA_WEBHOOK_TOKEN
-      - equal:
-          path: spec.template.spec.containers[0].env[3].valueFrom.secretKeyRef.name
-          value: wallet-mockxago
+          path: spec.template.spec.containers[0].volumeMounts[0].mountPath
+          value: /etc/mockxago
 
   - it: 'Should provide readinessProbe and livenessProbe on /health'
     template: deployment.mockxago.yaml

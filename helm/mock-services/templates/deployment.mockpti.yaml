@@ -8,8 +8,14 @@ spec:
     metadata:
       annotations:
         ilf-configmap-mockpti-sha256: {{ $dataHash | quote }}
+    spec:
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "common.fullname" $top }}-{{ $top.Values.mockpti.configMaps.config.name }}
 {{- end }}
 {{- end }}
 {{- if and (kindIs "bool" .Values.mockpti.enabled) .Values.mockpti.enabled }}
-{{- include "common.deployment" (list . .Values.mockpti.server .Values.mockpti.server.autoscaling .Values.mockpti.server.serviceAccount "mock-services.mockpti.deployment") }}
+{{- $sa := include "mock-services.saSpec" (list . .Values.mockpti "mockpti") | fromYaml }}
+{{- include "common.deployment" (list . .Values.mockpti.server .Values.mockpti.server.autoscaling $sa "mock-services.mockpti.deployment") }}
 {{- end }}
