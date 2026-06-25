@@ -40,13 +40,7 @@
   justify-content: center;
   text-align: center;
   background-color: var(--color-neutral-0);
-  transition: transform 0.2s ease;
   gap: var(--spacing-md);
-}
-
-.shout-out-card:hover {
-  transform: translateY(-4px);
-  border-color: var(--color-primary-green);
 }
 
 .partner-logo {
