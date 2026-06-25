@@ -1,3 +1,4 @@
+import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { InputHTMLAttributes, ReactNode } from 'react'
 import { forwardRef } from 'react'
@@ -38,6 +39,7 @@ export const PayTextField = forwardRef<HTMLInputElement, PayTextFieldProps>(
       prefix,
       prefixIcon,
       appendIcon,
+      readOnly,
       ...inputProps
     },
     ref
@@ -62,7 +64,14 @@ export const PayTextField = forwardRef<HTMLInputElement, PayTextFieldProps>(
             )}
           </div>
         )}
-        <div className='block h-14 w-full rounded-xl border-2 border-base focus-within:border-focus focus-within:ring-0'>
+        <div
+          className={clsx(
+            'block h-14 w-full rounded-xl border-2 border-base',
+            readOnly
+              ? 'bg-app'
+              : 'focus-within:border-focus focus-within:ring-0'
+          )}
+        >
           <div className='flex h-full items-center justify-between overflow-hidden rounded-[10px]'>
             {prefixIcon && (
               <div className='-mr-4 flex h-full items-center px-4'>
@@ -71,6 +80,7 @@ export const PayTextField = forwardRef<HTMLInputElement, PayTextFieldProps>(
             )}
             <input
               ref={ref}
+              readOnly={readOnly}
               {...inputProps}
               className='z-0 h-full w-full overflow-hidden border-none bg-transparent px-4 text-2xl focus:ring-0'
             />
