@@ -1,6 +1,6 @@
 import { Code } from '@bufbuild/connect'
 import type { CountryCode, ParseError } from 'libphonenumber-js'
-import { parsePhoneNumberWithError } from 'libphonenumber-js'
+import { parsePhoneNumber, parsePhoneNumberWithError } from 'libphonenumber-js'
 import { href, redirect } from 'react-router'
 import { ErrorDescriptions } from '~/lib/error.constants'
 import type { TwillioError } from '~/lib/error.mappers'
@@ -92,17 +92,16 @@ async function applyPhoneOtpRateLimit(
 
 export function parseUserPhone(
   phone: string,
-  country: string
+  country?: string
 ): ParsedPhoneResult {
   try {
-    const parsedPhone = parsePhoneNumberWithError(
-      phone,
-      country as CountryCode
-    ).number
+    const parsedPhone = country
+      ? parsePhoneNumberWithError(phone, country as CountryCode).number
+      : parsePhoneNumber(phone).number
 
     return {
       success: true,
-      phone: parsedPhone.replace(/[\s\-()]/g, '')
+      phone: parsedPhone
     }
   } catch (err) {
     switch ((err as ParseError).message) {
@@ -180,7 +179,18 @@ export async function handleUpdatePhone(request: Request, form: FormData) {
  */
 export async function handleResendOtp(request: Request, phone: string) {
   const errors: Partial<TwillioError> = { otp: '' }
-  const normalizedPhone = phone.replace(/[\s\-()]/g, '')
+  const parsedPhone = parseUserPhone(phone)
+  const normalizedPhone = parsedPhone.success ? parsedPhone.phone : null
+
+  if (!normalizedPhone) {
+    return {
+      codeSent: false as const,
+      error: 'invalidPhone' as const,
+      message: !parsedPhone.success
+        ? parsedPhone.error
+        : 'Your mobile number format is invalid. Please update it and try again.'
+    }
+  }
   const otpRateLimitResult = await applyPhoneOtpRateLimit(request)
 
   if (otpRateLimitResult) {
