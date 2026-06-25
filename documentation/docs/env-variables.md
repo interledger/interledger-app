@@ -236,6 +236,7 @@ Xago is used for ZAR and USD transactions in South Africa.
 |---|---|---|---|
 | `XAGO_API_BASE_URL` | Xago business API base URL | No | Sandbox/Dev: `https://test.xago.io/exchange/v1`; Local: `http://mockxago:8080/v1`; Prod: TBD |
 | `XAGO_IDENTITY_BASE_URL` | Xago identity/login API base URL | No | Sandbox/Dev: `https://test.xago.io/identity/v1`; Local: `http://mockxago:8080/v1`; Prod: TBD |
+| `XAGO_EXCHANGE_BASE_URL` | Xago excahnge/currencyconvert API base URL | No | Sandbox/Dev: `https://test.xago.io/exchange/v1`; Local: `http://mockxago:8080/v1`; Prod: TBD |
 | `XAGO_POLICY_ID` | Xago login policy ID for requesting access tokens | No | Sandbox/Dev/Local: `5e2585a474b0e90012ce8ff1`; Prod: TBD |
 | `XAGO_API_SECRET` | Xago API secret key credential | Yes | Local default: `test-secret` |
 | `XAGO_API_PUBLIC_KEY` | Xago API public key credential | Yes | Local default: `test-public-key` |

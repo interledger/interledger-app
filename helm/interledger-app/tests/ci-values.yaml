@@ -14,6 +14,7 @@ backend:
     xago:
       api_base_url: "https://ci.xago.example.com"
       identity_base_url: "https://ci-id.xago.example.com"
+      exchange_base_url: "https://ci-exchange.xago.example.com"
       policy_id: "ci-policy-id"
     apple_app_id: "com.ci.example"
     android_package_name: "com.ci.example"

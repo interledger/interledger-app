@@ -20,6 +20,7 @@ tests:
           xago:
             api_base_url: "https://api.xago.io"
             identity_base_url: "https://identity.xago.io"
+            exchange_base_url: "https://exchange.xago.io"
             policy_id: "policy-1"
           pti:
             enabled: "true"
@@ -56,6 +57,7 @@ tests:
           xago:
             api_base_url: "https://api.xago.io"
             identity_base_url: "https://identity.xago.io"
+            exchange_base_url: "https://exchange.xago.io"
             policy_id: "policy-1"
           pti:
             enabled: "false"
@@ -77,6 +79,7 @@ tests:
           xago:
             api_base_url: "https://api.xago.io"
             identity_base_url: "https://identity.xago.io"
+            exchange_base_url: "https://exchange.xago.io"
             policy_id: "policy-1"
           gatehub:
             enabled: "false"
@@ -96,6 +99,7 @@ tests:
           xago:
             api_base_url: "https://api.xago.io"
             identity_base_url: "https://identity.xago.io"
+            exchange_base_url: "https://exchange.xago.io"
             policy_id: "policy-1"
           admin:
             base_url: "https://admin.interledger.app"

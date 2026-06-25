@@ -45,6 +45,7 @@ type Client interface {
 type Config struct {
 	APIBaseURL      string
 	IdentityBaseURL string
+	ExchangeBaseURL string
 	PublicKey       string
 	Secret          string
 	PolicyID        string
@@ -53,6 +54,7 @@ type Config struct {
 type client struct {
 	baseURL         string
 	identityBaseURL string
+	exchangeBaseURL string
 	api             *http.Client
 	accessToken     AccessToken
 	publicKey       string
@@ -71,6 +73,7 @@ func New(transport *http.Client, dbc *sqlx.DB, cfg Config) Client {
 		dbc:             dbc,
 		baseURL:         cfg.APIBaseURL,
 		identityBaseURL: cfg.IdentityBaseURL,
+		exchangeBaseURL: cfg.ExchangeBaseURL,
 		api:             transport,
 		accessToken:     AccessToken{},
 		publicKey:       cfg.PublicKey,
@@ -915,8 +918,7 @@ func (c *client) UpdateSubAccount(ctx context.Context, accountID string, reqStru
 }
 
 func (c *client) EstimateConvertCurrency(ctx context.Context, currencyPair ConvertCurrencyPairEnum, amount float64) (*EstimateConvertCurrencyResponse, error) {
-	// TODO exchange service url
-	reqUrl, err := url.JoinPath(c.baseURL, "currencyconvert")
+	reqUrl, err := url.JoinPath(c.exchangeBaseURL, "currencyconvert")
 	if err != nil {
 		return nil, err
 	}
@@ -996,8 +998,7 @@ func (c *client) EstimateConvertCurrency(ctx context.Context, currencyPair Conve
 }
 
 func (c *client) ConvertCurrency(ctx context.Context, currencyPair ConvertCurrencyPairEnum, amount float64) (*ConvertCurrencyResponse, error) {
-	// TODO exchange service url
-	reqUrl, err := url.JoinPath(c.baseURL, "currencyconvert")
+	reqUrl, err := url.JoinPath(c.exchangeBaseURL, "currencyconvert")
 	if err != nil {
 		return nil, err
 	}
@@ -1077,8 +1078,7 @@ func (c *client) ConvertCurrency(ctx context.Context, currencyPair ConvertCurren
 }
 
 func (c *client) GetConvertCurrencyDetails(ctx context.Context, convertID string) (*GetConvertCurrencyDetailsResponse, error) {
-	// TODO exchange service url
-	reqUrl, err := url.Parse(fmt.Sprintf("%s/currencyconvert", c.baseURL))
+	reqUrl, err := url.Parse(fmt.Sprintf("%s/currencyconvert", c.exchangeBaseURL))
 	if err != nil {
 		return nil, err
 	}

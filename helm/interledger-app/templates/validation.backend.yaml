@@ -1,6 +1,7 @@
 {{- $requiredFields := list
   (dict "path" "backend.config.xago.api_base_url" "value" .Values.backend.config.xago.api_base_url)
   (dict "path" "backend.config.xago.identity_base_url" "value" .Values.backend.config.xago.identity_base_url)
+  (dict "path" "backend.config.xago.exchange_base_url" "value" .Values.backend.config.xago.exchange_base_url)
   (dict "path" "backend.config.xago.policy_id" "value" .Values.backend.config.xago.policy_id)
   (dict "path" "backend.config.apple_app_id" "value" .Values.backend.config.apple_app_id)
   (dict "path" "backend.config.android_package_name" "value" .Values.backend.config.android_package_name)

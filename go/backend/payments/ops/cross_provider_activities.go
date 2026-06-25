@@ -256,8 +256,7 @@ func (a *Activity) XagoCheckConvertComplete(ctx context.Context, convertID strin
 
 	status := strings.ToLower(details.Status)
 	switch status {
-	// TODO check what the possible statuses are
-	case "complete", "completed", "settled", "success":
+	case "success":
 		return XagoConvertDetails{
 			Complete:        true,
 			ConvertID:       details.ConvertID,
@@ -268,14 +267,14 @@ func (a *Activity) XagoCheckConvertComplete(ctx context.Context, convertID strin
 			ReceiveAmount:   details.ReceiveAmount.String(),
 			ReceiveCurrency: details.ReceiveCurrencyCode,
 		}, nil
-	case "failed", "error", "rejected":
+	case "pending":
+		return XagoConvertDetails{Complete: false}, nil
+	default:
 		return XagoConvertDetails{}, temporal.NewNonRetryableApplicationError(
 			fmt.Sprintf("Xago conversion failed with status: %s", details.Status),
 			"XagoConversionFailed",
 			nil,
 		)
-	default:
-		return XagoConvertDetails{Complete: false}, nil
 	}
 }
 

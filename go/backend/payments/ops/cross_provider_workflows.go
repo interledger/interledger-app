@@ -74,6 +74,7 @@ func crossProviderGatehubToXagoPayOut(ctx workflow.Context, a *Activity, payment
 	}
 
 	// Poll until conversion completes.
+	// TODO extract and reuse
 	for {
 		var details XagoConvertDetails
 		err = workflow.ExecuteActivity(ctx, a.XagoCheckConvertComplete, convertID).Get(ctx, &details)
@@ -88,7 +89,8 @@ func crossProviderGatehubToXagoPayOut(ctx workflow.Context, a *Activity, payment
 			}
 			break
 		}
-		_ = workflow.Sleep(ctx, time.Hour)
+		// TODO review and refactor the polling for conversion complete
+		_ = workflow.Sleep(ctx, 10*time.Second)
 	}
 
 	// Atomically post all Pacioli transfers.
@@ -164,6 +166,7 @@ func crossProviderXagoToGatehubPayOut(ctx workflow.Context, a *Activity, payment
 	}
 
 	// Poll until conversion completes.
+	// TODO extract and reuse
 	for {
 		var details XagoConvertDetails
 		err = workflow.ExecuteActivity(ctx, a.XagoCheckConvertComplete, convertID).Get(ctx, &details)
@@ -178,7 +181,9 @@ func crossProviderXagoToGatehubPayOut(ctx workflow.Context, a *Activity, payment
 			}
 			break
 		}
-		_ = workflow.Sleep(ctx, time.Hour)
+
+		// TODO review and refactor the polling for conversion complete
+		_ = workflow.Sleep(ctx, 10*time.Second)
 	}
 
 	// Atomically post all Pacioli transfers.

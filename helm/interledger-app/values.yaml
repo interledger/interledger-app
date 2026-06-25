@@ -255,6 +255,7 @@ backend:
     xago:
       api_base_url: ""
       identity_base_url: ""
+      exchange_base_url: ""
       policy_id: ""
       api_secret_ref: "xagoApiSecret"
       api_public_key_ref: "xagoApiPublicKey"
@@ -856,6 +857,8 @@ backend:
           valueRef: backend.config.xago.api_base_url
         - key: XAGO_IDENTITY_BASE_URL
           valueRef: backend.config.xago.identity_base_url
+        - key: XAGO_EXCHANGE_BASE_URL
+          valueRef: backend.config.xago.exchange_base_url
         - key: XAGO_POLICY_ID
           valueRef: backend.config.xago.policy_id
         - key: PTI_ENABLED
