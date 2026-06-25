@@ -34,14 +34,9 @@ const FEATURES = [
       <img
         src={orbitSvg}
         alt='Orbit graphic'
+        className='feature-orbit'
         loading='lazy'
         decoding='async'
-        style={{
-          width: '80px',
-          marginTop: '16px',
-          display: 'block',
-          marginInline: 'auto'
-        }}
       />
     )
   },
@@ -53,14 +48,9 @@ const FEATURES = [
       <img
         src={orbitSvg}
         alt='Orbit graphic'
+        className='feature-orbit'
         loading='lazy'
         decoding='async'
-        style={{
-          width: '80px',
-          marginTop: '16px',
-          display: 'block',
-          marginInline: 'auto'
-        }}
       />
     )
   },
