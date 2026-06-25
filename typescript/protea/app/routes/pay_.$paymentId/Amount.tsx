@@ -320,6 +320,9 @@ export const Amount = () => {
           name='receiveAmount'
           form='amount-form'
           placeholder='0.00'
+          readOnly={
+            payment.senderAmount?.asset !== payment.receiverAmount?.asset
+          }
           onFocus={() =>
             dispatchPayment({ type: 'focussed', focussed: 'receive' })
           }
