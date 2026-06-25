@@ -13,8 +13,6 @@ import (
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	linkedaccounts_ops "gitlab.com/fynbos/backend/linkedaccounts/ops"
-	"gitlab.com/fynbos/backend/plaidlinks"
-	plaidlinks_ops "gitlab.com/fynbos/backend/plaidlinks/ops"
 	plaid_ops "gitlab.com/fynbos/backend/providers/plaid/ops"
 	"gitlab.com/fynbos/backend/providers/pti"
 	pti_external "gitlab.com/fynbos/backend/providers/pti/external"
@@ -88,9 +86,9 @@ func (l *plaidFiantLinker) ExistingLink(ctx context.Context, userID, plaidAccoun
 		return nil, err
 	}
 
-	link, err := plaidlinks_ops.GetByPlaidAccountID(ctx, l.b, walletID, plaidAccountID)
+	link, err := plaid_ops.GetLinkByPlaidAccountID(ctx, l.b, walletID, plaidAccountID)
 	if err != nil {
-		if errors.Is(err, plaidlinks.ErrNotFound) {
+		if errors.Is(err, plaid_ops.ErrLinkNotFound) {
 			return nil, nil
 		}
 		return nil, err
@@ -162,7 +160,7 @@ func (l *plaidFiantLinker) Register(ctx context.Context, args plaid_ops.LinkPlai
 	// Persist the Plaid-specific link separately. Non-atomic across the two
 	// tables: if this insert fails the linked account already exists, but the
 	// partial unique index + dedupe-on-retry (ExistingLink) are the backstop.
-	_, err = plaidlinks_ops.Create(ctx, l.b, &plaidlinks.CreateArgs{
+	_, err = plaid_ops.CreateLink(ctx, l.b, &plaid_ops.CreateLinkArgs{
 		LinkedAccountID: la.ID,
 		WalletID:        walletID,
 		PlaidAccountID:  args.PlaidAccountID,
@@ -185,7 +183,7 @@ func (l *plaidFiantLinker) ListLinkedPlaidAccountIDs(ctx context.Context, userID
 		}
 		return nil, err
 	}
-	ids, err := plaidlinks_ops.ListPlaidAccountIDsByWallet(ctx, l.b, walletID)
+	ids, err := plaid_ops.ListPlaidAccountIDsByWallet(ctx, l.b, walletID)
 	if err != nil {
 		return nil, fmt.Errorf("plaid/fiant linker: list plaid account ids: %w", err)
 	}
