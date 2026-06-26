@@ -12,7 +12,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/getsentry/sentry-go"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
@@ -531,6 +530,7 @@ func startWorker(args *cli.StartArgs) {
 type backends struct {
 	val            *validator.Validate
 	db             *sqlx.DB
+	txRunner       *db.TxRunner
 	twitter        twitter.Client
 	adminAuth      auth.Service
 	agreements     agreements.Client
@@ -646,7 +646,7 @@ func (b backends) DB() *sqlx.DB {
 }
 
 func (b backends) WithTx(ctx context.Context, fn func(*sqlx.Tx) error) error {
-	return crdbsqlx.ExecuteTx(ctx, b.db, nil, fn)
+	return b.txRunner.WithTx(ctx, fn)
 }
 
 func (b backends) Validator() *validator.Validate {
@@ -708,11 +708,12 @@ func (b backends) PTI() pti.Client {
 func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	b := &backends{}
 
-	db, err := otelsqlx.Connect("postgres", args.DbConnectionString, otelsql.WithAttributes(semconv.DBSystemCockroachdb), otelsql.WithDBName("cockroachdb"))
+	dbConn, err := otelsqlx.Connect("postgres", args.DbConnectionString, otelsql.WithAttributes(semconv.DBSystemCockroachdb), otelsql.WithDBName("cockroachdb"))
 	if err != nil {
 		log.Fatalln(err)
 	}
-	b.db = db
+	b.db = dbConn
+	b.txRunner = db.NewTxRunner(dbConn)
 
 	// Initialises the logger we will use throughout
 	err = log.Initialize(args.LogLevel)
