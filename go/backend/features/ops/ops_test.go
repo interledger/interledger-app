@@ -73,7 +73,7 @@ func TestSetFeatures(t *testing.T) {
 
 			assert.DeepEqual(t, f, tc.feats)
 
-			f, err = ops.Features(ctx, b, wid)
+			f, err = ops.Features(ctx, b, wid, true)
 			require.NoError(t, err)
 
 			assert.DeepEqual(t, f, tc.feats)
@@ -185,7 +185,7 @@ func TestFeatures(t *testing.T) {
 
 			fc.EXPECT().ListByWalletId(ctx, wid).Return(lal, nil).AnyTimes()
 
-			f, err := ops.Features(ctx, b, wid)
+			f, err := ops.Features(ctx, b, wid, true)
 			require.NoError(t, err)
 
 			assert.DeepEqual(t, f, tc.feats)
