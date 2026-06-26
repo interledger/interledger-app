@@ -47,10 +47,10 @@ func SetFeatures(ctx context.Context, b Backends, walletID string, feat features
 		return nil, fmt.Errorf("%w %s", features.ErrInternal, err)
 	}
 
-	return Features(ctx, b, walletID)
+	return Features(ctx, b, walletID, feat.CardsEnabled)
 }
 
-func Features(ctx context.Context, b Backends, walletID string) (*features.WalletFeatures, error) {
+func Features(ctx context.Context, b Backends, walletID string, cardsEnabled bool) (*features.WalletFeatures, error) {
 	// check if the wallet is enabled for the account
 	wallet, err := b.Wallets().Get(ctx, walletID)
 	if err != nil {
@@ -143,7 +143,7 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		res.BanksEnabled = false
 		res.CardsEnabled = false
 		res.AddCardsEnabled = false
-		res.ManageWalletCardsEnabled = true
+		res.ManageWalletCardsEnabled = cardsEnabled
 		res.DeleteAccountEnabled = false
 		res.AccountEnabled = true
 		res.AccountsTabEnabled = false
