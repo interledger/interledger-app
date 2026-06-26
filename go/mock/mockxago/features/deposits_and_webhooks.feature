@@ -7,7 +7,7 @@ Feature: Xago Deposits and Webhook Notifications
     Given the Xago mock service is running
     And I have obtained a valid access token
     And I have created a sub-account for wallet "wallet_dep_test"
-    And the wallet webhook URL is configured to "http://localhost:3000/xago/webhooks"
+    And the wallet webhook URL is configured to "http://localhost:24100/xago/webhooks"
 
   Scenario: Simulate a test deposit
     When I simulate a test deposit with the following details:

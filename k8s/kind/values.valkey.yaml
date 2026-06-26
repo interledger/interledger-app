@@ -1,0 +1,9 @@
+architecture: standalone
+
+auth:
+  enabled: false
+
+primary:
+  persistence:
+    enabled: true
+    size: 8Gi

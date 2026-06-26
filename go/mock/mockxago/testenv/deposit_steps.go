@@ -666,8 +666,8 @@ func (tc *TestContext) validateWebhookSignature(event webhookEvent, timestamp st
 	// depending on whether it's coming from the container or local process.
 	// Try both URLs to account for Docker networking.
 	possibleURLs := []string{
-		tc.webhookURL, // e.g., http://localhost:3000/xago/webhooks
-		"http://host.docker.internal:3000/xago/webhooks", // Docker container URL
+		tc.webhookURL, // e.g., http://localhost:24100/xago/webhooks
+		"http://host.docker.internal:24100/xago/webhooks", // Docker container URL
 	}
 
 	actual := event.Headers.Get("x-gatehub-signature")

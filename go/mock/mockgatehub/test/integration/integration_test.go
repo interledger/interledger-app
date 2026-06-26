@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/config"
 	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/handler"
 	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/logger"
 	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/models"
@@ -39,7 +40,15 @@ func NewTestServer() *TestServer {
 	}
 
 	webhookManager := webhook.NewManager("", "test-secret", nil, nil, "")
-	h := handler.NewHandler(store, webhookManager)
+	h := handler.NewHandlerWithConfig(&config.Config{
+		Port:                  "8080",
+		LogLevel:              "info",
+		WebhookSecret:         "test-secret",
+		WebhookMinDelaySec:    2,
+		EnforceAuthentication: false,
+		DefaultOrganizationID: "default-org",
+		ValidCredentials:      map[string]string{"local-test-app-id": "local-test-app-secret"},
+	}, store, webhookManager)
 
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)

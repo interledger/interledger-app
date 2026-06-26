@@ -1,0 +1,17 @@
+port: "8080"
+log_level: debug
+
+redis_url: redis://redis:6379
+redis_db: 2
+
+webhook_url: http://backend:8080/webhooks/gatehub
+webhook_secret: 6d6f636b5f776562686f6f6b5f736563726574
+webhook_min_delay_sec: 2
+
+enforce_authentication: true
+default_organization_id: default-org
+
+valid_credentials:
+  local-test-app-id: local-test-app-secret
+
+public_base_url: https://mockgatehub.interledger.test

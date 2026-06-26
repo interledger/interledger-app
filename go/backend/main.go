@@ -133,7 +133,7 @@ func main() {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		initSentry(args.SentryDSN, args.SentryRelease)
+		initSentry(args.SentryDSN, args.SentryRelease, args.SentryEnvironment)
 		defer sentry.Flush(2 * time.Second)
 		migrate(args)
 	case "start":
@@ -141,7 +141,7 @@ func main() {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		initSentry(args.SentryDSN, args.SentryRelease)
+		initSentry(args.SentryDSN, args.SentryRelease, args.SentryEnvironment)
 		defer sentry.Flush(2 * time.Second)
 		start(args)
 	case "worker":
@@ -149,7 +149,7 @@ func main() {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		initSentry(args.SentryDSN, args.SentryRelease)
+		initSentry(args.SentryDSN, args.SentryRelease, args.SentryEnvironment)
 		defer sentry.Flush(2 * time.Second)
 		startWorker(args)
 	case "dev":
@@ -157,7 +157,7 @@ func main() {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		initSentry(args.SentryDSN, args.SentryRelease)
+		initSentry(args.SentryDSN, args.SentryRelease, args.SentryEnvironment)
 		defer sentry.Flush(2 * time.Second)
 		go func() {
 			startWorker(args)
@@ -168,13 +168,14 @@ func main() {
 	}
 }
 
-func initSentry(dsn, release string) {
+func initSentry(dsn, release, environment string) {
 	if dsn == "" {
 		return
 	}
 	err := sentry.Init(sentry.ClientOptions{
 		Dsn:              dsn,
 		Release:          release,
+		Environment:      environment,
 		TracesSampleRate: 1.0,
 	})
 	if err != nil {
@@ -514,7 +515,7 @@ func startWorker(args *cli.StartArgs) {
 	serveHTTP(&http.Server{Addr: ":8081", Handler: router}, &wg)
 
 	log.Info("Worker creating")
-	w, err := temporal.NewTemporalWorker(b, b.gatehubConfig, b.xagoConfig, args.PTIJWK, args.PTIBaseURL, args.PTIClientID, args.ChimoneyToken, jobs.Config{
+	w, err := temporal.NewTemporalWorker(b, b.gatehubConfig, b.xagoConfig, args.PTIJWK, args.PTIBaseURL, args.PTIClientID, args.ChimoneyToken, args.RafikiNodeEnabled, jobs.Config{
 		KratosURL:         args.KratosUrl,
 		KratosAdminURL:    args.KratosAdminUrl,
 		PTIJWK:            args.PTIJWK,
@@ -902,25 +903,27 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 
 	log.Debug("initialising Gatehub")
 	b.gatehubConfig = gatehub.Config{
-		AppID:                  args.GatehubAppID,
-		Secret:                 args.GatehubSecret,
-		CardAppID:              args.GatehubCardAppID,
-		GatewayID:              args.GatehubGatewayID,
-		CardAccountProductCode: args.GatehubCardAccountProductCode,
-		PaywiserEuroVaultID:    args.GatehubPaywiserEuroVaultID,
-		SendingUserID:          args.GatehubSendingUserID,
-		SendingUserAddress:     args.GatehubSendingUserAddress,
-		WebhookSecret:          args.GatehubWebhookSecret,
-		FallbackWebhookURL:     args.GatehubFallbackWebhookURL,
-		OnOffRampClientID:      args.GatehubOnOffRampClientID,
-		OnboardingClientID:     args.GatehubOnboardingClientID,
-		ExchangeClientID:       args.GatehubExchangeClientID,
-		APIBaseURL:             args.GatehubAPIBaseURL,
-		OnboardingBaseURL:      args.GatehubOnboardingBaseURL,
-		OnOffRampBaseURL:       args.GatehubOnOffRampBaseURL,
-		EUROpsAccount:          args.GatehubEUROpsAccount,
-		EUROpsLedgerID:         args.GatehubEUROpsLedgerID,
-		OrganizationID:         args.GatehubOrganizationID,
+		AppID:                   args.GatehubAppID,
+		Secret:                  args.GatehubSecret,
+		CardAppID:               args.GatehubCardAppID,
+		GatewayID:               args.GatehubGatewayID,
+		CardAccountProductCode:  args.GatehubCardAccountProductCode,
+		PaywiserEuroVaultID:     args.GatehubPaywiserEuroVaultID,
+		SendingUserID:           args.GatehubSendingUserID,
+		SendingUserAddress:      args.GatehubSendingUserAddress,
+		IntermediaryUserID:      args.GatehubIntermediaryUserID,
+		IntermediaryUserAddress: args.GatehubIntermediaryUserAddress,
+		WebhookSecret:           args.GatehubWebhookSecret,
+		FallbackWebhookURL:      args.GatehubFallbackWebhookURL,
+		OnOffRampClientID:       args.GatehubOnOffRampClientID,
+		OnboardingClientID:      args.GatehubOnboardingClientID,
+		ExchangeClientID:        args.GatehubExchangeClientID,
+		APIBaseURL:              args.GatehubAPIBaseURL,
+		OnboardingBaseURL:       args.GatehubOnboardingBaseURL,
+		OnOffRampBaseURL:        args.GatehubOnOffRampBaseURL,
+		EUROpsAccount:           args.GatehubEUROpsAccount,
+		EUROpsLedgerID:          args.GatehubEUROpsLedgerID,
+		OrganizationID:          args.GatehubOrganizationID,
 	}
 	b.gatehub = gatehub_client.New(b, b.gatehubConfig)
 	if b.gatehub == nil {

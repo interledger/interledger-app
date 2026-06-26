@@ -21,6 +21,7 @@ type MigrationArgs struct {
 	LogOutputPath           string
 	SentryDSN               string
 	SentryRelease           string
+	SentryEnvironment       string
 }
 
 func ParseMigrationArgs() (*MigrationArgs, error) {
@@ -55,101 +56,106 @@ func ParseMigrationArgs() (*MigrationArgs, error) {
 		PacioliConnectionString: pacDB,
 		SentryDSN:               os.Getenv("SENTRY_DSN"),
 		SentryRelease:           os.Getenv("SENTRY_RELEASE"),
+		SentryEnvironment:       os.Getenv("SENTRY_ENVIRONMENT"),
 	}, nil
 }
 
 type StartArgs struct {
-	Port                          string
-	DbConnectionString            string
-	PacioliDBConString            string
-	KratosUrl                     string
-	KratosAdminUrl                string
-	LogLevel                      string
-	LogOutputPath                 string
-	TemporalUrl                   string
-	TwilioSid                     string
-	TwilioSecret                  string
-	TwilioServiceSid              string
-	TwilioEnabled                 bool
-	AdminPolicyAud                string
-	AdminTeamDomain               string
-	EmailEnabled                  bool
-	SendgridAPIKey                string
-	SendgridFromName              string
-	SendgridFromEmail             string
-	SendgridOneTemplateID         string
-	SupportEmail                  string
-	SmartyAuthID                  string
-	SmartyAuthToken               string
-	PusherAddr                    string
-	SegmentKey                    string
-	TwitterClientID               string
-	TwitterClientSecret           string
-	TwitterRedirectURL            string
-	TwitterBearerToken            string
-	GatehubAppID                  string
-	GatehubSecret                 string
-	GatehubCardAppID              string
-	GatehubGatewayID              string
-	GatehubCardAccountProductCode string
-	GatehubPaywiserEuroVaultID    string
-	GatehubSendingUserID          string
-	GatehubSendingUserAddress     string
-	GatehubWebhookSecret          string
-	GatehubFallbackWebhookURL     string
-	GatehubOnOffRampClientID      string
-	GatehubOnboardingClientID     string
-	GatehubExchangeClientID       string
-	GatehubAPIBaseURL             string
-	GatehubOnboardingBaseURL      string
-	GatehubOnOffRampBaseURL       string
-	GatehubEUROpsAccount          string
-	GatehubEUROpsLedgerID         uint32
-	GatehubOrganizationID         string
-	XagoAPIBaseURL                string
-	XagoIdentityBaseURL           string
-	XagoPublicKey                 string
-	XagoSecret                    string
-	XagoPolicyID                  string
-	PTIEnabled                    bool
-	PTIBaseURL                    string
-	PTIJWK                        string
-	PTIClientID                   string
-	PTISDKURL                     string
-	PTIFormsURL                   string
-	PTIPublicKeyJWK               string
-	PersonaBaseURL                string
-	PersonaToken                  string
-	PersonaWebhookToken           string
-	PersonaSandboxFakeZAID        bool
-	AppleAppID                    string
-	AndroidPackageName            string
-	AndroidSHA256                 string
-	OperatorTenantID              string
-	AdminAPISecret                string
-	SignatureVersion              string
-	SentryDSN                     string
-	SentryRelease                 string
-	SlackToken                    string
-	SlackChannelSignupKYC         string
-	SlackChannelTransaction       string
-	SlackChannelError             string
-	SlackClientID                 string
-	SlackClientSecret             string
-	SlackRedirectURL              string
-	SlackBotRedirectURL           string
-	SignupAgreementIDs            []string
-	VaultAddr                     string
-	VaultTransitEnginePath        string
-	VaultToken                    string
-	RafikiBackendGraphQLURL       string
-	RafikiAuthGraphQLURL          string
-	ChimoneyWebhookSecret         string
-	ChimoneyToken                 string
-	RafikiDBURL                   string
-	RafikiAuthDBURL               string
-	TempGatehubAppID              string
-	TempGatehubSecret             string
+	Port                           string
+	DbConnectionString             string
+	PacioliDBConString             string
+	KratosUrl                      string
+	KratosAdminUrl                 string
+	LogLevel                       string
+	LogOutputPath                  string
+	TemporalUrl                    string
+	TwilioSid                      string
+	TwilioSecret                   string
+	TwilioServiceSid               string
+	TwilioEnabled                  bool
+	AdminPolicyAud                 string
+	AdminTeamDomain                string
+	EmailEnabled                   bool
+	SendgridAPIKey                 string
+	SendgridFromName               string
+	SendgridFromEmail              string
+	SendgridOneTemplateID          string
+	SupportEmail                   string
+	SmartyAuthID                   string
+	SmartyAuthToken                string
+	PusherAddr                     string
+	SegmentKey                     string
+	TwitterClientID                string
+	TwitterClientSecret            string
+	TwitterRedirectURL             string
+	TwitterBearerToken             string
+	GatehubAppID                   string
+	GatehubSecret                  string
+	GatehubCardAppID               string
+	GatehubGatewayID               string
+	GatehubCardAccountProductCode  string
+	GatehubPaywiserEuroVaultID     string
+	GatehubSendingUserID           string
+	GatehubSendingUserAddress      string
+	GatehubIntermediaryUserID      string
+	GatehubIntermediaryUserAddress string
+	GatehubWebhookSecret           string
+	GatehubFallbackWebhookURL      string
+	GatehubOnOffRampClientID       string
+	GatehubOnboardingClientID      string
+	GatehubExchangeClientID        string
+	GatehubAPIBaseURL              string
+	GatehubOnboardingBaseURL       string
+	GatehubOnOffRampBaseURL        string
+	GatehubEUROpsAccount           string
+	GatehubEUROpsLedgerID          uint32
+	GatehubOrganizationID          string
+	RafikiNodeEnabled              bool
+	XagoAPIBaseURL                 string
+	XagoIdentityBaseURL            string
+	XagoPublicKey                  string
+	XagoSecret                     string
+	XagoPolicyID                   string
+	PTIEnabled                     bool
+	PTIBaseURL                     string
+	PTIJWK                         string
+	PTIClientID                    string
+	PTISDKURL                      string
+	PTIFormsURL                    string
+	PTIPublicKeyJWK                string
+	PersonaBaseURL                 string
+	PersonaToken                   string
+	PersonaWebhookToken            string
+	PersonaSandboxFakeZAID         bool
+	AppleAppID                     string
+	AndroidPackageName             string
+	AndroidSHA256                  string
+	OperatorTenantID               string
+	AdminAPISecret                 string
+	SignatureVersion               string
+	SentryDSN                      string
+	SentryRelease                  string
+	SentryEnvironment              string
+	SlackToken                     string
+	SlackChannelSignupKYC          string
+	SlackChannelTransaction        string
+	SlackChannelError              string
+	SlackClientID                  string
+	SlackClientSecret              string
+	SlackRedirectURL               string
+	SlackBotRedirectURL            string
+	SignupAgreementIDs             []string
+	VaultAddr                      string
+	VaultTransitEnginePath         string
+	VaultToken                     string
+	RafikiBackendGraphQLURL        string
+	RafikiAuthGraphQLURL           string
+	ChimoneyWebhookSecret          string
+	ChimoneyToken                  string
+	RafikiDBURL                    string
+	RafikiAuthDBURL                string
+	TempGatehubAppID               string
+	TempGatehubSecret              string
 }
 
 func ParseStartArgs() (*StartArgs, error) {
@@ -317,6 +323,16 @@ func ParseStartArgs() (*StartArgs, error) {
 		}
 	}
 
+	rafikiNodeEnabled := false
+	if v := os.Getenv("RAFIKI_NODE_ENABLED"); v != "" {
+		var err error
+		rafikiNodeEnabled, err = strconv.ParseBool(v)
+		if err != nil {
+			return nil, errors.New("RAFIKI_NODE_ENABLED must be a valid boolean (true/false/1/0)")
+		}
+	}
+	env.SetRafikiNodeEnabled(rafikiNodeEnabled)
+
 	var sendgridAPIKey, sendgridFromName, sendgridFromEmail, sendgridOneTemplateID, supportEmail string
 	if emailEnabled {
 		sendgridAPIKey = os.Getenv("SENDGRID_API_KEY")
@@ -403,6 +419,15 @@ func ParseStartArgs() (*StartArgs, error) {
 	gatehubSendingUserAddress := os.Getenv("GATEHUB_SENDING_USER_ADDRESS")
 	if gatehubSendingUserAddress == "" && env.IsProd() {
 		return nil, errors.New("GATEHUB_SENDING_USER_ADDRESS is required in production")
+	}
+
+	gatehubIntermediaryUserID := os.Getenv("GATEHUB_INTERMEDIARY_USER_ID")
+	gatehubIntermediaryUserAddress := os.Getenv("GATEHUB_INTERMEDIARY_USER_ADDRESS")
+	if gatehubIntermediaryUserID == "" && env.IsProd() && rafikiNodeEnabled {
+		return nil, errors.New("GATEHUB_INTERMEDIARY_USER_ID is required in production")
+	}
+	if gatehubIntermediaryUserAddress == "" && env.IsProd() && rafikiNodeEnabled {
+		return nil, errors.New("GATEHUB_INTERMEDIARY_USER_ADDRESS is required in production")
 	}
 
 	gatehubWebhookSecret := os.Getenv("GATEHUB_WEBHOOK_SECRET")
@@ -559,97 +584,101 @@ func ParseStartArgs() (*StartArgs, error) {
 	signupAgreementIDs := parseSignupAgreementIDs(os.Getenv("SIGNUP_AGREEMENT_IDS"))
 
 	return &StartArgs{
-		Port:                          port,
-		DbConnectionString:            dbUrl,
-		PacioliDBConString:            pacDB,
-		KratosUrl:                     kratosUrl,
-		KratosAdminUrl:                kratosAdminUrl,
-		LogLevel:                      logLevel,
-		LogOutputPath:                 logOutputPath,
-		TemporalUrl:                   temporalUrl,
-		TwilioSid:                     TwilioSid,
-		TwilioSecret:                  TwilioSecret,
-		TwilioServiceSid:              twilioServiceSid,
-		TwilioEnabled:                 twiloEnabled,
-		TwitterClientID:               twitterClientID,
-		TwitterClientSecret:           twitterClientSecret,
-		TwitterRedirectURL:            twitterRedirectURL,
-		TwitterBearerToken:            twitterBearerToken,
-		AdminPolicyAud:                adminPolicyAud,
-		AdminTeamDomain:               adminTeamDomain,
-		EmailEnabled:                  emailEnabled,
-		SendgridAPIKey:                sendgridAPIKey,
-		SendgridFromName:              sendgridFromName,
-		SendgridFromEmail:             sendgridFromEmail,
-		SendgridOneTemplateID:         sendgridOneTemplateID,
-		SupportEmail:                  supportEmail,
-		SmartyAuthID:                  smartyAuthID,
-		SmartyAuthToken:               smartyAuthToken,
-		PusherAddr:                    pusherAddr,
-		SegmentKey:                    segmentKey,
-		GatehubAppID:                  gatehubAppID,
-		GatehubSecret:                 gatehubSecret,
-		GatehubCardAppID:              gatehubCardAppID,
-		GatehubGatewayID:              gatehubGatewayID,
-		GatehubCardAccountProductCode: gatehubCardAccountProductCode,
-		GatehubPaywiserEuroVaultID:    gatehubPaywiserEuroVaultID,
-		GatehubSendingUserID:          gatehubSendingUserID,
-		GatehubSendingUserAddress:     gatehubSendingUserAddress,
-		GatehubWebhookSecret:          gatehubWebhookSecret,
-		GatehubFallbackWebhookURL:     gatehubFallbackWebhookURL,
-		GatehubOnOffRampClientID:      gatehubOnOffRampClientID,
-		GatehubOnboardingClientID:     gatehubOnboardingClientID,
-		GatehubExchangeClientID:       gatehubExchangeClientID,
-		GatehubAPIBaseURL:             gatehubAPIBaseURL,
-		GatehubOnboardingBaseURL:      gatehubOnboardingBaseURL,
-		GatehubOnOffRampBaseURL:       gatehubOnOffRampBaseURL,
-		GatehubEUROpsAccount:          gatehubEUROpsAccount,
-		GatehubEUROpsLedgerID:         gatehubEUROpsLedgerID,
-		GatehubOrganizationID:         gatehubOrganizationID,
-		XagoAPIBaseURL:                xagoAPIBaseURL,
-		XagoIdentityBaseURL:           xagoIdentityBaseURL,
-		XagoPublicKey:                 xagoPublicKey,
-		XagoSecret:                    xagoSecret,
-		XagoPolicyID:                  xagoPolicyID,
-		PTIEnabled:                    ptiEnabled,
-		PTIBaseURL:                    ptiBaseURL,
-		PTIJWK:                        ptiJWK,
-		PTIClientID:                   ptiClientID,
-		PTISDKURL:                     ptiSDKURL,
-		PTIFormsURL:                   ptiFormsURL,
-		PTIPublicKeyJWK:               ptiPublicKeyJWK,
-		PersonaBaseURL:                personaBaseURL,
-		PersonaToken:                  personaToken,
-		PersonaWebhookToken:           personaWebhook,
-		PersonaSandboxFakeZAID:        personaSandboxFakeZAID,
-		AppleAppID:                    appleAppID,
-		AndroidPackageName:            androidPackageName,
-		AndroidSHA256:                 androidSHA256,
-		OperatorTenantID:              operatorTenantID,
-		AdminAPISecret:                adminAPISecret,
-		SignatureVersion:              signatureVersion,
-		SentryDSN:                     os.Getenv("SENTRY_DSN"),
-		SentryRelease:                 os.Getenv("SENTRY_RELEASE"),
-		SlackToken:                    os.Getenv("SLACK_TOKEN"),
-		SlackChannelSignupKYC:         os.Getenv("SIGNUP_KYC_SLACK_CHANNEL"),
-		SlackChannelTransaction:       os.Getenv("TRANSACTION_SLACK_CHANNEL"),
-		SlackChannelError:             os.Getenv("ERROR_SLACK_CHANNEL"),
-		SlackClientID:                 os.Getenv("SLACK_CLIENT_ID"),
-		SlackClientSecret:             os.Getenv("SLACK_CLIENT_SECRET"),
-		SlackRedirectURL:              os.Getenv("SLACK_REDIRECT_URL"),
-		SlackBotRedirectURL:           os.Getenv("SLACK_BOT_REDIRECT_URL"),
-		SignupAgreementIDs:            signupAgreementIDs,
-		VaultAddr:                     os.Getenv("VAULT_ADDR"),
-		VaultTransitEnginePath:        os.Getenv("VAULT_TRANSIT_ENGINE_PATH"),
-		VaultToken:                    os.Getenv("VAULT_TOKEN"),
-		RafikiBackendGraphQLURL:       rafikiBackendGraphQLURL,
-		RafikiAuthGraphQLURL:          rafikiAuthGraphQLURL,
-		ChimoneyWebhookSecret:         os.Getenv("CHIMONEY_WEBHOOK_SECRET"),
-		ChimoneyToken:                 os.Getenv("CHIMONEY_TOKEN"),
-		RafikiDBURL:                   os.Getenv("RAFIKI_DB_URL"),
-		RafikiAuthDBURL:               os.Getenv("RAFIKI_AUTH_DB_URL"),
-		TempGatehubAppID:              os.Getenv("TEMP_GATEHUB_APP_ID"),
-		TempGatehubSecret:             os.Getenv("TEMP_GATEHUB_SECRET"),
+		Port:                           port,
+		DbConnectionString:             dbUrl,
+		PacioliDBConString:             pacDB,
+		KratosUrl:                      kratosUrl,
+		KratosAdminUrl:                 kratosAdminUrl,
+		LogLevel:                       logLevel,
+		LogOutputPath:                  logOutputPath,
+		TemporalUrl:                    temporalUrl,
+		TwilioSid:                      TwilioSid,
+		TwilioSecret:                   TwilioSecret,
+		TwilioServiceSid:               twilioServiceSid,
+		TwilioEnabled:                  twiloEnabled,
+		TwitterClientID:                twitterClientID,
+		TwitterClientSecret:            twitterClientSecret,
+		TwitterRedirectURL:             twitterRedirectURL,
+		TwitterBearerToken:             twitterBearerToken,
+		AdminPolicyAud:                 adminPolicyAud,
+		AdminTeamDomain:                adminTeamDomain,
+		EmailEnabled:                   emailEnabled,
+		SendgridAPIKey:                 sendgridAPIKey,
+		SendgridFromName:               sendgridFromName,
+		SendgridFromEmail:              sendgridFromEmail,
+		SendgridOneTemplateID:          sendgridOneTemplateID,
+		SupportEmail:                   supportEmail,
+		SmartyAuthID:                   smartyAuthID,
+		SmartyAuthToken:                smartyAuthToken,
+		PusherAddr:                     pusherAddr,
+		SegmentKey:                     segmentKey,
+		GatehubAppID:                   gatehubAppID,
+		GatehubSecret:                  gatehubSecret,
+		GatehubCardAppID:               gatehubCardAppID,
+		GatehubGatewayID:               gatehubGatewayID,
+		GatehubCardAccountProductCode:  gatehubCardAccountProductCode,
+		GatehubPaywiserEuroVaultID:     gatehubPaywiserEuroVaultID,
+		GatehubSendingUserID:           gatehubSendingUserID,
+		GatehubSendingUserAddress:      gatehubSendingUserAddress,
+		GatehubIntermediaryUserID:      gatehubIntermediaryUserID,
+		GatehubIntermediaryUserAddress: gatehubIntermediaryUserAddress,
+		GatehubWebhookSecret:           gatehubWebhookSecret,
+		GatehubFallbackWebhookURL:      gatehubFallbackWebhookURL,
+		GatehubOnOffRampClientID:       gatehubOnOffRampClientID,
+		GatehubOnboardingClientID:      gatehubOnboardingClientID,
+		GatehubExchangeClientID:        gatehubExchangeClientID,
+		GatehubAPIBaseURL:              gatehubAPIBaseURL,
+		GatehubOnboardingBaseURL:       gatehubOnboardingBaseURL,
+		GatehubOnOffRampBaseURL:        gatehubOnOffRampBaseURL,
+		GatehubEUROpsAccount:           gatehubEUROpsAccount,
+		GatehubEUROpsLedgerID:          gatehubEUROpsLedgerID,
+		GatehubOrganizationID:          gatehubOrganizationID,
+		RafikiNodeEnabled:              rafikiNodeEnabled,
+		XagoAPIBaseURL:                 xagoAPIBaseURL,
+		XagoIdentityBaseURL:            xagoIdentityBaseURL,
+		XagoPublicKey:                  xagoPublicKey,
+		XagoSecret:                     xagoSecret,
+		XagoPolicyID:                   xagoPolicyID,
+		PTIEnabled:                     ptiEnabled,
+		PTIBaseURL:                     ptiBaseURL,
+		PTIJWK:                         ptiJWK,
+		PTIClientID:                    ptiClientID,
+		PTISDKURL:                      ptiSDKURL,
+		PTIFormsURL:                    ptiFormsURL,
+		PTIPublicKeyJWK:                ptiPublicKeyJWK,
+		PersonaBaseURL:                 personaBaseURL,
+		PersonaToken:                   personaToken,
+		PersonaWebhookToken:            personaWebhook,
+		PersonaSandboxFakeZAID:         personaSandboxFakeZAID,
+		AppleAppID:                     appleAppID,
+		AndroidPackageName:             androidPackageName,
+		AndroidSHA256:                  androidSHA256,
+		OperatorTenantID:               operatorTenantID,
+		AdminAPISecret:                 adminAPISecret,
+		SignatureVersion:               signatureVersion,
+		SentryDSN:                      os.Getenv("SENTRY_DSN"),
+		SentryRelease:                  os.Getenv("SENTRY_RELEASE"),
+		SentryEnvironment:              os.Getenv("SENTRY_ENVIRONMENT"),
+		SlackToken:                     os.Getenv("SLACK_TOKEN"),
+		SlackChannelSignupKYC:          os.Getenv("SIGNUP_KYC_SLACK_CHANNEL"),
+		SlackChannelTransaction:        os.Getenv("TRANSACTION_SLACK_CHANNEL"),
+		SlackChannelError:              os.Getenv("ERROR_SLACK_CHANNEL"),
+		SlackClientID:                  os.Getenv("SLACK_CLIENT_ID"),
+		SlackClientSecret:              os.Getenv("SLACK_CLIENT_SECRET"),
+		SlackRedirectURL:               os.Getenv("SLACK_REDIRECT_URL"),
+		SlackBotRedirectURL:            os.Getenv("SLACK_BOT_REDIRECT_URL"),
+		SignupAgreementIDs:             signupAgreementIDs,
+		VaultAddr:                      os.Getenv("VAULT_ADDR"),
+		VaultTransitEnginePath:         os.Getenv("VAULT_TRANSIT_ENGINE_PATH"),
+		VaultToken:                     os.Getenv("VAULT_TOKEN"),
+		RafikiBackendGraphQLURL:        rafikiBackendGraphQLURL,
+		RafikiAuthGraphQLURL:           rafikiAuthGraphQLURL,
+		ChimoneyWebhookSecret:          os.Getenv("CHIMONEY_WEBHOOK_SECRET"),
+		ChimoneyToken:                  os.Getenv("CHIMONEY_TOKEN"),
+		RafikiDBURL:                    os.Getenv("RAFIKI_DB_URL"),
+		RafikiAuthDBURL:                os.Getenv("RAFIKI_AUTH_DB_URL"),
+		TempGatehubAppID:               os.Getenv("TEMP_GATEHUB_APP_ID"),
+		TempGatehubSecret:              os.Getenv("TEMP_GATEHUB_SECRET"),
 	}, nil
 }
 

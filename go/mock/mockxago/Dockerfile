@@ -9,7 +9,8 @@ COPY go/go.mod go/go.sum ./go/
 # Download dependencies
 RUN cd go && go mod download
 
-# Now copy the rest of the source code
+# Copy configa (shared library) and mockxago source
+COPY go/configa ./go/configa/
 COPY go/mock/mockxago ./go/mock/mockxago/
 
 # Build

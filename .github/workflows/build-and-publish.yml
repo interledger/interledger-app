@@ -95,6 +95,7 @@ jobs:
             GOLANG_VERSION=1.25.1
             BUILDARCH=${{ matrix.platform.arch }}
             BUILDOS=${{ matrix.platform.os }}
+            SENTRY_RELEASE=${{ needs.determine_version.outputs.version }}
           outputs: type=docker,dest=/tmp/${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}.tar
       - name: store-cdn-key
         if: matrix.package.type == 'ts' && needs.determine_version.outputs.dockerPush == 'true'
