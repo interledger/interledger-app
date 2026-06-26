@@ -1,6 +1,7 @@
 package grpc
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"testing"
@@ -137,6 +138,10 @@ func (t TestContainer) KYC() kyc.Client {
 }
 
 func (t TestContainer) DB() *sqlx.DB {
+	return nil
+}
+
+func (t TestContainer) WithTx(ctx context.Context, fn func(*sqlx.Tx) error) error {
 	return nil
 }
 

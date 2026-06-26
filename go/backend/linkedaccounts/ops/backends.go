@@ -1,6 +1,8 @@
 package ops
 
 import (
+	"context"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/email"
@@ -13,6 +15,7 @@ import (
 type Backends interface {
 	Validator() *validator.Validate
 	DB() *sqlx.DB
+	WithTx(ctx context.Context, fn func(*sqlx.Tx) error) error
 	Wallets() wallets.Client
 	Notify() notify.Client
 	Email() email.Client

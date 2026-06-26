@@ -43,13 +43,16 @@ var (
 type LinkBackends interface {
 	Validator() *validator.Validate
 	DB() *sqlx.DB
+	WithTx(ctx context.Context, fn func(*sqlx.Tx) error) error
 }
 
 const linkFields = "id, linked_account_id, wallet_id, plaid_account_id, created_at, updated_at, deleted_at"
 
-// CreateLink inserts a plaid_links row for an already-created linked account.
-func CreateLink(ctx context.Context, b LinkBackends, args *CreateLinkArgs) (*PlaidLink, error) {
-	if err := b.Validator().Struct(args); err != nil {
+// CreateLinkTx inserts a plaid_links row inside the given transaction, with no
+// side effects. Use it to create the link atomically with the linked_accounts row
+// it points at, sharing the caller's *sqlx.Tx.
+func CreateLinkTx(ctx context.Context, tx *sqlx.Tx, v *validator.Validate, args *CreateLinkArgs) (*PlaidLink, error) {
+	if err := v.Struct(args); err != nil {
 		return nil, fmt.Errorf("%w %s", ErrLinkInvalid, err.Error())
 	}
 
@@ -59,7 +62,7 @@ func CreateLink(ctx context.Context, b LinkBackends, args *CreateLinkArgs) (*Pla
 	}
 
 	var link PlaidLink
-	err := b.DB().GetContext(
+	err := tx.GetContext(
 		ctx,
 		&link,
 		fmt.Sprintf("INSERT INTO plaid_links (id, linked_account_id, wallet_id, plaid_account_id) VALUES ($1, $2, $3, $4) RETURNING %s;", linkFields),

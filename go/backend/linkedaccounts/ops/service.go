@@ -28,7 +28,7 @@ import (
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
 
-	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
+	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 )
@@ -47,9 +47,12 @@ const (
 	reviewInsertFields   = "linked_account_id, state"
 )
 
-func Create(ctx context.Context, b Backends, args *linkedaccounts.CreateArgs) (*linkedaccounts.LinkedAccount, error) {
-	err := b.Validator().Struct(args)
-	if err != nil {
+// CreateTx inserts a linked_accounts row inside the given transaction and performs
+// NO side effects (no notify/email/Slack). Use it to create the account atomically
+// alongside other writes in a shared *sqlx.Tx; callers are responsible for any
+// notifications. The package-level Create wraps this and fires the side effects.
+func CreateTx(ctx context.Context, tx *sqlx.Tx, v *validator.Validate, args *linkedaccounts.CreateArgs) (*linkedaccounts.LinkedAccount, error) {
+	if err := v.Struct(args); err != nil {
 		return nil, fmt.Errorf("%w %s", linkedaccounts.ErrInvalidArgument, err.Error())
 	}
 
@@ -64,7 +67,7 @@ func Create(ctx context.Context, b Backends, args *linkedaccounts.CreateArgs) (*
 	}
 
 	var linkedAccount linkedaccounts.LinkedAccount
-	err = b.DB().GetContext(
+	err := tx.GetContext(
 		ctx,
 		&linkedAccount,
 		fmt.Sprintf("INSERT INTO linked_accounts (%s) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19) RETURNING %s;", insertFields, allFields),
@@ -92,26 +95,51 @@ func Create(ctx context.Context, b Backends, args *linkedaccounts.CreateArgs) (*
 		return nil, fmt.Errorf("%w %s", linkedaccounts.ErrInternal, err.Error())
 	}
 
-	err = b.Notify().NotifyWallet(ctx, args.WalletID, notify.NotificationTypeLinkedAccount)
+	return &linkedAccount, nil
+}
+
+func Create(ctx context.Context, b Backends, args *linkedaccounts.CreateArgs) (*linkedaccounts.LinkedAccount, error) {
+	var linkedAccount *linkedaccounts.LinkedAccount
+	err := b.WithTx(ctx, func(tx *sqlx.Tx) error {
+		la, e := CreateTx(ctx, tx, b.Validator(), args)
+		if e != nil {
+			return e
+		}
+		linkedAccount = la
+		return nil
+	})
 	if err != nil {
-		log.Error("notify failed for linked account", zap.String("walletId", args.WalletID), zap.Error(err))
+		return nil, err
 	}
 
-	err = b.Payments().SignalAccountLinked(ctx, args.WalletID)
-	if err != nil {
-		log.Error("pending payment notification failed for linked account", zap.String("walletId", args.WalletID), zap.Error(err))
+	EmitCreated(ctx, b, linkedAccount)
+
+	return linkedAccount, nil
+}
+
+// EmitCreated fires the post-create side effects (wallet notification, pending
+// payment signal, Slack, and the connected-account email). Best-effort: failures
+// are logged, not returned. Call it only after the linked_account row is durably
+// committed. Both Create (pool path) and callers that create the account inside
+// their own transaction (e.g. the Plaid linker) use this, so the notification
+// behaviour is identical across every create path.
+func EmitCreated(ctx context.Context, b Backends, linkedAccount *linkedaccounts.LinkedAccount) {
+	if err := b.Notify().NotifyWallet(ctx, linkedAccount.WalletID, notify.NotificationTypeLinkedAccount); err != nil {
+		log.Error("notify failed for linked account", zap.String("walletId", linkedAccount.WalletID), zap.Error(err))
 	}
 
-	slack.SendToChannel(ctx, slack.ChannelSignupKYC, "wallet-info-bot", fmt.Sprintf(":credit_card: Linked Account Created\nName: %s\nProvider: %s\nLink: %s", args.Name, args.Provider, env.AdminURL()+"/wallet/"+args.WalletID+"/linked-accounts"))
+	if err := b.Payments().SignalAccountLinked(ctx, linkedAccount.WalletID); err != nil {
+		log.Error("pending payment notification failed for linked account", zap.String("walletId", linkedAccount.WalletID), zap.Error(err))
+	}
+
+	slack.SendToChannel(ctx, slack.ChannelSignupKYC, "wallet-info-bot", fmt.Sprintf(":credit_card: Linked Account Created\nName: %s\nProvider: %s\nLink: %s", linkedAccount.Name, linkedAccount.Provider, env.AdminURL()+"/wallet/"+linkedAccount.WalletID+"/linked-accounts"))
 
 	isBalanceAccount := (linkedAccount.Provider == xago.ProviderName && linkedAccount.Type == xago.AccTypeBalance) || (linkedAccount.Provider == pti.ProviderName && linkedAccount.Type == pti.AccTypeBalance)
 	if linkedAccount.State == linkedaccounts.OwnershipReviewRequired && !isBalanceAccount {
-		b.Email().SendConnectedAccountDocumentsNeededEmail(ctx, args.WalletID)
+		b.Email().SendConnectedAccountDocumentsNeededEmail(ctx, linkedAccount.WalletID)
 	} else if linkedAccount.State == linkedaccounts.Verified && !isBalanceAccount {
-		b.Email().SendConnectedAccountEmail(ctx, linkedAccount)
+		b.Email().SendConnectedAccountEmail(ctx, *linkedAccount)
 	}
-
-	return &linkedAccount, nil
 }
 
 func CreateBatch(ctx context.Context, b Backends, args []linkedaccounts.CreateArgs) ([]linkedaccounts.LinkedAccount, error) {
@@ -628,7 +656,7 @@ func SetDefaultReceive(ctx context.Context, b Backends, id string) (*linkedaccou
 		return nil, fmt.Errorf("%w Linked account not eligible to be set as default receive account.", linkedaccounts.ErrInternal)
 	}
 
-	err = crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
+	err = b.WithTx(ctx, func(tx *sqlx.Tx) error {
 		_, err := tx.ExecContext(ctx, "UPDATE linked_accounts set default_receive=false WHERE wallet_id=$1;", la.WalletID)
 		if err != nil {
 			return err
@@ -656,7 +684,7 @@ func SetDefaultSend(ctx context.Context, b Backends, id string) (*linkedaccounts
 		return nil, fmt.Errorf("%w Linked account not eligible to be set as default send account.", linkedaccounts.ErrInternal)
 	}
 
-	err = crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
+	err = b.WithTx(ctx, func(tx *sqlx.Tx) error {
 		_, err := tx.ExecContext(ctx, "UPDATE linked_accounts set default_send=false WHERE wallet_id=$1;", la.WalletID)
 		if err != nil {
 			return err

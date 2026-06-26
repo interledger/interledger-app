@@ -12,6 +12,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/getsentry/sentry-go"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
@@ -642,6 +643,10 @@ func (b backends) Temporal() client.Client {
 
 func (b backends) DB() *sqlx.DB {
 	return b.db
+}
+
+func (b backends) WithTx(ctx context.Context, fn func(*sqlx.Tx) error) error {
+	return crdbsqlx.ExecuteTx(ctx, b.db, nil, fn)
 }
 
 func (b backends) Validator() *validator.Validate {

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/lestrrat-go/jwx/v3/jwk"
 
 	"gitlab.com/fynbos/backend/country"
@@ -133,41 +134,56 @@ func (l *plaidFiantLinker) Register(ctx context.Context, args plaid_ops.LinkPlai
 		name = "Plaid bank"
 	}
 	mask := args.AccountMask
-	la, err := linkedaccounts_ops.Create(ctx, l.b, &linkedaccounts.CreateArgs{
-		WalletID:            walletID,
-		Name:                name,
-		Nickname:            name,
-		Mask:                mask,
-		Provider:            pti.ProviderName,
-		ProviderID:          bank.ID,
-		Type:                pti.TypeBank,
-		State:               linkedaccounts.Verified,
-		CanSend:             true,
-		CanReceive:          true,
-		SendCountry:         country.US,
-		SendCurrency:        currency.USD,
-		SendNetwork:         "ACH",
-		SendAvailability:    linkedaccounts.Few,
-		ReceiveCountry:      country.US,
-		ReceiveCurrency:     currency.USD,
-		ReceiveNetwork:      "ACH",
-		ReceiveAvailability: linkedaccounts.Few,
+
+	// Persist the linked_account and its plaid_link atomically: a partial failure
+	// would otherwise leave a linked account with no plaid_link, and because dedupe
+	// reads plaid_links, a retry would mint a second Fiant payment-information.
+	var la *linkedaccounts.LinkedAccount
+	err = l.b.WithTx(ctx, func(tx *sqlx.Tx) error {
+		created, e := linkedaccounts_ops.CreateTx(ctx, tx, l.b.Validator(), &linkedaccounts.CreateArgs{
+			WalletID:            walletID,
+			Name:                name,
+			Nickname:            name,
+			Mask:                mask,
+			Provider:            pti.ProviderName,
+			ProviderID:          bank.ID,
+			Type:                pti.TypeBank,
+			State:               linkedaccounts.Verified,
+			CanSend:             true,
+			CanReceive:          true,
+			SendCountry:         country.US,
+			SendCurrency:        currency.USD,
+			SendNetwork:         "ACH",
+			SendAvailability:    linkedaccounts.Few,
+			ReceiveCountry:      country.US,
+			ReceiveCurrency:     currency.USD,
+			ReceiveNetwork:      "ACH",
+			ReceiveAvailability: linkedaccounts.Few,
+		})
+		if e != nil {
+			return fmt.Errorf("persist linked_account: %w", e)
+		}
+
+		if _, e = plaid_ops.CreateLinkTx(ctx, tx, l.b.Validator(), &plaid_ops.CreateLinkArgs{
+			LinkedAccountID: created.ID,
+			WalletID:        walletID,
+			PlaidAccountID:  args.PlaidAccountID,
+		}); e != nil {
+			return fmt.Errorf("persist plaid_link: %w", e)
+		}
+
+		la = created
+		return nil
 	})
 	if err != nil {
-		return nil, fmt.Errorf("plaid/fiant linker: persist linked_account: %w", err)
+		return nil, fmt.Errorf("plaid/fiant linker: %w", err)
 	}
 
-	// Persist the Plaid-specific link separately. Non-atomic across the two
-	// tables: if this insert fails the linked account already exists, but the
-	// partial unique index + dedupe-on-retry (ExistingLink) are the backstop.
-	_, err = plaid_ops.CreateLink(ctx, l.b, &plaid_ops.CreateLinkArgs{
-		LinkedAccountID: la.ID,
-		WalletID:        walletID,
-		PlaidAccountID:  args.PlaidAccountID,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("plaid/fiant linker: persist plaid_link: %w", err)
-	}
+	// Fire the same linked-account side effects (wallet notify, pending-payment
+	// signal, Slack, connected-account email) Create would. Done after the tx
+	// commits so a rolled-back link never notifies; conversely we prefer to notify
+	// even if a downstream step later fails (better falsely notified than silent).
+	linkedaccounts_ops.EmitCreated(ctx, l.b, la)
 
 	return &plaid_ops.LinkedIDs{
 		LinkedAccountID:      la.ID,
