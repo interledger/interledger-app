@@ -263,22 +263,22 @@ For deployed environments the `PTI_JWK`, `PTI_PUBLIC_KEY_JWK`, and `PTI_BASE_URL
 | `PTI_PUBLIC_KEY_JWK` | PTI public RSA JWK used for webhook signature verification | Yes | Prod/Sandbox: secret (1Password); Local default: test RSA public key (see local compose) |
 | `FYNBOS_BACKEND_HOST` | Host used by the PTI mock webhook proxy (`/webhooks/pti`) when forwarding requests to the wallet backend | No | Not set in any environment |
 
-### Plaid (POC)
+### Plaid
 
-Plaid integration is a proof-of-concept (see `documentation/poc/plaid/`). The feature is gated behind `PLAID_ENABLED`. When disabled (the default), no runtime validation is performed and the `/plaid/*` HTTP routes are not registered. The current POC only targets Plaid Sandbox.
+Plaid integration for US bank account linking. The feature is gated behind `PLAID_ENABLED`. When disabled (the default), no runtime validation is performed and the `/plaid/*` HTTP routes are not registered.
 
 `PLAID_ENABLED` is read by **two** services and they MUST agree per environment: the **backend** uses it to wire the Plaid provider/routes, and **Protea** reads its own `PLAID_ENABLED` (server-side) to pick the US bank-link flow in the UI — `true` = Plaid (`/connect/bank`), `false` = manual bank-details form (`/connect/bank/us`). If they disagree the UI and backend mismatch. In local both default off the same `BACKEND_PLAID_ENABLED` root var (`local/wallet.yaml`, `local/protea.yaml`); in deploy configs set the var on both workloads.
 
 | Variable | Description | Secret | Notes |
 |---|---|---|---|
-| `PLAID_ENABLED` | Backend: enables Plaid POC integration, runtime config validation, and `/plaid/*` HTTP routes. Protea: selects the US bank-link flow (Plaid vs manual). Must match across both services. | No | Default: `false`. Local POC: `true`; all deployed environments: `false` until POC promoted |
-| `PLAID_CLIENT_ID` | Plaid API client ID from the Plaid dashboard | Yes | Local POC: developer's sandbox client ID (1Password / personal); not set in deployed environments |
-| `PLAID_SECRET` | Plaid API secret matching the chosen `PLAID_ENV` | Yes | Local POC: developer's sandbox secret; not set in deployed environments |
-| `PLAID_ENV` | Plaid environment selector (`sandbox` or `production`) | No | Local POC: `sandbox`; deployed: unset |
-| `PLAID_PRODUCTS` | Comma-separated list of Plaid products requested at Link creation | No | POC: `auth,transactions,balance,identity` |
-| `PLAID_COUNTRY_CODES` | Comma-separated ISO-3166-1 alpha-2 country codes for Link institution filtering | No | POC: `US` (sandbox only supports US institutions out of the box) |
+| `PLAID_ENABLED` | Backend: enables Plaid integration, runtime config validation, and `/plaid/*` HTTP routes. Protea: selects the US bank-link flow (Plaid vs manual). Must match across both services. | No | Default: `false`. Local: `true`; deployed: set per environment |
+| `PLAID_CLIENT_ID` | Plaid API client ID from the Plaid dashboard | Yes | Local: developer's sandbox client ID (1Password / personal); set in deployed environments |
+| `PLAID_SECRET` | Plaid API secret matching the chosen `PLAID_ENV` | Yes | Local: developer's sandbox secret; set in deployed environments |
+| `PLAID_ENV` | Plaid environment selector (`sandbox` or `production`) | No | Local: `sandbox`; deployed: `production` |
+| `PLAID_PRODUCTS` | Comma-separated list of Plaid products requested at Link creation | No | `auth,transactions,balance,identity` |
+| `PLAID_COUNTRY_CODES` | Comma-separated ISO-3166-1 alpha-2 country codes for Link institution filtering | No | `US` |
 | `PLAID_PROCESSOR` | Plaid processor partner used when minting a processor token via `processor/token/create` (`fiant` or `zero_hash`). Phase 2 only. | No | Default: `fiant`. Use `zero_hash` to validate plumbing if `fiant` is not enabled in your Plaid team. |
-| `PLAID_API_URL` | Overrides the Plaid SDK base URL. When set, all Plaid REST calls target this host instead of the real `sandbox.plaid.com`/`production.plaid.com`. Used to point the backend at the local **mockplaid** service. | No | Local POC: `http://mockplaid:8080` (mock). Blank/unset for real Plaid. Deployed: unset. See `documentation/poc/mockplaid/`. |
+| `PLAID_API_URL` | Overrides the Plaid SDK base URL. When set, all Plaid REST calls target this host instead of the real `sandbox.plaid.com`/`production.plaid.com`. Used to point the backend at the local **mockplaid** service. | No | Local: `http://mockplaid:8080` (mock). Blank/unset for real Plaid. Deployed: unset. |
 
 #### MockPlaid service (local only)
 
@@ -290,7 +290,7 @@ The `mockplaid` mock service (`go/mock/mockplaid/`, started by `local/docker-com
 | `MOCKPLAID_REDIS_URL` | Redis connection URL | No | Set → Redis store; empty → in-memory. Local: `redis://redis:6379` |
 | `MOCKPLAID_REDIS_DB` | Redis DB index | No | Default `6` |
 
-> `cdn.plaid.com` is **not** an env var — it's an `/etc/hosts` redirect to mockplaid (added by `make hosts`), so the browser loads the mock Plaid Link SDK. Toggle with `make plaid-mock` / `make plaid-real`. See `documentation/poc/plaid/mockplaid.md`.
+> `cdn.plaid.com` is **not** an env var — it's an `/etc/hosts` redirect to mockplaid (added by `make hosts`), so the browser loads the mock Plaid Link SDK. Toggle with `make plaid-mock` / `make plaid-real`.
 
 ### Legacy Variables
 
