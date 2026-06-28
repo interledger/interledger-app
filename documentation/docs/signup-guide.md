@@ -73,6 +73,7 @@ sequenceDiagram
     K-->>FE: Registration complete
     FE->>BE: CompleteSignup gRPC
     BE->>DB: UPDATE signups SET user_id
+    BE->>DB: INSERT wallets + user_wallets (default wallet)
     BE->>DB: INSERT agreement_signatures (when SIGNUP_AGREEMENT_IDS set)
     BE-->>FE: success
     end
@@ -564,35 +565,42 @@ func (g *rpcService) CreateWalletAddress(ctx context.Context, req *pb.CreateWall
 
 ## 7) Wallet Initialization
 
-After signup completes, a default wallet is created for the user.
+Every user has exactly **one** wallet, created as part of signup completion.
 
 ### When is the Wallet Created?
 
-**Timing:** During Kratos registration flow, after password creation.
+**Timing:** Inside `CompleteSignup`, immediately after the Kratos identity is linked to the signup record — the single, deterministic point where the wallet is created. The middleware no longer creates wallets.
 
-**Trigger:** Frontend calls `CreateUserDefaultWallet` gRPC immediately after Kratos registration succeeds.
+**Trigger:** The `CompleteSignup` gRPC the frontend already calls after Kratos registration.
 
 ### Backend Processing
 
-**gRPC:** `CreateUserDefaultWallet`  
-**Handler:** `grpc/user.go`  
+**gRPC:** `CompleteSignup`  
+**Handler:** `grpc/signup.go`  
 **Operation:** `wallets/ops/ops.go::Create`
 
 ```go
-func (s *rpcService) CreateUserDefaultWallet(ctx context.Context, req *pb.CreateUserDefaultWalletRequest) (*pb.Empty, error) {
-    _, err := s.b.Wallets().Create(ctx, wallets.CreateArgs{
-        UserID: req.UserID,
-    })
-    return &pb.Empty{}, toGRPCError(err)
+// inside CompleteSignup, after Signup().Complete(...)
+su, err := s.b.Signup().Get(ctx, req.Id)
+if err != nil {
+    return nil, toGRPCError(err)
+}
+_, err = s.b.Wallets().Create(ctx, wallets.CreateArgs{
+    UserID:  req.UserId,
+    Country: country.ParseCountry(su.CountryCode),
+})
+// a user who already has a wallet is success, not an error
+if err != nil && !errors.Is(err, wallets.ErrDuplicateWallet) {
+    return nil, toGRPCError(err)
 }
 ```
 
 **Wallet creation:**
-- Determines user's country from Kratos identity traits
-- Creates wallet record in `wallets` table
-- Associates wallet with user's Kratos identity
+- Takes the user's country from the signup record (`country_code`)
+- Inserts the `wallets` row (named `default`) and links it to the user in `user_wallets`
+- Idempotent: one wallet per user is enforced by a `UNIQUE(user_id)` constraint plus an `ON CONFLICT (user_id)` insert, so retries of `CompleteSignup` are safe
 
-**Note:** At this stage, the wallet has no linked accounts yet. Provider account linking happens during KYC activation.
+**Note:** At this stage the wallet is named `default` and has no linked accounts or address yet. It is renamed when the user picks a name at the wallet-address step (Section 6), and provider account linking happens during KYC activation. The `CreateUserDefaultWallet` gRPC still exists as an idempotent fallback for ensuring a user has a wallet.
 
 ---
 

@@ -117,54 +117,6 @@ func TestListWalletsSingle(t *testing.T) {
 	assert.Equal(t, country.US, wallets[0].Country)
 }
 
-func TestCreateDefaultWalletIsIdempotent(t *testing.T) {
-	// Split from TestListWallets to validate default wallet creation is idempotent.
-	ctx := context.Background()
-
-	ensureTestDBURL(t)
-	dbc := db.MigrateTestDB(t, ctx)
-
-	ctrl := gomock.NewController(t)
-	km := keys_mock.NewMockClient(ctrl)
-	km.EXPECT().ProvisionPrivateKey(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
-	b := ops.NewTestBackends(t, dbc, km, users_mock.NewMock())
-
-	userID := "9fb3f58b-b0d6-4c5d-81b4-620c0d45f6b4"
-
-	usWallet, err := ops.Create(ctx, b, wallets.CreateArgs{
-		UserID: userID,
-		Name:   "test1",
-	})
-	require.NoError(t, err)
-
-	defaultWallet, err := ops.Create(ctx, b, wallets.CreateArgs{
-		UserID:  userID,
-		Name:    "",
-		Country: country.US,
-	})
-	require.NoError(t, err)
-	assert.Equal(t, usWallet.ID, defaultWallet.ID)
-	assert.Equal(t, usWallet.Name, defaultWallet.Name)
-	assert.Equal(t, usWallet.Country, defaultWallet.Country)
-
-	_, err = ops.Create(ctx, b, wallets.CreateArgs{
-		UserID:  userID,
-		Name:    "",
-		Country: country.ZA,
-	})
-	require.ErrorIs(t, err, wallets.ErrWalletConflict)
-
-	wa, err := wallets.ParseAddress("https://ilp.link/ladidaplah")
-	require.NoError(t, err)
-	_, err = ops.Create(ctx, b, wallets.CreateArgs{
-		UserID:    userID,
-		Name:      "",
-		Country:   country.US,
-		Addresses: []wallets.Address{wa},
-	})
-	require.ErrorIs(t, err, wallets.ErrWalletConflict)
-}
-
 func TestCreateDefaultWalletConcurrent(t *testing.T) {
 	ctx := context.Background()
 
@@ -180,7 +132,6 @@ func TestCreateDefaultWalletConcurrent(t *testing.T) {
 
 	const workers = 10
 	start := make(chan struct{})
-	ids := make([]string, workers)
 	errs := make([]error, workers)
 	var wg sync.WaitGroup
 	for i := 0; i < workers; i++ {
@@ -188,38 +139,33 @@ func TestCreateDefaultWalletConcurrent(t *testing.T) {
 		go func(idx int) {
 			defer wg.Done()
 			<-start
-			wallet, err := ops.Create(ctx, b, wallets.CreateArgs{
-				UserID: userID,
-				Name:   "",
-			})
-			errs[idx] = err
-			if wallet != nil {
-				ids[idx] = wallet.ID
-			}
+			_, errs[idx] = ops.Create(ctx, b, wallets.CreateArgs{UserID: userID})
 		}(i)
 	}
 
 	close(start)
 	wg.Wait()
 
+	// Exactly one create wins; the rest are rejected as duplicates,
+	// and the user is left with a single wallet.
+	created := 0
 	for _, err := range errs {
-		require.NoError(t, err)
+		if err == nil {
+			created++
+		} else {
+			require.ErrorIs(t, err, wallets.ErrDuplicateWallet)
+		}
 	}
-
-	firstID := ids[0]
-	require.NotEmpty(t, firstID)
-	for _, id := range ids {
-		assert.Equal(t, firstID, id)
-	}
+	require.Equal(t, 1, created)
 
 	createdWallets, err := ops.List(ctx, b, userID)
 	require.NoError(t, err)
 	require.Len(t, createdWallets, 1)
-	assert.Equal(t, firstID, createdWallets[0].ID)
 }
 
-func TestListWalletsMultiple(t *testing.T) {
-	// Split from TestListWallets to validate listing when multiple wallets exist.
+// A user may only ever have a single wallet (enforced by UNIQUE(user_id) on user_wallets).
+// A second, named create is rejected and the user keeps their original wallet
+func TestOneWalletPerUser(t *testing.T) {
 	ctx := context.Background()
 
 	ensureTestDBURL(t)
@@ -240,25 +186,19 @@ func TestListWalletsMultiple(t *testing.T) {
 	assert.Equal(t, "test1", usWallet.Name)
 	assert.Equal(t, country.US, usWallet.Country)
 
-	zaWallet, err := ops.Create(ctx, b, wallets.CreateArgs{
+	// A second wallet for the same user is rejected.
+	_, err = ops.Create(ctx, b, wallets.CreateArgs{
 		UserID:  userID,
 		Name:    "za-wallet",
 		Country: country.ZA,
 	})
-	require.NoError(t, err)
-	assert.Equal(t, "za-wallet", zaWallet.Name)
-	assert.Equal(t, country.ZA, zaWallet.Country)
+	require.ErrorIs(t, err, wallets.ErrDuplicateWallet)
 
-	wallets, err := ops.List(ctx, b, userID)
+	// The user still has exactly their original wallet.
+	list, err := ops.List(ctx, b, userID)
 	require.NoError(t, err)
-	require.Len(t, wallets, 2)
-	for _, w := range wallets {
-		if w.ID == usWallet.ID {
-			assert.Equal(t, country.US, w.Country)
-		} else {
-			assert.Equal(t, country.ZA, w.Country)
-		}
-	}
+	require.Len(t, list, 1)
+	assert.Equal(t, usWallet.ID, list[0].ID)
 }
 
 func TestGetWallet(t *testing.T) {
@@ -422,15 +362,14 @@ func TestListAllSearch(t *testing.T) {
 	km.EXPECT().ProvisionPrivateKey(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 	b := ops.NewTestBackends(t, dbc, km, users_mock.NewMock())
 
-	userID := uuid.NewString()
-
-	alpha, err := ops.Create(ctx, b, wallets.CreateArgs{UserID: userID, Name: "alpha"})
+	// ListAll is a global admin search; one wallet per user, so use distinct users.
+	alpha, err := ops.Create(ctx, b, wallets.CreateArgs{UserID: uuid.NewString(), Name: "alpha"})
 	require.NoError(t, err)
 
-	_, err = ops.Create(ctx, b, wallets.CreateArgs{UserID: userID, Name: "beta", Country: country.ZA})
+	_, err = ops.Create(ctx, b, wallets.CreateArgs{UserID: uuid.NewString(), Name: "beta", Country: country.ZA})
 	require.NoError(t, err)
 
-	_, err = ops.Create(ctx, b, wallets.CreateArgs{UserID: userID, Name: "gamma", Country: country.GB})
+	_, err = ops.Create(ctx, b, wallets.CreateArgs{UserID: uuid.NewString(), Name: "gamma", Country: country.GB})
 	require.NoError(t, err)
 
 	t.Run("no search returns all wallets", func(t *testing.T) {

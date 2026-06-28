@@ -720,6 +720,10 @@ table "user_wallets" {
     unique  = true
     columns = [column.wallet_id]
   }
+  index "user_wallets_user_id_uniq" {
+    unique  = true
+    columns = [column.user_id]
+  }
 }
 table "waitlist_signups" {
   schema = schema.public
