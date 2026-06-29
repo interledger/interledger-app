@@ -1,6 +1,7 @@
 package jobs
 
 import (
+	"github.com/interledger/interledger-app/go/backend/agreements"
 	"github.com/interledger/interledger-app/go/backend/email"
 	"github.com/interledger/interledger-app/go/backend/keys"
 	"github.com/interledger/interledger-app/go/backend/kyc"
@@ -30,6 +31,7 @@ type Backends interface {
 	LinkedAccounts() linkedaccounts.Client
 	Pacioli() pacioli.Client
 	PTI() pti.Client
+	Agreements() agreements.Client
 }
 
 type Config struct {

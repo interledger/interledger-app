@@ -47,31 +47,44 @@ tests:
           path: metadata.name
           value: wallet-mockpti-config
 
-  - it: 'Should set LOG_LEVEL from config'
+  - it: 'Should store config as a single config.yaml file entry'
+    asserts:
+      - exists:
+          path: data["config.yaml"]
+
+  - it: 'Should include log_level in config.yaml'
     set:
       mockpti:
         config:
           log_level: "info"
           webhook_url: "http://wallet-backend-service-http:8080/webhooks/pti"
     asserts:
-      - equal:
-          path: data.LOG_LEVEL
-          value: "info"
+      - matchRegex:
+          path: data["config.yaml"]
+          pattern: "log_level: info"
 
-  - it: 'Should set MOCKPTI_WEBHOOK_URL from config'
+  - it: 'Should include webhook_url in config.yaml'
     asserts:
-      - equal:
-          path: data.MOCKPTI_WEBHOOK_URL
-          value: "http://wallet-backend-service-http:8080/webhooks/pti"
+      - matchRegex:
+          path: data["config.yaml"]
+          pattern: "webhook_url: http://wallet-backend-service-http:8080/webhooks/pti"
 
-  - it: 'Should set MOCKPTI_REDIS_DB from config'
+  - it: 'Should include redis_db in config.yaml'
     asserts:
-      - equal:
-          path: data.MOCKPTI_REDIS_DB
-          value: "5"
+      - matchRegex:
+          path: data["config.yaml"]
+          pattern: 'redis_db: "5"'
 
-  - it: 'Should set WEBHOOK_MIN_DELAY_SEC from config'
+  - it: 'Should preserve configa secret reference syntax verbatim — Helm must not interpret it'
+    # Operators can use {{ secret "k8s-secret-name" "key" }} inside config values to
+    # trigger configa's runtime k8s secret resolution.  The Helm engine must never execute
+    # that syntax; it must appear literally in config.yaml so configa can act on it later.
+    set:
+      mockpti:
+        config:
+          webhook_url: "http://wallet-backend-service-http:8080/webhooks/pti"
+          webhook_signing_key: '{{ secret "wallet-mockpti" "signingKey" }}'
     asserts:
-      - equal:
-          path: data.WEBHOOK_MIN_DELAY_SEC
-          value: "0.2"
+      - matchRegex:
+          path: data["config.yaml"]
+          pattern: 'webhook_signing_key:.*secret.*wallet-mockpti.*signingKey'

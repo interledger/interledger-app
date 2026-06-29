@@ -507,7 +507,10 @@ func (c *client) CreateTransaction(ctx context.Context, args CreateTransactionRe
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 	req.Header.Add("Content-Type", "application/json")
-	req.Header.Set(managedUserHeader, args.SendingUserID)
+	// TODO Temporary
+	if args.SendingUserID != "" {
+		req.Header.Set(managedUserHeader, args.SendingUserID)
+	}
 	err = c.Sign(ctx, req, time.Now(), body, endpoint)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)

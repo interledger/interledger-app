@@ -65,15 +65,14 @@
   --phone-height: min(360px, 80vh);
   --phone-width: calc(var(--phone-height) / 2.08);
   --hero-text-bottom: 340px;
-  --phone-peek: 0px;
 }
 
 @media (min-width: 900px) {
   :root {
     --phone-height: min(563px, 80vh);
     --phone-width: calc(var(--phone-height) / 2.08);
-    --hero-text-bottom: 380px;
-    --phone-peek: 40px;
+    /* Copy bottom (~284px: 1-line h1 + 2-line subhead) plus a clearance buffer. */
+    --hero-text-bottom: 310px;
   }
 }
 
@@ -81,8 +80,9 @@
   :root {
     --phone-height: min(650px, 80vh);
     --phone-width: calc(var(--phone-height) / 2.08);
-    --hero-text-bottom: 440px;
-    --phone-peek: 80px;
+    /* Clears the tallest h1 (100px at ≥1440) plus a buffer, keeping the phone
+       and its CTA on-screen on short desktop heights. */
+    --hero-text-bottom: 372px;
   }
 }
 
@@ -100,25 +100,17 @@
   transition: transform 800ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* Screen 1 (≥900): center the phone in the space below the copy; when the
+   viewport is too short to center it, clamp to the copy bottom and let it peek
+   past the fold. ≤899 uses the same formula with --mobile-text-bottom. */
 .animated-hero[data-screen='1'] .hero-phone-container {
-  --phone-offset: calc(-12vh + var(--phone-height) / 2);
-}
-
-@media (min-width: 1280px) {
-  .animated-hero[data-screen='1'] .hero-phone-container {
-    /* 
-      Robust positioning for desktop only: 
-      Prevents overlap with text on short laptops (like 14-inch) 
-      while anchoring to the bottom on tall monitors.
-    */
-    --phone-offset: calc(
-      max(
-          var(--hero-text-bottom),
-          100vh - var(--phone-height) + var(--phone-peek)
-        ) -
-        50vh + var(--phone-height) / 2
-    );
-  }
+  --phone-offset: calc(
+    max(
+        var(--hero-text-bottom),
+        (var(--hero-text-bottom) + 100dvh - var(--phone-height)) / 2
+      ) -
+      50dvh + var(--phone-height) / 2
+  );
 }
 
 .animated-hero:not([data-screen='1']) .hero-phone-container {
@@ -132,15 +124,24 @@
 }
 
 @media (max-width: 899px) {
-  /* Screen 1: phone is centered in the empty space below the hero text.
-     --mobile-text-bottom is the measured bottom of the headline+subhead block
-     for this breakpoint (h1 = 56px/68px on tablets, 40px/48px on phones ≤ 479).
-     With a 16px buffer above and below, the phone grows up to its 360px cap. */
+  /* Screen 1: the phone keeps full size (viewport-capped) and peeks below the
+     fold on short screens instead of shrinking. --mobile-text-bottom is the copy
+     block's bottom; the phone never rises above it. Tuned per width below. */
+  .animated-hero[data-screen='1'] {
+    --mobile-text-bottom: 328px;
+  }
   .animated-hero[data-screen='1'] .hero-phone-container {
-    --mobile-text-bottom: 356px;
-    --phone-height: min(360px, calc(100dvh - var(--mobile-text-bottom) - 32px));
+    --phone-height: min(360px, 80vh);
     --phone-width: calc(var(--phone-height) / 2.08);
-    --phone-offset: calc(var(--mobile-text-bottom) / 2);
+    /* Center below the copy; when the phone is taller than the gap, clamp to the
+       copy bottom and peek past the fold. */
+    --phone-offset: calc(
+      max(
+          calc(var(--mobile-text-bottom) + 16px),
+          (var(--mobile-text-bottom) + 100dvh - var(--phone-height)) / 2
+        ) -
+        50dvh + var(--phone-height) / 2
+    );
   }
 
   /* Phone tracks the feature-panel's space-evenly layout: its top edge sits
@@ -162,8 +163,16 @@
 }
 
 @media (max-width: 479px) {
-  .animated-hero[data-screen='1'] .hero-phone-container {
-    --mobile-text-bottom: 328px;
+  /* Copy-bottom reserve for the phone layout (h1 40px/48px). */
+  .animated-hero[data-screen='1'] {
+    --mobile-text-bottom: 280px;
+  }
+}
+
+@media (max-width: 359px) {
+  /* A bit more reserve for the narrowest phones, where the copy wraps further. */
+  .animated-hero[data-screen='1'] {
+    --mobile-text-bottom: 304px;
   }
 }
 

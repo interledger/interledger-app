@@ -147,7 +147,7 @@ func (a *Activity) CreateKYCWallets(ctx context.Context, walletID string) error 
 			return err
 		}
 	} else {
-		slack.SendToChannel(ctx, slack.ChannelSignupKYC, "wallet-info-bot", fmt.Sprintf("KYC approved for wallet. %s/wallet/%s/profile. Country=%s. Manual creation of balance account required.", env.AdminURL(), walletID, w.Country))
+		slack.SendToChannel(ctx, slack.ChannelSignupKYC, "wallet-info-bot", fmt.Sprintf(":white_check_mark: *KYC approved*\n*Country:* %s\n*Profile:* %s/wallet/%s/profile\n:warning: Manual creation of balance account required.", w.Country, env.AdminURL(), walletID))
 		return nil
 	}
 

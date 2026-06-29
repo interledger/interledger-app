@@ -39,6 +39,9 @@ ENTRYPOINT ["/build/main"]
 FROM gcr.io/distroless/cc:nonroot
 WORKDIR /dist
 
+ARG SENTRY_RELEASE
+ENV SENTRY_RELEASE=${SENTRY_RELEASE}
+
 COPY --from=builder /bin/grpc_health_probe ./grpc_health_probe
 COPY --from=builder /bin/atlas /bin/atlas
 COPY --from=builder /build/backend/db/schema.hcl /build/backend/db/schema.hcl

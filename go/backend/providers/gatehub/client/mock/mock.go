@@ -478,3 +478,17 @@ func (mr *MockClientMockRecorder) ValidateCardProductCode(ctx, cardProductCode i
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ValidateCardProductCode", reflect.TypeOf((*MockClient)(nil).ValidateCardProductCode), ctx, cardProductCode)
 }
+
+// ExternalClient mocks base method.
+func (m *MockClient) ExternalClient() external.Client {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ExternalClient")
+	ret0, _ := ret[0].(external.Client)
+	return ret0
+}
+
+// ExternalClient indicates an expected call of ExternalClient.
+func (mr *MockClientMockRecorder) ExternalClient() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExternalClient", reflect.TypeOf((*MockClient)(nil).ExternalClient))
+}

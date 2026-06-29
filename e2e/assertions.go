@@ -9,8 +9,11 @@ import (
 	"net/url"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
+
+	"github.com/playwright-community/playwright-go"
 )
 
 var _ = (*E2EContext).getKratosIdentities
@@ -407,4 +410,111 @@ func (sc *E2EContext) getKratosIdentities() ([]kratosIdentity, error) {
 func (sc *E2EContext) rafikiAssetsExist() error {
 	debugPrintln("\n🔍 Checking if Rafiki assets are seeded...")
 	return sc.checkRafikiAssetsSeeded()
+}
+
+// commaFormatAmount inserts comma thousand separators into an integer amount string.
+// "1000" → "1,000", "2500" → "2,500". Returns the original string unchanged if it
+// cannot be parsed as an integer or is less than 1000.
+func commaFormatAmount(amount string) string {
+	n, err := strconv.ParseInt(amount, 10, 64)
+	if err != nil || n < 1000 {
+		return amount
+	}
+	s := strconv.FormatInt(n, 10)
+	var result []byte
+	for i := range s {
+		if i > 0 && (len(s)-i)%3 == 0 {
+			result = append(result, ',')
+		}
+		result = append(result, s[i])
+	}
+	return string(result)
+}
+
+// iShouldSeeMyBalanceUpdatedWithAmount verifies the balance was updated on the dashboard UI.
+// Used by GateHub, PTI, and Xago deposit/withdrawal scenarios.
+func (sc *E2EContext) iShouldSeeMyBalanceUpdatedWithAmount(amount, currency string) error {
+	debugPrintf("\n💰 Verifying balance updated with %s %s...\n", amount, currency)
+
+	_, _ = sc.page.Goto(sc.baseURL, playwright.PageGotoOptions{WaitUntil: playwright.WaitUntilStateNetworkidle})
+
+	amountVariants := []string{amount}
+	if !strings.Contains(amount, ".") {
+		amountVariants = append(amountVariants, amount+".00")
+		// Currency amounts >= 1000 are displayed with comma thousand separators (e.g. "1,000.00").
+		if commaSep := commaFormatAmount(amount); commaSep != amount {
+			amountVariants = append(amountVariants, commaSep, commaSep+".00")
+		}
+	}
+
+	findBalanceMatch := func() bool {
+		balanceContainers := sc.page.Locator("div, li, section, article")
+		count, _ := balanceContainers.Count()
+
+		for i := 0; i < count && i < 100; i++ {
+			el := balanceContainers.Nth(i)
+			text, _ := el.TextContent()
+
+			if strings.Contains(text, currency) && strings.Contains(text, amount) {
+				if strings.Contains(text, "Balance") || strings.Contains(text, "balance") ||
+					strings.Contains(text, "Available") || strings.Contains(text, "available") ||
+					strings.Contains(text, "wallet") {
+					_ = el.ScrollIntoViewIfNeeded()
+					debugPrintf("  Found balance in element containing '%s '\n", strings.TrimSpace(text[:min(len(text), 60)]))
+					return true
+				}
+			}
+		}
+
+		balanceLocator := sc.page.Locator(":has-text('Balance'), :has-text('balance')")
+		count, _ = balanceLocator.Count()
+		if count > 20 {
+			count = 20
+		}
+		for j := 0; j < count; j++ {
+			text, _ := balanceLocator.Nth(j).TextContent()
+			for _, amt := range amountVariants {
+				if strings.Contains(text, currency) && strings.Contains(text, amt) {
+					_ = balanceLocator.Nth(j).ScrollIntoViewIfNeeded()
+					return true
+				}
+			}
+		}
+
+		return false
+	}
+
+	maxAttempts := 30
+	for i := 0; i < maxAttempts; i++ {
+		time.Sleep(2 * time.Second)
+		_, _ = sc.page.Reload()
+
+		if findBalanceMatch() {
+			_, _ = sc.page.Reload()
+			if findBalanceMatch() {
+				debugPrintf("✓ Balance appears updated on UI (attempt %d/%d)\n", i+1, maxAttempts)
+				_ = sc.iTakeAScreenshot("balance-updated")
+				return nil
+			}
+		}
+
+		if i%20 == 0 && i > 0 {
+			debugPrintf("   ... still waiting for balance update (attempt %d/%d, elapsed: %ds)\n", i+1, maxAttempts, (i+1)*2)
+		}
+	}
+
+	if email, err := sc.getCurrentUserEmail(); err == nil {
+		if kratosID := sc.getKratosUserIDByEmail(email); kratosID != "" {
+			if walletID, walletErr := sc.getWalletIDForUser(kratosID); walletErr == nil {
+				if txCount, txErr := sc.getTransactionCount(walletID); txErr == nil {
+					return fmt.Errorf(
+						"balance update for %s %s not visible on UI after waiting %d seconds (backend wallet %s has %d transaction(s))",
+						amount, currency, maxAttempts*2, walletID, txCount,
+					)
+				}
+			}
+		}
+	}
+
+	return fmt.Errorf("balance update for %s %s not visible on UI after waiting %d seconds", amount, currency, maxAttempts*2)
 }

@@ -22,7 +22,7 @@ import (
 	"go.temporal.io/sdk/worker"
 )
 
-func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago_external.Config, ptiJWK, ptiBaseURL, ptiClientID, chimoneyToken string, jobsCfg jobs.Config) (worker.Worker, error) {
+func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago_external.Config, ptiJWK, ptiBaseURL, ptiClientID, chimoneyToken string, rafikiNodeEnabled bool, jobsCfg jobs.Config) (worker.Worker, error) {
 	w := worker.New(b.Temporal(), "backend", worker.Options{})
 
 	w.RegisterActivity(slack.SendToChannelActivity)
@@ -66,6 +66,7 @@ func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago
 	w.RegisterWorkflow(jobs.PtiDropOldDataWorkflow)
 	w.RegisterWorkflow(jobs.EnableSendVerificationEmailToUnverifiedUserJob)
 	w.RegisterWorkflow(jobs.UpdateGateHubOrganizationConfig)
+	w.RegisterWorkflow(jobs.NotifyAgreementChangedWorkflow)
 	w.RegisterWorkflow(jobs.DisabledAccountsTabWorkflow)
 
 	// Payment Engine
@@ -77,8 +78,14 @@ func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago
 	w.RegisterWorkflow(payments_workflows.AwaitReceiverWorkflow)
 
 	// Rafiki
-	w.RegisterActivity(rafiki_workflows.NewActivity(b))
+	w.RegisterActivity(rafiki_workflows.NewActivity(b, gatehubConfig))
 	w.RegisterWorkflow(rafiki_workflows.WebMonetizationPaymentsWorkflow)
+	if rafikiNodeEnabled {
+		w.RegisterWorkflow(rafiki_workflows.RafikiIncomingPaymentFinalizedWorkflow)
+		w.RegisterWorkflow(rafiki_workflows.RafikiOutgoingPaymentCreatedWorkflow)
+		w.RegisterWorkflow(rafiki_workflows.RafikiOutgoingPaymentCompletedWorkflow)
+		w.RegisterWorkflow(rafiki_workflows.RafikiOutgoingPaymentFailedWorkflow)
+	}
 
 	rafiki_workflows.StartRafikiIncomingPaymentsPolling(b)
 

@@ -105,6 +105,10 @@ func (c *client) SendKYCDocumentsRequiredEmail(ctx context.Context, walletID str
 	ops.SendKYCDocumentsRequiredEmail(ctx, c.b, walletID)
 }
 
+func (c *client) SendAgreementChangedEmail(ctx context.Context, userID string, agreements []email.AgreementLink, deadlineDate string) error {
+	return ops.SendAgreementChangedEmail(ctx, c.b, userID, agreements, deadlineDate)
+}
+
 func (c *client) SendAccountDeletionRequested(ctx context.Context, userID string) error {
 	return ops.SendAccountDeletionRequestedEmail(ctx, c.b, userID)
 }

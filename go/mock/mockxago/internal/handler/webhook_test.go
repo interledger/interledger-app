@@ -9,11 +9,11 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"strconv"
 	"testing"
 	"time"
 
+	"github.com/interledger/interledger-app/go/mock/mockxago/internal/config"
 	"github.com/interledger/interledger-app/go/mock/mockxago/internal/models"
 	"github.com/interledger/interledger-app/go/mock/mockxago/internal/storage"
 	"github.com/stretchr/testify/assert"
@@ -204,18 +204,8 @@ func TestSendDepositWebhook_Success(t *testing.T) {
 	}))
 	defer server.Close()
 
-	// Set webhook environment variables
-	oldWebhookURL := os.Getenv("WEBHOOK_URL")
-	oldWebhookSecret := os.Getenv("WEBHOOK_SECRET")
-	os.Setenv("WEBHOOK_URL", server.URL)
-	os.Setenv("WEBHOOK_SECRET", "test-secret")
-	defer func() {
-		os.Setenv("WEBHOOK_URL", oldWebhookURL)
-		os.Setenv("WEBHOOK_SECRET", oldWebhookSecret)
-	}()
-
 	store := storage.NewMemoryStorage()
-	handler := NewHandler(store, nil)
+	handler := NewHandler(store, nil, &config.Config{WebhookURL: server.URL, WebhookSecret: "test-secret"})
 
 	// Create sub-account for wallet
 	ctx := context.Background()
@@ -242,19 +232,10 @@ func TestSendDepositWebhook_Success(t *testing.T) {
 
 // TestSendDepositWebhook_NoWebhookURL skips webhook when URL not configured
 func TestSendDepositWebhook_NoWebhookURL(t *testing.T) {
-	oldWebhookURL := os.Getenv("WEBHOOK_URL")
-	oldWebhookSecret := os.Getenv("WEBHOOK_SECRET")
-	os.Setenv("WEBHOOK_URL", "")
-	os.Setenv("WEBHOOK_SECRET", "")
-	defer func() {
-		os.Setenv("WEBHOOK_URL", oldWebhookURL)
-		os.Setenv("WEBHOOK_SECRET", oldWebhookSecret)
-	}()
-
 	store := storage.NewMemoryStorage()
-	handler := NewHandler(store, nil)
+	handler := NewHandler(store, nil, &config.Config{})
 
-	// Should not panic or error when WEBHOOK_URL is not set
+	// Should not panic or error when WebhookURL is not set
 	handler.sendDepositWebhook("wallet123", "USD", 100.0, "trans001", "account456")
 	// Test passes if no panic occurs
 }
@@ -268,17 +249,8 @@ func TestSendDepositWebhook_WithProvidedAccountID(t *testing.T) {
 	}))
 	defer server.Close()
 
-	oldWebhookURL := os.Getenv("WEBHOOK_URL")
-	oldWebhookSecret := os.Getenv("WEBHOOK_SECRET")
-	os.Setenv("WEBHOOK_URL", server.URL)
-	os.Setenv("WEBHOOK_SECRET", "test-secret")
-	defer func() {
-		os.Setenv("WEBHOOK_URL", oldWebhookURL)
-		os.Setenv("WEBHOOK_SECRET", oldWebhookSecret)
-	}()
-
 	store := storage.NewMemoryStorage()
-	handler := NewHandler(store, nil)
+	handler := NewHandler(store, nil, &config.Config{WebhookURL: server.URL, WebhookSecret: "test-secret"})
 
 	// Send with explicit account ID (should not look up sub-account)
 	handler.sendDepositWebhook("wallet123", "EUR", 250.50, "trans789", "explicit_account_id")
@@ -304,17 +276,8 @@ func TestSendDepositCompletedWebhook_Success(t *testing.T) {
 	}))
 	defer server.Close()
 
-	oldWebhookURL := os.Getenv("WEBHOOK_URL")
-	oldWebhookSecret := os.Getenv("WEBHOOK_SECRET")
-	os.Setenv("WEBHOOK_URL", server.URL)
-	os.Setenv("WEBHOOK_SECRET", "test-secret-key")
-	defer func() {
-		os.Setenv("WEBHOOK_URL", oldWebhookURL)
-		os.Setenv("WEBHOOK_SECRET", oldWebhookSecret)
-	}()
-
 	store := storage.NewMemoryStorage()
-	handler := NewHandler(store, nil)
+	handler := NewHandler(store, nil, &config.Config{WebhookURL: server.URL, WebhookSecret: "test-secret-key"})
 
 	// Create deposit with settled time
 	ctx := context.Background()
@@ -359,17 +322,8 @@ func TestSendDepositCompletedWebhook_Success(t *testing.T) {
 
 // TestSendDepositCompletedWebhook_NoWebhookURL skips when not configured
 func TestSendDepositCompletedWebhook_NoWebhookURL(t *testing.T) {
-	oldWebhookURL := os.Getenv("WEBHOOK_URL")
-	oldWebhookSecret := os.Getenv("WEBHOOK_SECRET")
-	os.Setenv("WEBHOOK_URL", "")
-	os.Setenv("WEBHOOK_SECRET", "")
-	defer func() {
-		os.Setenv("WEBHOOK_URL", oldWebhookURL)
-		os.Setenv("WEBHOOK_SECRET", oldWebhookSecret)
-	}()
-
 	store := storage.NewMemoryStorage()
-	handler := NewHandler(store, nil)
+	handler := NewHandler(store, nil, &config.Config{})
 
 	// Should skip webhook gracefully
 	handler.sendDepositCompletedWebhook("acc123", 100.0, "USD", "dep001", "ref123")
@@ -383,17 +337,8 @@ func TestSendDepositCompletedWebhook_MissingDeposit(t *testing.T) {
 	}))
 	defer server.Close()
 
-	oldWebhookURL := os.Getenv("WEBHOOK_URL")
-	oldWebhookSecret := os.Getenv("WEBHOOK_SECRET")
-	os.Setenv("WEBHOOK_URL", server.URL)
-	os.Setenv("WEBHOOK_SECRET", "test-secret")
-	defer func() {
-		os.Setenv("WEBHOOK_URL", oldWebhookURL)
-		os.Setenv("WEBHOOK_SECRET", oldWebhookSecret)
-	}()
-
 	store := storage.NewMemoryStorage()
-	handler := NewHandler(store, nil)
+	handler := NewHandler(store, nil, &config.Config{WebhookURL: server.URL, WebhookSecret: "test-secret"})
 
 	// Send webhook for non-existent deposit
 	// Should handle error gracefully without panicking
@@ -473,17 +418,8 @@ func TestSendDepositWebhook_HeaderValidation(t *testing.T) {
 	}))
 	defer server.Close()
 
-	oldWebhookURL := os.Getenv("WEBHOOK_URL")
-	oldWebhookSecret := os.Getenv("WEBHOOK_SECRET")
-	os.Setenv("WEBHOOK_URL", server.URL)
-	os.Setenv("WEBHOOK_SECRET", "secret")
-	defer func() {
-		os.Setenv("WEBHOOK_URL", oldWebhookURL)
-		os.Setenv("WEBHOOK_SECRET", oldWebhookSecret)
-	}()
-
 	store := storage.NewMemoryStorage()
-	handler := NewHandler(store, nil)
+	handler := NewHandler(store, nil, &config.Config{WebhookURL: server.URL, WebhookSecret: "secret"})
 	ctx := context.Background()
 	store.SaveSubAccount(ctx, &models.SubAccount{
 		WalletID:  "w1",
