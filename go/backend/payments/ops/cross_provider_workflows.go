@@ -7,11 +7,11 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
-// crossProviderGatehubToXagoPayIn handles Scenario 1 pay-in (EUR→ZAR, GateHub sender).
+// crossProviderGatehubToXagoPayIn handles pay-in for Gatehub (EUR) to Xago (ZAR).
 // Reserves EUR pending, calls GateHub API to move funds to omnibus, stores the external TX ID.
 // The webhook wait happens in the corresponding pay-out.
 func crossProviderGatehubToXagoPayIn(ctx workflow.Context, a *Activity, paymentID string) (string, bool, error) {
-	err := workflow.ExecuteActivity(ctx, a.CrossProviderGatehubReserve, paymentID).Get(ctx, nil)
+	err := workflow.ExecuteActivity(ctx, a.CrossProviderGatehubEURReserve, paymentID).Get(ctx, nil)
 	if err != nil {
 		return "", false, err
 	}
@@ -30,7 +30,7 @@ func crossProviderGatehubToXagoPayIn(ctx workflow.Context, a *Activity, paymentI
 	return externalTxID, true, nil
 }
 
-// crossProviderXagoToGatehubPayIn handles Scenario 2 pay-in (ZAR→EUR, Xago sender).
+// crossProviderXagoToGatehubPayIn handles pay-in For Xago (ZAR) to Gatehub (EUR).
 // Reserves ZAR pending to the liquidity account.
 func crossProviderXagoToGatehubPayIn(ctx workflow.Context, a *Activity, paymentID string) (string, bool, error) {
 	txID, err := sideEffectUUID(ctx)
@@ -45,24 +45,14 @@ func crossProviderXagoToGatehubPayIn(ctx workflow.Context, a *Activity, paymentI
 	return txID, true, nil
 }
 
-// crossProviderGatehubToXagoPayOut handles Scenario 1 pay-out (EUR→ZAR, Xago ZAR receiver).
-// Waits for the GateHub webhook confirming EUR is in omnibus, executes Xago EUR→ZAR conversion,
-// polls for completion, and atomically posts all Pacioli transfers.
+// crossProviderGatehubToXagoPayOut handles pay-out for Gatehub (EUR) to Xago (ZAR).
+// Waits for the Gatehub webhook confirming EUR is in omnibus, executes Xago EUR→ZAR conversion,
+// polls for completion, and posts all Pacioli transfers.
 func crossProviderGatehubToXagoPayOut(ctx workflow.Context, a *Activity, paymentID string) (string, bool, error) {
 
 	// Wait for GateHub webhook confirming sender's EUR reached omnibus.
 	externalTransaction, ok, err := pollGatehubTransfer(ctx, a, paymentID)
 	if err != nil || !ok {
-		return "", false, err
-	}
-
-	// Generate stable UUIDs for the two new posted Pacioli transfers.
-	clearingTxID, err := sideEffectUUID(ctx)
-	if err != nil {
-		return "", false, err
-	}
-	receiverTxID, err := sideEffectUUID(ctx)
-	if err != nil {
 		return "", false, err
 	}
 
@@ -94,7 +84,7 @@ func crossProviderGatehubToXagoPayOut(ctx workflow.Context, a *Activity, payment
 	}
 
 	// Atomically post all Pacioli transfers.
-	err = workflow.ExecuteActivity(ctx, a.PostGatehubToXagoTransfers, paymentID, clearingTxID, receiverTxID).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.PostGatehubToXagoTransfers, paymentID).Get(ctx, nil)
 	if err != nil {
 		return "", false, err
 	}
@@ -102,25 +92,15 @@ func crossProviderGatehubToXagoPayOut(ctx workflow.Context, a *Activity, payment
 	return externalTransaction.ID, true, nil
 }
 
-// crossProviderXagoToGatehubPayOut handles Scenario 2 pay-out (ZAR→EUR, GateHub EUR receiver).
+// crossProviderXagoToGatehubPayOut handles pay-out for Xago (ZAR) to Gatehub (EUR).
 // Transfers EUR from GateHub omnibus to the receiver, waits for the webhook confirming delivery,
 // executes Xago ZAR→EUR conversion, and atomically posts all Pacioli transfers.
 func crossProviderXagoToGatehubPayOut(ctx workflow.Context, a *Activity, paymentID, receiverLinkedAccountID string) (string, bool, error) {
 	logger := workflow.GetLogger(ctx)
 
-	// Generate stable UUIDs for the two new posted Pacioli transfers.
-	xagoOpsTxID, err := sideEffectUUID(ctx)
-	if err != nil {
-		return "", false, err
-	}
-	receiverTxID, err := sideEffectUUID(ctx)
-	if err != nil {
-		return "", false, err
-	}
-
 	// Call GateHub API: omnibus → receiver.
 	var externalTxID string
-	err = workflow.ExecuteActivity(ctx, a.CrossProviderGatehubTransferFromOmnibus, paymentID, receiverLinkedAccountID).Get(ctx, &externalTxID)
+	err := workflow.ExecuteActivity(ctx, a.CrossProviderGatehubTransferFromOmnibus, paymentID, receiverLinkedAccountID).Get(ctx, &externalTxID)
 	if err != nil {
 		return "", false, err
 	}
@@ -187,7 +167,7 @@ func crossProviderXagoToGatehubPayOut(ctx workflow.Context, a *Activity, payment
 	}
 
 	// Atomically post all Pacioli transfers.
-	err = workflow.ExecuteActivity(ctx, a.PostXagoToGatehubTransfers, paymentID, xagoOpsTxID, receiverTxID).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.PostXagoToGatehubTransfers, paymentID).Get(ctx, nil)
 	if err != nil {
 		return "", false, err
 	}

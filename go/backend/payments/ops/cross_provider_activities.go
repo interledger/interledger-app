@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/gatehub"
@@ -75,9 +76,9 @@ func (a *Activity) CheckCrossProviderType(ctx context.Context, paymentID string)
 	return CrossProviderNone, nil
 }
 
-// CrossProviderGatehubReserve creates a pending Pacioli transfer:
-// user.EUR → gatehub.EURClearingAccount (using p.SendTransactionID).
-func (a *Activity) CrossProviderGatehubReserve(ctx context.Context, paymentID string) error {
+// CrossProviderGatehubEURReserve creates a pending Pacioli transfer:
+// gatehub.user.EURAccount → gatehub.EURClearingAccount (using p.SendTransactionID).
+func (a *Activity) CrossProviderGatehubEURReserve(ctx context.Context, paymentID string) error {
 	p, err := Lookup(ctx, a.b, paymentID)
 	if err != nil {
 		return err
@@ -121,7 +122,7 @@ func (a *Activity) CrossProviderGatehubReserve(ctx context.Context, paymentID st
 }
 
 // CrossProviderXagoZARReserve creates a pending Pacioli transfer:
-// user.ZAR → xago.ZARLiquidityAccount (using p.SendTransactionID).
+// xago.user.ZARAccount → xago.ZARLiquidityAccount (using p.SendTransactionID).
 func (a *Activity) CrossProviderXagoZARReserve(ctx context.Context, paymentID string) error {
 	p, err := Lookup(ctx, a.b, paymentID)
 	if err != nil {
@@ -185,7 +186,7 @@ func (a *Activity) CrossProviderGatehubTransferToOmnibus(ctx context.Context, pa
 }
 
 // CrossProviderGatehubTransferFromOmnibus moves EUR from the GateHub omnibus to the given linked account.
-// Used for Scenario 2 payout (omnibus → receiver) and Scenario 1 rollback (omnibus → sender).
+// Used for Xago to Gatehub (omnibus → receiver) and Gatehub to Xago rollback (omnibus → sender).
 func (a *Activity) CrossProviderGatehubTransferFromOmnibus(ctx context.Context, paymentID, receiverLinkedAccountID string) (string, error) {
 	p, err := Lookup(ctx, a.b, paymentID)
 	if err != nil {
@@ -201,8 +202,6 @@ func (a *Activity) CrossProviderGatehubTransferFromOmnibus(ctx context.Context, 
 }
 
 // XagoConvertCurrencyActivity executes the Xago currency conversion and returns the convertID.
-// For Scenario 1 (EUR→ZAR): pair=EURtoZAR, amount=senderAmount.
-// For Scenario 2 (ZAR→EUR): pair=ZARtoEUR, amount=senderAmount.
 func (a *Activity) XagoConvertCurrencyActivity(ctx context.Context, paymentID string) (string, error) {
 	p, err := Lookup(ctx, a.b, paymentID)
 	if err != nil {
@@ -221,7 +220,6 @@ func (a *Activity) XagoConvertCurrencyActivity(ctx context.Context, paymentID st
 		pair = xago_external.ZARtoEUR
 	}
 
-	// TODO maybe retry a few times
 	resp, err := a.b.Xago().ConvertCurrency(ctx, pair, p.SenderAmount.Float64())
 	if err != nil {
 		return "", temporal.NewNonRetryableApplicationError(
@@ -299,11 +297,12 @@ func (a *Activity) StoreActualFXRateAndAmount(ctx context.Context, paymentID str
 	return err
 }
 
-// PostGatehubToXagoTransfers atomically settles a Scenario 1 (EUR→ZAR) payment:
-//  1. Posts the pending EUR reserve (p.SendTransactionID): user.EUR → gatehub.EURClearingAccount
+// PostGatehubToXagoTransfers posts Gatehub (EUR) to Xago (ZAR) transfers:
+//  1. Posts the pending EUR reserve (p.SendTransactionID): gatehub.user.EUR → gatehub.EURClearingAccount
 //  2. Creates a posted transfer: xago.EURClearingAccount → xago.EUROpsAccount
-//  3. Creates a posted transfer: xago.ZAROpsAccount → user.ZAR (using receiverTxID)
-func (a *Activity) PostGatehubToXagoTransfers(ctx context.Context, paymentID, clearingTxID, receiverTxID string) error {
+//  3. Creates a posted transfer: xago.EUROpsAccount → xago.ZARLiquidityAccount
+//  4. Creates a posted transfer: xago.ZARLiquidityAccount → xago.user1.ZARAccount
+func (a *Activity) PostGatehubToXagoTransfers(ctx context.Context, paymentID string) error {
 	p, err := Lookup(ctx, a.b, paymentID)
 	if err != nil {
 		return err
@@ -323,11 +322,9 @@ func (a *Activity) PostGatehubToXagoTransfers(ctx context.Context, paymentID, cl
 		return fmt.Errorf("%w non-success code posting reserve (%s)", payments.ErrInternal, postRes[0].Code.String())
 	}
 
-	// TODO check against the design doc
-	// TODO Should we do this as pending true in the beginning and do PostTransfers here?
 	createRes, err := a.b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
 		{
-			ID:              clearingTxID,
+			ID:              uuid.NewString(),
 			Amount:          p.SenderAmount.Value,
 			DebitAccountID:  xago.EURClearingAccount,
 			CreditAccountID: xago.EUROpsAccount,
@@ -336,9 +333,18 @@ func (a *Activity) PostGatehubToXagoTransfers(ctx context.Context, paymentID, cl
 			Ledger:          xago.LedgerIDEUR,
 		},
 		{
-			ID:              receiverTxID,
+			ID:              uuid.NewString(),
 			Amount:          p.ReceiverAmount.Value,
 			DebitAccountID:  xago.ZAROpsAccount,
+			CreditAccountID: xago.ZARLiquidityAccount,
+			Pending:         false,
+			Code:            1,
+			Ledger:          xago.LedgerIDZAR,
+		},
+		{
+			ID:              uuid.NewString(),
+			Amount:          p.ReceiverAmount.Value,
+			DebitAccountID:  xago.ZARLiquidityAccount,
 			CreditAccountID: receiverLA.ID,
 			Pending:         false,
 			Code:            1,
@@ -359,11 +365,11 @@ func (a *Activity) PostGatehubToXagoTransfers(ctx context.Context, paymentID, cl
 	return nil
 }
 
-// PostXagoToGatehubTransfers atomically settles a Scenario 2 (ZAR→EUR) payment:
-//  1. Posts the pending ZAR reserve (p.SendTransactionID): user.ZAR → xago.ZARLiquidityAccount
+// PostXagoToGatehubTransfers posts Xago (ZAR) to Gatehub (EUR) transfers in pacioli:
+//  1. Posts the pending ZAR reserve (p.SendTransactionID): xago.user.ZARAccount → xago.ZARLiquidityAccount
 //  2. Creates a posted transfer: xago.EUROpsAccount → xago.EURClearingAccount
-//  3. Creates a posted transfer: gatehub.EURClearingAccount → user.EUR (using receiverTxID)
-func (a *Activity) PostXagoToGatehubTransfers(ctx context.Context, paymentID, xagoOpsTxID, receiverTxID string) error {
+//  3. Creates a posted transfer: gatehub.EURClearingAccount → gatehub.user.EURAccount (using receiverTxID)
+func (a *Activity) PostXagoToGatehubTransfers(ctx context.Context, paymentID string) error {
 	p, err := Lookup(ctx, a.b, paymentID)
 	if err != nil {
 		return err
@@ -387,7 +393,7 @@ func (a *Activity) PostXagoToGatehubTransfers(ctx context.Context, paymentID, xa
 	// TODO should the transactions be created at the beginning of the workflow?
 	createRes, err := a.b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
 		{
-			ID:              xagoOpsTxID,
+			ID:              uuid.NewString(),
 			Amount:          p.ReceiverAmount.Value,
 			DebitAccountID:  xago.EUROpsAccount,
 			CreditAccountID: xago.EURClearingAccount,
@@ -396,7 +402,7 @@ func (a *Activity) PostXagoToGatehubTransfers(ctx context.Context, paymentID, xa
 			Ledger:          xago.LedgerIDEUR,
 		},
 		{
-			ID:              receiverTxID,
+			ID:              uuid.NewString(),
 			Amount:          p.ReceiverAmount.Value,
 			DebitAccountID:  gatehub.EURClearingAccount,
 			CreditAccountID: receiverLA.ID,
