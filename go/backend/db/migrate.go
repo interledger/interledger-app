@@ -116,6 +116,10 @@ func CreateExpIndex(ctx context.Context, db *sqlx.DB) error {
 }
 
 func MigrateTestDB(t *testing.T, ctx context.Context, openPaymentsURL string) *sqlx.DB {
+	if openPaymentsURL == "" {
+		openPaymentsURL = "https://local.ilp.link"
+	}
+
 	_, moduleDir, _, ok := runtime.Caller(0)
 	if !ok {
 		t.Fatal("Could not get directory path for utils/testing.")
