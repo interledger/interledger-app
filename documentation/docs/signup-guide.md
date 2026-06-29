@@ -598,7 +598,8 @@ if err != nil && !errors.Is(err, wallets.ErrDuplicateWallet) {
 **Wallet creation:**
 - Takes the user's country from the signup record (`country_code`)
 - Inserts the `wallets` row (named `default`) and links it to the user in `user_wallets`
-- Idempotent: one wallet per user is enforced by a `UNIQUE(user_id)` constraint plus an `ON CONFLICT (user_id)` insert, so retries of `CompleteSignup` are safe
+- If the user already has a wallet, `Create` makes **no change** and returns `ErrDuplicateWallet`; it never creates a second wallet or returns a different one
+- Idempotent at the signup layer: one wallet per user is enforced by a `UNIQUE(user_id)` constraint plus an `ON CONFLICT (user_id)` insert, and `CompleteSignup` treats `ErrDuplicateWallet` as success — so retries are safe
 
 **Note:** At this stage the wallet is named `default` and has no linked accounts or address yet. It is renamed when the user picks a name at the wallet-address step (Section 6), and provider account linking happens during KYC activation. The `CreateUserDefaultWallet` gRPC still exists as an idempotent fallback for ensuring a user has a wallet.
 
