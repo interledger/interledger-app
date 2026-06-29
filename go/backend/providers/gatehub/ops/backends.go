@@ -1,6 +1,7 @@
 package ops
 
 import (
+	"github.com/interledger/interledger-app/go/backend/config"
 	"github.com/interledger/interledger-app/go/backend/email"
 	"github.com/interledger/interledger-app/go/backend/kyc"
 	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
@@ -15,6 +16,7 @@ import (
 )
 
 type Backends interface {
+	Config() *config.StartConfig
 	DB() *sqlx.DB
 	LinkedAccounts() linkedaccounts.Client
 	Users() user.Client

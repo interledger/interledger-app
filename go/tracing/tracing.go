@@ -3,7 +3,6 @@ package tracing
 import (
 	"context"
 	"fmt"
-	"github.com/interledger/interledger-app/go/env"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
@@ -14,13 +13,13 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
 )
 
-func InitTraceProvider(serviceName string) (func(context.Context) error, error) {
+func InitTraceProvider(serviceName, version, mode string) (func(context.Context) error, error) {
 	ctx := context.Background()
 
 	res, err := resource.New(ctx,
 		resource.WithAttributes(
-			// the service name used to display traces in backends
 			semconv.ServiceNameKey.String(serviceName),
+			semconv.ServiceVersionKey.String(version),
 		),
 	)
 	if err != nil {
@@ -29,7 +28,7 @@ func InitTraceProvider(serviceName string) (func(context.Context) error, error) 
 
 	var traceExporter sdktrace.SpanExporter
 
-	if env.IsDev() || env.IsProd() {
+	if mode == "dev" || mode == "prod" {
 		client := otlptracegrpc.NewClient()
 		traceExporter, err = otlptrace.New(ctx, client)
 		if err != nil {

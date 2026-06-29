@@ -26,6 +26,9 @@ import (
 	_ "github.com/lib/pq"
 )
 
+// Version is set at build time via -ldflags "-X main.Version=<tag>".
+var Version = "v0.0.0"
+
 func main() {
 	args := os.Args
 	if len(args) < 2 {
@@ -91,7 +94,7 @@ func start(args *cli.StartArgs) {
 		log.Fatalln(err)
 	}
 
-	traceShutdown, err := tracing.InitTraceProvider("pacioli")
+	traceShutdown, err := tracing.InitTraceProvider("pacioli", Version, args.Mode)
 	if err != nil {
 		log.Fatalln(err)
 	}

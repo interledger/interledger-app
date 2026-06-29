@@ -1,6 +1,7 @@
 package ops
 
 import (
+	"github.com/interledger/interledger-app/go/backend/config"
 	"github.com/interledger/interledger-app/go/backend/email/sendgrid"
 	"github.com/interledger/interledger-app/go/backend/kyc"
 	"github.com/interledger/interledger-app/go/backend/user"
@@ -8,6 +9,7 @@ import (
 )
 
 type Backends interface {
+	Config() *config.StartConfig
 	External() sendgrid.Client
 	OneTemplateID() string
 	SupportEmail() string

@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/interledger/interledger-app/go/backend/config"
 	"github.com/interledger/interledger-app/go/backend/kyc"
 	"github.com/interledger/interledger-app/go/backend/providers/chimoney"
 	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
@@ -34,6 +35,7 @@ type Backends interface {
 	Xago() xago.Client
 	Chimoney() chimoney.Client
 	KYC() kyc.Client
+	Config() *config.StartConfig
 }
 
 var _ ops.Backends = opsBackends{}

@@ -1,41 +1,121 @@
+{{- $validModes := list "prod" "sandbox" "dev" "local" "test" -}}
+{{- $mode := .Values.backend.config.environment.mode | default "" -}}
+{{- if not (has $mode $validModes) -}}
+  {{- fail (printf "backend.config.environment.mode must be one of [prod sandbox dev local test], got: %q" $mode) -}}
+{{- end -}}
+
+{{/*
+  Unconditionally required fields — mirrors validate:"required" struct tags in
+  go/backend/config/start.go. configa template strings count as non-empty.
+*/}}
 {{- $requiredFields := list
-  (dict "path" "backend.config.xago.api_base_url" "value" .Values.backend.config.xago.api_base_url)
-  (dict "path" "backend.config.xago.identity_base_url" "value" .Values.backend.config.xago.identity_base_url)
-  (dict "path" "backend.config.xago.policy_id" "value" .Values.backend.config.xago.policy_id)
-  (dict "path" "backend.config.apple_app_id" "value" .Values.backend.config.apple_app_id)
-  (dict "path" "backend.config.android_package_name" "value" .Values.backend.config.android_package_name)
-  (dict "path" "backend.config.android_sha256" "value" .Values.backend.config.android_sha256)
-  (dict "path" "backend.config.admin.base_url" "value" .Values.backend.config.admin.base_url)
+  (dict "path" "backend.config.application_url"             "value" .Values.backend.config.application_url)
+  (dict "path" "backend.config.open_payments_base_url"      "value" .Values.backend.config.open_payments_base_url)
+  (dict "path" "backend.config.auth_base_url"               "value" .Values.backend.config.auth_base_url)
+  (dict "path" "backend.config.admin.base_url"              "value" .Values.backend.config.admin.base_url)
+  (dict "path" "backend.config.db.url"                      "value" .Values.backend.config.db.url)
+  (dict "path" "backend.config.db.pacioli_url"              "value" .Values.backend.config.db.pacioli_url)
+  (dict "path" "backend.config.kratos.admin_url"            "value" .Values.backend.config.kratos.admin_url)
+  (dict "path" "backend.config.rafiki.backend_graphql_url"  "value" .Values.backend.config.rafiki.backend_graphql_url)
+  (dict "path" "backend.config.rafiki.auth_graphql_url"     "value" .Values.backend.config.rafiki.auth_graphql_url)
+  (dict "path" "backend.config.rafiki.operator_tenant_id"   "value" .Values.backend.config.rafiki.operator_tenant_id)
+  (dict "path" "backend.config.rafiki.admin_api_secret"     "value" .Values.backend.config.rafiki.admin_api_secret)
+  (dict "path" "backend.config.rafiki.signature_version"    "value" .Values.backend.config.rafiki.signature_version)
+  (dict "path" "backend.config.xago.api_base_url"           "value" .Values.backend.config.xago.api_base_url)
+  (dict "path" "backend.config.xago.identity_base_url"      "value" .Values.backend.config.xago.identity_base_url)
+  (dict "path" "backend.config.xago.api_public_key"         "value" .Values.backend.config.xago.api_public_key)
+  (dict "path" "backend.config.xago.api_secret"             "value" .Values.backend.config.xago.api_secret)
+  (dict "path" "backend.config.xago.policy_id"              "value" .Values.backend.config.xago.policy_id)
+  (dict "path" "backend.config.persona.base_url"            "value" .Values.backend.config.persona.base_url)
+  (dict "path" "backend.config.persona.token"               "value" .Values.backend.config.persona.token)
+  (dict "path" "backend.config.persona.webhook_token"       "value" .Values.backend.config.persona.webhook_token)
+  (dict "path" "backend.config.admin.policy_aud"            "value" .Values.backend.config.admin.policy_aud)
+  (dict "path" "backend.config.admin.team_domain"           "value" .Values.backend.config.admin.team_domain)
+  (dict "path" "backend.config.mobile.apple_app_id"         "value" .Values.backend.config.mobile.apple_app_id)
+  (dict "path" "backend.config.mobile.android_package_name" "value" .Values.backend.config.mobile.android_package_name)
+  (dict "path" "backend.config.mobile.android_sha256"       "value" .Values.backend.config.mobile.android_sha256)
+  (dict "path" "backend.config.smarty.auth_id"              "value" .Values.backend.config.smarty.auth_id)
+  (dict "path" "backend.config.smarty.auth_token"           "value" .Values.backend.config.smarty.auth_token)
+  (dict "path" "backend.config.pusher.addr"                 "value" .Values.backend.config.pusher.addr)
+  (dict "path" "backend.config.segment.key"                 "value" .Values.backend.config.segment.key)
 -}}
 
+{{/* gatehub.enabled: fields required for any enabled GateHub integration */}}
 {{- if eq (toString .Values.backend.config.gatehub.enabled) "true" -}}
   {{- $requiredFields = concat $requiredFields (list
-    (dict "path" "backend.config.gatehub.api_base_url" "value" .Values.backend.config.gatehub.api_base_url)
-    (dict "path" "backend.config.gatehub.onboarding_base_url" "value" .Values.backend.config.gatehub.onboarding_base_url)
-    (dict "path" "backend.config.gatehub.on_off_ramp_base_url" "value" .Values.backend.config.gatehub.on_off_ramp_base_url)
-    (dict "path" "backend.config.gatehub.organization_id" "value" .Values.backend.config.gatehub.organization_id)
-    (dict "path" "backend.config.gatehub.sending_user_id" "value" .Values.backend.config.gatehub.sending_user_id)
-    (dict "path" "backend.config.gatehub.sending_user_address" "value" .Values.backend.config.gatehub.sending_user_address)
-    (dict "path" "backend.config.gatehub.eur_ops_account" "value" .Values.backend.config.gatehub.eur_ops_account)
-    (dict "path" "backend.config.gatehub.eur_ops_ledger_id" "value" .Values.backend.config.gatehub.eur_ops_ledger_id)
-    (dict "path" "backend.config.gatehub.on_off_ramp_client_id" "value" .Values.backend.config.gatehub.on_off_ramp_client_id)
-    (dict "path" "backend.config.gatehub.onboarding_client_id" "value" .Values.backend.config.gatehub.onboarding_client_id)
-    (dict "path" "backend.config.gatehub.exchange_client_id" "value" .Values.backend.config.gatehub.exchange_client_id)
+    (dict "path" "backend.config.gatehub.api_base_url"           "value" .Values.backend.config.gatehub.api_base_url)
+    (dict "path" "backend.config.gatehub.onboarding_base_url"    "value" .Values.backend.config.gatehub.onboarding_base_url)
+    (dict "path" "backend.config.gatehub.on_off_ramp_base_url"   "value" .Values.backend.config.gatehub.on_off_ramp_base_url)
+    (dict "path" "backend.config.gatehub.organization_id"        "value" .Values.backend.config.gatehub.organization_id)
+    (dict "path" "backend.config.gatehub.sending_user_id"        "value" .Values.backend.config.gatehub.sending_user_id)
+    (dict "path" "backend.config.gatehub.sending_user_address"   "value" .Values.backend.config.gatehub.sending_user_address)
+    (dict "path" "backend.config.gatehub.eur_ops_account"        "value" .Values.backend.config.gatehub.eur_ops_account)
+    (dict "path" "backend.config.gatehub.eur_ops_ledger_id"      "value" .Values.backend.config.gatehub.eur_ops_ledger_id)
+    (dict "path" "backend.config.gatehub.on_off_ramp_client_id"  "value" .Values.backend.config.gatehub.on_off_ramp_client_id)
+    (dict "path" "backend.config.gatehub.onboarding_client_id"   "value" .Values.backend.config.gatehub.onboarding_client_id)
+    (dict "path" "backend.config.gatehub.exchange_client_id"     "value" .Values.backend.config.gatehub.exchange_client_id)
     (dict "path" "backend.config.gatehub.card_account_product_code" "value" .Values.backend.config.gatehub.card_account_product_code)
   ) -}}
 {{- end -}}
 
+{{/* mode=prod: additional GateHub fields required — mirrors validateGatehubProd in start.go */}}
+{{- if eq $mode "prod" -}}
+  {{- $requiredFields = concat $requiredFields (list
+    (dict "path" "backend.config.gatehub.app_id"               "value" .Values.backend.config.gatehub.app_id)
+    (dict "path" "backend.config.gatehub.secret"               "value" .Values.backend.config.gatehub.secret)
+    (dict "path" "backend.config.gatehub.card_app_id"          "value" .Values.backend.config.gatehub.card_app_id)
+    (dict "path" "backend.config.gatehub.gateway_id"           "value" .Values.backend.config.gatehub.gateway_id)
+    (dict "path" "backend.config.gatehub.paywiser_euro_vault_id" "value" .Values.backend.config.gatehub.paywiser_euro_vault_id)
+  ) -}}
+  {{- if eq (toString .Values.backend.config.rafiki.node_enabled) "true" -}}
+    {{- $requiredFields = concat $requiredFields (list
+      (dict "path" "backend.config.gatehub.intermediary_user_id"      "value" .Values.backend.config.gatehub.intermediary_user_id)
+      (dict "path" "backend.config.gatehub.intermediary_user_address" "value" .Values.backend.config.gatehub.intermediary_user_address)
+    ) -}}
+  {{- end -}}
+{{- end -}}
+
+{{/* pti.enabled — mirrors validateStart PTI block in start.go */}}
 {{- if eq (toString .Values.backend.config.pti.enabled) "true" -}}
   {{- $requiredFields = concat $requiredFields (list
-    (dict "path" "backend.config.pti.base_url" "value" .Values.backend.config.pti.base_url)
-    (dict "path" "backend.config.pti.sdk_url" "value" .Values.backend.config.pti.sdk_url)
-    (dict "path" "backend.config.pti.forms_url" "value" .Values.backend.config.pti.forms_url)
+    (dict "path" "backend.config.pti.base_url"       "value" .Values.backend.config.pti.base_url)
+    (dict "path" "backend.config.pti.jwk"            "value" .Values.backend.config.pti.jwk)
+    (dict "path" "backend.config.pti.client_id"      "value" .Values.backend.config.pti.client_id)
+    (dict "path" "backend.config.pti.sdk_url"        "value" .Values.backend.config.pti.sdk_url)
+    (dict "path" "backend.config.pti.forms_url"      "value" .Values.backend.config.pti.forms_url)
+    (dict "path" "backend.config.pti.public_key_jwk" "value" .Values.backend.config.pti.public_key_jwk)
   ) -}}
 {{- end -}}
 
+{{/* twilio.enabled — mirrors validateStart Twilio block in start.go */}}
+{{- if eq (toString .Values.backend.config.twilio.enabled) "true" -}}
+  {{- $requiredFields = concat $requiredFields (list
+    (dict "path" "backend.config.twilio.account_sid"   "value" .Values.backend.config.twilio.account_sid)
+    (dict "path" "backend.config.twilio.account_token" "value" .Values.backend.config.twilio.account_token)
+    (dict "path" "backend.config.twilio.service_sid"   "value" .Values.backend.config.twilio.service_sid)
+  ) -}}
+{{- end -}}
+
+{{/* email.enabled — mirrors validateStart Email block in start.go */}}
+{{- if eq (toString .Values.backend.config.email.enabled) "true" -}}
+  {{- $requiredFields = concat $requiredFields (list
+    (dict "path" "backend.config.email.sendgrid.api_key"        "value" .Values.backend.config.email.sendgrid.api_key)
+    (dict "path" "backend.config.email.sendgrid.from_name"      "value" .Values.backend.config.email.sendgrid.from_name)
+    (dict "path" "backend.config.email.sendgrid.from_email"     "value" .Values.backend.config.email.sendgrid.from_email)
+    (dict "path" "backend.config.email.sendgrid.one_template_id" "value" .Values.backend.config.email.sendgrid.one_template_id)
+    (dict "path" "backend.config.email.sendgrid.support_email"  "value" .Values.backend.config.email.sendgrid.support_email)
+  ) -}}
+{{- end -}}
+
+{{/* Migration job config — mirrors validate:"required" tags in migration.go */}}
+{{- $migrationRequiredFields := list
+  (dict "path" "backend.migration.config.db_url"       "value" .Values.backend.migration.config.db_url)
+  (dict "path" "backend.migration.config.pacioli_db_url" "value" .Values.backend.migration.config.pacioli_db_url)
+-}}
+
 {{- $missingFields := list -}}
-{{- range $requiredFields -}}
-  {{- if eq (trim (default "" .value)) "" -}}
+{{- range (concat $requiredFields $migrationRequiredFields) -}}
+  {{- if eq (trim (default "" (toString .value))) "" -}}
     {{- $missingFields = append $missingFields .path -}}
   {{- end -}}
 {{- end -}}

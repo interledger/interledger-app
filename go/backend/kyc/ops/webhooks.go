@@ -15,7 +15,6 @@ import (
 	"github.com/interledger/interledger-app/go/backend/kyc"
 	"github.com/interledger/interledger-app/go/backend/kyc/persona"
 	"github.com/interledger/interledger-app/go/backend/slack"
-	"github.com/interledger/interledger-app/go/env"
 	"github.com/interledger/interledger-app/go/log"
 	"go.uber.org/zap"
 )
@@ -74,7 +73,7 @@ func NewHandlePersonaWebhook(b Backends, pc persona.Client) http.HandlerFunc {
 		case "inquiry.marked-for-review":
 			err = inquiryWebhook(r.Context(), b, wh.Data.Attributes.Payload, persona.InquiryNeedsReview, timestamp)
 			if err == nil {
-				notifyPersonaReview(r.Context(), wh.Data.Attributes.Payload)
+				notifyPersonaReview(r.Context(), b, wh.Data.Attributes.Payload)
 			}
 		case "inquiry.declined":
 			err = inquiryWebhook(r.Context(), b, wh.Data.Attributes.Payload, persona.InquiryDeclined, timestamp)
@@ -92,7 +91,7 @@ func NewHandlePersonaWebhook(b Backends, pc persona.Client) http.HandlerFunc {
 	}
 }
 
-func notifyPersonaReview(ctx context.Context, js json.RawMessage) {
+func notifyPersonaReview(ctx context.Context, b Backends, js json.RawMessage) {
 	var inq persona.Inquiry
 	err := json.Unmarshal(js, &inq)
 	if err != nil {
@@ -101,7 +100,7 @@ func notifyPersonaReview(ctx context.Context, js json.RawMessage) {
 	}
 
 	slack.SendToChannel(ctx, slack.ChannelSignupKYC, "wallet-info-bot", fmt.Sprintf("New Persona review in [%s] link [https://app.withpersona.com/dashboard/inquiries/%s]",
-		env.GetEnv(), inq.Data.ID))
+		b.Config().Environment.Mode, inq.Data.ID))
 }
 
 func inquiryWebhook(ctx context.Context, b Backends, js json.RawMessage, state persona.InquiryStatus, timestamp time.Time) error {
@@ -304,7 +303,7 @@ func accountTagAddedWebhook(ctx context.Context, b Backends, pc persona.Client, 
 	// Too many state tags.
 	if stateTags > 1 {
 		slack.SendToChannel(ctx, slack.ChannelSignupKYC, "wallet-info-bot", fmt.Sprintf("Persona account in [%s] is in unknown state. link [https://app.withpersona.com/dashboard/accounts/%s]",
-			env.GetEnv(), externalAcc.ID))
+			b.Config().Environment.Mode, externalAcc.ID))
 	} else if kycState != 0 {
 		err = SetKYCStatus(ctx, b, externalAcc.Attributes.ReferenceID, kycState)
 		if err != nil {

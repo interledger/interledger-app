@@ -76,7 +76,7 @@ func NewBackends(t *testing.T) *Backends {
 	})
 
 	return &Backends{
-		db:    db.MigrateTestDB(t, context.Background()),
+		db:    db.MigrateTestDB(t, context.Background(), ""),
 		kyc:   kyc_mock.NewMockClient(ctrl),
 		la:    la_mock.NewMockClient(ctrl),
 		users: user_mock.NewMock(),

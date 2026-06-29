@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/interledger/interledger-app/go/env"
-
 	"github.com/coreos/go-oidc/v3/oidc"
 	"golang.org/x/oauth2"
 )
@@ -15,6 +13,7 @@ type Config struct {
 	ClientSecret   string
 	RedirectURL    string
 	BotRedirectURL string
+	ApplicationURL string
 }
 
 type client struct {
@@ -40,10 +39,10 @@ func New(cfg Config) (Client, error) {
 	}
 
 	if redirectURL == "" {
-		redirectURL = env.GetUrl() + "/connect/slack"
+		redirectURL = cfg.ApplicationURL + "/connect/slack"
 	}
 	if botRedirectURL == "" {
-		botRedirectURL = env.GetUrl() + "/webhooks/slack/bot/install"
+		botRedirectURL = cfg.ApplicationURL + "/webhooks/slack/bot/install"
 	}
 
 	oidcConfig := &oidc.Config{

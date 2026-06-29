@@ -31,7 +31,7 @@ type Activity struct {
 	external external.Client
 }
 
-func NewActivity(b Backends, apiKey string) *Activity {
+func NewActivity(b Backends, apiKey string, isProd bool) *Activity {
 	ec := external.New(
 		apiKey,
 		&http.Client{
@@ -39,6 +39,7 @@ func NewActivity(b Backends, apiKey string) *Activity {
 				httplogger.NewTransport(http.DefaultTransport, b, external.Redact),
 			),
 		},
+		isProd,
 	)
 
 	return &Activity{

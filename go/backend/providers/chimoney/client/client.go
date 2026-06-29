@@ -21,7 +21,7 @@ type Client struct {
 	external external.Client
 }
 
-func New(b ops.Backends, apiKey string) chimoney.Client {
+func New(b ops.Backends, apiKey string, isProd bool) chimoney.Client {
 	return &Client{
 		b: b,
 		external: external.New(
@@ -31,6 +31,7 @@ func New(b ops.Backends, apiKey string) chimoney.Client {
 					httplogger.NewTransport(http.DefaultTransport, b, external.Redact),
 				),
 			},
+			isProd,
 		),
 	}
 }

@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/interledger/interledger-app/go/backend/agreements"
-	"github.com/interledger/interledger-app/go/env"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -99,8 +98,8 @@ func MigrateFromMarkdowns(ctx context.Context, db *sqlx.DB, dir string) error {
 	return nil
 }
 
-func MigrateFromEmbeddedMarkdowns(ctx context.Context, db *sqlx.DB) ([]string, error) {
-	envName := env.GetEnv()
+func MigrateFromEmbeddedMarkdowns(ctx context.Context, db *sqlx.DB, envMode string) ([]string, error) {
+	envName := envMode
 	dir := fmt.Sprintf("assets/%s", envName)
 	agreementFiles, err := fs.ReadDir(dir)
 	if err != nil {

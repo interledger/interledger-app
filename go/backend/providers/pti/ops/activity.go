@@ -19,7 +19,6 @@ import (
 	"github.com/interledger/interledger-app/go/backend/providers/pti/external"
 	"github.com/interledger/interledger-app/go/backend/slack"
 	"github.com/interledger/interledger-app/go/backend/transactions"
-	"github.com/interledger/interledger-app/go/env"
 	"github.com/interledger/interledger-app/go/log"
 	"github.com/interledger/interledger-app/go/pacioli"
 	"github.com/lestrrat-go/jwx/v3/jwk"
@@ -865,7 +864,7 @@ func (a *Activity) UpdatePaymentState(ctx context.Context, paymentID string, sta
 func (a *Activity) UpdateTransactionState(ctx context.Context, walletID, transactionID string, state transactions.State) error {
 	info := activity.GetInfo(ctx)
 	if info.Attempt == 1 && state == transactions.StateFailed {
-		slack.SendToChannel(ctx, slack.ChannelError, "wallet-info-bot", fmt.Sprintf("Pti withdrawal failed. %s/wallet/%s/transactions/%s", env.AdminURL(), walletID, transactionID))
+		slack.SendToChannel(ctx, slack.ChannelError, "wallet-info-bot", fmt.Sprintf("Pti withdrawal failed. %s/wallet/%s/transactions/%s", a.b.Config().Admin.BaseURL, walletID, transactionID))
 	}
 
 	transfers, err := a.b.Transactions().ListTransfers(ctx, transactionID)

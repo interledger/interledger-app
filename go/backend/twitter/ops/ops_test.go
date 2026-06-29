@@ -19,7 +19,7 @@ import (
 func TestCreateAuthURL(t *testing.T) {
 	ctx := context.Background()
 	b := ops.NewTestBackends(func(tb *ops.TestBackends) {
-		tb.Db = db.MigrateTestDB(t, ctx)
+		tb.Db = db.MigrateTestDB(t, ctx, "")
 	})
 
 	url, err := ops.CreateAuthURL(ctx, b, &ops.CreateAuthURLArgs{
@@ -40,7 +40,7 @@ func TestCreateToken(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	b := ops.NewTestBackends(func(tb *ops.TestBackends) {
-		tb.Db = db.MigrateTestDB(t, ctx)
+		tb.Db = db.MigrateTestDB(t, ctx, "")
 		tb.ExternalClient = external_mock.NewMockClient(ctrl)
 	})
 
@@ -89,7 +89,7 @@ func TestGetWalletConnections(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	b := ops.NewTestBackends(func(tb *ops.TestBackends) {
-		tb.Db = db.MigrateTestDB(t, ctx)
+		tb.Db = db.MigrateTestDB(t, ctx, "")
 		tb.ExternalClient = external_mock.NewMockClient(ctrl)
 	})
 

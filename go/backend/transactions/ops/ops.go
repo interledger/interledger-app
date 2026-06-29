@@ -11,7 +11,6 @@ import (
 	"github.com/interledger/interledger-app/go/backend/wallets"
 
 	"github.com/interledger/interledger-app/go/backend/slack"
-	"github.com/interledger/interledger-app/go/env"
 
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/google/uuid"
@@ -135,7 +134,7 @@ func createTransaction(ctx context.Context, dbc sqlx.ExecerContext, b Backends, 
 		UserID:      userID,
 	})
 
-	slack.SendToChannel(ctx, slack.ChannelTransaction, "wallet-info-bot", fmt.Sprintf(":money_with_wings: New Transaction Created\nID: %s\nWallet ID: %s\nAmount:%s\nFee:%s\nLink: %s", transID, args.WalletID, args.Amount.Format(), args.ProviderFee.Format(), env.AdminURL()+"/wallet/"+args.WalletID+"/transactions"))
+	slack.SendToChannel(ctx, slack.ChannelTransaction, "wallet-info-bot", fmt.Sprintf(":money_with_wings: New Transaction Created\nID: %s\nWallet ID: %s\nAmount:%s\nFee:%s\nLink: %s", transID, args.WalletID, args.Amount.Format(), args.ProviderFee.Format(), b.Config().Admin.BaseURL+"/wallet/"+args.WalletID+"/transactions"))
 
 	return transID, nil
 }
