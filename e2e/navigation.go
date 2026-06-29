@@ -138,7 +138,7 @@ func (sc *E2EContext) iClickTheButton(buttonText string) error {
 
 	switch strings.ToLower(buttonText) {
 	case "sign up", "get started":
-		selector = "button[data-testid='signup-get-started'], button:has-text(\"Let's get started\"), button:has-text('Get started'), button:has-text('Sign up'), a:has-text('Sign up')"
+		selector = "button:has-text('Sign Up'), button:has-text('Get Started'), a:has-text('Sign Up')"
 	case "let's get started":
 		selector = "button:has-text('Let'), button:has-text('Get started'), button[data-testid='signup-get-started']"
 	case "continue", "next":
@@ -201,19 +201,6 @@ func (sc *E2EContext) iShouldSeeTheSignupForm() error {
 	// If still not visible after 60s, take a debug screenshot
 	debugPrintf("   ⚠️  Signup form not visible after 60s, taking debug screenshot\n")
 	_ = sc.iTakeAScreenshot("signup-form-not-visible")
-
-	// Fallback: landing page may still be showing the CTA that opens the form.
-	getStartedBtn := sc.page.Locator("button[data-testid='signup-get-started'], button:has-text(\"Let's get started\"), button:has-text('Get started')").First()
-	if clickErr := getStartedBtn.Click(playwright.LocatorClickOptions{Timeout: playwright.Float(5000)}); clickErr == nil {
-		err = firstNameInput.First().WaitFor(playwright.LocatorWaitForOptions{
-			State:   playwright.WaitForSelectorStateVisible,
-			Timeout: playwright.Float(10000),
-		})
-		if err == nil {
-			_ = sc.iTakeAScreenshot("signup-form")
-			return nil
-		}
-	}
 
 	// Try one more time with a shorter wait (in case React just finished mounting)
 	err = firstNameInput.First().WaitFor(playwright.LocatorWaitForOptions{
