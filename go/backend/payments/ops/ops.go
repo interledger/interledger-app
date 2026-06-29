@@ -1263,7 +1263,6 @@ const (
 )
 
 // Generates a soft descriptor to show on the user's card statement.
-// See https://www.notion.so/fynbos/Soft-Descriptors-08b6693f96194f54ba0d62e21efd22d6
 func NewSoftDescriptor(date time.Time) (string, error) {
 	// Generate a random uint64.
 	buffer := make([]byte, 8)
