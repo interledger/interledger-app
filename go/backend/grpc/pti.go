@@ -99,7 +99,7 @@ func (s *rpcService) CreateCard(
 	}
 
 	if !feats.AddCardsEnabled {
-		return nil, NewValidationError("Form", "You have connected the maximum number of cards to Fynbos.")
+		return nil, NewValidationError("Form", "You have connected the maximum number of cards")
 	}
 
 	await, err := s.b.PTI().CreateCard(ctx, w.ID, req.GetTokenID())
@@ -138,7 +138,7 @@ func (s *rpcService) CreatePtiBankAccount(
 	}
 
 	if !feats.BanksEnabled {
-		return nil, NewValidationError("Form", "You have connected the maximum number of bank accounts to Fynbos.")
+		return nil, NewValidationError("Form", "You have connected the maximum number of bank accounts")
 	}
 
 	checkDigit := ""

@@ -19,8 +19,8 @@ import (
 /*
 GetPaymentAddress
 This function will handle the following cases
-https://fynbos.dev/matt , fynbos.dev/matt (return fynbos)
-@matbuddhabumb, https://twitter.com/matbuddhabum (returns twitter)
+https://example.com/alice , example.com/alice (returns the domain)
+@alice, https://twitter.com/alice (returns twitter)
 */
 func (s *rpcService) GetPaymentAddress(ctx context.Context, req *pb.GetPaymentAddressRequest) (*pb.GetPaymentAddressResponse, error) {
 	add := req.GetAddress()

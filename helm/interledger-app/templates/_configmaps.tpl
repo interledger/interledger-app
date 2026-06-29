@@ -12,7 +12,7 @@ data:
   PAYMENT_POINTER_BASE: {{ .Values.frontend.config.payment_pointer_base | quote }}
   RAFIKI_AUTH_ENDPOINT: {{ .Values.frontend.config.rafiki.auth.endpoint | quote }}
   BACKEND_GRPC_URL: {{ default (printf "http://%s-backend-service-grpc:8443" (include "common.fullname" .)) .Values.frontend.config.backend.grpc.url | quote }}
-  FYNBOS_ENV: {{ .Values.frontend.config.environment | quote }}
+  ILW_ENV: {{ .Values.frontend.config.environment | quote }}
   LOG_LEVEL: {{ .Values.frontend.config.log_level | quote }}
   LOG_PRETTY: {{ .Values.frontend.config.log_pretty | toString | quote }}
   PTI_CLIENT_ID: {{ .Values.frontend.config.pti.client_id | quote }}
