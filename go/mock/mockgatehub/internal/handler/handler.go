@@ -7,6 +7,7 @@ import (
 	"html/template"
 	"io"
 	"net/http"
+	"os"
 	"path/filepath"
 	"sort"
 	"strconv"
@@ -47,6 +48,16 @@ type TransactionRequest struct {
 // NewHandler creates a new handler using configuration loaded from the environment.
 // For tests or custom setups, use NewHandlerWithConfig to inject a pre-built config.
 func NewHandler(store storage.Storage, webhookManager *webhook.Manager) *Handler {
+	if os.Getenv("CONFIG") == "" {
+		return NewHandlerWithConfig(&config.Config{
+			Port:                  "8080",
+			LogLevel:              "info",
+			WebhookMinDelaySec:    2,
+			DefaultOrganizationID: "default-org",
+			ValidCredentials:      map[string]string{"local-test-app-id": "local-test-app-secret"},
+			PublicBaseURL:         "http://localhost",
+		}, store, webhookManager)
+	}
 	return NewHandlerWithConfig(config.Load(), store, webhookManager)
 }
 

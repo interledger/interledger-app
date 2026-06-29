@@ -849,7 +849,7 @@ func (c *client) TestDeposit(ctx context.Context, reqStruct TestDepositReq) erro
 }
 
 func (c *client) UpdateSubAccount(ctx context.Context, accountID string, reqStruct UpdateSubAccountRequest) error {
-	reqURL, err := url.JoinPath(c.baseURL, "company", "accounts", accountID)
+	reqURL, err := url.JoinPath(c.identityBaseURL, "company", "accounts", accountID)
 	if err != nil {
 		return err
 	}

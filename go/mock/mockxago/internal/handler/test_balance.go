@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
@@ -175,8 +174,8 @@ func (h *Handler) TestDeposit(w http.ResponseWriter, r *http.Request) {
 
 // sendDepositWebhook sends a deposit webhook to the backend
 func (h *Handler) sendDepositWebhook(walletID string, currency string, amount float64, transactionID string, accountID string) {
-	webhookURL := os.Getenv("WEBHOOK_URL")
-	webhookSecret := os.Getenv("WEBHOOK_SECRET")
+	webhookURL := h.webhookURL
+	webhookSecret := h.webhookSecret
 
 	if webhookURL == "" {
 		logger.Warnf("WEBHOOK_URL not configured, skipping webhook for wallet %s", walletID)

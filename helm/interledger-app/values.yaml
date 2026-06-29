@@ -146,6 +146,7 @@ backend:
     apple_app_id: ""
     android_package_name: ""
     android_sha256: ""
+    cards_enabled: false
 
     admin:
       # This is used to create links to the admin portal useful for support purposes
@@ -255,6 +256,13 @@ backend:
 
     persona:
       base_url: "https://api.withpersona.com/api/v1/"
+
+      # PERSONA_SANDBOX_ZA_FAKE_ZA_ID is a Persona sandbox workaround. Persona's sandbox environment
+      # always returns an American user profile, so the South African ID field is null.
+      # Setting this to true makes the backend generate a synthetic ZA ID instead,
+      # which is required for Xago subaccount creation. Has no effect in production.
+      personaSandboxFakeZAID: "false"
+
       token_ref: "personaToken"
       webhook_token_ref: "personaWebhookToken"
 
@@ -267,6 +275,7 @@ backend:
 
     sentry:
       dsn_ref: "sentryDSN"
+      env: ""
 
     pti:
       enabled: "false"
@@ -802,8 +811,10 @@ backend:
       contentMap:
         - key: APPLICATION_URL
           valueRef: backend.config.application_url
-        - key: FYNBOS_ENV
+        - key: ILW_ENV
           valueRef: backend.config.environment
+        - key: SENTRY_ENVIRONMENT
+          valueRef: backend.config.sentry.env
         - key: KRATOS_URL
           valueRef: backend.config.kratos.url
         - key: KRATOS_ADMIN_URL
@@ -910,6 +921,10 @@ backend:
           valueRef: backend.config.slack.channel_error
         - key: ADMIN_BASE_URL
           valueRef: backend.config.admin.base_url
+        - key: PERSONA_SANDBOX_ZA_FAKE_ZA_ID
+          valueRef: backend.config.persona.personaSandboxFakeZAID
+        - key: CARDS_ENABLED
+          valueRef: backend.config.cards_enabled
 
 # =============================================================================
 # FRONTEND — Protea user-facing wallet
@@ -1103,7 +1118,7 @@ frontend:
           valueRef: frontend.config.rafiki.auth.endpoint
         - key: BACKEND_GRPC_URL
           valueRef: frontend.config.backend.grpc.url
-        - key: FYNBOS_ENV
+        - key: ILW_ENV
           valueRef: frontend.config.environment
         - key: LOG_LEVEL
           valueRef: frontend.config.log_level

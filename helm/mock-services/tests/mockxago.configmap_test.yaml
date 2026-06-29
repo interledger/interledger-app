@@ -47,37 +47,34 @@ tests:
           path: metadata.name
           value: wallet-mockxago-config
 
-  - it: 'Should set WEBHOOK_URL from config'
+  - it: 'Should store config as a single config.yaml file entry'
     asserts:
-      - equal:
-          path: data.WEBHOOK_URL
-          value: "http://wallet-backend-service-http:8080/webhooks/xago"
+      - exists:
+          path: data["config.yaml"]
 
-  - it: 'Should set MOCKXAGO_REDIS_DB from config'
+  - it: 'Should include webhook_url in config.yaml'
     asserts:
-      - equal:
-          path: data.MOCKXAGO_REDIS_DB
-          value: "4"
+      - matchRegex:
+          path: data["config.yaml"]
+          pattern: "webhook_url: http://wallet-backend-service-http:8080/webhooks/xago"
 
-  - it: 'Should set XAGO_MOCK_TEST_MODE from config'
+  - it: 'Should include test_mode in config.yaml'
     asserts:
-      - equal:
-          path: data.XAGO_MOCK_TEST_MODE
-          value: "true"
+      - matchRegex:
+          path: data["config.yaml"]
+          pattern: "test_mode: true"
 
-  - it: 'Should set MOCKXAGO_ENFORCE_AUTHENTICATION from config'
+  - it: 'Should include sensitive fields in config.yaml (empty by default)'
     asserts:
-      - equal:
-          path: data.MOCKXAGO_ENFORCE_AUTHENTICATION
-          value: "true"
-
-  - it: 'Should not include sensitive credentials in ConfigMap'
-    asserts:
-      - notExists:
-          path: data.WEBHOOK_SECRET
-      - notExists:
-          path: data.XAGO_API_PUBLIC_KEY
-      - notExists:
-          path: data.XAGO_API_SECRET
-      - notExists:
-          path: data.PERSONA_WEBHOOK_TOKEN
+      - matchRegex:
+          path: data["config.yaml"]
+          pattern: "webhook_secret:"
+      - matchRegex:
+          path: data["config.yaml"]
+          pattern: "public_key:"
+      - matchRegex:
+          path: data["config.yaml"]
+          pattern: "secret:"
+      - matchRegex:
+          path: data["config.yaml"]
+          pattern: "persona_webhook_token:"

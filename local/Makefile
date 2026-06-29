@@ -69,8 +69,13 @@ help:
 
 	hosts \
 
+prep:
+	@mkdir -p config-override
+	@touch config-override/mockgatehub.yaml
+	@touch config-override/mockpti.yaml
+	@touch config-override/mockxago.yaml
 
-infrastructure:
+infrastructure: prep
 	$(COMPOSE) --profile infrastructure up
 
 infra: infrastructure
@@ -95,13 +100,13 @@ frontend:
 
 front: frontend
 
-all:
+all: prep
 	$(COMPOSE) --profile "*" up --watch
 
-all-nowatch:
+all-nowatch: prep
 	$(COMPOSE) --profile "*" up -d
 
-all-ci:
+all-ci: prep
 	$(COMPOSE) -f docker-compose.yaml -f protea.runner.mounts.yaml --profile infrastructure --profile services --profile application --profile backend --profile frontend up -d
 
 unit-test-db-up:

@@ -6,26 +6,31 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/interledger/interledger-app/go/mock/mockxago/internal/config"
 	"github.com/interledger/interledger-app/go/mock/mockxago/internal/jobs"
 	"github.com/interledger/interledger-app/go/mock/mockxago/internal/models"
 	"github.com/interledger/interledger-app/go/mock/mockxago/internal/storage"
 )
 
-func setupTestHandler(t *testing.T) *Handler {
-	// Set environment variables for testing
-	os.Setenv("XAGO_API_PUBLIC_KEY", "test-public-key")
-	os.Setenv("XAGO_API_SECRET", "test-secret")
-	os.Setenv("XAGO_MOCK_TEST_MODE", "true")
+// testConfig returns a minimal *config.Config suitable for unit tests.
+func testConfig() *config.Config {
+	return &config.Config{
+		PublicKey: "test-public-key",
+		Secret:    "test-secret",
+		TestMode:  true,
+	}
+}
 
+func setupTestHandler(t *testing.T) *Handler {
+	t.Helper()
 	store := storage.NewMemoryStorage()
 	queue := jobs.NewQueue(store)
-	return NewHandler(store, queue)
+	return NewHandler(store, queue, testConfig())
 }
 
 func TestLogin_Success(t *testing.T) {

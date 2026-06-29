@@ -20,13 +20,9 @@ services:
     ports:
       - "24024:8080"
     environment:
-      - XAGO_MOCK_PORT=8080
-      - XAGO_API_PUBLIC_KEY=test_public_key_12345
-      - XAGO_API_SECRET=test_secret_key_98765
-      - XAGO_MOCK_TEST_MODE=true
-      - WEBHOOK_URL=http://host.docker.internal:3000/xago/webhooks
-      - WEBHOOK_SECRET=test-webhook-secret
-      - MOCKXAGO_REDIS_URL=redis://redis:6379
+      - CONFIG=/config/config.yaml
+    volumes:
+      - ./config.yaml:/config/config.yaml:ro
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:

@@ -17,13 +17,12 @@
 # MOCKPTI — Mock PTI (Fiant) service
 #
 # Resources rendered when enabled:
-#   - ConfigMap   <fullname>-mockpti-config
-#   - Deployment  <fullname>-mockpti-server
-#   - Service     <fullname>-mockpti-service
-#
-# Expected Secret: <fullname>-mockpti
-#   Key: mockptiWebhookSigningKeyB64 (base64-encoded Ed25519 private key PEM)
-#   The service refuses to start if this variable is absent or not valid base64.
+#   - ConfigMap       <fullname>-mockpti-config
+#   - Deployment      <fullname>-mockpti-server
+#   - Service         <fullname>-mockpti-service
+#   - ServiceAccount  <fullname>-mockpti           (when serviceAccount.create: true)
+#   - Role            <fullname>-mockpti-secret-reader  (when secretAccess is non-empty)
+#   - RoleBinding     <fullname>-mockpti-secret-reader  (when secretAccess is non-empty)
 #
 # Required values (chart will fail to render if empty):
 #   mockpti.config.webhook_url
@@ -32,20 +31,31 @@ mockpti:
   # Boolean — must be true or false, not a quoted string.
   enabled: false
 
+  # Set create: true for the chart to create a ServiceAccount, Role, and RoleBinding.
+  # The SA name defaults to <fullname>-mockpti; override with name.
+  # Only needed when config values reference {{ secret "name" "key" }} — the SA must
+  # be able to call the Kubernetes Secrets API for configa to resolve those at startup.
+  serviceAccount:
+    create: false
+    name: ""
+
+  # Names of Kubernetes Secrets this service needs to read at runtime via configa's
+  # {{ secret "name" "key" }} syntax. Ignored when serviceAccount.create is false.
+  # A Role granting get on exactly these secret names is created alongside the SA.
+  secretAccess: []
+
+  # The config section is serialised verbatim as config.yaml inside the ConfigMap.
+  # All keys must match the yaml struct tags in go/mock/mockpti/internal/config/config.go.
+  # Sensitive values (webhook_signing_key) should be supplied by the operator at deploy
+  # time, either as a plain value or using configa's {{ secret "name" "key" }} syntax.
   config:
     log_level: "debug"
     redis_url: ""
     redis_db: "5"
-    # client_id enforced against the x-pti-client-id header on every API call.
-    # Leave empty to accept any client ID.
     client_id: ""
-    # webhook_url is the backend endpoint mockpti calls for async events.
-    # Required — the chart will refuse to render if left empty.
     webhook_url: ""
-    webhook_min_delay_sec: "0.2"
-    # Name of the key inside the <fullname>-mockpti Secret that holds the
-    # base64-encoded Ed25519 private key PEM.
-    webhook_signing_key_ref: "mockptiWebhookSigningKeyB64"
+    webhook_signing_key: ""
+    forms_mutation_token: ""
 
   configMaps:
     config:
@@ -88,15 +98,13 @@ mockpti:
           targetPort: 8080
           protocol: TCP
           name: http
-    envFrom:
-      - configMapRef:
-          name: '{{ include "common.fullname" . }}-mockpti-config'
     env:
-      - name: MOCKPTI_WEBHOOK_SIGNING_KEY_B64
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-mockpti'
-            key: "{{ .Values.mockpti.config.webhook_signing_key_ref }}"
+      - name: CONFIG
+        value: /etc/mockpti/config.yaml
+    volumeMounts:
+      - name: config
+        mountPath: /etc/mockpti
+        readOnly: true
     resources:
       requests:
         memory: 64Mi
@@ -109,13 +117,12 @@ mockpti:
 # MOCKGATEHUB — Mock GateHub service
 #
 # Resources rendered when enabled:
-#   - ConfigMap   <fullname>-mockgatehub-config
-#   - Deployment  <fullname>-mockgatehub-server
-#   - Service     <fullname>-mockgatehub-service
-#
-# Expected Secret: <fullname>-mockgatehub
-#   webhookSecret          — WEBHOOK_SECRET (outbound webhook HMAC secret)
-#   validCredentials       — MOCKGATEHUB_VALID_CREDENTIALS ("appid:secret" pairs)
+#   - ConfigMap       <fullname>-mockgatehub-config
+#   - Deployment      <fullname>-mockgatehub-server
+#   - Service         <fullname>-mockgatehub-service
+#   - ServiceAccount  <fullname>-mockgatehub           (when serviceAccount.create: true)
+#   - Role            <fullname>-mockgatehub-secret-reader  (when secretAccess is non-empty)
+#   - RoleBinding     <fullname>-mockgatehub-secret-reader  (when secretAccess is non-empty)
 #
 # Required values (chart will fail to render if empty):
 #   mockgatehub.config.webhook_url
@@ -124,22 +131,30 @@ mockgatehub:
   # Boolean — must be true or false, not a quoted string.
   enabled: false
 
+  # See mockpti.serviceAccount for full description.
+  serviceAccount:
+    create: false
+    name: ""
+
+  # See mockpti.secretAccess for full description.
+  secretAccess: []
+
+  # The config section is serialised verbatim as config.yaml inside the ConfigMap.
+  # All keys must match the yaml struct tags in go/mock/mockgatehub/internal/config/config.go.
+  # Sensitive values (webhook_secret, valid_credentials) should be supplied by the operator
+  # at deploy time, either as plain values or using configa's {{ secret "name" "key" }} syntax.
   config:
     log_level: "info"
     redis_url: ""
-    redis_db: "2"
-    # webhook_url is the backend endpoint mockgatehub calls for async events.
-    # Required — the chart will refuse to render if left empty.
+    redis_db: 2
     webhook_url: ""
-    webhook_min_delay_sec: "2"
-    enforce_authentication: "true"
+    webhook_secret: ""
+    webhook_min_delay_sec: 2
+    enforce_authentication: true
+    valid_credentials: {}
     default_organization_id: "default-org"
-    # public_base_url is used to construct absolute URLs in API responses
-    # (e.g. card-data tokenisation links followed directly by the browser).
     public_base_url: "https://mockgatehub.interledger.test"
-    # Secret key refs — names of keys in the <fullname>-mockgatehub Secret.
-    webhook_secret_ref: "webhookSecret"
-    valid_credentials_ref: "validCredentials"
+    card_data_token_secret: ""
 
   configMaps:
     config:
@@ -182,20 +197,13 @@ mockgatehub:
           targetPort: 8080
           protocol: TCP
           name: http
-    envFrom:
-      - configMapRef:
-          name: '{{ include "common.fullname" . }}-mockgatehub-config'
     env:
-      - name: WEBHOOK_SECRET
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-mockgatehub'
-            key: "{{ .Values.mockgatehub.config.webhook_secret_ref }}"
-      - name: MOCKGATEHUB_VALID_CREDENTIALS
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-mockgatehub'
-            key: "{{ .Values.mockgatehub.config.valid_credentials_ref }}"
+      - name: CONFIG
+        value: /etc/mockgatehub/config.yaml
+    volumeMounts:
+      - name: config
+        mountPath: /etc/mockgatehub
+        readOnly: true
     resources:
       requests:
         memory: 64Mi
@@ -208,15 +216,12 @@ mockgatehub:
 # MOCKXAGO — Mock Xago service
 #
 # Resources rendered when enabled:
-#   - ConfigMap   <fullname>-mockxago-config
-#   - Deployment  <fullname>-mockxago-server
-#   - Service     <fullname>-mockxago-service
-#
-# Expected Secret: <fullname>-mockxago
-#   webhookSecret          — WEBHOOK_SECRET (outbound webhook HMAC secret)
-#   apiPublicKey           — XAGO_API_PUBLIC_KEY (API credential)
-#   apiSecret              — XAGO_API_SECRET (API credential)
-#   personaWebhookToken    — PERSONA_WEBHOOK_TOKEN (Persona KYC webhook token)
+#   - ConfigMap       <fullname>-mockxago-config
+#   - Deployment      <fullname>-mockxago-server
+#   - Service         <fullname>-mockxago-service
+#   - ServiceAccount  <fullname>-mockxago           (when serviceAccount.create: true)
+#   - Role            <fullname>-mockxago-secret-reader  (when secretAccess is non-empty)
+#   - RoleBinding     <fullname>-mockxago-secret-reader  (when secretAccess is non-empty)
 #
 # Required values (chart will fail to render if empty):
 #   mockxago.config.webhook_url
@@ -225,24 +230,31 @@ mockxago:
   # Boolean — must be true or false, not a quoted string.
   enabled: false
 
+  # See mockpti.serviceAccount for full description.
+  serviceAccount:
+    create: false
+    name: ""
+
+  # See mockpti.secretAccess for full description.
+  secretAccess: []
+
+  # The config section is serialised verbatim as config.yaml inside the ConfigMap.
+  # All keys must match the yaml struct tags in go/mock/mockxago/internal/config/config.go.
+  # Sensitive values (webhook_secret, public_key, secret, persona_webhook_token) should be
+  # supplied by the operator at deploy time, either as plain values or using configa's
+  # {{ secret "name" "key" }} syntax.
   config:
     log_level: "debug"
     redis_url: ""
-    redis_db: "4"
-    # webhook_url is the backend endpoint mockxago calls for async events.
-    # Required — the chart will refuse to render if left empty.
+    redis_db: 4
+    public_key: ""
+    secret: ""
+    test_mode: true
     webhook_url: ""
-    webhook_min_delay_sec: "2"
-    enforce_authentication: "true"
-    test_mode: "true"
-    # persona_webhook_url is the URL mockxago sends Persona KYC webhooks to.
-    # Leave empty to disable Persona webhook forwarding.
+    webhook_secret: ""
+    webhook_min_delay_sec: 2
     persona_webhook_url: ""
-    # Secret key refs — names of keys in the <fullname>-mockxago Secret.
-    webhook_secret_ref: "webhookSecret"
-    api_public_key_ref: "apiPublicKey"
-    api_secret_ref: "apiSecret"
-    persona_webhook_token_ref: "personaWebhookToken"
+    persona_webhook_token: ""
 
   configMaps:
     config:
@@ -285,30 +297,13 @@ mockxago:
           targetPort: 8080
           protocol: TCP
           name: http
-    envFrom:
-      - configMapRef:
-          name: '{{ include "common.fullname" . }}-mockxago-config'
     env:
-      - name: WEBHOOK_SECRET
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-mockxago'
-            key: "{{ .Values.mockxago.config.webhook_secret_ref }}"
-      - name: XAGO_API_PUBLIC_KEY
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-mockxago'
-            key: "{{ .Values.mockxago.config.api_public_key_ref }}"
-      - name: XAGO_API_SECRET
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-mockxago'
-            key: "{{ .Values.mockxago.config.api_secret_ref }}"
-      - name: PERSONA_WEBHOOK_TOKEN
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-mockxago'
-            key: "{{ .Values.mockxago.config.persona_webhook_token_ref }}"
+      - name: CONFIG
+        value: /etc/mockxago/config.yaml
+    volumeMounts:
+      - name: config
+        mountPath: /etc/mockxago
+        readOnly: true
     resources:
       requests:
         memory: 64Mi

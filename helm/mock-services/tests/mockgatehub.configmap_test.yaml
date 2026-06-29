@@ -47,33 +47,31 @@ tests:
           path: metadata.name
           value: wallet-mockgatehub-config
 
-  - it: 'Should set WEBHOOK_URL from config'
+  - it: 'Should store config as a single config.yaml file entry'
     asserts:
-      - equal:
-          path: data.WEBHOOK_URL
-          value: "http://wallet-backend-service-http:8080/webhooks/gatehub"
+      - exists:
+          path: data["config.yaml"]
 
-  - it: 'Should set MOCKGATEHUB_REDIS_DB from config'
+  - it: 'Should include webhook_url in config.yaml'
     asserts:
-      - equal:
-          path: data.MOCKGATEHUB_REDIS_DB
-          value: "2"
+      - matchRegex:
+          path: data["config.yaml"]
+          pattern: "webhook_url: http://wallet-backend-service-http:8080/webhooks/gatehub"
 
-  - it: 'Should set MOCKGATEHUB_PUBLIC_BASE_URL from config'
+  - it: 'Should include public_base_url in config.yaml'
     asserts:
-      - equal:
-          path: data.MOCKGATEHUB_PUBLIC_BASE_URL
-          value: "https://mockgatehub.interledger.test"
+      - matchRegex:
+          path: data["config.yaml"]
+          pattern: "public_base_url: https://mockgatehub.interledger.test"
 
-  - it: 'Should set MOCKGATEHUB_ENFORCE_AUTHENTICATION from config'
+  - it: 'Should include enforce_authentication in config.yaml'
     asserts:
-      - equal:
-          path: data.MOCKGATEHUB_ENFORCE_AUTHENTICATION
-          value: "true"
+      - matchRegex:
+          path: data["config.yaml"]
+          pattern: "enforce_authentication: true"
 
-  - it: 'Should not include sensitive credentials in ConfigMap'
+  - it: 'Should include webhook_secret in config.yaml (sensitive value — empty by default)'
     asserts:
-      - notExists:
-          path: data.WEBHOOK_SECRET
-      - notExists:
-          path: data.MOCKGATEHUB_VALID_CREDENTIALS
+      - matchRegex:
+          path: data["config.yaml"]
+          pattern: "webhook_secret:"

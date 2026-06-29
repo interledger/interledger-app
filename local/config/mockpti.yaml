@@ -1,0 +1,12 @@
+log_level: debug
+
+redis_url: redis://redis:6379
+redis_db: "5"
+
+client_id: 04d3e1b5-96d4-47e4-9eaa-13e9b4b0f219
+
+webhook_url: http://backend:8080/webhooks/pti
+webhook_signing_key: |
+  -----BEGIN PRIVATE KEY-----
+  MC4CAQAwBQYDK2VwBCIEIO49I4fkirtnEKgxcZsToTO9y5FS6sRddjmOik17QhVS
+  -----END PRIVATE KEY-----

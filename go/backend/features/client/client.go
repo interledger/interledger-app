@@ -10,12 +10,14 @@ import (
 var _ features.Client = client{}
 
 type client struct {
-	b ops.Backends
+	b            ops.Backends
+	cardsEnabled bool
 }
 
-func New(b ops.Backends) features.Client {
+func New(b ops.Backends, cardsEnabled bool) features.Client {
 	return &client{
-		b: b,
+		b:            b,
+		cardsEnabled: cardsEnabled,
 	}
 }
 
@@ -24,5 +26,5 @@ func (c client) SetFeatures(ctx context.Context, walletID string, features featu
 }
 
 func (c client) Features(ctx context.Context, walletID string) (*features.WalletFeatures, error) {
-	return ops.Features(ctx, c.b, walletID)
+	return ops.Features(ctx, c.b, walletID, c.cardsEnabled)
 }

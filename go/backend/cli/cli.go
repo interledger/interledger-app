@@ -21,6 +21,7 @@ type MigrationArgs struct {
 	LogOutputPath           string
 	SentryDSN               string
 	SentryRelease           string
+	SentryEnvironment       string
 }
 
 func ParseMigrationArgs() (*MigrationArgs, error) {
@@ -55,6 +56,7 @@ func ParseMigrationArgs() (*MigrationArgs, error) {
 		PacioliConnectionString: pacDB,
 		SentryDSN:               os.Getenv("SENTRY_DSN"),
 		SentryRelease:           os.Getenv("SENTRY_RELEASE"),
+		SentryEnvironment:       os.Getenv("SENTRY_ENVIRONMENT"),
 	}, nil
 }
 
@@ -133,6 +135,7 @@ type StartArgs struct {
 	SignatureVersion               string
 	SentryDSN                      string
 	SentryRelease                  string
+	SentryEnvironment              string
 	SlackToken                     string
 	SlackChannelSignupKYC          string
 	SlackChannelTransaction        string
@@ -153,6 +156,7 @@ type StartArgs struct {
 	RafikiAuthDBURL                string
 	TempGatehubAppID               string
 	TempGatehubSecret              string
+	CardsEnabled                   bool
 }
 
 func ParseStartArgs() (*StartArgs, error) {
@@ -166,16 +170,16 @@ func ParseStartArgs() (*StartArgs, error) {
 	}
 
 	// Configure the env package before calling any env.Is* helpers below.
-	fynbosEnvValue := os.Getenv("FYNBOS_ENV")
-	switch fynbosEnvValue {
+	ilwEnvValue := os.Getenv("ILW_ENV")
+	switch ilwEnvValue {
 	case "prod", "sandbox", "dev", "local", "test":
 		// valid
 	case "":
-		return nil, errors.New("FYNBOS_ENV is required; must be one of: prod, sandbox, dev, local, test")
+		return nil, errors.New("ILW_ENV is required; must be one of: prod, sandbox, dev, local, test")
 	default:
-		return nil, fmt.Errorf("FYNBOS_ENV=%q is invalid; must be one of: prod, sandbox, dev, local, test", fynbosEnvValue)
+		return nil, fmt.Errorf("ILW_ENV=%q is invalid; must be one of: prod, sandbox, dev, local, test", ilwEnvValue)
 	}
-	env.SetFynbosEnv(fynbosEnvValue)
+	env.SetIlwEnv(ilwEnvValue)
 
 	allowedWalletIDsRaw := os.Getenv("ALLOWED_WALLET_IDS")
 	if allowedWalletIDsRaw != "" {
@@ -580,6 +584,15 @@ func ParseStartArgs() (*StartArgs, error) {
 
 	signupAgreementIDs := parseSignupAgreementIDs(os.Getenv("SIGNUP_AGREEMENT_IDS"))
 
+	cardsEnabled := true
+	if v := os.Getenv("CARDS_ENABLED"); v != "" {
+		var err error
+		cardsEnabled, err = strconv.ParseBool(v)
+		if err != nil {
+			return nil, errors.New("CARDS_ENABLED must be a valid boolean (true/false/1/0)")
+		}
+	}
+
 	return &StartArgs{
 		Port:                           port,
 		DbConnectionString:             dbUrl,
@@ -655,6 +668,7 @@ func ParseStartArgs() (*StartArgs, error) {
 		SignatureVersion:               signatureVersion,
 		SentryDSN:                      os.Getenv("SENTRY_DSN"),
 		SentryRelease:                  os.Getenv("SENTRY_RELEASE"),
+		SentryEnvironment:              os.Getenv("SENTRY_ENVIRONMENT"),
 		SlackToken:                     os.Getenv("SLACK_TOKEN"),
 		SlackChannelSignupKYC:          os.Getenv("SIGNUP_KYC_SLACK_CHANNEL"),
 		SlackChannelTransaction:        os.Getenv("TRANSACTION_SLACK_CHANNEL"),
@@ -675,6 +689,7 @@ func ParseStartArgs() (*StartArgs, error) {
 		RafikiAuthDBURL:                os.Getenv("RAFIKI_AUTH_DB_URL"),
 		TempGatehubAppID:               os.Getenv("TEMP_GATEHUB_APP_ID"),
 		TempGatehubSecret:              os.Getenv("TEMP_GATEHUB_SECRET"),
+		CardsEnabled:                   cardsEnabled,
 	}, nil
 }
 
