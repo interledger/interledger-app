@@ -96,6 +96,22 @@ Feature: Plaid bank-link
     When I navigate to "/connect/bank"
     Then I should be navigated to dashboard "home"
 
+  @plaid @pti
+  Scenario: S12 — link failure surfaces the error
+    Given the details of 'plaid-fail-user' are
+      | field       | value                        |
+      | emailSuffix | plaid-fail@example.com       |
+      | password    | InterlEdger2025!TestPassword |
+      | country     | United States                |
+      | firstName   | Alice                        |
+      | lastName    | Smith                        |
+      | dateOfBirth | 1984-06-27                   |
+    And mockpti is running at "https://mockpti.interledger.test"
+    And I complete the minimal PTI KYC flow `plaid-fail-user`
+    When I connect "Failing Bank" "checking" via Plaid
+    Then I should see the snackbar "Bank account linking failed. Please try again."
+    And I should have "0" Plaid bank accounts
+
   @plaid @deposit @pti
   Scenario: S11 — a Plaid-linked account funds a PTI deposit
     Given the details of 'plaid-deposit-user' are
