@@ -89,8 +89,8 @@ func (s *rpcService) CompleteSignup(ctx context.Context, req *pb.CompleteSignupR
 		return nil, toGRPCError(err)
 	}
 
-	// Create THE default wallet for a user.
-	// Created idempotent (UNIQUE(user_id) + ON CONFLICT), so retries of CompleteSignup are safe
+	// Create THE default wallet for a user
+	// retry-safe: create may return ErrDuplicateWallet for an already provisioned user, which we treat as success
 	su, err := s.b.Signup().Get(ctx, req.Id)
 	if err != nil {
 		return nil, toGRPCError(err)

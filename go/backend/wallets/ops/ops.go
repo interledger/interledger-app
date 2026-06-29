@@ -57,7 +57,7 @@ func Create(ctx context.Context, b Backends, args wallets.CreateArgs) (*wallets.
 		if rows == 0 {
 			// if 0 rows are affected the user already has a wallet,
 			// so we roll back (no orphan wallets row) and return ErrDuplicateWallet for the caller to handle
-			return fmt.Errorf("%w for user %s", wallets.ErrDuplicateWallet, userID)
+			return wallets.ErrDuplicateWallet
 		}
 
 		for _, wa := range args.Addresses {

@@ -187,12 +187,20 @@ func TestOneWalletPerUser(t *testing.T) {
 	assert.Equal(t, country.US, usWallet.Country)
 
 	// A second wallet for the same user is rejected.
+	// Use an explicit ID so we can confirm the rejected attempt rolled back cleanly.
+	orphanID := uuid.NewString()
 	_, err = ops.Create(ctx, b, wallets.CreateArgs{
+		ID:      orphanID,
 		UserID:  userID,
 		Name:    "za-wallet",
 		Country: country.ZA,
 	})
 	require.ErrorIs(t, err, wallets.ErrDuplicateWallet)
+
+	// Create inserts into wallets before claiming the user,
+	// so a failed attempt must not leave an orphan wallets row behind.
+	_, err = ops.Get(ctx, b, orphanID)
+	require.ErrorIs(t, err, wallets.ErrNoWalletFound)
 
 	// The user still has exactly their original wallet.
 	list, err := ops.List(ctx, b, userID)
