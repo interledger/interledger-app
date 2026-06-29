@@ -41,8 +41,8 @@ dependencies:
     specifier: ^7.13.1
     version: 7.13.1(react-dom@18.2.0)(react@18.2.0)
   uuid:
-    specifier: ^9.0.0
-    version: 9.0.0
+    specifier: ^11.0.0
+    version: 11.0.0
 
 devDependencies:
   '@eslint/js':
@@ -4465,8 +4465,8 @@ packages:
     resolution: {integrity: sha512-pMZTvIkT1d+TFGvDOqodOclx0QWkkgi6Tdoa8gC8ffGAAqz9pzPTZWAybbsHHoED/ztMtkv/VoYTYyShUn81hA==}
     engines: {node: '>= 0.4.0'}
 
-  /uuid@9.0.0:
-    resolution: {integrity: sha512-MXcSTerfPa4uqyzStbRoTgt5XIe3x5+42+q1sDuy3R5MDk66URdLMOZe5aPX/SQd+kuYAh0FdP/pO28IkQyTeg==}
+  /uuid@11.0.0:
+    resolution: {integrity: sha512-iE8Fa5fgBY4rN5GvNUJ8TSwO1QG7TzdPfhrJczf6XJ6mZUxh/GX433N70fCiJL9h8EKP5ayEIo0Q6EBQGWHFqA==}
     hasBin: true
     dev: false
 

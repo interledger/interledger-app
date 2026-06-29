@@ -215,6 +215,8 @@ services:
       - SMARTY_AUTH_TOKEN=${BACKEND_SMARTY_AUTH_TOKEN:-test-smarty-auth-token}
       - LOG_OUTPUT_PATH=${BACKEND_LOG_OUTPUT_PATH:-}
 
+      - CARDS_ENABLED=${BACKEND_CARDS_ENABLED:-true}
+
     depends_on:
       - migration
       - mockgatehub

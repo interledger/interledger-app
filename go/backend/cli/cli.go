@@ -156,6 +156,7 @@ type StartArgs struct {
 	RafikiAuthDBURL                string
 	TempGatehubAppID               string
 	TempGatehubSecret              string
+	CardsEnabled                   bool
 }
 
 func ParseStartArgs() (*StartArgs, error) {
@@ -583,6 +584,15 @@ func ParseStartArgs() (*StartArgs, error) {
 
 	signupAgreementIDs := parseSignupAgreementIDs(os.Getenv("SIGNUP_AGREEMENT_IDS"))
 
+	cardsEnabled := true
+	if v := os.Getenv("CARDS_ENABLED"); v != "" {
+		var err error
+		cardsEnabled, err = strconv.ParseBool(v)
+		if err != nil {
+			return nil, errors.New("CARDS_ENABLED must be a valid boolean (true/false/1/0)")
+		}
+	}
+
 	return &StartArgs{
 		Port:                           port,
 		DbConnectionString:             dbUrl,
@@ -679,6 +689,7 @@ func ParseStartArgs() (*StartArgs, error) {
 		RafikiAuthDBURL:                os.Getenv("RAFIKI_AUTH_DB_URL"),
 		TempGatehubAppID:               os.Getenv("TEMP_GATEHUB_APP_ID"),
 		TempGatehubSecret:              os.Getenv("TEMP_GATEHUB_SECRET"),
+		CardsEnabled:                   cardsEnabled,
 	}, nil
 }
 

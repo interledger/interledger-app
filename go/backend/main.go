@@ -777,7 +777,7 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 
 	b.analytics = analytics_client.New(b, args.SegmentKey)
 
-	b.feat = features_client.New(b)
+	b.feat = features_client.New(b, args.CardsEnabled)
 
 	twilioService, err := _twilio.NewService(&_twilio.ServiceArgs{
 		AccountSid:   args.TwilioSid,
