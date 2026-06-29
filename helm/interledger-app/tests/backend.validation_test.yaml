@@ -62,6 +62,7 @@ set:
       config:
         db_url: "postgres://user:pass@db:5432/backend"
         pacioli_db_url: "postgres://user:pass@db:5432/pacioli"
+        open_payments_base_url: "https://ilp.example"
 
 tests:
   # ── Success cases ────────────────────────────────────────────────────────────
@@ -220,6 +221,13 @@ tests:
     asserts:
       - failedTemplate:
           errorMessage: "The following required values are empty: backend.migration.config.db_url"
+
+  - it: 'Should fail when migration open_payments_base_url is empty'
+    set:
+      backend.migration.config.open_payments_base_url: ""
+    asserts:
+      - failedTemplate:
+          errorMessage: "The following required values are empty: backend.migration.config.open_payments_base_url"
 
   # ── Conditional: gatehub.enabled ────────────────────────────────────────────
 
