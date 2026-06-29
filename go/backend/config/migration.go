@@ -12,7 +12,7 @@ import (
 type MigrationConfig struct {
 	DBUrl               string       `yaml:"db_url"                validate:"required"`
 	PacioliDBUrl        string       `yaml:"pacioli_db_url"        validate:"required"`
-	OpenPaymentsBaseURL string       `yaml:"open_payments_base_url"`
+	OpenPaymentsBaseURL string       `yaml:"open_payments_base_url" validate:"required"`
 	KratosUrl           string       `yaml:"kratos_url"`
 	LogLevel            string       `yaml:"log_level"`
 	LogOutputPath       string       `yaml:"log_output_path"`

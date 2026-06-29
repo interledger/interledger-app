@@ -58,14 +58,26 @@
   ) -}}
 {{- end -}}
 
-{{/* mode=prod: additional GateHub fields required — mirrors validateGatehubProd in start.go */}}
+{{/* mode=prod: all GateHub fields required — mirrors validateGatehubProd in start.go */}}
 {{- if eq $mode "prod" -}}
   {{- $requiredFields = concat $requiredFields (list
-    (dict "path" "backend.config.gatehub.app_id"               "value" .Values.backend.config.gatehub.app_id)
-    (dict "path" "backend.config.gatehub.secret"               "value" .Values.backend.config.gatehub.secret)
-    (dict "path" "backend.config.gatehub.card_app_id"          "value" .Values.backend.config.gatehub.card_app_id)
-    (dict "path" "backend.config.gatehub.gateway_id"           "value" .Values.backend.config.gatehub.gateway_id)
-    (dict "path" "backend.config.gatehub.paywiser_euro_vault_id" "value" .Values.backend.config.gatehub.paywiser_euro_vault_id)
+    (dict "path" "backend.config.gatehub.app_id"                    "value" .Values.backend.config.gatehub.app_id)
+    (dict "path" "backend.config.gatehub.secret"                    "value" .Values.backend.config.gatehub.secret)
+    (dict "path" "backend.config.gatehub.card_app_id"               "value" .Values.backend.config.gatehub.card_app_id)
+    (dict "path" "backend.config.gatehub.gateway_id"                "value" .Values.backend.config.gatehub.gateway_id)
+    (dict "path" "backend.config.gatehub.paywiser_euro_vault_id"    "value" .Values.backend.config.gatehub.paywiser_euro_vault_id)
+    (dict "path" "backend.config.gatehub.card_account_product_code" "value" .Values.backend.config.gatehub.card_account_product_code)
+    (dict "path" "backend.config.gatehub.sending_user_id"           "value" .Values.backend.config.gatehub.sending_user_id)
+    (dict "path" "backend.config.gatehub.sending_user_address"      "value" .Values.backend.config.gatehub.sending_user_address)
+    (dict "path" "backend.config.gatehub.on_off_ramp_client_id"     "value" .Values.backend.config.gatehub.on_off_ramp_client_id)
+    (dict "path" "backend.config.gatehub.onboarding_client_id"      "value" .Values.backend.config.gatehub.onboarding_client_id)
+    (dict "path" "backend.config.gatehub.exchange_client_id"        "value" .Values.backend.config.gatehub.exchange_client_id)
+    (dict "path" "backend.config.gatehub.api_base_url"              "value" .Values.backend.config.gatehub.api_base_url)
+    (dict "path" "backend.config.gatehub.onboarding_base_url"       "value" .Values.backend.config.gatehub.onboarding_base_url)
+    (dict "path" "backend.config.gatehub.on_off_ramp_base_url"      "value" .Values.backend.config.gatehub.on_off_ramp_base_url)
+    (dict "path" "backend.config.gatehub.eur_ops_account"           "value" .Values.backend.config.gatehub.eur_ops_account)
+    (dict "path" "backend.config.gatehub.eur_ops_ledger_id"         "value" .Values.backend.config.gatehub.eur_ops_ledger_id)
+    (dict "path" "backend.config.gatehub.organization_id"           "value" .Values.backend.config.gatehub.organization_id)
   ) -}}
   {{- if eq (toString .Values.backend.config.rafiki.node_enabled) "true" -}}
     {{- $requiredFields = concat $requiredFields (list
@@ -109,13 +121,14 @@
 
 {{/* Migration job config — mirrors validate:"required" tags in migration.go */}}
 {{- $migrationRequiredFields := list
-  (dict "path" "backend.migration.config.db_url"       "value" .Values.backend.migration.config.db_url)
-  (dict "path" "backend.migration.config.pacioli_db_url" "value" .Values.backend.migration.config.pacioli_db_url)
+  (dict "path" "backend.migration.config.db_url"                "value" .Values.backend.migration.config.db_url)
+  (dict "path" "backend.migration.config.pacioli_db_url"        "value" .Values.backend.migration.config.pacioli_db_url)
+  (dict "path" "backend.migration.config.open_payments_base_url" "value" .Values.backend.migration.config.open_payments_base_url)
 -}}
 
 {{- $missingFields := list -}}
 {{- range (concat $requiredFields $migrationRequiredFields) -}}
-  {{- if eq (trim (default "" (toString .value))) "" -}}
+  {{- if eq (trim (toString (default "" .value))) "" -}}
     {{- $missingFields = append $missingFields .path -}}
   {{- end -}}
 {{- end -}}

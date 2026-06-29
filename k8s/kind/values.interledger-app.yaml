@@ -168,6 +168,7 @@ backend:
     config:
       db_url: "postgres://postgres:postgres@postgres-postgresql.interledger:5432/backend?sslmode=disable"
       pacioli_db_url: "postgres://postgres:postgres@postgres-postgresql.interledger:5432/pacioli?sslmode=disable"
+      open_payments_base_url: "https://interledger.kind"
       kratos_url: "http://kratos-admin.interledger"
       log_level: "info"
       log_output_path: "stderr"
