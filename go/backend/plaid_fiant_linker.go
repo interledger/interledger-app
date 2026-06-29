@@ -80,7 +80,6 @@ func (l *plaidFiantLinker) WithAccountLock(ctx context.Context, userID, plaidAcc
 func (l *plaidFiantLinker) ExistingLink(ctx context.Context, userID, plaidAccountID string) (*plaid_ops.LinkedIDs, error) {
 	walletID, err := l.getWalletIdByUserId(ctx, userID)
 	if err != nil {
-		// User without a wallet can never have a linked Plaid account; treat as "no dupe".
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
@@ -95,8 +94,6 @@ func (l *plaidFiantLinker) ExistingLink(ctx context.Context, userID, plaidAccoun
 		return nil, err
 	}
 
-	// The plaid_link points at a linked_accounts row; fetch it for its Fiant
-	// payment-information id (provider_id).
 	la, err := linkedaccounts_ops.Get(ctx, l.b, link.LinkedAccountID)
 	if err != nil {
 		return nil, err
@@ -135,9 +132,6 @@ func (l *plaidFiantLinker) Register(ctx context.Context, args plaid_ops.LinkPlai
 	}
 	mask := args.AccountMask
 
-	// Persist the linked_account and its plaid_link atomically: a partial failure
-	// would otherwise leave a linked account with no plaid_link, and because dedupe
-	// reads plaid_links, a retry would mint a second Fiant payment-information.
 	var la *linkedaccounts.LinkedAccount
 	err = l.b.WithTx(ctx, func(tx *sqlx.Tx) error {
 		created, e := linkedaccounts_ops.CreateTx(ctx, tx, l.b.Validator(), &linkedaccounts.CreateArgs{
@@ -179,10 +173,6 @@ func (l *plaidFiantLinker) Register(ctx context.Context, args plaid_ops.LinkPlai
 		return nil, fmt.Errorf("plaid/fiant linker: %w", err)
 	}
 
-	// Fire the same linked-account side effects (wallet notify, pending-payment
-	// signal, Slack, connected-account email) Create would. Done after the tx
-	// commits so a rolled-back link never notifies; conversely we prefer to notify
-	// even if a downstream step later fails (better falsely notified than silent).
 	linkedaccounts_ops.EmitCreated(ctx, l.b, la)
 
 	return &plaid_ops.LinkedIDs{
@@ -206,7 +196,6 @@ func (l *plaidFiantLinker) ListLinkedPlaidAccountIDs(ctx context.Context, userID
 	return ids, nil
 }
 
-// Returns the first wallet attached to a Kratos user
 func (l *plaidFiantLinker) getWalletIdByUserId(ctx context.Context, userID string) (string, error) {
 	var id string
 	err := l.b.DB().GetContext(ctx, &id, "SELECT wallet_id FROM user_wallets WHERE user_id = $1 LIMIT 1;", userID)

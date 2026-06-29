@@ -12,9 +12,6 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-// PlaidLink is the Plaid-specific data for a linked account, kept 1:1 with a
-// linked_accounts row so the provider-agnostic linked_accounts table carries no
-// Plaid columns. It exists only to dedupe Plaid links per wallet.
 type PlaidLink struct {
 	ID              string       `db:"id"`
 	LinkedAccountID string       `db:"linked_account_id"`

@@ -2,16 +2,11 @@ package ops
 
 import "context"
 
-// LinkedIDs identifies the two persisted artefacts created (or rediscovered)
-// when a Plaid account is registered as a Fiant deposit source.
 type LinkedIDs struct {
 	LinkedAccountID      string `json:"linked_account_id"`
 	PaymentInformationID string `json:"payment_information_id"`
 }
 
-// LinkPlaidArgs is what the handler hands to FiantLinker.Register once a fresh
-// processor token has been minted. `AccountName` / `AccountMask` come from the
-// Plaid metadata sent by the frontend.
 type LinkPlaidArgs struct {
 	UserID         string
 	PlaidAccountID string
@@ -21,7 +16,7 @@ type LinkPlaidArgs struct {
 }
 
 // FiantLinker is the cross-package seam between the Plaid HTTP handler and the
-// PTI/Fiant + linked_accounts machinery.
+// PTI/Fiant.
 type FiantLinker interface {
 	// WithAccountLock runs fn while holding a per-(userID, plaidAccountID)
 	// advisory lock, serializing the dedupe-check → mint → Register critical

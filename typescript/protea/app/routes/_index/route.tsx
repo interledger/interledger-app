@@ -62,7 +62,6 @@ async function appLoader({ request }: LoaderFunctionArgs) {
     pusherArgs,
     features,
     balances: balanceResponse.balances,
-    // Global deploy-time flag (not per-wallet): picks the bank-link flow in the UI.
     plaidEnabled: envBool('PLAID_ENABLED')
   })
 }
