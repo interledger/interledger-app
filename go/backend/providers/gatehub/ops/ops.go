@@ -541,6 +541,7 @@ func TransferUserToOmnibus(ctx context.Context, b Backends, ec external.Client, 
 		Amount:           amount.Float64(),
 		Type:             external.TransactionTypeHosted,
 		VaultID:          vaultID,
+		Message:          "Transfer from user to omnibus",
 	})
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
@@ -562,6 +563,7 @@ func TransferOmnibusToUser(ctx context.Context, b Backends, ec external.Client, 
 		Amount:           amount.Float64(),
 		Type:             external.TransactionTypeHosted,
 		VaultID:          vaultID,
+		Message:          "Transfer from omnibus to user",
 	})
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
