@@ -105,7 +105,6 @@ func crossProviderXagoToGatehubPayOut(ctx workflow.Context, a *Activity, payment
 		return "", false, err
 	}
 
-	// Store external TX ID so GetGatehubS2ReceiverTransfer can poll it.
 	err = workflow.ExecuteActivity(ctx, a.SaveGatehubTransfer, paymentID, externalTxID).Get(ctx, nil)
 	if err != nil {
 		return "", false, err
