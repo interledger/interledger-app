@@ -556,7 +556,7 @@ func (a *Activity) ReserveBalanceForOutgoing(ctx context.Context, op outgoingPay
 }
 
 func (a *Activity) DepositOutgoingPaymentLiquidity(ctx context.Context, outgoingPaymentID string) error {
-	err := a.b.Rafiki().FundOutgoingPayment(ctx, outgoingPaymentID)
+	err := a.b.Rafiki().FundSingleOutgoingPayment(ctx, outgoingPaymentID)
 	if err != nil {
 		if strings.Contains(err.Error(), "wrong state") {
 			log.Info("rafiki outgoing payment already funded", zap.String("paymentId", outgoingPaymentID))
