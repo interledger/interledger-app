@@ -36,38 +36,43 @@ func IsTestExecution(mode string) bool {
 type StartConfig struct {
 	Environment         EnvironmentConfig `yaml:"environment"`
 	Port                string            `yaml:"port"`
-	ApplicationURL      string   `yaml:"application_url"       validate:"required"`
-	OpenPaymentsBaseURL string   `yaml:"open_payments_base_url" validate:"required"`
-	AuthBaseURL         string   `yaml:"auth_base_url"          validate:"required"`
-	LogLevel            string   `yaml:"log_level"`
-	LogOutputPath       string   `yaml:"log_output_path"`
-	AllowedWalletIDs    []string `yaml:"allowed_wallet_ids"`
-	BlockedRegions      []string `yaml:"blocked_regions"`
-	SignupAgreementIDs  []string `yaml:"signup_agreement_ids"`
+	ApplicationURL      string            `yaml:"application_url"       validate:"required"`
+	OpenPaymentsBaseURL string            `yaml:"open_payments_base_url" validate:"required"`
+	AuthBaseURL         string            `yaml:"auth_base_url"          validate:"required"`
+	LogLevel            string            `yaml:"log_level"`
+	LogOutputPath       string            `yaml:"log_output_path"`
+	AllowedWalletIDs    []string          `yaml:"allowed_wallet_ids"`
+	BlockedRegions      []string          `yaml:"blocked_regions"`
 
-	DB       DBConfig       `yaml:"db"`
-	Kratos   KratosConfig   `yaml:"kratos"`
-	Temporal TemporalConfig `yaml:"temporal"`
-	Rafiki   RafikiConfig   `yaml:"rafiki"`
-	Gatehub  GatehubConfig  `yaml:"gatehub"`
-	Xago     XagoConfig     `yaml:"xago"`
-	PTI      PTIConfig      `yaml:"pti"`
-	Persona  PersonaConfig  `yaml:"persona"`
-	Twilio   TwilioConfig   `yaml:"twilio"`
-	Email    EmailConfig    `yaml:"email"`
-	Slack    SlackConfig    `yaml:"slack"`
-	Chimoney ChimoneyConfig `yaml:"chimoney"`
-	Admin    AdminConfig    `yaml:"admin"`
-	Mobile   MobileConfig   `yaml:"mobile"`
-	Vault    VaultConfig    `yaml:"vault"`
-	Sentry   SentryConfig   `yaml:"sentry"`
-	Smarty   SmartyConfig   `yaml:"smarty"`
-	Pusher   PusherConfig   `yaml:"pusher"`
-	Segment  SegmentConfig  `yaml:"segment"`
+	DB         DBConfig         `yaml:"db"`
+	Kratos     KratosConfig     `yaml:"kratos"`
+	Temporal   TemporalConfig   `yaml:"temporal"`
+	Rafiki     RafikiConfig     `yaml:"rafiki"`
+	Gatehub    GatehubConfig    `yaml:"gatehub"`
+	Xago       XagoConfig       `yaml:"xago"`
+	PTI        PTIConfig        `yaml:"pti"`
+	Persona    PersonaConfig    `yaml:"persona"`
+	Twilio     TwilioConfig     `yaml:"twilio"`
+	Email      EmailConfig      `yaml:"email"`
+	Slack      SlackConfig      `yaml:"slack"`
+	Chimoney   ChimoneyConfig   `yaml:"chimoney"`
+	Admin      AdminConfig      `yaml:"admin"`
+	Mobile     MobileConfig     `yaml:"mobile"`
+	Vault      VaultConfig      `yaml:"vault"`
+	Sentry     SentryConfig     `yaml:"sentry"`
+	Smarty     SmartyConfig     `yaml:"smarty"`
+	Pusher     PusherConfig     `yaml:"pusher"`
+	Segment    SegmentConfig    `yaml:"segment"`
+	Agreements AgreementsConfig `yaml:"agreements"`
+}
+
+type AgreementsConfig struct {
+	SignupAgreementIDs   []string `yaml:"signup_agreement_ids"`
+	AgreementsFolderName string   `yaml:"folder_name" validate:"required"`
 }
 
 type DBConfig struct {
-	URL       string `yaml:"url"        validate:"required"`
+	URL        string `yaml:"url"        validate:"required"`
 	PacioliURL string `yaml:"pacioli_url" validate:"required"`
 }
 

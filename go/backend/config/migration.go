@@ -10,12 +10,14 @@ import (
 // MigrationConfig is the typed configuration for the backend migrate command.
 // It is loaded from YAML files listed in the CONFIG environment variable.
 type MigrationConfig struct {
-	DBUrl               string       `yaml:"db_url"                validate:"required"`
-	PacioliDBUrl        string       `yaml:"pacioli_db_url"        validate:"required"`
-	OpenPaymentsBaseURL string       `yaml:"open_payments_base_url" validate:"required"`
-	KratosUrl           string       `yaml:"kratos_url"`
-	LogLevel            string       `yaml:"log_level"`
-	LogOutputPath       string       `yaml:"log_output_path"`
+	Environment         EnvironmentConfig `yaml:"environment"          validate:"required"`
+	Agreements          AgreementsConfig  `yaml:"agreements"           validate:"required"`
+	DBUrl               string            `yaml:"db_url"                validate:"required"`
+	PacioliDBUrl        string            `yaml:"pacioli_db_url"        validate:"required"`
+	OpenPaymentsBaseURL string            `yaml:"open_payments_base_url" validate:"required"`
+	KratosUrl           string            `yaml:"kratos_url"`
+	LogLevel            string            `yaml:"log_level"`
+	LogOutputPath       string            `yaml:"log_output_path"`
 	// Label is the telemetry tag attached to monitoring signals (Sentry, etc.).
 	Label  string       `yaml:"label"`
 	Sentry SentryConfig `yaml:"sentry"`

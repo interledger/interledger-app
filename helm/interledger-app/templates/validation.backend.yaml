@@ -38,6 +38,7 @@
   (dict "path" "backend.config.smarty.auth_token"           "value" .Values.backend.config.smarty.auth_token)
   (dict "path" "backend.config.pusher.addr"                 "value" .Values.backend.config.pusher.addr)
   (dict "path" "backend.config.segment.key"                 "value" .Values.backend.config.segment.key)
+  (dict "path" "backend.config.agreements.folder_name"      "value" .Values.backend.config.agreements.folder_name)
 -}}
 
 {{/* gatehub.enabled: fields required for any enabled GateHub integration */}}
@@ -119,10 +120,17 @@
   ) -}}
 {{- end -}}
 
-{{/* Migration job config — mirrors validate:"required" tags in migration.go */}}
+{{/* Migration config — mirrors validate:"required" tags in migration.go */}}
+{{- $migrationMode := .Values.backend.migration.config.environment.mode | default "" -}}
+{{- if and (ne $migrationMode "") (not (has $migrationMode $validModes)) -}}
+  {{- fail (printf "backend.migration.config.environment.mode must be one of [prod sandbox dev local test], got: %q" $migrationMode) -}}
+{{- end -}}
+
 {{- $migrationRequiredFields := list
-  (dict "path" "backend.migration.config.db_url"                "value" .Values.backend.migration.config.db_url)
-  (dict "path" "backend.migration.config.pacioli_db_url"        "value" .Values.backend.migration.config.pacioli_db_url)
+  (dict "path" "backend.migration.config.environment.mode"       "value" .Values.backend.migration.config.environment.mode)
+  (dict "path" "backend.migration.config.agreements.folder_name" "value" .Values.backend.migration.config.agreements.folder_name)
+  (dict "path" "backend.migration.config.db_url"                 "value" .Values.backend.migration.config.db_url)
+  (dict "path" "backend.migration.config.pacioli_db_url"         "value" .Values.backend.migration.config.pacioli_db_url)
   (dict "path" "backend.migration.config.open_payments_base_url" "value" .Values.backend.migration.config.open_payments_base_url)
 -}}
 

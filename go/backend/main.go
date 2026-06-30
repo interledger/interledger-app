@@ -373,7 +373,7 @@ func migrate(args *cli.MigrationArgs) {
 		log.Fatalln(err)
 	}
 
-	_, err = agreements_migrations.MigrateFromEmbeddedMarkdowns(context.Background(), dbConn, "prod")
+	_, err = agreements_migrations.MigrateFromEmbeddedMarkdowns(context.Background(), dbConn, args.MigrationConfig)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -773,7 +773,7 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 		slack.ChannelTransaction: args.Slack.ChannelTransaction,
 		slack.ChannelError:       args.Slack.ChannelError,
 	})
-	_grpc.InitAgreementIDs(args.SignupAgreementIDs)
+	_grpc.InitAgreementIDs(args.Agreements.SignupAgreementIDs)
 
 	b.slack, err = slack_client.New(b, slack_external.Config{
 		ClientID:       args.Slack.ClientID,

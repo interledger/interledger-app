@@ -147,7 +147,10 @@ backend:
     log_output_path: "stdout"
     allowed_wallet_ids: []
     blocked_regions: []
-    signup_agreement_ids: []
+
+    agreements:
+      folder_name: ""
+      signup_agreement_ids: []
 
     db:
       url: ""
@@ -282,6 +285,10 @@ backend:
   # mounted at /etc/backend/config.yaml in the migration init-job.
   migration:
     config:
+      environment:
+        mode: ""
+      agreements:
+        folder_name: ""
       db_url: ""
       pacioli_db_url: ""
       kratos_url: "http://kratos.wallet:4434"

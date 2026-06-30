@@ -13,8 +13,11 @@ log_level: info
 log_output_path: ""
 allowed_wallet_ids: []
 blocked_regions: []
-signup_agreement_ids:
-  - privacy_policy-0.0.0
+
+agreements:
+  folder_name: local
+  signup_agreement_ids:
+    - privacy_policy-0.0.0
 
 db:
   url: "postgres://postgres:postgres@postgres:5432/backend?sslmode=disable"
