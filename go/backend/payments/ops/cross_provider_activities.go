@@ -122,7 +122,7 @@ func (a *Activity) CrossProviderGatehubEURReserve(ctx context.Context, paymentID
 }
 
 // CrossProviderXagoZARReserve creates a pending Pacioli transfer:
-// xago.user.ZARAccount → xago.ZARLiquidityAccount (using p.SendTransactionID).
+// xago.user.ZARAccount → xago.ZAROpsAccount (using p.SendTransactionID).
 func (a *Activity) CrossProviderXagoZARReserve(ctx context.Context, paymentID string) error {
 	p, err := Lookup(ctx, a.b, paymentID)
 	if err != nil {
@@ -142,7 +142,7 @@ func (a *Activity) CrossProviderXagoZARReserve(ctx context.Context, paymentID st
 			ID:              p.SendTransactionID,
 			Amount:          p.SenderAmount.Value,
 			DebitAccountID:  la.ID,
-			CreditAccountID: xago.ZARLiquidityAccount,
+			CreditAccountID: xago.ZAROpsAccount,
 			Pending:         true,
 			Code:            1,
 			Timeout:         uint64(timeout),
@@ -300,7 +300,7 @@ func (a *Activity) StoreActualFXRateAndAmount(ctx context.Context, paymentID str
 // PostGatehubToXagoTransfers posts Gatehub (EUR) to Xago (ZAR) transfers:
 //  1. Posts the pending EUR reserve (p.SendTransactionID): gatehub.user.EUR → gatehub.EURClearingAccount
 //  2. Creates a posted transfer: xago.EURClearingAccount → xago.EUROpsAccount
-//  3. Creates a posted transfer: xago.EUROpsAccount → xago.ZARLiquidityAccount
+//  3. Creates a posted transfer: xago.ZAROpsAccount → xago.ZARLiquidityAccount
 //  4. Creates a posted transfer: xago.ZARLiquidityAccount → xago.user1.ZARAccount
 func (a *Activity) PostGatehubToXagoTransfers(ctx context.Context, paymentID string) error {
 	p, err := Lookup(ctx, a.b, paymentID)
@@ -366,9 +366,10 @@ func (a *Activity) PostGatehubToXagoTransfers(ctx context.Context, paymentID str
 }
 
 // PostXagoToGatehubTransfers posts Xago (ZAR) to Gatehub (EUR) transfers in pacioli:
-//  1. Posts the pending ZAR reserve (p.SendTransactionID): xago.user.ZARAccount → xago.ZARLiquidityAccount
-//  2. Creates a posted transfer: xago.EUROpsAccount → xago.EURClearingAccount
-//  3. Creates a posted transfer: gatehub.EURClearingAccount → gatehub.user.EURAccount (using receiverTxID)
+//  1. Posts the pending ZAR reserve (p.SendTransactionID): xago.user.ZARAccount → xago.ZAROpsAccount
+//  2. Creates a posted transfer: xago.ZAROpsAccount → xago.ZARLiquidityAccount
+//  3. Creates a posted transfer: xago.EUROpsAccount → xago.EURClearingAccount
+//  4. Creates a posted transfer: gatehub.EURClearingAccount → gatehub.user.EURAccount (using receiverTxID)
 func (a *Activity) PostXagoToGatehubTransfers(ctx context.Context, paymentID string) error {
 	p, err := Lookup(ctx, a.b, paymentID)
 	if err != nil {
@@ -392,6 +393,15 @@ func (a *Activity) PostXagoToGatehubTransfers(ctx context.Context, paymentID str
 
 	// TODO should the transactions be created at the beginning of the workflow?
 	createRes, err := a.b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
+		{
+			ID:              uuid.NewString(),
+			Amount:          p.ReceiverAmount.Value,
+			DebitAccountID:  xago.ZAROpsAccount,
+			CreditAccountID: xago.ZARLiquidityAccount,
+			Pending:         false,
+			Code:            1,
+			Ledger:          xago.LedgerIDZAR,
+		},
 		{
 			ID:              uuid.NewString(),
 			Amount:          p.ReceiverAmount.Value,
