@@ -66,6 +66,25 @@ Feature: Plaid bank-link
     Then I should have "2" Plaid bank accounts
 
   @plaid @pti
+  Scenario: S6 — re-link a bank after removing it
+    Given the details of 'plaid-relink-user' are
+      | field       | value                        |
+      | emailSuffix | plaid-relink@example.com     |
+      | password    | InterlEdger2025!TestPassword |
+      | country     | United States                |
+      | firstName   | Alice                        |
+      | lastName    | Smith                        |
+      | dateOfBirth | 1984-06-27                   |
+    And mockpti is running at "https://mockpti.interledger.test"
+    And I complete the minimal PTI KYC flow `plaid-relink-user`
+    And I connect "Tartan Bank" "checking" via Plaid
+    And the linked account should be shown as "Plaid Checking"
+    And I remove the linked Plaid bank account "Plaid Checking"
+    When I connect "Tartan Bank" "checking" via Plaid
+    Then the linked account should be shown as "Plaid Checking"
+    And I should have "1" Plaid bank accounts
+
+  @plaid @pti
   Scenario: S7 — user cancels the Plaid overlay
     Given the details of 'plaid-cancel-user' are
       | field       | value                        |

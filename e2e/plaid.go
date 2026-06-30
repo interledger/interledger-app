@@ -131,6 +131,51 @@ func (sc *E2EContext) connectBankViaPlaid(bank, account string) error {
 	return nil
 }
 
+// iRemoveTheLinkedPlaidBankAccount opens the account detail page for the named
+// account (from /accounts), clicks "Remove bank account", confirms in the
+// dialog, and waits for the redirect back to /accounts. This soft-deletes the
+// linked_account AND its plaid_links rows (DeleteLinkedAccount →
+// SoftDeleteLinkByLinkedAccountID), freeing the (wallet, plaid_account_id)
+// dedupe slot so the same Tartan account can be re-linked as a fresh link.
+func (sc *E2EContext) iRemoveTheLinkedPlaidBankAccount(displayText string) error {
+	debugPrintf("\n🗑️  Removing linked Plaid bank account %q...\n", displayText)
+
+	if !strings.HasSuffix(strings.TrimSuffix(sc.page.URL(), "/"), "/accounts") {
+		if _, err := sc.page.Goto(sc.baseURL+"/accounts", playwright.PageGotoOptions{
+			WaitUntil: playwright.WaitUntilStateNetworkidle,
+			Timeout:   playwright.Float(15000),
+		}); err != nil {
+			return fmt.Errorf("failed to navigate to /accounts: %w", err)
+		}
+	}
+
+	accountLink := sc.page.Locator(fmt.Sprintf("a[href*='/accounts/']:has-text('%s')", displayText)).First()
+	if err := accountLink.Click(playwright.LocatorClickOptions{Timeout: playwright.Float(15000)}); err != nil {
+		return fmt.Errorf("failed to open account detail for %q: %w", displayText, err)
+	}
+
+	removeBtn := sc.page.Locator("button:has-text('Remove bank account')")
+	if err := removeBtn.Click(playwright.LocatorClickOptions{Timeout: playwright.Float(10000)}); err != nil {
+		return fmt.Errorf("failed to click 'Remove bank account': %w", err)
+	}
+
+	// Confirm in the dialog. The submit button is wired to the hidden
+	// id='bank-delete' form (formName=delete).
+	confirmBtn := sc.page.Locator("button[form='bank-delete']")
+	if err := confirmBtn.Click(playwright.LocatorClickOptions{Timeout: playwright.Float(10000)}); err != nil {
+		return fmt.Errorf("failed to confirm bank account removal: %w", err)
+	}
+
+	if err := sc.page.WaitForURL("**/accounts", playwright.PageWaitForURLOptions{
+		Timeout: playwright.Float(30000),
+	}); err != nil {
+		_ = sc.iTakeAScreenshot("plaid-remove-no-redirect")
+		return fmt.Errorf("removal did not redirect to /accounts: currentURL=%q: %w", sc.page.URL(), err)
+	}
+	debugPrintf("   ✓ Removed %q; back on /accounts\n", displayText)
+	return nil
+}
+
 // --- internal helpers -----------------------------------------------------
 
 // openPlaidOverlay navigates to /connect/bank and waits for the Link overlay to
