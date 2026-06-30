@@ -140,6 +140,15 @@ func FundOutgoingPayment(ctx context.Context, b Backends, paymentID string) erro
 	return nil
 }
 
+func FundSingleOutgoingPayment(ctx context.Context, b Backends, outgoingPaymentID string) error {
+		err := b.External().FundOutgoingPayment(ctx, outgoingPaymentID)
+		if err != nil {
+			return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+		}
+
+	return nil
+}
+
 func FinalizeWebMonetization(ctx context.Context, b Backends, paymentID string) error {
 	var reserveIDs []string
 	err := b.DB().SelectContext(ctx, &reserveIDs, "SELECT id FROM rafiki_outgoing_payments WHERE payment_id=$1", paymentID)
