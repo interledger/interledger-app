@@ -2,10 +2,13 @@ package ops
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"net/url"
 	"strings"
+	"time"
 
+	sgmail "github.com/sendgrid/sendgrid-go/helpers/mail"
 	"gitlab.com/fynbos/backend/currency"
 
 	"gitlab.com/fynbos/backend/email"
@@ -669,6 +672,23 @@ func SendGatehubWithdrawalRejectedEmail(ctx context.Context, b Backends, txID, w
 	if err != nil {
 		log.Error("Failed to send withdrawal rejected email.", zap.Error(err), zap.String("walletID", walletID))
 	}
+}
+
+func SendXagoTravelRuleEmail(ctx context.Context, b Backends, csv []byte, recipientEmail string) error {
+	to := []sendgrid.Email{{Name: "Xago Travel Rule", Address: recipientEmail}}
+	filename := fmt.Sprintf("travel_rule_%s.csv.gpg", time.Now().UTC().Format("2006-01-02"))
+	attachment := sgmail.Attachment{
+		Content:     base64.StdEncoding.EncodeToString(csv),
+		Type:        "application/octet-stream",
+		Filename:    filename,
+		Disposition: "attachment",
+	}
+	return b.External().SendTemplate(ctx, "Travel Rule Report", to, b.OneTemplateID(), map[string]any{
+		"subject": "Travel Rule Report",
+		"data": []map[string]any{
+			{"paragraph": "Please find attached the Travel Rule report for the last 24 hours."},
+		},
+	}, []sgmail.Attachment{attachment})
 }
 
 func maskIBAN(iban string) string {

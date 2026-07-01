@@ -86,3 +86,8 @@ func (c *noopClient) SendSCTITimeoutEmail(ctx context.Context, txID, walletID, a
 func (n *noopClient) SendGatehubWithdrawalRejectedEmail(_ context.Context, _, walletID, _, _, _, _ string) {
 	log.Info("NOT SENDING: withdrawal rejected email", zap.String("walletID", walletID))
 }
+
+func (n *noopClient) SendXagoTravelRuleEmail(_ context.Context, _ []byte, _ string) error {
+	log.Info("NOT SENDING: Xago travel rule email")
+	return nil
+}

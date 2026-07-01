@@ -276,3 +276,17 @@ func (mr *MockClientMockRecorder) SendWithdrawalFailedEmail(ctx, walletID interf
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendWithdrawalFailedEmail", reflect.TypeOf((*MockClient)(nil).SendWithdrawalFailedEmail), ctx, walletID)
 }
+
+// SendXagoTravelRuleEmail mocks base method.
+func (m *MockClient) SendXagoTravelRuleEmail(ctx context.Context, csv []byte, recipientEmail string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SendXagoTravelRuleEmail", ctx, csv, recipientEmail)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SendXagoTravelRuleEmail indicates an expected call of SendXagoTravelRuleEmail.
+func (mr *MockClientMockRecorder) SendXagoTravelRuleEmail(ctx, csv, recipientEmail interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendXagoTravelRuleEmail", reflect.TypeOf((*MockClient)(nil).SendXagoTravelRuleEmail), ctx, csv, recipientEmail)
+}

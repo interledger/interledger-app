@@ -119,3 +119,7 @@ func (c *client) SendSCTITimeoutEmail(ctx context.Context, txID, walletID, amoun
 func (c *client) SendGatehubWithdrawalRejectedEmail(ctx context.Context, txID, walletID, amount, currency, iban, name string) {
 	ops.SendGatehubWithdrawalRejectedEmail(ctx, c.b, txID, walletID, amount, currency, iban, name)
 }
+
+func (c *client) SendXagoTravelRuleEmail(ctx context.Context, csv []byte, recipientEmail string) error {
+	return ops.SendXagoTravelRuleEmail(ctx, c.b, csv, recipientEmail)
+}
