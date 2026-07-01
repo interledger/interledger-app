@@ -42,7 +42,12 @@ import { Fade } from '../Animations/Fade'
 import { NavDrawer } from './NavDrawer'
 
 export type ApplicationProps = {
-  layout: Layouts | ((match: UIMatch<any, ApplicationProps>) => Layouts)
+  layout:
+    | Layouts
+    | ((
+        match: UIMatch<any, ApplicationProps>,
+        context?: { isUser: boolean }
+      ) => Layouts)
   scaffold?: ScaffoldProps
 }
 
@@ -100,7 +105,7 @@ export function Scaffold() {
   const matches = useMatches()
   const navigate = useNavigate()
   const [search] = useSearchParams()
-  const { isUser, snackbar, features } = useRouteLoaderData(
+  const { isUser, snackbar, features, showQuickPay } = useRouteLoaderData(
     'root'
   ) as RootLoaderData
 
@@ -148,7 +153,8 @@ export function Scaffold() {
   const layoutHandle = currentMatch?.handle?.layout
 
   let layout: Layouts
-  if (typeof layoutHandle === 'function') layout = layoutHandle(currentMatch)
+  if (typeof layoutHandle === 'function')
+    layout = layoutHandle(currentMatch, { isUser })
   else layout = layoutHandle
 
   const actionHandle = scaffold?.header?.actions
@@ -267,6 +273,9 @@ export function Scaffold() {
               {/*<HeaderPopover />*/}
               {/*<HeaderLink to={href('/docs')} title='Docs' />*/}
               {/*<HeaderLink to={href('/blog')} title='Blog' />*/}
+              {showQuickPay && (
+                <HeaderLink to={href('/quick-pay')} title='Quick Pay' />
+              )}
               <HeaderLink to={href('/contact')} title='Contact' />
             </div>
             <div className='ml-auto hidden items-center lg:flex'>
@@ -620,6 +629,11 @@ export function Scaffold() {
                 {/*<NavDrawer.ListItem to={href('/docs')}>*/}
                 {/*  Docs*/}
                 {/*</NavDrawer.ListItem>*/}
+                {showQuickPay && (
+                  <NavDrawer.ListItem to={href('/quick-pay')}>
+                    Quick Pay
+                  </NavDrawer.ListItem>
+                )}
                 <NavDrawer.ListItem to={href('/contact')}>
                   Contact
                 </NavDrawer.ListItem>
