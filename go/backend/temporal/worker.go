@@ -87,13 +87,18 @@ func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago
 	rafiki_workflows.StartRafikiIncomingPaymentsPolling(b)
 
 	// Xago
-	pgpBlock, err := armor.Decode(strings.NewReader(xagoTravelRulePGPPublicKey))
-	if err != nil {
-		return nil, fmt.Errorf("invalid XAGO_TRAVEL_RULE_PGP_PUBLIC_KEY: %w", err)
-	}
-	xagoPGPRecipient, err := openpgp.ReadEntity(packet.NewReader(pgpBlock.Body))
-	if err != nil {
-		return nil, fmt.Errorf("invalid XAGO_TRAVEL_RULE_PGP_PUBLIC_KEY: %w", err)
+	var xagoPGPRecipient *openpgp.Entity
+	if xagoTravelRulePGPPublicKey == "" {
+		log.Warn("XAGO_TRAVEL_RULE_PGP_PUBLIC_KEY not configured: skipping travel rule email workflow")
+	} else {
+		pgpBlock, err := armor.Decode(strings.NewReader(xagoTravelRulePGPPublicKey))
+		if err != nil {
+			return nil, fmt.Errorf("invalid XAGO_TRAVEL_RULE_PGP_PUBLIC_KEY: %w", err)
+		}
+		xagoPGPRecipient, err = openpgp.ReadEntity(packet.NewReader(pgpBlock.Body))
+		if err != nil {
+			return nil, fmt.Errorf("invalid XAGO_TRAVEL_RULE_PGP_PUBLIC_KEY: %w", err)
+		}
 	}
 	w.RegisterActivity(xago_workflows.NewActivity(b, xagoConfig, xagoPGPRecipient, xagoTravelRuleEmail))
 	w.RegisterWorkflow(xago_workflows.CreateBeneficiaryWorkflow)
@@ -101,10 +106,13 @@ func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago
 	w.RegisterWorkflow(xago_workflows.XagoDepositPollWorkflow)
 	w.RegisterWorkflow(xago_workflows.UpdateInquiryLinkWorkflow)
 	w.RegisterWorkflow(xago_workflows.FundXagoEURLiquidityAccountWorkflow)
-	w.RegisterWorkflow(xago_workflows.TravelRuleEmailWorkflow)
 
 	xago_workflows.StartDepositsPolling(b)
-	xago_workflows.StartTravelRuleEmailSending(b)
+
+	if xagoPGPRecipient != nil {
+		w.RegisterWorkflow(xago_workflows.TravelRuleEmailWorkflow)
+		xago_workflows.StartTravelRuleEmailSending(b)
+	}
 
 	// PTI
 	if ptiJWK == "" {

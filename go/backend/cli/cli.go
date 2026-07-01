@@ -493,9 +493,6 @@ func ParseStartArgs() (*StartArgs, error) {
 	}
 
 	xagoTravelRulePGPPublicKey := os.Getenv("XAGO_TRAVEL_RULE_PGP_PUBLIC_KEY")
-	if xagoTravelRulePGPPublicKey == "" {
-		return nil, errors.New("XAGO_TRAVEL_RULE_PGP_PUBLIC_KEY is required")
-	}
 
 	xagoTravelRuleEmail := os.Getenv("XAGO_TRAVEL_RULE_EMAIL")
 	if xagoTravelRuleEmail == "" {
