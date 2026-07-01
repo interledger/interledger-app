@@ -27,13 +27,6 @@ jobs:
     env:
       PROTEA_BUILD_TARGET: runner
       BOTANIST_BUILD_TARGET: runner
-      # Plaid is the only US bank-link path in e2e (feature 0007). docker compose
-      # interpolates these into the backend/protea services. mockplaid ignores the
-      # credentials, but the backend (cli.go) requires them to be present when
-      # PLAID_ENABLED=true; PLAID_API_URL defaults to mockplaid in compose.
-      BACKEND_PLAID_ENABLED: 'true'
-      BACKEND_PLAID_CLIENT_ID: mock-client-id
-      BACKEND_PLAID_SECRET: mock-secret
     concurrency:
       # Each PR gets its own slot. New pushes to the same PR cancel the previous run.
       group: e2e-${{ github.event.pull_request.number || github.sha }}
