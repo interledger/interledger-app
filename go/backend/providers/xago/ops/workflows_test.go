@@ -19,7 +19,7 @@ func TestActivity_SaveBeneficiary(t *testing.T) {
 		tb.DBC = db.MigrateTestDB(t, ctx)
 	})
 
-	a := ops.NewActivity(b, external.Config{})
+	a := ops.NewActivity(b, external.Config{}, nil, "")
 
 	walletID := uuid.NewString()
 	beneficiaryID := uuid.NewString()
@@ -58,7 +58,7 @@ func TestActivity_SaveSubAccount(t *testing.T) {
 		tb.DBC = db.MigrateTestDB(t, ctx)
 	})
 
-	a := ops.NewActivity(b, external.Config{})
+	a := ops.NewActivity(b, external.Config{}, nil, "")
 
 	walletID := uuid.NewString()
 	accountID := uuid.NewString()
