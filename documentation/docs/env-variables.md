@@ -240,6 +240,8 @@ Xago is used for ZAR and USD transactions in South Africa.
 | `XAGO_POLICY_ID` | Xago login policy ID for requesting access tokens | No | Sandbox/Dev/Local: `5e2585a474b0e90012ce8ff1`; Prod: TBD |
 | `XAGO_API_SECRET` | Xago API secret key credential | Yes | Local default: `test-secret` |
 | `XAGO_API_PUBLIC_KEY` | Xago API public key credential | Yes | Local default: `test-public-key` |
+| `XAGO_TRAVEL_RULE_EMAIL` | Email address to send the Travel Rule CSV report to (every 24 hours) | Yes | Local default: `travelrule@example.io`; Prod: secret |
+| `XAGO_TRAVEL_RULE_PGP_PUBLIC_KEY` | PGP public key in text format, used to encrypt the Travel Rule CSV before emailing. When absent the Travel Rule email workflow is skipped. | Yes | Not set locally; Prod: secret |
 
 ### PTI / Fiant (Payment Provider)
 
