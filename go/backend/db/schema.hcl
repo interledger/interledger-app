@@ -2680,6 +2680,75 @@ table "xago_access_token" {
   }
 }
 
+table "xago_travel_rule_records" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "payment_id" {
+    null = false
+    type = uuid
+  }
+  column "transaction_reference" {
+    null    = false
+    type    = text
+    default = ""
+  }
+  column "originator_name" {
+    null    = false
+    type    = text
+    default = ""
+  }
+  column "originator_account_id" {
+    null    = false
+    type    = text
+    default = ""
+  }
+  column "originator_address" {
+    null    = false
+    type    = text
+    default = ""
+  }
+  column "originator_place_of_birth" {
+    null    = false
+    type    = text
+    default = ""
+  }
+  column "originator_date_of_birth" {
+    null    = false
+    type    = text
+    default = ""
+  }
+  column "beneficiary_name" {
+    null    = false
+    type    = text
+    default = ""
+  }
+  column "beneficiary_account_id" {
+    null    = false
+    type    = text
+    default = ""
+  }
+  column "created_at" {
+    null = false
+    type = timestamp
+    default = sql("now()::TIMESTAMP")
+  }
+  column "reported_at" {
+    null = true
+    type = timestamp
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "xago_travel_rule_records_payment_id_idx" {
+    unique = true
+    columns = [column.payment_id]
+  }
+}
+
 table "pti_users" {
   schema = schema.public
   column "id" {
