@@ -169,10 +169,6 @@ backend:
 
   migration:
     config:
-      environment:
-        mode: local
-      agreements:
-        folder_name: local
       db_url: "postgres://postgres:postgres@postgres-postgresql.interledger:5432/backend?sslmode=disable"
       pacioli_db_url: "postgres://postgres:postgres@postgres-postgresql.interledger:5432/pacioli?sslmode=disable"
       open_payments_base_url: "https://interledger.kind"

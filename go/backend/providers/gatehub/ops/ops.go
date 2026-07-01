@@ -12,10 +12,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/interledger/interledger-app/go/backend/config"
 	"github.com/interledger/interledger-app/go/backend/currency"
 	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
 	"github.com/interledger/interledger-app/go/backend/payments"
-	"github.com/interledger/interledger-app/go/backend/config"
 	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
 	"github.com/interledger/interledger-app/go/backend/providers/gatehub/external"
 	"github.com/interledger/interledger-app/go/backend/slack"
