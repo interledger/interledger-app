@@ -15,7 +15,7 @@ Feature: Plaid bank-link
     And Rafiki assets are seeded
 
   @plaid @pti
-  Scenario: S1 — link a US bank via Plaid
+  Scenario: Link a US bank account via Plaid
     Given the details of 'plaid-link-user' are
       | field       | value                        |
       | emailSuffix | plaid-link@example.com       |
@@ -31,7 +31,7 @@ Feature: Plaid bank-link
     And I should have "1" Plaid bank accounts
 
   @plaid @pti
-  Scenario: S4 — duplicate link is caught
+  Scenario: Linking the same bank account twice is caught as a duplicate
     Given the details of 'plaid-dupe-user' are
       | field       | value                        |
       | emailSuffix | plaid-dupe@example.com       |
@@ -49,7 +49,7 @@ Feature: Plaid bank-link
     And I should have "1" Plaid bank accounts
 
   @plaid @pti
-  Scenario: S5 — link multiple accounts from the always-new bank
+  Scenario: Link multiple distinct bank accounts via Plaid
     Given the details of 'plaid-multi-user' are
       | field       | value                        |
       | emailSuffix | plaid-multi@example.com      |
@@ -66,7 +66,7 @@ Feature: Plaid bank-link
     Then I should have "2" Plaid bank accounts
 
   @plaid @pti
-  Scenario: S6 — re-link a bank after removing it
+  Scenario: Re-link a bank account after removing it
     Given the details of 'plaid-relink-user' are
       | field       | value                        |
       | emailSuffix | plaid-relink@example.com     |
@@ -85,7 +85,7 @@ Feature: Plaid bank-link
     And I should have "1" Plaid bank accounts
 
   @plaid @pti
-  Scenario: S7 — user cancels the Plaid overlay
+  Scenario: Cancelling the Plaid overlay links no account
     Given the details of 'plaid-cancel-user' are
       | field       | value                        |
       | emailSuffix | plaid-cancel@example.com     |
@@ -101,7 +101,7 @@ Feature: Plaid bank-link
     Then I should be navigated to dashboard "home"
 
   @plaid @gatehub
-  Scenario: S9 — non-US user is gated out of the Plaid page
+  Scenario: Non-US user is gated out of the Plaid bank-link page
     Given the details of 'plaid-gated-user' are
       | field       | value                        |
       | emailSuffix | plaid-gated@example.com      |
@@ -116,7 +116,7 @@ Feature: Plaid bank-link
     Then I should be navigated to dashboard "home"
 
   @plaid @pti
-  Scenario: S12 — link failure surfaces the error
+  Scenario: Bank account link failure surfaces the error
     Given the details of 'plaid-fail-user' are
       | field       | value                        |
       | emailSuffix | plaid-fail@example.com       |
@@ -132,7 +132,7 @@ Feature: Plaid bank-link
     And I should have "0" Plaid bank accounts
 
   @plaid @deposit @pti
-  Scenario: S11 — a Plaid-linked account funds a PTI deposit
+  Scenario: A Plaid-linked account funds a PTI deposit
     Given the details of 'plaid-deposit-user' are
       | field       | value                        |
       | emailSuffix | plaid-deposit@example.com    |
