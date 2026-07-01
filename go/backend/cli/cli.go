@@ -111,6 +111,8 @@ type StartArgs struct {
 	XagoPublicKey                   string
 	XagoSecret                      string
 	XagoPolicyID                    string
+	XagoTravelRulePGPPublicKey      string
+	XagoTravelRuleEmail             string
 	PTIEnabled                      bool
 	PTIBaseURL                      string
 	PTIJWK                          string
@@ -490,6 +492,16 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, errors.New("XAGO_POLICY_ID is required")
 	}
 
+	xagoTravelRulePGPPublicKey := os.Getenv("XAGO_TRAVEL_RULE_PGP_PUBLIC_KEY")
+	if xagoTravelRulePGPPublicKey == "" {
+		return nil, errors.New("XAGO_TRAVEL_RULE_PGP_PUBLIC_KEY is required")
+	}
+
+	xagoTravelRuleEmail := os.Getenv("XAGO_TRAVEL_RULE_EMAIL")
+	if xagoTravelRuleEmail == "" {
+		return nil, errors.New("XAGO_TRAVEL_RULE_EMAIL is required")
+	}
+
 	ptiEnabled := os.Getenv("PTI_ENABLED") == "true"
 	ptiBaseURL := os.Getenv("PTI_BASE_URL")
 	ptiJWK := os.Getenv("PTI_JWK")
@@ -627,6 +639,8 @@ func ParseStartArgs() (*StartArgs, error) {
 		XagoPublicKey:                   xagoPublicKey,
 		XagoSecret:                      xagoSecret,
 		XagoPolicyID:                    xagoPolicyID,
+		XagoTravelRulePGPPublicKey:      xagoTravelRulePGPPublicKey,
+		XagoTravelRuleEmail:             xagoTravelRuleEmail,
 		PTIEnabled:                      ptiEnabled,
 		PTIBaseURL:                      ptiBaseURL,
 		PTIJWK:                          ptiJWK,
