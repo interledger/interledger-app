@@ -70,7 +70,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 
   const walletUrl =
     transaction.type == 'sent' ||
-    transaction.type == 'web_monetization_outgoing'
+      transaction.type == 'web_monetization_outgoing'
       ? transaction.destination
       : transaction.source
   const publicWalletInfoResponse = await grpc.getPublicWalletInfo(request, {
@@ -162,8 +162,9 @@ export const meta = mergeMeta(({ data }) => {
         typeof d == 'undefined'
           ? 'Payment'
           : // TODO Fix this for withdrawal
-            d.transaction.type == 'sent' ||
-              d.transaction.type == 'web_monetization_outgoing'
+          d.transaction.type == 'sent' ||
+            d.transaction.type == 'web_monetization_outgoing' ||
+            d.transaction.type == 'open_payments_outgoing'
             ? `${d.transaction.subtotal} to ${d.transaction.title}`
             : `${d.transaction.formattedAmount} from ${d.transaction.title}`
     }
@@ -176,16 +177,20 @@ export default function Page() {
   const [showDialog, setShowDialog] = useState<boolean>(false)
   usePusher(pusherArgs, ['transaction', 'kyc'])
 
+  console.log('! transaction', transaction)
+
   return (
     <>
       {(transaction.type == 'sent' ||
-        transaction.type == 'web_monetization_outgoing') && (
-        <Sent openDialog={() => setShowDialog(true)} />
-      )}
+        transaction.type == 'web_monetization_outgoing' ||
+        transaction.type == 'open_payments_outgoing') && (
+          <Sent openDialog={() => setShowDialog(true)} />
+        )}
       {(transaction.type == 'received' ||
-        transaction.type == 'web_monetization_incoming') && (
-        <Received openDialog={() => setShowDialog(true)} />
-      )}
+        transaction.type == 'web_monetization_incoming' ||
+        transaction.type == 'open_payments_incoming') && (
+          <Received openDialog={() => setShowDialog(true)} />
+        )}
       {transaction.type == 'card_transaction' && <CardTransaction />}
       {transaction.type == 'withdrawal' && <Withdrawal />}
       {transaction.type == 'deposit' && <Deposit />}
@@ -663,8 +668,8 @@ function Sent({ openDialog }: { openDialog: () => void }) {
           <AlertContent>
             <AlertTitle>Web monetization</AlertTitle>
             <AlertBody>
-              Payments for the web monetized sites you support are consolidated
-              and refreshed daily.
+              This is an automatic Web Monetization payment supporting a site
+              you visited.
             </AlertBody>
           </AlertContent>
         </Alert>
@@ -836,8 +841,8 @@ function Received({ openDialog }: { openDialog: () => void }) {
           <AlertContent>
             <AlertTitle>Web monetization</AlertTitle>
             <AlertBody>
-              Payments for the web monetized sites you support are consolidated
-              and refreshed daily.
+              This is an automatic Web Monetization payment from someone
+              supporting your content.
             </AlertBody>
           </AlertContent>
         </Alert>
