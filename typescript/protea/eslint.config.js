@@ -61,5 +61,23 @@ export default tseslint.config(
     files: ['**/*.config.{js,ts}'],
     rules: { '@typescript-eslint/no-require-imports': 'off' }
   },
+  {
+    // server.js is the plain-JS production entrypoint and runs in Node, not
+    // the browser. TS server files escape no-undef because typescript-eslint
+    // disables it, but this .js file needs the Node runtime globals declared.
+    files: ['server.js'],
+    languageOptions: {
+      globals: {
+        process: 'readonly',
+        console: 'readonly',
+        Buffer: 'readonly',
+        URL: 'readonly',
+        setTimeout: 'readonly',
+        clearTimeout: 'readonly',
+        setInterval: 'readonly',
+        clearInterval: 'readonly'
+      }
+    }
+  },
   prettier
 )
