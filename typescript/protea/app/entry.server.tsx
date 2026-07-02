@@ -76,7 +76,7 @@ export default function handleRequest(
   const isProbe = PROBE_PATHS.has(url.pathname)
 
   // Log incoming request
-  // TODO why do we even log incoming only ? 
+  // TODO why do we even log incoming only ?
   if (!isProbe) {
     logger.debug(
       {

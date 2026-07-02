@@ -40,7 +40,11 @@ if (logger.level === 'debug' || logger.level === 'trace') {
     if (!PROBE_PATHS.has(req.path)) {
       res.on('finish', () => {
         const level =
-          res.statusCode >= 500 ? 'error' : res.statusCode >= 400 ? 'warn' : 'debug'
+          res.statusCode >= 500
+            ? 'error'
+            : res.statusCode >= 400
+              ? 'warn'
+              : 'debug'
         logger[level](`${req.method} ${req.originalUrl} ${res.statusCode}`)
       })
     }
