@@ -11,7 +11,7 @@ import (
 // Reserves EUR pending, calls GateHub API to move funds to omnibus, stores the external TX ID.
 // The webhook wait happens in the corresponding pay-out.
 func crossProviderGatehubToXagoPayIn(ctx workflow.Context, a *Activity, paymentID string) (string, bool, error) {
-	err := workflow.ExecuteActivity(ctx, a.CrossProviderGatehubEURReserve, paymentID).Get(ctx, nil)
+	err := workflow.ExecuteActivity(ctx, a.CrossProviderGatehubEURSenderReserve, paymentID).Get(ctx, nil)
 	if err != nil {
 		return "", false, err
 	}
@@ -38,7 +38,7 @@ func crossProviderXagoToGatehubPayIn(ctx workflow.Context, a *Activity, paymentI
 		return "", false, err
 	}
 
-	if err = workflow.ExecuteActivity(ctx, a.CrossProviderXagoZARReserve, paymentID).Get(ctx, nil); err != nil {
+	if err = workflow.ExecuteActivity(ctx, a.CrossProviderXagoZARSenderReserve, paymentID).Get(ctx, nil); err != nil {
 		return "", false, err
 	}
 
