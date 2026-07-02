@@ -36,7 +36,7 @@ if (logger.level === 'debug' || logger.level === 'trace') {
             : res.statusCode >= 400
               ? 'warn'
               : 'debug'
-        logger[level](`${req.method} ${req.originalUrl} ${res.statusCode}`)
+        logger[level](`${req.method} ${req.path} ${res.statusCode}`)
       })
     }
     next()
