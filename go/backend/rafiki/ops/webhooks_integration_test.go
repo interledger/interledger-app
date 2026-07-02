@@ -934,7 +934,7 @@ func TestCreateOutgoingPaymentTransaction_WebMonetization(t *testing.T) {
 		WalletAddressID: ppID,
 		DebitAmount:     amount{Value: "500", AssetCode: "EUR", AssetScale: 2},
 		Receiver:        "https://example.com/incoming-payments/ip_1",
-		Metadata:        map[string]any{"source": "Web Monetization"},
+		Metadata:        map[string]any{"source": metadataSourceWebMonetization},
 	}
 
 	ab := setupActivityBackends(t, ctrl, walletID, ppID)
@@ -974,7 +974,7 @@ func TestCreateIncomingPaymentTransaction_WebMonetization(t *testing.T) {
 		ID:              uuid.NewString(),
 		WalletAddressID: ppID,
 		ReceivedAmount:  amount{Value: "1000", AssetCode: "EUR", AssetScale: 2},
-		Metadata:        map[string]any{"source": "Web Monetization"},
+		Metadata:        map[string]any{"source": metadataSourceWebMonetization},
 	}
 
 	ab := setupActivityBackends(t, ctrl, walletID, ppID)
