@@ -179,8 +179,6 @@ export default function Page() {
   const [showDialog, setShowDialog] = useState<boolean>(false)
   usePusher(pusherArgs, ['transaction', 'kyc'])
 
-  console.log('! transaction', transaction)
-
   return (
     <>
       {(transaction.type == 'sent' ||
