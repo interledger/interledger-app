@@ -994,7 +994,7 @@ func TestDepositOutgoingPaymentLiquidity_Success(t *testing.T) {
 
 	opID := uuid.NewString()
 	rafikiMock := rafiki_mock.NewMockClient(ctrl)
-	rafikiMock.EXPECT().FundOutgoingPayment(gomock.Any(), opID).Return(nil)
+	rafikiMock.EXPECT().FundSingleOutgoingPayment(gomock.Any(), opID).Return(nil)
 
 	ab := NewTestActivityBackends()
 	ab.SetRafiki(rafikiMock)
@@ -1009,7 +1009,7 @@ func TestDepositOutgoingPaymentLiquidity_WrongState_Ignored(t *testing.T) {
 
 	opID := uuid.NewString()
 	rafikiMock := rafiki_mock.NewMockClient(ctrl)
-	rafikiMock.EXPECT().FundOutgoingPayment(gomock.Any(), opID).
+	rafikiMock.EXPECT().FundSingleOutgoingPayment(gomock.Any(), opID).
 		Return(fmt.Errorf("wrong state for operation"))
 
 	ab := NewTestActivityBackends()

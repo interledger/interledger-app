@@ -2,6 +2,8 @@
 
 > **Configuration reference.** Central source for runtime environment variables, secret classification, and per-environment values.
 
+> **Note:** Values shown as `<...>` are placeholders, not required for local development.
+
 **Related documents:**
 
 - [Home](index.md) - Full documentation map and topic index
@@ -33,7 +35,7 @@ Protea is a Remix application serving the user-facing wallet UI.
 | Variable | Description | Secret | Notes |
 |---|---|---|---|
 | `NODE_ENV` | Node.js runtime mode | No | Deployed: `production`; Local: `development` |
-| `FYNBOS_ENV` | Runtime environment tag used for feature flags (e.g. Xago test-deposit gate) | No | Prod: `prod`; Sandbox/Dev: `dev`; Local: `local` |
+| `ILW_ENV` | Runtime environment tag used for feature flags (e.g. Xago test-deposit gate) | No | Prod: `prod`; Sandbox/Dev: `dev`; Local: `local` |
 | `LOG_LEVEL` | Log verbosity (`debug`, `info`, `warn`, `error`) | No | Deployed: `info`; Local: `debug` |
 | `LOG_PRETTY` | Human-readable log formatting. Set `false` for JSON in deployed environments | No | Deployed: `false`; Local: `true` |
 | `TARGET_HOST` | Base URL of the app itself (scheme + host). Used to build self-referential links in legal and contact pages | No | Prod: `https://interledger.app`; Sandbox/Dev: environment URL; Local: `https://interledger.test` |
@@ -56,7 +58,7 @@ Protea is a Remix application serving the user-facing wallet UI.
 | `CHOKIDAR_USEPOLLING` | Enable filesystem polling for hot-reload in containers (dev only) | No | Local only: `true`; not applicable in deployed environments |
 | `COOKIE_SECRETS` | JSON array of strings used to sign session cookies. Rotate periodically. | Yes | Local default: `["localsecret"]` |
 | `RAFIKI_AUTH_SECRET` | Shared secret between Protea and the Rafiki auth service | Yes | Local default: `my-super-secret-identity-key` |
-| `PUSHER_APP_KEY` | Pusher application key for real-time push notifications (public-facing) | Yes | Local default: `91988d6075551d29760a` |
+| `PUSHER_APP_KEY` | Pusher application key for real-time push notifications (public-facing). Optional - realtime degrades gracefully when unset. | Yes | Local default: empty |
 | `PUSHER_APP_CLUSTER` | Pusher cluster region for the application | Yes | Local default: `eu` |
 | `REDIS_URL` | Redis connection URL used for session storage and caching | Yes | Local default: `redis://redis:6379/2` |
 | `SENTRY_DSN` | Sentry DSN for client-side and server-side error reporting. **Not set in local** — Sentry is disabled when this is empty. | Yes | Not set locally; required in deployed environments |
@@ -67,7 +69,6 @@ Protea is a Remix application serving the user-facing wallet UI.
 
 | Variable | Description | Secret | Notes |
 |---|---|---|---|
-| `DATO_API_TOKEN` | DatoCMS API token used by legacy CMS content loading paths | Yes | Keep documented, no environment value guidance |
 | `BT_TOKEN` | Basis Theory token for legacy frontend card tokenisation integration paths | Yes | Legacy variable in local compose; not used in current Protea app code |
 | `CF_TURNSTILE_SITE_KEY` | Cloudflare Turnstile site key used in legacy bot-protection integration | Yes | Keep documented, no environment value guidance |
 | `CF_TURNSTILE_SECRET_KEY` | Cloudflare Turnstile secret key used in legacy server verification | Yes | Keep documented, no environment value guidance |
@@ -81,7 +82,7 @@ Botanist is a Remix application providing the internal admin interface. It conne
 
 | Variable | Description | Secret | Notes |
 |---|---|---|---|
-| `FYNBOS_ENV` | Runtime environment tag | No | Prod: `prod`; Sandbox/Dev: `dev`; Local: `local` |
+| `ILW_ENV` | Runtime environment tag | No | Prod: `prod`; Sandbox/Dev: `dev`; Local: `local` |
 | `BACKEND_GRPC_URL` | Internal URL for the backend admin gRPC port (8448) | No | Deployed: `wallet-backend-service-grpc:8448`; Local: `backend:8448` |
 | `PAYMENT_POINTER_BASE` | Domain used to display payment pointer addresses for users | No | Prod: `ilp.link`; Sandbox: `sandbox.ilp.link`; Dev: `development.ilp.link`; Local: `local.ilp.link` |
 
@@ -95,12 +96,12 @@ The Go backend is the core of the wallet, handling payments, provider integratio
 
 | Variable | Description | Secret | Notes |
 |---|---|---|---|
-| `FYNBOS_ENV` | Runtime environment tag | No | Prod: `prod`; Sandbox/Dev: `dev`; Local: `local` |
+| `ILW_ENV` | Runtime environment tag | No | Prod: `prod`; Sandbox/Dev: `dev`; Local: `local` |
 | `LOG_LEVEL` | Log verbosity | No | Dev: `debug`; all others: `info` |
 | `PORT` | HTTP server port (webhooks, health) | No | All environments: `8080` |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | OpenTelemetry collector endpoint | No | All environments: `grpc://api.honeycomb.io:443` |
 | `OTEL_SERVICE_NAME` | Service name in traces | No | All environments: `backend` |
-| `OTEL_EXPORTER_OTLP_HEADERS` | Auth headers for the OTLP endpoint | Yes | Local default: `x-honeycomb-team=7Qskhns7Dc7wgazrDe6yZD` |
+| `OTEL_EXPORTER_OTLP_HEADERS` | Auth headers for the OTLP endpoint | Yes | Local default: `x-honeycomb-team=<honeycomb-ingest-key>` |
 | `SENTRY_DSN` | Sentry DSN for server-side error reporting | Yes | Not set locally |
 | `SENTRY_RELEASE` | Sentry release identifier | No | Not set locally; deployed values TBD |
 
@@ -149,8 +150,8 @@ The Go backend is the core of the wallet, handling payments, provider integratio
 
 | Variable | Description | Secret | Notes |
 |---|---|---|---|
-| `TWILIO_ACCOUNT_SID` | Twilio account SID | Yes | Local default: `SK021f793191208ba69c3bea87dd426085` |
-| `TWILIO_SERVICE_SID` | Twilio Verify service SID | Yes | Local default: `VA8af4e130da63b9fac4c042acbc33a267` |
+| `TWILIO_ACCOUNT_SID` | Twilio account SID | Yes | Local default: `<twilio-account-sid>` |
+| `TWILIO_SERVICE_SID` | Twilio Verify service SID | Yes | Local default: `<twilio-service-sid>` |
 | `TWILIO_ACCOUNT_TOKEN` | Twilio auth token | Yes | Local default: `test` |
 | `TWILIO_ENABLED` | Enables live Twilio Verify calls. When `false`, all phone verification methods return stub responses and credentials are not required. | No | Prod/Sandbox: `true`; Dev/Local: `false` |
 
@@ -270,7 +271,7 @@ For deployed environments the `PTI_JWK`, `PTI_PUBLIC_KEY_JWK`, and `PTI_BASE_URL
 | `PTI_CLIENT_ID` | PTI client UUID passed to the browser for `PTI.init()` widget initialisation and used server-side for webhook validation | No | Prod: `f4c8f30f-...` (confirm with PTI); Sandbox: `81a556d8-106d-4c93-8c6f-f2f8e555b4f0`; Dev: empty; Local default: `04d3e1b5-96d4-47e4-9eaa-13e9b4b0f219` |
 | `PTI_JWK` | PTI private RSA JWK used for request signing and webhook crypto | Yes | Prod/Sandbox: secret (1Password); Local default: test RSA key (see local compose) |
 | `PTI_PUBLIC_KEY_JWK` | PTI public RSA JWK used for webhook signature verification | Yes | Prod/Sandbox: secret (1Password); Local default: test RSA public key (see local compose) |
-| `FYNBOS_BACKEND_HOST` | Host used by the PTI mock webhook proxy (`/webhooks/pti`) when forwarding requests to the wallet backend | No | Not set in any environment |
+| `ILW_BACKEND_HOST` | Host used by the PTI mock webhook proxy (`/webhooks/pti`) when forwarding requests to the wallet backend | No | Not set in any environment |
 
 ### Legacy Variables
 

@@ -15,7 +15,7 @@ func GetUrl() string {
 	return applicationURL
 }
 
-var fynbosEnv = "prod"
+var ilwEnv = "prod"
 var blockedRegions = []string{}
 var allowedWalletIds = []string{}
 var rafikiNodeEnabled = false
@@ -30,14 +30,14 @@ var allowedEnvs = []string{
 
 func SetEnv(t *testing.T, env string) {
 	orig := GetEnv()
-	fynbosEnv = env
+	ilwEnv = env
 	t.Cleanup(func() {
-		fynbosEnv = orig
+		ilwEnv = orig
 	})
 }
 
-func SetFynbosEnv(v string) {
-	fynbosEnv = v
+func SetIlwEnv(v string) {
+	ilwEnv = v
 }
 
 func SetAllowedWalletIDs(ids []string) {
@@ -65,22 +65,22 @@ func IsRafikiNodeEnabled() bool {
 }
 
 func GetEnv() string {
-	if fynbosEnv == "" {
-		panic("FYNBOS_ENV environment variable is not set")
+	if ilwEnv == "" {
+		panic("ILW_ENV environment variable is not set")
 	}
 	var contains bool
 	for _, env := range allowedEnvs {
-		if env == fynbosEnv {
+		if env == ilwEnv {
 			contains = true
 			break
 		}
 	}
 
 	if !contains {
-		panic("Invalid env=" + fynbosEnv)
+		panic("Invalid env=" + ilwEnv)
 	}
 
-	return fynbosEnv
+	return ilwEnv
 }
 
 // IsLocal returns true if the environment is set up for local development

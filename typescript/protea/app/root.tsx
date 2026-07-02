@@ -27,10 +27,12 @@ import {
   Error,
   GridColumn,
   InterledgerLogo,
+  QuickPayError,
   WalletGrid
 } from '~/components'
 import { Scaffold } from '~/components/Scaffold'
 import { TotpChallengeGlobal } from '~/components/TotpChallengeGlobal'
+import { envBool } from '~/env.server'
 import { isAuthenticated } from '~/lib/kratos/session.server'
 import { getSnackbar } from '~/lib/snackbar.server'
 import styles from '~/styles/app.css?url'
@@ -142,11 +144,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   const url = new URL(request.url)
   const pathname = url.pathname
+  const showQuickPay = envBool('OP_INTPAY_ENABLED') ?? false
   let features = new Features()
   let isDisabled = false
   let walletAddress = ''
   const env = {
-    fynbosEnv: envValue('FYNBOS_ENV'),
+    ilwEnv: envValue('ILW_ENV'),
     sentryDsn: envValue('SENTRY_DSN'),
     sentryRelease: envValue('SENTRY_RELEASE'),
     targetHost: envValue('TARGET_HOST'),
@@ -162,6 +165,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
         features,
         snackbar,
         pusherArgs,
+        showQuickPay,
         env
       },
       { headers }
@@ -195,6 +199,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       features,
       snackbar,
       pusherArgs,
+      showQuickPay,
       env
     },
     { headers }
@@ -236,7 +241,15 @@ export function ErrorBoundary() {
   captureException(error)
 
   if (isRouteErrorResponse(error)) {
-    return (
+    return error.data?.code === 'QUICKPAY_SESSION_ERROR' ? (
+      <Document>
+        <QuickPayError
+          status={error.status}
+          statusText={error.statusText}
+          data={error.data}
+        />
+      </Document>
+    ) : (
       <Document>
         <Error
           status={error.status}

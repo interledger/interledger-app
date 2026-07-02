@@ -6,7 +6,7 @@ import type { PendingThreeDSConfirmation } from '~/generated/connect/backend/v1/
 import { usePendingConfirmations } from './cards/usePendingConfirmations'
 import { useScaffoldStore } from './useScaffoldStore'
 
-let pusherClient: Pusher
+let pusherClient: Pusher | undefined
 
 declare global {
   var __pusherClient: Pusher | undefined
@@ -31,7 +31,7 @@ export function usePusher(args: PusherArgs, events: Events[]) {
   const [pushSnackbar] = useScaffoldStore((state) => [state.pushSnackbar])
   const { addPendingConfirmation } = usePendingConfirmations()
 
-  if (!global.__pusherClient) {
+  if (!global.__pusherClient && args.appKey) {
     global.__pusherClient = new Pusher(args.appKey, {
       cluster: args.cluster
     })
@@ -102,10 +102,11 @@ function usePusherEvent<D>(
 function useChannel(channelName?: string) {
   const [channel, setChannel] = useState<Channel>()
   useEffect(() => {
-    if (!channelName) return
-    const _channel = pusherClient.subscribe(channelName)
+    if (!channelName || !pusherClient) return
+    const client = pusherClient
+    const _channel = client.subscribe(channelName)
     setChannel(_channel)
-    return () => pusherClient.unsubscribe(channelName)
+    return () => client.unsubscribe(channelName)
   }, [channelName])
 
   return channel

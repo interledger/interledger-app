@@ -146,6 +146,7 @@ backend:
     apple_app_id: ""
     android_package_name: ""
     android_sha256: ""
+    cards_enabled: false
 
     admin:
       # This is used to create links to the admin portal useful for support purposes
@@ -810,7 +811,7 @@ backend:
       contentMap:
         - key: APPLICATION_URL
           valueRef: backend.config.application_url
-        - key: FYNBOS_ENV
+        - key: ILW_ENV
           valueRef: backend.config.environment
         - key: SENTRY_ENVIRONMENT
           valueRef: backend.config.sentry.env
@@ -922,6 +923,8 @@ backend:
           valueRef: backend.config.admin.base_url
         - key: PERSONA_SANDBOX_ZA_FAKE_ZA_ID
           valueRef: backend.config.persona.personaSandboxFakeZAID
+        - key: CARDS_ENABLED
+          valueRef: backend.config.cards_enabled
 
 # =============================================================================
 # FRONTEND — Protea user-facing wallet
@@ -1115,7 +1118,7 @@ frontend:
           valueRef: frontend.config.rafiki.auth.endpoint
         - key: BACKEND_GRPC_URL
           valueRef: frontend.config.backend.grpc.url
-        - key: FYNBOS_ENV
+        - key: ILW_ENV
           valueRef: frontend.config.environment
         - key: LOG_LEVEL
           valueRef: frontend.config.log_level
