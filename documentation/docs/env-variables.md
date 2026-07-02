@@ -53,6 +53,10 @@ Protea is a Remix application serving the user-facing wallet UI.
 | `PTI_FORMS_URL` | URL to the Fiant hosted forms (Elements) used for KYC, onboarding, and payment collection widgets. Derived from the `ptiDomain` init parameter documented in [Fiant Front-End SDK usage](https://developers.platform.fiant.io/docs/front-end-sdk-usage): `https://forms.{ptiDomain}` | No | Prod: `https://forms.platform.fiant.io`; Sandbox/Dev: `https://forms.staging.fiant.io`; Local: `https://mockpti.interledger.test/forms` |
 | `PERSONA_SDK_URL` | URL to the Persona identity verification JavaScript SDK loaded by the KYC flow | No | Prod/Sandbox: `https://cdn.withpersona.com/dist/persona-v4.8.0-alpha.js`; Local: `https://mockxago.interledger.test/v1/persona-sdk.js` |
 | `MOCKXAGO_ENDPOINT` | Base URL for the Xago/Persona KYC iframe (`/v1/inquiries/<id>/iframe` appended at runtime). When set, the Xago iframe flow is used; when empty, the Persona SDK flow is used instead. Optional. | No | Local: `https://mockxago.interledger.test`; not set in deployed environments (Persona SDK used instead) |
+| `OP_INTPAY_ENABLED` | Feature flag for Open Payments Interledger Pay (`/quick-pay` routes). When `false`, the remaining `OP_INTPAY_*` variables are unused and the quick-pay routes reject requests | No | Local default: `false` |
+| `OP_INTPAY_HOST` | Public base URL of the wallet's Open Payments auth server, used to build quick-pay links. Required when `OP_INTPAY_ENABLED=true` | No | Local: `https://interledger.test/`; deployed values TBD |
+| `OP_INTPAY_REDIRECT_URL` | URL the client is redirected back to once a quick-pay grant completes. Required when `OP_INTPAY_ENABLED=true` | No | Local: `https://interledger.test/quick-pay/finish`; deployed values TBD |
+| `OP_INTPAY_WALLET_ADDRESS` | Wallet address (payment pointer) used as the Open Payments client identity for quick-pay grant requests. Required when `OP_INTPAY_ENABLED=true` | No | Local default: empty; deployed values TBD |
 | `SENTRY_RELEASE` | Identifies the deployed version in Sentry error reports | No | Not set by default; deployed values TBD |
 | `SENTRY_ENV_LABEL` | Environment label sent to Sentry with every event (e.g. `prod`, `dev`, `local`). Only relevant when `SENTRY_DSN` is set. **Sentry is disabled by default in local.** | No | Prod: `prod`; Sandbox: `sandbox`; Dev: `dev`; Local: not set (Sentry off) |
 | `CHOKIDAR_USEPOLLING` | Enable filesystem polling for hot-reload in containers (dev only) | No | Local only: `true`; not applicable in deployed environments |
@@ -64,6 +68,8 @@ Protea is a Remix application serving the user-facing wallet UI.
 | `SENTRY_DSN` | Sentry DSN for client-side and server-side error reporting. **Not set in local** — Sentry is disabled when this is empty. | Yes | Not set locally; required in deployed environments |
 | `SEGMENT_API_KEY` | Segment analytics write key for event tracking | Yes | Not set locally |
 | `GOOGLE_MAPS_API_KEY` | Google Maps API key for geocoding and places autocomplete endpoints used during onboarding | Yes | Not set locally |
+| `OP_INTPAY_KEY_ID` | Key id of the Open Payments client used to authenticate quick-pay grant requests. Required when `OP_INTPAY_ENABLED=true` | Yes | Local default: empty |
+| `OP_INTPAY_PRIVATE_KEY` | Base64-encoded Ed25519 private key of the Open Payments client, paired with `OP_INTPAY_KEY_ID`. Required when `OP_INTPAY_ENABLED=true` | Yes | Local default: empty |
 
 ### Legacy Variables
 

@@ -25,6 +25,10 @@ data:
   PERSONA_SDK_URL: {{ .Values.frontend.config.persona_sdk_url | quote }}
   MOCKXAGO_ENDPOINT: {{ .Values.frontend.config.mockxago_endpoint | quote }}
   SENTRY_ENV_LABEL: {{ .Values.frontend.config.sentry_env_label | quote }}
+  OP_INTPAY_ENABLED: {{ .Values.frontend.config.op_intpay.enabled | toString | quote }}
+  OP_INTPAY_HOST: {{ .Values.frontend.config.op_intpay.host | quote }}
+  OP_INTPAY_REDIRECT_URL: {{ .Values.frontend.config.op_intpay.redirect_url | quote }}
+  OP_INTPAY_WALLET_ADDRESS: {{ .Values.frontend.config.op_intpay.wallet_address | quote }}
 {{- end }}
 
 {{- define "interledger-app.admin.configMap" -}}
