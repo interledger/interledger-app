@@ -37,8 +37,8 @@ if (!VALID_LOG_LEVELS.includes(logLevel)) {
       caller: 'server.js',
       msg: 'Invalid LOG_LEVEL configuration',
       error: `LOG_LEVEL must be one of: ${VALID_LOG_LEVELS.join(', ')}`,
-      providedValue: logLevel,
-    }) + '\n',
+      providedValue: logLevel
+    }) + '\n'
   )
   process.exit(1)
 }
@@ -47,9 +47,9 @@ const logger = pino({
   level: logLevel,
   timestamp: pino.stdTimeFunctions.isoTime,
   formatters: {
-    level: (label) => ({ level: label }),
+    level: (label) => ({ level: label })
   },
-  base: { pid: undefined, hostname: undefined },
+  base: { pid: undefined, hostname: undefined }
 })
 
 const build = await import('./build/server/index.js')
@@ -69,7 +69,7 @@ app.use(compression())
 // Static assets, identical to react-router-serve defaults.
 app.use(
   '/assets',
-  express.static('build/client/assets', { immutable: true, maxAge: '1y' }),
+  express.static('build/client/assets', { immutable: true, maxAge: '1y' })
 )
 app.use(express.static('build/client', { maxAge: '1h' }))
 
@@ -84,14 +84,14 @@ if (accessLogsEnabled) {
     pinoHttp({
       logger,
       autoLogging: {
-        ignore: (req) => PROBE_PATHS.has(req.url?.split('?')[0] ?? ''),
+        ignore: (req) => PROBE_PATHS.has(req.url?.split('?')[0] ?? '')
       },
       customLogLevel: (_req, res, err) => {
         if (err || res.statusCode >= 500) return 'error'
         if (res.statusCode >= 400) return 'warn'
         return 'debug'
-      },
-    }),
+      }
+    })
   )
 }
 
@@ -99,8 +99,8 @@ app.all(
   '*',
   createRequestHandler({
     build,
-    mode: process.env.NODE_ENV,
-  }),
+    mode: process.env.NODE_ENV
+  })
 )
 
 const port = Number(process.env.PORT) || 3000
@@ -127,7 +127,7 @@ function shutdown(signal) {
   setTimeout(() => {
     logger.error(
       { timeoutMs: SHUTDOWN_TIMEOUT_MS },
-      'forcing shutdown; in-flight requests were cut',
+      'forcing shutdown; in-flight requests were cut'
     )
     process.exit(1)
   }, SHUTDOWN_TIMEOUT_MS).unref()
