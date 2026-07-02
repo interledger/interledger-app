@@ -1132,6 +1132,8 @@ frontend:
         whenUnsatisfiable: DoNotSchedule
 
   configMaps:
+    # NOTE: Please see the _configmaps.tpl template for details on how these values are rendered into the ConfigMap.
+    #       and also validation.frontend.yaml for validation of required fields when op_intpay.enabled is true.
     server:
       name: frontend-server
       contentMap:
