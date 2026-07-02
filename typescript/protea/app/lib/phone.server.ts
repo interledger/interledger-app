@@ -182,13 +182,11 @@ export async function handleResendOtp(request: Request, phone: string) {
   const parsedPhone = parseUserPhone(phone)
   const normalizedPhone = parsedPhone.success ? parsedPhone.phone : null
 
-  if (!normalizedPhone) {
+  if (!parsedPhone.success) {
     return {
       codeSent: false as const,
       error: 'invalidPhone' as const,
-      message: !parsedPhone.success
-        ? parsedPhone.error
-        : 'Your mobile number format is invalid. Please update it and try again.'
+      message: parsedPhone.error
     }
   }
   const otpRateLimitResult = await applyPhoneOtpRateLimit(request)
