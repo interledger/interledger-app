@@ -180,7 +180,6 @@ export async function handleUpdatePhone(request: Request, form: FormData) {
 export async function handleResendOtp(request: Request, phone: string) {
   const errors: Partial<TwillioError> = { otp: '' }
   const parsedPhone = parseUserPhone(phone)
-  const normalizedPhone = parsedPhone.success ? parsedPhone.phone : null
 
   if (!parsedPhone.success) {
     return {
@@ -201,7 +200,7 @@ export async function handleResendOtp(request: Request, phone: string) {
   }
 
   const response = await grpc.sendPhoneVerification(request, {
-    to: normalizedPhone
+    to: parsedPhone.phone
   })
 
   if (isConnectError(response)) {
