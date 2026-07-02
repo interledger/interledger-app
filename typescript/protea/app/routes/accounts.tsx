@@ -190,7 +190,7 @@ export default function Page() {
         {bankAccounts && hasBank && (
           <Card>
             <CardHeader>
-              <CardTitle>Connected bank accounts 22</CardTitle>
+              <CardTitle>Connected bank accounts</CardTitle>
             </CardHeader>
             {bankAccounts.map((method) => (
               <CardLink
