@@ -82,6 +82,7 @@ COPY --from=builder --chown=remix:nodejs /app/public ./public
 COPY --from=builder --chown=remix:nodejs /app/build ./build
 COPY --from=builder --chown=remix:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=remix:nodejs /app/package.json ./package.json
+COPY --from=builder --chown=remix:nodejs /app/server.js ./server.js
 
 USER remix
 RUN corepack prepare pnpm@8.5.0 --activate
