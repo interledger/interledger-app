@@ -188,7 +188,7 @@ func initSentry(dsn, release, environment string) {
 }
 
 func start(args *cli.StartArgs) {
-	traceShutdown, err := tracing.InitTraceProvider("backend", Version, args.Environment.Mode)
+	traceShutdown, err := tracing.InitTraceProvider("backend", Version, args.OTEL.Enabled, args.OTEL.Endpoint, args.OTEL.Headers)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -492,7 +492,7 @@ func migrate(args *cli.MigrationArgs) {
 func startWorker(args *cli.StartArgs) {
 	log.Info("begin worker start")
 
-	traceShutdown, err := tracing.InitTraceProvider("backend-worker", Version, args.Environment.Mode)
+	traceShutdown, err := tracing.InitTraceProvider("backend-worker", Version, args.OTEL.Enabled, args.OTEL.Endpoint, args.OTEL.Headers)
 	if err != nil {
 		log.Fatalln(err)
 	}

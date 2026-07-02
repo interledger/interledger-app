@@ -94,7 +94,11 @@ func start(args *cli.StartArgs) {
 		log.Fatalln(err)
 	}
 
-	traceShutdown, err := tracing.InitTraceProvider("pacioli", Version, args.Mode)
+	// pacioli has no OTEL YAML config: enable tracing in dev/prod (matching the
+	// previous behaviour) and let the exporter read the standard
+	// OTEL_EXPORTER_OTLP_* env vars.
+	otelEnabled := args.Mode == "dev" || args.Mode == "prod"
+	traceShutdown, err := tracing.InitTraceProvider("pacioli", Version, otelEnabled, "", nil)
 	if err != nil {
 		log.Fatalln(err)
 	}

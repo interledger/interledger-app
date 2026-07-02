@@ -145,3 +145,15 @@ pusher:
 
 segment:
   key: "test-segment-key"
+
+# OpenTelemetry tracing. Disabled for local development by default.
+# Set enabled: true and configure endpoint/headers to export spans, e.g.:
+#   otel:
+#     enabled: true
+#     endpoint: grpc://api.honeycomb.io:443
+#     headers:
+#       x-honeycomb-team: '{{ secret "honeycomb" "ingest-key" }}'
+# The standard OTEL_EXPORTER_OTLP_* env vars take priority over endpoint/headers
+# when set (a warning is logged when they do).
+otel:
+  enabled: false

@@ -64,6 +64,20 @@ type StartConfig struct {
 	Pusher     PusherConfig     `yaml:"pusher"`
 	Segment    SegmentConfig    `yaml:"segment"`
 	Agreements AgreementsConfig `yaml:"agreements"`
+	OTEL       OTELConfig       `yaml:"otel"`
+}
+
+// OTELConfig configures the OpenTelemetry trace exporter. Enabled is an explicit
+// on/off switch for tracing. Endpoint and headers configure the OTLP/gRPC
+// exporter, and let the Honeycomb key flow through configa's {{ secret ... }}
+// templating like the rest of the config.
+//
+// The standard OTEL_EXPORTER_OTLP_* environment variables take priority over
+// endpoint/headers when set (a warning is logged); see tracing.InitTraceProvider.
+type OTELConfig struct {
+	Enabled  bool              `yaml:"enabled"`
+	Endpoint string            `yaml:"endpoint"`
+	Headers  map[string]string `yaml:"headers"`
 }
 
 type AgreementsConfig struct {

@@ -56,11 +56,9 @@ services:
 
     environment:
       - CONFIG=/etc/backend/config.yaml,/etc/backend/config-override.yaml
-      # OTEL is consumed directly by the OTEL SDK from env vars and is not part of
-      # the YAML config.
-      - OTEL_EXPORTER_OTLP_ENDPOINT=${BACKEND_OTEL_EXPORTER_OTLP_ENDPOINT:-grpc://api.honeycomb.io:443}
-      - OTEL_EXPORTER_OTLP_HEADERS=${BACKEND_OTEL_EXPORTER_OTLP_HEADERS:-x-honeycomb-team=<honeycomb-ingest-key>}
-      - OTEL_SERVICE_NAME=${BACKEND_OTEL_SERVICE_NAME:-backend}
+      # OTEL is configured in the YAML config under `otel:`. The standard
+      # OTEL_EXPORTER_OTLP_* env vars still take priority if set (a warning is
+      # logged when they override the config).
       # Redis is consumed directly by the Redis client and is not part of the YAML config.
       - REDIS_URL=${BACKEND_REDIS_URL:-redis://redis:6379/0}
     volumes:
