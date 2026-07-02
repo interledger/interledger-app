@@ -25,16 +25,7 @@ app.disable('x-powered-by')
 // without letting direct clients spoof `X-Forwarded-*`.
 app.set('trust proxy', 1)
 
-// Access log: one compact line per request, message only (no bound
-// req/res/headers), only emitted at debug/trace so it never fires in
-// normal operation. Probe paths are always skipped since they're pure
-// noise even when debugging. Deliberately not using pino-http here — it
-// binds the full `req` object onto a per-request child logger before its
-// completion log fires, so even minimal serializers still print a `req`/
-// `res` sub-object on every line. A plain `res.on('finish', ...)` gives
-// full control over the line's shape at the cost of not seeing raw
-// socket-level errors (aborted connections before a response was sent),
-// which pino-http's `err` callback would have caught.
+// Compared with 'entry.server', this middleware logs the loader/action requests
 if (logger.level === 'debug' || logger.level === 'trace') {
   app.use((req, res, next) => {
     if (!PROBE_PATHS.has(req.path)) {

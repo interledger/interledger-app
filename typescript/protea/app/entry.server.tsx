@@ -75,20 +75,6 @@ export default function handleRequest(
   const url = new URL(request.url)
   const isProbe = PROBE_PATHS.has(url.pathname)
 
-  // Log incoming request
-  // TODO why do we even log incoming only ?
-  if (!isProbe) {
-    logger.debug(
-      {
-        ...addRequestId(requestId),
-        method: request.method,
-        url: url.pathname + url.search,
-        userAgent: request.headers.get('user-agent')
-      },
-      `[req] ${request.method} ${url.pathname}${url.search}`
-    )
-  }
-
   const handler = isbot(request.headers.get('user-agent'))
     ? handleBotRequest(
         request,
@@ -120,7 +106,7 @@ export default function handleRequest(
             statusCode: response.status,
             responseTime: getResponseTime(startTime)
           },
-          `[res] ${request.method} ${url.pathname}${url.search} ${response.status} - ${getResponseTime(startTime)}ms`
+          `${request.method} ${url.pathname}${url.search} ${response.status} - ${getResponseTime(startTime)}ms`
         )
       }
       return response
