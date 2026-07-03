@@ -8,10 +8,11 @@ type EnvironmentConfig struct {
 	Label string `yaml:"label"`
 }
 
-func (e EnvironmentConfig) IsModeLocal() bool { return e.Mode == "local" }
-func (e EnvironmentConfig) IsModeProd() bool  { return e.Mode == "prod" }
-func (e EnvironmentConfig) IsModeDev() bool   { return e.Mode == "dev" }
-func (e EnvironmentConfig) IsModeTest() bool  { return e.Mode == "test" }
+func (e EnvironmentConfig) IsModeLocal() bool   { return e.Mode == "local" }
+func (e EnvironmentConfig) IsModeProd() bool    { return e.Mode == "prod" }
+func (e EnvironmentConfig) IsModeDev() bool     { return e.Mode == "dev" }
+func (e EnvironmentConfig) IsModeTest() bool    { return e.Mode == "test" }
+func (e EnvironmentConfig) IsModeSandbox() bool { return e.Mode == "sandbox" }
 
 // StartConfig is the typed configuration for the backend start and worker commands.
 // It is loaded from YAML files listed in the CONFIG environment variable.

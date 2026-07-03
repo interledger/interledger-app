@@ -28,6 +28,7 @@ require (
 	github.com/ory/kratos-client-go v0.13.1
 	github.com/pquerna/otp v1.5.0
 	github.com/pusher/pusher-http-go/v5 v5.1.1
+	github.com/quasilyte/go-ruleguard/dsl v0.3.23
 	github.com/redis/go-redis/v9 v9.18.0
 	github.com/riandyrn/otelchi v0.4.0
 	github.com/segmentio/analytics-go/v3 v3.2.1
