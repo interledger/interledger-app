@@ -15,6 +15,9 @@ services:
       - "auth.local.ilp.link:host-gateway"
     volumes:
       - ../typescript/protea/app:/app/app:rw
+      # Trust the local self-signed cert (served by Traefik) so server-side
+      # HTTPS fetches to local.ilp.link etc. verify instead of being skipped.
+      - ./config/certs/local.crt:/certs/local.crt:ro
     ports:
       - "3000:3000" # http port
       - "8002:8002" # websocket port
@@ -30,7 +33,8 @@ services:
       - "traefik.http.services.protea-ws.loadbalancer.server.port=8002"
 
     environment:
-      - NODE_TLS_REJECT_UNAUTHORIZED=0
+      # Trust our local CA rather than disabling TLS verification wholesale.
+      - NODE_EXTRA_CA_CERTS=/certs/local.crt
 
       # Core runtime
       - ILW_ENV=${PROTEA_ILW_ENV:-local}
