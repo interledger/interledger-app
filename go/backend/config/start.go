@@ -262,6 +262,13 @@ func LoadStart() (*StartConfig, error) {
 // validateStart enforces conditional validation rules that depend on feature
 // flags or environment mode and cannot be expressed as struct-level validate tags.
 func validateStart(cfg *StartConfig) error {
+	// Guardrail: Twilio must not be disabled in production. When disabled the
+	// backend runs a no-op verification service that approves any OTP, which is
+	// only ever acceptable outside prod.
+	if cfg.Environment.Mode == "prod" && !cfg.Twilio.Enabled {
+		return errors.New("twilio.enabled must be true when environment.mode is prod")
+	}
+
 	if cfg.Twilio.Enabled {
 		if cfg.Twilio.AccountSID == "" {
 			return errors.New("twilio.account_sid is required when twilio.enabled is true")

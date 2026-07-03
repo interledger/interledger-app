@@ -790,16 +790,22 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 
 	b.feat = features_client.New(b, true)
 
-	twilioService, err := _twilio.NewService(&_twilio.ServiceArgs{
-		AccountSid:   args.Twilio.AccountSID,
-		AccountToken: args.Twilio.AccountToken,
-		ServiceSid:   args.Twilio.ServiceSID,
-		Enabled:      args.Twilio.Enabled,
-	})
-	if err != nil {
-		log.Fatalln(err)
+	// When Twilio is disabled we run a no-op service that approves any code.
+	// This is only reachable outside environment.mode=prod: config validation
+	// (and the Helm chart) reject twilio.enabled=false in production.
+	if args.Twilio.Enabled {
+		twilioService, err := _twilio.NewService(&_twilio.ServiceArgs{
+			AccountSid:   args.Twilio.AccountSID,
+			AccountToken: args.Twilio.AccountToken,
+			ServiceSid:   args.Twilio.ServiceSID,
+		})
+		if err != nil {
+			log.Fatalln(err)
+		}
+		b.twilio = twilioService
+	} else {
+		b.twilio = _twilio.NewNoOp()
 	}
-	b.twilio = twilioService
 
 	if !isWorker {
 		health, err := healthcheck.NewService()

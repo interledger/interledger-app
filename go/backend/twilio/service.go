@@ -40,14 +40,12 @@ type (
 		AccountToken string `validate:"required"`
 		ServiceSid   string `validate:"required"`
 		ApiBaseUrl   string // use this to override the default base url
-		Enabled      bool   // when false, all methods return stub responses without calling Twilio
 	}
 
 	service struct {
 		validator    *validator.Validate
 		serviceSid   string
 		twilioClient *twilio.RestClient
-		enabled      bool
 	}
 
 	Verification struct {
@@ -66,11 +64,10 @@ func NewService(args *ServiceArgs) (Service, error) {
 	if args == nil {
 		return nil, fmt.Errorf("%w: args must not be nil", ErrInvalidArgument)
 	}
-	if args.Enabled {
-		v := validator.New()
-		if err := v.Struct(args); err != nil {
-			return nil, fmt.Errorf("%w: %s", ErrInvalidArgument, err)
-		}
+
+	v := validator.New()
+	if err := v.Struct(args); err != nil {
+		return nil, fmt.Errorf("%w: %s", ErrInvalidArgument, err)
 	}
 
 	customClient := &CustomClient{
@@ -87,17 +84,14 @@ func NewService(args *ServiceArgs) (Service, error) {
 		Client: customClient,
 	})
 
-	if args.Enabled {
-		if err := validateConfiguration(twilioClient, args.ServiceSid); err != nil {
-			return nil, err
-		}
+	if err := validateConfiguration(twilioClient, args.ServiceSid); err != nil {
+		return nil, err
 	}
 
 	return &service{
 		validator:    validator.New(),
 		twilioClient: twilioClient,
 		serviceSid:   args.ServiceSid,
-		enabled:      args.Enabled,
 	}, nil
 }
 
@@ -132,14 +126,6 @@ func (s *service) SendVerificationCode(ctx context.Context, phoneNumber string) 
 		return nil, fmt.Errorf("%w: %s", ErrInvalidArgument, err)
 	}
 
-	if !s.enabled {
-		return &Verification{
-			Sid:         "1234",
-			PhoneNumber: phoneNumber,
-			Status:      "pending",
-		}, nil
-	}
-
 	params := &verify.CreateVerificationParams{}
 	params.SetTo(phoneNumber)
 	params.SetChannel("sms")
@@ -172,14 +158,6 @@ type CheckVerificationCodeArgs struct {
 }
 
 func (s *service) CheckVerificationCode(ctx context.Context, args *CheckVerificationCodeArgs) (*Verification, error) {
-	if !s.enabled {
-		return &Verification{
-			Sid:         "1234",
-			PhoneNumber: args.PhoneNumber,
-			Status:      statusApproved,
-		}, nil
-	}
-
 	err := s.validator.Struct(args)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", ErrInvalidArgument, err)
@@ -229,17 +207,6 @@ type ListSuccessfulVerificationAttemptsArgs struct {
 }
 
 func (s *service) ListSuccessfulVerificationAttempts(ctx context.Context, args ListSuccessfulVerificationAttemptsArgs) ([]Verification, error) {
-	if !s.enabled {
-		return []Verification{
-			{
-				Sid:         "1234",
-				PhoneNumber: args.To,
-				Status:      statusApproved,
-				UpdatedAt:   time.Now(),
-			},
-		}, nil
-	}
-
 	converted := "converted"
 	params := &verify.ListVerificationAttemptParams{
 		ChannelDataTo:    &args.To,

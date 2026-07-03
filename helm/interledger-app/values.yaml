@@ -224,6 +224,11 @@ backend:
       sandbox_fake_za_id: false
 
     twilio:
+      # When enabled=false the backend runs a no-op verification service that
+      # "sends" codes without contacting Twilio and treats any submitted code as
+      # valid. This is only permitted outside production: environment.mode=prod
+      # with twilio.enabled=false is rejected at render time and on startup.
+      # Defaults to disabled for non-prod; override to true to test real Twilio.
       enabled: false
       account_sid: ""
       service_sid: ""

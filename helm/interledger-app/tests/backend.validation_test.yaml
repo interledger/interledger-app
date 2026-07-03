@@ -308,6 +308,14 @@ tests:
       - failedTemplate:
           errorMessage: "The following required values are empty: backend.config.twilio.account_sid"
 
+  - it: 'Should fail when environment.mode is prod but twilio is disabled'
+    set:
+      backend.config.environment.mode: "prod"
+      backend.config.twilio.enabled: "false"
+    asserts:
+      - failedTemplate:
+          errorMessage: "backend.config.twilio.enabled must be true when environment.mode is prod"
+
   # ── Conditional: email.enabled ───────────────────────────────────────────────
 
   - it: 'Should fail when email is enabled but sendgrid.api_key is empty'

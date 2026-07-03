@@ -248,10 +248,36 @@ Gated by `twilio.enabled`; credentials required only when enabled.
 
 | Key | Type | Required | Secret | Notes |
 |---|---|---|---|---|
-| `twilio.enabled` | bool | No | No | Enables live Twilio Verify calls. |
+| `twilio.enabled` | bool | Yes when `environment.mode: prod` | No | Enables live Twilio Verify calls. See behaviour below. |
 | `twilio.account_sid` | string | If enabled | Yes | Twilio account SID. |
 | `twilio.account_token` | string | If enabled | Yes | Twilio auth token. |
 | `twilio.service_sid` | string | If enabled | Yes | Twilio Verify service SID. |
+
+**Enabled vs. disabled behaviour**
+
+- **`twilio.enabled: true`** — the backend initialises the real Twilio Verify
+  service. `account_sid`, `account_token`, and `service_sid` are required, and
+  the service SID is validated against Twilio at startup (startup fails fast on
+  bad credentials).
+- **`twilio.enabled: false`** — the backend initialises a **no-op verification
+  service** instead of Twilio. It never contacts Twilio: verification codes are
+  always reported as sent, and **any submitted OTP is accepted**. No credentials
+  are required. This is intended for local development and testing.
+
+**Production guardrail**
+
+Running the no-op service in production would let anyone bypass phone
+verification, so it is not allowed:
+
+- When `environment.mode: prod`, `twilio.enabled` **must** be `true`. Setting it
+  to `false` (or leaving it unset) is rejected at two layers:
+  - **Chart render** — `helm template`/`helm install` fails with
+    `backend.config.twilio.enabled must be true when environment.mode is prod`.
+  - **Backend startup** — config validation returns
+    `twilio.enabled must be true when environment.mode is prod`.
+- In every other mode (`sandbox`, `dev`, `local`, `test`) `twilio.enabled`
+  defaults to `false`. Override it to `true` to exercise the real Twilio
+  integration in a non-production environment.
 
 ### Email (SendGrid)
 
@@ -337,6 +363,7 @@ Some fields become required based on feature flags or environment mode:
 | Condition | Additionally required |
 |---|---|
 | `twilio.enabled: true` | `twilio.account_sid`, `twilio.account_token`, `twilio.service_sid` |
+| `environment.mode: prod` | `twilio.enabled: true` (disabling Twilio in prod is rejected) |
 | `email.enabled: true` | `email.sendgrid.api_key`, `email.sendgrid.from_name`, `email.sendgrid.from_email`, `email.sendgrid.one_template_id`, `email.sendgrid.support_email` |
 | `pti.enabled: true` | `pti.base_url`, `pti.jwk`, `pti.client_id`, `pti.sdk_url`, `pti.forms_url`, `pti.public_key_jwk` |
 | `environment.mode: prod` | All GateHub fields marked *Prod* above (plus a non-zero `gatehub.eur_ops_ledger_id`) |

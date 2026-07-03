@@ -100,6 +100,15 @@
   ) -}}
 {{- end -}}
 
+{{/*
+  mode=prod requires twilio enabled — mirrors the guardrail in validateStart.
+  When disabled the backend runs a no-op verification service that approves any
+  OTP, which must never happen in production.
+*/}}
+{{- if and (eq $mode "prod") (ne (toString .Values.backend.config.twilio.enabled) "true") -}}
+  {{- fail "backend.config.twilio.enabled must be true when environment.mode is prod" -}}
+{{- end -}}
+
 {{/* twilio.enabled — mirrors validateStart Twilio block in start.go */}}
 {{- if eq (toString .Values.backend.config.twilio.enabled) "true" -}}
   {{- $requiredFields = concat $requiredFields (list
