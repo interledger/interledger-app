@@ -59,6 +59,11 @@ export function handleError(
   )
 }
 
+// Paths hit by Kubernetes liveness / readiness probes. They produce no
+// useful signal and would flood logs even at debug level, so we skip
+// per-request logging for them entirely.
+const PROBE_PATHS = new Set(['/healthz', '/live', '/ready'])
+
 export default function handleRequest(
   request: Request,
   responseStatusCode: number,
@@ -68,17 +73,7 @@ export default function handleRequest(
   const startTime = Date.now()
   const requestId = extractOrGenerateRequestId(request)
   const url = new URL(request.url)
-
-  // Log incoming request
-  logger.debug(
-    {
-      ...addRequestId(requestId),
-      method: request.method,
-      url: url.pathname + url.search,
-      userAgent: request.headers.get('user-agent')
-    },
-    `${request.method} ${url.pathname}${url.search}`
-  )
+  const isProbe = PROBE_PATHS.has(url.pathname)
 
   const handler = isbot(request.headers.get('user-agent'))
     ? handleBotRequest(
@@ -100,19 +95,20 @@ export default function handleRequest(
 
   return handler
     .then((response) => {
-      // Log response
-      logger.info(
-        {
-          ...addRequestId(requestId),
-          method: request.method,
-          url: url.pathname + url.search,
-          statusCode: response.status,
-          responseTime: getResponseTime(startTime)
-        },
-        `${request.method} ${url.pathname}${url.search} ${
-          response.status
-        } - ${getResponseTime(startTime)}ms`
-      )
+      // Per the logging policy, info is for noteworthy events; access logs
+      // belong at debug. Probes are skipped entirely.
+      if (!isProbe) {
+        logger.debug(
+          {
+            ...addRequestId(requestId),
+            method: request.method,
+            url: url.pathname + url.search,
+            statusCode: response.status,
+            responseTime: getResponseTime(startTime)
+          },
+          `${request.method} ${url.pathname}${url.search} ${response.status} - ${getResponseTime(startTime)}ms`
+        )
+      }
       return response
     })
     .catch((error) => {
