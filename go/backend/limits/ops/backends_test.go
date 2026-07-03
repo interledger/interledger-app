@@ -1,8 +1,10 @@
 package ops_test
 
 import (
+	"context"
 	"testing"
 
+	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"gitlab.com/fynbos/backend/payments"
 
 	"github.com/google/uuid"
@@ -46,6 +48,10 @@ func (t testBackends) Validator() *validator.Validate {
 
 func (t testBackends) DB() *sqlx.DB {
 	return t.db
+}
+
+func (t testBackends) WithTx(ctx context.Context, fn func(*sqlx.Tx) error) error {
+	return crdbsqlx.ExecuteTx(ctx, t.db, nil, fn)
 }
 
 func (t testBackends) Notify() notify.Client {

@@ -38,6 +38,7 @@ import (
 	"gitlab.com/fynbos/backend/limits"
 	"gitlab.com/fynbos/backend/payments"
 
+	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/go-playground/validator/v10"
 	"github.com/golang/mock/gomock"
 	"github.com/jmoiron/sqlx"
@@ -315,6 +316,10 @@ func (b *TestBackends) Validator() *validator.Validate {
 
 func (b *TestBackends) DB() *sqlx.DB {
 	return b.db
+}
+
+func (b *TestBackends) WithTx(ctx context.Context, fn func(*sqlx.Tx) error) error {
+	return crdbsqlx.ExecuteTx(ctx, b.db, nil, fn)
 }
 
 func (b *TestBackends) Temporal() temporal_client.Client {

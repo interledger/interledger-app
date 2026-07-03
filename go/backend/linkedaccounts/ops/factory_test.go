@@ -14,6 +14,7 @@ import (
 	"gitlab.com/fynbos/backend/wallets"
 	wallets_mock "gitlab.com/fynbos/backend/wallets/client/mock"
 
+	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/go-playground/validator/v10"
 	"github.com/golang/mock/gomock"
 	"github.com/jmoiron/sqlx"
@@ -49,6 +50,10 @@ func (t TestContainer) Validator() *validator.Validate {
 
 func (t TestContainer) DB() *sqlx.DB {
 	return t.Db
+}
+
+func (t TestContainer) WithTx(ctx context.Context, fn func(*sqlx.Tx) error) error {
+	return crdbsqlx.ExecuteTx(ctx, t.Db, nil, fn)
 }
 
 func (t TestContainer) Wallets() wallets.Client {

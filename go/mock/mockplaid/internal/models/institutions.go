@@ -8,6 +8,11 @@ const (
 	// InstitutionB — always-new: every selection mints a fresh account_id,
 	// so it never duplicates (multi-account/stress path).
 	InstitutionB = "ins_mock_b"
+	// InstitutionFail — fault injection: selecting it mints a public_token that
+	// SelectAccount marks so ExchangePublicToken fails, exercising the backend's
+	// link-failure path (frontend "Bank account linking failed."). No global
+	// state: the fault rides on the token, so it never leaks between scenarios.
+	InstitutionFail = "ins_mock_fail"
 )
 
 // CatalogAccount is a selectable account template in a mock institution.
@@ -51,6 +56,13 @@ var Catalog = map[string]Institution{
 		Accounts: []CatalogAccount{
 			{Key: "checking", Name: "Plaid Checking", Mask: "2222", Subtype: "checking"},
 			{Key: "savings", Name: "Plaid Saving", Mask: "3333", Subtype: "savings"},
+		},
+	},
+	InstitutionFail: {
+		ID:   InstitutionFail,
+		Name: "Failing Bank",
+		Accounts: []CatalogAccount{
+			{Key: "checking", Name: "Plaid Checking", Mask: "9999", Subtype: "checking"},
 		},
 	},
 }

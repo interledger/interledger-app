@@ -79,6 +79,34 @@ func TestSelect_BankB_AlwaysNew(t *testing.T) {
 	}
 }
 
+func TestSelect_FailBank_MarksPublicToken(t *testing.T) {
+	h, _ := newTestHandler()
+
+	ltReq := httptest.NewRequest(http.MethodPost, "/link/token/create",
+		strings.NewReader(`{"user":{"client_user_id":"u_1"}}`))
+	ltRR := httptest.NewRecorder()
+	h.CreateLinkToken(ltRR, ltReq)
+	var lt struct {
+		LinkToken string `json:"link_token"`
+	}
+	_ = json.NewDecoder(ltRR.Body).Decode(&lt)
+
+	body := `{"link_token":"` + lt.LinkToken + `","institution_id":"` + models.InstitutionFail + `","account_key":"checking"}`
+	req := httptest.NewRequest(http.MethodPost, "/link/session/select", strings.NewReader(body))
+	rr := httptest.NewRecorder()
+	h.SelectAccount(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("select fail-bank: expected 200, got %d (%s)", rr.Code, rr.Body.String())
+	}
+	var resp struct {
+		PublicToken string `json:"public_token"`
+	}
+	_ = json.NewDecoder(rr.Body).Decode(&resp)
+	if !strings.Contains(resp.PublicToken, "-FAIL-") {
+		t.Fatalf("fail-bank public_token should carry FAIL marker, got %q", resp.PublicToken)
+	}
+}
+
 func TestSelect_InvalidLinkToken(t *testing.T) {
 	h, _ := newTestHandler()
 	body := `{"link_token":"nope","institution_id":"ins_mock_a","account_key":"checking"}`
