@@ -265,8 +265,14 @@ func validateStart(cfg *StartConfig) error {
 	// Guardrail: Twilio must not be disabled in production. When disabled the
 	// backend runs a no-op verification service that approves any OTP, which is
 	// only ever acceptable outside prod.
-	if cfg.Environment.Mode == "prod" && !cfg.Twilio.Enabled {
+	if cfg.Environment.IsModeProd() && !cfg.Twilio.Enabled {
 		return errors.New("twilio.enabled must be true when environment.mode is prod")
+	}
+
+	// Guardrail: the Persona sandbox fake ZA ID generates synthetic identity
+	// documents and must never be enabled in production.
+	if cfg.Environment.IsModeProd() && cfg.Persona.SandboxFakeZAID {
+		return errors.New("persona.sandbox_fake_za_id must be false when environment.mode is prod")
 	}
 
 	if cfg.Twilio.Enabled {
@@ -320,7 +326,7 @@ func validateStart(cfg *StartConfig) error {
 		}
 	}
 
-	if cfg.Environment.Mode == "prod" {
+	if cfg.Environment.IsModeProd() {
 		if err := validateGatehubProd(cfg); err != nil {
 			return err
 		}

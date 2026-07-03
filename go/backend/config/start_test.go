@@ -55,3 +55,40 @@ func TestValidateStartTwilioProdGuardrail(t *testing.T) {
 		})
 	}
 }
+
+const personaFakeZAIDGuardrailErr = "persona.sandbox_fake_za_id must be false when environment.mode is prod"
+
+// TestValidateStartPersonaFakeZAIDProdGuardrail asserts that the Persona sandbox
+// fake ZA ID cannot be enabled in production but is permitted in other modes.
+func TestValidateStartPersonaFakeZAIDProdGuardrail(t *testing.T) {
+	t.Run("prod with sandbox_fake_za_id enabled is rejected", func(t *testing.T) {
+		cfg := twilioConfig("prod", true)
+		cfg.Persona.SandboxFakeZAID = true
+		err := validateStart(cfg)
+		if err == nil {
+			t.Fatalf("expected error when persona.sandbox_fake_za_id is enabled in prod, got nil")
+		}
+		if !strings.Contains(err.Error(), personaFakeZAIDGuardrailErr) {
+			t.Fatalf("expected error %q, got %q", personaFakeZAIDGuardrailErr, err.Error())
+		}
+	})
+
+	t.Run("prod without sandbox_fake_za_id passes the guardrail", func(t *testing.T) {
+		cfg := twilioConfig("prod", true)
+		cfg.Persona.SandboxFakeZAID = false
+		err := validateStart(cfg)
+		if err != nil && strings.Contains(err.Error(), personaFakeZAIDGuardrailErr) {
+			t.Fatalf("did not expect persona guardrail error when disabled, got %q", err.Error())
+		}
+	})
+
+	for _, mode := range []string{"sandbox", "dev", "local", "test"} {
+		t.Run(mode+" with sandbox_fake_za_id enabled is allowed", func(t *testing.T) {
+			cfg := twilioConfig(mode, false)
+			cfg.Persona.SandboxFakeZAID = true
+			if err := validateStart(cfg); err != nil {
+				t.Fatalf("expected no error for mode %q with sandbox_fake_za_id enabled, got %q", mode, err.Error())
+			}
+		})
+	}
+}

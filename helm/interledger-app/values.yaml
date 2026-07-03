@@ -220,7 +220,9 @@ backend:
       webhook_token: ""
       # Persona sandbox workaround: sandbox always returns an American profile so
       # the ZA ID field is null. Setting true makes the backend synthesise a ZA ID
-      # (required for Xago subaccount creation). No effect in production.
+      # (required for Xago subaccount creation). Must be false in production:
+      # environment.mode=prod with sandbox_fake_za_id=true is rejected at render
+      # time and on startup.
       sandbox_fake_za_id: false
 
     twilio:

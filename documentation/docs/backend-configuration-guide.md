@@ -240,7 +240,7 @@ Provider is gated by `pti.enabled`; the remaining fields are required only when 
 | `persona.base_url` | string | Yes | No | Persona API base URL. |
 | `persona.token` | string | Yes | Yes | Persona API token. |
 | `persona.webhook_token` | string | Yes | Yes | Persona webhook verification token. |
-| `persona.sandbox_fake_za_id` | bool | No | No | Sandbox-only: generate a synthetic South African ID. Has no effect in prod. |
+| `persona.sandbox_fake_za_id` | bool | No | No | Sandbox-only: generate a synthetic South African ID. Must be `false` when `environment.mode: prod` — enabling it in prod is rejected at chart render and on startup. |
 
 ### Twilio
 
@@ -364,6 +364,7 @@ Some fields become required based on feature flags or environment mode:
 |---|---|
 | `twilio.enabled: true` | `twilio.account_sid`, `twilio.account_token`, `twilio.service_sid` |
 | `environment.mode: prod` | `twilio.enabled: true` (disabling Twilio in prod is rejected) |
+| `environment.mode: prod` | `persona.sandbox_fake_za_id: false` (enabling the sandbox fake ZA ID in prod is rejected) |
 | `email.enabled: true` | `email.sendgrid.api_key`, `email.sendgrid.from_name`, `email.sendgrid.from_email`, `email.sendgrid.one_template_id`, `email.sendgrid.support_email` |
 | `pti.enabled: true` | `pti.base_url`, `pti.jwk`, `pti.client_id`, `pti.sdk_url`, `pti.forms_url`, `pti.public_key_jwk` |
 | `environment.mode: prod` | All GateHub fields marked *Prod* above (plus a non-zero `gatehub.eur_ops_ledger_id`) |

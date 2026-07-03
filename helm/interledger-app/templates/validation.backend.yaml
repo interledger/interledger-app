@@ -109,6 +109,15 @@
   {{- fail "backend.config.twilio.enabled must be true when environment.mode is prod" -}}
 {{- end -}}
 
+{{/*
+  mode=prod forbids the Persona sandbox fake ZA ID — mirrors the guardrail in
+  validateStart. It generates synthetic identity documents and must never be
+  enabled in production.
+*/}}
+{{- if and (eq $mode "prod") (eq (toString .Values.backend.config.persona.sandbox_fake_za_id) "true") -}}
+  {{- fail "backend.config.persona.sandbox_fake_za_id must be false when environment.mode is prod" -}}
+{{- end -}}
+
 {{/* twilio.enabled — mirrors validateStart Twilio block in start.go */}}
 {{- if eq (toString .Values.backend.config.twilio.enabled) "true" -}}
   {{- $requiredFields = concat $requiredFields (list
