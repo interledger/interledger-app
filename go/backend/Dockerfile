@@ -24,7 +24,6 @@ COPY go.mod go.sum ./
 RUN go mod download
 COPY backend ./backend
 COPY configa ./configa
-COPY env ./env
 COPY proto ./proto
 COPY pacioli ./pacioli
 COPY log ./log
