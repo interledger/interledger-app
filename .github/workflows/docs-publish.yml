@@ -1,0 +1,90 @@
+name: Publish Documentation
+
+# Fires once per GitHub Release (semantic-release's @semantic-release/github
+# plugin creates one for every release, including maintenance `*.x`
+# branches). Fully decoupled from release.yml/build-and-publish.yml so it
+# can't be affected by unrelated changes to that pipeline.
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+concurrency:
+  # Multiple maintenance branches can release at roughly the same time;
+  # serialise pushes to `docs` so they don't race each other. Distinct
+  # release tags still queue rather than cancel, so no release is skipped.
+  group: docs-publish
+  cancel-in-progress: false
+
+jobs:
+  build_and_publish_docs:
+    name: Build and publish mkdocs site
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      VERSION: ${{ github.event.release.tag_name }}
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install mkdocs
+        run: pip install --no-cache-dir mkdocs-material pymdown-extensions
+
+      - name: Build docs
+        working-directory: documentation
+        run: mkdocs build --site-dir site
+
+      - name: Checkout docs branch
+        uses: actions/checkout@v6
+        with:
+          ref: docs
+          path: docs-branch
+          persist-credentials: true
+
+      - name: Publish version to docs branch
+        working-directory: docs-branch
+        run: |
+          set -euo pipefail
+
+          rm -rf "${VERSION:?}"
+          mkdir -p "${VERSION}"
+          cp -r ../documentation/site/. "${VERSION}/"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "${VERSION}"
+
+          if git diff --cached --quiet; then
+            echo "No changes for ${VERSION}; nothing to publish."
+            exit 0
+          fi
+
+          git commit -m "docs: publish documentation for ${VERSION}"
+
+          # The docs branch is only ever written by this job, but a retry of
+          # a previous failed run or an overlapping release on another
+          # branch could still have pushed in between our checkout and this
+          # push. Rebase onto the latest remote state and retry a few times
+          # before giving up, rather than clobbering another version's commit.
+          for attempt in 1 2 3; do
+            if git push origin HEAD:docs; then
+              exit 0
+            fi
+            echo "Push rejected (attempt ${attempt}/3); fetching and rebasing."
+            git fetch origin docs
+            git rebase origin/docs
+          done
+
+          echo "::error::Failed to push docs for ${VERSION} after 3 attempts."
+          exit 1
