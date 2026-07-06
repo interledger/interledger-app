@@ -84,6 +84,12 @@ jobs:
               exit 0
             fi
             echo "Deploy rejected (attempt ${attempt}/3); re-fetching docs."
+            # A failed mike deploy still leaves its commit on the local
+            # `docs` ref. Drop it before retrying so the next attempt
+            # starts from origin's current state instead of comparing
+            # against that orphaned commit (mike treats the two as
+            # unrelated histories and refuses to proceed otherwise).
+            git branch -D docs 2>/dev/null || true
             git fetch origin docs:refs/remotes/origin/docs
           done
 
