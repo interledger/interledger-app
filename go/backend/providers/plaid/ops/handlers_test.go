@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"gitlab.com/fynbos/backend/providers/plaid/ops"
-	"gitlab.com/fynbos/backend/user"
+	"github.com/interledger/interledger-app/go/backend/providers/plaid/ops"
+	"github.com/interledger/interledger-app/go/backend/user"
 )
 
 // --- fakes -----------------------------------------------------------------

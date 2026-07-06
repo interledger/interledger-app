@@ -10,10 +10,10 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/require"
 
-	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	linkedaccounts_ops "gitlab.com/fynbos/backend/linkedaccounts/ops"
-	ops "gitlab.com/fynbos/backend/providers/plaid/ops"
+	"github.com/interledger/interledger-app/go/backend/db"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	linkedaccounts_ops "github.com/interledger/interledger-app/go/backend/linkedaccounts/ops"
+	ops "github.com/interledger/interledger-app/go/backend/providers/plaid/ops"
 )
 
 // linkTestBackends is the minimal duck-typed LinkBackends the plaid_links ops need.
@@ -57,7 +57,7 @@ func createLink(ctx context.Context, b linkTestBackends, args *ops.CreateLinkArg
 
 func TestPlaidLinksLifecycle(t *testing.T) {
 	ctx := context.Background()
-	b := linkTestBackends{db: db.MigrateTestDB(t, ctx), validator: validator.New()}
+	b := linkTestBackends{db: db.MigrateTestDB(t, ctx, ""), validator: validator.New()}
 
 	walletID := uuid.NewString()
 	laID := seedLinkedAccount(t, ctx, b, walletID)
@@ -121,7 +121,7 @@ func TestPlaidLinksLifecycle(t *testing.T) {
 // never orphan a linked account (which would break Plaid dedupe).
 func TestLinkCreationIsAtomic(t *testing.T) {
 	ctx := context.Background()
-	b := linkTestBackends{db: db.MigrateTestDB(t, ctx), validator: validator.New()}
+	b := linkTestBackends{db: db.MigrateTestDB(t, ctx, ""), validator: validator.New()}
 	walletID := uuid.NewString()
 
 	tx, err := b.db.BeginTxx(ctx, nil)

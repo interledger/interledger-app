@@ -13,6 +13,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/golang/mock/gomock"
 	"github.com/interledger/interledger-app/go/backend/analytics"
+	"github.com/interledger/interledger-app/go/backend/config"
 	analytics_client "github.com/interledger/interledger-app/go/backend/analytics/client"
 	"github.com/interledger/interledger-app/go/backend/email"
 	"github.com/jmoiron/sqlx"
@@ -80,6 +81,10 @@ func (t testBackends) Wallets() wallets.Client {
 
 func (t testBackends) Email() email.Client {
 	return nil
+}
+
+func (t testBackends) Config() *config.StartConfig {
+	return &config.StartConfig{Environment: config.EnvironmentConfig{Mode: "test"}}
 }
 
 func NewTestBackends(t *testing.T, db *sqlx.DB, uc user.Client) *testBackends {

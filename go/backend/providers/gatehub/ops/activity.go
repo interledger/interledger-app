@@ -19,7 +19,6 @@ import (
 	"github.com/interledger/interledger-app/go/backend/slack"
 	"github.com/interledger/interledger-app/go/backend/transactions"
 	"github.com/interledger/interledger-app/go/backend/wallets"
-	"github.com/interledger/interledger-app/go/env"
 	"github.com/interledger/interledger-app/go/log"
 	"github.com/interledger/interledger-app/go/pacioli"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -267,7 +266,7 @@ func (a *Activity) CreateGatehubDepositTransaction(ctx context.Context, transact
 func (a *Activity) UpdateGatehubWithdrawalState(ctx context.Context, walletID, transactionID string, state transactions.State) error {
 	info := activity.GetInfo(ctx)
 	if info.Attempt == 1 && state == transactions.StateFailed {
-		slack.SendToChannel(ctx, slack.ChannelError, "wallet-info-bot", fmt.Sprintf("Gatehub withdrawal failed. %s/wallet/%s/transactions/%s", env.AdminURL(), walletID, transactionID))
+		slack.SendToChannel(ctx, slack.ChannelError, "wallet-info-bot", fmt.Sprintf("Gatehub withdrawal failed. %s/wallet/%s/transactions/%s", a.b.Config().Admin.BaseURL, walletID, transactionID))
 	}
 
 	trx, err := a.b.Transactions().GetTransaction(ctx, walletID, transactionID)

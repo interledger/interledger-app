@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"gitlab.com/fynbos/mock/mockplaid/internal/models"
-	"gitlab.com/fynbos/mock/mockplaid/internal/storage"
+	"github.com/interledger/interledger-app/go/mock/mockplaid/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockplaid/internal/storage"
 )
 
 // seedItem creates a stored item directly and returns it.

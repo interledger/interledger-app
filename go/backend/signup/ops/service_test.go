@@ -40,7 +40,7 @@ func (b backends) Twilio() twilio.Service {
 func setupTest(t *testing.T) (context.Context, *backends) {
 
 	ctx := context.Background()
-	db := db.MigrateTestDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx, "")
 	b := &backends{
 		validator: validator.New(),
 		db:        db,
@@ -51,7 +51,7 @@ func setupTest(t *testing.T) (context.Context, *backends) {
 func setupTestWithTwilio(t *testing.T) (context.Context, *backends) {
 
 	ctx := context.Background()
-	db := db.MigrateTestDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx, "")
 	tw := twilio.NewMockService(gomock.NewController(t))
 	tw.EXPECT().CheckVerificationCode(ctx, gomock.Any()).Return(&twilio.Verification{Status: "approved"}, nil).AnyTimes()
 	b := &backends{

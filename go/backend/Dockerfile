@@ -23,7 +23,7 @@ RUN wget -qO/bin/atlas https://release.ariga.io/atlas/atlas-${BUILDOS}-${BUILDAR
 COPY go.mod go.sum ./
 RUN go mod download
 COPY backend ./backend
-COPY env ./env
+COPY configa ./configa
 COPY proto ./proto
 COPY pacioli ./pacioli
 COPY log ./log
@@ -32,15 +32,13 @@ ENTRYPOINT ["/build/backend/entrypoint.sh"]
 
 FROM base AS builder
 
+ARG APP_VERSION=dev
 ENV GOCACHE=/root/.cache/go-build
-RUN --mount=type=cache,target="/root/.cache/go-build" go build -o main ./backend
+RUN --mount=type=cache,target="/root/.cache/go-build" go build -ldflags "-X main.Version=${APP_VERSION}" -o main ./backend
 ENTRYPOINT ["/build/main"]
 
 FROM gcr.io/distroless/cc:nonroot
 WORKDIR /dist
-
-ARG SENTRY_RELEASE
-ENV SENTRY_RELEASE=${SENTRY_RELEASE}
 
 COPY --from=builder /bin/grpc_health_probe ./grpc_health_probe
 COPY --from=builder /bin/atlas /bin/atlas

@@ -5,9 +5,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	api_middleware "gitlab.com/fynbos/backend/api/middleware"
-	"gitlab.com/fynbos/backend/providers/plaid"
-	"gitlab.com/fynbos/backend/user"
+	api_middleware "github.com/interledger/interledger-app/go/backend/api/middleware"
+	"github.com/interledger/interledger-app/go/backend/providers/plaid"
+	"github.com/interledger/interledger-app/go/backend/user"
 )
 
 func NewRouter(client plaid.Client, uc user.Client, linker FiantLinker, processor string) http.Handler {

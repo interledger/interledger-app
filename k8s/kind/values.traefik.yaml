@@ -1,0 +1,54 @@
+# Traefik values for the local kind environment.
+#
+# Traefik runs as a DaemonSet and binds directly to host ports 80/443 via
+# hostPort.  The kind cluster maps those node ports to the Docker host, so
+# http://interledger.kind and https://interledger.kind are reachable in the
+# browser without any port number.
+#
+# TLS is handled by a TLSStore CRD (k8s/manifests/tls-store.yaml) that
+# references the self-signed wildcard cert for *.interledger.kind.
+
+deployment:
+  kind: DaemonSet
+
+# No ClusterIP service needed; traffic arrives via hostPort bindings.
+service:
+  enabled: false
+
+ports:
+  web:
+    port: 8000
+    hostPort: 80
+    expose:
+      default: true
+    exposedPort: 80
+    protocol: TCP
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+  websecure:
+    port: 8443
+    hostPort: 443
+    expose:
+      default: true
+    exposedPort: 443
+    protocol: TCP
+    http:
+      tls:
+        enabled: true
+
+providers:
+  kubernetesCRD:
+    enabled: true
+    allowCrossNamespace: true
+  kubernetesIngress:
+    enabled: false
+
+ingressClass:
+  enabled: true
+  isDefaultClass: true
+
+log:
+  level: INFO

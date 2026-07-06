@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"gitlab.com/fynbos/mock/mockplaid/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockplaid/internal/models"
 )
 
 // Storage errors.

@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"strings"
 
-	"gitlab.com/fynbos/mock/mockplaid/internal/models"
-	"gitlab.com/fynbos/mock/mockplaid/internal/storage"
+	"github.com/interledger/interledger-app/go/mock/mockplaid/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockplaid/internal/storage"
 )
 
 type accessTokenRequest struct {

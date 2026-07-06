@@ -1,7 +1,7 @@
 ARG NODE_IMAGE_PREFIX=""
 
 # Install dependencies only when needed
-FROM ${NODE_IMAGE_PREFIX}node:20-alpine AS deps
+FROM ${NODE_IMAGE_PREFIX}node:24-alpine AS deps
 RUN apk add --no-cache python3 make g++ curl py3-setuptools
 RUN corepack enable && corepack prepare pnpm@8.5.0 --activate
 
@@ -11,7 +11,7 @@ COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 
 # Rebuild the source code only when needed
-FROM ${NODE_IMAGE_PREFIX}node:20-alpine AS dev 
+FROM ${NODE_IMAGE_PREFIX}node:24-alpine AS dev 
 WORKDIR /app
 COPY . .
 COPY --from=deps /app/node_modules ./node_modules
@@ -19,7 +19,7 @@ RUN corepack enable && corepack prepare pnpm@8.5.0 --activate
 CMD ["pnpm", "dev"]
 
 # Rebuild the source code only when needed
-FROM ${NODE_IMAGE_PREFIX}node:20-alpine AS builder
+FROM ${NODE_IMAGE_PREFIX}node:24-alpine AS builder
 
 ARG IMAGE_HASH
 ARG BUILDARCH
@@ -61,7 +61,7 @@ RUN if [ -n "${REMIX_PUBLIC_PATH}" ]; then \
     fi
 
 # Production image, copy all the files and run remix
-FROM ${NODE_IMAGE_PREFIX}node:20-alpine AS runner
+FROM ${NODE_IMAGE_PREFIX}node:24-alpine AS runner
 RUN addgroup -g 1001 -S nodejs
 RUN adduser -S remix -u 1001
 
@@ -82,6 +82,7 @@ COPY --from=builder --chown=remix:nodejs /app/public ./public
 COPY --from=builder --chown=remix:nodejs /app/build ./build
 COPY --from=builder --chown=remix:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=remix:nodejs /app/package.json ./package.json
+COPY --from=builder --chown=remix:nodejs /app/server.js ./server.js
 
 USER remix
 RUN corepack prepare pnpm@8.5.0 --activate

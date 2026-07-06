@@ -25,7 +25,7 @@ func (b backends) DB() *sqlx.DB {
 
 func setupTest(t *testing.T) (context.Context, *backends) {
 	ctx := context.Background()
-	return ctx, &backends{db: db.MigrateTestDB(t, ctx)}
+	return ctx, &backends{db: db.MigrateTestDB(t, ctx, "")}
 }
 
 func TestRequest_FirstTimeInsertsRow(t *testing.T) {

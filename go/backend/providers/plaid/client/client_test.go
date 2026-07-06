@@ -3,7 +3,7 @@ package client
 import (
 	"testing"
 
-	"gitlab.com/fynbos/backend/providers/plaid"
+	"github.com/interledger/interledger-app/go/backend/providers/plaid"
 )
 
 func TestBuildSDKConfig_APIURLOverride(t *testing.T) {

@@ -7,9 +7,9 @@ import (
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 
-	"gitlab.com/fynbos/mock/mockplaid/internal/config"
-	"gitlab.com/fynbos/mock/mockplaid/internal/logger"
-	"gitlab.com/fynbos/mock/mockplaid/internal/storage"
+	"github.com/interledger/interledger-app/go/mock/mockplaid/internal/config"
+	"github.com/interledger/interledger-app/go/mock/mockplaid/internal/logger"
+	"github.com/interledger/interledger-app/go/mock/mockplaid/internal/storage"
 )
 
 // Handler serves the mock Plaid REST + Link surface.

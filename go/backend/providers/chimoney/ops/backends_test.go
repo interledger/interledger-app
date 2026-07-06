@@ -1,6 +1,7 @@
 package ops_test
 
 import (
+	"github.com/interledger/interledger-app/go/backend/config"
 	"github.com/interledger/interledger-app/go/backend/email"
 	"github.com/interledger/interledger-app/go/backend/kyc"
 	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
@@ -61,4 +62,8 @@ func (b backends) KYC() kyc.Client {
 
 func (b backends) Transactions() transactions.Client {
 	return b.transactions
+}
+
+func (b backends) Config() *config.StartConfig {
+	return &config.StartConfig{Environment: config.EnvironmentConfig{Mode: "test"}}
 }

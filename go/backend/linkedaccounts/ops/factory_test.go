@@ -17,6 +17,7 @@ import (
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/go-playground/validator/v10"
 	"github.com/golang/mock/gomock"
+	"github.com/interledger/interledger-app/go/backend/config"
 	"github.com/interledger/interledger-app/go/backend/db"
 	"github.com/interledger/interledger-app/go/backend/keys"
 	keys_mock "github.com/interledger/interledger-app/go/backend/keys/client/mock"
@@ -80,11 +81,15 @@ func (t TestContainer) Payments() payments.Client {
 	return t.Pc
 }
 
+func (t TestContainer) Config() *config.StartConfig {
+	return &config.StartConfig{Environment: config.EnvironmentConfig{Mode: "test"}}
+}
+
 func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error) {
 
 	c := &TestContainer{ValidatorImpl: validator.New()}
 	c.Ctx = ctx
-	mdb := db.MigrateTestDB(t, ctx)
+	mdb := db.MigrateTestDB(t, ctx, "")
 	c.Db = mdb
 
 	logger, err := zap.NewDevelopment()

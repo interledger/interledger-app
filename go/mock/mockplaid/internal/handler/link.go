@@ -8,8 +8,8 @@ import (
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 
-	"gitlab.com/fynbos/mock/mockplaid/internal/logger"
-	"gitlab.com/fynbos/mock/mockplaid/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockplaid/internal/logger"
+	"github.com/interledger/interledger-app/go/mock/mockplaid/internal/models"
 )
 
 type linkTokenCreateRequest struct {

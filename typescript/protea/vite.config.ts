@@ -22,7 +22,11 @@ export default defineConfig(({ isSsrBuild }) => ({
   },
 
   build: {
-    sourcemap: process.env.NODE_ENV === 'production' ? 'hidden' : true
+    sourcemap: process.env.NODE_ENV === 'production' ? 'hidden' : true,
+    // Build our custom server/app.ts as the SSR entry (instead of React
+    // Router's default virtual entry) so `build/server/index.js` exports
+    // the Express `app` that server.js imports in production.
+    rollupOptions: isSsrBuild ? { input: './server/app.ts' } : undefined
   },
   plugins: [
     reactRouter(),

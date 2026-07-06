@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"gitlab.com/fynbos/mock/mockplaid/internal/config"
-	"gitlab.com/fynbos/mock/mockplaid/internal/storage"
+	"github.com/interledger/interledger-app/go/mock/mockplaid/internal/config"
+	"github.com/interledger/interledger-app/go/mock/mockplaid/internal/storage"
 )
 
 func newTestHandler() (*Handler, storage.Storage) {

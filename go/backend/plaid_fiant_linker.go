@@ -10,14 +10,14 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/lestrrat-go/jwx/v3/jwk"
 
-	"gitlab.com/fynbos/backend/country"
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	linkedaccounts_ops "gitlab.com/fynbos/backend/linkedaccounts/ops"
-	plaid_ops "gitlab.com/fynbos/backend/providers/plaid/ops"
-	"gitlab.com/fynbos/backend/providers/pti"
-	pti_external "gitlab.com/fynbos/backend/providers/pti/external"
-	pti_ops "gitlab.com/fynbos/backend/providers/pti/ops"
+	"github.com/interledger/interledger-app/go/backend/country"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	linkedaccounts_ops "github.com/interledger/interledger-app/go/backend/linkedaccounts/ops"
+	plaid_ops "github.com/interledger/interledger-app/go/backend/providers/plaid/ops"
+	"github.com/interledger/interledger-app/go/backend/providers/pti"
+	pti_external "github.com/interledger/interledger-app/go/backend/providers/pti/external"
+	pti_ops "github.com/interledger/interledger-app/go/backend/providers/pti/ops"
 )
 
 type plaidFiantLinker struct {

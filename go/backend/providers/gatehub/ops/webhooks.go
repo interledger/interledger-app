@@ -18,7 +18,6 @@ import (
 	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
 	"github.com/interledger/interledger-app/go/backend/providers/gatehub/external"
 	"github.com/interledger/interledger-app/go/backend/slack"
-	"github.com/interledger/interledger-app/go/env"
 	"github.com/interledger/interledger-app/go/log"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/serviceerror"
@@ -443,7 +442,7 @@ func HandleUserDeposit(ctx context.Context, b Backends, raw json.RawMessage, w h
 	}
 
 	if wh.Data.DepositType == "hosted" {
-		if env.IsRafikiNodeEnabled() {
+		if b.Config().Rafiki.NodeEnabled {
 			// Check if this is a Rafiki workflow transfer
 			var rafikiWorkflowID string
 			err = b.DB().GetContext(ctx, &rafikiWorkflowID, "SELECT workflow_id FROM rafiki_gatehub_transfers WHERE gatehub_tx_id=$1;", wh.Data.TrxID)

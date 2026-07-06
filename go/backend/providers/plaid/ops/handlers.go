@@ -8,11 +8,11 @@ import (
 	"net/http"
 	"time"
 
-	"gitlab.com/fynbos/backend/api/apperrors"
-	"gitlab.com/fynbos/backend/errcodes"
-	"gitlab.com/fynbos/backend/providers/plaid"
-	"gitlab.com/fynbos/backend/user/ops"
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/backend/api/apperrors"
+	"github.com/interledger/interledger-app/go/backend/errcodes"
+	"github.com/interledger/interledger-app/go/backend/providers/plaid"
+	"github.com/interledger/interledger-app/go/backend/user/ops"
+	"github.com/interledger/interledger-app/go/log"
 	"go.uber.org/zap"
 )
 

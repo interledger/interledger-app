@@ -32,6 +32,7 @@ import (
 	analytics_webhook "github.com/interledger/interledger-app/go/backend/analytics/webhook"
 	"github.com/interledger/interledger-app/go/backend/api"
 	"github.com/interledger/interledger-app/go/backend/cli"
+	"github.com/interledger/interledger-app/go/backend/config"
 	"github.com/interledger/interledger-app/go/backend/contacts"
 	contacts_client "github.com/interledger/interledger-app/go/backend/contacts/client"
 	"github.com/interledger/interledger-app/go/backend/currency"
@@ -73,9 +74,9 @@ import (
 	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
 	gatehub_client "github.com/interledger/interledger-app/go/backend/providers/gatehub/client"
 	gatehub_ops "github.com/interledger/interledger-app/go/backend/providers/gatehub/ops"
-	"gitlab.com/fynbos/backend/providers/plaid"
-	plaid_client "gitlab.com/fynbos/backend/providers/plaid/client"
-	plaid_ops "gitlab.com/fynbos/backend/providers/plaid/ops"
+	"github.com/interledger/interledger-app/go/backend/providers/plaid"
+	plaid_client "github.com/interledger/interledger-app/go/backend/providers/plaid/client"
+	plaid_ops "github.com/interledger/interledger-app/go/backend/providers/plaid/ops"
 	"github.com/interledger/interledger-app/go/backend/providers/pti"
 	pti_client "github.com/interledger/interledger-app/go/backend/providers/pti/client"
 	pti_ops "github.com/interledger/interledger-app/go/backend/providers/pti/ops"
@@ -121,6 +122,9 @@ import (
 	"github.com/lestrrat-go/jwx/v3/jwk"
 )
 
+// Version is set at build time via -ldflags "-X main.Version=<tag>".
+var Version = "v0.0.0"
+
 func main() {
 	if len(os.Args) < 2 {
 		log.Fatal("Expected `start` or `migrate`.")
@@ -136,7 +140,7 @@ func main() {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		initSentry(args.SentryDSN, args.SentryRelease, args.SentryEnvironment)
+		initSentry(args.Sentry.DSN, Version, args.Label)
 		defer sentry.Flush(2 * time.Second)
 		migrate(args)
 	case "start":
@@ -144,7 +148,7 @@ func main() {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		initSentry(args.SentryDSN, args.SentryRelease, args.SentryEnvironment)
+		initSentry(args.Sentry.DSN, Version, args.Environment.Label)
 		defer sentry.Flush(2 * time.Second)
 		start(args)
 	case "worker":
@@ -152,7 +156,7 @@ func main() {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		initSentry(args.SentryDSN, args.SentryRelease, args.SentryEnvironment)
+		initSentry(args.Sentry.DSN, Version, args.Environment.Label)
 		defer sentry.Flush(2 * time.Second)
 		startWorker(args)
 	case "dev":
@@ -160,7 +164,7 @@ func main() {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		initSentry(args.SentryDSN, args.SentryRelease, args.SentryEnvironment)
+		initSentry(args.Sentry.DSN, Version, args.Environment.Label)
 		defer sentry.Flush(2 * time.Second)
 		go func() {
 			startWorker(args)
@@ -187,7 +191,7 @@ func initSentry(dsn, release, environment string) {
 }
 
 func start(args *cli.StartArgs) {
-	traceShutdown, err := tracing.InitTraceProvider("backend")
+	traceShutdown, err := tracing.InitTraceProvider("backend", Version, args.OTEL.Enabled, args.OTEL.Endpoint, args.OTEL.Headers)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -232,17 +236,17 @@ func start(args *cli.StartArgs) {
 	router.Handle("/rafiki", b.rafiki.WebhookHandler())
 	router.Handle("/webhooks/xago", b.xago.WebhookHandler())
 	personaClient := persona.New(persona.Config{
-		BaseURL:       args.PersonaBaseURL,
-		BearerToken:   args.PersonaToken,
-		WebhookSecret: args.PersonaWebhookToken,
+		BaseURL:       args.Persona.BaseURL,
+		BearerToken:   args.Persona.Token,
+		WebhookSecret: args.Persona.WebhookToken,
 	})
 	router.Handle("/webhooks/persona", kyc_ops.NewHandlePersonaWebhook(b, personaClient))
-	router.Handle("/webhooks/chimoney", chimoney_ops.NewWebhook(b, args.ChimoneyWebhookSecret, args.ChimoneyToken))
+	router.Handle("/webhooks/chimoney", chimoney_ops.NewWebhook(b, args.Chimoney.WebhookSecret, args.Chimoney.Token, args.Environment.IsModeProd()))
 	router.Handle("/.well-known/apple-app-site-association", aasa_assetlinks.AppSiteAssociationHandler(b.aasaConfig))
 	router.Handle("/.well-known/assetlinks.json", aasa_assetlinks.AssetLinksHandler(b.aasaConfig))
 
-	if args.PTIEnabled {
-		ptiWebhook, err := pti_ops.Webhook(b, args.PTIClientID, args.PTIPublicKeyJWK)
+	if args.PTI.Enabled {
+		ptiWebhook, err := pti_ops.Webhook(b, args.PTI.ClientID, args.PTI.PublicKeyJWK)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -254,28 +258,28 @@ func start(args *cli.StartArgs) {
 
 	if b.plaidClient != nil {
 		var linker plaid_ops.FiantLinker
-		if args.PTIEnabled {
-			fl, err := newPlaidFiantLinker(b, args.PTIBaseURL, args.PTIClientID, args.PTIJWK)
+		if args.PTI.Enabled {
+			fl, err := newPlaidFiantLinker(b, args.PTI.BaseURL, args.PTI.ClientID, args.PTI.JWK)
 			if err != nil {
 				log.Fatalln(err)
 			}
 			linker = fl
 		}
-		router.Mount("/api/plaid", plaid_ops.NewRouter(b.plaidClient, b.Users(), linker, args.PlaidProcessor))
+		router.Mount("/api/plaid", plaid_ops.NewRouter(b.plaidClient, b.Users(), linker, args.Plaid.Processor))
 	}
 
 	router.NotFound(wallet_handler.WalletRedirectHandler(b))
 
 	// fiant sandbox actions (only when PTI is enabled)
-	if args.PTIEnabled {
-		ptiPrivateKey, err := jwk.ParseKey([]byte(args.PTIJWK))
+	if args.PTI.Enabled {
+		ptiPrivateKey, err := jwk.ParseKey([]byte(args.PTI.JWK))
 		if err != nil {
 			log.Fatalln(err)
 		}
 
 		ctrl, err := fiant.NewController(
-			fiant.WithBaseURL(args.PTIBaseURL),
-			fiant.WithClientID(args.PTIClientID),
+			fiant.WithBaseURL(args.PTI.BaseURL),
+			fiant.WithClientID(args.PTI.ClientID),
 			fiant.WithDerivedKeys(ptiPrivateKey),
 		)
 		if err != nil {
@@ -365,12 +369,12 @@ func serveHTTP(server *http.Server, wg *sync.WaitGroup) {
 }
 
 func migrate(args *cli.MigrationArgs) {
-	err := db.Migrate(context.Background(), args.ConnectionString)
+	err := db.Migrate(context.Background(), args.DBUrl, args.OpenPaymentsBaseURL)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	dbConn, err := sqlx.Connect("postgres", args.ConnectionString)
+	dbConn, err := sqlx.Connect("postgres", args.DBUrl)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -385,17 +389,17 @@ func migrate(args *cli.MigrationArgs) {
 		log.Fatalln(err)
 	}
 
-	_, err = agreements_migrations.MigrateFromEmbeddedMarkdowns(context.Background(), dbConn)
+	_, err = agreements_migrations.MigrateFromEmbeddedMarkdowns(context.Background(), dbConn, args.MigrationConfig)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	err = pacioli_db.Migrate(context.Background(), args.PacioliConnectionString)
+	err = pacioli_db.Migrate(context.Background(), args.PacioliDBUrl)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	pacCon, err := sqlx.Connect("postgres", args.PacioliConnectionString)
+	pacCon, err := sqlx.Connect("postgres", args.PacioliDBUrl)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -504,7 +508,7 @@ func migrate(args *cli.MigrationArgs) {
 func startWorker(args *cli.StartArgs) {
 	log.Info("begin worker start")
 
-	traceShutdown, err := tracing.InitTraceProvider("backend-worker")
+	traceShutdown, err := tracing.InitTraceProvider("backend-worker", Version, args.OTEL.Enabled, args.OTEL.Endpoint, args.OTEL.Headers)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -531,16 +535,16 @@ func startWorker(args *cli.StartArgs) {
 	serveHTTP(&http.Server{Addr: ":8081", Handler: router}, &wg)
 
 	log.Info("Worker creating")
-	w, err := temporal.NewTemporalWorker(b, b.gatehubConfig, b.xagoConfig, args.PTIJWK, args.PTIBaseURL, args.PTIClientID, args.ChimoneyToken, args.RafikiNodeEnabled, jobs.Config{
-		KratosURL:         args.KratosUrl,
-		KratosAdminURL:    args.KratosAdminUrl,
-		PTIJWK:            args.PTIJWK,
-		PTIBaseURL:        args.PTIBaseURL,
-		PTIClientID:       args.PTIClientID,
-		RafikiDBURL:       args.RafikiDBURL,
-		RafikiAuthDBURL:   args.RafikiAuthDBURL,
-		TempGatehubAppID:  args.TempGatehubAppID,
-		TempGatehubSecret: args.TempGatehubSecret,
+	w, err := temporal.NewTemporalWorker(b, b.gatehubConfig, b.xagoConfig, args.PTI.JWK, args.PTI.BaseURL, args.PTI.ClientID, args.Chimoney.Token, args.Rafiki.NodeEnabled, jobs.Config{
+		KratosURL:         args.Kratos.URL,
+		KratosAdminURL:    args.Kratos.AdminURL,
+		PTIJWK:            args.PTI.JWK,
+		PTIBaseURL:        args.PTI.BaseURL,
+		PTIClientID:       args.PTI.ClientID,
+		RafikiDBURL:       args.Rafiki.DBURL,
+		RafikiAuthDBURL:   args.Rafiki.AuthDBURL,
+		TempGatehubAppID:  "",
+		TempGatehubSecret: "",
 	})
 	if err != nil {
 		log.Fatalln(err)
@@ -595,6 +599,7 @@ type backends struct {
 	aasaConfig     aasa_assetlinks.Config
 
 	accountDeletion accountdeletion.Client
+	cfg             *config.StartConfig
 }
 
 func (b backends) Chimoney() chimoney.Client {
@@ -737,10 +742,15 @@ func (b backends) AccountDeletion() accountdeletion.Client {
 	return b.accountDeletion
 }
 
+func (b backends) Config() *config.StartConfig {
+	return b.cfg
+}
+
 func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	b := &backends{}
+	b.cfg = args.StartConfig
 
-	dbConn, err := otelsqlx.Connect("postgres", args.DbConnectionString, otelsql.WithAttributes(semconv.DBSystemCockroachdb), otelsql.WithDBName("cockroachdb"))
+	dbConn, err := otelsqlx.Connect("postgres", args.DB.URL, otelsql.WithAttributes(semconv.DBSystemCockroachdb), otelsql.WithDBName("cockroachdb"))
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -753,13 +763,13 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 		log.Fatalln(err)
 	}
 
-	tp, err := temporal.NewTemporalClient(args.TemporalUrl)
+	tp, err := temporal.NewTemporalClient(args.Temporal.URL)
 	if err != nil {
 		log.Fatalln(err)
 	}
 	b.temporal = tp
 
-	b.users = user_client.New(b, args.KratosUrl, args.KratosAdminUrl)
+	b.users = user_client.New(b, args.Kratos.URL, args.Kratos.AdminURL)
 
 	b.wallet = wallets_client.New(b)
 
@@ -774,45 +784,52 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	b.waitlist = waitlist_client.New(b, log.Logger())
 
 	b.twitter = twitter_client.New(b, &twitter_client.NewClientArgs{
-		ClientID:      args.TwitterClientID,
-		ClientSecret:  args.TwitterClientSecret,
+		ClientID:      "DEPRECATED",
+		ClientSecret:  "DEPRECATED",
 		AuthEndpoint:  "https://twitter.com/i/oauth2/authorize",
 		TokenEndpoint: "https://api.twitter.com/2/oauth2/token",
-		RedirectURL:   args.TwitterRedirectURL,
-		BearerToken:   args.TwitterBearerToken,
+		RedirectURL:   "DEPRECATED",
+		BearerToken:   "DEPRECATED",
 	})
 
-	slack.Init(args.SlackToken, map[slack.Channel]string{
-		slack.ChannelSignupKYC:   args.SlackChannelSignupKYC,
-		slack.ChannelTransaction: args.SlackChannelTransaction,
-		slack.ChannelError:       args.SlackChannelError,
+	slack.Init(args.Slack.Token, map[slack.Channel]string{
+		slack.ChannelSignupKYC:   args.Slack.ChannelSignupKYC,
+		slack.ChannelTransaction: args.Slack.ChannelTransaction,
+		slack.ChannelError:       args.Slack.ChannelError,
 	})
-	_grpc.InitAgreementIDs(args.SignupAgreementIDs)
+	_grpc.InitAgreementIDs(args.Agreements.SignupAgreementIDs)
 
 	b.slack, err = slack_client.New(b, slack_external.Config{
-		ClientID:       args.SlackClientID,
-		ClientSecret:   args.SlackClientSecret,
-		RedirectURL:    args.SlackRedirectURL,
-		BotRedirectURL: args.SlackBotRedirectURL,
+		ClientID:       args.Slack.ClientID,
+		ClientSecret:   args.Slack.ClientSecret,
+		RedirectURL:    "",
+		BotRedirectURL: "",
+		ApplicationURL: args.ApplicationURL,
 	})
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	b.analytics = analytics_client.New(b, args.SegmentKey)
+	b.analytics = analytics_client.New(b, args.Segment.Key)
 
-	b.feat = features_client.New(b, args.CardsEnabled)
+	b.feat = features_client.New(b, true)
 
-	twilioService, err := _twilio.NewService(&_twilio.ServiceArgs{
-		AccountSid:   args.TwilioSid,
-		AccountToken: args.TwilioSecret,
-		ServiceSid:   args.TwilioServiceSid,
-		Enabled:      args.TwilioEnabled,
-	})
-	if err != nil {
-		log.Fatalln(err)
+	// When Twilio is disabled we run a no-op service that approves any code.
+	// This is only reachable outside environment.mode=prod: config validation
+	// (and the Helm chart) reject twilio.enabled=false in production.
+	if args.Twilio.Enabled {
+		twilioService, err := _twilio.NewService(&_twilio.ServiceArgs{
+			AccountSid:   args.Twilio.AccountSID,
+			AccountToken: args.Twilio.AccountToken,
+			ServiceSid:   args.Twilio.ServiceSID,
+		})
+		if err != nil {
+			log.Fatalln(err)
+		}
+		b.twilio = twilioService
+	} else {
+		b.twilio = _twilio.NewNoOp()
 	}
-	b.twilio = twilioService
 
 	if !isWorker {
 		health, err := healthcheck.NewService()
@@ -821,7 +838,7 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 		}
 		b.healthcheck = health
 
-		adminUsers, err := auth.NewService(args.AdminPolicyAud, args.AdminTeamDomain, b.DB())
+		adminUsers, err := auth.NewService(args.Admin.PolicyAud, args.Admin.TeamDomain, b.DB(), args.Environment.IsModeLocal())
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -832,39 +849,40 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 
 	b.kyc, err = kyc_client.NewWithPersonaConfig(
 		b,
-		args.SmartyAuthID,
-		args.SmartyAuthToken,
+		args.Smarty.AuthID,
+		args.Smarty.AuthToken,
 		persona.Config{
-			BaseURL:       args.PersonaBaseURL,
-			BearerToken:   args.PersonaToken,
-			WebhookSecret: args.PersonaWebhookToken,
-			FakeZAID:      args.PersonaSandboxFakeZAID,
+			BaseURL:       args.Persona.BaseURL,
+			BearerToken:   args.Persona.Token,
+			WebhookSecret: args.Persona.WebhookToken,
+			FakeZAID:      args.Persona.SandboxFakeZAID,
 		},
+		args.Environment.IsModeProd(),
 	)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	if args.EmailEnabled {
+	if args.Email.Enabled {
 		log.Debug("initialising SendGrid email client")
 	} else {
 		log.Debug("email disabled; initialising noop email client")
 	}
 	b.email = email_client.New(
 		b,
-		args.EmailEnabled,
-		args.SendgridAPIKey,
-		args.SendgridFromName,
-		args.SendgridFromEmail,
-		args.SendgridOneTemplateID,
-		args.SupportEmail,
+		args.Email.Enabled,
+		args.Email.Sendgrid.APIKey,
+		args.Email.Sendgrid.FromName,
+		args.Email.Sendgrid.FromEmail,
+		args.Email.Sendgrid.OneTemplateID,
+		args.Email.Sendgrid.SupportEmail,
 	)
 
 	log.Debug("initialising transactions")
 	b.transactions = transactions_client.New(b)
 
 	log.Debug("initialising notify")
-	b.notify = notify_client.New(b, args.PusherAddr)
+	b.notify = notify_client.New(b, args.Pusher.Addr)
 
 	log.Debug("initialising limits")
 	b.limits = limits_client.New(b)
@@ -880,9 +898,10 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 
 	log.Debug("initialising vault")
 	vc, err := vault.NewClient(vault.Config{
-		Addr:              args.VaultAddr,
-		TransitEnginePath: args.VaultTransitEnginePath,
-		Token:             args.VaultToken,
+		Addr:              args.Vault.Addr,
+		TransitEnginePath: args.Vault.TransitEnginePath,
+		Token:             args.Vault.Token,
+		IsLocalOrTest:     args.Environment.IsModeLocal() || args.Environment.IsModeTest(),
 	})
 	if err != nil {
 		log.Error("error vault", zap.Error(err))
@@ -897,15 +916,15 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 
 	log.Debug("initialising rafiki")
 	b.rafiki = rafiki_client.New(b, rafiki_external.AdminSigningConfig{
-		OperatorTenantID:  args.OperatorTenantID,
-		AdminAPISecret:    args.AdminAPISecret,
-		SignatureVersion:  args.SignatureVersion,
-		BackendGraphQLURL: args.RafikiBackendGraphQLURL,
-		AuthGraphQLURL:    args.RafikiAuthGraphQLURL,
+		OperatorTenantID:  args.Rafiki.OperatorTenantID,
+		AdminAPISecret:    args.Rafiki.AdminAPISecret,
+		SignatureVersion:  args.Rafiki.SignatureVersion,
+		BackendGraphQLURL: args.Rafiki.BackendGraphQLURL,
+		AuthGraphQLURL:    args.Rafiki.AuthGraphQLURL,
 	})
 
 	log.Debug("initialising pacioli")
-	pacDB, err := otelsqlx.Connect("postgres", args.PacioliDBConString, otelsql.WithAttributes(semconv.DBSystemCockroachdb), otelsql.WithDBName("cockroachdb"))
+	pacDB, err := otelsqlx.Connect("postgres", args.DB.PacioliURL, otelsql.WithAttributes(semconv.DBSystemCockroachdb), otelsql.WithDBName("cockroachdb"))
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -913,41 +932,41 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 
 	log.Debug("initialising xago")
 	b.xagoConfig = xago_external.Config{
-		APIBaseURL:      args.XagoAPIBaseURL,
-		IdentityBaseURL: args.XagoIdentityBaseURL,
-		PublicKey:       args.XagoPublicKey,
-		Secret:          args.XagoSecret,
-		PolicyID:        args.XagoPolicyID,
+		APIBaseURL:      args.Xago.APIBaseURL,
+		IdentityBaseURL: args.Xago.IdentityBaseURL,
+		PublicKey:       args.Xago.APIPublicKey,
+		Secret:          args.Xago.APISecret,
+		PolicyID:        args.Xago.PolicyID,
 	}
-	b.xago = xago_client.New(b, b.xagoConfig)
+	b.xago = xago_client.New(b, b.xagoConfig, args.Environment.IsModeTest())
 
 	log.Debug("initialising FIANT")
-	pti_ops.ConfigureWidgetURLs(args.PTISDKURL, args.PTIFormsURL, args.PTIClientID)
-	b.pti = pti_client.New(b, args.PTIJWK, args.PTIBaseURL, args.PTIClientID)
+	pti_ops.ConfigureWidgetURLs(args.PTI.SDKURL, args.PTI.FormsURL, args.PTI.ClientID)
+	b.pti = pti_client.New(b, args.PTI.JWK, args.PTI.BaseURL, args.PTI.ClientID)
 
 	log.Debug("initialising Gatehub")
 	b.gatehubConfig = gatehub.Config{
-		AppID:                   args.GatehubAppID,
-		Secret:                  args.GatehubSecret,
-		CardAppID:               args.GatehubCardAppID,
-		GatewayID:               args.GatehubGatewayID,
-		CardAccountProductCode:  args.GatehubCardAccountProductCode,
-		PaywiserEuroVaultID:     args.GatehubPaywiserEuroVaultID,
-		SendingUserID:           args.GatehubSendingUserID,
-		SendingUserAddress:      args.GatehubSendingUserAddress,
-		IntermediaryUserID:      args.GatehubIntermediaryUserID,
-		IntermediaryUserAddress: args.GatehubIntermediaryUserAddress,
-		WebhookSecret:           args.GatehubWebhookSecret,
-		FallbackWebhookURL:      args.GatehubFallbackWebhookURL,
-		OnOffRampClientID:       args.GatehubOnOffRampClientID,
-		OnboardingClientID:      args.GatehubOnboardingClientID,
-		ExchangeClientID:        args.GatehubExchangeClientID,
-		APIBaseURL:              args.GatehubAPIBaseURL,
-		OnboardingBaseURL:       args.GatehubOnboardingBaseURL,
-		OnOffRampBaseURL:        args.GatehubOnOffRampBaseURL,
-		EUROpsAccount:           args.GatehubEUROpsAccount,
-		EUROpsLedgerID:          args.GatehubEUROpsLedgerID,
-		OrganizationID:          args.GatehubOrganizationID,
+		AppID:                   args.Gatehub.AppID,
+		Secret:                  args.Gatehub.Secret,
+		CardAppID:               args.Gatehub.CardAppID,
+		GatewayID:               args.Gatehub.GatewayID,
+		CardAccountProductCode:  args.Gatehub.CardAccountProductCode,
+		PaywiserEuroVaultID:     args.Gatehub.PaywiserEuroVaultID,
+		SendingUserID:           args.Gatehub.SendingUserID,
+		SendingUserAddress:      args.Gatehub.SendingUserAddress,
+		IntermediaryUserID:      args.Gatehub.IntermediaryUserID,
+		IntermediaryUserAddress: args.Gatehub.IntermediaryUserAddress,
+		WebhookSecret:           args.Gatehub.WebhookSecret,
+		FallbackWebhookURL:      args.Gatehub.FallbackWebhookURL,
+		OnOffRampClientID:       args.Gatehub.OnOffRampClientID,
+		OnboardingClientID:      args.Gatehub.OnboardingClientID,
+		ExchangeClientID:        args.Gatehub.ExchangeClientID,
+		APIBaseURL:              args.Gatehub.APIBaseURL,
+		OnboardingBaseURL:       args.Gatehub.OnboardingBaseURL,
+		OnOffRampBaseURL:        args.Gatehub.OnOffRampBaseURL,
+		EUROpsAccount:           args.Gatehub.EUROpsAccount,
+		EUROpsLedgerID:          args.Gatehub.EUROpsLedgerID,
+		OrganizationID:          args.Gatehub.OrganizationID,
 	}
 	b.gatehub = gatehub_client.New(b, b.gatehubConfig)
 	if b.gatehub == nil {
@@ -955,19 +974,19 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	}
 
 	log.Debug("initialising Chimoney")
-	b.chimoney = chimoney_client.New(b, args.ChimoneyToken)
+	b.chimoney = chimoney_client.New(b, args.Chimoney.Token, args.Environment.IsModeProd())
 
-	if args.PlaidEnabled {
+	if args.Plaid.Enabled {
 		log.Debug("initialising Plaid")
 		b.plaidConfig = plaid.Config{
-			Enabled:      args.PlaidEnabled,
-			ClientID:     args.PlaidClientID,
-			Secret:       args.PlaidSecret,
-			Env:          args.PlaidEnv,
-			Products:     args.PlaidProducts,
-			CountryCodes: args.PlaidCountryCodes,
-			Processor:    args.PlaidProcessor,
-			APIURL:       args.PlaidAPIURL,
+			Enabled:      args.Plaid.Enabled,
+			ClientID:     args.Plaid.ClientID,
+			Secret:       args.Plaid.Secret,
+			Env:          args.Plaid.Env,
+			Products:     args.Plaid.Products,
+			CountryCodes: args.Plaid.CountryCodes,
+			Processor:    args.Plaid.Processor,
+			APIURL:       args.Plaid.APIURL,
 		}
 		plaidC, err := plaid_client.New(b.plaidConfig)
 		if err != nil {
@@ -975,20 +994,20 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 		}
 		b.plaidClient = plaidC
 		log.Info("plaid client initialized",
-			zap.String("env", args.PlaidEnv),
-			zap.Strings("products", args.PlaidProducts),
-			zap.Strings("country_codes", args.PlaidCountryCodes),
-			zap.String("processor", args.PlaidProcessor),
-			zap.String("api_url", args.PlaidAPIURL),
+			zap.String("env", args.Plaid.Env),
+			zap.Strings("products", args.Plaid.Products),
+			zap.Strings("country_codes", args.Plaid.CountryCodes),
+			zap.String("processor", args.Plaid.Processor),
+			zap.String("api_url", args.Plaid.APIURL),
 		)
 	} else {
-		log.Debug("Plaid disabled (PLAID_ENABLED=false)")
+		log.Debug("Plaid disabled (plaid.enabled=false)")
 	}
 
 	b.aasaConfig = aasa_assetlinks.Config{
-		AppleAppID:         args.AppleAppID,
-		AndroidPackageName: args.AndroidPackageName,
-		AndroidSHA256:      args.AndroidSHA256,
+		AppleAppID:         args.Mobile.AppleAppID,
+		AndroidPackageName: args.Mobile.AndroidPackageName,
+		AndroidSHA256:      args.Mobile.AndroidSHA256,
 	}
 
 	return b

@@ -62,6 +62,7 @@ import (
 	twitter_mock "github.com/interledger/interledger-app/go/backend/twitter/client/mock"
 	_user "github.com/interledger/interledger-app/go/backend/user"
 	user_mock "github.com/interledger/interledger-app/go/backend/user/client/mock"
+	"github.com/interledger/interledger-app/go/backend/config"
 	test_utils "github.com/interledger/interledger-app/go/backend/utils"
 	"github.com/interledger/interledger-app/go/backend/waitlist"
 	waitlist_mock "github.com/interledger/interledger-app/go/backend/waitlist/client/mock"
@@ -217,6 +218,10 @@ func (t TestContainer) Chimoney() chimoney.Client {
 
 func (t TestContainer) AccountDeletion() accountdeletion.Client {
 	return t.AccountDeletionClient
+}
+
+func (t TestContainer) Config() *config.StartConfig {
+	return &config.StartConfig{Environment: config.EnvironmentConfig{Mode: "test"}}
 }
 
 type TestContainerOption func(*TestContainer)

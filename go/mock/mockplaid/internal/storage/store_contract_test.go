@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"gitlab.com/fynbos/mock/mockplaid/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockplaid/internal/models"
 )
 
 type storeFactory func(t *testing.T) Storage

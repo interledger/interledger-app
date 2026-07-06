@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"slices"
 
+	"github.com/interledger/interledger-app/go/backend/config"
 	"github.com/interledger/interledger-app/go/backend/country"
 	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
 	"github.com/interledger/interledger-app/go/backend/wallets"
@@ -21,7 +22,6 @@ import (
 	"github.com/interledger/interledger-app/go/backend/kyc"
 
 	"github.com/interledger/interledger-app/go/backend/features"
-	"github.com/interledger/interledger-app/go/env"
 )
 
 func SetFeatures(ctx context.Context, b Backends, walletID string, feat features.WalletFeatures) (*features.WalletFeatures, error) {
@@ -56,7 +56,7 @@ func Features(ctx context.Context, b Backends, walletID string, cardsEnabled boo
 	if err != nil {
 		return nil, err
 	}
-	if isAccountDisabled(walletID, wallet.Country) {
+	if isAccountDisabled(b.Config(), walletID, wallet.Country) {
 		return &features.WalletFeatures{
 			AccountEnabled: false,
 		}, nil
@@ -217,17 +217,17 @@ func canAddInterac(lal []linkedaccounts.LinkedAccount) (bool, error) {
 	return true, nil
 }
 
-func isAccountDisabled(walletID string, walletCountry country.Country) bool {
-	if slices.Contains(env.GetAllowedWalletIds(), walletID) {
+func isAccountDisabled(cfg *config.StartConfig, walletID string, walletCountry country.Country) bool {
+	if slices.Contains(cfg.AllowedWalletIDs, walletID) {
 		return false
 	}
 
-	if country.EUCountries[walletCountry] && slices.Contains(env.GetBlockedRegions(), "EU") {
+	if country.EUCountries[walletCountry] && slices.Contains(cfg.BlockedRegions, "EU") {
 		log.Info("account disabled due EU region restrictions", zap.String("country", walletCountry.String()), zap.String("walletID", walletID))
 		return true
 	}
 
-	if slices.Contains(env.GetBlockedRegions(), walletCountry.String()) {
+	if slices.Contains(cfg.BlockedRegions, walletCountry.String()) {
 		log.Info("account disabled due to Country region restrictions", zap.String("country", walletCountry.String()), zap.String("walletID", walletID))
 		return true
 	}

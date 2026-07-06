@@ -13,7 +13,6 @@ import (
 	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
 	"github.com/interledger/interledger-app/go/backend/providers/pti"
 
-	"github.com/interledger/interledger-app/go/env"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/interledger/interledger-app/go/backend/kyc"
@@ -198,7 +197,7 @@ func (s *rpcService) IsUSPSAddress(ctx context.Context, req *pb.Address) (*pb.Is
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	if env.IsLocal() {
+	if s.b.Config().Environment.IsModeLocal() {
 		return &pb.IsUSPSAddressResponse{
 			Valid: true,
 		}, nil

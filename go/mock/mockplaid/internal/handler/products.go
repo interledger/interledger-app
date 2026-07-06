@@ -3,7 +3,7 @@ package handler
 import (
 	"net/http"
 
-	"gitlab.com/fynbos/mock/mockplaid/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockplaid/internal/models"
 )
 
 // accountObj serialises one stored account into the Plaid AccountBase shape

@@ -7,7 +7,7 @@ import (
 	"time"
 
 	plaidsdk "github.com/plaid/plaid-go/v42/plaid"
-	"gitlab.com/fynbos/backend/providers/plaid"
+	"github.com/interledger/interledger-app/go/backend/providers/plaid"
 )
 
 type Client struct {

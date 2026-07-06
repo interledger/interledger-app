@@ -9,7 +9,7 @@ import (
 
 	"github.com/redis/go-redis/v9"
 
-	"gitlab.com/fynbos/mock/mockplaid/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockplaid/internal/models"
 )
 
 // RedisStorage is a Redis-backed implementation of Storage.

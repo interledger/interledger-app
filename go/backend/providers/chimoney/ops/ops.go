@@ -8,7 +8,6 @@ import (
 	"math"
 	"time"
 
-	"github.com/interledger/interledger-app/go/env"
 	"github.com/interledger/interledger-app/go/pacioli"
 
 	"github.com/interledger/interledger-app/go/backend/country"
@@ -179,7 +178,7 @@ func CreateDepositLink(ctx context.Context, b Backends, ex external.Client, wall
 		ChimoneyWallet:       chiWallet,
 		Email:                userList[0].Email,
 		TurnOffNotifications: true,
-		RedirectURL:          fmt.Sprintf("%s/callbacks/chimoney", env.GetUrl()),
+		RedirectURL:          fmt.Sprintf("%s/callbacks/chimoney", b.Config().ApplicationURL),
 	})
 	if err != nil {
 		return "", fmt.Errorf("%w %s", chimoney.ErrInternal, err)
@@ -577,8 +576,8 @@ func GetKYCWidget(ctx context.Context, b Backends, walletID string) (string, err
 	}
 
 	baseURL := "https://dash.chimoney.io"
-	redirectURL := fmt.Sprintf("%s/callbacks/chimoney?kyc", env.GetUrl())
-	if !env.IsProd() {
+	redirectURL := fmt.Sprintf("%s/callbacks/chimoney?kyc", b.Config().ApplicationURL)
+	if !b.Config().Environment.IsModeProd() {
 		baseURL = "https://sandbox.chimoney.io"
 	}
 

@@ -19,7 +19,6 @@ import (
 	"github.com/interledger/interledger-app/go/backend/rafiki"
 
 	"github.com/interledger/interledger-app/go/backend/slack"
-	"github.com/interledger/interledger-app/go/env"
 
 	"github.com/interledger/interledger-app/go/backend/db"
 	"github.com/interledger/interledger-app/go/backend/notify"
@@ -132,7 +131,7 @@ func EmitCreated(ctx context.Context, b Backends, linkedAccount *linkedaccounts.
 		log.Error("pending payment notification failed for linked account", zap.String("walletId", linkedAccount.WalletID), zap.Error(err))
 	}
 
-	slack.SendToChannel(ctx, slack.ChannelSignupKYC, "wallet-info-bot", fmt.Sprintf(":credit_card: Linked Account Created\nName: %s\nProvider: %s\nLink: %s", linkedAccount.Name, linkedAccount.Provider, env.AdminURL()+"/wallet/"+linkedAccount.WalletID+"/linked-accounts"))
+	slack.SendToChannel(ctx, slack.ChannelSignupKYC, "wallet-info-bot", fmt.Sprintf(":credit_card: Linked Account Created\nProvider: %s\nLink: %s", linkedAccount.Provider, b.Config().Admin.BaseURL+"/wallet/"+linkedAccount.WalletID+"/linked-accounts"))
 
 	isBalanceAccount := (linkedAccount.Provider == xago.ProviderName && linkedAccount.Type == xago.AccTypeBalance) || (linkedAccount.Provider == pti.ProviderName && linkedAccount.Type == pti.AccTypeBalance)
 	if linkedAccount.State == linkedaccounts.OwnershipReviewRequired && !isBalanceAccount {
@@ -221,7 +220,7 @@ func CreateBatch(ctx context.Context, b Backends, args []linkedaccounts.CreateAr
 
 		notifiedWallets[la.WalletID] = true
 
-		slack.SendToChannel(ctx, slack.ChannelSignupKYC, "wallet-info-bot", fmt.Sprintf(":credit_card: Linked Account Created\nProvider: %s\nLink: %s", la.Provider, env.AdminURL()+"/wallet/"+la.WalletID+"/linked-accounts"))
+		slack.SendToChannel(ctx, slack.ChannelSignupKYC, "wallet-info-bot", fmt.Sprintf(":credit_card: Linked Account Created\nProvider: %s\nLink: %s", la.Provider, b.Config().Admin.BaseURL+"/wallet/"+la.WalletID+"/linked-accounts"))
 	}
 
 	return linkedAccounts, nil
@@ -486,7 +485,7 @@ func CreateReviews(ctx context.Context, b Backends, reviewsArgs []linkedaccounts
 	}
 
 	for _, review := range reviews {
-		slack.SendToChannel(ctx, slack.ChannelSignupKYC, "wallet-info-bot", fmt.Sprintf("New linked account review in [%s] link [%s/review/%s/details]", env.GetEnv(), env.AdminURL(), review.ID))
+		slack.SendToChannel(ctx, slack.ChannelSignupKYC, "wallet-info-bot", fmt.Sprintf("New linked account review in [%s] link [%s/review/%s/details]", b.Config().Environment.Mode, b.Config().Admin.BaseURL, review.ID))
 	}
 
 	return reviews, nil

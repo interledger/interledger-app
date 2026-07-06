@@ -264,7 +264,7 @@ func TestFindWalletIDByEmail(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	dbc := db.MigrateTestDB(t, ctx)
+	dbc := db.MigrateTestDB(t, ctx, "")
 
 	walletID := uuid.NewString()
 	identityID := uuid.NewString()

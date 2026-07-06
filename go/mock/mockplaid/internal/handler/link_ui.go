@@ -3,7 +3,7 @@ package handler
 import (
 	"net/http"
 
-	"gitlab.com/fynbos/mock/mockplaid/web"
+	"github.com/interledger/interledger-app/go/mock/mockplaid/web"
 )
 
 // LinkInitializeJS serves the window.Plaid shim at the Plaid CDN path

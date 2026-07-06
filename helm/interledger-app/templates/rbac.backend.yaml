@@ -1,0 +1,50 @@
+{{/*
+Creates a Role and RoleBinding granting the backend service account read-only
+access to the Kubernetes Secrets listed in .Values.backend.secretAccess.
+
+This allows configa's InClusterSecretClient to resolve {{ secret "name" "key" }}
+templates in config.yaml at pod startup without needing cluster-admin privileges.
+
+The SA is expected to already exist (managed externally or via serviceAccount.create).
+Both server and worker use the same SA name; a single Role + RoleBinding is sufficient.
+
+Set backend.secretAccess in the deploy-repo values to the list of K8s Secret names
+the backend needs to read, e.g.:
+  secretAccess:
+    - backend-secrets
+*/}}
+{{- $secretAccess := .Values.backend.secretAccess | default list -}}
+{{- $saName := .Values.backend.server.serviceAccount.name | default "" -}}
+{{- if and (gt (len $secretAccess) 0) (ne $saName "") -}}
+{{- $roleName := printf "%s-backend-secret-reader" (include "common.fullname" .) }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ $roleName }}
+  namespace: {{ .Release.Namespace }}
+  {{- include "common.metadata" (list .) | nindent 2 }}
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames:
+      {{- range $secretAccess }}
+      - {{ . | quote }}
+      {{- end }}
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $roleName }}
+  namespace: {{ .Release.Namespace }}
+  {{- include "common.metadata" (list .) | nindent 2 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ $roleName }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ $saName }}
+    namespace: {{ .Release.Namespace }}
+{{- end }}
