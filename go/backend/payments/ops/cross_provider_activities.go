@@ -367,9 +367,7 @@ func (a *Activity) PostGatehubToXagoTransfers(ctx context.Context, paymentID str
 
 // PostXagoToGatehubTransfers posts Xago (ZAR) to Gatehub (EUR) transfers in pacioli:
 //  1. Posts the pending ZAR reserve (p.SendTransactionID): xago.user.ZARAccount → xago.ZARLiquidityAccount
-//  2. Creates a posted transfer: xago.ZARLiquidityAccount → xago.ZAROpsAccount
-//  3. Creates a posted transfer: xago.EUROpsAccount → xago.EURClearingAccount
-//  4. Creates a posted transfer: gatehub.EURClearingAccount → gatehub.user.EURAccount (using receiverTxID)
+//  2. Creates a posted transfer: gatehub.EURClearingAccount → gatehub.user.EURAccount (using receiverTxID)
 func (a *Activity) PostXagoToGatehubTransfers(ctx context.Context, paymentID string) error {
 	p, err := Lookup(ctx, a.b, paymentID)
 	if err != nil {
@@ -395,26 +393,6 @@ func (a *Activity) PostXagoToGatehubTransfers(ctx context.Context, paymentID str
 	createRes, err := a.b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
 		{
 			ID:              uuid.NewString(),
-			Amount:          p.SenderAmount.Value,
-			DebitAccountID:  xago.ZARLiquidityAccount,
-			CreditAccountID: xago.ZAROpsAccount,
-			Pending:         false,
-			Code:            1,
-			Ledger:          xago.LedgerIDZAR,
-		},
-		{
-			ID: uuid.NewString(),
-			// TODO check if we need to record the estimated receiver amount value or the updated one
-			Amount:          p.ReceiverAmount.Value,
-			DebitAccountID:  xago.EUROpsAccount,
-			CreditAccountID: xago.EURClearingAccount,
-			Pending:         false,
-			Code:            1,
-			Ledger:          xago.LedgerIDEUR,
-		},
-		{
-			ID: uuid.NewString(),
-			// TODO check if we need to record the estimated receiver amount value or the updated one
 			Amount:          p.ReceiverAmount.Value,
 			DebitAccountID:  gatehub.EURClearingAccount,
 			CreditAccountID: receiverLA.ID,
