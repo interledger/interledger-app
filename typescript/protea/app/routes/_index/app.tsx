@@ -28,7 +28,6 @@ import { KycStatus } from '~/lib/types'
 import { usePusher } from '~/lib/usePusher'
 import type { AppLoaderData, loader } from './route'
 
-
 export function AppPage() {
   const {
     walletInfo,
@@ -368,50 +367,50 @@ function CTACards() {
   return (
     <>
       {features.cardsEnabled && !walletInfo.hasCard && (
-          <Card>
-            <CardContent>
-              <div className='flex items-start space-x-4'>
-                <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
-                  <Icon>credit_card</Icon>
-                </div>
-                <div className='flex flex-col space-y-4'>
-                  <p className='text-sm text-medium'>
-                    Connect cards to easily send and receive payments.
-                  </p>
-                  <Router
-                    className='text-sm font-medium text-primary'
-                    to={href('/connect/card')}
-                  >
-                    Connect a card
-                  </Router>
-                </div>
+        <Card>
+          <CardContent>
+            <div className='flex items-start space-x-4'>
+              <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
+                <Icon>credit_card</Icon>
               </div>
-            </CardContent>
-          </Card>
-        )}
+              <div className='flex flex-col space-y-4'>
+                <p className='text-sm text-medium'>
+                  Connect cards to easily send and receive payments.
+                </p>
+                <Router
+                  className='text-sm font-medium text-primary'
+                  to={href('/connect/card')}
+                >
+                  Connect a card
+                </Router>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
       {features.banksEnabled && (
-          <Card>
-            <CardContent>
-              <div className='flex items-start space-x-4'>
-                <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
-                  <Icon>account_balance</Icon>
-                </div>
-                <div className='flex flex-col space-y-4'>
-                  <p className='text-sm text-medium'>
-                    Connect bank accounts to easily add or withdraw from your
-                    balance.
-                  </p>
-                  <Router
-                    className='text-sm font-medium text-primary'
-                    to={bankHref}
-                  >
-                    Connect a bank
-                  </Router>
-                </div>
+        <Card>
+          <CardContent>
+            <div className='flex items-start space-x-4'>
+              <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
+                <Icon>account_balance</Icon>
               </div>
-            </CardContent>
-          </Card>
-        )}
+              <div className='flex flex-col space-y-4'>
+                <p className='text-sm text-medium'>
+                  Connect bank accounts to easily add or withdraw from your
+                  balance.
+                </p>
+                <Router
+                  className='text-sm font-medium text-primary'
+                  to={bankHref}
+                >
+                  Connect a bank
+                </Router>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
       {features.interacEnabled && (
         <Card>
           <CardContent>

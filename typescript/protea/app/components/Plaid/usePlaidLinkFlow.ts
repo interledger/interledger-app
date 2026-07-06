@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useFetcher } from 'react-router'
 import { usePlaidLink } from 'react-plaid-link'
+import { useFetcher } from 'react-router'
 import { v4 } from 'uuid'
 
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
@@ -10,7 +10,6 @@ import type { ActionData } from '~/routes/plaid'
 type SerializedActionData = Exclude<ActionData, Promise<Response>>
 
 const PLAID_ACTION_PATH = '/plaid'
-
 
 interface PlaidLinkFlowOptions {
   onCancel?: () => void
@@ -61,7 +60,11 @@ export function usePlaidLinkFlow(opts: PlaidLinkFlowOptions = {}) {
     }
   }, [linkFetcher.data, pushSnackbar])
 
-  const { open, ready, error: scriptError } = usePlaidLink({
+  const {
+    open,
+    ready,
+    error: scriptError
+  } = usePlaidLink({
     token: linkToken,
     onLoad: () => setPlaidInstanceReady(true),
     onSuccess: (publicToken, metadata) => {
@@ -82,7 +85,10 @@ export function usePlaidLinkFlow(opts: PlaidLinkFlowOptions = {}) {
       // click mints a fresh one (link_tokens are single-flow).
       setLinkToken(null)
       if (err) {
-        const msg = err.display_message || err.error_message || 'Plaid Link exited with error'
+        const msg =
+          err.display_message ||
+          err.error_message ||
+          'Plaid Link exited with error'
         pushSnackbar({ id: v4(), message: msg })
         onError?.(msg)
       } else {
@@ -113,10 +119,18 @@ export function usePlaidLinkFlow(opts: PlaidLinkFlowOptions = {}) {
   useEffect(() => {
     const data = exchangeFetcher.data
     if (!data) return
-    if (data.success && data.data.intent === 'exchange_and_link' && data.data.alreadyLinked) {
+    if (
+      data.success &&
+      data.data.intent === 'exchange_and_link' &&
+      data.data.alreadyLinked
+    ) {
       setLinkToken(null)
       setIsLinking(false)
-      pushSnackbar({ id: v4(), message: 'Account already linked', icon: 'check' })
+      pushSnackbar({
+        id: v4(),
+        message: 'Account already linked',
+        icon: 'check'
+      })
       return
     }
     if (!data.success) {

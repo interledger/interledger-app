@@ -1,6 +1,5 @@
-import { redirect } from 'react-router'
-import { href } from 'react-router'
 import { captureMessage } from '@sentry/react-router'
+import { href, redirect } from 'react-router'
 import { CLEAR_SESSION_COOKIE_HEADER } from './kratos/kratos-client.server'
 import logger from './logger.server'
 
@@ -111,7 +110,12 @@ async function plaidFetch<T>(
       try {
         body = JSON.parse(text)
       } catch {
-        return new PlaidError(request, res.status, 'INTERNAL', text || res.statusText)
+        return new PlaidError(
+          request,
+          res.status,
+          'INTERNAL',
+          text || res.statusText
+        )
       }
     }
 
@@ -139,8 +143,9 @@ async function plaidFetch<T>(
   }
 }
 
-
-function createLinkToken(request: Request): Promise<PlaidLinkToken | PlaidError> {
+function createLinkToken(
+  request: Request
+): Promise<PlaidLinkToken | PlaidError> {
   return plaidFetch<PlaidLinkToken>(request, `${PLAID_API_PATH}/link-token`, {
     method: 'POST'
   })
@@ -150,13 +155,17 @@ function linkToFiant(
   request: Request,
   args: PlaidLinkToFiantArgs
 ): Promise<PlaidLinkToFiantResult | PlaidError> {
-  return plaidFetch<PlaidLinkToFiantResult>(request, `${PLAID_API_PATH}/link-to-fiant`, {
-    method: 'POST',
-    body: JSON.stringify(args)
-  })
+  return plaidFetch<PlaidLinkToFiantResult>(
+    request,
+    `${PLAID_API_PATH}/link-to-fiant`,
+    {
+      method: 'POST',
+      body: JSON.stringify(args)
+    }
+  )
 }
 
 export default {
   createLinkToken,
-  linkToFiant,
+  linkToFiant
 }

@@ -1,8 +1,12 @@
 import { href } from 'react-router'
 
-import { redirectWithSnackbar } from '~/lib/snackbar.server'
-import { ErrorHandler, ErrorMapper, UserFacingError } from '~/lib/error-handling/bff-error'
+import {
+  ErrorHandler,
+  ErrorMapper,
+  UserFacingError
+} from '~/lib/error-handling/bff-error'
 import type { ServerResponse } from '~/lib/error-handling/types'
+import { redirectWithSnackbar } from '~/lib/snackbar.server'
 
 import { getUserSession } from '~/lib/kratos/session.server'
 import plaid, { isPlaidError } from '~/lib/plaid.server'
@@ -30,7 +34,9 @@ export type ActionDataPayload =
 
 export type ActionData = ServerResponse<ActionDataPayload>
 
-export async function action({ request }: Route.ActionArgs): Promise<ActionData | Response> {
+export async function action({
+  request
+}: Route.ActionArgs): Promise<ActionData | Response> {
   await getUserSession(request)
   const form = await request.formData()
   const intent = String(form.get('intent') || '')
@@ -39,7 +45,10 @@ export async function action({ request }: Route.ActionArgs): Promise<ActionData 
     case 'create_link_token': {
       const result = await plaid.createLinkToken(request)
       if (isPlaidError(result)) {
-        return ErrorHandler(request, ErrorMapper.plaid.toUserFacingError(result)) as any
+        return ErrorHandler(
+          request,
+          ErrorMapper.plaid.toUserFacingError(result)
+        ) as any
       }
       return {
         success: true,
@@ -56,7 +65,10 @@ export async function action({ request }: Route.ActionArgs): Promise<ActionData 
       const publicToken = String(form.get('public_token') || '')
       const accountId = String(form.get('account_id') || '')
       if (!publicToken || !accountId) {
-        return ErrorHandler(request, UserFacingError('public_token and account_id are required', 400)) as any
+        return ErrorHandler(
+          request,
+          UserFacingError('public_token and account_id are required', 400)
+        ) as any
       }
       const linked = await plaid.linkToFiant(request, {
         public_token: publicToken,
@@ -88,6 +100,9 @@ export async function action({ request }: Route.ActionArgs): Promise<ActionData 
     }
 
     default:
-      return ErrorHandler(request, UserFacingError(`unknown intent: ${intent}`, 400)) as any
+      return ErrorHandler(
+        request,
+        UserFacingError(`unknown intent: ${intent}`, 400)
+      ) as any
   }
 }

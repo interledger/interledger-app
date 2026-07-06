@@ -1,7 +1,7 @@
-import { Code } from "@bufbuild/connect"
+import { Code } from '@bufbuild/connect'
 import type { ConnectError } from '../error.server'
-import { PlaidError } from '../plaid.server'
 import logger from '../logger.server'
+import { PlaidError } from '../plaid.server'
 import { redirectWithSnackbar } from '../snackbar.server'
 import type { FailedServerResponse } from './types'
 
@@ -53,13 +53,25 @@ export const ErrorMapper: Record<Client, ErrorMappingFn> = {
         )
       }
 
-      return UserFacingError("An error occured, please try again.", 500)
+      return UserFacingError('An error occured, please try again.', 500)
     }
   },
   plaid: {
     toUserFacingError: (data: PlaidError) => {
-      logger.error({ plaidError: { status: data.status, errorCode: data.errorCode, message: data.message } }, 'Error from Plaid client.')
-      return UserFacingError(data.message || 'Plaid error occurred', data.status)
+      logger.error(
+        {
+          plaidError: {
+            status: data.status,
+            errorCode: data.errorCode,
+            message: data.message
+          }
+        },
+        'Error from Plaid client.'
+      )
+      return UserFacingError(
+        data.message || 'Plaid error occurred',
+        data.status
+      )
     }
   }
 }
