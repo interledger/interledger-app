@@ -1,0 +1,2570 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for the Interledger App Wallet — a reference implementation for Account Servicing Entities (ASEs) integrating with the Interledger network.">
+      
+      
+      
+      
+        <link rel="prev" href="../payments-guide/">
+      
+      
+        <link rel="next" href="../provider-payments-reference/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Transaction Types Reference - Interledger App Wallet</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#transaction-types-fields-reference" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Interledger App Wallet" class="md-header__button md-logo" aria-label="Interledger App Wallet" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Interledger App Wallet
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Transaction Types Reference
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Interledger App Wallet" class="md-nav__button md-logo" aria-label="Interledger App Wallet" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Interledger App Wallet
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../terminology/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Terminology
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../signup-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Signup Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../kyc-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    KYC & Identity Verification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../kyc-resubmission-flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    KYC Resubmission Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../account-deletion-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Account Deletion Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wallets-accounts-addresses-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wallets, Accounts & Addresses
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ledger-system-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dual-Ledger System
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../agreements-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agreements & Legal Consent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Payments
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Payments
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../payments-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Payments & Transactions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transaction Types Reference
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transaction Types Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-is-a-transaction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What is a Transaction?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#core-transaction-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Core Transaction Fields
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#transaction-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Transaction Types
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Transaction Types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sent-sent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sent (sent)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#received-received" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Received (received)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deposit-deposit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deposit (deposit)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#withdrawal-withdrawal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Withdrawal (withdrawal)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#card-transaction-card_transaction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Card Transaction (card_transaction)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#other-transaction-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Other Transaction Types
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#transaction-lifecycle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Transaction Lifecycle
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Transaction Lifecycle">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#transaction-state-definitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Transaction State Definitions
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-do-we-create-both-send-and-receive-transactions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why Do We Create BOTH Send AND Receive Transactions?
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Why Do We Create BOTH Send AND Receive Transactions?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#reason-1-each-person-needs-a-record" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reason 1: Each Person Needs a Record
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reason-2-fees-may-differ" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reason 2: Fees May Differ
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reason-3-debugging" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reason 3: Debugging
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reason-4-provider-confirmation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reason 4: Provider Confirmation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#provider-specific-transaction-field-mappings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Provider-Specific Transaction Field Mappings
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Provider-Specific Transaction Field Mappings">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#gatehub-interledger" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GateHub → Interledger
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pti-interledger" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PTI → Interledger
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#xago-interledger" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Xago → Interledger
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#transaction-queries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Transaction Queries
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Transaction Queries">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#find-transactions-for-a-user" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Find transactions for a user
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#find-transactions-for-a-payment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Find transactions for a payment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#find-completed-transactions-this-month" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Find completed transactions this month
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#find-failed-transactions-needing-investigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Find failed transactions needing investigation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#find-stuck-transactions-pending-20-min" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Find stuck transactions (pending &gt; 20 min)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#common-transaction-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common Transaction Issues
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Common Transaction Issues">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#transaction-shows-completed-but-user-balance-didnt-change" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        "Transaction shows completed but user balance didn't change"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#provider-shows-fee-2-but-we-recorded-0" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        "Provider shows fee £2 but we recorded £0"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#transaction-stuck-in-pending-for-2-hours" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        "Transaction stuck in pending for 2 hours"
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See Also
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../provider-payments-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Provider Comparison
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Integrations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Integrations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gatehub-cards-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GateHub Cards
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rafiki-full-node-upgrade-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rafiki Full Node Upgrade
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Operations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../payment-troubleshooting-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Payment Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developers
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Developers
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../error-handling-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Error Handling Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../logging-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Logging Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../env-variables/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment Variables
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-is-a-transaction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What is a Transaction?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#core-transaction-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Core Transaction Fields
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#transaction-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Transaction Types
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Transaction Types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sent-sent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sent (sent)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#received-received" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Received (received)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deposit-deposit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deposit (deposit)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#withdrawal-withdrawal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Withdrawal (withdrawal)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#card-transaction-card_transaction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Card Transaction (card_transaction)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#other-transaction-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Other Transaction Types
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#transaction-lifecycle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Transaction Lifecycle
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Transaction Lifecycle">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#transaction-state-definitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Transaction State Definitions
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-do-we-create-both-send-and-receive-transactions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why Do We Create BOTH Send AND Receive Transactions?
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Why Do We Create BOTH Send AND Receive Transactions?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#reason-1-each-person-needs-a-record" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reason 1: Each Person Needs a Record
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reason-2-fees-may-differ" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reason 2: Fees May Differ
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reason-3-debugging" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reason 3: Debugging
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reason-4-provider-confirmation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reason 4: Provider Confirmation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#provider-specific-transaction-field-mappings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Provider-Specific Transaction Field Mappings
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Provider-Specific Transaction Field Mappings">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#gatehub-interledger" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GateHub → Interledger
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pti-interledger" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PTI → Interledger
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#xago-interledger" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Xago → Interledger
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#transaction-queries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Transaction Queries
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Transaction Queries">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#find-transactions-for-a-user" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Find transactions for a user
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#find-transactions-for-a-payment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Find transactions for a payment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#find-completed-transactions-this-month" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Find completed transactions this month
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#find-failed-transactions-needing-investigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Find failed transactions needing investigation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#find-stuck-transactions-pending-20-min" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Find stuck transactions (pending &gt; 20 min)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#common-transaction-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common Transaction Issues
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Common Transaction Issues">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#transaction-shows-completed-but-user-balance-didnt-change" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        "Transaction shows completed but user balance didn't change"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#provider-shows-fee-2-but-we-recorded-0" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        "Provider shows fee £2 but we recorded £0"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#transaction-stuck-in-pending-for-2-hours" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        "Transaction stuck in pending for 2 hours"
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See Also
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="transaction-types-fields-reference">Transaction Types &amp; Fields Reference<a class="headerlink" href="#transaction-types-fields-reference" title="Permanent link">&para;</a></h1>
+<p><strong>Audience:</strong> Support staff, operations, developers integrating with payment APIs<br />
+<strong>Time to read:</strong> 10 minutes</p>
+<blockquote>
+<p><strong>Transaction field specifications.</strong> Complete reference for transaction structure, types, and provider mappings.</p>
+</blockquote>
+<p><strong>Related documents:</strong></p>
+<ul>
+<li><a href="../payments-guide/">Payments Guide</a> — Overview and navigation hub</li>
+<li><a href="../wallets-accounts-addresses-guide/">Wallets vs Accounts vs Addresses</a> — How linked accounts shape transaction creation</li>
+<li><a href="../ledger-system-guide/">Ledger System Architecture</a> — How transactions update ledgers</li>
+<li><a href="../provider-payments-reference/">Provider Payments Guide</a> — Provider-specific transaction behavior</li>
+<li><a href="../payment-troubleshooting-guide/">Payment Troubleshooting</a> — Debugging transaction issues</li>
+<li><a href="../terminology/">Concepts</a> — Core terminology (transaction vs payment)</li>
+</ul>
+<p><strong>Quick Navigation:</strong></p>
+<ul>
+<li><strong>What fields does a transaction have?</strong> → See <a href="#core-transaction-fields">Core Transaction Fields</a></li>
+<li><strong>Transaction types?</strong> → See <a href="#transaction-types">Transaction Types</a></li>
+<li><strong>Lifecycle states?</strong> → See <a href="#transaction-lifecycle">Transaction Lifecycle</a></li>
+<li><strong>Why two-sided transactions?</strong> → See <a href="#why-do-we-create-both-send-and-receive-transactions">Why Track Both Sides</a></li>
+<li><strong>Provider field mappings?</strong> → See <a href="#provider-specific-transaction-field-mappings">Provider-Specific Field Mappings</a></li>
+</ul>
+<hr />
+<h2 id="what-is-a-transaction">What is a Transaction?<a class="headerlink" href="#what-is-a-transaction" title="Permanent link">&para;</a></h2>
+<p>A <strong>transaction</strong> is a record of money movement. It's like a receipt — it documents what happened, when, how much, and whether it succeeded.</p>
+<p>Every financial action (deposit, withdrawal, payment, card charge) creates one or more transactions in our system.</p>
+<hr />
+<h2 id="core-transaction-fields">Core Transaction Fields<a class="headerlink" href="#core-transaction-fields" title="Permanent link">&para;</a></h2>
+<p>Every transaction has these fields:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Example</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>ID</strong></td>
+<td>UUID</td>
+<td><code>txn_550e8400-e29b-41d4-a716-446655440000</code></td>
+<td>Unique identifier in our system</td>
+</tr>
+<tr>
+<td><strong>Type</strong></td>
+<td>Enum</td>
+<td><code>sent</code>, <code>received</code>, <code>deposit</code>, <code>withdrawal</code>, <code>card_transaction</code>, <code>transfer</code>, <code>open_payments_incoming</code>, <code>open_payments_outgoing</code>, <code>web_monetization_incoming</code>, <code>web_monetization_outgoing</code></td>
+<td>What kind of movement is this?</td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>Enum</td>
+<td><code>Pending</code>, <code>Completed</code>, <code>Failed</code>, <code>OnHold</code></td>
+<td>Where is it in the lifecycle?</td>
+</tr>
+<tr>
+<td><strong>Amount</strong></td>
+<td>Decimal</td>
+<td><code>100.00</code></td>
+<td>How much money?</td>
+</tr>
+<tr>
+<td><strong>Currency</strong></td>
+<td>Code</td>
+<td><code>GBP</code>, <code>USD</code>, <code>EUR</code>, <code>ZAR</code></td>
+<td>What currency?</td>
+</tr>
+<tr>
+<td><strong>User ID</strong></td>
+<td>UUID</td>
+<td><code>user_550e8400-e29b-41d4-a716-446655440001</code></td>
+<td>Which user is affected?</td>
+</tr>
+<tr>
+<td><strong>Linked Account ID</strong></td>
+<td>UUID</td>
+<td><code>acct_550e8400-e29b-41d4-a716-446655440002</code></td>
+<td>Which linked account?</td>
+</tr>
+<tr>
+<td><strong>Provider ID</strong></td>
+<td>String</td>
+<td><code>txn_gate_abc123</code></td>
+<td>ID at the provider (GateHub, PTI, etc.)</td>
+</tr>
+<tr>
+<td><strong>Provider Fee</strong></td>
+<td>Decimal</td>
+<td><code>2.00</code></td>
+<td>What did the provider charge?</td>
+</tr>
+<tr>
+<td><strong>Timestamp</strong></td>
+<td>ISO-8601</td>
+<td><code>2026-03-03T14:30:45Z</code></td>
+<td>When did it happen (provider's time)?</td>
+</tr>
+<tr>
+<td><strong>Created At</strong></td>
+<td>ISO-8601</td>
+<td><code>2026-03-03T14:30:40Z</code></td>
+<td>When did we record it?</td>
+</tr>
+<tr>
+<td><strong>Related Transaction ID</strong></td>
+<td>UUID</td>
+<td><code>txn_550e8400-e29b-41d4-a716-446655440003</code></td>
+<td>For two-sided transactions (send ↔ receive), which is the counterpart?</td>
+</tr>
+<tr>
+<td><strong>Payment ID</strong></td>
+<td>UUID</td>
+<td><code>pay_550e8400-e29b-41d4-a716-446655440004</code></td>
+<td>If this transaction came from a payment, which payment?</td>
+</tr>
+<tr>
+<td><strong>Notes</strong></td>
+<td>String</td>
+<td><code>Withdrawal to US Bank account</code></td>
+<td>Additional context</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="transaction-types">Transaction Types<a class="headerlink" href="#transaction-types" title="Permanent link">&para;</a></h2>
+<h3 id="sent-sent">Sent (<code>sent</code>)<a class="headerlink" href="#sent-sent" title="Permanent link">&para;</a></h3>
+<p><strong>What it means:</strong> User is sending money out.</p>
+<p><strong>Who gets it:</strong> The sender</p>
+<p><strong>When it's created:</strong>
+- When user initiates P2P payment to another user
+- When user initiates hosted transfer to external service</p>
+<p><strong>Balance impact:</strong>
+- Sender's balance: <strong>decreases</strong> by <code>amount + fees</code>
+- Receiver's balance: <strong>increases</strong> by <code>amount</code> (no fee on receiver side for P2P)</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Alice sends Bob £100 (GateHub charges £2 fee)
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>Alice&#39;s transaction:
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>├─ Type: sent
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>├─ Amount: £100
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>├─ Fee: £2
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>├─ Net impact: -£102
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>Bob&#39;s transaction:
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>├─ Type: received
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>├─ Amount: £100
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>├─ Fee: £0 (receiver doesn&#39;t pay)
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>├─ Net impact: +£100
+</code></pre></div></p>
+<hr />
+<h3 id="received-received">Received (<code>received</code>)<a class="headerlink" href="#received-received" title="Permanent link">&para;</a></h3>
+<p><strong>What it means:</strong> User is receiving money in.</p>
+<p><strong>Who gets it:</strong> The receiver</p>
+<p><strong>When it's created:</strong>
+- When another user sends money to this user
+- When payment pointer receives funds</p>
+<p><strong>Balance impact:</strong>
+- Receiver's balance: <strong>increases</strong> by <code>amount</code> (minus any receiver-side fees if applicable)
+- Sender handled separately</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Charlie receives £1,000 from another user
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>Charlie&#39;s transaction:
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>├─ Type: received
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>├─ Amount: £1,000
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>├─ Fee: £0 (receiver doesn&#39;t pay)
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>├─ Net impact: +£1,000
+</code></pre></div></p>
+<hr />
+<h3 id="deposit-deposit">Deposit (<code>deposit</code>)<a class="headerlink" href="#deposit-deposit" title="Permanent link">&para;</a></h3>
+<p><strong>What it means:</strong> Money entering the wallet from external source (bank, card, etc.)</p>
+<p><strong>Who gets it:</strong> The user depositing</p>
+<p><strong>When it's created:</strong>
+- When user adds money from their bank account
+- When user loads wallet via credit/debit card
+- When external transfer arrives</p>
+<p><strong>Balance impact:</strong>
+- User's balance: <strong>increases</strong> by <code>amount - fee</code>
+- Provider/bank may charge deposit fee, subtracted before user receives it</p>
+<p><strong>Fee note:</strong>
+- Bank/provider deposits often come with fees
+- On deposits, <strong>receiver pays implicitly</strong> (shows as reduced amount)
+- Example: "Deposit £1,000 with £2.50 fee" → User gets £997.50</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>Diana deposits £500 from her bank (bank charge: £1)
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>Diana&#39;s transaction:
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>├─ Type: deposit
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>├─ Amount: £500 (original requested)
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>├─ Provider Fee: £1 (her bank charged this)
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>├─ Net impact: +£499 (what actually hits her balance)
+</code></pre></div></p>
+<hr />
+<h3 id="withdrawal-withdrawal">Withdrawal (<code>withdrawal</code>)<a class="headerlink" href="#withdrawal-withdrawal" title="Permanent link">&para;</a></h3>
+<p><strong>What it means:</strong> Money leaving the wallet to external destination (bank, cash pickup, etc.)</p>
+<p><strong>Who does it:</strong> The user withdrawing</p>
+<p><strong>When it's created:</strong>
+- When user requests money out to their bank
+- When user requests ATM withdrawal
+- When user cashes out to external account</p>
+<p><strong>Balance impact:</strong>
+- User's balance: <strong>decreases</strong> by <code>amount + fee</code>
+- Provider/bank charges withdrawal fee, <strong>paid by the user</strong> (explicit)</p>
+<p><strong>Fee note:</strong>
+- On withdrawals, <strong>sender pays explicitly</strong>
+- Example: "Withdraw £100 with £1.50 fee" → System debits £101.50, pays out £100
+- User sees -£101.50 in balance, recipient sees £100</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>Edward withdraws £200 to his bank (bank charge: £1.50)
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>Edward&#39;s transaction:
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>├─ Type: withdrawal
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>├─ Amount: £200 (requested amount)
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>├─ Fee: £1.50 (bank charged this)
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>├─ Net impact: -£201.50 (what hits his balance)
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>├─ Recipient sees: £200 (the net)
+</code></pre></div></p>
+<hr />
+<h3 id="card-transaction-card_transaction">Card Transaction (<code>card_transaction</code>)<a class="headerlink" href="#card-transaction-card_transaction" title="Permanent link">&para;</a></h3>
+<p><strong>What it means:</strong> Charge to a card connected to the wallet.</p>
+<p><strong>Who does it:</strong> The card owner (user)</p>
+<p><strong>When it's created:</strong>
+- When user swipes card at merchant
+- When user taps card contactless
+- When card is charged online
+- When card ATM withdrawal happens (sometimes categorized separately)</p>
+<p><strong>Balance impact:</strong>
+- Card account balance: <strong>decreases</strong> by <code>amount + fees</code>
+- Funds deducted from associated wallet balance</p>
+<p><strong>Fee note:</strong>
+- Card fees vary: interchange, network fees, FX markups
+- Shown separately from purchase amount</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>Frank uses his Interledger card at a coffee shop
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>Frank&#39;s transaction:
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>├─ Type: card_transaction
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>├─ Amount: £5.50 (coffee purchase)
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>├─ Merchant: &quot;StarBrew Coffee&quot;
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>├─ Fee: £0 (no card fee, absorbed by Interledger)
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>├─ Net impact: -£5.50
+</code></pre></div></p>
+<hr />
+<h3 id="other-transaction-types">Other Transaction Types<a class="headerlink" href="#other-transaction-types" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Meaning</th>
+<th>When</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>transfer</code></td>
+<td>Internal transfer between linked accounts</td>
+<td>Same-provider P2P, balance moves</td>
+</tr>
+<tr>
+<td><code>open_payments_incoming</code></td>
+<td>Incoming Interledger/Open Payments payment</td>
+<td>Received via ILP protocol</td>
+</tr>
+<tr>
+<td><code>open_payments_outgoing</code></td>
+<td>Outgoing Interledger/Open Payments payment</td>
+<td>Sent via ILP protocol</td>
+</tr>
+<tr>
+<td><code>web_monetization_incoming</code></td>
+<td>Incoming Web Monetization micropayment</td>
+<td>WM protocol receiver</td>
+</tr>
+<tr>
+<td><code>web_monetization_outgoing</code></td>
+<td>Outgoing Web Monetization micropayment</td>
+<td>WM protocol sender</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="transaction-lifecycle">Transaction Lifecycle<a class="headerlink" href="#transaction-lifecycle" title="Permanent link">&para;</a></h2>
+<p>Transactions have four states:</p>
+<pre class="mermaid"><code>stateDiagram-v2
+    [*] --&gt; Pending: Transaction created
+
+    Pending --&gt; Completed: Provider confirms ✓
+    Pending --&gt; Failed: Provider rejects ✗
+    Pending --&gt; OnHold: Needs review
+
+    OnHold --&gt; Completed: Resolved ✓
+    OnHold --&gt; Failed: Resolved ✗
+
+    Completed --&gt; [*]: Final state (money moved)
+    Failed --&gt; [*]: Final state (money didn't move)</code></pre>
+<h3 id="transaction-state-definitions">Transaction State Definitions<a class="headerlink" href="#transaction-state-definitions" title="Permanent link">&para;</a></h3>
+<p><strong>Pending</strong>
+- Transaction created and sent to provider
+- Awaiting confirmation
+- Money NOT yet confirmed moved
+- <strong>Expected duration: 1 second to 20 minutes</strong> (provider-dependent)</p>
+<p><strong>Completed</strong> ✓
+- Provider confirmed transaction succeeded
+- Money actually moved
+- Balance changes finalized
+- <strong>Terminal state</strong> — cannot change</p>
+<p><strong>Failed</strong> ✗
+- Provider rejected the transaction
+- Money did NOT move
+- May have an error message from provider
+- <strong>Terminal state</strong> — cannot change</p>
+<p><strong>OnHold</strong>
+- Transaction requires manual review or intervention
+- May be resolved to Completed or Failed</p>
+<blockquote>
+<p><strong>Note:</strong> There is also a separate <strong>Payment</strong> state machine used for internal orchestration (Created → Confirmed → Processing → Completed/Failed). Payment states are internal orchestration lifecycle stages and are not directly visible to users. Transaction states (<code>Pending</code>, <code>Completed</code>, <code>Failed</code>, <code>OnHold</code>) are the user-facing states.</p>
+</blockquote>
+<hr />
+<h2 id="why-do-we-create-both-send-and-receive-transactions">Why Do We Create BOTH Send AND Receive Transactions?<a class="headerlink" href="#why-do-we-create-both-send-and-receive-transactions" title="Permanent link">&para;</a></h2>
+<p>When Alice sends Bob money, we create <strong>two separate transactions</strong>:</p>
+<ol>
+<li>Alice's send transaction</li>
+<li>Bob's receive transaction</li>
+</ol>
+<p>This might seem redundant, but it's essential:</p>
+<h3 id="reason-1-each-person-needs-a-record">Reason 1: Each Person Needs a Record<a class="headerlink" href="#reason-1-each-person-needs-a-record" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>Alice&#39;s send transaction shows:
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>├─ -£102 impact on her balance
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>├─ Includes the £2 fee she paid
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>└─ &quot;I sent Bob money&quot;
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>Bob&#39;s receive transaction shows:
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>├─ +£100 impact on his balance
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>├─ No fee (he didn&#39;t pay)
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>└─ &quot;I received money from Alice&quot;
+</code></pre></div>
+<h3 id="reason-2-fees-may-differ">Reason 2: Fees May Differ<a class="headerlink" href="#reason-2-fees-may-differ" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>Example: Withdrawal to bank
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>System sends Bob £100 to his bank
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>├─ Bob&#39;s receive: +£100 (from provider perspective)
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>├─ But bank subtracted £2 fee
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>├─ So Bob&#39;s bank account gets £98
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>Our side:
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>├─ Withdrawal transaction: -£100 (what we sent)
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>├─ Provider fee transaction: -£2 (what bank charged)
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>├─ Bob sees: Both impacts on his balance
+</code></pre></div>
+<h3 id="reason-3-debugging">Reason 3: Debugging<a class="headerlink" href="#reason-3-debugging" title="Permanent link">&para;</a></h3>
+<p>When something goes wrong:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>Support ticket: &quot;I sent money but recipient says they didn&#39;t get it&quot;
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>Investigation:
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>├─ Check Alice&#39;s send transaction: Status = completed ✓
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>├─ Check Bob&#39;s receive transaction: Status = ??? (missing!)
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>├─ Root cause found: Bob&#39;s transaction wasn&#39;t created
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>├─ Fix: Create Bob&#39;s transaction manually, credit his balance
+</code></pre></div>
+<h3 id="reason-4-provider-confirmation">Reason 4: Provider Confirmation<a class="headerlink" href="#reason-4-provider-confirmation" title="Permanent link">&para;</a></h3>
+<p>Providers may confirm send and receive at different times:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>Timeline:
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>├─ T+0.1s: GateHub confirms send to Alice (her fee paid)
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>├─ T+0.2s: GateHub confirms funds routed to Bob
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>├─ T+0.5s: GateHub confirms Bob&#39;s balance updated
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>└─ T+1.0s: GateHub sends pair of webhooks confirming both
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>We track both:
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>├─ Alice&#39;s send: Mark completed when her debit confirmed
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>├─ Bob&#39;s receive: Mark completed when his credit confirmed
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>└─ Two different webhooks, two transaction updates
+</code></pre></div>
+<hr />
+<h2 id="provider-specific-transaction-field-mappings">Provider-Specific Transaction Field Mappings<a class="headerlink" href="#provider-specific-transaction-field-mappings" title="Permanent link">&para;</a></h2>
+<p>Different providers use different field names and status codes. We normalize them.</p>
+<h3 id="gatehub-interledger">GateHub → Interledger<a class="headerlink" href="#gatehub-interledger" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>GateHub Field</th>
+<th>Our Field</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td><code>provider_id</code></td>
+<td><code>txn_abc123</code></td>
+</tr>
+<tr>
+<td><code>amount</code></td>
+<td><code>amount</code></td>
+<td><code>100.00</code></td>
+</tr>
+<tr>
+<td><code>fee</code></td>
+<td><code>provider_fee</code></td>
+<td><code>2.00</code></td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td><code>status</code></td>
+<td>GateHub: <code>0</code> (pending), <code>1</code> (processing), <code>100</code> (completed), <code>101</code> (failed) → We store: <code>Pending</code>, <code>Completed</code>, <code>Failed</code></td>
+</tr>
+<tr>
+<td><code>created</code></td>
+<td><code>timestamp</code></td>
+<td><code>2026-03-03T14:30:45Z</code></td>
+</tr>
+<tr>
+<td><code>currency</code></td>
+<td><code>currency</code></td>
+<td><code>GBP</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="pti-interledger">PTI → Interledger<a class="headerlink" href="#pti-interledger" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>PTI Field</th>
+<th>Our Field</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>transfer_id</code></td>
+<td><code>provider_id</code></td>
+<td><code>ptr_xyz789</code></td>
+</tr>
+<tr>
+<td><code>amount</code></td>
+<td><code>amount</code></td>
+<td><code>50.00</code></td>
+</tr>
+<tr>
+<td><code>fee_amount</code></td>
+<td><code>provider_fee</code></td>
+<td><code>0.50</code></td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td><code>status</code></td>
+<td>PTI uses strings: <code>PENDING</code>, <code>SETTLED</code>, <code>FAILED</code> → We store: <code>pending</code>, <code>completed</code>, <code>failed</code></td>
+</tr>
+<tr>
+<td><code>created_at</code></td>
+<td><code>timestamp</code></td>
+<td><code>2026-03-03T14:30:45Z</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="xago-interledger">Xago → Interledger<a class="headerlink" href="#xago-interledger" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Xago Field</th>
+<th>Our Field</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>reference</code></td>
+<td><code>provider_id</code></td>
+<td><code>xgo_ref_123</code></td>
+</tr>
+<tr>
+<td><code>amount</code></td>
+<td><code>amount</code></td>
+<td><code>1000.00</code></td>
+</tr>
+<tr>
+<td><code>fee</code></td>
+<td><code>provider_fee</code></td>
+<td><code>50.00</code></td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td><code>status</code></td>
+<td>Xago: <code>pending</code>, <code>completed</code>, <code>failed</code> → We store: <code>pending</code>, <code>completed</code>, <code>failed</code></td>
+</tr>
+<tr>
+<td><code>timestamp</code></td>
+<td><code>timestamp</code></td>
+<td><code>2026-03-03T14:30:45Z</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="transaction-queries">Transaction Queries<a class="headerlink" href="#transaction-queries" title="Permanent link">&para;</a></h2>
+<h3 id="find-transactions-for-a-user">Find transactions for a user<a class="headerlink" href="#find-transactions-for-a-user" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>SELECT * FROM transactions 
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>WHERE user_id = &#39;user_abc123&#39;
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>ORDER BY timestamp DESC
+</code></pre></div>
+<h3 id="find-transactions-for-a-payment">Find transactions for a payment<a class="headerlink" href="#find-transactions-for-a-payment" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>SELECT * FROM transactions 
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>WHERE payment_id = &#39;pay_abc123&#39;
+</code></pre></div>
+<h3 id="find-completed-transactions-this-month">Find completed transactions this month<a class="headerlink" href="#find-completed-transactions-this-month" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>SELECT * FROM transactions 
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>WHERE status = &#39;completed&#39; 
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>AND timestamp &gt;= &#39;2026-03-01&#39;
+</code></pre></div>
+<h3 id="find-failed-transactions-needing-investigation">Find failed transactions needing investigation<a class="headerlink" href="#find-failed-transactions-needing-investigation" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>SELECT * FROM transactions 
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>WHERE status = &#39;failed&#39; 
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>AND timestamp &gt;= NOW() - INTERVAL &#39;24 hours&#39;
+</code></pre></div>
+<h3 id="find-stuck-transactions-pending-20-min">Find stuck transactions (pending &gt; 20 min)<a class="headerlink" href="#find-stuck-transactions-pending-20-min" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>SELECT * FROM transactions 
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>WHERE status = &#39;pending&#39; 
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>AND timestamp &lt; NOW() - INTERVAL &#39;20 minutes&#39;
+</code></pre></div>
+<hr />
+<h2 id="common-transaction-issues">Common Transaction Issues<a class="headerlink" href="#common-transaction-issues" title="Permanent link">&para;</a></h2>
+<h3 id="transaction-shows-completed-but-user-balance-didnt-change">"Transaction shows completed but user balance didn't change"<a class="headerlink" href="#transaction-shows-completed-but-user-balance-didnt-change" title="Permanent link">&para;</a></h3>
+<p><strong>Cause:</strong> Transaction status was marked complete but balance calculation failed</p>
+<p><strong>Fix:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>1. Verify transaction is actually in database
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>2. Verify linked account exists
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>3. Recalculate balance for the account
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>4. If still missing, manually update balance
+</code></pre></div></p>
+<h3 id="provider-shows-fee-2-but-we-recorded-0">"Provider shows fee £2 but we recorded £0"<a class="headerlink" href="#provider-shows-fee-2-but-we-recorded-0" title="Permanent link">&para;</a></h3>
+<p><strong>Cause:</strong> Fee configuration mismatch (using mock data vs real)</p>
+<p><strong>Fix:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>1. Check provider response for fee field
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>2. Check transaction record for fee value
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>3. Update fee in transaction if incorrect
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>4. Verify future transactions capture fees correctly
+</code></pre></div></p>
+<h3 id="transaction-stuck-in-pending-for-2-hours">"Transaction stuck in pending for 2 hours"<a class="headerlink" href="#transaction-stuck-in-pending-for-2-hours" title="Permanent link">&para;</a></h3>
+<p><strong>Cause:</strong> Provider never confirmed, webhook never arrived, polling failed</p>
+<p><strong>Fix:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>1. Check webhook logs for status confirmation
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>2. Manually poll provider API for transaction status
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>3. Update transaction status based on provider&#39;s authoritative answer
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>4. If status is actually complete: update Pacioli ledger
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>5. Investigate why webhook failed (network? provider issue?)
+</code></pre></div></p>
+<hr />
+<h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../payments-guide/">Payments &amp; Transactions Guide</a> — Overview and navigation hub</li>
+<li><a href="../payments-guide/#the-payment-story">Payment Story Deep Dive</a> — Complete walkthrough with diagrams</li>
+<li><a href="../ledger-system-guide/">Ledger System Architecture</a> — How two ledgers reconcile</li>
+<li><a href="../payment-troubleshooting-guide/">Payment Troubleshooting Guide</a> — Debugging payment issues</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.top", "navigation.indexes", "search.highlight", "search.suggest", "content.code.copy", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

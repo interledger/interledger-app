@@ -1,0 +1,2866 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for the Interledger App Wallet — a reference implementation for Account Servicing Entities (ASEs) integrating with the Interledger network.">
+      
+      
+      
+      
+        <link rel="prev" href="../logging-reference/">
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Environment Variables - Interledger App Wallet</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#environment-variables-reference" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Interledger App Wallet" class="md-header__button md-logo" aria-label="Interledger App Wallet" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Interledger App Wallet
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Environment Variables
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Interledger App Wallet" class="md-nav__button md-logo" aria-label="Interledger App Wallet" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Interledger App Wallet
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../terminology/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Terminology
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../signup-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Signup Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../kyc-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    KYC & Identity Verification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../kyc-resubmission-flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    KYC Resubmission Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../account-deletion-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Account Deletion Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wallets-accounts-addresses-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wallets, Accounts & Addresses
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ledger-system-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dual-Ledger System
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../agreements-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agreements & Legal Consent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Payments
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Payments
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../payments-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Payments & Transactions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../transaction-types-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transaction Types Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../provider-payments-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Provider Comparison
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Integrations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Integrations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gatehub-cards-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GateHub Cards
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rafiki-full-node-upgrade-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rafiki Full Node Upgrade
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Operations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../payment-troubleshooting-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Payment Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developers
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Developers
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../error-handling-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Error Handling Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../logging-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Logging Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment Variables
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment Variables
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#protea-frontend" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Protea (Frontend)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Protea (Frontend)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#legacy-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Legacy Variables
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#botanist-admin-portal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Botanist (Admin Portal)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#backend-wallet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backend (Wallet)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Backend (Wallet)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#general-observability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        General &amp; Observability
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#database" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Database
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ledger-wallet-core" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ledger &amp; Wallet Core
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#infrastructure-services" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Infrastructure Services
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#admin-portal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Admin Portal
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#twilio-phone-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Twilio (Phone Verification)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sendgrid-transactional-email" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SendGrid (Transactional Email)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#segment-analytics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Segment (Analytics)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backend-feature-flags" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backend Feature Flags
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#persona-identity-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Persona (Identity Verification)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#slack-notifications" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Slack (Notifications)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#chimoney-payment-provider" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Chimoney (Payment Provider)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gatehub-payment-provider" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GateHub (Payment Provider)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#xago-payment-provider" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Xago (Payment Provider)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pti-fiant-payment-provider" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PTI / Fiant (Payment Provider)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#legacy-variables_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Legacy Variables
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#protea-frontend" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Protea (Frontend)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Protea (Frontend)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#legacy-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Legacy Variables
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#botanist-admin-portal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Botanist (Admin Portal)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#backend-wallet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backend (Wallet)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Backend (Wallet)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#general-observability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        General &amp; Observability
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#database" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Database
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ledger-wallet-core" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ledger &amp; Wallet Core
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#infrastructure-services" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Infrastructure Services
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#admin-portal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Admin Portal
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#twilio-phone-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Twilio (Phone Verification)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sendgrid-transactional-email" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SendGrid (Transactional Email)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#segment-analytics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Segment (Analytics)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backend-feature-flags" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backend Feature Flags
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#persona-identity-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Persona (Identity Verification)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#slack-notifications" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Slack (Notifications)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#chimoney-payment-provider" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Chimoney (Payment Provider)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gatehub-payment-provider" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GateHub (Payment Provider)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#xago-payment-provider" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Xago (Payment Provider)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pti-fiant-payment-provider" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PTI / Fiant (Payment Provider)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#legacy-variables_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Legacy Variables
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="environment-variables-reference">Environment Variables Reference<a class="headerlink" href="#environment-variables-reference" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p><strong>Configuration reference.</strong> Central source for runtime environment variables, secret classification, and per-environment values.</p>
+<p><strong>Note:</strong> Values shown as <code>&lt;...&gt;</code> are placeholders, not required for local development.</p>
+</blockquote>
+<p><strong>Related documents:</strong></p>
+<ul>
+<li><a href="../">Home</a> - Full documentation map and topic index</li>
+<li><a href="../logging-reference/">Logging Reference</a> - Log configuration and structured logging policy</li>
+<li><a href="../signup-guide/">Signup Explainer</a> - Signup flow and auth-related runtime dependencies</li>
+<li><a href="../kyc-guide/">KYC Explainer</a> - Provider verification flows and integration dependencies</li>
+<li><a href="../provider-payments-reference/">Provider Payments Guide</a> - Provider behavior and configuration differences</li>
+<li><a href="../gatehub-cards-guide/">GateHub Cards</a> - GateHub integration configuration and card-specific secrets</li>
+</ul>
+<p><strong>Quick Navigation:</strong></p>
+<ul>
+<li><strong>Need to compare service-level variables?</strong> -&gt; See <a href="#protea-frontend">Protea (Frontend)</a>, <a href="#botanist-admin-portal">Botanist (Admin Portal)</a>, and <a href="#backend-wallet">Backend (Wallet)</a></li>
+<li><strong>Need legacy variable context?</strong> -&gt; See <a href="#legacy-variables">Legacy Variables</a></li>
+</ul>
+<p>This document covers all environment variables for the three deployed application services:</p>
+<ul>
+<li><strong>Protea</strong> — user-facing frontend (<code>typescript/protea</code>)</li>
+<li><strong>Botanist</strong> — admin portal (<code>typescript/botanist</code>)</li>
+<li><strong>Backend</strong> — Go wallet backend (<code>go/backend</code>)</li>
+</ul>
+<p>Variables with <strong>Secret: Yes</strong> must be stored in 1Password and injected via a Kubernetes secret; real production secret values must never be committed to repository config files. Variables with <strong>Secret: No</strong> are safe to store in a ConfigMap or compose file.</p>
+<hr />
+<h2 id="protea-frontend">Protea (Frontend)<a class="headerlink" href="#protea-frontend" title="Permanent link">&para;</a></h2>
+<p>Protea is a Remix application serving the user-facing wallet UI.</p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+<th>Secret</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>NODE_ENV</code></td>
+<td>Node.js runtime mode</td>
+<td>No</td>
+<td>Deployed: <code>production</code>; Local: <code>development</code></td>
+</tr>
+<tr>
+<td><code>ILW_ENV</code></td>
+<td>Runtime environment tag used for feature flags (e.g. Xago test-deposit gate)</td>
+<td>No</td>
+<td>Prod: <code>prod</code>; Sandbox/Dev: <code>dev</code>; Local: <code>local</code></td>
+</tr>
+<tr>
+<td><code>LOG_LEVEL</code></td>
+<td>Log verbosity (<code>debug</code>, <code>info</code>, <code>warn</code>, <code>error</code>)</td>
+<td>No</td>
+<td>Deployed: <code>info</code>; Local: <code>debug</code></td>
+</tr>
+<tr>
+<td><code>LOG_PRETTY</code></td>
+<td>Human-readable log formatting. Set <code>false</code> for JSON in deployed environments</td>
+<td>No</td>
+<td>Deployed: <code>false</code>; Local: <code>true</code></td>
+</tr>
+<tr>
+<td><code>TARGET_HOST</code></td>
+<td>Base URL of the app itself (scheme + host). Used to build self-referential links in legal and contact pages</td>
+<td>No</td>
+<td>Prod: <code>https://interledger.app</code>; Sandbox/Dev: environment URL; Local: <code>https://interledger.test</code></td>
+</tr>
+<tr>
+<td><code>SUPPORT_EMAIL</code></td>
+<td>Support email address shown to users in error messages, legal pages, and notifications</td>
+<td>No</td>
+<td>Prod/Sandbox/Dev: <code>support@interledger.app</code>; Local: <code>support@interledger.app</code></td>
+</tr>
+<tr>
+<td><code>KRATOS_URL</code></td>
+<td>Internal URL for the Ory Kratos public API (session/login flows)</td>
+<td>No</td>
+<td>Deployed: <code>http://kratos-public</code>; Local: <code>http://kratos:4433</code></td>
+</tr>
+<tr>
+<td><code>RAFIKI_AUTH_ENDPOINT</code></td>
+<td>Internal URL for the Rafiki auth gRPC/GraphQL endpoint</td>
+<td>No</td>
+<td>Deployed: <code>http://rafiki-auth-service:3009</code>; Local: <code>http://rafiki_auth:3009</code></td>
+</tr>
+<tr>
+<td><code>PUBLIC_OP_AUTH_HOST</code></td>
+<td>Public-facing hostname for the Open Payments auth server (used by the Rafiki auth flow)</td>
+<td>No</td>
+<td>Prod: <code>auth.ilp.link</code>; Sandbox: <code>auth.sandbox.ilp.link</code>; Dev: <code>auth.development.ilp.link</code>; Local: <code>auth.local.ilp.link</code></td>
+</tr>
+<tr>
+<td><code>PAYMENT_POINTER_BASE</code></td>
+<td>Domain used to build Open Payments payment pointer addresses</td>
+<td>No</td>
+<td>Prod: <code>ilp.link</code>; Sandbox: <code>sandbox.ilp.link</code>; Dev: <code>development.ilp.link</code>; Local: <code>local.ilp.link</code></td>
+</tr>
+<tr>
+<td><code>BACKEND_GRPC_URL</code></td>
+<td>Internal URL for the wallet backend gRPC server</td>
+<td>No</td>
+<td>Deployed: <code>http://wallet-backend-service-grpc:8443</code>; Local: <code>http://backend:8443</code></td>
+</tr>
+<tr>
+<td><code>BACKEND_HTTP_URL</code></td>
+<td>Internal URL for the wallet backend HTTP server</td>
+<td>No</td>
+<td>Deployed: <code>http://wallet-backend-service:8080</code>; Local: <code>http://backend:8080</code></td>
+</tr>
+<tr>
+<td><code>DEFAULT_RATE_LIMIT_REQUESTS</code></td>
+<td>Max requests allowed per time window before rate limiting kicks in</td>
+<td>No</td>
+<td>Local default: <code>4</code> (code default); deployed values TBD</td>
+</tr>
+<tr>
+<td><code>DEFAULT_RATE_LIMIT_TIME</code></td>
+<td>Rate limit time window in seconds</td>
+<td>No</td>
+<td>Local default: <code>3600</code> (code default); deployed values TBD</td>
+</tr>
+<tr>
+<td><code>PTI_CLIENT_ID</code></td>
+<td>PTI/Fiant payment provider client UUID, passed to the browser for payment widget initialisation</td>
+<td>No</td>
+<td>Local default: <code>''</code> (code default); deployed values TBD</td>
+</tr>
+<tr>
+<td><code>PTI_SDK_URL</code></td>
+<td>URL to the Fiant Web SDK JavaScript bundle loaded by the PTI payment widget. Value pattern documented in <a href="https://developers.platform.fiant.io/docs/front-end-sdk-usage">Fiant Front-End SDK usage</a> as <code>https://sdk.{env}.fiant.io/latest/index.js</code></td>
+<td>No</td>
+<td>Prod: <code>https://sdk.platform.fiant.io/0.0.23/index.js</code>; Sandbox/Dev: <code>https://sdk.staging.fiant.io/latest/index.js</code>; Local: <code>https://mockpti.interledger.test/sdk/index.js</code></td>
+</tr>
+<tr>
+<td><code>PTI_FORMS_URL</code></td>
+<td>URL to the Fiant hosted forms (Elements) used for KYC, onboarding, and payment collection widgets. Derived from the <code>ptiDomain</code> init parameter documented in <a href="https://developers.platform.fiant.io/docs/front-end-sdk-usage">Fiant Front-End SDK usage</a>: <code>https://forms.{ptiDomain}</code></td>
+<td>No</td>
+<td>Prod: <code>https://forms.platform.fiant.io</code>; Sandbox/Dev: <code>https://forms.staging.fiant.io</code>; Local: <code>https://mockpti.interledger.test/forms</code></td>
+</tr>
+<tr>
+<td><code>PERSONA_SDK_URL</code></td>
+<td>URL to the Persona identity verification JavaScript SDK loaded by the KYC flow</td>
+<td>No</td>
+<td>Prod/Sandbox: <code>https://cdn.withpersona.com/dist/persona-v4.8.0-alpha.js</code>; Local: <code>https://mockxago.interledger.test/v1/persona-sdk.js</code></td>
+</tr>
+<tr>
+<td><code>MOCKXAGO_ENDPOINT</code></td>
+<td>Base URL for the Xago/Persona KYC iframe (<code>/v1/inquiries/&lt;id&gt;/iframe</code> appended at runtime). When set, the Xago iframe flow is used; when empty, the Persona SDK flow is used instead. Optional.</td>
+<td>No</td>
+<td>Local: <code>https://mockxago.interledger.test</code>; not set in deployed environments (Persona SDK used instead)</td>
+</tr>
+<tr>
+<td><code>OP_INTPAY_ENABLED</code></td>
+<td>Feature flag for Open Payments Interledger Pay (<code>/quick-pay</code> routes). When <code>false</code>, the remaining <code>OP_INTPAY_*</code> variables are unused and the quick-pay routes reject requests</td>
+<td>No</td>
+<td>Local default: <code>false</code></td>
+</tr>
+<tr>
+<td><code>OP_INTPAY_HOST</code></td>
+<td>Public base URL of the wallet's Open Payments auth server, used to build quick-pay links. Required when <code>OP_INTPAY_ENABLED=true</code></td>
+<td>No</td>
+<td>Local: <code>https://interledger.test/</code>; deployed values TBD</td>
+</tr>
+<tr>
+<td><code>OP_INTPAY_REDIRECT_URL</code></td>
+<td>URL the client is redirected back to once a quick-pay grant completes. Required when <code>OP_INTPAY_ENABLED=true</code></td>
+<td>No</td>
+<td>Local: <code>https://interledger.test/quick-pay/finish</code>; deployed values TBD</td>
+</tr>
+<tr>
+<td><code>OP_INTPAY_WALLET_ADDRESS</code></td>
+<td>Wallet address (payment pointer) used as the Open Payments client identity for quick-pay grant requests. Required when <code>OP_INTPAY_ENABLED=true</code></td>
+<td>No</td>
+<td>Local default: empty; deployed values TBD</td>
+</tr>
+<tr>
+<td><code>SENTRY_RELEASE</code></td>
+<td>Identifies the deployed version in Sentry error reports</td>
+<td>No</td>
+<td>Not set by default; deployed values TBD</td>
+</tr>
+<tr>
+<td><code>SENTRY_ENV_LABEL</code></td>
+<td>Environment label sent to Sentry with every event (e.g. <code>prod</code>, <code>dev</code>, <code>local</code>). Only relevant when <code>SENTRY_DSN</code> is set. <strong>Sentry is disabled by default in local.</strong></td>
+<td>No</td>
+<td>Prod: <code>prod</code>; Sandbox: <code>sandbox</code>; Dev: <code>dev</code>; Local: not set (Sentry off)</td>
+</tr>
+<tr>
+<td><code>CHOKIDAR_USEPOLLING</code></td>
+<td>Enable filesystem polling for hot-reload in containers (dev only)</td>
+<td>No</td>
+<td>Local only: <code>true</code>; not applicable in deployed environments</td>
+</tr>
+<tr>
+<td><code>COOKIE_SECRETS</code></td>
+<td>JSON array of strings used to sign session cookies. Rotate periodically.</td>
+<td>Yes</td>
+<td>Local default: <code>["localsecret"]</code></td>
+</tr>
+<tr>
+<td><code>RAFIKI_AUTH_SECRET</code></td>
+<td>Shared secret between Protea and the Rafiki auth service</td>
+<td>Yes</td>
+<td>Local default: <code>my-super-secret-identity-key</code></td>
+</tr>
+<tr>
+<td><code>PUSHER_APP_KEY</code></td>
+<td>Pusher application key for real-time push notifications (public-facing). Optional - realtime degrades gracefully when unset.</td>
+<td>Yes</td>
+<td>Local default: empty</td>
+</tr>
+<tr>
+<td><code>PUSHER_APP_CLUSTER</code></td>
+<td>Pusher cluster region for the application</td>
+<td>Yes</td>
+<td>Local default: <code>eu</code></td>
+</tr>
+<tr>
+<td><code>REDIS_URL</code></td>
+<td>Redis connection URL used for session storage and caching</td>
+<td>Yes</td>
+<td>Local default: <code>redis://redis:6379/2</code></td>
+</tr>
+<tr>
+<td><code>SENTRY_DSN</code></td>
+<td>Sentry DSN for client-side and server-side error reporting. <strong>Not set in local</strong> — Sentry is disabled when this is empty.</td>
+<td>Yes</td>
+<td>Not set locally; required in deployed environments</td>
+</tr>
+<tr>
+<td><code>SEGMENT_API_KEY</code></td>
+<td>Segment analytics write key for event tracking</td>
+<td>Yes</td>
+<td>Not set locally</td>
+</tr>
+<tr>
+<td><code>GOOGLE_MAPS_API_KEY</code></td>
+<td>Google Maps API key for geocoding and places autocomplete endpoints used during onboarding</td>
+<td>Yes</td>
+<td>Not set locally</td>
+</tr>
+<tr>
+<td><code>OP_INTPAY_KEY_ID</code></td>
+<td>Key id of the Open Payments client used to authenticate quick-pay grant requests. Required when <code>OP_INTPAY_ENABLED=true</code></td>
+<td>Yes</td>
+<td>Local default: empty</td>
+</tr>
+<tr>
+<td><code>OP_INTPAY_PRIVATE_KEY</code></td>
+<td>Base64-encoded Ed25519 private key of the Open Payments client, paired with <code>OP_INTPAY_KEY_ID</code>. Required when <code>OP_INTPAY_ENABLED=true</code></td>
+<td>Yes</td>
+<td>Local default: empty</td>
+</tr>
+</tbody>
+</table>
+<h3 id="legacy-variables">Legacy Variables<a class="headerlink" href="#legacy-variables" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+<th>Secret</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>BT_TOKEN</code></td>
+<td>Basis Theory token for legacy frontend card tokenisation integration paths</td>
+<td>Yes</td>
+<td>Legacy variable in local compose; not used in current Protea app code</td>
+</tr>
+<tr>
+<td><code>CF_TURNSTILE_SITE_KEY</code></td>
+<td>Cloudflare Turnstile site key used in legacy bot-protection integration</td>
+<td>Yes</td>
+<td>Keep documented, no environment value guidance</td>
+</tr>
+<tr>
+<td><code>CF_TURNSTILE_SECRET_KEY</code></td>
+<td>Cloudflare Turnstile secret key used in legacy server verification</td>
+<td>Yes</td>
+<td>Keep documented, no environment value guidance</td>
+</tr>
+<tr>
+<td><code>GATE_SIGNUP</code></td>
+<td>Signup gating feature flag from older frontend config wiring</td>
+<td>No</td>
+<td>Legacy variable in local compose; not used in current Protea app code</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="botanist-admin-portal">Botanist (Admin Portal)<a class="headerlink" href="#botanist-admin-portal" title="Permanent link">&para;</a></h2>
+<p>Botanist is a Remix application providing the internal admin interface. It connects to the backend admin gRPC port. Botanist has no secret variables — all sensitive operations are delegated to the backend. The admin gRPC port must only be accessible from within the cluster.</p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+<th>Secret</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ILW_ENV</code></td>
+<td>Runtime environment tag</td>
+<td>No</td>
+<td>Prod: <code>prod</code>; Sandbox/Dev: <code>dev</code>; Local: <code>local</code></td>
+</tr>
+<tr>
+<td><code>BACKEND_GRPC_URL</code></td>
+<td>Internal URL for the backend admin gRPC port (8448)</td>
+<td>No</td>
+<td>Deployed: <code>wallet-backend-service-grpc:8448</code>; Local: <code>backend:8448</code></td>
+</tr>
+<tr>
+<td><code>PAYMENT_POINTER_BASE</code></td>
+<td>Domain used to display payment pointer addresses for users</td>
+<td>No</td>
+<td>Prod: <code>ilp.link</code>; Sandbox: <code>sandbox.ilp.link</code>; Dev: <code>development.ilp.link</code>; Local: <code>local.ilp.link</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="backend-wallet">Backend (Wallet)<a class="headerlink" href="#backend-wallet" title="Permanent link">&para;</a></h2>
+<p>The Go backend is the core of the wallet, handling payments, provider integrations, webhooks, Temporal workflows, and gRPC APIs.</p>
+<h3 id="general-observability">General &amp; Observability<a class="headerlink" href="#general-observability" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+<th>Secret</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ILW_ENV</code></td>
+<td>Runtime environment tag</td>
+<td>No</td>
+<td>Prod: <code>prod</code>; Sandbox/Dev: <code>dev</code>; Local: <code>local</code></td>
+</tr>
+<tr>
+<td><code>LOG_LEVEL</code></td>
+<td>Log verbosity</td>
+<td>No</td>
+<td>Dev: <code>debug</code>; all others: <code>info</code></td>
+</tr>
+<tr>
+<td><code>PORT</code></td>
+<td>HTTP server port (webhooks, health)</td>
+<td>No</td>
+<td>All environments: <code>8080</code></td>
+</tr>
+<tr>
+<td><code>OTEL_EXPORTER_OTLP_ENDPOINT</code></td>
+<td>OpenTelemetry collector endpoint</td>
+<td>No</td>
+<td>All environments: <code>grpc://api.honeycomb.io:443</code></td>
+</tr>
+<tr>
+<td><code>OTEL_SERVICE_NAME</code></td>
+<td>Service name in traces</td>
+<td>No</td>
+<td>All environments: <code>backend</code></td>
+</tr>
+<tr>
+<td><code>OTEL_EXPORTER_OTLP_HEADERS</code></td>
+<td>Auth headers for the OTLP endpoint</td>
+<td>Yes</td>
+<td>Local default: <code>x-honeycomb-team=&lt;honeycomb-ingest-key&gt;</code></td>
+</tr>
+<tr>
+<td><code>SENTRY_DSN</code></td>
+<td>Sentry DSN for server-side error reporting</td>
+<td>Yes</td>
+<td>Not set locally</td>
+</tr>
+<tr>
+<td><code>SENTRY_RELEASE</code></td>
+<td>Sentry release identifier</td>
+<td>No</td>
+<td>Not set locally; deployed values TBD</td>
+</tr>
+</tbody>
+</table>
+<h3 id="database">Database<a class="headerlink" href="#database" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+<th>Secret</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>DB_URL</code></td>
+<td>Wallet backend PostgreSQL connection URL</td>
+<td>Yes</td>
+<td>Local default: <code>postgres://postgres:postgres@postgres:5432/backend?sslmode=disable</code></td>
+</tr>
+<tr>
+<td><code>DB_URL_WITH_CERTS</code></td>
+<td>Backend DB URL with TLS certificates (IAM auth in GCP)</td>
+<td>Yes</td>
+<td>Local default: same as <code>DB_URL</code></td>
+</tr>
+<tr>
+<td><code>PACIOLI_DB_URL</code></td>
+<td>Pacioli ledger PostgreSQL connection URL</td>
+<td>Yes</td>
+<td>Local default: <code>postgres://postgres:postgres@postgres:5432/pacioli?sslmode=disable</code></td>
+</tr>
+<tr>
+<td><code>PACIOLI_DB_URL_WITH_CERTS</code></td>
+<td>Pacioli DB URL with TLS certificates</td>
+<td>Yes</td>
+<td>Local default: same as <code>PACIOLI_DB_URL</code></td>
+</tr>
+<tr>
+<td><code>RAFIKI_DB_URL</code></td>
+<td>Rafiki backend PostgreSQL connection URL</td>
+<td>Yes</td>
+<td>Local default: <code>postgres://postgres:postgres@postgres:5432/rafiki_backend?sslmode=disable</code></td>
+</tr>
+<tr>
+<td><code>RAFIKI_AUTH_DB_URL</code></td>
+<td>Rafiki auth PostgreSQL connection URL</td>
+<td>Yes</td>
+<td>Local default: <code>postgres://postgres:postgres@postgres:5432/rafiki_auth?sslmode=disable</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="ledger-wallet-core">Ledger &amp; Wallet Core<a class="headerlink" href="#ledger-wallet-core" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+<th>Secret</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>REDIS_URL</code></td>
+<td>Redis connection URL for queues and caching</td>
+<td>Yes</td>
+<td>Local default: <code>redis://redis:6379/0</code> (provided by local compose); currently no direct <code>REDIS_URL</code> reference under <code>go/backend</code></td>
+</tr>
+<tr>
+<td><code>ALLOWED_WALLET_IDS</code></td>
+<td>Comma-separated wallet IDs allowed through regional blocks</td>
+<td>No</td>
+<td>All environments: empty</td>
+</tr>
+<tr>
+<td><code>BLOCKED_REGIONS</code></td>
+<td>Comma-separated ISO country codes to block wallet access from</td>
+<td>No</td>
+<td>Prod: <code>US</code>; all others: empty</td>
+</tr>
+<tr>
+<td><code>APPLE_APP_ID</code></td>
+<td>Apple App Site Association app ID for deep-links</td>
+<td>No</td>
+<td>Prod: <code>6B7AFCRT3V.app.wallet.interledger</code>; Sandbox: TBD; Dev: <code>6B7AFCRT3V.app.wallet.interledger.dev</code>; Local: <code>6B7AFCRT3V.app.wallet.interledger.test</code></td>
+</tr>
+<tr>
+<td><code>ANDROID_PACKAGE_NAME</code></td>
+<td>Android App Links package name for deep-links</td>
+<td>No</td>
+<td>Prod: <code>org.interledger.walletandroid</code>; Sandbox: TBD; Dev: <code>org.interledger.walletandroid.debugDevelopment</code>; Local: <code>org.interledger.walletandroid.test</code></td>
+</tr>
+<tr>
+<td><code>ANDROID_SHA256</code></td>
+<td>Android signing certificate SHA-256 fingerprint for deep-links</td>
+<td>No</td>
+<td>Prod: <code>25:D0:6A:A1:4F:BD:F6:05:93:2C:80:A2:AC:DA:DE:E4:2F:72:BC:23:9C:8F:2C:78:85:49:9A:AC:D2:4B:A4:FF</code>; Sandbox: TBD</td>
+</tr>
+<tr>
+<td><code>ADMIN_BASE_URL</code></td>
+<td>Base URL of the admin portal, used to build links to it for support purposes. <strong>Required</strong></td>
+<td>No</td>
+<td>Full URL including scheme, e.g. <code>https://admin.interledger.app</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="infrastructure-services">Infrastructure Services<a class="headerlink" href="#infrastructure-services" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+<th>Secret</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>TEMPORAL_URL</code></td>
+<td>Temporal frontend address for workflow orchestration</td>
+<td>No</td>
+<td>Deployed: <code>temporal-frontend-headless:7233</code>; Local: <code>temporal:7233</code></td>
+</tr>
+<tr>
+<td><code>KRATOS_URL</code></td>
+<td>Kratos public API URL for session validation</td>
+<td>No</td>
+<td>Deployed: <code>http://kratos-public</code>; Local: <code>http://kratos:4433</code></td>
+</tr>
+<tr>
+<td><code>KRATOS_ADMIN_URL</code></td>
+<td>Kratos admin API URL for user management</td>
+<td>No</td>
+<td>Deployed: <code>http://kratos-admin</code>; Local: <code>http://kratos:4434</code></td>
+</tr>
+<tr>
+<td><code>RAFIKI_BACKEND_GRAPHQL_URL</code></td>
+<td>Rafiki backend GraphQL endpoint</td>
+<td>No</td>
+<td>Deployed: <code>http://rafiki-backend-service:3001/graphql</code>; Local: <code>http://rafiki_backend:3001/graphql</code></td>
+</tr>
+<tr>
+<td><code>RAFIKI_AUTH_GRAPHQL_URL</code></td>
+<td>Rafiki auth GraphQL endpoint</td>
+<td>No</td>
+<td>Deployed: <code>http://rafiki-auth-service:3003/graphql</code>; Local: <code>http://rafiki_auth:3003/graphql</code></td>
+</tr>
+<tr>
+<td><code>PUSHER_ADDR</code></td>
+<td>Internal URL for the Pusher/Soketi service used for push notifications</td>
+<td>Yes</td>
+<td>Local default: <code>http://pusher:8080</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="admin-portal">Admin Portal<a class="headerlink" href="#admin-portal" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+<th>Secret</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ADMIN_POLICY_AUD</code></td>
+<td>Cloudflare Access policy audience for the admin portal</td>
+<td>Yes</td>
+<td>Local default: <code>admin-policy</code></td>
+</tr>
+<tr>
+<td><code>ADMIN_TEAM_DOMAIN</code></td>
+<td>Cloudflare Access team domain for the admin portal</td>
+<td>Yes</td>
+<td>Local default: <code>admin-team</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="twilio-phone-verification">Twilio (Phone Verification)<a class="headerlink" href="#twilio-phone-verification" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+<th>Secret</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>TWILIO_ACCOUNT_SID</code></td>
+<td>Twilio account SID</td>
+<td>Yes</td>
+<td>Local default: <code>&lt;twilio-account-sid&gt;</code></td>
+</tr>
+<tr>
+<td><code>TWILIO_SERVICE_SID</code></td>
+<td>Twilio Verify service SID</td>
+<td>Yes</td>
+<td>Local default: <code>&lt;twilio-service-sid&gt;</code></td>
+</tr>
+<tr>
+<td><code>TWILIO_ACCOUNT_TOKEN</code></td>
+<td>Twilio auth token</td>
+<td>Yes</td>
+<td>Local default: <code>test</code></td>
+</tr>
+<tr>
+<td><code>TWILIO_ENABLED</code></td>
+<td>Enables live Twilio Verify calls. When <code>false</code>, all phone verification methods return stub responses and credentials are not required.</td>
+<td>No</td>
+<td>Prod/Sandbox: <code>true</code>; Dev/Local: <code>false</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="sendgrid-transactional-email">SendGrid (Transactional Email)<a class="headerlink" href="#sendgrid-transactional-email" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+<th>Secret</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>EMAIL_ENABLED</code></td>
+<td>Set to <code>false</code> to disable all outgoing emails. Defaults to enabled if unset. When disabled, SendGrid env vars are not required.</td>
+<td>No</td>
+<td>Local default: <code>false</code></td>
+</tr>
+<tr>
+<td><code>SENDGRID_API_KEY</code></td>
+<td>SendGrid API key for sending emails. Required when <code>EMAIL_ENABLED</code> is not <code>false</code>.</td>
+<td>Yes</td>
+<td>Local default: <code>test-sendgrid-api-key</code></td>
+</tr>
+<tr>
+<td><code>SENDGRID_FROM_NAME</code></td>
+<td>Display name for outgoing emails (e.g. "Interledger Wallet"). Required when <code>EMAIL_ENABLED</code> is not <code>false</code>.</td>
+<td>No</td>
+<td>Local default: <code>Interledger Wallet</code></td>
+</tr>
+<tr>
+<td><code>SENDGRID_FROM_EMAIL</code></td>
+<td>Sender email address for outgoing emails. Required when <code>EMAIL_ENABLED</code> is not <code>false</code>.</td>
+<td>No</td>
+<td>Local default: <code>support@interledger.app</code></td>
+</tr>
+<tr>
+<td><code>SENDGRID_ONE_TEMPLATE_ID</code></td>
+<td>SendGrid Dynamic Template ID used by backend transactional emails. Required when <code>EMAIL_ENABLED</code> is not <code>false</code>.</td>
+<td>No</td>
+<td>Local default: <code>d-12030774d225454ea91720034b9adb97</code></td>
+</tr>
+<tr>
+<td><code>SUPPORT_EMAIL</code></td>
+<td>Support inbox address that backend notifications (e.g. account deletion requests) are sent to. Required when <code>EMAIL_ENABLED</code> is not <code>false</code>.</td>
+<td>No</td>
+<td>Prod/Sandbox/Dev: <code>support@interledger.app</code>; Local: <code>support@interledger.app</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="segment-analytics">Segment (Analytics)<a class="headerlink" href="#segment-analytics" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+<th>Secret</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>SEGMENT_KEY</code></td>
+<td>Segment write key for server-side event tracking</td>
+<td>Yes</td>
+<td>Local default: <code>test-segment-key</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="backend-feature-flags">Backend Feature Flags<a class="headerlink" href="#backend-feature-flags" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+<th>Secret</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>RAFIKI_NODE_ENABLED</code></td>
+<td>Enables Rafiki full-node event orchestration flows (incoming finalized and outgoing lifecycle workflows with GateHub signal handshake). When disabled, legacy non-node payment flow is preserved.</td>
+<td>No</td>
+<td>Default: <code>false</code>; set <code>true</code> only in environments where node flow rollout is intended</td>
+</tr>
+</tbody>
+</table>
+<h3 id="persona-identity-verification">Persona (Identity Verification)<a class="headerlink" href="#persona-identity-verification" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+<th>Secret</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>PERSONA_TOKEN</code></td>
+<td>Persona API token for identity verification. Required at backend startup.</td>
+<td>Yes</td>
+<td>Prod/Sandbox/Dev: secret from 1Password; Local default: <code>test-persona-token</code></td>
+</tr>
+<tr>
+<td><code>PERSONA_WEBHOOK_TOKEN</code></td>
+<td>Persona webhook verification token. Required at backend startup.</td>
+<td>Yes</td>
+<td>Prod/Sandbox/Dev: secret from 1Password; Local default: <code>test-persona-webhook-token</code></td>
+</tr>
+<tr>
+<td><code>PERSONA_BASE_URL</code></td>
+<td>Persona API base URL override used by backend Persona client</td>
+<td>No</td>
+<td>Default when unset: <code>https://api.withpersona.com/api/v1/</code>; Local default in compose: <code>http://mockxago:8080/v1/</code></td>
+</tr>
+<tr>
+<td><code>PERSONA_SANDBOX_ZA_FAKE_ZA_ID</code></td>
+<td><strong>Persona sandbox workaround only.</strong> When <code>true</code>, the backend generates a synthetic South African ID number instead of fetching one from Persona. This is required in the Persona sandbox environment because Persona's sandbox always returns an American user profile — meaning the South African ID field is always null. Without this flag, Xago subaccount creation fails for all sandbox users since a valid ZA ID is a required field. Has no effect in production, where Persona returns real ZA ID documents.</td>
+<td>No</td>
+<td>Default: <code>false</code>; Set to <code>true</code> in sandbox</td>
+</tr>
+</tbody>
+</table>
+<h3 id="slack-notifications">Slack (Notifications)<a class="headerlink" href="#slack-notifications" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+<th>Secret</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>SLACK_TOKEN</code></td>
+<td>Slack bot token for sending notifications</td>
+<td>Yes</td>
+<td>Not set locally</td>
+</tr>
+<tr>
+<td><code>SIGNUP_KYC_SLACK_CHANNEL</code></td>
+<td>Slack channel ID for signup, identity, linked-account, and KYC notifications. Empty disables this category.</td>
+<td>No</td>
+<td>Not set locally</td>
+</tr>
+<tr>
+<td><code>TRANSACTION_SLACK_CHANNEL</code></td>
+<td>Slack channel ID for transaction-lifecycle notifications (new transactions, fiant transaction-status webhooks). Empty disables this category.</td>
+<td>No</td>
+<td>Not set locally</td>
+</tr>
+<tr>
+<td><code>ERROR_SLACK_CHANNEL</code></td>
+<td>Slack channel ID for error/ops alerts: provider RollbackReserve errors, withdrawal failures, asset-not-configured warnings, gatehub card-transaction anomalies. Empty disables this category.</td>
+<td>No</td>
+<td>Not set locally</td>
+</tr>
+<tr>
+<td><code>SLACK_CLIENT_ID</code></td>
+<td>Slack OAuth app client ID</td>
+<td>Yes</td>
+<td>Not set locally</td>
+</tr>
+<tr>
+<td><code>SLACK_CLIENT_SECRET</code></td>
+<td>Slack OAuth app client secret</td>
+<td>Yes</td>
+<td>Not set locally</td>
+</tr>
+<tr>
+<td><code>SLACK_SIGNING_SECRET</code></td>
+<td>Slack signing secret for webhook verification</td>
+<td>Yes</td>
+<td>Not set locally</td>
+</tr>
+</tbody>
+</table>
+<h3 id="chimoney-payment-provider">Chimoney (Payment Provider)<a class="headerlink" href="#chimoney-payment-provider" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+<th>Secret</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CHIMONEY_TOKEN</code></td>
+<td>Chimoney API token</td>
+<td>Yes</td>
+<td>Not set locally</td>
+</tr>
+<tr>
+<td><code>CHIMONEY_WEBHOOK_SECRET</code></td>
+<td>Chimoney webhook signature secret</td>
+<td>Yes</td>
+<td>Not set locally</td>
+</tr>
+</tbody>
+</table>
+<h3 id="gatehub-payment-provider">GateHub (Payment Provider)<a class="headerlink" href="#gatehub-payment-provider" title="Permanent link">&para;</a></h3>
+<p>GateHub is used for EUR XRPL transactions, onboarding, and debit card issuing.</p>
+<blockquote>
+<p><strong>Sandbox/Development note:</strong> The Sandbox environment is missing explicit Gatehub API URL configuration in its values file. It is expected to inherit from the development environment base. Verify this is intentional before promoting changes.</p>
+<p><strong>Production client IDs differ:</strong> GateHub OAuth client IDs for on/off-ramp, onboarding, and exchange are different in production vs sandbox/development.</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+<th>Secret</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GATEHUB_API_BASE_URL</code></td>
+<td>Base URL for GateHub API calls</td>
+<td>No</td>
+<td>Prod: <code>https://api.gatehub.net</code>; Sandbox/Dev: <code>https://api.sandbox.gatehub.net</code>; Local: <code>http://mockgatehub:8080</code></td>
+</tr>
+<tr>
+<td><code>GATEHUB_ONBOARDING_BASE_URL</code></td>
+<td>Frontend widget URL for GateHub KYC onboarding</td>
+<td>No</td>
+<td>Prod: <code>https://onboarding.gatehub.net</code>; Sandbox/Dev: <code>https://onboarding.sandbox.gatehub.net</code>; Local: <code>https://mockgatehub.interledger.test/iframe/onboarding</code></td>
+</tr>
+<tr>
+<td><code>GATEHUB_ON_OFF_RAMP_BASE_URL</code></td>
+<td>Frontend widget URL for GateHub deposit/withdrawal</td>
+<td>No</td>
+<td>Prod: <code>https://managed-ramp.gatehub.net</code>; Sandbox/Dev: <code>https://managed-ramp.sandbox.gatehub.net</code>; Local: <code>https://mockgatehub.interledger.test</code></td>
+</tr>
+<tr>
+<td><code>GATEHUB_ON_OFF_RAMP_CLIENT_ID</code></td>
+<td>OAuth client ID for GateHub on/off-ramp token issuance</td>
+<td>No</td>
+<td>Prod: <code>f4c8f30f-7fc3-4aa1-8573-520cb67565e3</code>; Sandbox/Dev/Local: <code>f8119dfd-e563-44ee-9ae2-1e60a4fce74f</code></td>
+</tr>
+<tr>
+<td><code>GATEHUB_ONBOARDING_CLIENT_ID</code></td>
+<td>OAuth client ID for GateHub onboarding token issuance</td>
+<td>No</td>
+<td>Prod: <code>40a22fc5-9091-4c6f-aff6-a3fddf475b33</code>; Sandbox/Dev/Local: <code>4df24d1b-5796-4eec-951b-21699d61b970</code></td>
+</tr>
+<tr>
+<td><code>GATEHUB_EXCHANGE_CLIENT_ID</code></td>
+<td>OAuth client ID for GateHub exchange token issuance</td>
+<td>No</td>
+<td>Prod: <code>50e7c590-f6f9-4fa9-9498-260bd978c5d6</code>; Sandbox/Dev/Local: <code>4e28d4df-22d7-414c-97a3-d71956df29ba</code></td>
+</tr>
+<tr>
+<td><code>GATEHUB_FALLBACK_WEBHOOK_URL</code></td>
+<td>Secondary webhook URL for unrecognised GateHub users (card fallback)</td>
+<td>No</td>
+<td>Prod: <code>https://api.interledger.cards/gatehub-webhooks</code>; Sandbox/Dev: empty; Local: not set</td>
+</tr>
+<tr>
+<td><code>GATEHUB_CARD_ACCOUNT_PRODUCT_CODE</code></td>
+<td>Card product code applied when creating GateHub card accounts</td>
+<td>Yes</td>
+<td>Local default: <code>PWSR_DEBP_2404</code></td>
+</tr>
+<tr>
+<td><code>GATEHUB_ORGANIZATION_ID</code></td>
+<td>GateHub organisation UUID for org-level operations</td>
+<td>No</td>
+<td>Prod: TBD; Sandbox/Dev: <code>a5b3de06-3c61-47aa-82fa-9d9e1875f42c</code>; Local: <code>default-org</code></td>
+</tr>
+<tr>
+<td><code>GATEHUB_EUR_OPS_ACCOUNT</code></td>
+<td>Internal EUR operations account ID for ledger movements</td>
+<td>No</td>
+<td>All environments: <code>1854f171-eafa-4e30-bf66-7dbfe167ccfa</code></td>
+</tr>
+<tr>
+<td><code>GATEHUB_EUR_OPS_LEDGER_ID</code></td>
+<td>Internal EUR ledger ID for GateHub reserve/assign posting</td>
+<td>No</td>
+<td>All environments: <code>4482387</code></td>
+</tr>
+<tr>
+<td><code>GATEHUB_APP_ID</code></td>
+<td>GateHub API app ID header value</td>
+<td>Yes</td>
+<td>Local default: <code>local-test-app-id</code></td>
+</tr>
+<tr>
+<td><code>GATEHUB_SECRET</code></td>
+<td>GateHub API signing secret</td>
+<td>Yes</td>
+<td>Local default: <code>local-test-app-secret</code></td>
+</tr>
+<tr>
+<td><code>GATEHUB_WEBHOOK_SECRET</code></td>
+<td>Hex-encoded webhook signing secret for verifying GateHub webhooks</td>
+<td>Yes</td>
+<td>Local default: <code>6d6f636b5f776562686f6f6b5f736563726574</code></td>
+</tr>
+<tr>
+<td><code>GATEHUB_GATEWAY_ID</code></td>
+<td>GateHub gateway UUID for linking users to a hub</td>
+<td>Yes</td>
+<td>Local default: <code>b18965b5-8bb0-486e-88b2-7be47b974ac1</code></td>
+</tr>
+<tr>
+<td><code>GATEHUB_PAYWISER_EURO_VAULT_ID</code></td>
+<td>GateHub EUR vault UUID used in hosted transactions</td>
+<td>Yes</td>
+<td>Local default: <code>a09a0a2c-1a3a-44c5-a1b9-603a6eea9341</code></td>
+</tr>
+<tr>
+<td><code>GATEHUB_CARD_APP_ID</code></td>
+<td>GateHub card app ID header value (separate from main app)</td>
+<td>Yes</td>
+<td>Local default: <code>local-test-card-app-id</code></td>
+</tr>
+<tr>
+<td><code>GATEHUB_SENDING_USER_ID</code></td>
+<td>Managed GateHub user UUID used for backfill payment operations</td>
+<td>Yes</td>
+<td>Dev: <code>5dd8e7f7-ead5-4f8d-b956-1acfecc231b4</code>; Local: <code>test-sending-user-id</code>; Prod/Sandbox: secret</td>
+</tr>
+<tr>
+<td><code>GATEHUB_SENDING_USER_ADDRESS</code></td>
+<td>XRPL wallet address of the managed sending user</td>
+<td>Yes</td>
+<td>Dev: <code>191968355</code>; Local: <code>rN7n7otQDd6FczFgLdVZGMbpKRtFVfT4hb</code>; Prod/Sandbox: secret</td>
+</tr>
+<tr>
+<td><code>GATEHUB_INTERMEDIARY_USER_ID</code></td>
+<td>Managed GateHub user UUID used as the intermediary account in Rafiki full-node payment flows. Required in production when <code>RAFIKI_NODE_ENABLED=true</code>.</td>
+<td>Yes</td>
+<td>Local default: <code>test-sending-user-id</code>; Prod/Sandbox/Dev: secret</td>
+</tr>
+<tr>
+<td><code>GATEHUB_INTERMEDIARY_USER_ADDRESS</code></td>
+<td>XRPL wallet address of the managed intermediary user for Rafiki full-node payment flows. Required in production when <code>RAFIKI_NODE_ENABLED=true</code>.</td>
+<td>Yes</td>
+<td>Local default: <code>rN7n7otQDd6FczFgLdVZGMbpKRtFVfT4hb</code>; Prod/Sandbox/Dev: secret</td>
+</tr>
+</tbody>
+</table>
+<h3 id="xago-payment-provider">Xago (Payment Provider)<a class="headerlink" href="#xago-payment-provider" title="Permanent link">&para;</a></h3>
+<p>Xago is used for ZAR and USD transactions in South Africa.</p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+<th>Secret</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>XAGO_API_BASE_URL</code></td>
+<td>Xago business API base URL</td>
+<td>No</td>
+<td>Sandbox/Dev: <code>https://test.xago.io/exchange/v1</code>; Local: <code>http://mockxago:8080/v1</code>; Prod: TBD</td>
+</tr>
+<tr>
+<td><code>XAGO_IDENTITY_BASE_URL</code></td>
+<td>Xago identity/login API base URL</td>
+<td>No</td>
+<td>Sandbox/Dev: <code>https://test.xago.io/identity/v1</code>; Local: <code>http://mockxago:8080/v1</code>; Prod: TBD</td>
+</tr>
+<tr>
+<td><code>XAGO_POLICY_ID</code></td>
+<td>Xago login policy ID for requesting access tokens</td>
+<td>No</td>
+<td>Sandbox/Dev/Local: <code>5e2585a474b0e90012ce8ff1</code>; Prod: TBD</td>
+</tr>
+<tr>
+<td><code>XAGO_API_SECRET</code></td>
+<td>Xago API secret key credential</td>
+<td>Yes</td>
+<td>Local default: <code>test-secret</code></td>
+</tr>
+<tr>
+<td><code>XAGO_API_PUBLIC_KEY</code></td>
+<td>Xago API public key credential</td>
+<td>Yes</td>
+<td>Local default: <code>test-public-key</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="pti-fiant-payment-provider">PTI / Fiant (Payment Provider)<a class="headerlink" href="#pti-fiant-payment-provider" title="Permanent link">&para;</a></h3>
+<p>PTI is a US-focused payment provider currently disabled except in production.</p>
+<p>All PTI endpoint URLs follow a consistent environment pattern documented in the <a href="https://developers.platform.fiant.io/docs/front-end-sdk-usage">Fiant Front-End SDK usage guide</a>:</p>
+<ul>
+<li><strong>Staging</strong>: <code>*.staging.fiant.io</code> (used by sandbox.and development environments)</li>
+<li><strong>Production</strong>: <code>*.platform.fiant.io</code></li>
+<li><strong>Local</strong>: mockpti emulator (<code>mockpti.interledger.test</code>)</li>
+</ul>
+<p>For deployed environments the <code>PTI_JWK</code>, <code>PTI_PUBLIC_KEY_JWK</code>, and <code>PTI_BASE_URL</code> values are secrets stored in the appropriate environment's <strong>1Password vault</strong> and injected via Kubernetes <code>OnePasswordItem</code> resources. Non-secret variables (<code>PTI_CLIENT_ID</code>, <code>PTI_SDK_URL</code>, <code>PTI_FORMS_URL</code>) are safe to store in ConfigMaps.</p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+<th>Secret</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>PTI_ENABLED</code></td>
+<td>Enables PTI provider integration and runtime config validation</td>
+<td>No</td>
+<td>Prod: <code>true</code>; all others: <code>false</code></td>
+</tr>
+<tr>
+<td><code>PTI_BASE_URL</code></td>
+<td>PTI REST API base URL (see <a href="https://developers.platform.fiant.io/reference">Fiant API Reference</a>)</td>
+<td>Yes</td>
+<td>Prod: secret (1Password); Sandbox: <code>https://api.staging.fiant.io/v1/</code>; Dev: empty; Local: <code>http://mockpti:8080</code></td>
+</tr>
+<tr>
+<td><code>PTI_SDK_URL</code></td>
+<td>URL to the Fiant Web SDK JavaScript bundle. The <a href="https://developers.platform.fiant.io/docs/front-end-sdk-usage">Fiant docs</a> specify the pattern <code>https://sdk.{env}.fiant.io/latest/index.js</code> where <code>{env}</code> is <code>staging</code> or <code>platform</code></td>
+<td>No</td>
+<td>Prod: <code>https://sdk.platform.fiant.io/0.0.23/index.js</code>; Sandbox/Dev: <code>https://sdk.staging.fiant.io/latest/index.js</code>; Local: <code>https://mockpti.interledger.test/sdk/index.js</code></td>
+</tr>
+<tr>
+<td><code>PTI_FORMS_URL</code></td>
+<td>URL to the Fiant hosted forms (Elements) endpoint. The <a href="https://developers.platform.fiant.io/docs/front-end-sdk-usage">Fiant docs</a> document the <code>ptiDomain</code> init parameter with values <code>staging.fiant.io</code> (staging) and <code>platform.fiant.io</code> (production); the forms URL is <code>https://forms.{ptiDomain}</code></td>
+<td>No</td>
+<td>Prod: <code>https://forms.platform.fiant.io</code>; Sandbox/Dev: <code>https://forms.staging.fiant.io</code>; Local: <code>https://mockpti.interledger.test/forms</code></td>
+</tr>
+<tr>
+<td><code>PTI_CLIENT_ID</code></td>
+<td>PTI client UUID passed to the browser for <code>PTI.init()</code> widget initialisation and used server-side for webhook validation</td>
+<td>No</td>
+<td>Prod: <code>f4c8f30f-...</code> (confirm with PTI); Sandbox: <code>81a556d8-106d-4c93-8c6f-f2f8e555b4f0</code>; Dev: empty; Local default: <code>04d3e1b5-96d4-47e4-9eaa-13e9b4b0f219</code></td>
+</tr>
+<tr>
+<td><code>PTI_JWK</code></td>
+<td>PTI private RSA JWK used for request signing and webhook crypto</td>
+<td>Yes</td>
+<td>Prod/Sandbox: secret (1Password); Local default: test RSA key (see local compose)</td>
+</tr>
+<tr>
+<td><code>PTI_PUBLIC_KEY_JWK</code></td>
+<td>PTI public RSA JWK used for webhook signature verification</td>
+<td>Yes</td>
+<td>Prod/Sandbox: secret (1Password); Local default: test RSA public key (see local compose)</td>
+</tr>
+<tr>
+<td><code>ILW_BACKEND_HOST</code></td>
+<td>Host used by the PTI mock webhook proxy (<code>/webhooks/pti</code>) when forwarding requests to the wallet backend</td>
+<td>No</td>
+<td>Not set in any environment</td>
+</tr>
+</tbody>
+</table>
+<h3 id="legacy-variables_1">Legacy Variables<a class="headerlink" href="#legacy-variables_1" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+<th>Secret</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>VAULT_ADDR</code></td>
+<td>HashiCorp Vault server address used by legacy Vault integration paths</td>
+<td>No</td>
+<td>Keep documented, no environment value guidance</td>
+</tr>
+<tr>
+<td><code>VAULT_TRANSIT_ENGINE_PATH</code></td>
+<td>Vault transit engine path used by legacy encryption/decryption flows</td>
+<td>No</td>
+<td>Keep documented, no environment value guidance</td>
+</tr>
+<tr>
+<td><code>SMARTY_AUTH_ID</code></td>
+<td>Smarty auth ID used by legacy address validation integration</td>
+<td>No</td>
+<td>Keep documented, no environment value guidance</td>
+</tr>
+<tr>
+<td><code>SMARTY_AUTH_TOKEN</code></td>
+<td>Smarty auth token used by legacy address validation integration</td>
+<td>No</td>
+<td>Keep documented, no environment value guidance</td>
+</tr>
+<tr>
+<td><code>RAFIKI_GRAPHQL_URL</code></td>
+<td>Legacy Rafiki GraphQL URL alias from older local compose manifests</td>
+<td>No</td>
+<td>Historic YAML-only variable; should not be used for active configuration</td>
+</tr>
+<tr>
+<td><code>XAGO_USD_OPS_ACCOUNT</code></td>
+<td>Legacy Xago USD operations account UUID from older local compose manifests</td>
+<td>No</td>
+<td>Historic YAML-only variable; should not be used for active configuration</td>
+</tr>
+<tr>
+<td><code>XAGO_ZAR_OPS_ACCOUNT</code></td>
+<td>Legacy Xago ZAR operations account UUID from older local compose manifests</td>
+<td>No</td>
+<td>Historic YAML-only variable; should not be used for active configuration</td>
+</tr>
+<tr>
+<td><code>XAGO_LEDGER_ID_ZAR</code></td>
+<td>Legacy Xago ZAR ledger ID from older local compose manifests</td>
+<td>No</td>
+<td>Historic YAML-only variable; should not be used for active configuration</td>
+</tr>
+<tr>
+<td><code>XAGO_LEDGER_ID_USD</code></td>
+<td>Legacy Xago USD ledger ID from older local compose manifests</td>
+<td>No</td>
+<td>Historic YAML-only variable; should not be used for active configuration</td>
+</tr>
+<tr>
+<td><code>XAGO_WEBHOOK_SECRET</code></td>
+<td>Legacy Xago webhook secret placeholder from older local compose manifests</td>
+<td>Yes</td>
+<td>Historic YAML-only variable; should not be used for active configuration</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Discord:</strong> No Discord-related environment variables are currently present in the active service configuration.</p>
+</blockquote>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.top", "navigation.indexes", "search.highlight", "search.suggest", "content.code.copy", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
