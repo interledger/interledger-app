@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
+	"github.com/interledger/interledger-app/go/backend/config"
 	"github.com/interledger/interledger-app/go/backend/keys"
 	"github.com/interledger/interledger-app/go/backend/kyc"
 	kyc_client_mock "github.com/interledger/interledger-app/go/backend/kyc/client/mock"
@@ -37,6 +38,7 @@ func (b kycOnlyBackends) Gatehub() gatehub.Client               { return nil }
 func (b kycOnlyBackends) Xago() xago.Client                     { return nil }
 func (b kycOnlyBackends) Chimoney() chimoney.Client             { return nil }
 func (b kycOnlyBackends) KYC() kyc.Client                       { return b.kycClient }
+func (b kycOnlyBackends) Config() *config.StartConfig           { return &config.StartConfig{} }
 
 func TestGetWalletAddress_DocumentsRequiredBlocked(t *testing.T) {
 	t.Parallel()

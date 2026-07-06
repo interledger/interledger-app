@@ -7,6 +7,7 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
+	"github.com/interledger/interledger-app/go/backend/config"
 	"github.com/interledger/interledger-app/go/backend/db"
 	"github.com/interledger/interledger-app/go/backend/email"
 	email_mock "github.com/interledger/interledger-app/go/backend/email/client/mock"
@@ -33,7 +34,7 @@ import (
 
 func TestSaveUser(t *testing.T) {
 	b := Backends{
-		db:    db.MigrateTestDB(t, context.Background()),
+		db:    db.MigrateTestDB(t, context.Background(), ""),
 		users: user_mock.NewMock(),
 	}
 	cfg := gatehub.Config{
@@ -75,7 +76,7 @@ func TestSaveUser(t *testing.T) {
 
 func TestLinkGatehubUserToGateway(t *testing.T) {
 	b := Backends{
-		db:    db.MigrateTestDB(t, context.Background()),
+		db:    db.MigrateTestDB(t, context.Background(), ""),
 		users: user_mock.NewMock(),
 	}
 	cfg := gatehub.Config{
@@ -352,4 +353,8 @@ func (b Backends) LinkGatehubUserToGateway() transactions.Client {
 
 func (b Backends) Notify() notify.Client {
 	return nil
+}
+
+func (b Backends) Config() *config.StartConfig {
+	return &config.StartConfig{Environment: config.EnvironmentConfig{Mode: "test"}}
 }

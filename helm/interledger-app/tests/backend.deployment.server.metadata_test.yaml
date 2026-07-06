@@ -42,7 +42,7 @@ tests:
     template: deployment.backend.server.yaml
     asserts:
       - exists:
-          path: spec.template.metadata.annotations["ilf-configmap-worker-sha256"]
+          path: spec.template.metadata.annotations["ilf-configmap-backend-sha256"]
 
   - it: 'Should honour image override on the server spec'
     template: deployment.backend.server.yaml

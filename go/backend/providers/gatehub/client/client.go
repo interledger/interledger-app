@@ -152,7 +152,7 @@ func (c Client) ThreeDSPaymentConfirmation(ctx context.Context, userID, txID str
 }
 
 func (c Client) UpdateOrganizationConfiguration(ctx context.Context, apiBaseURL, twoFAType string) (*external.UpdateOrganizationConfigurationResponse, error) {
-	return ops.UpdateOrganizationConfiguration(ctx, c.external, apiBaseURL, twoFAType)
+	return ops.UpdateOrganizationConfiguration(ctx, c.b, c.external, apiBaseURL, twoFAType)
 }
 
 func (c Client) GetAccountConfirmation(ctx context.Context, walletID string) (io.ReadCloser, error) {

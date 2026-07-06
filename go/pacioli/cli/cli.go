@@ -36,6 +36,7 @@ type StartArgs struct {
 	TbClusterID        uint32
 	LogLevel           string
 	LogOutputPath      string
+	Mode               string
 }
 
 func ParseStartArgs() (*StartArgs, error) {
@@ -57,10 +58,13 @@ func ParseStartArgs() (*StartArgs, error) {
 		logOutputPath = "stderr"
 	}
 
+	mode := os.Getenv("APP_MODE")
+
 	return &StartArgs{
 		Port:               port,
 		DbConnectionString: dbUrl,
 		LogLevel:           logLevel,
 		LogOutputPath:      logOutputPath,
+		Mode:               mode,
 	}, nil
 }

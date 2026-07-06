@@ -1,118 +1,341 @@
 suite: Interledger App - Backend validation
 templates:
   - validation.backend.yaml
-set:
-  fullnameOverride: wallet
 release:
   name: wallet
-# NOTE: Helm-unittest can only test successful template rendering.
-# Failure cases are verified by the failedTemplate assertion below.
+set:
+  fullnameOverride: wallet
+  # All unconditionally required fields (validate:"required" in start.go + migration.go).
+  # Individual tests override specific fields to exercise failure paths.
+  backend:
+    config:
+      environment:
+        mode: local
+      application_url: "https://interledger.example"
+      open_payments_base_url: "https://ilp.example"
+      auth_base_url: "https://auth.example"
+      admin:
+        policy_aud: "admin-policy"
+        team_domain: "admin-team"
+        base_url: "https://admin.example"
+      db:
+        url: "postgres://user:pass@db:5432/backend"
+        pacioli_url: "postgres://user:pass@db:5432/pacioli"
+      kratos:
+        admin_url: "http://kratos-admin:4434"
+      rafiki:
+        backend_graphql_url: "http://rafiki-backend:3001/graphql"
+        auth_graphql_url: "http://rafiki-auth:3003/graphql"
+        operator_tenant_id: "tenant-id"
+        admin_api_secret: "admin-secret"
+        signature_version: "1"
+      xago:
+        api_base_url: "https://api.xago.io"
+        identity_base_url: "https://identity.xago.io"
+        api_public_key: "xago-public-key"
+        api_secret: "xago-secret"
+        policy_id: "policy-1"
+      persona:
+        base_url: "https://api.withpersona.com"
+        token: "persona-token"
+        webhook_token: "persona-webhook-token"
+      mobile:
+        apple_app_id: "6B7AFCRT3V.app.wallet.interledger"
+        android_package_name: "network.interledger.wallet"
+        android_sha256: "AA:BB:CC:DD"
+      smarty:
+        auth_id: "smarty-id"
+        auth_token: "smarty-token"
+      pusher:
+        addr: "http://soketi:6001"
+      segment:
+        key: "segment-key"
+      agreements:
+        folder_name: "prod"
+      gatehub:
+        enabled: "false"
+      pti:
+        enabled: "false"
+      twilio:
+        enabled: "false"
+      email:
+        enabled: "false"
+    migration:
+      config:
+        environment:
+          mode: "prod"
+        agreements:
+          folder_name: "prod"
+        db_url: "postgres://user:pass@db:5432/backend"
+        pacioli_db_url: "postgres://user:pass@db:5432/pacioli"
+        open_payments_base_url: "https://ilp.example"
+
 tests:
-  - it: 'Should succeed when gatehub and pti are enabled with all required fields'
-    set:
-      backend:
-        config:
-          apple_app_id: "123456789"
-          android_package_name: "network.interledger.wallet"
-          android_sha256: "AA:BB:CC:DD"
-          admin:
-            base_url: "https://admin.interledger.app"
-          xago:
-            api_base_url: "https://api.xago.io"
-            identity_base_url: "https://identity.xago.io"
-            policy_id: "policy-1"
-          pti:
-            enabled: "true"
-            base_url: "https://pti-base-url.com"
-            sdk_url: "https://sdk.staging.fiant.io/latest/index.js"
-            forms_url: "https://forms.staging.fiant.io"
-          gatehub:
-            enabled: "true"
-            api_base_url: "https://api.gatehub.net"
-            onboarding_base_url: "https://onboarding.gatehub.net"
-            on_off_ramp_base_url: "https://ramp.gatehub.net"
-            organization_id: "org-123"
-            sending_user_id: "user-123"
-            sending_user_address: "$rafiki.example/user-123"
-            eur_ops_account: "ops-account-1"
-            eur_ops_ledger_id: "42"
-            on_off_ramp_client_id: "client-1"
-            onboarding_client_id: "client-2"
-            exchange_client_id: "client-3"
-            card_account_product_code: "CARD-001"
+  # ── Success cases ────────────────────────────────────────────────────────────
+
+  - it: 'Should succeed when all required fields are set and integrations are disabled'
     asserts:
       - isNull:
           path: spec
 
-  - it: 'Should succeed when gatehub and pti are disabled and fields are empty'
+  - it: 'Should succeed when gatehub and pti are enabled with all required fields'
     set:
-      backend:
-        config:
-          apple_app_id: "123456789"
-          android_package_name: "network.interledger.wallet"
-          android_sha256: "AA:BB:CC:DD"
-          admin:
-            base_url: "https://admin.interledger.app"
-          xago:
-            api_base_url: "https://api.xago.io"
-            identity_base_url: "https://identity.xago.io"
-            policy_id: "policy-1"
-          pti:
-            enabled: "false"
-          gatehub:
-            enabled: "false"
+      backend.config.gatehub.enabled: "true"
+      backend.config.gatehub.api_base_url: "https://api.gatehub.net"
+      backend.config.gatehub.onboarding_base_url: "https://onboarding.gatehub.net"
+      backend.config.gatehub.on_off_ramp_base_url: "https://ramp.gatehub.net"
+      backend.config.gatehub.organization_id: "org-123"
+      backend.config.gatehub.sending_user_id: "user-123"
+      backend.config.gatehub.sending_user_address: "$rafiki.example/user-123"
+      backend.config.gatehub.eur_ops_account: "ops-account-1"
+      backend.config.gatehub.eur_ops_ledger_id: "42"
+      backend.config.gatehub.on_off_ramp_client_id: "client-1"
+      backend.config.gatehub.onboarding_client_id: "client-2"
+      backend.config.gatehub.exchange_client_id: "client-3"
+      backend.config.gatehub.card_account_product_code: "CARD-001"
+      backend.config.pti.enabled: "true"
+      backend.config.pti.base_url: "https://pti-base-url.com"
+      backend.config.pti.jwk: '{"kty":"RSA"}'
+      backend.config.pti.client_id: "pti-client-id"
+      backend.config.pti.sdk_url: "https://sdk.pti.io/latest/index.js"
+      backend.config.pti.forms_url: "https://forms.pti.io"
+      backend.config.pti.public_key_jwk: "-----BEGIN PUBLIC KEY-----\ntest\n-----END PUBLIC KEY-----"
     asserts:
       - isNull:
           path: spec
+
+  - it: 'Should succeed when twilio is enabled with all required fields'
+    set:
+      backend.config.twilio.enabled: "true"
+      backend.config.twilio.account_sid: "ACtest"
+      backend.config.twilio.account_token: "twilio-token"
+      backend.config.twilio.service_sid: "VAtestservice"
+    asserts:
+      - isNull:
+          path: spec
+
+  - it: 'Should succeed when email is enabled with all required sendgrid fields'
+    set:
+      backend.config.email.enabled: "true"
+      backend.config.email.sendgrid.api_key: "SG.test"
+      backend.config.email.sendgrid.from_name: "Interledger Wallet"
+      backend.config.email.sendgrid.from_email: "support@interledger.app"
+      backend.config.email.sendgrid.one_template_id: "d-templateid"
+      backend.config.email.sendgrid.support_email: "support@interledger.app"
+    asserts:
+      - isNull:
+          path: spec
+
+  - it: 'Should succeed with a configa secret reference as a required field value'
+    set:
+      backend.config.db.url: '{{ secret "backend-secrets" "dbUrl" }}'
+    asserts:
+      - isNull:
+          path: spec
+
+  # ── environment.mode failures ────────────────────────────────────────────────
+
+  - it: 'Should fail when environment.mode is invalid'
+    set:
+      backend.config.environment.mode: "invalid"
+    asserts:
+      - failedTemplate:
+          errorMessage: 'backend.config.environment.mode must be one of [prod sandbox dev local test], got: "invalid"'
+
+  # ── Unconditional required field failures ────────────────────────────────────
+
+  - it: 'Should fail when application_url is empty'
+    set:
+      backend.config.application_url: ""
+    asserts:
+      - failedTemplate:
+          errorMessage: "The following required values are empty: backend.config.application_url"
+
+  - it: 'Should fail when open_payments_base_url is empty'
+    set:
+      backend.config.open_payments_base_url: ""
+    asserts:
+      - failedTemplate:
+          errorMessage: "The following required values are empty: backend.config.open_payments_base_url"
+
+  - it: 'Should fail when auth_base_url is empty'
+    set:
+      backend.config.auth_base_url: ""
+    asserts:
+      - failedTemplate:
+          errorMessage: "The following required values are empty: backend.config.auth_base_url"
 
   - it: 'Should fail when admin.base_url is empty'
     set:
-      backend:
-        config:
-          apple_app_id: "123456789"
-          android_package_name: "network.interledger.wallet"
-          android_sha256: "AA:BB:CC:DD"
-          admin:
-            base_url: ""
-          xago:
-            api_base_url: "https://api.xago.io"
-            identity_base_url: "https://identity.xago.io"
-            policy_id: "policy-1"
-          gatehub:
-            enabled: "false"
-          pti:
-            enabled: "false"
+      backend.config.admin.base_url: ""
     asserts:
       - failedTemplate:
           errorMessage: "The following required values are empty: backend.config.admin.base_url"
 
+  - it: 'Should fail when db.url is empty'
+    set:
+      backend.config.db.url: ""
+    asserts:
+      - failedTemplate:
+          errorMessage: "The following required values are empty: backend.config.db.url"
+
+  - it: 'Should fail when db.pacioli_url is empty'
+    set:
+      backend.config.db.pacioli_url: ""
+    asserts:
+      - failedTemplate:
+          errorMessage: "The following required values are empty: backend.config.db.pacioli_url"
+
+  - it: 'Should fail when kratos.admin_url is empty'
+    set:
+      backend.config.kratos.admin_url: ""
+    asserts:
+      - failedTemplate:
+          errorMessage: "The following required values are empty: backend.config.kratos.admin_url"
+
+  - it: 'Should fail when pusher.addr is empty'
+    set:
+      backend.config.pusher.addr: ""
+    asserts:
+      - failedTemplate:
+          errorMessage: "The following required values are empty: backend.config.pusher.addr"
+
+  - it: 'Should fail when segment.key is empty'
+    set:
+      backend.config.segment.key: ""
+    asserts:
+      - failedTemplate:
+          errorMessage: "The following required values are empty: backend.config.segment.key"
+
+  - it: 'Should fail when mobile.apple_app_id is empty'
+    set:
+      backend.config.mobile.apple_app_id: ""
+    asserts:
+      - failedTemplate:
+          errorMessage: "The following required values are empty: backend.config.mobile.apple_app_id"
+
+  - it: 'Should fail when admin.policy_aud is empty'
+    set:
+      backend.config.admin.policy_aud: ""
+    asserts:
+      - failedTemplate:
+          errorMessage: "The following required values are empty: backend.config.admin.policy_aud"
+
+  - it: 'Should fail when agreements.folder_name is empty'
+    set:
+      backend.config.agreements.folder_name: ""
+    asserts:
+      - failedTemplate:
+          errorMessage: "The following required values are empty: backend.config.agreements.folder_name"
+
+  - it: 'Should fail when migration db_url is empty'
+    set:
+      backend.migration.config.db_url: ""
+    asserts:
+      - failedTemplate:
+          errorMessage: "The following required values are empty: backend.migration.config.db_url"
+
+  - it: 'Should fail when migration open_payments_base_url is empty'
+    set:
+      backend.migration.config.open_payments_base_url: ""
+    asserts:
+      - failedTemplate:
+          errorMessage: "The following required values are empty: backend.migration.config.open_payments_base_url"
+
+  - it: 'Should fail when migration environment.mode is empty'
+    set:
+      backend.migration.config.environment.mode: ""
+    asserts:
+      - failedTemplate:
+          errorMessage: "The following required values are empty: backend.migration.config.environment.mode"
+
+  - it: 'Should fail when migration environment.mode is invalid'
+    set:
+      backend.migration.config.environment.mode: "invalid"
+    asserts:
+      - failedTemplate:
+          errorMessage: 'backend.migration.config.environment.mode must be one of [prod sandbox dev local test], got: "invalid"'
+
+  - it: 'Should fail when migration agreements.folder_name is empty'
+    set:
+      backend.migration.config.agreements.folder_name: ""
+    asserts:
+      - failedTemplate:
+          errorMessage: "The following required values are empty: backend.migration.config.agreements.folder_name"
+
+  # ── Conditional: gatehub.enabled ────────────────────────────────────────────
+
   - it: 'Should fail when gatehub is enabled but api_base_url is empty'
     set:
-      backend:
-        config:
-          apple_app_id: "123456789"
-          android_package_name: "network.interledger.wallet"
-          android_sha256: "AA:BB:CC:DD"
-          xago:
-            api_base_url: "https://api.xago.io"
-            identity_base_url: "https://identity.xago.io"
-            policy_id: "policy-1"
-          admin:
-            base_url: "https://admin.interledger.app"
-          gatehub:
-            enabled: "true"
-            api_base_url: ""
-            onboarding_base_url: "https://onboarding.gatehub.net"
-            on_off_ramp_base_url: "https://ramp.gatehub.net"
-            organization_id: "org-123"
-            sending_user_id: "user-123"
-            sending_user_address: "$rafiki.example/user-123"
-            eur_ops_account: "ops-account-1"
-            eur_ops_ledger_id: "42"
-            on_off_ramp_client_id: "client-1"
-            onboarding_client_id: "client-2"
-            exchange_client_id: "client-3"
-            card_account_product_code: "CARD-001"
+      backend.config.gatehub.enabled: "true"
+      backend.config.gatehub.onboarding_base_url: "https://onboarding.gatehub.net"
+      backend.config.gatehub.on_off_ramp_base_url: "https://ramp.gatehub.net"
+      backend.config.gatehub.organization_id: "org-123"
+      backend.config.gatehub.sending_user_id: "user-123"
+      backend.config.gatehub.sending_user_address: "$rafiki.example/user-123"
+      backend.config.gatehub.eur_ops_account: "ops-account-1"
+      backend.config.gatehub.eur_ops_ledger_id: "42"
+      backend.config.gatehub.on_off_ramp_client_id: "client-1"
+      backend.config.gatehub.onboarding_client_id: "client-2"
+      backend.config.gatehub.exchange_client_id: "client-3"
+      backend.config.gatehub.card_account_product_code: "CARD-001"
     asserts:
       - failedTemplate:
           errorMessage: "The following required values are empty: backend.config.gatehub.api_base_url"
+
+  # ── Conditional: pti.enabled ────────────────────────────────────────────────
+
+  - it: 'Should fail when pti is enabled but jwk is empty'
+    set:
+      backend.config.pti.enabled: "true"
+      backend.config.pti.base_url: "https://pti-base-url.com"
+      backend.config.pti.client_id: "pti-client-id"
+      backend.config.pti.sdk_url: "https://sdk.pti.io/latest/index.js"
+      backend.config.pti.forms_url: "https://forms.pti.io"
+      backend.config.pti.public_key_jwk: "-----BEGIN PUBLIC KEY-----\ntest\n-----END PUBLIC KEY-----"
+    asserts:
+      - failedTemplate:
+          errorMessage: "The following required values are empty: backend.config.pti.jwk"
+
+  # ── Conditional: twilio.enabled ─────────────────────────────────────────────
+
+  - it: 'Should fail when twilio is enabled but account_sid is empty'
+    set:
+      backend.config.twilio.enabled: "true"
+      backend.config.twilio.account_token: "twilio-token"
+      backend.config.twilio.service_sid: "VAtestservice"
+    asserts:
+      - failedTemplate:
+          errorMessage: "The following required values are empty: backend.config.twilio.account_sid"
+
+  - it: 'Should fail when environment.mode is prod but twilio is disabled'
+    set:
+      backend.config.environment.mode: "prod"
+      backend.config.twilio.enabled: "false"
+    asserts:
+      - failedTemplate:
+          errorMessage: "backend.config.twilio.enabled must be true when environment.mode is prod"
+
+  # ── Conditional: persona.sandbox_fake_za_id ─────────────────────────────────
+
+  - it: 'Should fail when environment.mode is prod but persona.sandbox_fake_za_id is true'
+    set:
+      backend.config.environment.mode: "prod"
+      backend.config.twilio.enabled: "true"
+      backend.config.persona.sandbox_fake_za_id: "true"
+    asserts:
+      - failedTemplate:
+          errorMessage: "backend.config.persona.sandbox_fake_za_id must be false when environment.mode is prod"
+
+  # ── Conditional: email.enabled ───────────────────────────────────────────────
+
+  - it: 'Should fail when email is enabled but sendgrid.api_key is empty'
+    set:
+      backend.config.email.enabled: "true"
+      backend.config.email.sendgrid.from_name: "Interledger Wallet"
+      backend.config.email.sendgrid.from_email: "support@interledger.app"
+      backend.config.email.sendgrid.one_template_id: "d-templateid"
+      backend.config.email.sendgrid.support_email: "support@interledger.app"
+    asserts:
+      - failedTemplate:
+          errorMessage: "The following required values are empty: backend.config.email.sendgrid.api_key"

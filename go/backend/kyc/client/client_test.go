@@ -17,7 +17,7 @@ func TestGetPersonaZAIDNumber_FakeMode(t *testing.T) {
 
 	// nil backends is safe: the fake path never touches the DB or Persona HTTP client.
 	// Dummy Smarty credentials satisfy the prod-env guard without making real API calls.
-	kycClient, err := client.NewWithPersonaConfig(nil, "dummy-id", "dummy-token", persona.Config{FakeZAID: true})
+	kycClient, err := client.NewWithPersonaConfig(nil, "dummy-id", "dummy-token", persona.Config{FakeZAID: true}, false)
 	require.NoError(t, err)
 
 	zaIDPattern := regexp.MustCompile(`^\d{13}$`)

@@ -35,7 +35,7 @@ func TestSetPaymentState(t *testing.T) {
 		ctrl.Finish()
 	})
 	b := &ops.TestBackends{
-		DBC: db.MigrateTestDB(t, ctx),
+		DBC: db.MigrateTestDB(t, ctx, ""),
 		Em:  email_mock.NewMockClient(ctrl),
 		Ic:  id_mock.NewMockClient(ctrl),
 		Wc:  wallets_mock.NewMockClient(ctrl),

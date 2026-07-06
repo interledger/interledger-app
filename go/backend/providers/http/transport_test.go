@@ -26,7 +26,7 @@ func (tb *testBackends) DB() *sqlx.DB {
 }
 
 func TestLog(t *testing.T) {
-	b := &testBackends{db: db.MigrateTestDB(t, context.Background())}
+	b := &testBackends{db: db.MigrateTestDB(t, context.Background(), "")}
 	client := &http.Client{
 		Transport: httplog.NewTransport(http.DefaultTransport, b, nil),
 	}

@@ -21,7 +21,6 @@ import (
 	"github.com/interledger/interledger-app/go/backend/transactions"
 	"github.com/interledger/interledger-app/go/backend/user"
 	"github.com/interledger/interledger-app/go/backend/wallets"
-	"github.com/interledger/interledger-app/go/env"
 	"github.com/interledger/interledger-app/go/pacioli"
 	"github.com/jmoiron/sqlx"
 	temporal "go.temporal.io/sdk/client"
@@ -57,13 +56,13 @@ type client struct {
 	b ops.Backends
 }
 
-func New(b Backends, cfg external.Config) xago.Client {
+func New(b Backends, cfg external.Config, isTest bool) xago.Client {
 	ex := external.New(&http.Client{
 		Transport: otelhttp.NewTransport(
 			httplogger.NewTransport(http.DefaultTransport, b, Redact),
 		),
 	}, b.DB(), cfg)
-	if env.IsTest() {
+	if isTest {
 		ex = mock_client.SetupDevMock(nil)
 	}
 

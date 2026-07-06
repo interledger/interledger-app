@@ -20,7 +20,7 @@ func TestSetInteracEmail(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	laMock := la_mock.NewMockClient(ctrl)
 	b := backends{
-		db:  db.MigrateTestDB(t, ctx),
+		db:  db.MigrateTestDB(t, ctx, ""),
 		las: laMock,
 	}
 
@@ -62,7 +62,7 @@ func TestGetChiWallet(t *testing.T) {
 	ctx := context.Background()
 
 	b := backends{
-		db: db.MigrateTestDB(t, ctx),
+		db: db.MigrateTestDB(t, ctx, ""),
 	}
 
 	walletID := uuid.NewString()

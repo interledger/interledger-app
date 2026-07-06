@@ -13,7 +13,6 @@ import (
 	"github.com/interledger/interledger-app/go/backend/rafiki"
 	"github.com/interledger/interledger-app/go/backend/slack"
 	"github.com/interledger/interledger-app/go/backend/wallets"
-	"github.com/interledger/interledger-app/go/env"
 	"github.com/interledger/interledger-app/go/log"
 	"go.temporal.io/sdk/workflow"
 	"go.uber.org/zap"
@@ -146,7 +145,7 @@ func (a *Activity) CreateKYCWallets(ctx context.Context, walletID string) error 
 			return err
 		}
 	} else {
-		slack.SendToChannel(ctx, slack.ChannelSignupKYC, "wallet-info-bot", fmt.Sprintf(":white_check_mark: *KYC approved*\n*Country:* %s\n*Profile:* %s/wallet/%s/profile\n:warning: Manual creation of balance account required.", w.Country, env.AdminURL(), walletID))
+		slack.SendToChannel(ctx, slack.ChannelSignupKYC, "wallet-info-bot", fmt.Sprintf(":white_check_mark: *KYC approved*\n*Country:* %s\n*Profile:* %s/wallet/%s/profile\n:warning: Manual creation of balance account required.", w.Country, a.b.Config().Admin.BaseURL, walletID))
 		return nil
 	}
 
