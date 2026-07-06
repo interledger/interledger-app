@@ -22,7 +22,11 @@ export default defineConfig(({ isSsrBuild }) => ({
   },
 
   build: {
-    sourcemap: process.env.NODE_ENV === 'production' ? 'hidden' : true
+    sourcemap: process.env.NODE_ENV === 'production' ? 'hidden' : true,
+    // Build our custom server/app.ts as the SSR entry (instead of React
+    // Router's default virtual entry) so `build/server/index.js` exports
+    // the Express `app` that server.js imports in production.
+    rollupOptions: isSsrBuild ? { input: './server/app.ts' } : undefined
   },
   plugins: [
     reactRouter(),
@@ -51,7 +55,17 @@ export default defineConfig(({ isSsrBuild }) => ({
         // Node's native process object so startup code can fail fast with process.exit.
         'vite-plugin-node-polyfills/shims/buffer',
         'vite-plugin-node-polyfills/shims/global',
-        'vite-plugin-node-polyfills/shims/process'
+        'vite-plugin-node-polyfills/shims/process',
+        // Transitive deps of react-datocms that Vite's static scan misses (discovered lazily
+        // at first render). Without these, Vite re-optimizes mid-test and forces a full page
+        // reload, producing a React dual-instance mismatch that crashes the app with
+        // "useLoaderData must be used within a data router".
+        'datocms-listen',
+        'universal-base64',
+        'use-deep-compare-effect',
+        'datocms-structured-text-generic-html-renderer',
+        'react-string-replace',
+        'react-intersection-observer'
       ]
     })
   },

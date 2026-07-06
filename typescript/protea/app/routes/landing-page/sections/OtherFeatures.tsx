@@ -1,5 +1,6 @@
 import { useInView } from 'framer-motion'
 import { useRef } from 'react'
+import { Link } from 'react-router'
 import appStoreBadgeIcon from '../assets/app-store-badge-icon.svg'
 import googlePlayBadgeIcon from '../assets/google-play-badge-icon.svg'
 import { PageSection } from '../components/PageSection'
@@ -39,8 +40,7 @@ export function OtherFeatures() {
         </header>
 
         <div className='other-features-cta-block'>
-          {/* eslint-disable-next-line jsx-a11y/anchor-is-valid -- placeholder CTA, destination TBD */}
-          <a href='#' className='other-features-btn'>
+          <Link to='/signup' className='other-features-btn'>
             Get the Interledger Wallet
             <svg
               width='20'
@@ -56,12 +56,12 @@ export function OtherFeatures() {
               <polyline points='7 10 12 15 17 10' />
               <line x1='12' y1='15' x2='12' y2='3' />
             </svg>
-          </a>
+          </Link>
 
           <div className='other-features-badges'>
-            {/* eslint-disable-next-line jsx-a11y/anchor-is-valid -- placeholder CTA, destination TBD */}
-            <a
-              href='#'
+            {/* TODO: point to the App Store listing when available. */}
+            <Link
+              to='/signup'
               className='app-badge app-badge--ios'
               aria-label='Download on the App Store'
             >
@@ -79,10 +79,10 @@ export function OtherFeatures() {
                 <span className='app-badge__sub'>Download on the</span>
                 <span className='app-badge__main'>App Store</span>
               </div>
-            </a>
-            {/* eslint-disable-next-line jsx-a11y/anchor-is-valid -- placeholder CTA, destination TBD */}
-            <a
-              href='#'
+            </Link>
+            {/* TODO: point to the Google Play listing when available. */}
+            <Link
+              to='/signup'
               className='app-badge app-badge--android'
               aria-label='Get it on Google Play'
             >
@@ -100,7 +100,7 @@ export function OtherFeatures() {
                 <span className='app-badge__sub'>GET IT ON</span>
                 <span className='app-badge__main'>Google Play</span>
               </div>
-            </a>
+            </Link>
           </div>
 
           <p className='text-h4 browser-availability'>

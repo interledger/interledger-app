@@ -74,6 +74,9 @@ func (c *client) WebhookHandler() http.HandlerFunc {
 func (c *client) FundOutgoingPayment(ctx context.Context, paymentID string) error {
 	return ops.FundOutgoingPayment(ctx, c.b, paymentID)
 }
+func (c *client) FundSingleOutgoingPayment(ctx context.Context, paymentID string) error {
+	return ops.FundSingleOutgoingPayment(ctx, c.b, paymentID)
+}
 
 func (c *client) FinalizeWebMonetization(ctx context.Context, paymentID string) error {
 	return ops.FinalizeWebMonetization(ctx, c.b, paymentID)

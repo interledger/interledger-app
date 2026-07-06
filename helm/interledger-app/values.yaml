@@ -811,7 +811,7 @@ backend:
       contentMap:
         - key: APPLICATION_URL
           valueRef: backend.config.application_url
-        - key: FYNBOS_ENV
+        - key: ILW_ENV
           valueRef: backend.config.environment
         - key: SENTRY_ENVIRONMENT
           valueRef: backend.config.sentry.env
@@ -1004,6 +1004,25 @@ frontend:
     # SDK directly.
     mockxago_endpoint: ""
 
+    # Open Payments Interledger Pay (quick-pay) support. When disabled, the
+    # remaining op_intpay.* values are unused and the quick-pay routes are
+    # inaccessible.
+    op_intpay:
+      enabled: false
+      # Public base URL of the wallet's Open Payments auth server used to build
+      # quick-pay links. Required when enabled.
+      host: ""
+      # URL the client is redirected back to once a quick-pay grant completes.
+      # Required when enabled.
+      redirect_url: ""
+      # Wallet address (payment pointer) used as the Open Payments client
+      # identity for quick-pay grant requests. Required when enabled.
+      wallet_address: ""
+      # Key id and base64-encoded Ed25519 private key of the Open Payments
+      # client. Stored in the frontend secret; required when enabled.
+      key_id_ref: opIntPayKeyId
+      private_key_ref: opIntPayPrivateKey
+
   server:
     name: frontend-server
     enabled: true
@@ -1087,6 +1106,16 @@ frontend:
           secretKeyRef:
             name: '{{ include "common.fullname" . }}-frontend'
             key: "{{ .Values.frontend.config.otel.headers_ref }}"
+      - name: OP_INTPAY_KEY_ID
+        valueFrom:
+          secretKeyRef:
+            name: '{{ include "common.fullname" . }}-frontend'
+            key: "{{ .Values.frontend.config.op_intpay.key_id_ref }}"
+      - name: OP_INTPAY_PRIVATE_KEY
+        valueFrom:
+          secretKeyRef:
+            name: '{{ include "common.fullname" . }}-frontend'
+            key: "{{ .Values.frontend.config.op_intpay.private_key_ref }}"
     ports:
       - name: http
         containerPort: 3000
@@ -1103,6 +1132,8 @@ frontend:
         whenUnsatisfiable: DoNotSchedule
 
   configMaps:
+    # NOTE: Please see the _configmaps.tpl template for details on how these values are rendered into the ConfigMap.
+    #       and also validation.frontend.yaml for validation of required fields when op_intpay.enabled is true.
     server:
       name: frontend-server
       contentMap:
@@ -1118,7 +1149,7 @@ frontend:
           valueRef: frontend.config.rafiki.auth.endpoint
         - key: BACKEND_GRPC_URL
           valueRef: frontend.config.backend.grpc.url
-        - key: FYNBOS_ENV
+        - key: ILW_ENV
           valueRef: frontend.config.environment
         - key: LOG_LEVEL
           valueRef: frontend.config.log_level
@@ -1144,3 +1175,15 @@ frontend:
           valueRef: frontend.config.mockxago_endpoint
         - key: SENTRY_ENV_LABEL
           valueRef: frontend.config.sentry_env_label
+
+# --- Open Payments Interledger Pay (quick-pay) ---
+# Config lives at frontend.config.op_intpay above (values ~1006-1021).
+# - enabled/host/redirect_url/wallet_address render into the frontend
+#   ConfigMap via templates/_configmaps.tpl.
+# - key_id_ref/private_key_ref are key *names* looked up in the frontend
+#   Secret; the actual OP_INTPAY_KEY_ID/OP_INTPAY_PRIVATE_KEY env vars are
+#   only injected into the Deployment (templates/deployment.frontend.yaml)
+#   when op_intpay.enabled is true, so existing Secrets don't need these
+#   keys unless the feature is turned on.
+# Validation of the required fields when enabled lives in
+# templates/validation.frontend.yaml.

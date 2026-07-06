@@ -11,5 +11,15 @@ spec:
 {{- end }}
 {{- end }}
 {{- if .Values.frontend.enabled }}
-{{- include "common.deployment" (list . .Values.frontend.server .Values.frontend.server.autoscaling .Values.frontend.server.serviceAccount "interledger-app.frontend.deployment") }}
+{{- $frontendServer := deepCopy .Values.frontend.server }}
+{{- if not .Values.frontend.config.op_intpay.enabled }}
+{{- $filteredEnv := list }}
+{{- range $frontendServer.env }}
+{{- if not (hasPrefix "OP_INTPAY_" .name) }}
+{{- $filteredEnv = append $filteredEnv . }}
+{{- end }}
+{{- end }}
+{{- $_ := set $frontendServer "env" $filteredEnv }}
+{{- end }}
+{{- include "common.deployment" (list . $frontendServer .Values.frontend.server.autoscaling .Values.frontend.server.serviceAccount "interledger-app.frontend.deployment") }}
 {{- end }}

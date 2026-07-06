@@ -4,7 +4,7 @@
   "private": true,
   "packageManager": "pnpm@10.23.0",
   "engines": {
-    "node": ">=20"
+    "node": ">=24"
   },
   "devDependencies": {
     "@semantic-release/exec": "^6.0.3",
