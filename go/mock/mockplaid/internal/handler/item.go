@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"strings"
 
 	"gitlab.com/fynbos/mock/mockplaid/internal/models"
 	"gitlab.com/fynbos/mock/mockplaid/internal/storage"
@@ -21,6 +22,14 @@ func (h *Handler) ExchangePublicToken(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := h.decodeJSON(r, &req); err != nil {
 		h.sendPlaidError(w, http.StatusBadRequest, "INVALID_INPUT", "INVALID_REQUEST_BODY", err.Error())
+		return
+	}
+
+	// Fault injection: a public_token minted for the failing institution carries
+	// a FAIL marker. Reject it here so the backend's exchange step fails and the
+	// frontend shows "Bank account linking failed." (see InstitutionFail).
+	if strings.Contains(req.PublicToken, "-FAIL-") {
+		h.sendPlaidError(w, http.StatusInternalServerError, "API_ERROR", "INTERNAL_SERVER_ERROR", "injected fault: simulated Plaid public-token exchange failure")
 		return
 	}
 

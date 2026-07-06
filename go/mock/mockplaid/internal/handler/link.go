@@ -86,16 +86,20 @@ func (h *Handler) SelectAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Determinism rule: Bank A is stable per account; Bank B is always-new.
+	// Determinism rule: Bank A is stable per account; Bank B is always-new;
+	// the fault bank gets its own stable id (it never reaches a real link).
 	var accountID string
-	if req.InstitutionID == models.InstitutionB {
+	switch req.InstitutionID {
+	case models.InstitutionB:
 		seq, err := h.store.NextAccountSeq(r.Context())
 		if err != nil {
 			h.sendPlaidError(w, http.StatusInternalServerError, "INTERNAL", "SEQ_FAILED", err.Error())
 			return
 		}
 		accountID = fmt.Sprintf("acc_mock_b_%d", seq)
-	} else {
+	case models.InstitutionFail:
+		accountID = "acc_mock_fail_" + req.AccountKey
+	default:
 		accountID = "acc_mock_a_" + req.AccountKey
 	}
 
@@ -107,7 +111,12 @@ func (h *Handler) SelectAccount(w http.ResponseWriter, r *http.Request) {
 		Subtype:   cat.Subtype,
 	}
 
+	// The fault bank rides the marker into the public_token so ExchangePublicToken
+	// can reject it without any server-side flag (no cross-scenario leak).
 	publicToken := "public-sandbox-" + uuid.NewString()
+	if req.InstitutionID == models.InstitutionFail {
+		publicToken = "public-sandbox-FAIL-" + uuid.NewString()
+	}
 	item := models.Item{
 		AccessToken:     "access-sandbox-" + uuid.NewString(),
 		ItemID:          "item-" + uuid.NewString(),

@@ -70,6 +70,23 @@ func TestExchange_InvalidPublicToken(t *testing.T) {
 	}
 }
 
+func TestExchange_InjectedFault(t *testing.T) {
+	h, _ := newTestHandler()
+	// A FAIL-marked public_token (minted for ins_mock_fail) must fail exchange,
+	// driving the backend's link-failure path. No item needs to exist.
+	rr := post(t, h.ExchangePublicToken, `{"public_token":"public-sandbox-FAIL-abc"}`)
+	if rr.Code != http.StatusInternalServerError {
+		t.Fatalf("expected 500, got %d (%s)", rr.Code, rr.Body.String())
+	}
+	var resp struct {
+		ErrorCode string `json:"error_code"`
+	}
+	_ = json.NewDecoder(rr.Body).Decode(&resp)
+	if resp.ErrorCode != "INTERNAL_SERVER_ERROR" {
+		t.Fatalf("error_code: %q", resp.ErrorCode)
+	}
+}
+
 func TestItemGet(t *testing.T) {
 	h, store := newTestHandler()
 	seedItem(t, store, models.InstitutionA, "Tartan Bank")

@@ -134,18 +134,18 @@ services:
 
       - ILW_BACKEND_HOST=${BACKEND_ILW_BACKEND_HOST:-}
       
-      # Provider/Integrator: Plaid
-      - PLAID_ENABLED=${BACKEND_PLAID_ENABLED:-false}
-      - PLAID_CLIENT_ID=${BACKEND_PLAID_CLIENT_ID:-}
-      - PLAID_SECRET=${BACKEND_PLAID_SECRET:-}
+      # Integration: Plaid
+      - PLAID_ENABLED=${BACKEND_PLAID_ENABLED:-true}
+      - PLAID_CLIENT_ID=${BACKEND_PLAID_CLIENT_ID:-mock-client-id}
+      - PLAID_SECRET=${BACKEND_PLAID_SECRET:-mock-secret}
       - PLAID_ENV=${BACKEND_PLAID_ENV:-sandbox}
       - PLAID_PRODUCTS=${BACKEND_PLAID_PRODUCTS:-auth,transactions,balance,identity}
       - PLAID_COUNTRY_CODES=${BACKEND_PLAID_COUNTRY_CODES:-US}
       - PLAID_PROCESSOR=${BACKEND_PLAID_PROCESSOR:-fiant}
       # Base-URL override → mockplaid (local default). For REAL Plaid: set
       # BACKEND_PLAID_API_URL= (blank) in local/.env + remove the cdn.plaid.com
-      # line from /etc/hosts, then restart the backend. (A `make plaid-real`/
-      # `make plaid-mock` toggle is coming in mockplaid task MP20.)
+      # line from /etc/hosts, then restart the backend. (You can use `make plaid-real`/
+      # `make plaid-mock` toggle)
       - PLAID_API_URL=${BACKEND_PLAID_API_URL:-http://mockplaid:8080}
 
 

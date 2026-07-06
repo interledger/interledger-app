@@ -57,6 +57,15 @@ cd local && docker compose up -d --build mockplaid
 ```
 (Compose images do not auto-rebuild on source change — stale container = 404 on new routes.)
 
+## Fault injection (link-failure testing)
+
+Selecting the institution **`ins_mock_fail`** ("Failing Bank", in the catalog + Link
+UI) mints a public_token carrying a `-FAIL-` marker; `ExchangePublicToken` rejects
+any such token with a 500 Plaid error. This drives the backend's exchange-failure
+path so e2e can assert the frontend "Bank account linking failed." UX. The fault
+rides on the token (no server-side flag), so it is per-selection and never leaks
+between scenarios — `/test/reset` needs no special handling.
+
 ## Gotchas
 
 - **HSTS**: `cdn.plaid.com` is preloaded → cert must be trusted (`make hosts/certs/trust`), no bypass.
