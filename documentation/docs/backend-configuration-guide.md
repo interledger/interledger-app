@@ -142,7 +142,7 @@ Loaded by the backend `start` and `worker` commands. **Required** means the fiel
 
 | Key | Type | Required | Secret | Notes |
 |---|---|---|---|---|
-| `environment.mode` | string | Yes | No | One of `prod`, `sandbox`, `dev`, `local`, `test`. Drives behavioural switches. |
+| `environment.mode` | string | Yes | No | One of `prod`, `dev`, `local`, `test`. Drives behavioural switches. |
 | `environment.label` | string | No | No | Human-readable tag attached to telemetry (Sentry, OTEL). |
 | `port` | string | No | No | HTTP port. Default `8080`. |
 | `application_url` | string | Yes | No | Base URL of the wallet application. |
