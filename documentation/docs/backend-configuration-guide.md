@@ -254,7 +254,7 @@ Gated by `plaid.enabled`; the remaining fields are required only when enabled.
 | `plaid.env` | string | If enabled | No | One of `sandbox`, `production`. |
 | `plaid.products` | []string | If enabled | No | Plaid products to request (e.g. `auth`, `transactions`, `balance`, `identity`). |
 | `plaid.country_codes` | []string | If enabled | No | ISO country codes for Link (e.g. `US`). |
-| `plaid.processor` | string | No | No | One of `fiant`, `zero_hash`. Defaults to `fiant` when `plaid.enabled` and unset. |
+| `plaid.processor` | string | No | No | Must be `fiant`. Defaults to `fiant` when `plaid.enabled` and unset. |
 | `plaid.api_url` | string | No | No | Overrides the Plaid SDK base URL (e.g. to point at mockplaid locally). Empty selects the real Plaid environment matching `plaid.env`. |
 
 ### Twilio

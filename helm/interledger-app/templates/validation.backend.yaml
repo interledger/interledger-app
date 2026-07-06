@@ -117,8 +117,8 @@
     {{- fail "backend.config.plaid.country_codes is required when backend.config.plaid.enabled is true" -}}
   {{- end -}}
   {{- $plaidProcessor := .Values.backend.config.plaid.processor | default "fiant" -}}
-  {{- if not (has $plaidProcessor (list "fiant" "zero_hash")) -}}
-    {{- fail (printf "backend.config.plaid.processor must be one of [fiant zero_hash], got: %q" $plaidProcessor) -}}
+  {{- if ne $plaidProcessor "fiant" -}}
+    {{- fail (printf "backend.config.plaid.processor must be fiant, got: %q" $plaidProcessor) -}}
   {{- end -}}
 {{- end -}}
 

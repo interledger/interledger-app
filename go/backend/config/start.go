@@ -128,8 +128,8 @@ func validateStart(cfg *StartConfig) error {
 		if len(cfg.Plaid.CountryCodes) == 0 {
 			return errors.New("plaid.country_codes is required when plaid.enabled is true")
 		}
-		if cfg.Plaid.Processor != "fiant" && cfg.Plaid.Processor != "zero_hash" {
-			return errors.New("plaid.processor must be one of: fiant, zero_hash")
+		if cfg.Plaid.Processor != "fiant" {
+			return errors.New("plaid.processor must be: fiant")
 		}
 	}
 
