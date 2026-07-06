@@ -10,6 +10,7 @@ import {
 import { createId } from '@paralleldrive/cuid2'
 import { randomUUID } from 'crypto'
 import { envValue } from '~/env.server'
+import { toWalletAddressUrl } from './utils.server'
 
 export async function createClient() {
   return await createAuthenticatedClient({
@@ -531,6 +532,7 @@ export async function getGrantStatus(
 
 export async function getValidWalletAddress(walletAddress: string) {
   const opClient = await createClient()
-  const response = await getWalletAddress(walletAddress, opClient)
-  return response
+  const url = toWalletAddressUrl(walletAddress)
+
+  return await getWalletAddress(url, opClient)
 }

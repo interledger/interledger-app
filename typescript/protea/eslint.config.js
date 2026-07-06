@@ -61,5 +61,16 @@ export default tseslint.config(
     files: ['**/*.config.{js,ts}'],
     rules: { '@typescript-eslint/no-require-imports': 'off' }
   },
+  {
+    // server.js is a Node.js ESM file — declare the Node built-ins it uses.
+    files: ['server.js'],
+    languageOptions: {
+      globals: {
+        process: 'readonly',
+        console: 'readonly',
+        setTimeout: 'readonly'
+      }
+    }
+  },
   prettier
 )

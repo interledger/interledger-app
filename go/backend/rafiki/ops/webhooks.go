@@ -30,17 +30,18 @@ type webhook struct {
 }
 
 type outgoingPaymentData struct {
-	ID              string    `json:"id"`
-	WalletAddressID string    `json:"walletAddressId"`
-	State           string    `json:"state"`
-	Receiver        string    `json:"receiver"`
-	DebitAmount     amount    `json:"debitAmount"`
-	ReceiveAmount   amount    `json:"receiveAmount"`
-	SentAmount      amount    `json:"sentAmount"`
-	StateAttempts   int       `json:"stateAttempts"`
-	CreatedAt       time.Time `json:"createdAt"`
-	UpdatedAt       time.Time `json:"updatedAt"`
-	Balance         string    `json:"balance"`
+	ID              string         `json:"id"`
+	WalletAddressID string         `json:"walletAddressId"`
+	State           string         `json:"state"`
+	Receiver        string         `json:"receiver"`
+	DebitAmount     amount         `json:"debitAmount"`
+	ReceiveAmount   amount         `json:"receiveAmount"`
+	SentAmount      amount         `json:"sentAmount"`
+	StateAttempts   int            `json:"stateAttempts"`
+	CreatedAt       time.Time      `json:"createdAt"`
+	UpdatedAt       time.Time      `json:"updatedAt"`
+	Balance         string         `json:"balance"`
+	Metadata        map[string]any `json:"metadata"`
 }
 
 type amount struct {
@@ -49,14 +50,24 @@ type amount struct {
 	AssetScale int    `json:"assetScale"`
 }
 
+// metadataSourceWebMonetization is the value Rafiki sets in a payment's
+// metadata.source when the payment originates from Web Monetization.
+const metadataSourceWebMonetization = "Web Monetization"
+
+func isWebMonetizationPayment(metadata map[string]any) bool {
+	s, ok := metadata["source"].(string)
+	return ok && s == metadataSourceWebMonetization
+}
+
 type incomingPaymentData struct {
-	ID              string    `json:"id"`
-	WalletAddressID string    `json:"walletAddressId"`
-	CreatedAt       time.Time `json:"createdAt"`
-	ExpiresAt       time.Time `json:"expiresAt"`
-	IncomingAmount  *amount   `json:"incomingAmount,omitempty"`
-	ReceivedAmount  amount    `json:"receivedAmount"`
-	Completed       bool      `json:"completed"`
+	ID              string         `json:"id"`
+	WalletAddressID string         `json:"walletAddressId"`
+	CreatedAt       time.Time      `json:"createdAt"`
+	ExpiresAt       time.Time      `json:"expiresAt"`
+	IncomingAmount  *amount        `json:"incomingAmount,omitempty"`
+	ReceivedAmount  amount         `json:"receivedAmount"`
+	Completed       bool           `json:"completed"`
+	Metadata        map[string]any `json:"metadata"`
 }
 
 func EventWebhook(b Backends) http.HandlerFunc {

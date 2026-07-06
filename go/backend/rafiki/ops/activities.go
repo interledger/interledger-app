@@ -395,10 +395,15 @@ func (a *Activity) CreateIncomingPaymentTransaction(ctx context.Context, ip inco
 		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
 	}
 
+	txType := transactions.TransactionTypeOpenPaymentIncoming
+	if isWebMonetizationPayment(ip.Metadata) {
+		txType = transactions.TransactionTypeWebMonetizationIncoming
+	}
+
 	_, err = a.b.Transactions().CreateTransaction(ctx, transactions.CreateTransactionArgs{
 		WalletID:                walletID,
 		ForeignID:               ip.ID,
-		ForeignType:             transactions.TransactionTypeOpenPaymentIncoming,
+		ForeignType:             txType,
 		Provider:                gatehub.ProviderName,
 		State:                   transactions.StateCompleted,
 		Source:                  wallet.AddressString(),
@@ -491,10 +496,15 @@ func (a *Activity) CreateOutgoingPaymentTransaction(ctx context.Context, op outg
 		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
 	}
 
+	txType := transactions.TransactionTypeOpenOutgoingPayment
+	if isWebMonetizationPayment(op.Metadata) {
+		txType = transactions.TransactionTypeWebMonetizationOutgoing
+	}
+
 	_, err = a.b.Transactions().CreateTransaction(ctx, transactions.CreateTransactionArgs{
 		WalletID:                walletID,
 		ForeignID:               op.ID,
-		ForeignType:             transactions.TransactionTypeOpenOutgoingPayment,
+		ForeignType:             txType,
 		Provider:                gatehub.ProviderName,
 		State:                   transactions.StatePending,
 		Source:                  wallet.AddressString(),
