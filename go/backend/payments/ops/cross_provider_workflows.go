@@ -135,36 +135,6 @@ func crossProviderXagoToGatehubPayOut(ctx workflow.Context, a *Activity, payment
 		}
 	}
 
-	// TODO maybe extract and reuse this part of the code in GatehubToXagoPayOut
-	// TODO is this the right order of operations or should we do conversion before gatehub part?
-	// Execute Xago ZAR→EUR conversion (non-retryable; moves real money).
-	var convertID string
-	err = workflow.ExecuteActivity(ctx, a.XagoConvertCurrencyActivity, paymentID).Get(ctx, &convertID)
-	if err != nil {
-		return "", false, err
-	}
-
-	// Poll until conversion completes.
-	// TODO extract and reuse
-	for {
-		var details XagoConvertDetails
-		err = workflow.ExecuteActivity(ctx, a.XagoCheckConvertComplete, convertID).Get(ctx, &details)
-		if err != nil {
-			return "", false, err
-		}
-		if details.Complete {
-			// TODO check what we need to store. What about the fees?
-			err = workflow.ExecuteActivity(ctx, a.StoreActualFXRateAndAmount, paymentID, details).Get(ctx, nil)
-			if err != nil {
-				return "", false, err
-			}
-			break
-		}
-
-		// TODO review and refactor the polling for conversion complete
-		_ = workflow.Sleep(ctx, 10*time.Second)
-	}
-
 	// Atomically post all Pacioli transfers.
 	err = workflow.ExecuteActivity(ctx, a.PostXagoToGatehubTransfers, paymentID).Get(ctx, nil)
 	if err != nil {
