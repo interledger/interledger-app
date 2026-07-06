@@ -31,86 +31,70 @@ jobs:
         uses: actions/checkout@v6
         with:
           ref: ${{ github.event.release.tag_name }}
-          persist-credentials: false
+          persist-credentials: true
+
+      - name: Fetch docs branch
+        run: git fetch origin docs:refs/remotes/origin/docs
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.13'
 
-      - name: Install mkdocs
-        run: pip install --no-cache-dir mkdocs-material pymdown-extensions
+      - name: Install mike
+        run: pip install --no-cache-dir mike mkdocs-material pymdown-extensions
 
-      - name: Build docs
-        working-directory: documentation
-        run: mkdocs build --site-dir site
-
-      - name: Checkout docs branch
-        uses: actions/checkout@v6
-        with:
-          ref: docs
-          path: docs-branch
-          persist-credentials: true
-
-      - name: Publish version to docs branch
-        working-directory: docs-branch
+      - name: Determine whether this release becomes "latest"
+        # Mirrors release.yml's own maintenance-branch detection (branch
+        # names like "1.33.x") so a patch to an old maintenance line never
+        # demotes the real latest release. mike tracks aliases explicitly
+        # in versions.json, so this is a one-time decision per release
+        # rather than something re-derived by rescanning every published
+        # version on each run.
+        id: alias
+        env:
+          TARGET_COMMITISH: ${{ github.event.release.target_commitish }}
         run: |
-          set -euo pipefail
-
-          rm -rf "${VERSION:?}"
-          mkdir -p "${VERSION}"
-          cp -r ../documentation/site/. "${VERSION}/"
-
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add "${VERSION}"
-
-          # Recompute "latest" from every version directory now on disk
-          # (not just the one we just published) so that an out-of-order
-          # release - e.g. a patch for an older maintenance branch landing
-          # after a newer minor - can never regress it.
-          latest=$(python3 - <<'PY'
-          import os, re, sys
-
-          pattern = re.compile(r"^v?(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?$")
-
-          def sort_key(name):
-              major, minor, patch, pre = pattern.match(name).groups()
-              pre_parts = pre.split(".") if pre else []
-              pre_key = [(0, int(p)) if p.isdigit() else (1, p) for p in pre_parts]
-              # A release with no pre-release outranks one with the same
-              # major.minor.patch that has one (standard semver precedence).
-              return (int(major), int(minor), int(patch), not pre_parts, pre_key)
-
-          versions = [d for d in os.listdir(".") if os.path.isdir(d) and pattern.match(d)]
-          if not versions:
-              sys.exit("no version directories found to link 'latest' to")
-          print(max(versions, key=sort_key))
-          PY
-          )
-          ln -sfn "$latest" latest
-          git add latest
-
-          if git diff --cached --quiet; then
-            echo "No changes for ${VERSION}; nothing to publish."
-            exit 0
+          if [[ "${TARGET_COMMITISH}" =~ ^[0-9]+(\.[0-9]+)?\.x$ ]]; then
+            echo "aliases=" >> "$GITHUB_OUTPUT"
+          else
+            echo "aliases=latest" >> "$GITHUB_OUTPUT"
           fi
 
-          git commit -m "docs: publish documentation for ${VERSION}"
+      - name: Publish version to docs branch
+        env:
+          ALIASES: ${{ steps.alias.outputs.aliases }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # The docs branch is only ever written by this job, but a retry of
-          # a previous failed run or an overlapping release on another
-          # branch could still have pushed in between our checkout and this
-          # push. Rebase onto the latest remote state and retry a few times
-          # before giving up, rather than clobbering another version's commit.
+          # mike checks the docs branch is up to date with origin before
+          # committing (see "Fetch docs branch" above) and refuses to push
+          # over a real divergence. A concurrent maintenance-branch release
+          # landing in that window is still possible, so retry a few times
+          # rather than failing outright.
           for attempt in 1 2 3; do
-            if git push origin HEAD:docs; then
+            if mike deploy \
+                --config-file documentation/mkdocs.yml \
+                --branch docs \
+                --push \
+                --update-aliases \
+                "${VERSION}" ${ALIASES}; then
               exit 0
             fi
-            echo "Push rejected (attempt ${attempt}/3); fetching and rebasing."
-            git fetch origin docs
-            git rebase origin/docs
+            echo "Deploy rejected (attempt ${attempt}/3); re-fetching docs."
+            git fetch origin docs:refs/remotes/origin/docs
           done
 
-          echo "::error::Failed to push docs for ${VERSION} after 3 attempts."
+          echo "::error::Failed to publish docs for ${VERSION} after 3 attempts."
           exit 1
+
+      - name: Point the docs branch root at "latest"
+        if: steps.alias.outputs.aliases == 'latest'
+        run: |
+          mike set-default \
+            --config-file documentation/mkdocs.yml \
+            --branch docs \
+            --push \
+            latest
