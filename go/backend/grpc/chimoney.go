@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 
-	"gitlab.com/fynbos/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/currency"
 
-	"gitlab.com/fynbos/backend/providers/chimoney"
+	"github.com/interledger/interledger-app/go/backend/providers/chimoney"
 
-	pb "gitlab.com/fynbos/proto/backend/v1"
+	pb "github.com/interledger/interledger-app/go/proto/backend/v1"
 )
 
 func (s *rpcService) SetChimoneyInterlocEmail(ctx context.Context, req *pb.SetChimoneyInterlocEmailRequest) (*pb.ChimoneyInterlocEmail, error) {

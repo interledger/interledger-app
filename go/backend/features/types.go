@@ -12,5 +12,6 @@ type WalletFeatures struct {
 	InteraccEnabled          bool `db:"interac_enabled"`
 	ManageWalletCardsEnabled bool `db:"manage_wallet_cards_enabled"`
 	AccountsTabEnabled       bool `db:"accounts_tab_enabled"`
+	DeleteAccountEnabled     bool `db:"delete_account_enabled"`
 	AccountEnabled           bool
 }

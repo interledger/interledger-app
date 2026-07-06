@@ -3,11 +3,11 @@ package grpc
 import (
 	"context"
 
-	"gitlab.com/fynbos/backend/rafiki"
+	"github.com/interledger/interledger-app/go/backend/rafiki"
 
-	"gitlab.com/fynbos/backend/db"
+	"github.com/interledger/interledger-app/go/backend/db"
 
-	pb "gitlab.com/fynbos/proto/backend/v1"
+	pb "github.com/interledger/interledger-app/go/proto/backend/v1"
 )
 
 func (s *rpcService) ListRafikiGrants(ctx context.Context, _ *pb.Empty) (*pb.ListRafikiGrantsResponse, error) {

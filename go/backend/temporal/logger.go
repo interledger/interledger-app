@@ -1,7 +1,7 @@
 package temporal
 
 import (
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/log"
 	"go.uber.org/zap"
 )
 

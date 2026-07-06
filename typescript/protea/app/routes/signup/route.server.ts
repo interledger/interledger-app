@@ -58,7 +58,7 @@ export async function loader({ request }: Route.LoaderArgs) {
       countries,
       kratosFlowId: flowResponse.data.id,
       kratosCsrfToken: getCsrfTokenFromFlow(flowResponse.data),
-      fynbosEnv: envValue('FYNBOS_ENV')
+      ilwEnv: envValue('ILW_ENV')
     },
     {
       headers: buildHeadersWithCookies(flowResponse)

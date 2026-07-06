@@ -4,17 +4,17 @@ import (
 	"context"
 	"testing"
 
-	_user "gitlab.com/fynbos/backend/user"
-	"gitlab.com/fynbos/backend/wallets"
+	_user "github.com/interledger/interledger-app/go/backend/user"
+	"github.com/interledger/interledger-app/go/backend/wallets"
 
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
+	"github.com/interledger/interledger-app/go/backend/keys"
+	"github.com/interledger/interledger-app/go/backend/user"
+	user_mock "github.com/interledger/interledger-app/go/backend/user/client/mock"
+	backendv1 "github.com/interledger/interledger-app/go/proto/backend/v1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/backend/keys"
-	"gitlab.com/fynbos/backend/user"
-	user_mock "gitlab.com/fynbos/backend/user/client/mock"
-	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 )
 
 func TestCreatePublicKey(t *testing.T) {

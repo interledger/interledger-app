@@ -1,9 +1,9 @@
 package ops
 
 import (
+	"github.com/interledger/interledger-app/go/backend/twitter/external"
+	external_mock "github.com/interledger/interledger-app/go/backend/twitter/external/client/mock"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/fynbos/backend/twitter/external"
-	external_mock "gitlab.com/fynbos/backend/twitter/external/client/mock"
 	temporal "go.temporal.io/sdk/client"
 )
 

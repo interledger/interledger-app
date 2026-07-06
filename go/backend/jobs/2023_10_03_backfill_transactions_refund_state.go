@@ -3,8 +3,8 @@ package jobs
 import (
 	"context"
 	"fmt"
-	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/transactions"
+	"github.com/interledger/interledger-app/go/backend/db"
+	"github.com/interledger/interledger-app/go/backend/transactions"
 	"go.temporal.io/sdk/workflow"
 	"time"
 )

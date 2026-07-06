@@ -10,7 +10,7 @@ import (
 	"net/url"
 	"time"
 
-	httplog "gitlab.com/fynbos/backend/providers/http"
+	httplog "github.com/interledger/interledger-app/go/backend/providers/http"
 )
 
 func (c client) CreateWallet(ctx context.Context, args CreateWalletArgs) (*Wallet, error) {

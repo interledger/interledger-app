@@ -2,7 +2,7 @@ package jobs
 
 import (
 	"context"
-	"gitlab.com/fynbos/backend/transactions"
+	"github.com/interledger/interledger-app/go/backend/transactions"
 	"time"
 
 	"go.temporal.io/sdk/temporal"

@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"gitlab.com/fynbos/mock/mockxago/internal/logger"
-	"gitlab.com/fynbos/mock/mockxago/internal/models"
-	"gitlab.com/fynbos/mock/mockxago/internal/storage"
+	"github.com/interledger/interledger-app/go/mock/mockxago/internal/logger"
+	"github.com/interledger/interledger-app/go/mock/mockxago/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockxago/internal/storage"
 
 	"github.com/google/uuid"
 )

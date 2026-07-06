@@ -21,7 +21,7 @@ const knownEnvKeysOptional: string[] = [
   'SENTRY_DSN',
   'SENTRY_RELEASE',
   'SENTRY_ENV_LABEL',
-  'FYNBOS_ENV',
+  'ILW_ENV',
   'MOCKXAGO_ENDPOINT',
   'LOG_LEVEL',
   'LOG_PRETTY',

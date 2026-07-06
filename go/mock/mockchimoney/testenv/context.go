@@ -24,12 +24,12 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 
-	"gitlab.com/fynbos/mock/mockchimoney/internal/config"
-	"gitlab.com/fynbos/mock/mockchimoney/internal/handler"
-	"gitlab.com/fynbos/mock/mockchimoney/internal/jobs"
-	"gitlab.com/fynbos/mock/mockchimoney/internal/models"
-	"gitlab.com/fynbos/mock/mockchimoney/internal/storage"
-	"gitlab.com/fynbos/mock/mockchimoney/internal/webhook"
+	"github.com/interledger/interledger-app/go/mock/mockchimoney/internal/config"
+	"github.com/interledger/interledger-app/go/mock/mockchimoney/internal/handler"
+	"github.com/interledger/interledger-app/go/mock/mockchimoney/internal/jobs"
+	"github.com/interledger/interledger-app/go/mock/mockchimoney/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockchimoney/internal/storage"
+	"github.com/interledger/interledger-app/go/mock/mockchimoney/internal/webhook"
 )
 
 type webhookEvent struct {

@@ -3,8 +3,8 @@ package client
 import (
 	"context"
 
-	"gitlab.com/fynbos/backend/keys"
-	"gitlab.com/fynbos/backend/keys/ops"
+	"github.com/interledger/interledger-app/go/backend/keys"
+	"github.com/interledger/interledger-app/go/backend/keys/ops"
 )
 
 var _ keys.Client = client{}

@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"gitlab.com/fynbos/backend/providers/xago/external"
+	"github.com/interledger/interledger-app/go/backend/providers/xago/external"
 
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
-	"gitlab.com/fynbos/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/currency"
 )
 
 func SetupDevMock(t *testing.T) *MockClient {

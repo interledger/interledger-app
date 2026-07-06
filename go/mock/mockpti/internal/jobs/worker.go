@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"gitlab.com/fynbos/mock/mockpti/internal/logger"
-	"gitlab.com/fynbos/mock/mockpti/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockpti/internal/logger"
+	"github.com/interledger/interledger-app/go/mock/mockpti/internal/models"
 )
 
 // JobHandler is a function that processes a single job.

@@ -6,14 +6,14 @@ import (
 	"strings"
 
 	vault "github.com/hashicorp/vault/api"
-	"gitlab.com/fynbos/env"
+	"github.com/interledger/interledger-app/go/env"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 type Config struct {
-	Addr               string
-	TransitEnginePath  string
-	Token              string
+	Addr              string
+	TransitEnginePath string
+	Token             string
 }
 
 type client struct {

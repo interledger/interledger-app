@@ -3,8 +3,8 @@ package ops
 import (
 	"testing"
 
-	"gitlab.com/fynbos/backend/rafiki"
-	"gitlab.com/fynbos/backend/vault"
+	"github.com/interledger/interledger-app/go/backend/rafiki"
+	"github.com/interledger/interledger-app/go/backend/vault"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"gitlab.com/fynbos/backend/identities"
+	"github.com/interledger/interledger-app/go/backend/identities"
 )
 
 type (

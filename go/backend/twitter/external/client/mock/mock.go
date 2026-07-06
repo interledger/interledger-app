@@ -9,8 +9,8 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	twitter "gitlab.com/fynbos/backend/twitter"
-	external "gitlab.com/fynbos/backend/twitter/external"
+	twitter "github.com/interledger/interledger-app/go/backend/twitter"
+	external "github.com/interledger/interledger-app/go/backend/twitter/external"
 	oauth2 "golang.org/x/oauth2"
 )
 

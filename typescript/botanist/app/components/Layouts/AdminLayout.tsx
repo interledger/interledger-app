@@ -1,6 +1,6 @@
 import { Outlet, href } from 'react-router'
 import { useState } from 'react'
-import { IconButton, Logo, Router } from '~/components'
+import { IconButton, InterledgerWalletLogo, Router } from '~/components'
 import { NavDrawer } from './NavDrawer'
 
 export function AdminLayout() {
@@ -11,8 +11,8 @@ export function AdminLayout() {
         <NavDrawer>
           <NavDrawer.List>
             <div className='ml-4'>
-              <Router to={href('/')} aria-label='Interledger logo'>
-                <Logo className='h-8' />
+              <Router to={href('/')} aria-label='Interledger Wallet logo'>
+                <InterledgerWalletLogo className='h-8' />
               </Router>
             </div>
             <NavDrawer.ListItem to={href('/')}>Home</NavDrawer.ListItem>
@@ -42,8 +42,8 @@ export function AdminLayout() {
           >
             menu
           </IconButton>
-          <Router to={href('/')} aria-label='Interledger logo'>
-            <Logo className='h-8' />
+          <Router to={href('/')} aria-label='Interledger Wallet logo'>
+            <InterledgerWalletLogo className='h-8' />
           </Router>
         </header>
         <div className='my-16 lg:my-6 lg:ml-64 lg:mr-6'>
@@ -60,8 +60,8 @@ export function AdminLayout() {
               >
                 menu_open
               </IconButton>
-              <Router to={href('/')} aria-label='Interledger logo'>
-                <Logo className='h-8' />
+              <Router to={href('/')} aria-label='Interledger Wallet logo'>
+                <InterledgerWalletLogo className='h-8' />
               </Router>
             </div>
             <NavDrawer.ListItem to={href('/')}>Home</NavDrawer.ListItem>

@@ -10,7 +10,7 @@ import (
 	"net/url"
 	"time"
 
-	httplog "gitlab.com/fynbos/backend/providers/http"
+	httplog "github.com/interledger/interledger-app/go/backend/providers/http"
 )
 
 func (c *client) ListCards(ctx context.Context, userID, customerID string) (*ListCardsResponse, error) {

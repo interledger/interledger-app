@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"gitlab.com/fynbos/backend/providers/gatehub/external"
-	"gitlab.com/fynbos/backend/slack"
-	"gitlab.com/fynbos/backend/transactions"
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub/external"
+	"github.com/interledger/interledger-app/go/backend/slack"
+	"github.com/interledger/interledger-app/go/backend/transactions"
+	"github.com/interledger/interledger-app/go/log"
 
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/client"

@@ -25,7 +25,7 @@ services:
 
     environment:
       # Core runtime
-      - FYNBOS_ENV=${PROTEA_FYNBOS_ENV:-local}
+      - ILW_ENV=${PROTEA_ILW_ENV:-local}
       - LOG_LEVEL=${PROTEA_LOG_LEVEL:-debug}
       # Setting LOG_PRETTY to false will result in json logs
       - LOG_PRETTY=${PROTEA_LOG_PRETTY:-true}
@@ -42,9 +42,18 @@ services:
       # Auth and realtime
       - COOKIE_SECRETS=${PROTEA_COOKIE_SECRETS:-"[\"localsecret\"]"}
       - RAFIKI_AUTH_SECRET=${PROTEA_RAFIKI_AUTH_SECRET:-my-super-secret-identity-key}
-      - PUSHER_APP_KEY=${PROTEA_PUSHER_APP_KEY:-91988d6075551d29760a}
+      - PUSHER_APP_KEY=${PROTEA_PUSHER_APP_KEY:-}
       - PUSHER_APP_CLUSTER=${PROTEA_PUSHER_APP_CLUSTER:-eu}
 
+      - OP_INTPAY_ENABLED=${PROTEA_OP_INTPAY_ENABLED:-false}
+      - OP_INTPAY_KEY_ID=${PROTEA_OP_INTPAY_KEY_ID:-}
+      - OP_INTPAY_PRIVATE_KEY=${PROTEA_OP_INTPAY_PRIVATE_KEY:-}
+      - OP_INTPAY_WALLET_ADDRESS=${PROTEA_OP_INTPAY_WALLET_ADDRESS:-}
+      - OP_INTPAY_HOST=${PROTEA_OP_INTPAY_HOST:-https://interledger.test/}
+      - OP_INTPAY_REDIRECT_URL=${PROTEA_OP_INTPAY_REDIRECT_URL:-https://interledger.test/quick-pay/finish}
+
+      - REDIS_URL=${PROTEA_REDIS_URL:-redis://redis:6379/2}
+      
       # Persona SDK URL override (MockXago serves Persona-compatible SDK in local)
       - PERSONA_SDK_URL=${PROTEA_PERSONA_SDK_URL:-https://mockxago.interledger.test/v1/persona-sdk.js}
 
@@ -68,7 +77,6 @@ services:
       - DEFAULT_RATE_LIMIT_TIME=${PROTEA_DEFAULT_RATE_LIMIT_TIME:-3600}
 
       # LEGACY (unused / pending removal)
-      - DATO_API_TOKEN=${PROTEA_DATO_API_TOKEN:-b96709bce873f5280722da965b0e9d}
       - BT_TOKEN=${PROTEA_BT_TOKEN:-}
       - CF_TURNSTILE_SITE_KEY=${PROTEA_CF_TURNSTILE_SITE_KEY:-}
       - CF_TURNSTILE_SECRET_KEY=${PROTEA_CF_TURNSTILE_SECRET_KEY:-}

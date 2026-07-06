@@ -7,8 +7,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"gitlab.com/fynbos/mock/mockgatehub/internal/models"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/utils"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/utils"
 )
 
 // MemoryStorage implements Storage using in-memory maps

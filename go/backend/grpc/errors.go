@@ -6,23 +6,25 @@ import (
 
 	"github.com/getsentry/sentry-go"
 
-	"gitlab.com/fynbos/backend/errcodes"
-	"gitlab.com/fynbos/backend/kyc"
-	"gitlab.com/fynbos/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/accountdeletion"
+	"github.com/interledger/interledger-app/go/backend/email"
+	"github.com/interledger/interledger-app/go/backend/errcodes"
+	"github.com/interledger/interledger-app/go/backend/kyc"
+	"github.com/interledger/interledger-app/go/backend/payments"
 
-	"gitlab.com/fynbos/env"
+	"github.com/interledger/interledger-app/go/env"
 
 	"github.com/go-playground/validator/v10"
-	"gitlab.com/fynbos/backend/identities"
-	"gitlab.com/fynbos/backend/wallets"
+	"github.com/interledger/interledger-app/go/backend/identities"
+	"github.com/interledger/interledger-app/go/backend/wallets"
 
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/signup"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	"github.com/interledger/interledger-app/go/backend/signup"
 
-	"gitlab.com/fynbos/backend/twilio"
-	"gitlab.com/fynbos/backend/user"
-	"gitlab.com/fynbos/log"
-	pb "gitlab.com/fynbos/proto/backend/v1"
+	"github.com/interledger/interledger-app/go/backend/twilio"
+	"github.com/interledger/interledger-app/go/backend/user"
+	"github.com/interledger/interledger-app/go/log"
+	pb "github.com/interledger/interledger-app/go/proto/backend/v1"
 
 	"go.uber.org/zap"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
@@ -33,21 +35,26 @@ import (
 const VALIDATION_ERR_MSG = "Some fields are incorrect."
 
 var errorStatus = map[error]error{
-	user.ErrNoUserFound:            newError(codes.Unauthenticated, errcodes.ErrCodeUserNoUserFound, "Unauthenticated", nil),
-	user.ErrInvalidArgument:        NewValidationError("phone", "Phone number is invalid."),
-	user.ErrDuplicatePhone:         newError(codes.AlreadyExists, errcodes.ErrCodeSignupDuplicatePhone, "Phone number already exists with a user.", nil),
-	twilio.ErrInvalidOTP:           newTwilioValidationErrorSingleField(errcodes.ErrCodeTwilioInvalidOTP, "otp", "Could not validate OTP"),
-	twilio.ErrInvalidArgument:      newTwilioValidationErrorSingleField(errcodes.ErrCodeTwilioInvalidOTP, "otp", "Invalid OTP format"),
-	wallets.ErrDuplicateWallet:     newError(codes.AlreadyExists, errcodes.ErrCodeWalletsDuplicateWallet, "Wallet already exists", nil),
-	wallets.ErrWalletConflict:      newError(codes.FailedPrecondition, errcodes.ErrCodeWalletsWalletConflict, "Wallet already exists but with different configuration than requested (for example, country, currency, or addresses)", nil),
-	linkedaccounts.ErrNotFound:     newError(codes.NotFound, errcodes.ErrCodeLinkedAccNotFound, "Not found: linked account not found", nil),
-	signup.ErrInvalidOTP:           newTwilioValidationErrorSingleField(errcodes.ErrCodeTwilioInvalidOTP, "otp", "Could not validate OTP"),
-	signup.ErrDuplicatePhone:       newError(codes.AlreadyExists, errcodes.ErrCodeSignupDuplicatePhone, "Phone number already exists with a user.", nil),
-	identities.ErrAlreadyExists:    newError(codes.AlreadyExists, errcodes.ErrCodeIdentitiesAlreadyExists, "Identity already exists", nil),
-	wallets.ErrNoWalletFound:       newError(codes.NotFound, errcodes.ErrCodeWalletsNoWalletFound, "Not found: wallet address not found", nil),
-	payments.ErrRequiredActions:    newError(codes.FailedPrecondition, errcodes.ErrCodePaymentsRequiredActions, "Required details missing for payment", nil),
-	payments.ErrInsufficientFunds:  PaymentInsufficientFundsError(),
-	kyc.ErrKYCResubmissionRequired: newError(codes.FailedPrecondition, errcodes.ErrCodeKYCResubmissionRequired, "KYC resubmission required: please update your verification documents", nil),
+	user.ErrNoUserFound:                 newError(codes.Unauthenticated, errcodes.ErrCodeUserNoUserFound, "Unauthenticated", nil),
+	user.ErrInvalidArgument:             NewValidationError("phone", "Phone number is invalid."),
+	user.ErrDuplicatePhone:              newError(codes.AlreadyExists, errcodes.ErrCodeSignupDuplicatePhone, "Phone number already exists with a user.", nil),
+	twilio.ErrInvalidOTP:                newTwilioValidationErrorSingleField(errcodes.ErrCodeTwilioInvalidOTP, "otp", "Could not validate OTP"),
+	twilio.ErrInvalidArgument:           newTwilioValidationErrorSingleField(errcodes.ErrCodeTwilioInvalidOTP, "otp", "Invalid OTP format"),
+	wallets.ErrDuplicateWallet:          newError(codes.AlreadyExists, errcodes.ErrCodeWalletsDuplicateWallet, "Wallet already exists", nil),
+	wallets.ErrWalletConflict:           newError(codes.FailedPrecondition, errcodes.ErrCodeWalletsWalletConflict, "Wallet already exists but with different configuration than requested (for example, country, currency, or addresses)", nil),
+	linkedaccounts.ErrNotFound:          newError(codes.NotFound, errcodes.ErrCodeLinkedAccNotFound, "Not found: linked account not found", nil),
+	signup.ErrInvalidOTP:                newTwilioValidationErrorSingleField(errcodes.ErrCodeTwilioInvalidOTP, "otp", "Could not validate OTP"),
+	signup.ErrDuplicatePhone:            newError(codes.AlreadyExists, errcodes.ErrCodeSignupDuplicatePhone, "Phone number already exists with a user.", nil),
+	identities.ErrAlreadyExists:         newError(codes.AlreadyExists, errcodes.ErrCodeIdentitiesAlreadyExists, "Identity already exists", nil),
+	wallets.ErrNoWalletFound:            newError(codes.NotFound, errcodes.ErrCodeWalletsNoWalletFound, "Not found: wallet address not found", nil),
+	payments.ErrRequiredActions:         newError(codes.FailedPrecondition, errcodes.ErrCodePaymentsRequiredActions, "Required details missing for payment", nil),
+	payments.ErrInsufficientFunds:       PaymentInsufficientFundsError(),
+	kyc.ErrKYCResubmissionRequired:      newError(codes.FailedPrecondition, errcodes.ErrCodeKYCResubmissionRequired, "KYC resubmission required: please update your verification documents", nil),
+	user.ErrInvalidTotpCode:             newValidationErrorSingleField(errcodes.ErrCodeUserInvalidTotpCode, "totp_code", "Invalid verification code."),
+	user.ErrTotpNotConfigured:           newError(codes.FailedPrecondition, errcodes.ErrCodeUserTotpNotConfigured, "Two-factor authentication is not configured on this account.", nil),
+	user.ErrInvalidTotpConfig:           newError(codes.FailedPrecondition, errcodes.ErrCodeUserInvalidTotpConfig, "Two-factor authentication configuration is invalid.", nil),
+	email.ErrSupportInboxNotConfigured:  newError(codes.FailedPrecondition, errcodes.ErrCodeEmailSupportInboxNotConfigured, "Support email is not configured.", nil),
+	accountdeletion.ErrAlreadyRequested: newError(codes.AlreadyExists, errcodes.ErrCodeAccountDeletionAlreadyRequested, "Account deletion is already pending.", nil),
 }
 
 func validationDesc(fe validator.FieldError) string {
@@ -316,6 +323,22 @@ func newTwilioValidationErrorSingleField(appErrCode errcodes.AppErrorCode, field
 	}
 
 	return statusWithDetails(st, br, metadata, appError).Err()
+}
+
+func newValidationErrorSingleField(appErrCode errcodes.AppErrorCode, field string, fieldError string) error {
+	return newValidationError(appErrCode, []*pb.AppErrorField{newAppErrorField(field, fieldError)})
+}
+
+func newValidationError(appErrCode errcodes.AppErrorCode, fields []*pb.AppErrorField) error {
+	st := status.New(codes.InvalidArgument, VALIDATION_ERR_MSG)
+
+	appError := &pb.AppError{
+		ErrorCode: appErrCode,
+		Message:   VALIDATION_ERR_MSG,
+		Fields:    fields,
+	}
+
+	return statusWithDetails(st, appError).Err()
 }
 
 func newAppErrorField(field string, description string) *pb.AppErrorField {

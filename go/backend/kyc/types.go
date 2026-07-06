@@ -4,7 +4,7 @@ import (
 	"strings"
 	"time"
 
-	"gitlab.com/fynbos/backend/kyc/persona"
+	"github.com/interledger/interledger-app/go/backend/kyc/persona"
 )
 
 type Gender int

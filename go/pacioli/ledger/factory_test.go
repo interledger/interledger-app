@@ -4,10 +4,10 @@ import (
 	"context"
 	"testing"
 
-	"gitlab.com/fynbos/pacioli/db"
-	"gitlab.com/fynbos/pacioli/ledger"
+	"github.com/interledger/interledger-app/go/pacioli/db"
+	"github.com/interledger/interledger-app/go/pacioli/ledger"
 
-	test_utils "gitlab.com/fynbos/pacioli/utils"
+	test_utils "github.com/interledger/interledger-app/go/pacioli/utils"
 )
 
 type TestContainer struct {

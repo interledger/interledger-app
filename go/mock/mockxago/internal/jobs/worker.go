@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"gitlab.com/fynbos/mock/mockxago/internal/logger"
-	"gitlab.com/fynbos/mock/mockxago/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockxago/internal/logger"
+	"github.com/interledger/interledger-app/go/mock/mockxago/internal/models"
 )
 
 // JobHandler is a function that processes a job. Return nil on success, error on failure.

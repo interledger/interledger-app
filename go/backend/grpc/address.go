@@ -5,9 +5,9 @@ import (
 	"errors"
 	"strings"
 
-	"gitlab.com/fynbos/backend/rafiki"
-	"gitlab.com/fynbos/backend/wallets"
-	pb "gitlab.com/fynbos/proto/backend/v1"
+	"github.com/interledger/interledger-app/go/backend/rafiki"
+	"github.com/interledger/interledger-app/go/backend/wallets"
+	pb "github.com/interledger/interledger-app/go/proto/backend/v1"
 )
 
 func (g *rpcService) CreateWalletAddress(ctx context.Context, req *pb.CreateWalletAddressRequest) (*pb.Empty, error) {

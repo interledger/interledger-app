@@ -10,13 +10,13 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/golang/mock/gomock"
+	"github.com/interledger/interledger-app/go/backend/db"
+	"github.com/interledger/interledger-app/go/backend/signup"
+	"github.com/interledger/interledger-app/go/backend/signup/ops"
+	"github.com/interledger/interledger-app/go/backend/twilio"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/signup"
-	"gitlab.com/fynbos/backend/signup/ops"
-	"gitlab.com/fynbos/backend/twilio"
 )
 
 type backends struct {

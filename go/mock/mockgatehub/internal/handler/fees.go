@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"sync"
 
-	"gitlab.com/fynbos/mock/mockgatehub/internal/logger"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/logger"
 
 	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"

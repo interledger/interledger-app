@@ -6,13 +6,13 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
+	"github.com/interledger/interledger-app/go/backend/db"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	la_mock "github.com/interledger/interledger-app/go/backend/linkedaccounts/client/mock"
+	"github.com/interledger/interledger-app/go/backend/providers/chimoney"
+	"github.com/interledger/interledger-app/go/backend/providers/chimoney/ops"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	la_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
-	"gitlab.com/fynbos/backend/providers/chimoney"
-	"gitlab.com/fynbos/backend/providers/chimoney/ops"
 )
 
 func TestSetInteracEmail(t *testing.T) {

@@ -3,26 +3,26 @@ package ops
 import (
 	"testing"
 
-	payments_mock "gitlab.com/fynbos/backend/payments/client/mock"
+	payments_mock "github.com/interledger/interledger-app/go/backend/payments/client/mock"
 
-	"gitlab.com/fynbos/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/payments"
 
-	"gitlab.com/fynbos/backend/email"
-	email_mock "gitlab.com/fynbos/backend/email/client/mock"
-	"gitlab.com/fynbos/backend/kyc"
-	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
-	"gitlab.com/fynbos/backend/wallets"
-	wallets_mock "gitlab.com/fynbos/backend/wallets/client/mock"
+	"github.com/interledger/interledger-app/go/backend/email"
+	email_mock "github.com/interledger/interledger-app/go/backend/email/client/mock"
+	"github.com/interledger/interledger-app/go/backend/kyc"
+	kyc_mock "github.com/interledger/interledger-app/go/backend/kyc/client/mock"
+	"github.com/interledger/interledger-app/go/backend/wallets"
+	wallets_mock "github.com/interledger/interledger-app/go/backend/wallets/client/mock"
 
 	"github.com/golang/mock/gomock"
-	"gitlab.com/fynbos/backend/analytics"
-	analytics_client "gitlab.com/fynbos/backend/analytics/client"
-	"gitlab.com/fynbos/backend/notify"
-	notify_client "gitlab.com/fynbos/backend/notify/client/mock"
+	"github.com/interledger/interledger-app/go/backend/analytics"
+	analytics_client "github.com/interledger/interledger-app/go/backend/analytics/client"
+	"github.com/interledger/interledger-app/go/backend/notify"
+	notify_client "github.com/interledger/interledger-app/go/backend/notify/client/mock"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/interledger/interledger-app/go/backend/user"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/fynbos/backend/user"
 )
 
 type Backends interface {

@@ -5,10 +5,10 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/interledger/interledger-app/go/backend/kyc/client"
+	"github.com/interledger/interledger-app/go/backend/kyc/persona"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/backend/kyc/client"
-	"gitlab.com/fynbos/backend/kyc/persona"
 )
 
 func TestGetPersonaZAIDNumber_FakeMode(t *testing.T) {

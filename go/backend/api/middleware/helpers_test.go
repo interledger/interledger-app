@@ -2,8 +2,9 @@ package middleware
 
 import (
 	"context"
+	"time"
 
-	"gitlab.com/fynbos/backend/user"
+	"github.com/interledger/interledger-app/go/backend/user"
 )
 
 type stubUserClient struct {
@@ -39,6 +40,9 @@ func (s *stubUserClient) Delete2FATotpEnrollment(_ context.Context, _ string) er
 	panic("unexpected")
 }
 func (s *stubUserClient) GetTotpURL(_ context.Context, _ string) (string, error) { panic("unexpected") }
+func (s *stubUserClient) ValidateTotpCode(_ context.Context, _, _ string, _ time.Time) error {
+	panic("unexpected")
+}
 func (s *stubUserClient) GetUserIDForWallet(_ context.Context, _ string) (string, error) {
 	panic("unexpected")
 }

@@ -10,10 +10,10 @@ import (
 	time "time"
 
 	gomock "github.com/golang/mock/gomock"
-	currency "gitlab.com/fynbos/backend/currency"
-	payments "gitlab.com/fynbos/backend/payments"
-	pti "gitlab.com/fynbos/backend/providers/pti"
-	wallets "gitlab.com/fynbos/backend/wallets"
+	currency "github.com/interledger/interledger-app/go/backend/currency"
+	payments "github.com/interledger/interledger-app/go/backend/payments"
+	pti "github.com/interledger/interledger-app/go/backend/providers/pti"
+	wallets "github.com/interledger/interledger-app/go/backend/wallets"
 )
 
 // MockClient is a mock of Client interface.

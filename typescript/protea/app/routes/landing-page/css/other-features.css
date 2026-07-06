@@ -23,6 +23,14 @@
   transform: translateY(0);
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .other-features-banner {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
 .other-features-header {
   display: flex;
   flex-direction: row;

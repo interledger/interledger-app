@@ -3,9 +3,9 @@ package admin
 import (
 	"context"
 
-	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	pb "gitlab.com/fynbos/proto/backend/admin/v1"
+	"github.com/interledger/interledger-app/go/backend/db"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	pb "github.com/interledger/interledger-app/go/proto/backend/admin/v1"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 

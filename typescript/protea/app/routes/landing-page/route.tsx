@@ -3,6 +3,7 @@
 // The CSS side-effect imports below are ordered intentionally for cascade
 // precedence (tokens/variables first, then base, then components).
 // Do NOT auto-sort them by running format — alphabetizing breaks the landing-page styling.
+import { MotionConfig } from 'framer-motion'
 import type { LinksFunction, LoaderFunctionArgs } from 'react-router'
 import { redirect } from 'react-router'
 import './css/colors.css'
@@ -66,18 +67,21 @@ export const links: LinksFunction = () => [
 
 export default function LandingPage() {
   return (
-    <PhoneCarouselProvider>
-      <div className='landing-shell'>
-        <Nav />
-        <HeroSection />
-        <PhysicalCards />
-        <OtherFeatures />
-        <SendReceive />
-        <Ecosystem />
-        <BuiltWithChange />
-        <OurEcosystem />
-        <Footer />
-      </div>
-    </PhoneCarouselProvider>
+    // Honor OS Reduce Motion: transforms snap to target, opacity fades kept.
+    <MotionConfig reducedMotion='user'>
+      <PhoneCarouselProvider>
+        <div className='landing-shell'>
+          <Nav />
+          <HeroSection />
+          <PhysicalCards />
+          <OtherFeatures />
+          <SendReceive />
+          <Ecosystem />
+          <BuiltWithChange />
+          <OurEcosystem />
+          <Footer />
+        </div>
+      </PhoneCarouselProvider>
+    </MotionConfig>
   )
 }

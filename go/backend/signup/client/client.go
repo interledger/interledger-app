@@ -3,9 +3,9 @@ package client
 import (
 	"context"
 
-	"gitlab.com/fynbos/backend/signup"
+	"github.com/interledger/interledger-app/go/backend/signup"
 
-	"gitlab.com/fynbos/backend/signup/ops"
+	"github.com/interledger/interledger-app/go/backend/signup/ops"
 )
 
 var _ signup.Client = client{}

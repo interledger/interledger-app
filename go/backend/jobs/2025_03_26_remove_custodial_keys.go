@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/backend/db"
+	"github.com/interledger/interledger-app/go/log"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"

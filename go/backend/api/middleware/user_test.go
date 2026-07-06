@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/interledger/interledger-app/go/backend/user"
 	"github.com/stretchr/testify/assert"
-	"gitlab.com/fynbos/backend/user"
 )
 
 func TestUserMiddleware_BearerToken(t *testing.T) {

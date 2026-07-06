@@ -1,6 +1,6 @@
 package chimoney
 
-import "gitlab.com/fynbos/backend/currency"
+import "github.com/interledger/interledger-app/go/backend/currency"
 
 const (
 	ProviderName   = "chimoney"

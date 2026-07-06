@@ -5,8 +5,8 @@ import (
 	"errors"
 	"time"
 
+	"github.com/interledger/interledger-app/go/log"
 	kratos "github.com/ory/kratos-client-go"
-	"gitlab.com/fynbos/log"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.uber.org/zap"
 
@@ -14,11 +14,11 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
-
- type Identities struct {
+type Identities struct {
 	IdentityID string
 	Email      string
 }
+
 func EnableSendVerificationEmailToUnverifiedUserJob(ctx workflow.Context, email string) ([]string, error) {
 	var a *Activity
 	ao := workflow.ActivityOptions{
@@ -31,10 +31,10 @@ func EnableSendVerificationEmailToUnverifiedUserJob(ctx workflow.Context, email 
 	ctx = workflow.WithActivityOptions(ctx, ao)
 	unverified := []string{}
 	err := workflow.ExecuteActivity(ctx, a.EnableSendVerificationEmails, email).Get(ctx, &unverified)
-		if err != nil {
+	if err != nil {
 		return nil, err
 	}
-	
+
 	return unverified, nil
 }
 
@@ -77,12 +77,12 @@ func (a *Activity) EnableSendVerificationEmails(ctx context.Context, email strin
 		log.Warn("log info about verification: ", zap.String("email", idEmail), zap.Any("verifiable_addresses", id.VerifiableAddresses))
 		if len(id.VerifiableAddresses) == 0 {
 			noVerificationAddresses = append(noVerificationAddresses, id)
-			
+
 		}
 	}
 
 	//update identities without verifiable addresses we need to update traits to add an verifiable_addresses
-	emails:= []string{}
+	emails := []string{}
 	for _, id := range noVerificationAddresses {
 		traits, ok := id.Traits.(map[string]any)
 		if !ok {
@@ -94,7 +94,7 @@ func (a *Activity) EnableSendVerificationEmails(ctx context.Context, email strin
 			log.Warn("Email not found in traits", zap.String("identity_id", id.Id))
 			continue
 		}
-		
+
 		update := kratos.UpdateIdentityBody{Traits: traits}
 		_, _, err = kratos.IdentityApi.UpdateIdentity(client.IdentityApi, ctx, id.Id).
 			UpdateIdentityBody(update).
@@ -104,9 +104,8 @@ func (a *Activity) EnableSendVerificationEmails(ctx context.Context, email strin
 		} else {
 			emails = append(emails, email)
 		}
-	
+
 	}
 
 	return emails, nil
 }
-

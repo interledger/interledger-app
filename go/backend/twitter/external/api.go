@@ -3,7 +3,7 @@ package external
 import (
 	"context"
 
-	"gitlab.com/fynbos/backend/twitter"
+	"github.com/interledger/interledger-app/go/backend/twitter"
 	"golang.org/x/oauth2"
 )
 

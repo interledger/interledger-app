@@ -4,27 +4,27 @@ import (
 	"context"
 	"testing"
 
-	"gitlab.com/fynbos/backend/providers/pti"
-	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
+	"github.com/interledger/interledger-app/go/backend/providers/pti"
+	transactions_mock "github.com/interledger/interledger-app/go/backend/transactions/client/mock"
 
-	"gitlab.com/fynbos/backend/linkedaccounts"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
 
-	linkedaccounts_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
+	linkedaccounts_mock "github.com/interledger/interledger-app/go/backend/linkedaccounts/client/mock"
 
-	"gitlab.com/fynbos/backend/wallets"
-	wallets_mock "gitlab.com/fynbos/backend/wallets/client/mock"
+	"github.com/interledger/interledger-app/go/backend/wallets"
+	wallets_mock "github.com/interledger/interledger-app/go/backend/wallets/client/mock"
 
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/db"
+	email_mock "github.com/interledger/interledger-app/go/backend/email/client/mock"
+	"github.com/interledger/interledger-app/go/backend/identities"
+	id_mock "github.com/interledger/interledger-app/go/backend/identities/client/mock"
+	"github.com/interledger/interledger-app/go/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/payments/ops"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/db"
-	email_mock "gitlab.com/fynbos/backend/email/client/mock"
-	"gitlab.com/fynbos/backend/identities"
-	id_mock "gitlab.com/fynbos/backend/identities/client/mock"
-	"gitlab.com/fynbos/backend/payments"
-	"gitlab.com/fynbos/backend/payments/ops"
 	"go.temporal.io/sdk/temporal"
 )
 

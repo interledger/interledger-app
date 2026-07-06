@@ -9,10 +9,10 @@ import (
 	"testing"
 	"time"
 
-	"gitlab.com/fynbos/mock/mockpti/internal/config"
-	"gitlab.com/fynbos/mock/mockpti/internal/jobs"
-	"gitlab.com/fynbos/mock/mockpti/internal/models"
-	"gitlab.com/fynbos/mock/mockpti/internal/storage"
+	"github.com/interledger/interledger-app/go/mock/mockpti/internal/config"
+	"github.com/interledger/interledger-app/go/mock/mockpti/internal/jobs"
+	"github.com/interledger/interledger-app/go/mock/mockpti/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockpti/internal/storage"
 )
 
 func TestUserAssessmentWebhookJobHandler_SendsWebhook(t *testing.T) {

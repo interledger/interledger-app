@@ -10,17 +10,17 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
+	"github.com/interledger/interledger-app/go/backend/db"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	la_mock "github.com/interledger/interledger-app/go/backend/linkedaccounts/client/mock"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub/external"
+	ec_mock "github.com/interledger/interledger-app/go/backend/providers/gatehub/external/mock"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub/ops"
+	"github.com/interledger/interledger-app/go/backend/transactions"
+	transactions_mock "github.com/interledger/interledger-app/go/backend/transactions/client/mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	la_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
-	"gitlab.com/fynbos/backend/providers/gatehub"
-	"gitlab.com/fynbos/backend/providers/gatehub/external"
-	ec_mock "gitlab.com/fynbos/backend/providers/gatehub/external/mock"
-	"gitlab.com/fynbos/backend/providers/gatehub/ops"
-	"gitlab.com/fynbos/backend/transactions"
-	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
 )
 
 func TestGetAccountConfirmation_LinkedAccountsError(t *testing.T) {

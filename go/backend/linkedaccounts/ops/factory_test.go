@@ -4,27 +4,27 @@ import (
 	"context"
 	"testing"
 
-	payments_mock "gitlab.com/fynbos/backend/payments/client/mock"
+	payments_mock "github.com/interledger/interledger-app/go/backend/payments/client/mock"
 
-	"gitlab.com/fynbos/backend/email"
-	email_mock "gitlab.com/fynbos/backend/email/client/mock"
-	"gitlab.com/fynbos/backend/kyc"
-	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
-	"gitlab.com/fynbos/backend/payments"
-	"gitlab.com/fynbos/backend/wallets"
-	wallets_mock "gitlab.com/fynbos/backend/wallets/client/mock"
+	"github.com/interledger/interledger-app/go/backend/email"
+	email_mock "github.com/interledger/interledger-app/go/backend/email/client/mock"
+	"github.com/interledger/interledger-app/go/backend/kyc"
+	kyc_mock "github.com/interledger/interledger-app/go/backend/kyc/client/mock"
+	"github.com/interledger/interledger-app/go/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/wallets"
+	wallets_mock "github.com/interledger/interledger-app/go/backend/wallets/client/mock"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/golang/mock/gomock"
+	"github.com/interledger/interledger-app/go/backend/db"
+	"github.com/interledger/interledger-app/go/backend/keys"
+	keys_mock "github.com/interledger/interledger-app/go/backend/keys/client/mock"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	linked_account_client "github.com/interledger/interledger-app/go/backend/linkedaccounts/client"
+	"github.com/interledger/interledger-app/go/backend/notify"
+	notify_client "github.com/interledger/interledger-app/go/backend/notify/client"
+	"github.com/interledger/interledger-app/go/backend/user"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/keys"
-	keys_mock "gitlab.com/fynbos/backend/keys/client/mock"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	linked_account_client "gitlab.com/fynbos/backend/linkedaccounts/client"
-	"gitlab.com/fynbos/backend/notify"
-	notify_client "gitlab.com/fynbos/backend/notify/client"
-	"gitlab.com/fynbos/backend/user"
 	"go.uber.org/zap"
 )
 
@@ -76,7 +76,7 @@ func (t TestContainer) Payments() payments.Client {
 }
 
 func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error) {
-	
+
 	c := &TestContainer{ValidatorImpl: validator.New()}
 	c.Ctx = ctx
 	mdb := db.MigrateTestDB(t, ctx)

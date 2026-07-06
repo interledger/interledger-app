@@ -3,33 +3,33 @@ package ops
 import (
 	"testing"
 
-	"gitlab.com/fynbos/backend/providers/chimoney"
+	"github.com/interledger/interledger-app/go/backend/providers/chimoney"
 
-	"gitlab.com/fynbos/backend/providers/gatehub"
-	"gitlab.com/fynbos/backend/providers/pti"
-	pti_mock "gitlab.com/fynbos/backend/providers/pti/client/mock"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
+	"github.com/interledger/interledger-app/go/backend/providers/pti"
+	pti_mock "github.com/interledger/interledger-app/go/backend/providers/pti/client/mock"
 
-	"gitlab.com/fynbos/backend/limits"
+	"github.com/interledger/interledger-app/go/backend/limits"
 
-	"gitlab.com/fynbos/backend/providers/xago"
+	"github.com/interledger/interledger-app/go/backend/providers/xago"
 
-	"gitlab.com/fynbos/backend/rafiki"
+	"github.com/interledger/interledger-app/go/backend/rafiki"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/interledger/interledger-app/go/backend/email"
+	email_mock "github.com/interledger/interledger-app/go/backend/email/client/mock"
+	"github.com/interledger/interledger-app/go/backend/identities"
+	id_mock "github.com/interledger/interledger-app/go/backend/identities/client/mock"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	linkedaccounts_mock "github.com/interledger/interledger-app/go/backend/linkedaccounts/client/mock"
+	"github.com/interledger/interledger-app/go/backend/notify"
+	temporal_mock "github.com/interledger/interledger-app/go/backend/temporal/mock"
+	"github.com/interledger/interledger-app/go/backend/transactions"
+	transactions_mock "github.com/interledger/interledger-app/go/backend/transactions/client/mock"
+	"github.com/interledger/interledger-app/go/backend/user"
+	"github.com/interledger/interledger-app/go/backend/wallets"
+	wallets_mock "github.com/interledger/interledger-app/go/backend/wallets/client/mock"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/fynbos/backend/email"
-	email_mock "gitlab.com/fynbos/backend/email/client/mock"
-	"gitlab.com/fynbos/backend/identities"
-	id_mock "gitlab.com/fynbos/backend/identities/client/mock"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	linkedaccounts_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
-	"gitlab.com/fynbos/backend/notify"
-	temporal_mock "gitlab.com/fynbos/backend/temporal/mock"
-	"gitlab.com/fynbos/backend/transactions"
-	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
-	"gitlab.com/fynbos/backend/user"
-	"gitlab.com/fynbos/backend/wallets"
-	wallets_mock "gitlab.com/fynbos/backend/wallets/client/mock"
 	temporal "go.temporal.io/sdk/client"
 )
 

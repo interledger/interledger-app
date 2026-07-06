@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"gitlab.com/fynbos/mock/mockgatehub/internal/consts"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/consts"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/models"
 )
 
 // SeedTestUsers creates pre-seeded test users with balances

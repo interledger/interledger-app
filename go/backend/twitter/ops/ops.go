@@ -8,15 +8,15 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"gitlab.com/fynbos/backend/twitter/workflows"
+	"github.com/interledger/interledger-app/go/backend/twitter/workflows"
 	"go.temporal.io/api/enums/v1"
 	temporal "go.temporal.io/sdk/client"
 	"io"
 	"time"
 
+	"github.com/interledger/interledger-app/go/backend/twitter"
+	"github.com/interledger/interledger-app/go/backend/twitter/external"
 	"github.com/lib/pq"
-	"gitlab.com/fynbos/backend/twitter"
-	"gitlab.com/fynbos/backend/twitter/external"
 	"golang.org/x/oauth2"
 )
 

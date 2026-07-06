@@ -157,7 +157,10 @@ export default function Page() {
                   className='w-full sm:w-2/5'
                   alt='Interledger Wallet mug'
                   // TODO: Use our own CDN
-                  src='https://cdn.fynbos.app/marketing/enamel-mug-waitlist.webp'
+                  src='https://mockcdn.interledger.test/marketing/enamel-mug-waitlist.webp'
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none'
+                  }}
                 />
               </div>
               <span className='mt-6 text-medium'>

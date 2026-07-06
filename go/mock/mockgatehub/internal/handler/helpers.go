@@ -7,8 +7,8 @@ import (
 	"io"
 	"net/http"
 
-	"gitlab.com/fynbos/mock/mockgatehub/internal/logger"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/logger"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/models"
 
 	"go.uber.org/zap"
 )

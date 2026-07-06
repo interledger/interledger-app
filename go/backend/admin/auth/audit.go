@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"strings"
 
-	"gitlab.com/fynbos/env"
+	"github.com/interledger/interledger-app/go/env"
 
 	"github.com/jmoiron/sqlx"
 	"google.golang.org/grpc"

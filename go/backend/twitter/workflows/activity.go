@@ -5,8 +5,8 @@ import (
 	"encoding/base64"
 	"fmt"
 
-	"gitlab.com/fynbos/backend/identities"
-	"gitlab.com/fynbos/backend/twitter"
+	"github.com/interledger/interledger-app/go/backend/identities"
+	"github.com/interledger/interledger-app/go/backend/twitter"
 	"go.temporal.io/sdk/temporal"
 )
 

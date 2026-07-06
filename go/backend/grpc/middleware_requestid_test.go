@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/interledger/interledger-app/go/backend/appcontext"
 	"github.com/stretchr/testify/assert"
-	"gitlab.com/fynbos/backend/appcontext"
 	"google.golang.org/grpc/metadata"
 )
 

@@ -11,7 +11,6 @@ import {
   AnchorRouter,
   Card,
   CardContent,
-  FynbosIcon,
   LinkedInIcon,
   Select,
   TextArea,
@@ -864,11 +863,6 @@ export function TeamContentRecordComponent({
             {member.person?.linkedinUrl && (
               <AnchorRouter to={member.person.linkedinUrl}>
                 <LinkedInIcon />
-              </AnchorRouter>
-            )}
-            {member.person?.fynbosUrl && (
-              <AnchorRouter to={member.person.fynbosUrl}>
-                <FynbosIcon />
               </AnchorRouter>
             )}
           </div>

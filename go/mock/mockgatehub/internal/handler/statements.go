@@ -4,9 +4,9 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/assets"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/consts"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/logger"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/assets"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/consts"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/logger"
 	"go.uber.org/zap"
 )
 

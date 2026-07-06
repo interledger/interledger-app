@@ -6,10 +6,10 @@ import (
 	"os"
 	"testing"
 
+	"github.com/interledger/interledger-app/go/backend/providers/pti/external"
+	"github.com/interledger/interledger-app/go/backend/providers/pti/external/mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/backend/providers/pti/external"
-	"gitlab.com/fynbos/backend/providers/pti/external/mock"
 )
 
 func TestCreatesFileStorage(t *testing.T) {

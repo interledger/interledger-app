@@ -5,8 +5,8 @@ import (
 
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 
-	"gitlab.com/fynbos/pacioli"
-	pb "gitlab.com/fynbos/proto/pacioli/v1"
+	"github.com/interledger/interledger-app/go/pacioli"
+	pb "github.com/interledger/interledger-app/go/proto/pacioli/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )

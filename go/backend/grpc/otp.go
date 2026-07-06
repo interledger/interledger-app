@@ -3,9 +3,9 @@ package grpc
 import (
 	"context"
 
-	"gitlab.com/fynbos/backend/twilio"
+	"github.com/interledger/interledger-app/go/backend/twilio"
 
-	pb "gitlab.com/fynbos/proto/backend/v1"
+	pb "github.com/interledger/interledger-app/go/proto/backend/v1"
 )
 
 func (s *rpcService) SendOTP(ctx context.Context, _ *pb.Empty) (*pb.Empty, error) {

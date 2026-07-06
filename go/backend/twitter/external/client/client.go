@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"net/url"
 
-	"gitlab.com/fynbos/backend/twitter"
-	"gitlab.com/fynbos/backend/twitter/external"
+	"github.com/interledger/interledger-app/go/backend/twitter"
+	"github.com/interledger/interledger-app/go/backend/twitter/external"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"golang.org/x/oauth2"
 )

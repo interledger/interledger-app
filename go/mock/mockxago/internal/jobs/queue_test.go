@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"gitlab.com/fynbos/mock/mockxago/internal/storage"
+	"github.com/interledger/interledger-app/go/mock/mockxago/internal/storage"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

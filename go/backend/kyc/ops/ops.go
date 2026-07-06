@@ -14,7 +14,7 @@ import (
 
 	"github.com/bxcodec/faker/v3"
 
-	"gitlab.com/fynbos/backend/kyc"
+	"github.com/interledger/interledger-app/go/backend/kyc"
 )
 
 func mergeIdentities(old dbIndividualDetails, new kyc.IndividualDetails) (dbIndividualDetails, bool, error) {

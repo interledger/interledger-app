@@ -10,9 +10,9 @@ import (
 	"net/url"
 	"strings"
 
-	"gitlab.com/fynbos/backend/currency"
-	httplog "gitlab.com/fynbos/backend/providers/http"
-	"gitlab.com/fynbos/env"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	httplog "github.com/interledger/interledger-app/go/backend/providers/http"
+	"github.com/interledger/interledger-app/go/env"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 

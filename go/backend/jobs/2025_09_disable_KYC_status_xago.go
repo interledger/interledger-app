@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	"gitlab.com/fynbos/backend/kyc"
-	"gitlab.com/fynbos/backend/kyc/persona"
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/backend/kyc"
+	"github.com/interledger/interledger-app/go/backend/kyc/persona"
+	"github.com/interledger/interledger-app/go/log"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 	"go.uber.org/zap"

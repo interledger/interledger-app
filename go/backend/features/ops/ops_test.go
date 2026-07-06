@@ -4,25 +4,25 @@ import (
 	"context"
 	"testing"
 
-	"gitlab.com/fynbos/backend/providers/pti"
-	"gitlab.com/fynbos/backend/wallets"
-	wallet_mock "gitlab.com/fynbos/backend/wallets/client/mock"
+	"github.com/interledger/interledger-app/go/backend/providers/pti"
+	"github.com/interledger/interledger-app/go/backend/wallets"
+	wallet_mock "github.com/interledger/interledger-app/go/backend/wallets/client/mock"
 
-	"gitlab.com/fynbos/backend/linkedaccounts"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
 
-	linked_accounts_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
+	linked_accounts_mock "github.com/interledger/interledger-app/go/backend/linkedaccounts/client/mock"
 
-	"gitlab.com/fynbos/backend/kyc"
+	"github.com/interledger/interledger-app/go/backend/kyc"
 
-	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
+	kyc_mock "github.com/interledger/interledger-app/go/backend/kyc/client/mock"
 
 	"github.com/golang/mock/gomock"
 
 	"github.com/google/uuid"
+	"github.com/interledger/interledger-app/go/backend/db"
+	"github.com/interledger/interledger-app/go/backend/features"
+	"github.com/interledger/interledger-app/go/backend/features/ops"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/features"
-	"gitlab.com/fynbos/backend/features/ops"
 	"gotest.tools/assert"
 )
 
@@ -73,7 +73,7 @@ func TestSetFeatures(t *testing.T) {
 
 			assert.DeepEqual(t, f, tc.feats)
 
-			f, err = ops.Features(ctx, b, wid)
+			f, err = ops.Features(ctx, b, wid, true)
 			require.NoError(t, err)
 
 			assert.DeepEqual(t, f, tc.feats)
@@ -185,7 +185,7 @@ func TestFeatures(t *testing.T) {
 
 			fc.EXPECT().ListByWalletId(ctx, wid).Return(lal, nil).AnyTimes()
 
-			f, err := ops.Features(ctx, b, wid)
+			f, err := ops.Features(ctx, b, wid, true)
 			require.NoError(t, err)
 
 			assert.DeepEqual(t, f, tc.feats)

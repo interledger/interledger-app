@@ -4,8 +4,8 @@ description: Mock provider services (mockpti, mockgatehub, mockxago) for non-pro
 home: https://github.com/interledger/interledger-app
 
 type: application
-version: 1.26.3
-appVersion: v1.26.3
+version: 1.34.1
+appVersion: v1.34.1
 
 dependencies:
   - name: common
@@ -13,7 +13,5 @@ dependencies:
     repository: https://interledger.github.io/charts/interledger
 
 maintainers:
-  - name: Stephan Butler
-    email: stephan@interledger.foundation
-  - name: Radu Popa
-    email: radu@interledger.foundation
+  - name: Interledger Foundation
+    url: https://interledger.org

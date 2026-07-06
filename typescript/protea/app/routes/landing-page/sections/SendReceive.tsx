@@ -8,13 +8,13 @@ import { PageSection } from '../components/PageSection'
 
 function StatusItem({ icon, text }: { icon: React.ReactNode; text: string }) {
   return (
-    <div className='status-item'>
+    <li className='status-item'>
       <div className='status-icon-container'>{icon}</div>
       <span className='text-h5 status-text'>{text}</span>
       <div className='status-check-container'>
         <div className='checkmark-css' />
       </div>
-    </div>
+    </li>
   )
 }
 
@@ -53,7 +53,7 @@ function HandAnimation() {
 }
 
 export function SendReceive() {
-  const ref = useRef<HTMLDivElement>(null)
+  const ref = useRef<HTMLUListElement>(null)
   const isInView = useInView(ref, { once: true, margin: '-50px' })
   return (
     <PageSection className='send-receive-section'>
@@ -70,7 +70,7 @@ export function SendReceive() {
         </header>
 
         <div className='send-receive-content'>
-          <div
+          <ul
             ref={ref}
             className={`send-receive-list ${isInView ? 'is-visible' : ''}`}
           >
@@ -97,7 +97,7 @@ export function SendReceive() {
               }
               text='Private by default'
             />
-          </div>
+          </ul>
 
           <div className='send-receive-visual'>
             <HandAnimation />

@@ -7,21 +7,21 @@ import (
 	"testing"
 	"time"
 
-	payments_mock "gitlab.com/fynbos/backend/payments/client/mock"
+	payments_mock "github.com/interledger/interledger-app/go/backend/payments/client/mock"
 
-	"gitlab.com/fynbos/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/payments"
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
+	"github.com/interledger/interledger-app/go/backend/db"
+	"github.com/interledger/interledger-app/go/backend/slack"
+	"github.com/interledger/interledger-app/go/backend/slack/external"
+	external_mock "github.com/interledger/interledger-app/go/backend/slack/external/mock"
+	"github.com/interledger/interledger-app/go/backend/slack/ops"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/slack"
-	"gitlab.com/fynbos/backend/slack/external"
-	external_mock "gitlab.com/fynbos/backend/slack/external/mock"
-	"gitlab.com/fynbos/backend/slack/ops"
 	"golang.org/x/oauth2"
 )
 

@@ -5,12 +5,12 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/interledger/interledger-app/go/backend/db"
+	"github.com/interledger/interledger-app/go/backend/providers/xago"
+	"github.com/interledger/interledger-app/go/backend/providers/xago/external"
+	"github.com/interledger/interledger-app/go/backend/providers/xago/ops"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/providers/xago"
-	"gitlab.com/fynbos/backend/providers/xago/external"
-	"gitlab.com/fynbos/backend/providers/xago/ops"
 )
 
 func TestActivity_SaveBeneficiary(t *testing.T) {

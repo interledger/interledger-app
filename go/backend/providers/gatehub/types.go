@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"time"
 
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/providers/gatehub/external"
-	"gitlab.com/fynbos/backend/wallets"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub/external"
+	"github.com/interledger/interledger-app/go/backend/wallets"
 )
 
 // Config holds the configuration for the Gatehub provider
@@ -19,17 +19,19 @@ type Config struct {
 	PaywiserEuroVaultID    string
 	SendingUserID          string
 	SendingUserAddress     string
-	WebhookSecret          string
-	FallbackWebhookURL     string
-	OnOffRampClientID      string
-	OnboardingClientID     string
-	ExchangeClientID       string
-	APIBaseURL             string
-	OnboardingBaseURL      string
-	OnOffRampBaseURL       string
-	EUROpsAccount          string
-	EUROpsLedgerID         uint32
-	OrganizationID         string
+	IntermediaryUserID      string
+	IntermediaryUserAddress string
+	WebhookSecret           string
+	FallbackWebhookURL      string
+	OnOffRampClientID       string
+	OnboardingClientID      string
+	ExchangeClientID        string
+	APIBaseURL              string
+	OnboardingBaseURL       string
+	OnOffRampBaseURL        string
+	EUROpsAccount           string
+	EUROpsLedgerID          uint32
+	OrganizationID          string
 }
 
 const (
@@ -96,6 +98,11 @@ type CreateTransferArgs struct {
 	ReceivingLinkedAccountID string
 	Amount                   currency.Amount
 	ProviderFee              *currency.Amount
+	// Optional addresses for cases where one side has no linked account (e.g. intermediary account).
+	// When set, these override the linked account lookup for the respective side.
+	SendingAddress   string
+	ReceivingAddress string
+	Message          string
 }
 
 type User = external.User

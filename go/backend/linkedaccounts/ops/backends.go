@@ -4,12 +4,12 @@ import (
 	"context"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/interledger/interledger-app/go/backend/email"
+	"github.com/interledger/interledger-app/go/backend/kyc"
+	"github.com/interledger/interledger-app/go/backend/notify"
+	"github.com/interledger/interledger-app/go/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/wallets"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/fynbos/backend/email"
-	"gitlab.com/fynbos/backend/kyc"
-	"gitlab.com/fynbos/backend/notify"
-	"gitlab.com/fynbos/backend/payments"
-	"gitlab.com/fynbos/backend/wallets"
 )
 
 type Backends interface {

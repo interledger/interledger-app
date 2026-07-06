@@ -3,17 +3,17 @@ package ops
 import (
 	"testing"
 
-	"gitlab.com/fynbos/backend/providers/chimoney"
-	"gitlab.com/fynbos/backend/providers/pti"
-	"gitlab.com/fynbos/backend/rafiki"
+	"github.com/interledger/interledger-app/go/backend/providers/chimoney"
+	"github.com/interledger/interledger-app/go/backend/providers/pti"
+	"github.com/interledger/interledger-app/go/backend/rafiki"
 
-	"gitlab.com/fynbos/backend/email"
-	"gitlab.com/fynbos/backend/notify"
-	"gitlab.com/fynbos/backend/providers/xago"
-	"gitlab.com/fynbos/backend/wallets"
+	"github.com/interledger/interledger-app/go/backend/email"
+	"github.com/interledger/interledger-app/go/backend/notify"
+	"github.com/interledger/interledger-app/go/backend/providers/xago"
+	"github.com/interledger/interledger-app/go/backend/wallets"
 
-	"gitlab.com/fynbos/backend/signup"
-	"gitlab.com/fynbos/backend/user"
+	"github.com/interledger/interledger-app/go/backend/signup"
+	"github.com/interledger/interledger-app/go/backend/user"
 
 	temporal "go.temporal.io/sdk/client"
 

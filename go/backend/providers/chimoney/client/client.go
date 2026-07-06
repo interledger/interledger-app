@@ -5,12 +5,12 @@ import (
 	"net/http"
 	"time"
 
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/providers/chimoney"
-	"gitlab.com/fynbos/backend/providers/chimoney/external"
-	"gitlab.com/fynbos/backend/providers/chimoney/ops"
-	httplogger "gitlab.com/fynbos/backend/providers/http"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	"github.com/interledger/interledger-app/go/backend/providers/chimoney"
+	"github.com/interledger/interledger-app/go/backend/providers/chimoney/external"
+	"github.com/interledger/interledger-app/go/backend/providers/chimoney/ops"
+	httplogger "github.com/interledger/interledger-app/go/backend/providers/http"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 

@@ -5,14 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 	"time"
 
-	"gitlab.com/fynbos/mock/mockxago/internal/jobs"
-	"gitlab.com/fynbos/mock/mockxago/internal/logger"
-	"gitlab.com/fynbos/mock/mockxago/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockxago/internal/jobs"
+	"github.com/interledger/interledger-app/go/mock/mockxago/internal/logger"
+	"github.com/interledger/interledger-app/go/mock/mockxago/internal/models"
 )
 
 // JobTypeProcessDeposit is the job type for async deposit processing.
@@ -170,13 +169,13 @@ func (h *Handler) NewProcessDepositHandler() jobs.JobHandler {
 
 // sendDepositCompletedWebhook sends a webhook notification when a deposit completes
 func (h *Handler) sendDepositCompletedWebhook(accountID string, amount float64, currency, transactionID, depositReference string) {
-	webhookURL := os.Getenv("WEBHOOK_URL")
+	webhookURL := h.webhookURL
 	if webhookURL == "" {
-		logger.Warnf("WEBHOOK_URL not configured, skipping webhook for deposit %s", transactionID)
+		logger.Warnf("webhook_url not configured, skipping webhook for deposit %s", transactionID)
 		return
 	}
 
-	webhookSecret := os.Getenv("WEBHOOK_SECRET")
+	webhookSecret := h.webhookSecret
 	logger.Infof("Attempting to send webhook for deposit %s to %s", transactionID, webhookURL)
 
 	// Retrieve deposit for complete details

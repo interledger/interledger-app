@@ -195,6 +195,17 @@ tests:
           path: data.SENDGRID_ONE_TEMPLATE_ID
           value: "d-12030774d225454ea91720034b9adb97"
 
+  - it: 'Should contain SUPPORT_EMAIL'
+    set:
+      backend:
+        config:
+          sendgrid:
+            support_email: "support@interledger.app"
+    asserts:
+      - equal:
+          path: data.SUPPORT_EMAIL
+          value: "support@interledger.app"
+
   - it: 'Should contain PERSONA_BASE_URL with default value'
     asserts:
       - equal:

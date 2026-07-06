@@ -2,9 +2,9 @@ package jobs
 
 import (
 	"context"
-	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/transactions"
-	ops_transactions "gitlab.com/fynbos/backend/transactions/ops"
+	"github.com/interledger/interledger-app/go/backend/db"
+	"github.com/interledger/interledger-app/go/backend/transactions"
+	ops_transactions "github.com/interledger/interledger-app/go/backend/transactions/ops"
 	"go.temporal.io/sdk/workflow"
 	"time"
 )

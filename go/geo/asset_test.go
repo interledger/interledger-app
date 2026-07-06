@@ -5,7 +5,7 @@ import (
 	"math/big"
 	"testing"
 
-	geopbv1 "gitlab.com/fynbos/proto/geo/v1"
+	geopbv1 "github.com/interledger/interledger-app/go/proto/geo/v1"
 )
 
 func TestNewAsset(t *testing.T) {
@@ -260,10 +260,10 @@ func TestAssetUnmarshalJSON(t *testing.T) {
 		{`"USD"`, "USD", false},
 		{`"EUR"`, "EUR", false},
 		{`"JPY"`, "JPY", false},
-		{`"XXX"`, "", true},  // unsupported
-		{`"usd"`, "", true},  // case-sensitive
-		{`123`, "", true},    // not a string
-		{`""`, "", true},     // empty code
+		{`"XXX"`, "", true}, // unsupported
+		{`"usd"`, "", true}, // case-sensitive
+		{`123`, "", true},   // not a string
+		{`""`, "", true},    // empty code
 	}
 	for _, tc := range cases {
 		var a Asset

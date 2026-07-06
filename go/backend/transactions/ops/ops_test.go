@@ -4,17 +4,17 @@ import (
 	"context"
 	"testing"
 
-	"gitlab.com/fynbos/backend/providers/pti"
+	"github.com/interledger/interledger-app/go/backend/providers/pti"
 
 	"github.com/google/uuid"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/db"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	linkedaccounts_client "github.com/interledger/interledger-app/go/backend/linkedaccounts/client"
+	"github.com/interledger/interledger-app/go/backend/transactions"
+	"github.com/interledger/interledger-app/go/backend/transactions/ops"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	linkedaccounts_client "gitlab.com/fynbos/backend/linkedaccounts/client"
-	"gitlab.com/fynbos/backend/transactions"
-	"gitlab.com/fynbos/backend/transactions/ops"
 )
 
 func TestCreateTransaction(t *testing.T) {

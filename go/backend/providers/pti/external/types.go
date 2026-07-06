@@ -3,7 +3,7 @@ package external
 import (
 	"time"
 
-	"gitlab.com/fynbos/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/currency"
 )
 
 const CardPaymentInformationType = "ENCRYPTED_CREDIT_CARD"

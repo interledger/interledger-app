@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	httplog "gitlab.com/fynbos/backend/providers/http"
+	httplog "github.com/interledger/interledger-app/go/backend/providers/http"
 )
 
 // https://developers.platform.fiant.io/reference/addauser

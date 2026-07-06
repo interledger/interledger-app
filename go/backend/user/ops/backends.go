@@ -2,10 +2,10 @@ package ops
 
 import (
 	"github.com/go-playground/validator/v10"
+	"github.com/interledger/interledger-app/go/backend/analytics"
+	"github.com/interledger/interledger-app/go/backend/keys"
 	"github.com/jmoiron/sqlx"
 	kratos "github.com/ory/kratos-client-go"
-	"gitlab.com/fynbos/backend/analytics"
-	"gitlab.com/fynbos/backend/keys"
 )
 
 type Backends interface {

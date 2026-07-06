@@ -3,7 +3,7 @@ package tracing
 import (
 	"context"
 	"fmt"
-	"gitlab.com/fynbos/env"
+	"github.com/interledger/interledger-app/go/env"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"

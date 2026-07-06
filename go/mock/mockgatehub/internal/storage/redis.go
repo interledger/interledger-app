@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"gitlab.com/fynbos/mock/mockgatehub/internal/logger"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/models"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/utils"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/logger"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/utils"
 
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"

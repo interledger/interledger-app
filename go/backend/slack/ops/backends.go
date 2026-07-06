@@ -1,9 +1,9 @@
 package ops
 
 import (
+	"github.com/interledger/interledger-app/go/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/slack/external"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/fynbos/backend/payments"
-	"gitlab.com/fynbos/backend/slack/external"
 )
 
 type Backends interface {

@@ -9,14 +9,14 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
+	"github.com/interledger/interledger-app/go/backend/country"
+	"github.com/interledger/interledger-app/go/backend/db"
+	keys_mock "github.com/interledger/interledger-app/go/backend/keys/client/mock"
+	users_mock "github.com/interledger/interledger-app/go/backend/user/client/mock"
+	"github.com/interledger/interledger-app/go/backend/wallets"
+	"github.com/interledger/interledger-app/go/backend/wallets/ops"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/backend/country"
-	"gitlab.com/fynbos/backend/db"
-	keys_mock "gitlab.com/fynbos/backend/keys/client/mock"
-	users_mock "gitlab.com/fynbos/backend/user/client/mock"
-	"gitlab.com/fynbos/backend/wallets"
-	"gitlab.com/fynbos/backend/wallets/ops"
 )
 
 func ensureTestDBURL(t *testing.T) {

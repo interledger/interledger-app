@@ -7,6 +7,7 @@ import (
 	"html/template"
 	"io"
 	"net/http"
+	"os"
 	"path/filepath"
 	"sort"
 	"strconv"
@@ -14,13 +15,13 @@ import (
 	"sync"
 	"time"
 
-	"gitlab.com/fynbos/mock/mockgatehub/internal/config"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/consts"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/logger"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/models"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/storage"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/utils"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/webhook"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/config"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/consts"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/logger"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/storage"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/utils"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/webhook"
 
 	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
@@ -47,6 +48,16 @@ type TransactionRequest struct {
 // NewHandler creates a new handler using configuration loaded from the environment.
 // For tests or custom setups, use NewHandlerWithConfig to inject a pre-built config.
 func NewHandler(store storage.Storage, webhookManager *webhook.Manager) *Handler {
+	if os.Getenv("CONFIG") == "" {
+		return NewHandlerWithConfig(&config.Config{
+			Port:                  "8080",
+			LogLevel:              "info",
+			WebhookMinDelaySec:    2,
+			DefaultOrganizationID: "default-org",
+			ValidCredentials:      map[string]string{"local-test-app-id": "local-test-app-secret"},
+			PublicBaseURL:         "http://localhost",
+		}, store, webhookManager)
+	}
 	return NewHandlerWithConfig(config.Load(), store, webhookManager)
 }
 
@@ -127,7 +138,7 @@ func (h *Handler) HealthCheck(w http.ResponseWriter, r *http.Request) {
 	logger.Debug("health check requested")
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`{"status":"ok","service":"gitlab.com/fynbos/mock/mockgatehub"}`))
+	w.Write([]byte(`{"status":"ok","service":"github.com/interledger/interledger-app/go/mock/mockgatehub"}`))
 }
 
 // RootHandler serves the main iframe page for deposit/onboarding
@@ -572,6 +583,9 @@ func (h *Handler) processWithdrawal(w http.ResponseWriter, bearer string, txReq 
 		Type:             consts.TransactionTypeWithdrawal,
 		DepositType:      consts.DepositTypeWithdrawal,
 		Status:           consts.TransactionStatusPending,
+		AccountIBAN:      "GB29NWBK60161331926819",
+		AccountLegalName: "Jane Smith",
+		Message:          "Mock Reference",
 	}
 
 	if err := h.store.CreateTransaction(tx); err != nil {

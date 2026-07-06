@@ -6,8 +6,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/interledger/interledger-app/go/pacioli"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/fynbos/pacioli"
 )
 
 func ConfigureLedgers(

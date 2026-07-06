@@ -9,15 +9,15 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
+	"github.com/interledger/interledger-app/go/backend/db"
+	email_client "github.com/interledger/interledger-app/go/backend/email/client/mock"
+	"github.com/interledger/interledger-app/go/backend/kyc/ops"
+	"github.com/interledger/interledger-app/go/backend/kyc/persona"
+	user_mock "github.com/interledger/interledger-app/go/backend/user/client/mock"
+	"github.com/interledger/interledger-app/go/backend/wallets"
+	wallet_mock "github.com/interledger/interledger-app/go/backend/wallets/client/mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/backend/db"
-	email_client "gitlab.com/fynbos/backend/email/client/mock"
-	"gitlab.com/fynbos/backend/kyc/ops"
-	"gitlab.com/fynbos/backend/kyc/persona"
-	user_mock "gitlab.com/fynbos/backend/user/client/mock"
-	"gitlab.com/fynbos/backend/wallets"
-	wallet_mock "gitlab.com/fynbos/backend/wallets/client/mock"
 )
 
 func TestNewHandlePersonaWebhook(t *testing.T) {

@@ -7,20 +7,20 @@ import (
 	"net/url"
 	"strings"
 
-	"gitlab.com/fynbos/backend/limits"
-	"gitlab.com/fynbos/backend/linkedaccounts"
+	"github.com/interledger/interledger-app/go/backend/limits"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
 
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/payments"
 
-	pb "gitlab.com/fynbos/proto/backend/v1"
+	pb "github.com/interledger/interledger-app/go/proto/backend/v1"
 )
 
 /*
 GetPaymentAddress
 This function will handle the following cases
-https://fynbos.dev/matt , fynbos.dev/matt (return fynbos)
-@matbuddhabumb, https://twitter.com/matbuddhabum (returns twitter)
+https://example.com/alice , example.com/alice (returns the domain)
+@alice, https://twitter.com/alice (returns twitter)
 */
 func (s *rpcService) GetPaymentAddress(ctx context.Context, req *pb.GetPaymentAddressRequest) (*pb.GetPaymentAddressResponse, error) {
 	add := req.GetAddress()

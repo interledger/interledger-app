@@ -49,6 +49,9 @@
   flex-direction: column;
   gap: var(--spacing-xl);
   max-width: 480px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 .status-item {
@@ -238,6 +241,17 @@
 .hand-visual-container.is-visible .currency-circle {
   opacity: 1;
   transform: scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status-item,
+  .hand-phone-frame,
+  .currency-circle {
+    opacity: 1;
+    transform: none;
+    transition: none;
+    transition-delay: 0ms;
+  }
 }
 
 @media (max-width: 810px) {

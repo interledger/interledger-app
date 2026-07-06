@@ -10,19 +10,19 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/interledger/interledger-app/go/backend/country"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/kyc"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	"github.com/interledger/interledger-app/go/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/providers/pti"
+	"github.com/interledger/interledger-app/go/backend/providers/pti/external"
+	"github.com/interledger/interledger-app/go/backend/slack"
+	"github.com/interledger/interledger-app/go/backend/transactions"
+	"github.com/interledger/interledger-app/go/env"
+	"github.com/interledger/interledger-app/go/log"
+	"github.com/interledger/interledger-app/go/pacioli"
 	"github.com/lestrrat-go/jwx/v3/jwk"
-	"gitlab.com/fynbos/backend/country"
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/kyc"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/payments"
-	"gitlab.com/fynbos/backend/providers/pti"
-	"gitlab.com/fynbos/backend/providers/pti/external"
-	"gitlab.com/fynbos/backend/slack"
-	"gitlab.com/fynbos/backend/transactions"
-	"gitlab.com/fynbos/env"
-	"gitlab.com/fynbos/log"
-	"gitlab.com/fynbos/pacioli"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/temporal"
 	"go.uber.org/zap"
@@ -584,7 +584,7 @@ func (a *Activity) CreateTransaction(ctx context.Context, walletId string, payme
 		DestinationIdentityType: payments.IdentityTypeWalletID.String(),
 		Amount:                  payment.ReceiverAmount,
 		ProviderFee:             nil,
-		LinkedAccountTitle:      "US Balance",
+		LinkedAccountTitle:      "USD Balance",
 		Note:                    payment.Note,
 		Transfers: []transactions.TransferArgs{
 			{
@@ -702,7 +702,7 @@ func (a *Activity) SettleTransaction(ctx context.Context, transactionID, walletI
 		DestinationIdentityType: payments.IdentityTypeWalletID.String(),
 		Amount:                  amount,
 		ProviderFee:             nil,
-		LinkedAccountTitle:      "US Balance",
+		LinkedAccountTitle:      "USD Balance",
 		Transfers: []transactions.TransferArgs{
 			{
 				LinkedAccountID: eurBalance.ID,
@@ -964,7 +964,7 @@ func (a *Activity) ReturnTransaction(ctx context.Context, originalTransactionID,
 		DestinationIdentityType: payments.IdentityTypeWalletID.String(),
 		Amount:                  amount,
 		ProviderFee:             nil,
-		LinkedAccountTitle:      "US Balance",
+		LinkedAccountTitle:      "USD Balance",
 		Transfers: []transactions.TransferArgs{
 			{
 				LinkedAccountID: balance.ID,

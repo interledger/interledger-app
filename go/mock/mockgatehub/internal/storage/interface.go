@@ -3,7 +3,7 @@ package storage
 import (
 	"encoding/json"
 
-	"gitlab.com/fynbos/mock/mockgatehub/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/models"
 )
 
 // Storage defines the interface for data persistence

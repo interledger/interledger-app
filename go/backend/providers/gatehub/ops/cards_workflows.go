@@ -5,11 +5,11 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"gitlab.com/fynbos/backend/notify"
-	"gitlab.com/fynbos/backend/providers/gatehub"
-	"gitlab.com/fynbos/backend/providers/gatehub/external"
-	"gitlab.com/fynbos/backend/slack"
-	"gitlab.com/fynbos/backend/transactions"
+	"github.com/interledger/interledger-app/go/backend/notify"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub/external"
+	"github.com/interledger/interledger-app/go/backend/slack"
+	"github.com/interledger/interledger-app/go/backend/transactions"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
@@ -375,24 +375,6 @@ func CreateCardTransaction(ctx workflow.Context, wh CardTransactionEventWebhook)
 
 		if err = workflow.ExecuteActivity(ctx, a.RecordGatehubCardInformational, txID, ct, recordInformationalArgs).Get(ctx, nil); err != nil {
 			return err
-		}
-
-		if fx != nil {
-			date := ct.CreatedAt
-			if ct.TransactionDateTime != nil {
-				date = *ct.TransactionDateTime
-			}
-			if err = workflow.ExecuteActivity(ctx, a.SendCardTransactionFXEmail, SendCardTransactionFXEmailArgs{
-				WalletID:          ctMeta.WalletID,
-				MaskedPAN:         card.MaskedPan,
-				MerchantName:      ctMeta.MerchantName,
-				Date:              date,
-				Surcharge:         fx.ExchangeRateSurcharge,
-				TransactionAmount: *fx.TargetAmount,
-				BillingAmount:     ctMeta.BillingAmount,
-			}).Get(ctx, nil); err != nil {
-				return err
-			}
 		}
 	default:
 		_ = workflow.ExecuteActivity(notifyCtx, slack.SendToChannelActivity, slack.ChannelError, "wallet-info-bot", fmt.Sprintf("!!! Received card transaction with unsupported operation:\nCard TX ID: %s\nCard ID: %s\nGateHub User ID: %s\nOperation: %d", ct.TransactionID, card.ID, wh.UserID, ct.Operation)).Get(notifyCtx, nil)

@@ -9,12 +9,12 @@ import (
 	"syscall"
 	"time"
 
-	"gitlab.com/fynbos/mock/mockchimoney/internal/config"
-	"gitlab.com/fynbos/mock/mockchimoney/internal/handler"
-	"gitlab.com/fynbos/mock/mockchimoney/internal/jobs"
-	"gitlab.com/fynbos/mock/mockchimoney/internal/logger"
-	"gitlab.com/fynbos/mock/mockchimoney/internal/storage"
-	"gitlab.com/fynbos/mock/mockchimoney/internal/webhook"
+	"github.com/interledger/interledger-app/go/mock/mockchimoney/internal/config"
+	"github.com/interledger/interledger-app/go/mock/mockchimoney/internal/handler"
+	"github.com/interledger/interledger-app/go/mock/mockchimoney/internal/jobs"
+	"github.com/interledger/interledger-app/go/mock/mockchimoney/internal/logger"
+	"github.com/interledger/interledger-app/go/mock/mockchimoney/internal/storage"
+	"github.com/interledger/interledger-app/go/mock/mockchimoney/internal/webhook"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -31,7 +31,7 @@ func main() {
 		logger.Fatal("failed to initialize logger", zap.Error(err))
 	}
 
-	logger.Info("gitlab.com/fynbos/mock/mockchimoney build info", zap.String("build_time", buildTime))
+	logger.Info("github.com/interledger/interledger-app/go/mock/mockchimoney build info", zap.String("build_time", buildTime))
 	logger.Info("starting MockChimoney")
 
 	// Log all startup configuration at INFO level

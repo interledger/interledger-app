@@ -7,26 +7,26 @@ import (
 	"testing"
 	"time"
 
-	"gitlab.com/fynbos/backend/providers/pti"
+	"github.com/interledger/interledger-app/go/backend/providers/pti"
 
-	"gitlab.com/fynbos/pacioli"
+	"github.com/interledger/interledger-app/go/pacioli"
 
-	"gitlab.com/fynbos/backend/country"
-	"gitlab.com/fynbos/backend/providers/xago"
+	"github.com/interledger/interledger-app/go/backend/country"
+	"github.com/interledger/interledger-app/go/backend/providers/xago"
 
-	"gitlab.com/fynbos/backend/identities"
+	"github.com/interledger/interledger-app/go/backend/identities"
 
 	"github.com/bxcodec/faker/v3"
 	"github.com/google/uuid"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	"github.com/interledger/interledger-app/go/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/payments/client"
+	"github.com/interledger/interledger-app/go/backend/transactions"
+	"github.com/interledger/interledger-app/go/backend/wallets"
+	"github.com/interledger/interledger-app/go/env"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/payments"
-	"gitlab.com/fynbos/backend/payments/client"
-	"gitlab.com/fynbos/backend/transactions"
-	"gitlab.com/fynbos/backend/wallets"
-	"gitlab.com/fynbos/env"
 )
 
 type Assertions struct {

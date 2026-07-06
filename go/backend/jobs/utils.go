@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 
+	"github.com/interledger/interledger-app/go/log"
 	"github.com/jmoiron/sqlx"
 	"github.com/uptrace/opentelemetry-go-extra/otelsql"
 	"github.com/uptrace/opentelemetry-go-extra/otelsqlx"
-	"gitlab.com/fynbos/log"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	"go.uber.org/zap"
 )

@@ -5,7 +5,6 @@ package main
 
 import (
 	"crypto/ed25519"
-	"crypto/rand"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
@@ -21,36 +20,33 @@ type cryptoState struct {
 
 var webhookCryptoState cryptoState
 
+const testWebhookSigningPrivateKeyPEM = `-----BEGIN PRIVATE KEY-----
+MC4CAQAwBQYDK2VwBCIEIO49I4fkirtnEKgxcZsToTO9y5FS6sRddjmOik17QhVS
+-----END PRIVATE KEY-----`
+
 func webhookCryptoComposeEnv() ([]string, error) {
-	pub, priv, err := ed25519.GenerateKey(rand.Reader)
-	if err != nil {
-		return nil, fmt.Errorf("generate signing key: %w", err)
+	block, _ := pem.Decode([]byte(testWebhookSigningPrivateKeyPEM))
+	if block == nil {
+		return nil, fmt.Errorf("decode private key PEM")
 	}
 
-	privBytes, err := x509.MarshalPKCS8PrivateKey(priv)
+	key, err := x509.ParsePKCS8PrivateKey(block.Bytes)
 	if err != nil {
-		return nil, fmt.Errorf("marshal private key: %w", err)
+		return nil, fmt.Errorf("parse private key: %w", err)
 	}
-	privPEM := string(pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: privBytes}))
 
-	pubBytes, err := x509.MarshalPKIXPublicKey(pub)
-	if err != nil {
-		return nil, fmt.Errorf("marshal public key: %w", err)
+	priv, ok := key.(ed25519.PrivateKey)
+	if !ok {
+		return nil, fmt.Errorf("private key is not ed25519")
 	}
-	pubPEM := string(pem.EncodeToMemory(&pem.Block{Type: "PUBLIC KEY", Bytes: pubBytes}))
-
-	privB64 := base64.StdEncoding.EncodeToString([]byte(privPEM))
-	pubOneLine := strings.ReplaceAll(strings.TrimSpace(pubPEM), "\n", `\n`)
+	pub := priv.Public().(ed25519.PublicKey)
 
 	webhookCryptoState = cryptoState{
 		signingPrivateKey: priv,
 		signingPublicKey:  pub,
 	}
 
-	return []string{
-		"MOCKPTI_WEBHOOK_SIGNING_KEY_B64=" + privB64,
-		"PTI_PUBLIC_KEY_JWK=" + pubOneLine,
-	}, nil
+	return nil, nil
 }
 
 func parseWebhookPayload(raw []byte, sigHeader string) (map[string]interface{}, bool, error) {

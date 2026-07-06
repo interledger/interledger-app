@@ -9,8 +9,8 @@ import (
 	"github.com/jmoiron/sqlx"
 
 	"github.com/coreos/go-oidc/v3/oidc"
-	"gitlab.com/fynbos/env"
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/env"
+	"github.com/interledger/interledger-app/go/log"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"

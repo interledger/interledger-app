@@ -5,11 +5,11 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/interledger/interledger-app/go/backend/db"
+	"github.com/interledger/interledger-app/go/backend/kyc"
+	"github.com/interledger/interledger-app/go/backend/kyc/ops"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/kyc"
-	"gitlab.com/fynbos/backend/kyc/ops"
 )
 
 func TestUpdateUserDetails(t *testing.T) {
