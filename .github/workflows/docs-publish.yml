@@ -51,6 +51,7 @@ jobs:
           ref: docs
           path: docs-branch
           persist-credentials: true
+          fetch-depth: 0
 
       - name: Publish version to docs branch
         working-directory: docs-branch
