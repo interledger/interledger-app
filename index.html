@@ -1,17 +1,18 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html>
 <head>
-  <meta charset="utf-8" />
-  <title>Interledger App Docs</title>
-  <meta name="robots" content="noindex" />
-  <!--
-    `latest` is a symlink maintained by .github/workflows/docs-publish.yml,
-    always pointing at the highest-semver version directory published here.
-    No runtime version discovery needed - just follow it.
-  -->
-  <meta http-equiv="refresh" content="0; url=latest/" />
+  <meta charset="utf-8">
+  <title>Redirecting</title>
+  <noscript>
+    <meta http-equiv="refresh" content="1; url=latest/" />
+  </noscript>
+  <script>
+    window.location.replace(
+      "latest/" + window.location.search + window.location.hash
+    );
+  </script>
 </head>
 <body>
-  <p>Redirecting to the <a href="latest/">latest documentation</a>&hellip;</p>
+  Redirecting to <a href="latest/">latest/</a>...
 </body>
 </html>
