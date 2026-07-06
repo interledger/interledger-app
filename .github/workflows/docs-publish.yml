@@ -65,6 +65,32 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add "${VERSION}"
 
+          # Recompute "latest" from every version directory now on disk
+          # (not just the one we just published) so that an out-of-order
+          # release - e.g. a patch for an older maintenance branch landing
+          # after a newer minor - can never regress it.
+          latest=$(python3 - <<'PY'
+          import os, re, sys
+
+          pattern = re.compile(r"^v?(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?$")
+
+          def sort_key(name):
+              major, minor, patch, pre = pattern.match(name).groups()
+              pre_parts = pre.split(".") if pre else []
+              pre_key = [(0, int(p)) if p.isdigit() else (1, p) for p in pre_parts]
+              # A release with no pre-release outranks one with the same
+              # major.minor.patch that has one (standard semver precedence).
+              return (int(major), int(minor), int(patch), not pre_parts, pre_key)
+
+          versions = [d for d in os.listdir(".") if os.path.isdir(d) and pattern.match(d)]
+          if not versions:
+              sys.exit("no version directories found to link 'latest' to")
+          print(max(versions, key=sort_key))
+          PY
+          )
+          ln -sfn "$latest" latest
+          git add latest
+
           if git diff --cached --quiet; then
             echo "No changes for ${VERSION}; nothing to publish."
             exit 0
