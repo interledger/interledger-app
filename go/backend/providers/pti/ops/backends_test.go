@@ -6,6 +6,8 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/interledger/interledger-app/go/backend/db"
+	"github.com/interledger/interledger-app/go/backend/email"
+	email_mock "github.com/interledger/interledger-app/go/backend/email/client/mock"
 	"github.com/interledger/interledger-app/go/backend/kyc"
 	kyc_mock "github.com/interledger/interledger-app/go/backend/kyc/client/mock"
 	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
@@ -33,6 +35,7 @@ type Backends struct {
 	tp    *temporal_mock.MockClient
 	txc   *transactions_mock.MockClient
 	wc    *wallets_mock.MockClient
+	email *email_mock.MockClient
 }
 
 func (b Backends) Payments() payments.Client {
@@ -69,6 +72,10 @@ func (b Backends) Wallets() wallets.Client {
 	return b.wc
 }
 
+func (b Backends) Email() email.Client {
+	return b.email
+}
+
 func NewBackends(t *testing.T) *Backends {
 	ctrl := gomock.NewController(t)
 	t.Cleanup(func() {
@@ -81,5 +88,6 @@ func NewBackends(t *testing.T) *Backends {
 		la:    la_mock.NewMockClient(ctrl),
 		users: user_mock.NewMock(),
 		pc:    payments_mock.NewMockClient(ctrl),
+		email: email_mock.NewMockClient(ctrl),
 	}
 }

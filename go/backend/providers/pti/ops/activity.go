@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/interledger/interledger-app/go/backend/country"
 	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/email"
 	"github.com/interledger/interledger-app/go/backend/kyc"
 	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
 	"github.com/interledger/interledger-app/go/backend/payments"
@@ -852,6 +853,33 @@ func (a *Activity) FinalizePTIBalance(ctx context.Context, id, walletID string) 
 	}
 
 	return FinaliseReserve(ctx, a.b, tx.ID)
+}
+
+// RampActionEmailArgs describes a completed/failed deposit or withdrawal for SendRampActionEmail.
+type RampActionEmailArgs struct {
+	WalletID string
+	Action   string
+	Status   string
+	Amount   currency.Amount
+}
+
+// SendRampActionEmail is a best-effort notification: it never fails the calling workflow.
+func (a *Activity) SendRampActionEmail(ctx context.Context, args RampActionEmailArgs) error {
+	bankLA, err := getBankLinkedAccount(ctx, a.b, args.WalletID)
+	if err != nil {
+		log.Error("Failed to resolve bank account for ramp action email", zap.Error(err), zap.String("walletID", args.WalletID), zap.String("action", args.Action))
+		return nil
+	}
+
+	a.b.Email().SendRampActionEmail(ctx, args.WalletID, email.RampActionEmailArgs{
+		Action:    args.Action,
+		Status:    args.Status,
+		Amount:    args.Amount,
+		Source:    formatBankSource(bankLA),
+		Method:    "ACH",
+		Timestamp: time.Now(),
+	})
+	return nil
 }
 
 func (a *Activity) UpdatePaymentState(ctx context.Context, paymentID string, state payments.State) error {
