@@ -881,15 +881,80 @@ func TestCreateOutgoingPaymentTransaction(t *testing.T) {
 	defer ctrl.Finish()
 
 	ctx := context.Background()
+	senderWalletID := uuid.NewString()
+	receiverWalletID := uuid.NewString()
+	senderPP := "wa_sender_" + uuid.NewString()[:8]
+	receiverPP := "wa_receiver_" + uuid.NewString()[:8]
+	laID := "la_" + uuid.NewString()[:8]
+	ipID := "ip_" + uuid.NewString()[:8]
+
+	op := outgoingPaymentData{
+		ID:              uuid.NewString(),
+		WalletAddressID: senderPP,
+		DebitAmount:     amount{Value: "500", AssetCode: "EUR", AssetScale: 2},
+		Receiver:        "https://example.com/incoming-payments/" + ipID,
+	}
+
+	receiverAddr, err := wallets.ParseAddress("https://ilp.link/receiver")
+	require.NoError(t, err)
+
+	ab := setupActivityBackendsWithReceiver(t, ctrl, senderWalletID, senderPP, receiverWalletID, receiverPP)
+	linkedMock := linkedaccounts_mock.NewMockClient(ctrl)
+	linkedMock.EXPECT().ListBalances(gomock.Any(), senderWalletID).Return([]linkedaccounts.LinkedAccount{
+		{ID: laID, Provider: gatehub.ProviderName, Type: gatehub.AccTypeBalance},
+	}, nil)
+	ab.SetLinkedAccounts(linkedMock)
+
+	// The receiver is resolved from the incoming-payment resource to its wallet address.
+	rafikiMock := rafiki_mock.NewMockClient(ctrl)
+	rafikiMock.EXPECT().GetIncomingPayment(gomock.Any(), ipID).
+		Return(&rafiki.IncomingPayment{WalletAddressID: receiverPP}, nil)
+	ab.SetRafiki(rafikiMock)
+
+	walletsMock := wallets_mock.NewMockClient(ctrl)
+	walletsMock.EXPECT().Get(gomock.Any(), senderWalletID).Return(&wallets.Wallet{ID: senderWalletID}, nil)
+	walletsMock.EXPECT().Get(gomock.Any(), receiverWalletID).
+		Return(&wallets.Wallet{ID: receiverWalletID, Addresses: []wallets.Address{receiverAddr}}, nil)
+	ab.SetWallets(walletsMock)
+
+	txMock := transactions_mock.NewMockClient(ctrl)
+	txMock.EXPECT().CreateTransaction(gomock.Any(), gomock.Any()).
+		DoAndReturn(func(_ context.Context, args transactions.CreateTransactionArgs) (string, error) {
+			assert.Equal(t, senderWalletID, args.WalletID)
+			assert.Equal(t, op.ID, args.ForeignID)
+			assert.Equal(t, transactions.StatePending, args.State)
+			assert.Equal(t, transactions.TransactionTypeOpenOutgoingPayment, args.ForeignType)
+			// Receiver is stored as its resolved wallet address, typed WalletURL so the
+			// frontend normalizer maps it to "wallet" and renders the transaction icon.
+			assert.Equal(t, receiverAddr.String(), args.Destination)
+			assert.Equal(t, receiverAddr.String(), args.DestinationIdentity)
+			assert.Equal(t, payments.IdentityTypeWalletURL.String(), args.DestinationIdentityType)
+			return "trx_out", nil
+		})
+	ab.SetTransactions(txMock)
+
+	act := &Activity{b: ab}
+	err = act.CreateOutgoingPaymentTransaction(ctx, op)
+	assert.NoError(t, err)
+}
+
+// A receiver that cannot be resolved must abort the activity rather than record a
+// transaction with an empty destination.
+func TestCreateOutgoingPaymentTransaction_ResolveFails(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	ctx := context.Background()
 	walletID := uuid.NewString()
 	ppID := "wa_sender_" + uuid.NewString()[:8]
 	laID := "la_" + uuid.NewString()[:8]
+	ipID := "ip_" + uuid.NewString()[:8]
 
 	op := outgoingPaymentData{
 		ID:              uuid.NewString(),
 		WalletAddressID: ppID,
 		DebitAmount:     amount{Value: "500", AssetCode: "EUR", AssetScale: 2},
-		Receiver:        "https://example.com/incoming-payments/ip_1",
+		Receiver:        "https://example.com/incoming-payments/" + ipID,
 	}
 
 	ab := setupActivityBackends(t, ctrl, walletID, ppID)
@@ -903,21 +968,16 @@ func TestCreateOutgoingPaymentTransaction(t *testing.T) {
 	walletsMock.EXPECT().Get(gomock.Any(), walletID).Return(&wallets.Wallet{ID: walletID}, nil)
 	ab.SetWallets(walletsMock)
 
-	txMock := transactions_mock.NewMockClient(ctrl)
-	txMock.EXPECT().CreateTransaction(gomock.Any(), gomock.Any()).
-		DoAndReturn(func(_ context.Context, args transactions.CreateTransactionArgs) (string, error) {
-			assert.Equal(t, walletID, args.WalletID)
-			assert.Equal(t, op.ID, args.ForeignID)
-			assert.Equal(t, transactions.StatePending, args.State)
-			assert.Equal(t, transactions.TransactionTypeOpenOutgoingPayment, args.ForeignType)
-			assert.Equal(t, payments.IdentityTypeExternalWalletURL.String(), args.DestinationIdentityType)
-			return "trx_out", nil
-		})
-	ab.SetTransactions(txMock)
+	rafikiMock := rafiki_mock.NewMockClient(ctrl)
+	rafikiMock.EXPECT().GetIncomingPayment(gomock.Any(), ipID).Return(nil, assert.AnError)
+	ab.SetRafiki(rafikiMock)
+
+	// No CreateTransaction expectation: a resolution failure must abort before recording.
+	ab.SetTransactions(transactions_mock.NewMockClient(ctrl))
 
 	act := &Activity{b: ab}
 	err := act.CreateOutgoingPaymentTransaction(ctx, op)
-	assert.NoError(t, err)
+	assert.Error(t, err)
 }
 
 func TestCreateOutgoingPaymentTransaction_WebMonetization(t *testing.T) {
@@ -925,27 +985,40 @@ func TestCreateOutgoingPaymentTransaction_WebMonetization(t *testing.T) {
 	defer ctrl.Finish()
 
 	ctx := context.Background()
-	walletID := uuid.NewString()
-	ppID := "wa_sender_" + uuid.NewString()[:8]
+	senderWalletID := uuid.NewString()
+	receiverWalletID := uuid.NewString()
+	senderPP := "wa_sender_" + uuid.NewString()[:8]
+	receiverPP := "wa_receiver_" + uuid.NewString()[:8]
 	laID := "la_" + uuid.NewString()[:8]
+	ipID := "ip_" + uuid.NewString()[:8]
 
 	op := outgoingPaymentData{
 		ID:              uuid.NewString(),
-		WalletAddressID: ppID,
+		WalletAddressID: senderPP,
 		DebitAmount:     amount{Value: "500", AssetCode: "EUR", AssetScale: 2},
-		Receiver:        "https://example.com/incoming-payments/ip_1",
+		Receiver:        "https://example.com/incoming-payments/" + ipID,
 		Metadata:        map[string]any{"source": metadataSourceWebMonetization},
 	}
 
-	ab := setupActivityBackends(t, ctrl, walletID, ppID)
+	receiverAddr, err := wallets.ParseAddress("https://ilp.link/receiver")
+	require.NoError(t, err)
+
+	ab := setupActivityBackendsWithReceiver(t, ctrl, senderWalletID, senderPP, receiverWalletID, receiverPP)
 	linkedMock := linkedaccounts_mock.NewMockClient(ctrl)
-	linkedMock.EXPECT().ListBalances(gomock.Any(), walletID).Return([]linkedaccounts.LinkedAccount{
+	linkedMock.EXPECT().ListBalances(gomock.Any(), senderWalletID).Return([]linkedaccounts.LinkedAccount{
 		{ID: laID, Provider: gatehub.ProviderName, Type: gatehub.AccTypeBalance},
 	}, nil)
 	ab.SetLinkedAccounts(linkedMock)
 
+	rafikiMock := rafiki_mock.NewMockClient(ctrl)
+	rafikiMock.EXPECT().GetIncomingPayment(gomock.Any(), ipID).
+		Return(&rafiki.IncomingPayment{WalletAddressID: receiverPP}, nil)
+	ab.SetRafiki(rafikiMock)
+
 	walletsMock := wallets_mock.NewMockClient(ctrl)
-	walletsMock.EXPECT().Get(gomock.Any(), walletID).Return(&wallets.Wallet{ID: walletID}, nil)
+	walletsMock.EXPECT().Get(gomock.Any(), senderWalletID).Return(&wallets.Wallet{ID: senderWalletID}, nil)
+	walletsMock.EXPECT().Get(gomock.Any(), receiverWalletID).
+		Return(&wallets.Wallet{ID: receiverWalletID, Addresses: []wallets.Address{receiverAddr}}, nil)
 	ab.SetWallets(walletsMock)
 
 	txMock := transactions_mock.NewMockClient(ctrl)
@@ -957,7 +1030,7 @@ func TestCreateOutgoingPaymentTransaction_WebMonetization(t *testing.T) {
 	ab.SetTransactions(txMock)
 
 	act := &Activity{b: ab}
-	err := act.CreateOutgoingPaymentTransaction(ctx, op)
+	err = act.CreateOutgoingPaymentTransaction(ctx, op)
 	assert.NoError(t, err)
 }
 
