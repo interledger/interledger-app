@@ -4,126 +4,14 @@
   <meta charset="utf-8" />
   <title>Interledger App Docs</title>
   <meta name="robots" content="noindex" />
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      margin: 0;
-      color: #333;
-    }
-    #message a { color: inherit; }
-  </style>
+  <!--
+    `latest` is a symlink maintained by .github/workflows/docs-publish.yml,
+    always pointing at the highest-semver version directory published here.
+    No runtime version discovery needed - just follow it.
+  -->
+  <meta http-equiv="refresh" content="0; url=latest/" />
 </head>
 <body>
-  <div id="message">Loading documentation&hellip;</div>
-  <script>
-    (function () {
-      // Matches folder names like "v1.34.6" or "1.34.6", optionally with a
-      // semver pre-release/build suffix (e.g. "v2.0.0-beta.1").
-      var VERSION_RE = /^v?(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z-.]+))?(?:\+[0-9A-Za-z-.]+)?\/?$/;
-
-      function setMessage(html) {
-        document.getElementById("message").innerHTML = html;
-      }
-
-      function parseVersion(name) {
-        var match = VERSION_RE.exec(name);
-        if (!match) return null;
-        return {
-          name: name,
-          major: parseInt(match[1], 10),
-          minor: parseInt(match[2], 10),
-          patch: parseInt(match[3], 10),
-          prerelease: match[4] ? match[4].split(".") : []
-        };
-      }
-
-      function comparePrereleaseIdentifiers(a, b) {
-        var aIsNum = /^\d+$/.test(a);
-        var bIsNum = /^\d+$/.test(b);
-        if (aIsNum && bIsNum) return parseInt(a, 10) - parseInt(b, 10);
-        if (aIsNum) return -1; // numeric identifiers have lower precedence
-        if (bIsNum) return 1;
-        return a < b ? -1 : a > b ? 1 : 0;
-      }
-
-      // Standard semver precedence: compare major.minor.patch numerically,
-      // then pre-release fields (a version *without* a pre-release outranks
-      // one *with* the same major.minor.patch).
-      function compareVersions(a, b) {
-        if (a.major !== b.major) return a.major - b.major;
-        if (a.minor !== b.minor) return a.minor - b.minor;
-        if (a.patch !== b.patch) return a.patch - b.patch;
-
-        var aHasPre = a.prerelease.length > 0;
-        var bHasPre = b.prerelease.length > 0;
-        if (aHasPre !== bHasPre) return aHasPre ? -1 : 1;
-        if (!aHasPre) return 0;
-
-        var len = Math.max(a.prerelease.length, b.prerelease.length);
-        for (var i = 0; i < len; i++) {
-          if (a.prerelease[i] === undefined) return -1;
-          if (b.prerelease[i] === undefined) return 1;
-          var cmp = comparePrereleaseIdentifiers(a.prerelease[i], b.prerelease[i]);
-          if (cmp !== 0) return cmp;
-        }
-        return 0;
-      }
-
-      function extractFolderLinks(doc) {
-        var anchors = doc.querySelectorAll("a[href]");
-        var names = [];
-        for (var i = 0; i < anchors.length; i++) {
-          var href = anchors[i].getAttribute("href");
-          if (!href || href === "../" || href === "/") continue;
-          // Strip any leading path/query/hash so we're left with a bare
-          // folder name, e.g. "v1.34.6/" from "./v1.34.6/?sort=name".
-          var name = href.replace(/^\.?\//, "").split(/[?#]/)[0];
-          if (name) names.push(name);
-        }
-        return names;
-      }
-
-      function redirectToLatest(versions) {
-        versions.sort(compareVersions);
-        var latest = versions[versions.length - 1];
-        var target = latest.name.replace(/\/?$/, "/");
-        window.location.replace(target);
-      }
-
-      fetch("./")
-        .then(function (response) {
-          if (!response.ok) {
-            throw new Error("Directory listing request failed: " + response.status);
-          }
-          return response.text();
-        })
-        .then(function (html) {
-          var doc = new DOMParser().parseFromString(html, "text/html");
-          var folderNames = extractFolderLinks(doc);
-          var versions = folderNames
-            .map(parseVersion)
-            .filter(function (v) {
-              return v !== null;
-            });
-
-          if (versions.length === 0) {
-            setMessage("No documentation versions were found.");
-            return;
-          }
-
-          redirectToLatest(versions);
-        })
-        .catch(function (err) {
-          setMessage(
-            "Could not determine the latest documentation version. " +
-              "(" + err.message + ")"
-          );
-        });
-    })();
-  </script>
+  <p>Redirecting to the <a href="latest/">latest documentation</a>&hellip;</p>
 </body>
 </html>
