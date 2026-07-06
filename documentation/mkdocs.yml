@@ -46,6 +46,7 @@ nav:
   - Developers:
       - Error Handling Guide: error-handling-guide.md
       - Logging Reference: logging-reference.md
+      - Backend Configuration Guide: backend-configuration-guide.md
       - Environment Variables: env-variables.md
 
 markdown_extensions:

@@ -3,6 +3,7 @@ package temporal
 import (
 	"github.com/go-playground/validator/v10"
 	"github.com/interledger/interledger-app/go/backend/agreements"
+	"github.com/interledger/interledger-app/go/backend/config"
 	"github.com/interledger/interledger-app/go/backend/analytics"
 	"github.com/interledger/interledger-app/go/backend/contacts"
 	"github.com/interledger/interledger-app/go/backend/email"
@@ -60,4 +61,5 @@ type Backends interface {
 	Signup() signup.Client
 	Gatehub() gatehub.Client
 	Chimoney() chimoney.Client
+	Config() *config.StartConfig
 }

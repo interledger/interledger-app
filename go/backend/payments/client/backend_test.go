@@ -41,6 +41,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/golang/mock/gomock"
 	"github.com/interledger/interledger-app/go/backend/analytics"
+	"github.com/interledger/interledger-app/go/backend/config"
 	analytics_client "github.com/interledger/interledger-app/go/backend/analytics/client"
 	"github.com/interledger/interledger-app/go/backend/db"
 	"github.com/interledger/interledger-app/go/backend/email"
@@ -99,7 +100,7 @@ func NewTestBackends(t *testing.T) *TestBackends {
 
 	_, pacDB := pacioli_db.MigrateTestDB(t, context.Background())
 	b := &TestBackends{
-		db:    db.MigrateTestDB(t, context.Background()),
+		db:    db.MigrateTestDB(t, context.Background(), ""),
 		user:  user_mock.NewMock(),
 		email: em,
 		pac:   pacioli_client.NewLocal(pacDB),
@@ -120,7 +121,7 @@ func NewTestBackends(t *testing.T) *TestBackends {
 	}).AnyTimes()
 	b.temporal = tp
 
-	b.xgo = xago_client.New(b, xago_external.Config{})
+	b.xgo = xago_client.New(b, xago_external.Config{}, true)
 
 	kc := kyc_mock.NewMockClient(ctrl)
 	kc.EXPECT().GetIndividualDetails(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, walletID string) (*kyc.IndividualDetails, error) {
@@ -344,4 +345,8 @@ func (b *TestBackends) Payments() payments.Client {
 func (b *TestBackends) PTI() pti.Client {
 	// return pti_client.New(b)
 	return nil
+}
+
+func (b *TestBackends) Config() *config.StartConfig {
+	return &config.StartConfig{Environment: config.EnvironmentConfig{Mode: "test"}}
 }

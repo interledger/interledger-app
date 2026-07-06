@@ -21,7 +21,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/interledger/interledger-app/go/backend/identities"
 	"github.com/interledger/interledger-app/go/backend/identities/platforms"
-	"github.com/interledger/interledger-app/go/env"
 	"github.com/interledger/interledger-app/go/log"
 	"github.com/jmoiron/sqlx"
 	"go.temporal.io/api/enums/v1"
@@ -286,7 +285,7 @@ func Search(ctx context.Context, b Backends, walletID, term string) ([]identitie
 	wa, err := wallets.ParseAddress(term)
 	if err == nil {
 		// Valid URL, possibly wallet address
-		term = strings.TrimPrefix(wa.String(), env.OpenPaymentsURL()+"/")
+		term = strings.TrimPrefix(wa.String(), b.Config().OpenPaymentsBaseURL+"/")
 		term = strings.TrimPrefix(term, "https://twitter.com/")
 	}
 	// Trim the twitter '@' prefix as we don't store it
@@ -310,7 +309,7 @@ func Search(ctx context.Context, b Backends, walletID, term string) ([]identitie
 	dbRes = nil
 	err = b.DB().SelectContext(ctx, &dbRes, `SELECT wallet_addresses.wallet_id, wallet_addresses.url as identifier, 'wallet_url' as identifier_type, coalesce(similarity(substring(wallet_addresses.url, $4), $1), 0) as rank
                FROM wallet_addresses  INNER JOIN wallet_kyc_status on  wallet_addresses.wallet_id=wallet_kyc_status.wallet_id
-               WHERE wallet_addresses.wallet_id<>$3 AND wallet_addresses.url ILIKE $2 AND wallet_kyc_status.status in ($5,$6,$7) ORDER BY rank, wallet_addresses.wallet_id DESC LIMIT 100`, term, "%"+term+"%", walletID, len(env.OpenPaymentsURL())+1, kyc.StatusApproved, kyc.StatusLevel1, kyc.StatusLevel2)
+               WHERE wallet_addresses.wallet_id<>$3 AND wallet_addresses.url ILIKE $2 AND wallet_kyc_status.status in ($5,$6,$7) ORDER BY rank, wallet_addresses.wallet_id DESC LIMIT 100`, term, "%"+term+"%", walletID, len(b.Config().OpenPaymentsBaseURL)+1, kyc.StatusApproved, kyc.StatusLevel1, kyc.StatusLevel2)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}

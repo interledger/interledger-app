@@ -15,7 +15,7 @@ import (
 func TestUpdateUserDetails(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	db := db.MigrateTestDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx, "")
 
 	b := ops.NewTestBackends(t, db, nil, nil, nil, nil, nil, nil)
 

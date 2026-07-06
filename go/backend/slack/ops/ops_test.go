@@ -47,7 +47,7 @@ func TestCreateAuthURL(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	b := &TestBackends{
-		Db:             db.MigrateTestDB(t, ctx),
+		Db:             db.MigrateTestDB(t, ctx, ""),
 		ExternalClient: external_mock.NewMockClient(ctrl),
 	}
 
@@ -84,7 +84,7 @@ func TestCreateConnection(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	b := &TestBackends{
-		Db:             db.MigrateTestDB(t, ctx),
+		Db:             db.MigrateTestDB(t, ctx, ""),
 		ExternalClient: external_mock.NewMockClient(ctrl),
 	}
 

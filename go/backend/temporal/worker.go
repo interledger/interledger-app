@@ -146,7 +146,7 @@ func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago
 	gatehub_workflows.StartRealtimeCardTransactionsPolling(b)
 
 	// Chimoney
-	w.RegisterActivity(chimoney_workflows.NewActivity(b, chimoneyToken))
+	w.RegisterActivity(chimoney_workflows.NewActivity(b, chimoneyToken, b.Config().Environment.IsModeProd()))
 	w.RegisterWorkflow(chimoney_workflows.CreateChimoneyUserWorkflow)
 	w.RegisterWorkflow(chimoney_workflows.ChimomeyCompleteKYC)
 	w.RegisterWorkflow(chimoney_workflows.CreateChimoneyDepositWorkflow)

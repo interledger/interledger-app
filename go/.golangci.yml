@@ -8,6 +8,8 @@ run:
   build-tags:
     - codeanalysis
 linters:
+  enable:
+    - gocritic
   exclusions:
     paths:
       - proto
@@ -15,3 +17,14 @@ linters:
   disable:
     - errcheck
     - staticcheck
+  settings:
+    gocritic:
+      # Run only the ruleguard-backed custom rules; the rest of gocritic's
+      # checks are out of scope for this repo for now.
+      disable-all: true
+      enabled-checks:
+        - ruleguard
+      settings:
+        ruleguard:
+          failOn: all
+          rules: "${base-path}/gorules/rules.go"

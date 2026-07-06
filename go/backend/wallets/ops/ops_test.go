@@ -30,7 +30,7 @@ func TestCreateWallet(t *testing.T) {
 	ctx := context.Background()
 
 	ensureTestDBURL(t)
-	dbc := db.MigrateTestDB(t, ctx)
+	dbc := db.MigrateTestDB(t, ctx, "")
 
 	userID := "c6874020-9d33-4678-a9ac-f623dc363cfb"
 	walletID := uuid.NewString()
@@ -93,7 +93,7 @@ func TestListWalletsSingle(t *testing.T) {
 	ctx := context.Background()
 
 	ensureTestDBURL(t)
-	dbc := db.MigrateTestDB(t, ctx)
+	dbc := db.MigrateTestDB(t, ctx, "")
 
 	ctrl := gomock.NewController(t)
 	km := keys_mock.NewMockClient(ctrl)
@@ -122,7 +122,7 @@ func TestCreateDefaultWalletIsIdempotent(t *testing.T) {
 	ctx := context.Background()
 
 	ensureTestDBURL(t)
-	dbc := db.MigrateTestDB(t, ctx)
+	dbc := db.MigrateTestDB(t, ctx, "")
 
 	ctrl := gomock.NewController(t)
 	km := keys_mock.NewMockClient(ctrl)
@@ -169,7 +169,7 @@ func TestCreateDefaultWalletConcurrent(t *testing.T) {
 	ctx := context.Background()
 
 	ensureTestDBURL(t)
-	dbc := db.MigrateTestDB(t, ctx)
+	dbc := db.MigrateTestDB(t, ctx, "")
 
 	ctrl := gomock.NewController(t)
 	km := keys_mock.NewMockClient(ctrl)
@@ -223,7 +223,7 @@ func TestListWalletsMultiple(t *testing.T) {
 	ctx := context.Background()
 
 	ensureTestDBURL(t)
-	dbc := db.MigrateTestDB(t, ctx)
+	dbc := db.MigrateTestDB(t, ctx, "")
 
 	ctrl := gomock.NewController(t)
 	km := keys_mock.NewMockClient(ctrl)
@@ -264,7 +264,7 @@ func TestListWalletsMultiple(t *testing.T) {
 func TestGetWallet(t *testing.T) {
 	ctx := context.Background()
 	ensureTestDBURL(t)
-	dbc := db.MigrateTestDB(t, ctx)
+	dbc := db.MigrateTestDB(t, ctx, "")
 
 	ctrl := gomock.NewController(t)
 	km := keys_mock.NewMockClient(ctrl)
@@ -292,7 +292,7 @@ func TestSetWalletName(t *testing.T) {
 	t.Skip("SKIPPING BROKEN TEST TODO FIX THIS")
 
 	ctx := context.Background()
-	dbc := db.MigrateTestDB(t, ctx)
+	dbc := db.MigrateTestDB(t, ctx, "")
 	ctrl := gomock.NewController(t)
 	km := keys_mock.NewMockClient(ctrl)
 	km.EXPECT().ProvisionPrivateKey(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
@@ -318,7 +318,7 @@ func TestAddAddress(t *testing.T) {
 	t.Skip("SKIPPING BROKEN TEST TODO FIX THIS")
 	t.Parallel()
 	ctx := context.Background()
-	db := db.MigrateTestDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx, "")
 	ctrl := gomock.NewController(t)
 	km := keys_mock.NewMockClient(ctrl)
 	km.EXPECT().ProvisionPrivateKey(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
@@ -415,7 +415,7 @@ func TestListAllSearch(t *testing.T) {
 	ctx := context.Background()
 
 	ensureTestDBURL(t)
-	dbc := db.MigrateTestDB(t, ctx)
+	dbc := db.MigrateTestDB(t, ctx, "")
 
 	ctrl := gomock.NewController(t)
 	km := keys_mock.NewMockClient(ctrl)

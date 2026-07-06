@@ -2,6 +2,7 @@ package jobs
 
 import (
 	"github.com/interledger/interledger-app/go/backend/agreements"
+	"github.com/interledger/interledger-app/go/backend/config"
 	"github.com/interledger/interledger-app/go/backend/email"
 	"github.com/interledger/interledger-app/go/backend/keys"
 	"github.com/interledger/interledger-app/go/backend/kyc"
@@ -19,6 +20,7 @@ import (
 
 type Backends interface {
 	DB() *sqlx.DB
+	Config() *config.StartConfig
 	Users() user.Client
 	Keys() keys.Client
 	KYC() kyc.Client

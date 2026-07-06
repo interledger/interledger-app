@@ -10,6 +10,7 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
+	"github.com/interledger/interledger-app/go/backend/config"
 	"github.com/interledger/interledger-app/go/backend/currency"
 	"github.com/interledger/interledger-app/go/backend/db"
 	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
@@ -20,26 +21,28 @@ import (
 	external_mock "github.com/interledger/interledger-app/go/backend/rafiki/external/mock"
 	"github.com/interledger/interledger-app/go/backend/rafiki/ops"
 	temporal_mock "github.com/interledger/interledger-app/go/backend/temporal/mock"
-	"github.com/interledger/interledger-app/go/env"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/sdk/client"
 )
 
-func setRafikiNodeFlag(t *testing.T, enabled bool) {
-	t.Helper()
-	prev := env.IsRafikiNodeEnabled()
-	env.SetRafikiNodeEnabled(enabled)
-	t.Cleanup(func() {
-		env.SetRafikiNodeEnabled(prev)
-	})
+func withNodeEnabled(enabled bool) func(*ops.TestBackends) {
+	return func(tb *ops.TestBackends) {
+		tb.SetConfig(&config.StartConfig{Rafiki: config.RafikiConfig{NodeEnabled: enabled}})
+	}
+}
+
+func withDefaultConfig() func(*ops.TestBackends) {
+	return func(tb *ops.TestBackends) {
+		tb.SetConfig(&config.StartConfig{})
+	}
 }
 
 func TestEventWebhookUnsupportedType(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	b := ops.NewTestBackends()
+	b := ops.NewTestBackends(withDefaultConfig())
 	handler := ops.EventWebhook(b)
 
 	body := `{"id":"evt_123","type":"unknown.event","data":{}}`
@@ -55,7 +58,7 @@ func TestEventWebhookInvalidJSON(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	b := ops.NewTestBackends()
+	b := ops.NewTestBackends(withDefaultConfig())
 	handler := ops.EventWebhook(b)
 
 	body := `{invalid json}`
@@ -68,7 +71,7 @@ func TestEventWebhookInvalidJSON(t *testing.T) {
 }
 
 func TestEventWebhookOptions(t *testing.T) {
-	b := ops.NewTestBackends()
+	b := ops.NewTestBackends(withDefaultConfig())
 	handler := ops.EventWebhook(b)
 
 	req := httptest.NewRequest(http.MethodOptions, "/rafiki", nil)
@@ -80,7 +83,7 @@ func TestEventWebhookOptions(t *testing.T) {
 }
 
 func TestEventWebhookIncomingPaymentCreated_NilDB(t *testing.T) {
-	b := ops.NewTestBackends()
+	b := ops.NewTestBackends(withDefaultConfig())
 	handler := ops.EventWebhook(b)
 
 	body := `{
@@ -104,14 +107,14 @@ func TestEventWebhookIncomingPaymentCreated_NilDB(t *testing.T) {
 }
 
 func TestEventWebhookWorkflowTypes_StartsWorkflow(t *testing.T) {
-	setRafikiNodeFlag(t, true)
+	
 
 	if os.Getenv("DB_URL") == "" {
 		t.Skip("DB_URL not set; skipping test")
 	}
 
 	ctx := context.Background()
-	conn := db.MigrateTestDB(t, ctx)
+	conn := db.MigrateTestDB(t, ctx, "")
 
 	for _, ppID := range []string{"wa_1", "wa_2", "wa_3", "wa_r1", "wa_r2", "wa_r3"} {
 		_, err := conn.ExecContext(ctx,
@@ -191,6 +194,7 @@ func TestEventWebhookWorkflowTypes_StartsWorkflow(t *testing.T) {
 			}
 
 			b := ops.NewTestBackends(
+				withNodeEnabled(true),
 				func(tb *ops.TestBackends) {
 					tb.SetTemporal(tp)
 					tb.SetDB(conn)
@@ -211,14 +215,14 @@ func TestEventWebhookWorkflowTypes_StartsWorkflow(t *testing.T) {
 }
 
 func TestEventWebhookOutgoingCreated_MixedProviders_UsesOldFlow(t *testing.T) {
-	setRafikiNodeFlag(t, true)
+	
 
 	if os.Getenv("DB_URL") == "" {
 		t.Skip("DB_URL not set; skipping test")
 	}
 
 	ctx := context.Background()
-	conn := db.MigrateTestDB(t, ctx)
+	conn := db.MigrateTestDB(t, ctx, "")
 
 	senderWalletID := uuid.NewString()
 	receiverWalletID := uuid.NewString()
@@ -262,12 +266,14 @@ func TestEventWebhookOutgoingCreated_MixedProviders_UsesOldFlow(t *testing.T) {
 			WalletAddressId: "wa_receiver",
 		}, nil).Times(1)
 
-	b := ops.NewTestBackends(func(tb *ops.TestBackends) {
-		tb.SetTemporal(tp)
-		tb.SetDB(conn)
-		tb.SetLinkedAccounts(laMock)
-		tb.SetExternal(ext)
-	})
+	b := ops.NewTestBackends(
+		withNodeEnabled(true),
+		func(tb *ops.TestBackends) {
+			tb.SetTemporal(tp)
+			tb.SetDB(conn)
+			tb.SetLinkedAccounts(laMock)
+			tb.SetExternal(ext)
+		})
 
 	handler := ops.EventWebhook(b)
 	body := `{"id":"evt_mixed","type":"outgoing_payment.created","data":{"id":"op_mixed","walletAddressId":"wa_sender","state":"FUNDING","receiver":"https://example.com/incoming-payments/ip_mixed","debitAmount":{"value":"0","assetCode":"EUR","assetScale":2},"receiveAmount":{"value":"0","assetCode":"EUR","assetScale":2},"sentAmount":{"value":"0","assetCode":"EUR","assetScale":2},"createdAt":"2024-01-15T10:00:00Z","updatedAt":"2024-01-15T10:00:00Z"}}`
@@ -280,7 +286,7 @@ func TestEventWebhookOutgoingCreated_MixedProviders_UsesOldFlow(t *testing.T) {
 }
 
 func TestEventWebhookWorkflowTypes_UnmarshalFails(t *testing.T) {
-	setRafikiNodeFlag(t, true)
+	
 
 	tests := []struct {
 		name string
@@ -309,7 +315,7 @@ func TestEventWebhookWorkflowTypes_UnmarshalFails(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			b := ops.NewTestBackends()
+			b := ops.NewTestBackends(withNodeEnabled(true))
 			handler := ops.EventWebhook(b)
 
 			req := httptest.NewRequest(http.MethodPost, "/rafiki", strings.NewReader(tt.body))
@@ -323,9 +329,9 @@ func TestEventWebhookWorkflowTypes_UnmarshalFails(t *testing.T) {
 }
 
 func TestEventWebhookNodeDisabled_SkipsFinalizedFlow(t *testing.T) {
-	setRafikiNodeFlag(t, false)
+	
 
-	b := ops.NewTestBackends()
+	b := ops.NewTestBackends(withDefaultConfig())
 	handler := ops.EventWebhook(b)
 
 	body := `{"id":"evt_1","type":"incoming_payment.completed","data":{"id":"ip_1","walletAddressId":"wa_1","createdAt":"2024-01-15T10:00:00Z","expiresAt":"2024-01-16T10:00:00Z","receivedAmount":{"value":"5000","assetCode":"EUR","assetScale":2},"completed":true}}`

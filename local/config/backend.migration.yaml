@@ -1,0 +1,20 @@
+# Backend migration configuration for local development.
+# Override any value by creating local/config-override/backend.migration.yaml.
+
+environment:
+  mode: local
+
+agreements:
+  folder_name: local
+
+db_url: "postgres://postgres:postgres@postgres:5432/backend?sslmode=disable"
+pacioli_db_url: "postgres://postgres:postgres@postgres:5432/pacioli?sslmode=disable"
+open_payments_base_url: "https://local.ilp.link"
+kratos_url: "http://kratos:4434"
+log_level: info
+log_output_path: stderr
+
+label: ""
+
+sentry:
+  dsn: ""

@@ -18,7 +18,7 @@ import (
 
 func TestAddSignup(t *testing.T) {
 	ctx := context.Background()
-	db := db.MigrateTestDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx, "")
 
 	b := ops.NewBackends(t, db, validator.New())
 
@@ -105,7 +105,7 @@ func TestAddSignup(t *testing.T) {
 
 func TestAddSignupWithMug(t *testing.T) {
 	ctx := context.Background()
-	db := db.MigrateTestDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx, "")
 
 	b := ops.NewBackends(t, db, validator.New())
 
@@ -181,7 +181,7 @@ func TestAddSignupWithMug(t *testing.T) {
 
 func TestCanSignup(t *testing.T) {
 	ctx := context.Background()
-	db := db.MigrateTestDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx, "")
 
 	b := ops.NewBackends(t, db, validator.New())
 
@@ -236,7 +236,7 @@ func TestCanSignup(t *testing.T) {
 
 func TestSetSignupComplete(t *testing.T) {
 	ctx := context.Background()
-	db := db.MigrateTestDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx, "")
 
 	b := ops.NewBackends(t, db, validator.New())
 
@@ -290,7 +290,7 @@ func TestSetSignupComplete(t *testing.T) {
 
 func TestListSignups(t *testing.T) {
 	ctx := context.Background()
-	db := db.MigrateTestDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx, "")
 
 	b := ops.NewBackends(t, db, validator.New())
 

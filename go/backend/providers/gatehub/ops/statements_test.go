@@ -58,7 +58,7 @@ func TestGetAccountConfirmation_ExternalIDsError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	testDB := db.MigrateTestDB(t, ctx)
+	testDB := db.MigrateTestDB(t, ctx, "")
 
 	laMock := la_mock.NewMockClient(ctrl)
 	laMock.EXPECT().ListByWalletId(gomock.Any(), gomock.Any()).Return([]linkedaccounts.LinkedAccount{
@@ -81,7 +81,7 @@ func TestGetAccountConfirmation_Success(t *testing.T) {
 	externalUserID := uuid.NewString()
 	providerID := "rWalletAddress"
 
-	testDB := db.MigrateTestDB(t, ctx)
+	testDB := db.MigrateTestDB(t, ctx, "")
 	_, err := testDB.ExecContext(ctx, `INSERT INTO wallets (id, name) VALUES ($1, 'test') ON CONFLICT DO NOTHING`, walletID)
 	require.NoError(t, err)
 	_, err = testDB.ExecContext(ctx, `INSERT INTO gatehub_users (external_id, wallet_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`, externalUserID, walletID)
@@ -186,7 +186,7 @@ func TestGetAccountStatement_ExternalIDsError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	testDB := db.MigrateTestDB(t, ctx)
+	testDB := db.MigrateTestDB(t, ctx, "")
 
 	laMock := la_mock.NewMockClient(ctrl)
 	laMock.EXPECT().ListByWalletId(gomock.Any(), gomock.Any()).Return([]linkedaccounts.LinkedAccount{
@@ -214,7 +214,7 @@ func TestGetAccountStatement_Success(t *testing.T) {
 	externalUserID := uuid.NewString()
 	providerID := "rWalletAddress"
 
-	testDB := db.MigrateTestDB(t, ctx)
+	testDB := db.MigrateTestDB(t, ctx, "")
 	_, err := testDB.ExecContext(ctx, `INSERT INTO wallets (id, name) VALUES ($1, 'test') ON CONFLICT DO NOTHING`, walletID)
 	require.NoError(t, err)
 	_, err = testDB.ExecContext(ctx, `INSERT INTO gatehub_users (external_id, wallet_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`, externalUserID, walletID)
@@ -281,7 +281,7 @@ func TestGetTransactionStatement_ExternalIDsError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	testDB := db.MigrateTestDB(t, ctx)
+	testDB := db.MigrateTestDB(t, ctx, "")
 
 	laMock := la_mock.NewMockClient(ctrl)
 	laMock.EXPECT().ListByWalletId(gomock.Any(), gomock.Any()).Return([]linkedaccounts.LinkedAccount{
@@ -303,7 +303,7 @@ func TestGetTransactionStatement_TransactionsError(t *testing.T) {
 	walletID := uuid.NewString()
 	externalUserID := uuid.NewString()
 
-	testDB := db.MigrateTestDB(t, ctx)
+	testDB := db.MigrateTestDB(t, ctx, "")
 	_, err := testDB.ExecContext(ctx, `INSERT INTO wallets (id, name) VALUES ($1, 'test') ON CONFLICT DO NOTHING`, walletID)
 	require.NoError(t, err)
 	_, err = testDB.ExecContext(ctx, `INSERT INTO gatehub_users (external_id, wallet_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`, externalUserID, walletID)
@@ -332,7 +332,7 @@ func TestGetTransactionStatement_TransactionNotFound(t *testing.T) {
 	walletID := uuid.NewString()
 	externalUserID := uuid.NewString()
 
-	testDB := db.MigrateTestDB(t, ctx)
+	testDB := db.MigrateTestDB(t, ctx, "")
 	_, err := testDB.ExecContext(ctx, `INSERT INTO wallets (id, name) VALUES ($1, 'test') ON CONFLICT DO NOTHING`, walletID)
 	require.NoError(t, err)
 	_, err = testDB.ExecContext(ctx, `INSERT INTO gatehub_users (external_id, wallet_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`, externalUserID, walletID)
@@ -362,7 +362,7 @@ func TestGetTransactionStatement_ExternalNotFound(t *testing.T) {
 	externalUserID := uuid.NewString()
 	foreignTxID := "external-transfer-id"
 
-	testDB := db.MigrateTestDB(t, ctx)
+	testDB := db.MigrateTestDB(t, ctx, "")
 	_, err := testDB.ExecContext(ctx, `INSERT INTO wallets (id, name) VALUES ($1, 'test') ON CONFLICT DO NOTHING`, walletID)
 	require.NoError(t, err)
 	_, err = testDB.ExecContext(ctx, `INSERT INTO gatehub_users (external_id, wallet_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`, externalUserID, walletID)
@@ -395,7 +395,7 @@ func TestGetTransactionStatement_ExternalError(t *testing.T) {
 	externalUserID := uuid.NewString()
 	foreignTxID := "external-transfer-id"
 
-	testDB := db.MigrateTestDB(t, ctx)
+	testDB := db.MigrateTestDB(t, ctx, "")
 	_, err := testDB.ExecContext(ctx, `INSERT INTO wallets (id, name) VALUES ($1, 'test') ON CONFLICT DO NOTHING`, walletID)
 	require.NoError(t, err)
 	_, err = testDB.ExecContext(ctx, `INSERT INTO gatehub_users (external_id, wallet_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`, externalUserID, walletID)
@@ -429,7 +429,7 @@ func TestGetTransactionStatement_Success(t *testing.T) {
 	providerID := "rWalletAddress"
 	foreignTxID := "external-transfer-id"
 
-	testDB := db.MigrateTestDB(t, ctx)
+	testDB := db.MigrateTestDB(t, ctx, "")
 	_, err := testDB.ExecContext(ctx, `INSERT INTO wallets (id, name) VALUES ($1, 'test') ON CONFLICT DO NOTHING`, walletID)
 	require.NoError(t, err)
 	_, err = testDB.ExecContext(ctx, `INSERT INTO gatehub_users (external_id, wallet_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`, externalUserID, walletID)

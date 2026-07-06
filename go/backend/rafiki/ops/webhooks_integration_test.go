@@ -33,7 +33,6 @@ import (
 	transactions_mock "github.com/interledger/interledger-app/go/backend/transactions/client/mock"
 	"github.com/interledger/interledger-app/go/backend/wallets"
 	wallets_mock "github.com/interledger/interledger-app/go/backend/wallets/client/mock"
-	"github.com/interledger/interledger-app/go/env"
 	"github.com/interledger/interledger-app/go/pacioli"
 	pacioli_mock "github.com/interledger/interledger-app/go/pacioli/client/mock"
 
@@ -79,7 +78,6 @@ func startPostgresContainer(ctx context.Context) (testcontainers.Container, stri
 }
 
 func TestMain(m *testing.M) {
-	env.SetRafikiNodeEnabled(true)
 
 	if os.Getenv("DB_URL") == "" {
 		ctx := context.Background()
@@ -109,7 +107,7 @@ func requireTestDB(t *testing.T) *sqlx.DB {
 		t.Skipf("DB connection failed; skipping: %v", err)
 	}
 	_ = tryConn.Close()
-	conn := db.MigrateTestDB(t, context.Background())
+	conn := db.MigrateTestDB(t, context.Background(), "")
 	return conn
 }
 

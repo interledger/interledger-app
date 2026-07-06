@@ -12,6 +12,7 @@ import (
 	"github.com/interledger/interledger-app/go/backend/providers/xago"
 	"github.com/interledger/interledger-app/go/backend/wallets"
 
+	"github.com/interledger/interledger-app/go/backend/config"
 	"github.com/interledger/interledger-app/go/backend/signup"
 	"github.com/interledger/interledger-app/go/backend/user"
 
@@ -34,6 +35,7 @@ type Backends interface {
 	PTI() pti.Client
 	Chimoney() chimoney.Client
 	Rafiki() rafiki.Client
+	Config() *config.StartConfig
 }
 
 type testBackends struct {
@@ -47,6 +49,7 @@ type testBackends struct {
 	wc  wallets.Client
 	xg  xago.Client
 	rf  rafiki.Client
+	cfg *config.StartConfig
 }
 
 func (b testBackends) Chimoney() chimoney.Client {
@@ -96,6 +99,10 @@ func (t testBackends) Rafiki() rafiki.Client {
 	return t.rf
 }
 
+func (t testBackends) Config() *config.StartConfig {
+	return t.cfg
+}
+
 func NewTestBackends(_ *testing.T, db *sqlx.DB, tp temporal.Client, uc user.Client, sc signup.Client, nc notify.Client, em email.Client, wc wallets.Client) Backends {
-	return &testBackends{db: db, val: validator.New(), tp: tp, uc: uc, sc: sc, nc: nc, em: em, wc: wc}
+	return &testBackends{db: db, val: validator.New(), tp: tp, uc: uc, sc: sc, nc: nc, em: em, wc: wc, cfg: &config.StartConfig{}}
 }
