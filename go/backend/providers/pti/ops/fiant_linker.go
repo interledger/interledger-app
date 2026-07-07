@@ -1,4 +1,4 @@
-package main
+package ops
 
 import (
 	"context"
@@ -10,22 +10,34 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/lestrrat-go/jwx/v3/jwk"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/interledger/interledger-app/go/backend/country"
 	"github.com/interledger/interledger-app/go/backend/currency"
 	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
 	linkedaccounts_ops "github.com/interledger/interledger-app/go/backend/linkedaccounts/ops"
+	"github.com/interledger/interledger-app/go/backend/notify"
 	plaid_ops "github.com/interledger/interledger-app/go/backend/providers/plaid/ops"
 	"github.com/interledger/interledger-app/go/backend/providers/pti"
-	pti_external "github.com/interledger/interledger-app/go/backend/providers/pti/external"
-	pti_ops "github.com/interledger/interledger-app/go/backend/providers/pti/ops"
+	"github.com/interledger/interledger-app/go/backend/providers/pti/external"
 )
 
-type plaidFiantLinker struct {
-	b        *backends
-	external pti_external.Client
+// FiantLinkerBackends is scoped to exactly what FiantLinker (and the
+// linkedaccounts/plaid ops it calls into) need — kept separate from Backends
+// so extending it doesn't ripple into every other caller of that shared
+// interface (webhooks, temporal activities, etc).
+type FiantLinkerBackends interface {
+	Backends
+	WithTx(ctx context.Context, fn func(*sqlx.Tx) error) error
+	Validator() *validator.Validate
+	Notify() notify.Client
 }
 
-func newPlaidFiantLinker(b *backends, ptiBaseURL, ptiClientID, ptiJWK string) (*plaidFiantLinker, error) {
+type FiantLinker struct {
+	b        FiantLinkerBackends
+	external external.Client
+}
+
+func NewFiantLinker(b FiantLinkerBackends, ptiBaseURL, ptiClientID, ptiJWK string) (*FiantLinker, error) {
 	if ptiJWK == "" {
 		return nil, nil
 	}
@@ -33,16 +45,16 @@ func newPlaidFiantLinker(b *backends, ptiBaseURL, ptiClientID, ptiJWK string) (*
 	if err != nil {
 		return nil, fmt.Errorf("plaid/fiant linker: parse PTI JWK: %w", err)
 	}
-	ext, err := pti_external.NewWithOptions(
-		pti_external.WithBaseURL(ptiBaseURL),
-		pti_external.WithOTELLHTTPClient(),
-		pti_external.WithClientID(ptiClientID),
-		pti_external.WithDerivedKeys(pk),
+	ext, err := external.NewWithOptions(
+		external.WithBaseURL(ptiBaseURL),
+		external.WithOTELLHTTPClient(),
+		external.WithClientID(ptiClientID),
+		external.WithDerivedKeys(pk),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("plaid/fiant linker: build PTI external client: %w", err)
 	}
-	return &plaidFiantLinker{b: b, external: ext}, nil
+	return &FiantLinker{b: b, external: ext}, nil
 }
 
 // WithAccountLock runs fn while holding a transaction-scoped Postgres advisory
@@ -52,7 +64,7 @@ func newPlaidFiantLinker(b *backends, ptiBaseURL, ptiClientID, ptiJWK string) (*
 // payment-information records. The partial unique index
 // `plaid_links_wallet_plaid_uniq` is the final backstop; this lock prevents
 // the wasted/orphaning external calls before that index ever trips.
-func (l *plaidFiantLinker) WithAccountLock(ctx context.Context, userID, plaidAccountID string, fn func(context.Context) error) error {
+func (l *FiantLinker) WithAccountLock(ctx context.Context, userID, plaidAccountID string, fn func(context.Context) error) error {
 	tx, err := l.b.DB().BeginTxx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("plaid/fiant linker: begin lock tx: %w", err)
@@ -77,7 +89,7 @@ func (l *plaidFiantLinker) WithAccountLock(ctx context.Context, userID, plaidAcc
 	return nil
 }
 
-func (l *plaidFiantLinker) ExistingLink(ctx context.Context, userID, plaidAccountID string) (*plaid_ops.LinkedIDs, error) {
+func (l *FiantLinker) ExistingLink(ctx context.Context, userID, plaidAccountID string) (*plaid_ops.LinkedIDs, error) {
 	walletID, err := l.getWalletIdByUserId(ctx, userID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -104,13 +116,13 @@ func (l *plaidFiantLinker) ExistingLink(ctx context.Context, userID, plaidAccoun
 	}, nil
 }
 
-func (l *plaidFiantLinker) Register(ctx context.Context, args plaid_ops.LinkPlaidArgs) (*plaid_ops.LinkedIDs, error) {
+func (l *FiantLinker) Register(ctx context.Context, args plaid_ops.LinkPlaidArgs) (*plaid_ops.LinkedIDs, error) {
 	walletID, err := l.getWalletIdByUserId(ctx, args.UserID)
 	if err != nil {
 		return nil, fmt.Errorf("plaid/fiant linker: resolve wallet: %w", err)
 	}
 
-	ptiUser, err := pti_ops.GetUser(ctx, l.b, walletID)
+	ptiUser, err := GetUser(ctx, l.b, walletID)
 	if err != nil {
 		return nil, fmt.Errorf("plaid/fiant linker: resolve pti user: %w", err)
 	}
@@ -181,7 +193,7 @@ func (l *plaidFiantLinker) Register(ctx context.Context, args plaid_ops.LinkPlai
 	}, nil
 }
 
-func (l *plaidFiantLinker) ListLinkedPlaidAccountIDs(ctx context.Context, userID string) ([]string, error) {
+func (l *FiantLinker) ListLinkedPlaidAccountIDs(ctx context.Context, userID string) ([]string, error) {
 	walletID, err := l.getWalletIdByUserId(ctx, userID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -196,7 +208,7 @@ func (l *plaidFiantLinker) ListLinkedPlaidAccountIDs(ctx context.Context, userID
 	return ids, nil
 }
 
-func (l *plaidFiantLinker) getWalletIdByUserId(ctx context.Context, userID string) (string, error) {
+func (l *FiantLinker) getWalletIdByUserId(ctx context.Context, userID string) (string, error) {
 	var id string
 	err := l.b.DB().GetContext(ctx, &id, "SELECT wallet_id FROM user_wallets WHERE user_id = $1 LIMIT 1;", userID)
 	return id, err

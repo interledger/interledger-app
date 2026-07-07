@@ -92,9 +92,6 @@ plaid:
   env: sandbox
   products:
     - auth
-    - transactions
-    - balance
-    - identity
   country_codes:
     - US
   processor: fiant

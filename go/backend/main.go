@@ -259,7 +259,7 @@ func start(args *cli.StartArgs) {
 	if b.plaidClient != nil {
 		var linker plaid_ops.FiantLinker
 		if args.PTI.Enabled {
-			fl, err := newPlaidFiantLinker(b, args.PTI.BaseURL, args.PTI.ClientID, args.PTI.JWK)
+			fl, err := pti_ops.NewFiantLinker(b, args.PTI.BaseURL, args.PTI.ClientID, args.PTI.JWK)
 			if err != nil {
 				log.Fatalln(err)
 			}
