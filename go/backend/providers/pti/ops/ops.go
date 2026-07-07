@@ -11,12 +11,15 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/email"
 	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
 	"github.com/interledger/interledger-app/go/backend/payments"
 	"github.com/interledger/interledger-app/go/backend/providers/pti"
 	"github.com/interledger/interledger-app/go/backend/providers/pti/external"
 	"github.com/interledger/interledger-app/go/backend/transactions"
 	"github.com/interledger/interledger-app/go/backend/wallets"
+	"github.com/interledger/interledger-app/go/log"
+	"go.uber.org/zap"
 
 	"github.com/interledger/interledger-app/go/backend/slack"
 
@@ -690,6 +693,27 @@ func CreateBankAccount(ctx context.Context, b Backends, args pti.CreateBankAccou
 	return await.Get, nil
 }
 
+// getBankLinkedAccount resolves the wallet's ACH bank linked account, mirroring the lookup
+// already performed inline by ConfirmWithdrawal.
+func getBankLinkedAccount(ctx context.Context, b Backends, walletID string) (*linkedaccounts.LinkedAccount, error) {
+	las, err := b.LinkedAccounts().ListByWalletId(ctx, walletID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+
+	for _, la := range las {
+		if la.Provider == pti.ProviderName && la.Type == pti.TypeBank {
+			return &la, nil
+		}
+	}
+
+	return nil, fmt.Errorf("%w bank account not found", pti.ErrNotFound)
+}
+
+func formatBankSource(la *linkedaccounts.LinkedAccount) string {
+	return fmt.Sprintf("Bank Account (...%s)", la.Mask)
+}
+
 func CreateDeposit(ctx context.Context, b Backends, wallet *wallets.Wallet, payment *payments.Payment) error {
 
 	workflowOptions := client.StartWorkflowOptions{
@@ -702,6 +726,20 @@ func CreateDeposit(ctx context.Context, b Backends, wallet *wallets.Wallet, paym
 	if err != nil {
 		return err
 	}
+
+	bankLA, err := b.LinkedAccounts().Get(ctx, payment.SenderAccount)
+	if err != nil {
+		log.Error("Failed to resolve bank account for deposit initiated email", zap.Error(err), zap.String("walletID", wallet.ID))
+		return nil
+	}
+	b.Email().SendRampActionEmail(ctx, wallet.ID, email.RampActionEmailArgs{
+		Action:    "Deposit Initiated",
+		Status:    "Pending",
+		Amount:    payment.ReceiverAmount,
+		Source:    formatBankSource(bankLA),
+		Method:    "ACH",
+		Timestamp: time.Now(),
+	})
 
 	return nil
 }
@@ -763,6 +801,16 @@ func ConfirmWithdrawal(ctx context.Context, b Backends, ec external.Client, wall
 	if err != nil {
 		return "", fmt.Errorf("%w %s", pti.ErrInternal, err)
 	}
+
+	b.Email().SendRampActionEmail(ctx, walletID, email.RampActionEmailArgs{
+		Action:    "Withdrawal Initiated",
+		Status:    "Pending",
+		Amount:    payment.ReceiverAmount,
+		Source:    formatBankSource(bank),
+		Method:    "ACH",
+		Timestamp: time.Now(),
+	})
+
 	return withdrawTx.ID, nil
 }
 
