@@ -1,0 +1,2818 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for the Interledger App Wallet — a reference implementation for Account Servicing Entities (ASEs) integrating with the Interledger network.">
+      
+      
+      
+      
+        <link rel="prev" href="../rafiki-full-node-upgrade-guide/">
+      
+      
+        <link rel="next" href="../error-handling-guide/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Payment Troubleshooting - Interledger App Wallet</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#payment-troubleshooting-guide" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Interledger App Wallet" class="md-header__button md-logo" aria-label="Interledger App Wallet" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Interledger App Wallet
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Payment Troubleshooting
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Interledger App Wallet" class="md-nav__button md-logo" aria-label="Interledger App Wallet" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Interledger App Wallet
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../terminology/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Terminology
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../signup-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Signup Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../kyc-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    KYC & Identity Verification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../kyc-resubmission-flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    KYC Resubmission Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../account-deletion-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Account Deletion Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wallets-accounts-addresses-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wallets, Accounts & Addresses
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ledger-system-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dual-Ledger System
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../agreements-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agreements & Legal Consent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Payments
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Payments
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../payments-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Payments & Transactions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../transaction-types-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transaction Types Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../provider-payments-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Provider Comparison
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Integrations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Integrations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gatehub-cards-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GateHub Cards
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rafiki-full-node-upgrade-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rafiki Full Node Upgrade
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Operations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Payment Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Payment Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#introduction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Introduction
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#common-problems-solutions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common Problems &amp; Solutions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Common Problems &amp; Solutions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#problem-1-payment-appears-stuck-in-processing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Problem 1: "Payment appears stuck in 'Processing'"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#investigation-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Investigation Checklist
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#root-causes-fixes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Root Causes &amp; Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#problem-2-balance-is-wrong-shows-100-but-should-be-150" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Problem 2: "Balance is wrong - shows £100 but should be £150"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#investigation-checklist_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Investigation Checklist
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#root-causes-fixes_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Root Causes &amp; Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#problem-3-sender-sent-money-but-recipient-didnt-receive-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Problem 3: "Sender sent money but recipient didn't receive it"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#investigation-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Investigation Steps
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#root-causes-fixes_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Root Causes &amp; Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#problem-4-our-balance-doesnt-match-providers-balance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Problem 4: "Our balance doesn't match provider's balance"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#investigation-steps_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Investigation Steps
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#root-causes-fixes_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Root Causes &amp; Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#temporal-debugging-guide" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Temporal Debugging Guide
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Temporal Debugging Guide">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#understanding-payment-workflow-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Understanding Payment Workflow Structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#finding-a-stuck-payment-in-temporal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Finding a Stuck Payment in Temporal
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#investigating-a-running-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Investigating a Running Workflow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#common-temporal-scenarios" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common Temporal Scenarios
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Common Temporal Scenarios">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scenario-1-workflow-waiting-for-signal-normal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario 1: Workflow Waiting for Signal (Normal)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scenario-2-workflow-stuck-on-an-activity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario 2: Workflow Stuck on an Activity
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scenario-3-workflow-failed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario 3: Workflow Failed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scenario-4-signal-received-still-running" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario 4: Signal Received, Still Running
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#webhook-troubleshooting-using-temporal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Webhook Troubleshooting Using Temporal
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#temporal-best-practices-for-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Temporal Best Practices for Support
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#temporal-workflow-lifecycle-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Temporal Workflow Lifecycle Summary
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#escalation-logic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Escalation Logic
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See Also
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developers
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Developers
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../error-handling-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Error Handling Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../logging-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Logging Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend-configuration-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backend Configuration Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../env-variables/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment Variables
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#introduction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Introduction
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#common-problems-solutions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common Problems &amp; Solutions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Common Problems &amp; Solutions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#problem-1-payment-appears-stuck-in-processing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Problem 1: "Payment appears stuck in 'Processing'"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#investigation-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Investigation Checklist
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#root-causes-fixes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Root Causes &amp; Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#problem-2-balance-is-wrong-shows-100-but-should-be-150" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Problem 2: "Balance is wrong - shows £100 but should be £150"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#investigation-checklist_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Investigation Checklist
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#root-causes-fixes_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Root Causes &amp; Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#problem-3-sender-sent-money-but-recipient-didnt-receive-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Problem 3: "Sender sent money but recipient didn't receive it"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#investigation-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Investigation Steps
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#root-causes-fixes_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Root Causes &amp; Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#problem-4-our-balance-doesnt-match-providers-balance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Problem 4: "Our balance doesn't match provider's balance"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#investigation-steps_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Investigation Steps
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#root-causes-fixes_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Root Causes &amp; Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#temporal-debugging-guide" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Temporal Debugging Guide
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Temporal Debugging Guide">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#understanding-payment-workflow-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Understanding Payment Workflow Structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#finding-a-stuck-payment-in-temporal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Finding a Stuck Payment in Temporal
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#investigating-a-running-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Investigating a Running Workflow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#common-temporal-scenarios" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common Temporal Scenarios
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Common Temporal Scenarios">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scenario-1-workflow-waiting-for-signal-normal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario 1: Workflow Waiting for Signal (Normal)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scenario-2-workflow-stuck-on-an-activity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario 2: Workflow Stuck on an Activity
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scenario-3-workflow-failed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario 3: Workflow Failed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scenario-4-signal-received-still-running" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario 4: Signal Received, Still Running
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#webhook-troubleshooting-using-temporal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Webhook Troubleshooting Using Temporal
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#temporal-best-practices-for-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Temporal Best Practices for Support
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#temporal-workflow-lifecycle-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Temporal Workflow Lifecycle Summary
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#escalation-logic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Escalation Logic
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See Also
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="payment-troubleshooting-guide">Payment Troubleshooting Guide<a class="headerlink" href="#payment-troubleshooting-guide" title="Permanent link">&para;</a></h1>
+<p><strong>Audience:</strong> Support staff, operations, first-line debugging<br />
+<strong>Time to read:</strong> 15 minutes</p>
+<blockquote>
+<p><strong>Debugging framework.</strong> Systematic approach to resolving payment issues.</p>
+</blockquote>
+<p><strong>Related documents:</strong></p>
+<ul>
+<li><a href="../payments-guide/">Payments Guide</a> — Overview and navigation hub</li>
+<li><a href="../ledger-system-guide/">Ledger System Architecture</a> — Understanding balance discrepancies</li>
+<li><a href="../transaction-types-reference/">Transaction Types Reference</a> — Transaction field details</li>
+<li><a href="../provider-payments-reference/">Provider Payments Guide</a> — Provider-specific debugging paths</li>
+<li><a href="../kyc-guide/">KYC Explainer</a> — KYC gating that can block payment flows</li>
+<li><a href="../terminology/">Concepts</a> — Core terminology</li>
+</ul>
+<p><strong>Quick Navigation:</strong></p>
+<ul>
+<li><strong>Payment stuck?</strong> → See <a href="#problem-1-payment-appears-stuck-in-processing">Problem 1: Payment Stuck in Processing</a></li>
+<li><strong>Balance wrong?</strong> → See <a href="#problem-2-balance-is-wrong-shows-100-but-should-be-150">Problem 2: Balance Mismatch</a></li>
+<li><strong>Recipient didn't receive?</strong> → See <a href="#problem-3-sender-sent-money-but-recipient-didnt-receive-it">Problem 3: Missing Receipt</a></li>
+<li><strong>Ledger discrepancy?</strong> → See <a href="#problem-4-our-balance-doesnt-match-providers-balance">Problem 4: Ledger Mismatch</a></li>
+<li><strong>Using Temporal?</strong> → See <a href="#temporal-debugging-guide">Temporal Debugging Guide</a></li>
+</ul>
+<hr />
+<h2 id="introduction">Introduction<a class="headerlink" href="#introduction" title="Permanent link">&para;</a></h2>
+<p>When something goes wrong with a payment, follow this order:
+1) verify provider status,
+2) compare with our records,
+3) fix the mismatch at the source.</p>
+<p>Don't guess — follow the evidence trail.</p>
+<pre class="mermaid"><code>graph TD
+    Problem["User reports:&lt;br/&gt;Payment stuck?&lt;br/&gt;Balance wrong?&lt;br/&gt;Money missing?"]
+
+    Problem --&gt;|Step 1| CheckData{"Do our records&lt;br/&gt;match provider's&lt;br/&gt;records?"}
+
+    CheckData --&gt;|No| FindDiff["Find the&lt;br/&gt;discrepancy"]
+    CheckData --&gt;|Yes| CheckTx["Check transaction&lt;br/&gt;status with provider"]
+
+    FindDiff --&gt; WhichOne{"Who's right?&lt;br/&gt;Us or provider?"}
+    WhichOne --&gt;|Provider&lt;br/&gt;authoritative| Update["Update our&lt;br/&gt;records to match&lt;br/&gt;provider"]
+    WhichOne --&gt;|Us&lt;br/&gt;correct| Retry["Retry or&lt;br/&gt;escalate to&lt;br/&gt;provider"]
+    WhichOne --&gt;|Unknown| Escalate["Investigate logs&lt;br/&gt;Check webhooks&lt;br/&gt;Manual review"]
+
+    CheckTx --&gt; TxStatus{"What status&lt;br/&gt;does provider&lt;br/&gt;report?"}
+    TxStatus --&gt;|Completed| MarkComplete["Mark transaction&lt;br/&gt;complete in our&lt;br/&gt;system"]
+    TxStatus --&gt;|Pending| CheckWebhook["Did we receive&lt;br/&gt;a webhook?"]
+    TxStatus --&gt;|Failed| MarkFailed["Mark failed&lt;br/&gt;Investigate why"]
+
+    CheckWebhook --&gt;|Yes| Strange["Strange mismatch:&lt;br/&gt;Webhook says&lt;br/&gt;complete but&lt;br/&gt;provider says&lt;br/&gt;pending"]
+    CheckWebhook --&gt;|No| Wait["Wait 20 min for&lt;br/&gt;provider to process&lt;br/&gt;then check again"]
+
+    Strange --&gt; Escalate
+    Wait --&gt; CheckAgain["Poll provider&lt;br/&gt;again"]
+    CheckAgain --&gt; TxStatus
+
+    style Problem fill:#ff6b6b,stroke:#cc0000,color:#fff
+    style FindDiff fill:#ffd93d,stroke:#cc8800,color:#000
+    style Update fill:#70d070,stroke:#008800,color:#fff
+    style Retry fill:#70d070,stroke:#008800,color:#fff
+    style MarkComplete fill:#70d070,stroke:#008800,color:#fff
+    style MarkFailed fill:#ff9999,stroke:#cc0000,color:#fff
+    style Escalate fill:#ffd93d,stroke:#cc8800,color:#000</code></pre>
+<hr />
+<h2 id="common-problems-solutions">Common Problems &amp; Solutions<a class="headerlink" href="#common-problems-solutions" title="Permanent link">&para;</a></h2>
+<h3 id="problem-1-payment-appears-stuck-in-processing">Problem 1: "Payment appears stuck in 'Processing'"<a class="headerlink" href="#problem-1-payment-appears-stuck-in-processing" title="Permanent link">&para;</a></h3>
+<p><strong>Symptoms:</strong>
+- User initiated payment hours ago
+- Status still shows "Sending..."
+- Balance hasn't changed</p>
+<h3 id="investigation-checklist">Investigation Checklist<a class="headerlink" href="#investigation-checklist" title="Permanent link">&para;</a></h3>
+<p><strong>Step 1: Check if transaction exists</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Query our database</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>SELECT<span class="w"> </span>*<span class="w"> </span>FROM<span class="w"> </span>transactions<span class="w"> </span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>WHERE<span class="w"> </span><span class="nv">id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;txn_...&#39;</span><span class="w"> </span>OR<span class="w"> </span><span class="nv">user_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;user_...&#39;</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>ORDER<span class="w"> </span>BY<span class="w"> </span>created_at<span class="w"> </span>DESC
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>LIMIT<span class="w"> </span><span class="m">10</span><span class="p">;</span>
+</code></pre></div>
+<ul>
+<li>Transaction exists? ✓ Continue</li>
+<li>No transaction? ✗ Payment never created (UI bug or network issue)</li>
+</ul>
+<p><strong>Step 2: Check transaction status</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># What status do we have?</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>Transaction<span class="w"> </span><span class="m">1</span>:
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>├─<span class="w"> </span>Status:<span class="w"> </span><span class="s2">&quot;pending&quot;</span><span class="w"> </span><span class="o">(</span>expected<span class="w"> </span><span class="k">for</span><span class="w"> </span>stuck<span class="o">)</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>├─<span class="w"> </span>Provider<span class="w"> </span>ID:<span class="w"> </span><span class="s2">&quot;txn_abc123&quot;</span><span class="w"> </span><span class="o">(</span>GateHub<span class="w"> </span>ID<span class="o">)</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>├─<span class="w"> </span>Created<span class="w"> </span>At:<span class="w"> </span><span class="m">2</span><span class="w"> </span>hours<span class="w"> </span>ago
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>└─<span class="w"> </span>Provider<span class="w"> </span>Fee:<span class="w"> </span>£2.00
+</code></pre></div>
+<p><strong>Step 3: Check with provider (most important)</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Query GateHub (or other provider) directly</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>GateHub<span class="w"> </span>API:<span class="w"> </span>GET<span class="w"> </span>/core/v1/transactions/<span class="o">{</span>txn_abc123<span class="o">}</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>Response:
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="o">{</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span><span class="s2">&quot;id&quot;</span>:<span class="w"> </span><span class="s2">&quot;txn_abc123&quot;</span>,
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">  </span><span class="s2">&quot;status&quot;</span>:<span class="w"> </span><span class="m">1</span>,<span class="w">          </span>←<span class="w"> </span>Still<span class="w"> </span>pending!
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">  </span><span class="s2">&quot;amount&quot;</span>:<span class="w"> </span><span class="s2">&quot;100.00&quot;</span>,
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">  </span><span class="s2">&quot;fee&quot;</span>:<span class="w"> </span><span class="s2">&quot;2.00&quot;</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="o">}</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>OR
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>Response:
+<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="o">{</span>
+<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="w">  </span><span class="s2">&quot;id&quot;</span>:<span class="w"> </span><span class="s2">&quot;txn_abc123&quot;</span>,
+<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="w">  </span><span class="s2">&quot;status&quot;</span>:<span class="w"> </span><span class="m">100</span>,<span class="w">        </span>←<span class="w"> </span>Actually<span class="w"> </span>completed!
+<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="w">  </span><span class="s2">&quot;amount&quot;</span>:<span class="w"> </span><span class="s2">&quot;100.00&quot;</span>,
+<a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="w">  </span><span class="s2">&quot;fee&quot;</span>:<span class="w"> </span><span class="s2">&quot;2.00&quot;</span>
+<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="o">}</span>
+</code></pre></div>
+<h3 id="root-causes-fixes">Root Causes &amp; Fixes<a class="headerlink" href="#root-causes-fixes" title="Permanent link">&para;</a></h3>
+<p><strong>If Provider Says: Pending</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>Meaning: Provider hasn&#39;t finished processing
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>Causes:
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>├─ Normal (just needs more time) — Wait up to 20 minutes
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>├─ Blocked by fraud check — May take 30 min to hours
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>├─ Provider system slow — Rare but happens
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>└─ Network issue — Check provider status page
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>Action:
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>├─ Wait 20 minutes if recently created
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>├─ Check provider&#39;s status page
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>├─ Contact provider support if &gt; 30 min pending
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>└─ Monitor webhook logs for completion
+</code></pre></div>
+<p><strong>If Provider Says: Completed (Status 100/SETTLED)</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>Meaning: Provider finished, but our system missed the update
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>Investigation:
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>├─ Check webhook logs: Did we receive completion webhook?
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>│  - If YES: Why didn&#39;t we process it?
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>│  - If NO: Why didn&#39;t webhook arrive?
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>└─ Check our transaction status: Did we update it?
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>Cause: Webhook Failure
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>├─ Network interruption (our side)
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>├─ Webhook URL misconfigured
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>├─ Webhook handler crashed
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>└─ Request timeout
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>Fix:
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a>├─ Manually mark transaction as complete
+<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a>├─ Credit user&#39;s balance (should already have reserve)
+<a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a>├─ Send user notification: &quot;✓ Payment completed&quot;
+<a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a>├─ Investigate: Why webhook didn&#39;t trigger update
+</code></pre></div>
+<p><strong>If Provider Says: Failed (Status 3/FAILED)</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>Meaning: Provider rejected the transaction
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>Investigate error:
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>├─ Check provider response: What was error?
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>│  Examples:
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>│  ├─ &quot;Insufficient funds&quot;
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>│  ├─ &quot;Account locked&quot;
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>│  ├─ &quot;Daily limit exceeded&quot;
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>│  └─ &quot;Recipient account not found&quot;
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>└─ Return error to user with explanation
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>Fix:
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>├─ Mark transaction as failed
+<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>├─ Return balance to sender (unreserve the amount)
+<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a>├─ Show user error message from provider
+<a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a>└─ Suggest action (add funds, try again later, contact support)
+</code></pre></div>
+<hr />
+<h3 id="problem-2-balance-is-wrong-shows-100-but-should-be-150">Problem 2: "Balance is wrong - shows £100 but should be £150"<a class="headerlink" href="#problem-2-balance-is-wrong-shows-100-but-should-be-150" title="Permanent link">&para;</a></h3>
+<p><strong>Symptoms:</strong>
+- User balance doesn't match their transactions
+- "Missing" money somewhere
+- Balance calculation error</p>
+<h3 id="investigation-checklist_1">Investigation Checklist<a class="headerlink" href="#investigation-checklist_1" title="Permanent link">&para;</a></h3>
+<p><strong>Step 1: Calculate expected balance</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Sum all transactions for this user</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>SELECT<span class="w"> </span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span>SUM<span class="o">(</span>CASE<span class="w"> </span>WHEN<span class="w"> </span><span class="nv">type</span><span class="o">=</span><span class="s1">&#39;receive&#39;</span><span class="w"> </span>OR<span class="w"> </span><span class="nv">type</span><span class="o">=</span><span class="s1">&#39;deposit&#39;</span><span class="w"> </span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">       </span>THEN<span class="w"> </span>amount<span class="w"> </span>-<span class="w"> </span>COALESCE<span class="o">(</span>provider_fee,<span class="w"> </span><span class="m">0</span><span class="o">)</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">       </span>ELSE<span class="w"> </span><span class="m">0</span><span class="w"> </span>END<span class="o">)</span><span class="w"> </span>as<span class="w"> </span>credits,
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">  </span>SUM<span class="o">(</span>CASE<span class="w"> </span>WHEN<span class="w"> </span><span class="nv">type</span><span class="o">=</span><span class="s1">&#39;send&#39;</span><span class="w"> </span>OR<span class="w"> </span><span class="nv">type</span><span class="o">=</span><span class="s1">&#39;withdrawal&#39;</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">       </span>THEN<span class="w"> </span>amount<span class="w"> </span>+<span class="w"> </span>COALESCE<span class="o">(</span>provider_fee,<span class="w"> </span><span class="m">0</span><span class="o">)</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">       </span>ELSE<span class="w"> </span><span class="m">0</span><span class="w"> </span>END<span class="o">)</span><span class="w"> </span>as<span class="w"> </span>debits
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>FROM<span class="w"> </span>transactions
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>WHERE<span class="w"> </span><span class="nv">user_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;user_...&#39;</span><span class="w"> </span>AND<span class="w"> </span><span class="nv">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;completed&#39;</span><span class="p">;</span>
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>Expected<span class="w"> </span><span class="nv">balance</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>credits<span class="w"> </span>-<span class="w"> </span>debits
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>Actual<span class="w"> </span><span class="nv">balance</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">[</span>from<span class="w"> </span>database<span class="o">]</span>
+<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="nv">Difference</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>Expected<span class="w"> </span>-<span class="w"> </span>Actual
+</code></pre></div>
+<p><strong>Step 2: Investigate the discrepancy</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>Difference = £50 (we have less than expected)
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>Check:
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>├─ Is there a pending transaction for £50? (Yes? Wait for it)
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>├─ Is there a failed transaction we show as completed? (Fix status)
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>├─ Did we miss recording a fee? (Add fee)
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>├─ Did a withdrawal fail but we show as sent? (Fix status)
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>└─ Database lag? (Wait 30 seconds, recalculate)
+</code></pre></div>
+<p><strong>Step 3: Check provider balance</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># Get authoritative balance from GateHub/PTI/Xago</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>Provider<span class="w"> </span>says:<span class="w"> </span>Alice<span class="w"> </span>has<span class="w"> </span>£100
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>Compare:
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>├─<span class="w"> </span>Our<span class="w"> </span>calculated:<span class="w"> </span>£150
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>├─<span class="w"> </span>Difference:<span class="w"> </span>£50<span class="w"> </span><span class="o">(</span>we<span class="w"> </span>think<span class="w"> </span>we<span class="w"> </span>have<span class="w"> </span>more<span class="o">)</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>│
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>Who<span class="s1">&#39;s right?</span>
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="s1">├─ Provider = Authoritative for real money</span>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="s1">├─ Us = Authoritative if we&#39;</span>re<span class="w"> </span>using<span class="w"> </span>internal<span class="w"> </span>transfers
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>└─<span class="w"> </span>Action:<span class="w"> </span>Determine<span class="w"> </span>cause<span class="w"> </span>and<span class="w"> </span>reconcile
+</code></pre></div>
+<h3 id="root-causes-fixes_1">Root Causes &amp; Fixes<a class="headerlink" href="#root-causes-fixes_1" title="Permanent link">&para;</a></h3>
+<p><strong>Case 1: Unprocessed Deposits</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>Scenario: Alice has pending deposit for £50
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>Our calculation:
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>├─ Only counts &quot;completed&quot; transactions
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>└─ Pending deposits not included (correct)
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>User perception:
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>├─ &quot;I deposited £50, why don&#39;t I have it?&quot;
+<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a>└─ Doesn&#39;t understand &quot;pending&quot; status
+<a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a>
+<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a>Fix:
+<a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a>├─ Wait for deposit to complete
+<a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a>├─ If stuck &gt; 20 min: Investigate with provider
+<a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a>└─ Educate user about pending status
+</code></pre></div>
+<p><strong>Case 2: Failed Withdrawal That We Marked as Complete</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>Scenario: Withdrawal to bank failed but we show as completed
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>Transaction record:
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>├─ Status: &quot;completed&quot;
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>├─ Type: &quot;withdrawal&quot;
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>├─ Amount: £50
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>└─ But money never left our account
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>Fix:
+<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a>├─ Query provider: &quot;Did withdrawal succeed?&quot;
+<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>├─ If NO: Update our transaction status to &quot;failed&quot;
+<a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a>├─ Recharge balance (add the £50 back)
+<a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a>├─ Notify user: &quot;Withdrawal failed, trying again&quot;
+</code></pre></div>
+<p><strong>Case 3: Fee Charged But Not Recorded</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>Scenario: Provider charged fee we didn&#39;t track
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>Transaction:
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>├─ Amount: £100
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>├─ Provider Fee: £0 (should be £2!)
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>└─ Our balance change: -£100 (should be -£102)
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>Fix:
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>├─ Query provider for actual fee charged
+<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a>├─ Update transaction record: fee = £2
+<a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a>├─ Recalculate: Balance should decrease additional £2
+<a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a>└─ If already final: Manual adjustment
+</code></pre></div>
+<p><strong>Case 4: Concurrent Transactions Causing Race Condition</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>Scenario: Two payments at same time, order confusion
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>Alice&#39;s balance: £100
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>├─ Sends Bob £50
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>├─ Simultaneously sends Charlie £60
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>Timing issue:
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>├─ T+0: Payment 1 reserves £50
+<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a>├─ T+1: Payment 2 reserves £60
+<a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a>├─ T+2: Both finalize (£110 total deducted from £100!)
+<a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a>└─ Result: Balance goes negative or transaction fails
+<a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a>
+<a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a>Fix:
+<a id="__codelineno-12-14" name="__codelineno-12-14" href="#__codelineno-12-14"></a>├─ Check: Did both complete or just one?
+<a id="__codelineno-12-15" name="__codelineno-12-15" href="#__codelineno-12-15"></a>├─ Investigate: Transaction order in log
+<a id="__codelineno-12-16" name="__codelineno-12-16" href="#__codelineno-12-16"></a>├─ Resolution: Likely one failed (insufficient funds)
+<a id="__codelineno-12-17" name="__codelineno-12-17" href="#__codelineno-12-17"></a>├─ Recover: Mark second as failed, unreserve amount
+</code></pre></div>
+<hr />
+<h3 id="problem-3-sender-sent-money-but-recipient-didnt-receive-it">Problem 3: "Sender sent money but recipient didn't receive it"<a class="headerlink" href="#problem-3-sender-sent-money-but-recipient-didnt-receive-it" title="Permanent link">&para;</a></h3>
+<p><strong>Symptoms:</strong>
+- Sender sees "sent" ✓
+- Recipient sees nothing
+- Money disappeared?</p>
+<h3 id="investigation-steps">Investigation Steps<a class="headerlink" href="#investigation-steps" title="Permanent link">&para;</a></h3>
+<p><strong>Step 1: Verify sender's transaction</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>SELECT<span class="w"> </span>*<span class="w"> </span>FROM<span class="w"> </span>transactions
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>WHERE<span class="w"> </span><span class="nv">user_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;sender_...&#39;</span><span class="w"> </span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="w">  </span>AND<span class="w"> </span><span class="nb">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;send&#39;</span>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="w">  </span>AND<span class="w"> </span><span class="nv">payment_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;pay_...&#39;</span>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="w">  </span>AND<span class="w"> </span>timestamp<span class="w"> </span>&gt;<span class="w"> </span>NOW<span class="o">()</span><span class="w"> </span>-<span class="w"> </span>INTERVAL<span class="w"> </span><span class="s1">&#39;1 hour&#39;</span><span class="p">;</span>
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>Result:
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>├─<span class="w"> </span>Alice<span class="err">&#39;</span>s<span class="w"> </span>send<span class="w"> </span>transaction:<span class="w"> </span><span class="nv">Status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;completed&quot;</span><span class="w"> </span>✓
+<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a>├─<span class="w"> </span>Amount:<span class="w"> </span>£100
+<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a>├─<span class="w"> </span>Receiver:<span class="w"> </span>bob@example.com
+<a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a>└─<span class="w"> </span>Provider<span class="w"> </span>confirmed:<span class="w"> </span>✓
+</code></pre></div>
+<p>✓ Sender side is good, continue.</p>
+<p><strong>Step 2: Check recipient's transaction</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>SELECT<span class="w"> </span>*<span class="w"> </span>FROM<span class="w"> </span>transactions
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>WHERE<span class="w"> </span><span class="nv">user_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;receiver_...&#39;</span>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="w">  </span>AND<span class="w"> </span><span class="nb">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;receive&#39;</span>
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="w">  </span>AND<span class="w"> </span><span class="nv">payment_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;pay_...&#39;</span>
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="w">  </span>AND<span class="w"> </span>timestamp<span class="w"> </span>&gt;<span class="w"> </span>NOW<span class="o">()</span><span class="w"> </span>-<span class="w"> </span>INTERVAL<span class="w"> </span><span class="s1">&#39;1 hour&#39;</span><span class="p">;</span>
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>
+<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>Result:
+<a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>├─<span class="w"> </span>Bob<span class="err">&#39;</span>s<span class="w"> </span>receive<span class="w"> </span>transaction:<span class="w"> </span>MISSING!
+<a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a>└─<span class="w"> </span>No<span class="w"> </span>matching<span class="w"> </span>receive<span class="w"> </span><span class="k">for</span><span class="w"> </span>the<span class="w"> </span>payment
+</code></pre></div>
+<p>✗ Bob has no matching receive transaction. This is the problem.</p>
+<p><strong>Step 3: Query the payment record</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>SELECT<span class="w"> </span>*<span class="w"> </span>FROM<span class="w"> </span>payments
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>WHERE<span class="w"> </span><span class="nv">id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;pay_...&#39;</span><span class="p">;</span>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>Payment<span class="w"> </span>record:
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>├─<span class="w"> </span>Sender:<span class="w"> </span>alice@example.com<span class="w"> </span><span class="o">(</span>user_123<span class="o">)</span>
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a>├─<span class="w"> </span>Receiver:<span class="w"> </span>bob@example.com<span class="w">  </span><span class="o">(</span>user_456<span class="o">)</span>
+<a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a>├─<span class="w"> </span>Status:<span class="w"> </span>completed
+<a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a>├─<span class="w"> </span>Sender<span class="w"> </span>Transaction<span class="w"> </span>ID:<span class="w"> </span>txn_send_abc123<span class="w"> </span>✓
+<a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a>├─<span class="w"> </span>Receiver<span class="w"> </span>Transaction<span class="w"> </span>ID:<span class="w"> </span>txn_receive_???<span class="w"> </span><span class="o">(</span>MISSING!<span class="o">)</span>
+<a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a>└─<span class="w"> </span>Provider<span class="w"> </span>Response:<span class="w"> </span>Shows<span class="w"> </span>transfer<span class="w"> </span>succeeded
+</code></pre></div>
+<p><strong>Step 4: Check provider directly</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="c1"># Ask provider: Did money reach recipient&#39;s account?</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>GateHub:<span class="w"> </span>GET<span class="w"> </span>/core/v1/wallets/<span class="o">{</span>bob_wallet_address<span class="o">}</span>/balances
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>Result:
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>├─<span class="w"> </span>GBP<span class="w"> </span>balance<span class="w"> </span>includes<span class="w"> </span>the<span class="w"> </span>£100
+<a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>├─<span class="w"> </span>Provider<span class="w"> </span>side:<span class="w"> </span>✓<span class="w"> </span>Money<span class="w"> </span>definitely<span class="w"> </span>arrived
+<a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>└─<span class="w"> </span>Conclusion:<span class="w"> </span>Provider<span class="w"> </span>saw<span class="w"> </span>it,<span class="w"> </span>Bob<span class="err">&#39;</span>s<span class="w"> </span>balance<span class="w"> </span>updated<span class="w"> </span>there
+</code></pre></div>
+<h3 id="root-causes-fixes_2">Root Causes &amp; Fixes<a class="headerlink" href="#root-causes-fixes_2" title="Permanent link">&para;</a></h3>
+<p><strong>Case 1: Webhook Arrived But Receive Transaction Wasn't Created</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>Timeline:
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>├─ Sender&#39;s send finalized
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>├─ Provider webhook: &quot;Transfer to Bob completed&quot;
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a>├─ Our webhook handler: Received ✓
+<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a>├─ Problem: Handler crashed before creating Bob&#39;s transaction
+<a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a>└─ Result: Bob&#39;s transaction missing, balance correct at provider
+<a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a>
+<a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a>Fix:
+<a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a>├─ Manually create Bob&#39;s receive transaction
+<a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a>├─ Mark as completed
+<a id="__codelineno-17-11" name="__codelineno-17-11" href="#__codelineno-17-11"></a>├─ Credit Bob&#39;s balance
+<a id="__codelineno-17-12" name="__codelineno-17-12" href="#__codelineno-17-12"></a>├─ Notify Bob: &quot;You received £100 from Alice&quot; (now)
+</code></pre></div>
+<p><strong>Case 2: Webhook Never Arrived</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>Timeline:
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>├─ Provider completed the transfer
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>├─ Provider webhook: Sent but lost (network issue)
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a>├─ Our system: Still shows &quot;pending&quot;
+<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a>├─ Result: Both ledgers out of sync
+<a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a>
+<a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a>Discovery:
+<a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a>├─ Provider says: Money delivered (confirmed via API)
+<a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a>├─ Our ledger says: Still pending
+<a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a>└─ Time elapsed: &gt; 20 minutes
+<a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a>
+<a id="__codelineno-18-12" name="__codelineno-18-12" href="#__codelineno-18-12"></a>Fix:
+<a id="__codelineno-18-13" name="__codelineno-18-13" href="#__codelineno-18-13"></a>├─ Manually fetch status from provider API
+<a id="__codelineno-18-14" name="__codelineno-18-14" href="#__codelineno-18-14"></a>├─ Get confirmation that transfer completed
+<a id="__codelineno-18-15" name="__codelineno-18-15" href="#__codelineno-18-15"></a>├─ Create both transactions (send already exists)
+<a id="__codelineno-18-16" name="__codelineno-18-16" href="#__codelineno-18-16"></a>├─ Create receive transaction for Bob
+<a id="__codelineno-18-17" name="__codelineno-18-17" href="#__codelineno-18-17"></a>├─ Notify: Alice &quot;✓ Sent&quot; (already done)
+<a id="__codelineno-18-18" name="__codelineno-18-18" href="#__codelineno-18-18"></a>├─ Notify: Bob &quot;You received £100&quot;
+</code></pre></div>
+<p><strong>Case 3: Different User Found During Lookup</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>Scenario: Recipient email matches wrong user
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>Address resolution:
+<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a>├─ System looks up: bob@example.com
+<a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a>├─ Finds: Wrong Bob (id_999 instead of id_456)
+<a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a>└─ Sends money to wrong person!
+<a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a>
+<a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a>Prevention:
+<a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a>├─ Always verify identity match before transfer
+<a id="__codelineno-19-10" name="__codelineno-19-10" href="#__codelineno-19-10"></a>├─ Use stable user IDs, not email addresses
+<a id="__codelineno-19-11" name="__codelineno-19-11" href="#__codelineno-19-11"></a>├─ Warn user if recipient just signed up recently
+<a id="__codelineno-19-12" name="__codelineno-19-12" href="#__codelineno-19-12"></a>
+<a id="__codelineno-19-13" name="__codelineno-19-13" href="#__codelineno-19-13"></a>Recovery:
+<a id="__codelineno-19-14" name="__codelineno-19-14" href="#__codelineno-19-14"></a>├─ Locate actual funds (in wrong Bob&#39;s account)
+<a id="__codelineno-19-15" name="__codelineno-19-15" href="#__codelineno-19-15"></a>├─ If wrong Bob hasn&#39;t spent it: Ask to return
+<a id="__codelineno-19-16" name="__codelineno-19-16" href="#__codelineno-19-16"></a>├─ If spent: Escalate (financial loss)
+<a id="__codelineno-19-17" name="__codelineno-19-17" href="#__codelineno-19-17"></a>├─ Apologize to user, refund from reserves
+</code></pre></div>
+<hr />
+<h3 id="problem-4-our-balance-doesnt-match-providers-balance">Problem 4: "Our balance doesn't match provider's balance"<a class="headerlink" href="#problem-4-our-balance-doesnt-match-providers-balance" title="Permanent link">&para;</a></h3>
+<p><strong>Symptoms:</strong>
+- Our official balance: $10,000
+- Provider's balance: $9,500
+- Difference: $500 (we think we have more)</p>
+<h3 id="investigation-steps_1">Investigation Steps<a class="headerlink" href="#investigation-steps_1" title="Permanent link">&para;</a></h3>
+<p><strong>Step 1: Pull official balance</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="c1"># Fetch from provider</span>
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>GateHub:<span class="w"> </span>GET<span class="w"> </span>/core/v1/wallets/<span class="o">{</span>wallet_address<span class="o">}</span>/balances
+<a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>Response:
+<a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="o">{</span>
+<a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a><span class="w">  </span><span class="s2">&quot;balances&quot;</span>:<span class="w"> </span><span class="o">[</span>
+<a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a><span class="w">    </span><span class="o">{</span>
+<a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a><span class="w">      </span><span class="s2">&quot;currency&quot;</span>:<span class="w"> </span><span class="s2">&quot;USD&quot;</span>,
+<a id="__codelineno-20-8" name="__codelineno-20-8" href="#__codelineno-20-8"></a><span class="w">      </span><span class="s2">&quot;amount&quot;</span>:<span class="w"> </span><span class="s2">&quot;9500.00&quot;</span>
+<a id="__codelineno-20-9" name="__codelineno-20-9" href="#__codelineno-20-9"></a><span class="w">    </span><span class="o">}</span>
+<a id="__codelineno-20-10" name="__codelineno-20-10" href="#__codelineno-20-10"></a><span class="w">  </span><span class="o">]</span>
+<a id="__codelineno-20-11" name="__codelineno-20-11" href="#__codelineno-20-11"></a><span class="o">}</span>
+<a id="__codelineno-20-12" name="__codelineno-20-12" href="#__codelineno-20-12"></a>
+<a id="__codelineno-20-13" name="__codelineno-20-13" href="#__codelineno-20-13"></a>Provider<span class="w"> </span>says:<span class="w"> </span><span class="nv">$9</span>,500
+</code></pre></div>
+<p><strong>Step 2: Calculate our expected balance</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="c1"># Sum completed transactions</span>
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>SELECT<span class="w"> </span>SUM<span class="o">(</span>CASE<span class="w"> </span>
+<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a><span class="w">  </span>WHEN<span class="w"> </span><span class="nb">type</span><span class="w"> </span>IN<span class="w"> </span><span class="o">(</span><span class="s1">&#39;deposit&#39;</span>,<span class="w"> </span><span class="s1">&#39;receive&#39;</span><span class="o">)</span><span class="w"> </span>THEN<span class="w"> </span>amount<span class="w"> </span>-<span class="w"> </span>COALESCE<span class="o">(</span>provider_fee,<span class="w"> </span><span class="m">0</span><span class="o">)</span>
+<a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a><span class="w">  </span>WHEN<span class="w"> </span><span class="nb">type</span><span class="w"> </span>IN<span class="w"> </span><span class="o">(</span><span class="s1">&#39;withdrawal&#39;</span>,<span class="w"> </span><span class="s1">&#39;send&#39;</span><span class="o">)</span><span class="w"> </span>THEN<span class="w"> </span>-<span class="o">(</span>amount<span class="w"> </span>+<span class="w"> </span>COALESCE<span class="o">(</span>provider_fee,<span class="w"> </span><span class="m">0</span><span class="o">))</span>
+<a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a><span class="w">  </span>ELSE<span class="w"> </span><span class="m">0</span>
+<a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a>END<span class="o">)</span><span class="w"> </span>as<span class="w"> </span>expected_balance
+<a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a>FROM<span class="w"> </span>transactions
+<a id="__codelineno-21-8" name="__codelineno-21-8" href="#__codelineno-21-8"></a>WHERE<span class="w"> </span><span class="nv">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;completed&#39;</span>
+<a id="__codelineno-21-9" name="__codelineno-21-9" href="#__codelineno-21-9"></a><span class="w">  </span>AND<span class="w"> </span><span class="nv">user_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;user_...&#39;</span>
+<a id="__codelineno-21-10" name="__codelineno-21-10" href="#__codelineno-21-10"></a><span class="w">  </span>AND<span class="w"> </span><span class="nv">currency</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;USD&#39;</span><span class="p">;</span>
+<a id="__codelineno-21-11" name="__codelineno-21-11" href="#__codelineno-21-11"></a>
+<a id="__codelineno-21-12" name="__codelineno-21-12" href="#__codelineno-21-12"></a>Our<span class="w"> </span>calculation:<span class="w"> </span><span class="nv">$10</span>,000
+</code></pre></div>
+<p><strong>Step 3: Find the discrepancy</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>Difference: Provider $9,500 vs Our $10,000 = $500 gap (we think we have more)
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>
+<a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>Question: What transaction might account for $500?
+<a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a>
+<a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a>Investigate:
+<a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a>├─ Recent deposits? (Check pending deposits = $500?)
+<a id="__codelineno-22-7" name="__codelineno-22-7" href="#__codelineno-22-7"></a>├─ Recent withdrawals? (Check failed withdrawal = $500?)
+<a id="__codelineno-22-8" name="__codelineno-22-8" href="#__codelineno-22-8"></a>├─ Pending transaction? (Holding $500?)
+<a id="__codelineno-22-9" name="__codelineno-22-9" href="#__codelineno-22-9"></a>├─ Fee charged we didn&#39;t record? (Opposite sign)
+<a id="__codelineno-22-10" name="__codelineno-22-10" href="#__codelineno-22-10"></a>└─ Double-credit? (Recorded twice?)
+</code></pre></div>
+<p><strong>Step 4: Find the specific transaction</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="c1"># Look for $500 within last 24 hours</span>
+<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>SELECT<span class="w"> </span>*<span class="w"> </span>FROM<span class="w"> </span>transactions
+<a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a>WHERE<span class="w"> </span><span class="nv">user_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;user_...&#39;</span><span class="w"> </span>
+<a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a><span class="w">  </span>AND<span class="w"> </span>ABS<span class="o">(</span>amount<span class="o">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">500</span>
+<a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a><span class="w">  </span>AND<span class="w"> </span>timestamp<span class="w"> </span>&gt;<span class="w"> </span>NOW<span class="o">()</span><span class="w"> </span>-<span class="w"> </span>INTERVAL<span class="w"> </span><span class="s1">&#39;24 hours&#39;</span>
+<a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a>ORDER<span class="w"> </span>BY<span class="w"> </span>timestamp<span class="w"> </span>DESC<span class="p">;</span>
+<a id="__codelineno-23-7" name="__codelineno-23-7" href="#__codelineno-23-7"></a>
+<a id="__codelineno-23-8" name="__codelineno-23-8" href="#__codelineno-23-8"></a>Potential<span class="w"> </span>matches:
+<a id="__codelineno-23-9" name="__codelineno-23-9" href="#__codelineno-23-9"></a>├─<span class="w"> </span>Transaction<span class="w"> </span>ID:<span class="w"> </span>txn_456
+<a id="__codelineno-23-10" name="__codelineno-23-10" href="#__codelineno-23-10"></a>├─<span class="w"> </span>Type:<span class="w"> </span>deposit
+<a id="__codelineno-23-11" name="__codelineno-23-11" href="#__codelineno-23-11"></a>├─<span class="w"> </span>Amount:<span class="w"> </span><span class="nv">$500</span>
+<a id="__codelineno-23-12" name="__codelineno-23-12" href="#__codelineno-23-12"></a>├─<span class="w"> </span>Status:<span class="w"> </span><span class="s2">&quot;completed&quot;</span><span class="w"> </span><span class="o">(</span>at<span class="w"> </span>our<span class="w"> </span>end<span class="o">)</span>
+<a id="__codelineno-23-13" name="__codelineno-23-13" href="#__codelineno-23-13"></a>├─<span class="w"> </span>Provider<span class="w"> </span>confirmed:<span class="w"> </span>NEVER<span class="w"> </span>CHECKED
+<a id="__codelineno-23-14" name="__codelineno-23-14" href="#__codelineno-23-14"></a>└─<span class="w"> </span>Action:<span class="w"> </span>Query<span class="w"> </span>provider<span class="w"> </span>about<span class="w"> </span>this<span class="w"> </span>deposit
+</code></pre></div>
+<h3 id="root-causes-fixes_3">Root Causes &amp; Fixes<a class="headerlink" href="#root-causes-fixes_3" title="Permanent link">&para;</a></h3>
+<p><strong>Case 1: Deposit Completed at Provider But Transaction Shows Pending</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>Transaction record:
+<a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>├─ Type: deposit
+<a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a>├─ Amount: $500
+<a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a>├─ Status: &quot;pending&quot; (our system)
+<a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a>├─ Provider says: &quot;completed&quot; ✓
+<a id="__codelineno-24-6" name="__codelineno-24-6" href="#__codelineno-24-6"></a>
+<a id="__codelineno-24-7" name="__codelineno-24-7" href="#__codelineno-24-7"></a>Investigation:
+<a id="__codelineno-24-8" name="__codelineno-24-8" href="#__codelineno-24-8"></a>├─ Webhook never arrived (network issue)
+<a id="__codelineno-24-9" name="__codelineno-24-9" href="#__codelineno-24-9"></a>├─ Reason: Interledger webhook handler was down
+<a id="__codelineno-24-10" name="__codelineno-24-10" href="#__codelineno-24-10"></a>├─ Proof: Check webhook logs (no entry for this transaction)
+<a id="__codelineno-24-11" name="__codelineno-24-11" href="#__codelineno-24-11"></a>
+<a id="__codelineno-24-12" name="__codelineno-24-12" href="#__codelineno-24-12"></a>Fix:
+<a id="__codelineno-24-13" name="__codelineno-24-13" href="#__codelineno-24-13"></a>├─ Mark transaction as &quot;completed&quot;
+<a id="__codelineno-24-14" name="__codelineno-24-14" href="#__codelineno-24-14"></a>├─ Confirm our expected balance now matches provider
+<a id="__codelineno-24-15" name="__codelineno-24-15" href="#__codelineno-24-15"></a>├─ Action: Investigate webhook handler downtime
+<a id="__codelineno-24-16" name="__codelineno-24-16" href="#__codelineno-24-16"></a>└─ Prevention: Set up alerts for webhook failures
+</code></pre></div>
+<p><strong>Case 2: Internal Transfer at Xago We Forgot to Reconcile</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>Scenario: Xago provider, two users both at Xago
+<a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a>
+<a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a>Our ledger:
+<a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a>├─ Alice -$500 (sent to Bob)
+<a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a>├─ Bob +$500 (received from Alice)
+<a id="__codelineno-25-6" name="__codelineno-25-6" href="#__codelineno-25-6"></a>├─ Total: Balanced at our level
+<a id="__codelineno-25-7" name="__codelineno-25-7" href="#__codelineno-25-7"></a>
+<a id="__codelineno-25-8" name="__codelineno-25-8" href="#__codelineno-25-8"></a>Provider&#39;s ledger (Xago):
+<a id="__codelineno-25-9" name="__codelineno-25-9" href="#__codelineno-25-9"></a>├─ Doesn&#39;t know about internal transfer
+<a id="__codelineno-25-10" name="__codelineno-25-10" href="#__codelineno-25-10"></a>├─ Our account balance: -$500 only
+<a id="__codelineno-25-11" name="__codelineno-25-11" href="#__codelineno-25-11"></a>└─ Discrepancy expected for internal transfers
+<a id="__codelineno-25-12" name="__codelineno-25-12" href="#__codelineno-25-12"></a>
+<a id="__codelineno-25-13" name="__codelineno-25-13" href="#__codelineno-25-13"></a>Reconciliation:
+<a id="__codelineno-25-14" name="__codelineno-25-14" href="#__codelineno-25-14"></a>├─ Expected: Us +$500 ahead (because of internal transfer)
+<a id="__codelineno-25-15" name="__codelineno-25-15" href="#__codelineno-25-15"></a>├─ Actual: Provider -$500 (doesn&#39;t track our internal transfer)
+<a id="__codelineno-25-16" name="__codelineno-25-16" href="#__codelineno-25-16"></a>├─ Assessment: &quot;Working as designed&quot;
+<a id="__codelineno-25-17" name="__codelineno-25-17" href="#__codelineno-25-17"></a>└─ Action: No fix needed, continue operating
+<a id="__codelineno-25-18" name="__codelineno-25-18" href="#__codelineno-25-18"></a>
+<a id="__codelineno-25-19" name="__codelineno-25-19" href="#__codelineno-25-19"></a>When we settle with Xago:
+<a id="__codelineno-25-20" name="__codelineno-25-20" href="#__codelineno-25-20"></a>├─ We report: &quot;Internal transfer of $500 between our users&quot;
+<a id="__codelineno-25-21" name="__codelineno-25-21" href="#__codelineno-25-21"></a>├─ Xago confirms: &quot;OK, we see the net effect in our balance&quot;
+<a id="__codelineno-25-22" name="__codelineno-25-22" href="#__codelineno-25-22"></a>└─ Settlement proceeds
+</code></pre></div>
+<p><strong>Case 3: Webhook Arrived, Transaction Marked Complete, But User Saw Failure</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>Scenario: False negative to user
+<a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>
+<a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a>Timeline:
+<a id="__codelineno-26-4" name="__codelineno-26-4" href="#__codelineno-26-4"></a>├─ T+0: Deposit initiated
+<a id="__codelineno-26-5" name="__codelineno-26-5" href="#__codelineno-26-5"></a>├─ T+2: Our system: &quot;Pending, let me tell provider&quot;
+<a id="__codelineno-26-6" name="__codelineno-26-6" href="#__codelineno-26-6"></a>├─ T+3: Provider sends webhook: &quot;Completed&quot;
+<a id="__codelineno-26-7" name="__codelineno-26-7" href="#__codelineno-26-7"></a>├─ T+4: Our webhook handler: Updates transaction to complete ✓
+<a id="__codelineno-26-8" name="__codelineno-26-8" href="#__codelineno-26-8"></a>├─ T+5: But user&#39;s app still shows &quot;Processing&quot;
+<a id="__codelineno-26-9" name="__codelineno-26-9" href="#__codelineno-26-9"></a>│        (Frontend didn&#39;t refresh in time)
+<a id="__codelineno-26-10" name="__codelineno-26-10" href="#__codelineno-26-10"></a>└─ T+10: User refreshes app: &quot;✓ Deposit complete!&quot;
+<a id="__codelineno-26-11" name="__codelineno-26-11" href="#__codelineno-26-11"></a>
+<a id="__codelineno-26-12" name="__codelineno-26-12" href="#__codelineno-26-12"></a>Symptoms:
+<a id="__codelineno-26-13" name="__codelineno-26-13" href="#__codelineno-26-13"></a>├─ User reports: &quot;Money disappeared&quot;
+<a id="__codelineno-26-14" name="__codelineno-26-14" href="#__codelineno-26-14"></a>├─ Check system: Transaction is actually complete
+<a id="__codelineno-26-15" name="__codelineno-26-15" href="#__codelineno-26-15"></a>├─ Provider confirms: Balance correct
+<a id="__codelineno-26-16" name="__codelineno-26-16" href="#__codelineno-26-16"></a>
+<a id="__codelineno-26-17" name="__codelineno-26-17" href="#__codelineno-26-17"></a>Cause: Frontend display lag, not actual issue
+<a id="__codelineno-26-18" name="__codelineno-26-18" href="#__codelineno-26-18"></a>
+<a id="__codelineno-26-19" name="__codelineno-26-19" href="#__codelineno-26-19"></a>Fix:
+<a id="__codelineno-26-20" name="__codelineno-26-20" href="#__codelineno-26-20"></a>├─ Tell user to refresh browser
+<a id="__codelineno-26-21" name="__codelineno-26-21" href="#__codelineno-26-21"></a>├─ Confirm: &quot;Your deposit completed successfully&quot;
+<a id="__codelineno-26-22" name="__codelineno-26-22" href="#__codelineno-26-22"></a>├─ No system fix needed
+</code></pre></div>
+<hr />
+<h2 id="temporal-debugging-guide">Temporal Debugging Guide<a class="headerlink" href="#temporal-debugging-guide" title="Permanent link">&para;</a></h2>
+<p>Temporal is the workflow orchestration engine that manages payment processing. When payments seem stuck or behave unexpectedly, Temporal's Web UI provides visibility into exactly what's happening.</p>
+<p><strong>Accessing Temporal Web UI:</strong>
+- URL: <code>http://localhost:8233</code> (or your Temporal server address)
+- No authentication required for local development
+- Production: Requires proper credentials</p>
+<h3 id="understanding-payment-workflow-structure">Understanding Payment Workflow Structure<a class="headerlink" href="#understanding-payment-workflow-structure" title="Permanent link">&para;</a></h3>
+<p>Every payment creates <strong>three workflows</strong> that work together:</p>
+<pre class="mermaid"><code>graph TD
+    Payment["PaymentWorkflow&lt;br/&gt;ID: payments_&amp;lt;uuid&amp;gt;"]
+    PayIn["PayinWorkflow&lt;br/&gt;ID: payment_pay_in_&amp;lt;uuid&amp;gt;"]
+    PayOut["PayoutWorkflow&lt;br/&gt;ID: payment_pay_out_&amp;lt;uuid&amp;gt;"]
+
+    Payment --&gt;|starts| PayIn
+    Payment --&gt;|starts| PayOut
+    PayIn --&gt;|signals| PayOut
+
+    PayIn --&gt;|waits for| Webhook["Provider Webhook&lt;br/&gt;(transfer completed)"]
+    Webhook --&gt;|signals| PayIn
+    PayIn --&gt;|completes| PayOut
+
+    style Payment fill:#e3f2fd,stroke:#1976d2
+    style PayIn fill:#fff9c4,stroke:#f57f17
+    style PayOut fill:#f3e5f5,stroke:#7b1fa2
+    style Webhook fill:#e8f5e9,stroke:#388e3c</code></pre>
+<p><strong>Workflow IDs to search for:</strong>
+- <strong>Parent workflow</strong>: <code>payments_&lt;payment_uuid&gt;</code>
+- <strong>Pay-in workflow</strong>: <code>payment_pay_in_&lt;payment_uuid&gt;</code>
+- <strong>Pay-out workflow</strong>: <code>payment_pay_out_&lt;payment_uuid&gt;</code></p>
+<h3 id="finding-a-stuck-payment-in-temporal">Finding a Stuck Payment in Temporal<a class="headerlink" href="#finding-a-stuck-payment-in-temporal" title="Permanent link">&para;</a></h3>
+<p><strong>Step 1: Get the Payment UUID</strong></p>
+<p>From your database:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="k">SELECT</span><span class="w"> </span><span class="n">id</span><span class="p">,</span><span class="w"> </span><span class="n">public_id</span><span class="p">,</span><span class="w"> </span><span class="k">state</span><span class="p">,</span><span class="w"> </span><span class="n">sender_id</span><span class="p">,</span><span class="w"> </span><span class="n">receiver_id</span><span class="p">,</span><span class="w"> </span><span class="n">created_at</span>
+<a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a><span class="k">FROM</span><span class="w"> </span><span class="n">payments</span><span class="w"> </span>
+<a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a><span class="k">WHERE</span><span class="w"> </span><span class="n">id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;payment_uuid&#39;</span><span class="w"> </span>
+<a id="__codelineno-27-4" name="__codelineno-27-4" href="#__codelineno-27-4"></a><span class="w">  </span><span class="k">OR</span><span class="w"> </span><span class="n">public_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;public_id_from_user&#39;</span><span class="p">;</span>
+</code></pre></div></p>
+<p>Copy the <code>id</code> (UUID format like <code>57d4e5c4-957d-4638-847b-aad5e5714614</code>).</p>
+<p><strong>Step 2: Search for the Workflow</strong></p>
+<ol>
+<li>Open Temporal Web UI: <code>http://localhost:8233</code></li>
+<li>Go to <strong>"Workflows"</strong> tab (left sidebar)</li>
+<li>In the search box, enter:</li>
+<li><code>payment_pay_in_&lt;your_uuid&gt;</code> for the sender side</li>
+<li><code>payment_pay_out_&lt;your_uuid&gt;</code> for the receiver side</li>
+<li><code>payments_&lt;your_uuid&gt;</code> for the parent orchestrator</li>
+</ol>
+<p><strong>Step 3: Check Workflow Status</strong></p>
+<p>Each workflow will show one of these statuses:</p>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Meaning</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Running</strong></td>
+<td>Workflow is actively processing or waiting</td>
+<td>Check how long it's been running — see details below</td>
+</tr>
+<tr>
+<td><strong>Completed</strong></td>
+<td>Workflow finished successfully</td>
+<td>Check execution time — should be &lt;30 seconds normally</td>
+</tr>
+<tr>
+<td><strong>Failed</strong></td>
+<td>Workflow encountered an error</td>
+<td>Check error message in workflow details</td>
+</tr>
+<tr>
+<td><strong>Terminated</strong></td>
+<td>Manually stopped or system shutdown</td>
+<td>Investigate why it was terminated</td>
+</tr>
+<tr>
+<td><strong>Timed Out</strong></td>
+<td>Exceeded maximum allowed time</td>
+<td>Check activity timeouts in workflow history</td>
+</tr>
+</tbody>
+</table>
+<h3 id="investigating-a-running-workflow">Investigating a Running Workflow<a class="headerlink" href="#investigating-a-running-workflow" title="Permanent link">&para;</a></h3>
+<p>When a workflow shows "Running" status:</p>
+<p><strong>Step 1: Click on the Workflow ID</strong> to see details</p>
+<p><strong>Step 2: Check the "Summary" section</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a>WorkflowId:      payment_pay_in_57d4e5c4-957d-4638-847b-aad5e5714614
+<a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a>Type:            PayinWorkflow
+<a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a>Status:          Running
+<a id="__codelineno-28-4" name="__codelineno-28-4" href="#__codelineno-28-4"></a>Start Time:      3 minutes ago
+<a id="__codelineno-28-5" name="__codelineno-28-5" href="#__codelineno-28-5"></a>Run Time:        3 minutes
+</code></pre></div></p>
+<p><strong>Questions to ask:</strong>
+- <strong>How long has it been running?</strong>
+  - <code>&lt; 5 minutes</code> → Normal, likely waiting for webhook
+  - <code>5-20 minutes</code> → Monitor, should complete soon
+  - <code>&gt; 20 minutes</code> → Investigate why webhook hasn't arrived</p>
+<p><strong>Step 3: View the "Pending Activities" section</strong></p>
+<p>If the workflow is waiting, you'll see:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a>Pending Activities:
+<a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a>  (none) — Workflow is waiting for a signal
+</code></pre></div></p>
+<p>This means the workflow has finished all its tasks and is now waiting for the provider's webhook to arrive.</p>
+<p><strong>Step 4: Check the "History" tab</strong></p>
+<p>The history shows every step the workflow took. Look for:</p>
+<ol>
+<li>
+<p><strong>Activities that completed:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a>ActivityTaskScheduled: ReserveBalance
+<a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a>ActivityTaskStarted:   ReserveBalance
+<a id="__codelineno-30-3" name="__codelineno-30-3" href="#__codelineno-30-3"></a>ActivityTaskCompleted: ReserveBalance
+</code></pre></div>
+   ✓ This activity finished successfully</p>
+</li>
+<li>
+<p><strong>The transfer call to the provider:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a>ActivityTaskScheduled: GatehubTransfer (or XagoTransfer, PTITransfer)
+<a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a>ActivityTaskStarted:   GatehubTransfer
+<a id="__codelineno-31-3" name="__codelineno-31-3" href="#__codelineno-31-3"></a>ActivityTaskCompleted: GatehubTransfer
+</code></pre></div>
+   ✓ Transfer was sent to provider</p>
+</li>
+<li>
+<p><strong>Signal waiting (the important part):</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a>[All activities complete]
+<a id="__codelineno-32-2" name="__codelineno-32-2" href="#__codelineno-32-2"></a>[No &quot;WorkflowExecutionSignaled&quot; event yet]
+</code></pre></div>
+   ⏳ Workflow is waiting for provider webhook</p>
+</li>
+<li>
+<p><strong>When webhook arrives:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a>WorkflowExecutionSignaled
+</code></pre></div>
+   ✓ Webhook received!</p>
+</li>
+<li>
+<p><strong>Post-webhook activities:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a>ActivityTaskScheduled: UpdatePayInTransactionState
+<a id="__codelineno-34-2" name="__codelineno-34-2" href="#__codelineno-34-2"></a>ActivityTaskCompleted: UpdatePayInTransactionState
+<a id="__codelineno-34-3" name="__codelineno-34-3" href="#__codelineno-34-3"></a>WorkflowExecutionCompleted
+</code></pre></div>
+   ✓ Payment finalized</p>
+</li>
+</ol>
+<h3 id="common-temporal-scenarios">Common Temporal Scenarios<a class="headerlink" href="#common-temporal-scenarios" title="Permanent link">&para;</a></h3>
+<h4 id="scenario-1-workflow-waiting-for-signal-normal">Scenario 1: Workflow Waiting for Signal (Normal)<a class="headerlink" href="#scenario-1-workflow-waiting-for-signal-normal" title="Permanent link">&para;</a></h4>
+<p><strong>What you see:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a>Status:    Running
+<a id="__codelineno-35-2" name="__codelineno-35-2" href="#__codelineno-35-2"></a>Run Time:  2 minutes
+<a id="__codelineno-35-3" name="__codelineno-35-3" href="#__codelineno-35-3"></a>History:   - ReserveBalance ✓
+<a id="__codelineno-35-4" name="__codelineno-35-4" href="#__codelineno-35-4"></a>           - GatehubTransfer ✓
+<a id="__codelineno-35-5" name="__codelineno-35-5" href="#__codelineno-35-5"></a>           - SaveGatehubTransfer ✓
+<a id="__codelineno-35-6" name="__codelineno-35-6" href="#__codelineno-35-6"></a>           - (waiting for signal)
+</code></pre></div></p>
+<p><strong>Meaning:</strong> The workflow sent the payment to the provider and is now waiting for the webhook confirmation.</p>
+<p><strong>Action:</strong>
+- <strong>If &lt; 5 minutes:</strong> Wait, this is normal
+- <strong>If 5-20 minutes:</strong> Check webhook logs to see if webhook arrived
+- <strong>If &gt; 20 minutes:</strong> Provider might be slow, or webhook lost. See <a href="#webhook-troubleshooting-using-temporal">Webhook Troubleshooting</a></p>
+<h4 id="scenario-2-workflow-stuck-on-an-activity">Scenario 2: Workflow Stuck on an Activity<a class="headerlink" href="#scenario-2-workflow-stuck-on-an-activity" title="Permanent link">&para;</a></h4>
+<p><strong>What you see:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-36-1" name="__codelineno-36-1" href="#__codelineno-36-1"></a>Status:    Running
+<a id="__codelineno-36-2" name="__codelineno-36-2" href="#__codelineno-36-2"></a>Run Time:  10 minutes
+<a id="__codelineno-36-3" name="__codelineno-36-3" href="#__codelineno-36-3"></a>Pending Activities:
+<a id="__codelineno-36-4" name="__codelineno-36-4" href="#__codelineno-36-4"></a>  - GatehubTransfer (started 10 minutes ago, retrying)
+</code></pre></div></p>
+<p><strong>Meaning:</strong> An activity is stuck or failing repeatedly.</p>
+<p><strong>Action:</strong>
+1. Click on the activity in History to see error details
+2. Common causes:
+   - Provider API is down (check provider status)
+   - Network timeout (check connectivity)
+   - Invalid credentials (check config)
+   - Rate limit exceeded (wait and retry)</p>
+<p><strong>To retry manually:</strong>
+- Workflows auto-retry failed activities
+- If you need to force a retry, you can terminate and restart the workflow (last resort)</p>
+<h4 id="scenario-3-workflow-failed">Scenario 3: Workflow Failed<a class="headerlink" href="#scenario-3-workflow-failed" title="Permanent link">&para;</a></h4>
+<p><strong>What you see:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-37-1" name="__codelineno-37-1" href="#__codelineno-37-1"></a>Status:     Failed
+<a id="__codelineno-37-2" name="__codelineno-37-2" href="#__codelineno-37-2"></a>Run Time:   0.5 seconds
+<a id="__codelineno-37-3" name="__codelineno-37-3" href="#__codelineno-37-3"></a>Error:      &quot;insufficient funds&quot;
+</code></pre></div></p>
+<p><strong>Meaning:</strong> The workflow encountered a business logic error and stopped.</p>
+<p><strong>Action:</strong>
+1. Read the error message in the workflow details
+2. Common errors:
+   - <code>"insufficient funds"</code> → User doesn't have enough money, check balance
+   - <code>"account not found"</code> → Linked account missing, check user's accounts
+   - <code>"provider error: ..."</code> → Provider rejected transaction, check provider response</p>
+<p><strong>Resolution:</strong>
+- For business errors (insufficient funds, etc.): Fix the underlying issue and create a new payment
+- For technical errors (timeout, network): Retry the payment</p>
+<h4 id="scenario-4-signal-received-still-running">Scenario 4: Signal Received, Still Running<a class="headerlink" href="#scenario-4-signal-received-still-running" title="Permanent link">&para;</a></h4>
+<p><strong>What you see:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-38-1" name="__codelineno-38-1" href="#__codelineno-38-1"></a>Status:    Running
+<a id="__codelineno-38-2" name="__codelineno-38-2" href="#__codelineno-38-2"></a>Run Time:  5 minutes
+<a id="__codelineno-38-3" name="__codelineno-38-3" href="#__codelineno-38-3"></a>History:   - GatehubTransfer ✓
+<a id="__codelineno-38-4" name="__codelineno-38-4" href="#__codelineno-38-4"></a>           - WorkflowExecutionSignaled ✓ (3 minutes ago)
+<a id="__codelineno-38-5" name="__codelineno-38-5" href="#__codelineno-38-5"></a>           - UpdatePayInTransactionState (started 3 minutes ago, still running)
+</code></pre></div></p>
+<p><strong>Meaning:</strong> Webhook arrived, but the finalization activity is stuck.</p>
+<p><strong>Action:</strong>
+1. Check the activity details to see what's failing
+2. Common causes:
+   - Database is slow or locked
+   - Pacioli ledger is unavailable
+   - Network issue connecting to internal services
+3. Check system health: database, Pacioli, network</p>
+<h3 id="webhook-troubleshooting-using-temporal">Webhook Troubleshooting Using Temporal<a class="headerlink" href="#webhook-troubleshooting-using-temporal" title="Permanent link">&para;</a></h3>
+<p>When a payment seems stuck waiting for a webhook:</p>
+<p><strong>Step 1: Confirm Workflow is Waiting</strong></p>
+<p>In Temporal UI, the workflow history should end with something like:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-39-1" name="__codelineno-39-1" href="#__codelineno-39-1"></a>ActivityTaskCompleted: SaveGatehubTransfer
+<a id="__codelineno-39-2" name="__codelineno-39-2" href="#__codelineno-39-2"></a>[no more events]
+</code></pre></div></p>
+<p>No <code>WorkflowExecutionSignaled</code> event means webhook hasn't arrived yet.</p>
+<p><strong>Step 2: Check Provider Status</strong></p>
+<p>Query the provider directly:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-40-1" name="__codelineno-40-1" href="#__codelineno-40-1"></a><span class="c1"># For GateHub</span>
+<a id="__codelineno-40-2" name="__codelineno-40-2" href="#__codelineno-40-2"></a>curl<span class="w"> </span>https://mockgatehub.interledger.test/core/v1/transactions/&lt;txn_id&gt;
+<a id="__codelineno-40-3" name="__codelineno-40-3" href="#__codelineno-40-3"></a>
+<a id="__codelineno-40-4" name="__codelineno-40-4" href="#__codelineno-40-4"></a><span class="c1"># Check status field</span>
+<a id="__codelineno-40-5" name="__codelineno-40-5" href="#__codelineno-40-5"></a><span class="o">{</span>
+<a id="__codelineno-40-6" name="__codelineno-40-6" href="#__codelineno-40-6"></a><span class="w">  </span><span class="s2">&quot;id&quot;</span>:<span class="w"> </span><span class="s2">&quot;txn_abc123&quot;</span>,
+<a id="__codelineno-40-7" name="__codelineno-40-7" href="#__codelineno-40-7"></a><span class="w">  </span><span class="s2">&quot;status&quot;</span>:<span class="w"> </span><span class="m">100</span>,<span class="w">  </span>←<span class="w"> </span>Completed<span class="w"> </span>at<span class="w"> </span>provider
+<a id="__codelineno-40-8" name="__codelineno-40-8" href="#__codelineno-40-8"></a><span class="w">  </span><span class="s2">&quot;amount&quot;</span>:<span class="w"> </span><span class="s2">&quot;100.00&quot;</span>
+<a id="__codelineno-40-9" name="__codelineno-40-9" href="#__codelineno-40-9"></a><span class="o">}</span>
+</code></pre></div></p>
+<p><strong>If provider says "completed" but no signal in Temporal:</strong></p>
+<p>This means the webhook was lost or never sent.</p>
+<p><strong>Step 3: Check Webhook Logs</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-41-1" name="__codelineno-41-1" href="#__codelineno-41-1"></a><span class="c1"># Search backend logs for webhook receipts</span>
+<a id="__codelineno-41-2" name="__codelineno-41-2" href="#__codelineno-41-2"></a>docker<span class="w"> </span>compose<span class="w"> </span>logs<span class="w"> </span>backend<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s2">&quot;Webhook received&quot;</span>
+<a id="__codelineno-41-3" name="__codelineno-41-3" href="#__codelineno-41-3"></a>
+<a id="__codelineno-41-4" name="__codelineno-41-4" href="#__codelineno-41-4"></a><span class="c1"># Search for the specific payment ID</span>
+<a id="__codelineno-41-5" name="__codelineno-41-5" href="#__codelineno-41-5"></a>docker<span class="w"> </span>compose<span class="w"> </span>logs<span class="w"> </span>backend<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s2">&quot;57d4e5c4-957d-4638-847b-aad5e5714614&quot;</span>
+</code></pre></div>
+<p><strong>If no webhook found in logs:</strong>
+- Network issue prevented webhook delivery
+- Provider didn't send webhook (check provider logs)
+- Webhook URL misconfigured</p>
+<p><strong>Step 4: Manual Signal (Emergency Recovery)</strong></p>
+<p>If the provider completed the transaction but webhook won't arrive, you can manually signal the workflow:</p>
+<p>⚠️ <strong>WARNING: Only do this if you're certain the provider confirmed completion!</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-42-1" name="__codelineno-42-1" href="#__codelineno-42-1"></a><span class="c1"># Using Temporal CLI</span>
+<a id="__codelineno-42-2" name="__codelineno-42-2" href="#__codelineno-42-2"></a>docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>temporal<span class="w"> </span>temporal<span class="w"> </span>workflow<span class="w"> </span>signal<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-42-3" name="__codelineno-42-3" href="#__codelineno-42-3"></a><span class="w">  </span>--workflow-id<span class="w"> </span><span class="s2">&quot;payment_pay_in_57d4e5c4-957d-4638-847b-aad5e5714614&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-42-4" name="__codelineno-42-4" href="#__codelineno-42-4"></a><span class="w">  </span>--name<span class="w"> </span><span class="s2">&quot;payment_gatehub_signals&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-42-5" name="__codelineno-42-5" href="#__codelineno-42-5"></a><span class="w">  </span>--input<span class="w"> </span><span class="s1">&#39;{&quot;tx_uuid&quot;:&quot;txn_abc123&quot;,&quot;status&quot;:&quot;100&quot;}&#39;</span>
+</code></pre></div>
+<p>Or use the Temporal Web UI:
+1. Open the workflow
+2. Click "Signal" button (top right)
+3. Signal Name: <code>payment_gatehub_signals</code>
+4. Signal Input:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-43-1" name="__codelineno-43-1" href="#__codelineno-43-1"></a><span class="p">{</span>
+<a id="__codelineno-43-2" name="__codelineno-43-2" href="#__codelineno-43-2"></a><span class="w">  </span><span class="nt">&quot;tx_uuid&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;txn_abc123&quot;</span><span class="p">,</span>
+<a id="__codelineno-43-3" name="__codelineno-43-3" href="#__codelineno-43-3"></a><span class="w">  </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;100&quot;</span>
+<a id="__codelineno-43-4" name="__codelineno-43-4" href="#__codelineno-43-4"></a><span class="p">}</span>
+</code></pre></div>
+5. Click "Send Signal"</p>
+<p>The workflow should immediately proceed with finalization.</p>
+<h3 id="temporal-best-practices-for-support">Temporal Best Practices for Support<a class="headerlink" href="#temporal-best-practices-for-support" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Always check Temporal first for "stuck" payments</strong></li>
+<li>Faster than database queries</li>
+<li>Shows exactly where the workflow is waiting</li>
+<li>
+<p>Reveals errors immediately</p>
+</li>
+<li>
+<p><strong>Use the History tab to trace execution</strong></p>
+</li>
+<li>See which activities completed</li>
+<li>See which activities failed</li>
+<li>
+<p>See timing between steps</p>
+</li>
+<li>
+<p><strong>Look for signals to understand webhook delivery</strong></p>
+</li>
+<li><code>WorkflowExecutionSignaled</code> = webhook arrived</li>
+<li>
+<p>Missing signal = webhook lost or delayed</p>
+</li>
+<li>
+<p><strong>Don't terminate workflows unless absolutely necessary</strong></p>
+</li>
+<li>Workflows have built-in retry logic</li>
+<li>Terminating loses state and may cause data inconsistency</li>
+<li>
+<p>Only terminate for unrecoverable errors</p>
+</li>
+<li>
+<p><strong>Document workflow IDs when investigating</strong></p>
+</li>
+<li>Payment UUID → Workflow IDs mapping</li>
+<li>Makes follow-up investigation easier</li>
+<li>Helps with escalation to engineering</li>
+</ol>
+<h3 id="temporal-workflow-lifecycle-summary">Temporal Workflow Lifecycle Summary<a class="headerlink" href="#temporal-workflow-lifecycle-summary" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>stateDiagram-v2
+    [*] --&gt; Running: Payment initiated
+
+    Running --&gt; Activities: Execute business logic
+
+    Activities --&gt; Waiting: Sent to provider
+    note right of Waiting: Workflow waits for webhook&lt;br/&gt;(no timeout, waits indefinitely)
+
+    Waiting --&gt; SignalReceived: Webhook arrives
+    SignalReceived --&gt; Finalization: Complete transaction
+
+    Finalization --&gt; Completed: Success
+    Finalization --&gt; Failed: Error during finalization
+
+    Activities --&gt; Failed: Activity error
+
+    Completed --&gt; [*]
+    Failed --&gt; [*]</code></pre>
+<p><strong>Key timing expectations:</strong>
+- Activities phase: 1-5 seconds (reserve balance, call provider)
+- Waiting phase: 1-30 seconds normally (webhook arrival)
+- Finalization phase: 1-3 seconds (update ledger, mark complete)
+- <strong>Total normal runtime: 5-40 seconds</strong>
+- <strong>Stuck if: &gt; 5 minutes with no signal</strong></p>
+<hr />
+<h2 id="escalation-logic">Escalation Logic<a class="headerlink" href="#escalation-logic" title="Permanent link">&para;</a></h2>
+<p><strong>When to investigate locally:</strong>
+- Recent transactions (&lt; 1 hour)
+- Clear user error (wrong amount, etc.)
+- Webhook/network issues you can verify</p>
+<p><strong>When to contact provider support:</strong>
+- Transaction status disputes (provider says different)
+- Outage or service degradation
+- API errors (500 responses, timeouts)
+- Credentials not working</p>
+<p><strong>When to escalate to finance team:</strong>
+- Settlement discrepancies
+- Large balances missing
+- Multiple users affected
+- Fraud suspicion</p>
+<hr />
+<h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../payments-guide/">Payments &amp; Transactions Guide</a> — Overview and navigation hub</li>
+<li><a href="../ledger-system-guide/">Ledger System Architecture</a> — How discrepancies form and resolve</li>
+<li><a href="../transaction-types-reference/">Transaction Types Reference</a> — Transaction fields and states</li>
+<li><a href="../provider-payments-reference/">Provider Payments Guide</a> — Provider-specific behavior and limits</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.top", "navigation.indexes", "search.highlight", "search.suggest", "content.code.copy", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
