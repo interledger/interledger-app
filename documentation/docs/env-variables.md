@@ -99,8 +99,18 @@ Botanist is a Remix application providing the internal admin interface. It conne
 
 ## Backend (Wallet)
 
-The Go backend is configured entirely via YAML, not environment variables — see the [Backend Configuration Guide](backend-configuration-guide.md) for the full settings reference, including Plaid, GateHub, Xago, PTI, and every other provider setting.
+The Go backend is the core of the wallet, handling payments, provider integrations, webhooks, Temporal workflows, and gRPC APIs.
 
----
+**The backend is not configured through environment variables.** It loads YAML configuration files listed in the `CONFIG` environment variable, deep-merges them (base + override), and resolves secrets via Kubernetes secret templating (`{{ secret "name" "key" }}`). Configuration is validated against a typed struct at startup.
 
-> **Discord:** No Discord-related environment variables are currently present in the active service configuration.
+Its only genuine environment variables are:
+
+| Variable | Required | Purpose |
+|---|---|---|
+| `CONFIG` | **Yes** | Comma-separated list of YAML config file paths to merge (base first, overrides last). |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | No | OTLP/gRPC trace endpoint. Overrides the YAML `otel.endpoint` value when set (warning logged). |
+| `OTEL_EXPORTER_OTLP_HEADERS` | No | Auth headers for the OTLP endpoint. Overrides the YAML `otel.headers` value when set (warning logged). |
+
+For the full configuration scheme, secret handling, per-setting reference (including all provider, database, and feature-flag settings), and the migration config, see the **[Backend Configuration Guide](backend-configuration-guide.md)**.
+
+> **Legacy note:** Earlier revisions of this document listed the backend's settings as individual `BACKEND_*` environment variables. Those are obsolete — the backend now reads them from YAML config. The per-environment values previously tracked here now live in the deployed environments' config files.
