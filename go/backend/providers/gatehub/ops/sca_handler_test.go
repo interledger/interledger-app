@@ -28,7 +28,7 @@ INSERT INTO gatehub_users (external_id, wallet_id) values ('%s', '%s') ON CONFLI
 
 func TestHandleSCAVerification(t *testing.T) {
 	ctx := context.Background()
-	db := db.MigrateTestDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx, "")
 	users := user_mock.NewMock()
 	b := Backends{
 		db:    db,

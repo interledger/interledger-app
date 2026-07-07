@@ -1,0 +1,35 @@
+# Routes for the wallet frontend (Protea) and backend HTTP endpoints.
+# - interledger.kind → protea frontend (catch-all)
+# - interledger.kind/webhooks* and /.well-known* → backend HTTP
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: backend-http
+  namespace: interledger
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`interledger.kind`) && (PathPrefix(`/webhooks`) || PathPrefix(`/.well-known`))
+      kind: Rule
+      services:
+        - name: wallet-backend-service-http
+          port: 8080
+  tls: {}
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: frontend
+  namespace: interledger
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`interledger.kind`)
+      kind: Rule
+      services:
+        - name: wallet-frontend-service
+          port: 3000
+  tls: {}

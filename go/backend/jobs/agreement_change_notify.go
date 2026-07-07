@@ -8,7 +8,6 @@ import (
 
 	"github.com/interledger/interledger-app/go/backend/agreements"
 	"github.com/interledger/interledger-app/go/backend/email"
-	"github.com/interledger/interledger-app/go/env"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 	"go.uber.org/zap"
@@ -136,7 +135,7 @@ func agreementLinksForUser(userID string, namesByUser map[string][]string, metad
 }
 
 func (a *Activity) LoadAgreementChangeMetadata(ctx context.Context, agreementIDs []string) (AgreementChangeMetadataResult, error) {
-	baseURL := strings.TrimSuffix(env.GetUrl(), "/")
+	baseURL := strings.TrimSuffix(a.b.Config().ApplicationURL, "/")
 	changes := make([]agreements.AgreementChange, 0, len(agreementIDs))
 	metadata := make(map[string]AgreementMetadata)
 	for _, id := range agreementIDs {

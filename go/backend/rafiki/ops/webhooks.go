@@ -16,7 +16,6 @@ import (
 	"github.com/interledger/interledger-app/go/backend/payments"
 	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
 	"github.com/interledger/interledger-app/go/backend/rafiki"
-	"github.com/interledger/interledger-app/go/env"
 	"github.com/interledger/interledger-app/go/log"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/client"
@@ -84,7 +83,7 @@ func EventWebhook(b Backends) http.HandlerFunc {
 			return
 		}
 
-		if !env.IsProd() {
+		if !b.Config().Environment.IsModeProd() {
 			log.Info("rafiki webhook dump", zap.String("json", string(raw)))
 		}
 
@@ -104,7 +103,7 @@ func EventWebhook(b Backends) http.HandlerFunc {
 }
 
 func processWebhook(ctx context.Context, b Backends, hook webhook) int {
-	nodeEnabled := env.IsRafikiNodeEnabled()
+	nodeEnabled := b.Config().Rafiki.NodeEnabled
 
 	switch hook.Type {
 	case "incoming_payment.created":

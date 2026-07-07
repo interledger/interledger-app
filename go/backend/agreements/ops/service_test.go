@@ -16,7 +16,7 @@ import (
 func TestSignAgreements(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	db := db.MigrateTestDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx, "")
 	if err := migrations.MigrateFromMarkdowns(ctx, db, "../migrations/assets/testing"); err != nil {
 		t.Fatal(err)
 	}
@@ -34,7 +34,7 @@ func TestSignAgreements(t *testing.T) {
 func TestAgreementSigns(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	db := db.MigrateTestDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx, "")
 	if err := migrations.MigrateFromMarkdowns(ctx, db, "../migrations/assets/testing"); err != nil {
 		t.Fatal(err)
 	}
@@ -65,7 +65,7 @@ func TestAgreementSigns(t *testing.T) {
 func TestGetAgreement(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	db := db.MigrateTestDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx, "")
 	if err := migrations.MigrateFromMarkdowns(ctx, db, "../migrations/assets/testing"); err != nil {
 		t.Fatal(err)
 	}
@@ -85,7 +85,7 @@ func TestGetAgreement(t *testing.T) {
 func TestListAffectedUserIDsPaginated(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	db := db.MigrateTestDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx, "")
 	if err := migrations.MigrateFromMarkdowns(ctx, db, "../migrations/assets/testing"); err != nil {
 		t.Fatal(err)
 	}
@@ -142,7 +142,7 @@ func TestListAffectedUserIDsPaginated(t *testing.T) {
 func TestMarkUsersNotified(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	db := db.MigrateTestDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx, "")
 	if err := migrations.MigrateFromMarkdowns(ctx, db, "../migrations/assets/testing"); err != nil {
 		t.Fatal(err)
 	}
@@ -195,7 +195,7 @@ func TestMarkUsersNotified(t *testing.T) {
 func TestGetAgreementNamesSignedByUsersFromSet(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	db := db.MigrateTestDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx, "")
 	if err := migrations.MigrateFromMarkdowns(ctx, db, "../migrations/assets/testing"); err != nil {
 		t.Fatal(err)
 	}

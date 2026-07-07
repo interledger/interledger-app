@@ -48,35 +48,17 @@ tests:
           path: spec.template.spec.serviceAccountName
           value: myServiceAccount
 
-  - it: 'Should have DB_URL_WITH_CERTS referencing the backend secret'
+  - it: 'Should have CONFIG pointing to the mounted migration config file'
     documentSelector:
       path: kind
       value: Job
     asserts:
       - equal:
           path: spec.template.spec.containers[0].env[0].name
-          value: DB_URL_WITH_CERTS
+          value: CONFIG
       - equal:
-          path: spec.template.spec.containers[0].env[0].valueFrom.secretKeyRef.name
-          value: wallet-backend
-      - equal:
-          path: spec.template.spec.containers[0].env[0].valueFrom.secretKeyRef.key
-          value: dbBackendMigrationsURL
-
-  - it: 'Should have PACIOLI_DB_URL_WITH_CERTS referencing the backend secret'
-    documentSelector:
-      path: kind
-      value: Job
-    asserts:
-      - equal:
-          path: spec.template.spec.containers[0].env[1].name
-          value: PACIOLI_DB_URL_WITH_CERTS
-      - equal:
-          path: spec.template.spec.containers[0].env[1].valueFrom.secretKeyRef.name
-          value: wallet-backend
-      - equal:
-          path: spec.template.spec.containers[0].env[1].valueFrom.secretKeyRef.key
-          value: dbPacioliMigrationsURL
+          path: spec.template.spec.containers[0].env[0].value
+          value: /etc/backend/config.yaml
 
   - it: 'Should use the global imageOverride when no initialisation image is specified'
     set:

@@ -31,8 +31,10 @@ ENTRYPOINT ["/build/backend/entrypoint.sh"]
 
 FROM base AS builder
 
+ARG APP_VERSION=dev
+
 ENV GOCACHE=/root/.cache/go-build
-RUN --mount=type=cache,target="/root/.cache/go-build" go build -o main ./pacioli/pacioli/main.go
+RUN --mount=type=cache,target="/root/.cache/go-build" go build -ldflags "-X main.Version=${APP_VERSION}" -o main ./pacioli/pacioli/main.go
 
 FROM gcr.io/distroless/cc:nonroot
 

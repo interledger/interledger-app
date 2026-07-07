@@ -21,8 +21,6 @@ import (
 	"github.com/interledger/interledger-app/go/log"
 	"go.uber.org/zap"
 
-	"github.com/interledger/interledger-app/go/env"
-
 	"github.com/interledger/interledger-app/go/backend/slack"
 
 	"github.com/interledger/interledger-app/go/pacioli"
@@ -576,7 +574,7 @@ func GetKYCWidget(ctx context.Context, b Backends, walletID string) (*pti.Widget
 		RequestID:         uuid.NewString(),
 		UserID:            externalUser.ExternalID,
 		ClientID:          ptiWidgetClientID,
-		GenerateTokenPath: fmt.Sprintf("%s/api/pti/token", env.GetUrl()),
+		GenerateTokenPath: fmt.Sprintf("%s/api/pti/token", b.Config().ApplicationURL),
 		SdkUrl:            sdkUrl,
 		FormsUrl:          formsUrl,
 		SessionID:         walletID,

@@ -2,6 +2,7 @@ package ops
 
 import (
 	"github.com/go-playground/validator/v10"
+	"github.com/interledger/interledger-app/go/backend/config"
 	"github.com/interledger/interledger-app/go/backend/email"
 	"github.com/interledger/interledger-app/go/backend/kyc"
 	"github.com/interledger/interledger-app/go/backend/notify"
@@ -11,6 +12,7 @@ import (
 )
 
 type Backends interface {
+	Config() *config.StartConfig
 	Validator() *validator.Validate
 	DB() *sqlx.DB
 	Wallets() wallets.Client
