@@ -1,3 +1,10 @@
+import {
+  IncomingPayment,
+  PendingGrant,
+  Quote,
+  type WalletAddress
+} from '@interledger/open-payments'
+
 export type IframeMessageType = 'WithdrawalCompleted' | 'StripeDepositCompleted'
 
 export interface IframeMessage {
@@ -5,6 +12,46 @@ export interface IframeMessage {
   uuid: string
 }
 
+export type Errors = {
+  errors?: Array<string | null | undefined> | null
+}
+
+export type FormattedAmount = {
+  amount: number
+  amountWithCurrency: string
+  symbol: string
+}
+
+export interface Amount {
+  value: string
+  assetCode: string
+  assetScale: number
+}
+
+export type FormatAmountArgs = Amount & {
+  value: string
+}
+export type QuoteResponse = Quote & {
+  incomingPaymentGrantToken?: string
+}
+
+export type QuickPaySession = {
+  senderAddress?: WalletAddress
+  receiverAddress?: WalletAddress
+  quote?: QuoteResponse
+  grants?: Record<string, PendingGrant>
+  request?: IncomingPayment
+}
+
+export type ActionData = {
+  errors?: {
+    walletAddress?: Errors
+    receiverAddress?: Errors
+    senderAddress?: Errors
+    note?: Errors
+    actionError?: Errors
+  }
+}
 export enum KycStatus {
   Unknown = 0,
   Pending = 1,

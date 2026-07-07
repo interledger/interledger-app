@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/interledger/interledger-app/go/backend/config"
 	"github.com/interledger/interledger-app/go/backend/kyc"
 	"github.com/interledger/interledger-app/go/backend/providers/chimoney"
 	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
@@ -34,6 +35,7 @@ type Backends interface {
 	Xago() xago.Client
 	Chimoney() chimoney.Client
 	KYC() kyc.Client
+	Config() *config.StartConfig
 }
 
 var _ ops.Backends = opsBackends{}
@@ -73,6 +75,9 @@ func (c *client) WebhookHandler() http.HandlerFunc {
 
 func (c *client) FundOutgoingPayment(ctx context.Context, paymentID string) error {
 	return ops.FundOutgoingPayment(ctx, c.b, paymentID)
+}
+func (c *client) FundSingleOutgoingPayment(ctx context.Context, paymentID string) error {
+	return ops.FundSingleOutgoingPayment(ctx, c.b, paymentID)
 }
 
 func (c *client) FinalizeWebMonetization(ctx context.Context, paymentID string) error {

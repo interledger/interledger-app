@@ -1,6 +1,7 @@
 package ops
 
 import (
+	"github.com/interledger/interledger-app/go/backend/config"
 	"github.com/interledger/interledger-app/go/backend/kyc"
 	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
 	"github.com/interledger/interledger-app/go/backend/payments"
@@ -13,6 +14,7 @@ import (
 )
 
 type Backends interface {
+	Config() *config.StartConfig
 	DB() *sqlx.DB
 	KYC() kyc.Client
 	LinkedAccounts() linkedaccounts.Client

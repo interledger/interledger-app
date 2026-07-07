@@ -30,9 +30,9 @@ func TestSetFeatures(t *testing.T) {
 	t.Skip("TODO - Broken test, needs to be fixed")
 	t.Parallel()
 	ctx := context.Background()
-	db := db.MigrateTestDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx, "")
 
-	b := ops.NewTestBackends(t, db, nil, nil, nil)
+	b := ops.NewTestBackends(t, db, nil, nil, nil, nil)
 
 	cases := []struct {
 		name  string
@@ -73,7 +73,7 @@ func TestSetFeatures(t *testing.T) {
 
 			assert.DeepEqual(t, f, tc.feats)
 
-			f, err = ops.Features(ctx, b, wid)
+			f, err = ops.Features(ctx, b, wid, true)
 			require.NoError(t, err)
 
 			assert.DeepEqual(t, f, tc.feats)
@@ -86,14 +86,14 @@ func TestFeatures(t *testing.T) {
 
 	t.Parallel()
 	ctx := context.Background()
-	db := db.MigrateTestDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx, "")
 
 	ctrl := gomock.NewController(t)
 	kc := kyc_mock.NewMockClient(ctrl)
 	fc := linked_accounts_mock.NewMockClient(ctrl)
 	wc := wallet_mock.NewMockClient(ctrl)
 
-	b := ops.NewTestBackends(t, db, kc, fc, wc)
+	b := ops.NewTestBackends(t, db, kc, fc, wc, nil)
 
 	cases := []struct {
 		name      string
@@ -185,7 +185,7 @@ func TestFeatures(t *testing.T) {
 
 			fc.EXPECT().ListByWalletId(ctx, wid).Return(lal, nil).AnyTimes()
 
-			f, err := ops.Features(ctx, b, wid)
+			f, err := ops.Features(ctx, b, wid, true)
 			require.NoError(t, err)
 
 			assert.DeepEqual(t, f, tc.feats)

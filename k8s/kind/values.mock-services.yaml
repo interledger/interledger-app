@@ -1,14 +1,6 @@
-# CI overrides for helm/mock-services
-#
-# Applied on top of helm/mock-services/values.yaml when deploying to the local
-# kind cluster.  Only keys that differ from the chart defaults are listed here.
-#
-# Images are built locally (make build) and loaded into kind (make load).
-# imagePullPolicy is overridden to IfNotPresent so the kubelet uses the loaded
-# image rather than attempting to pull from the private GCP registry.
-#
-# All config values are non-sensitive placeholders suitable for local testing
-# only.  Do not use these values in any real environment.
+# Mock service values for the local kind environment.
+# Points browser-accessible callbacks to https://*.interledger.kind via Traefik.
+# Images are built locally and loaded into kind (make build load).
 
 mockpti:
   enabled: true
@@ -18,16 +10,19 @@ mockpti:
     - mock-secrets
   server:
     image:
-      tag: ci
+      repository: registry.kind
+      name: mockpti
+      tag: kind
     imagePullPolicy: IfNotPresent
   config:
     log_level: "debug"
     redis_url: "{{ secret \"mock-secrets\" \"redisUrl\" }}"
     redis_db: "5"
-    client_id: "ci-client-id"
-    webhook_url: "http://ci.local/webhook"
-    webhook_signing_key: "ci-test-signing-key"
-    forms_mutation_token: "ci-forms-token"
+    client_id: "04d3e1b5-96d4-47e4-9eaa-13e9b4b0f219"
+    webhook_url: "https://interledger.kind/webhooks/pti"
+    webhook_signing_key: "kind-test-signing-key"
+    forms_mutation_token: "kind-forms-token"
+    public_base_url: "https://mockpti.interledger.kind"
 
 mockgatehub:
   enabled: true
@@ -37,20 +32,22 @@ mockgatehub:
     - mock-secrets
   server:
     image:
-      tag: ci
+      repository: registry.kind
+      name: mockgatehub
+      tag: kind
     imagePullPolicy: IfNotPresent
   config:
     log_level: "debug"
     redis_url: "{{ secret \"mock-secrets\" \"redisUrl\" }}"
     redis_db: 2
-    webhook_url: "http://ci.local/webhook"
-    webhook_secret: "ci-webhook-secret"
+    webhook_url: "https://interledger.kind/webhooks/gatehub"
+    webhook_secret: "6d6f636b5f776562686f6f6b5f736563726574"
     webhook_min_delay_sec: 2
     enforce_authentication: true
     valid_credentials:
-      ci-app-id: ci-app-secret
-    default_organization_id: "ci-org"
-    public_base_url: "http://mockgatehub.ci.local"
+      local-test-app-id: local-test-app-secret
+    default_organization_id: "default-org"
+    public_base_url: "https://mockgatehub.interledger.kind"
 
 mockxago:
   enabled: true
@@ -60,16 +57,19 @@ mockxago:
     - mock-secrets
   server:
     image:
-      tag: ci
+      repository: registry.kind
+      name: mockxago
+      tag: kind
     imagePullPolicy: IfNotPresent
   config:
     log_level: "debug"
     redis_url: "{{ secret \"mock-secrets\" \"redisUrl\" }}"
     redis_db: 4
-    public_key: "ci-public-key"
-    secret: "ci-secret"
+    public_key: "test-public-key"
+    secret: "test-secret"
     test_mode: true
-    webhook_url: "http://ci.local/webhook"
-    webhook_secret: "ci-webhook-secret"
+    webhook_url: "https://interledger.kind/webhooks/xago"
+    webhook_secret: "kind-webhook-secret"
     webhook_min_delay_sec: 2
-    persona_webhook_url: "http://ci.local/webhooks/persona"
+    persona_webhook_url: "https://interledger.kind/webhooks/persona"
+    public_base_url: "https://mockxago.interledger.kind"

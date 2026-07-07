@@ -74,6 +74,8 @@ prep:
 	@touch config-override/mockgatehub.yaml
 	@touch config-override/mockpti.yaml
 	@touch config-override/mockxago.yaml
+	@touch config-override/backend.yaml
+	@touch config-override/backend.migration.yaml
 
 infrastructure: prep
 	$(COMPOSE) --profile infrastructure up

@@ -51,7 +51,7 @@ func TestNewHandlePersonaWebhook(t *testing.T) {
 	em := email_client.NewMockClient(ctrl)
 	wc := wallet_mock.NewMockClient(ctrl)
 	wc.EXPECT().Get(ctx, gomock.Any()).Return(&wallets.Wallet{}, nil).AnyTimes()
-	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx), nil, uc, nil, nil, em, wc)
+	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx, ""), nil, uc, nil, nil, em, wc)
 
 	inquiryCases := []struct {
 		name          string

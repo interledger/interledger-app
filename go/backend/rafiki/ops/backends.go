@@ -1,6 +1,7 @@
 package ops
 
 import (
+	"github.com/interledger/interledger-app/go/backend/config"
 	"github.com/interledger/interledger-app/go/backend/keys"
 	"github.com/interledger/interledger-app/go/backend/kyc"
 	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
@@ -60,6 +61,7 @@ func NewTestActivityBackends() *TestActivityBackends {
 
 type Backends interface {
 	DB() *sqlx.DB
+	Config() *config.StartConfig
 	External() external.Client
 	Payments() payments.Client
 	Temporal() temporal.Client
@@ -88,6 +90,7 @@ type ActivityBackends interface {
 
 type TestBackends struct {
 	db             *sqlx.DB
+	cfg            *config.StartConfig
 	external       external.Client
 	payments       payments.Client
 	temporal       temporal.Client
@@ -102,6 +105,7 @@ type TestBackends struct {
 }
 
 func (t *TestBackends) DB() *sqlx.DB                          { return t.db }
+func (t *TestBackends) Config() *config.StartConfig           { return t.cfg }
 func (t *TestBackends) External() external.Client             { return t.external }
 func (t *TestBackends) Payments() payments.Client             { return t.payments }
 func (t *TestBackends) Temporal() temporal.Client             { return t.temporal }
@@ -115,6 +119,7 @@ func (t *TestBackends) Chimoney() chimoney.Client             { return t.chimone
 func (t *TestBackends) KYC() kyc.Client                       { return t.kyc }
 
 func (t *TestBackends) SetDB(db *sqlx.DB)                          { t.db = db }
+func (t *TestBackends) SetConfig(cfg *config.StartConfig)          { t.cfg = cfg }
 func (t *TestBackends) SetExternal(ext external.Client)            { t.external = ext }
 func (t *TestBackends) SetPayments(p payments.Client)              { t.payments = p }
 func (t *TestBackends) SetTemporal(tp temporal.Client)             { t.temporal = tp }

@@ -12,11 +12,11 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/interledger/interledger-app/go/backend/config"
 	"github.com/interledger/interledger-app/go/backend/identities"
 	"github.com/interledger/interledger-app/go/backend/keys"
 	"github.com/interledger/interledger-app/go/backend/rafiki"
 	"github.com/interledger/interledger-app/go/backend/wallets"
-	"github.com/interledger/interledger-app/go/env"
 	"github.com/interledger/interledger-app/go/log"
 	"go.uber.org/zap"
 )
@@ -26,6 +26,7 @@ type Backends interface {
 	Identities() identities.Client
 	Keys() keys.Client
 	Rafiki() rafiki.Client
+	Config() *config.StartConfig
 }
 
 // this handler handles ilp.link redirects done by openpayments server previously
@@ -37,7 +38,7 @@ func WalletRedirectHandler(b Backends) http.HandlerFunc {
 		}
 
 		// check if the hostname is one of the ilp.link domains
-		if req.Host != removeProtocol(env.OpenPaymentsURL()) {
+		if req.Host != removeProtocol(b.Config().OpenPaymentsBaseURL) {
 			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 			return
 		}
@@ -68,7 +69,7 @@ func WalletRedirectHandler(b Backends) http.HandlerFunc {
 
 		// Check if the content type is from browser and redirect
 		if strings.Contains(req.Header.Get("Accept"), "text/html") {
-			u, err := url.JoinPath(env.GetUrl(), "/me/", removeProtocol(wallet.AddressString()))
+			u, err := url.JoinPath(b.Config().ApplicationURL, "/me/", removeProtocol(wallet.AddressString()))
 			if err != nil {
 				log.Error("error generating url", zap.Error(err))
 				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -120,10 +121,10 @@ func WalletRedirectHandler(b Backends) http.HandlerFunc {
 			Identities:        jsonIds,
 			AssetCode:         rafikiWalletAddress.AssetCode,
 			AssetScale:        uint(rafikiWalletAddress.AssetScale),
-			AuthServerURL:     env.AuthURL(),
-			ResourceServerURL: env.OpenPaymentsURL(),
+			AuthServerURL:     b.Config().AuthBaseURL,
+			ResourceServerURL: b.Config().OpenPaymentsBaseURL,
 		}
-		if env.IsDev() {
+		if b.Config().Environment.IsModeDev() {
 			jsonResponse.Identities = nil
 		}
 
@@ -148,7 +149,7 @@ func GetIdentityHandler(b Backends) http.HandlerFunc {
 		}
 
 		// check if the hostname is one of the ilp.link domains
-		if req.Host != removeProtocol(env.OpenPaymentsURL()) {
+		if req.Host != removeProtocol(b.Config().OpenPaymentsBaseURL) {
 			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 			return
 		}
@@ -198,7 +199,7 @@ func GetIdentityHandler(b Backends) http.HandlerFunc {
 		}
 
 		if isSocialMediaScraper(req) {
-			u, err := url.JoinPath(env.GetUrl(), "me/identities", identitySigHash)
+			u, err := url.JoinPath(b.Config().ApplicationURL, "me/identities", identitySigHash)
 			if err != nil {
 				log.Error("error generate url", zap.Error(err))
 				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -212,7 +213,7 @@ func GetIdentityHandler(b Backends) http.HandlerFunc {
 				return
 			}
 
-			b, err := io.ReadAll(resp.Body)
+			body, err := io.ReadAll(resp.Body)
 			if err != nil {
 				log.Error("error reading response body", zap.Error(err))
 				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -222,7 +223,7 @@ func GetIdentityHandler(b Backends) http.HandlerFunc {
 
 			// return bytes to the caller as html response
 			w.Header().Set("Content-Type", "text/html")
-			_, err = w.Write(b)
+			_, err = w.Write(body)
 			if err != nil {
 				log.Error("error writing response body", zap.Error(err))
 				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -233,7 +234,7 @@ func GetIdentityHandler(b Backends) http.HandlerFunc {
 
 		// if text html redirect
 		if strings.Contains(req.Header.Get("Accept"), "text/html") {
-			u, err := url.JoinPath(env.GetUrl(), "me/identities", identitySigHash)
+			u, err := url.JoinPath(b.Config().ApplicationURL, "me/identities", identitySigHash)
 			if err != nil {
 				log.Error("error generate url", zap.Error(err))
 				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -335,7 +336,7 @@ func listKeys(b Backends, walletID string, w http.ResponseWriter, req *http.Requ
 			Alg: "EdDSA",
 			X:   k.PublicKey,
 		}
-		if !env.IsDev() {
+		if !b.Config().Environment.IsModeDev() {
 			jwks[i].Use = "sig"
 		}
 	}

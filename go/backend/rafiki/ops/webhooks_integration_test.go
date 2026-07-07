@@ -33,7 +33,6 @@ import (
 	transactions_mock "github.com/interledger/interledger-app/go/backend/transactions/client/mock"
 	"github.com/interledger/interledger-app/go/backend/wallets"
 	wallets_mock "github.com/interledger/interledger-app/go/backend/wallets/client/mock"
-	"github.com/interledger/interledger-app/go/env"
 	"github.com/interledger/interledger-app/go/pacioli"
 	pacioli_mock "github.com/interledger/interledger-app/go/pacioli/client/mock"
 
@@ -79,7 +78,6 @@ func startPostgresContainer(ctx context.Context) (testcontainers.Container, stri
 }
 
 func TestMain(m *testing.M) {
-	env.SetRafikiNodeEnabled(true)
 
 	if os.Getenv("DB_URL") == "" {
 		ctx := context.Background()
@@ -109,7 +107,7 @@ func requireTestDB(t *testing.T) *sqlx.DB {
 		t.Skipf("DB connection failed; skipping: %v", err)
 	}
 	_ = tryConn.Close()
-	conn := db.MigrateTestDB(t, context.Background())
+	conn := db.MigrateTestDB(t, context.Background(), "")
 	return conn
 }
 
@@ -920,6 +918,87 @@ func TestCreateOutgoingPaymentTransaction(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestCreateOutgoingPaymentTransaction_WebMonetization(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	ctx := context.Background()
+	walletID := uuid.NewString()
+	ppID := "wa_sender_" + uuid.NewString()[:8]
+	laID := "la_" + uuid.NewString()[:8]
+
+	op := outgoingPaymentData{
+		ID:              uuid.NewString(),
+		WalletAddressID: ppID,
+		DebitAmount:     amount{Value: "500", AssetCode: "EUR", AssetScale: 2},
+		Receiver:        "https://example.com/incoming-payments/ip_1",
+		Metadata:        map[string]any{"source": metadataSourceWebMonetization},
+	}
+
+	ab := setupActivityBackends(t, ctrl, walletID, ppID)
+	linkedMock := linkedaccounts_mock.NewMockClient(ctrl)
+	linkedMock.EXPECT().ListBalances(gomock.Any(), walletID).Return([]linkedaccounts.LinkedAccount{
+		{ID: laID, Provider: gatehub.ProviderName, Type: gatehub.AccTypeBalance},
+	}, nil)
+	ab.SetLinkedAccounts(linkedMock)
+
+	walletsMock := wallets_mock.NewMockClient(ctrl)
+	walletsMock.EXPECT().Get(gomock.Any(), walletID).Return(&wallets.Wallet{ID: walletID}, nil)
+	ab.SetWallets(walletsMock)
+
+	txMock := transactions_mock.NewMockClient(ctrl)
+	txMock.EXPECT().CreateTransaction(gomock.Any(), gomock.Any()).
+		DoAndReturn(func(_ context.Context, args transactions.CreateTransactionArgs) (string, error) {
+			assert.Equal(t, transactions.TransactionTypeWebMonetizationOutgoing, args.ForeignType)
+			return "trx_out", nil
+		})
+	ab.SetTransactions(txMock)
+
+	act := &Activity{b: ab}
+	err := act.CreateOutgoingPaymentTransaction(ctx, op)
+	assert.NoError(t, err)
+}
+
+func TestCreateIncomingPaymentTransaction_WebMonetization(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	ctx := context.Background()
+	walletID := uuid.NewString()
+	ppID := "wa_recv_" + uuid.NewString()[:8]
+	laID := "la_" + uuid.NewString()[:8]
+
+	ip := incomingPaymentData{
+		ID:              uuid.NewString(),
+		WalletAddressID: ppID,
+		ReceivedAmount:  amount{Value: "1000", AssetCode: "EUR", AssetScale: 2},
+		Metadata:        map[string]any{"source": metadataSourceWebMonetization},
+	}
+
+	ab := setupActivityBackends(t, ctrl, walletID, ppID)
+	linkedMock := linkedaccounts_mock.NewMockClient(ctrl)
+	linkedMock.EXPECT().ListBalances(gomock.Any(), walletID).Return([]linkedaccounts.LinkedAccount{
+		{ID: laID, Provider: gatehub.ProviderName, Type: gatehub.AccTypeBalance},
+	}, nil)
+	ab.SetLinkedAccounts(linkedMock)
+
+	walletsMock := wallets_mock.NewMockClient(ctrl)
+	walletsMock.EXPECT().Get(gomock.Any(), walletID).Return(&wallets.Wallet{ID: walletID}, nil)
+	ab.SetWallets(walletsMock)
+
+	txMock := transactions_mock.NewMockClient(ctrl)
+	txMock.EXPECT().CreateTransaction(gomock.Any(), gomock.Any()).
+		DoAndReturn(func(_ context.Context, args transactions.CreateTransactionArgs) (string, error) {
+			assert.Equal(t, transactions.TransactionTypeWebMonetizationIncoming, args.ForeignType)
+			return "trx_new", nil
+		})
+	ab.SetTransactions(txMock)
+
+	act := &Activity{b: ab}
+	err := act.CreateIncomingPaymentTransaction(ctx, ip)
+	assert.NoError(t, err)
+}
+
 // --- Rafiki liquidity activity tests ---------------------------------------
 
 func TestWithdrawIncomingPaymentLiquidity_Success(t *testing.T) {
@@ -994,7 +1073,7 @@ func TestDepositOutgoingPaymentLiquidity_Success(t *testing.T) {
 
 	opID := uuid.NewString()
 	rafikiMock := rafiki_mock.NewMockClient(ctrl)
-	rafikiMock.EXPECT().FundOutgoingPayment(gomock.Any(), opID).Return(nil)
+	rafikiMock.EXPECT().FundSingleOutgoingPayment(gomock.Any(), opID).Return(nil)
 
 	ab := NewTestActivityBackends()
 	ab.SetRafiki(rafikiMock)
@@ -1009,7 +1088,7 @@ func TestDepositOutgoingPaymentLiquidity_WrongState_Ignored(t *testing.T) {
 
 	opID := uuid.NewString()
 	rafikiMock := rafiki_mock.NewMockClient(ctrl)
-	rafikiMock.EXPECT().FundOutgoingPayment(gomock.Any(), opID).
+	rafikiMock.EXPECT().FundSingleOutgoingPayment(gomock.Any(), opID).
 		Return(fmt.Errorf("wrong state for operation"))
 
 	ab := NewTestActivityBackends()

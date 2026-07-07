@@ -10,7 +10,6 @@ import (
 	"github.com/interledger/interledger-app/go/backend/payments"
 	"github.com/interledger/interledger-app/go/backend/providers/xago"
 	"github.com/interledger/interledger-app/go/backend/user"
-	"github.com/interledger/interledger-app/go/env"
 	"github.com/interledger/interledger-app/go/log"
 	pb "github.com/interledger/interledger-app/go/proto/backend/v1"
 	"go.uber.org/zap"
@@ -250,7 +249,7 @@ func (s *rpcService) DepositTestXago(ctx context.Context, req *pb.Empty) (*pb.Em
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	if env.IsProd() {
+	if s.b.Config().Environment.IsModeProd() {
 		log.Warn("received xago test deposit RPC call in non-testing environment", zap.String("userId", u.ID))
 		return nil, ForbiddenError("Forbidden.")
 	}

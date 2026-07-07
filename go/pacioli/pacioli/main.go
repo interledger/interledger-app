@@ -26,6 +26,9 @@ import (
 	_ "github.com/lib/pq"
 )
 
+// Version is set at build time via -ldflags "-X main.Version=<tag>".
+var Version = "v0.0.0"
+
 func main() {
 	args := os.Args
 	if len(args) < 2 {
@@ -91,7 +94,11 @@ func start(args *cli.StartArgs) {
 		log.Fatalln(err)
 	}
 
-	traceShutdown, err := tracing.InitTraceProvider("pacioli")
+	// pacioli has no OTEL YAML config: enable tracing in dev/prod (matching the
+	// previous behaviour) and let the exporter read the standard
+	// OTEL_EXPORTER_OTLP_* env vars.
+	otelEnabled := args.Mode == "dev" || args.Mode == "prod"
+	traceShutdown, err := tracing.InitTraceProvider("pacioli", Version, otelEnabled, "", nil)
 	if err != nil {
 		log.Fatalln(err)
 	}

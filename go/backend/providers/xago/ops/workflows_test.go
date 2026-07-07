@@ -16,7 +16,7 @@ import (
 func TestActivity_SaveBeneficiary(t *testing.T) {
 	ctx := context.Background()
 	b := ops.NewTestBackends(t, func(tb *ops.TestBackends) {
-		tb.DBC = db.MigrateTestDB(t, ctx)
+		tb.DBC = db.MigrateTestDB(t, ctx, "")
 	})
 
 	a := ops.NewActivity(b, external.Config{})
@@ -55,7 +55,7 @@ func TestActivity_SaveBeneficiary(t *testing.T) {
 func TestActivity_SaveSubAccount(t *testing.T) {
 	ctx := context.Background()
 	b := ops.NewTestBackends(t, func(tb *ops.TestBackends) {
-		tb.DBC = db.MigrateTestDB(t, ctx)
+		tb.DBC = db.MigrateTestDB(t, ctx, "")
 	})
 
 	a := ops.NewActivity(b, external.Config{})

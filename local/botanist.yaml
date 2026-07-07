@@ -25,7 +25,7 @@ services:
       - "traefik.http.services.botanist-ws.loadbalancer.server.port=8002"
 
     environment:
-      - FYNBOS_ENV=local
+      - ILW_ENV=local
 
       - CHOKIDAR_USEPOLLING=true
       - BACKEND_GRPC_URL=backend:8448

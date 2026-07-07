@@ -25,7 +25,7 @@ func TestCreateTransaction(t *testing.T) {
 	ex := external_mock.NewMockClient(ctrl)
 	la := linkedaccounts_mock.NewMockClient(ctrl)
 	b := ops.NewTestBackends(t, func(tb *ops.TestBackends) {
-		tb.DBC = db.MigrateTestDB(t, ctx)
+		tb.DBC = db.MigrateTestDB(t, ctx, "")
 		tb.Extr = ex
 		tb.La = la
 	})

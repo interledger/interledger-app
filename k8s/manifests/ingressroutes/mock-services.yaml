@@ -1,0 +1,48 @@
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: mockgatehub
+  namespace: interledger
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`mockgatehub.interledger.kind`)
+      kind: Rule
+      services:
+        - name: mock-services-mockgatehub-service
+          port: 8080
+  tls: {}
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: mockxago
+  namespace: interledger
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`mockxago.interledger.kind`)
+      kind: Rule
+      services:
+        - name: mock-services-mockxago-service
+          port: 8080
+  tls: {}
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: mockpti
+  namespace: interledger
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`mockpti.interledger.kind`)
+      kind: Rule
+      services:
+        - name: mock-services-mockpti-service
+          port: 8080
+  tls: {}

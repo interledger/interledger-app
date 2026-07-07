@@ -8,19 +8,18 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
+	"github.com/interledger/interledger-app/go/backend/config"
 	"github.com/interledger/interledger-app/go/backend/db"
 	"github.com/interledger/interledger-app/go/backend/keys"
 	"github.com/interledger/interledger-app/go/backend/keys/ops"
 	vaultmock "github.com/interledger/interledger-app/go/backend/vault/mock"
-	"github.com/interledger/interledger-app/go/env"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestGeneratePrivateAndListKeys(t *testing.T) {
-	env.SetEnv(t, "test")
 	ctx := context.Background()
-	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx), nil, nil)
+	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx, ""), nil, nil, &config.StartConfig{Environment: config.EnvironmentConfig{Mode: "test"}})
 
 	walletID := uuid.NewString()
 
@@ -42,9 +41,8 @@ func TestGeneratePrivateAndListKeys(t *testing.T) {
 }
 
 func TestCantGeneratePrivateDuplicateKeys(t *testing.T) {
-	env.SetEnv(t, "test")
 	ctx := context.Background()
-	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx), nil, nil)
+	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx, ""), nil, nil, &config.StartConfig{Environment: config.EnvironmentConfig{Mode: "test"}})
 	walletID := uuid.NewString()
 	err := ops.GeneratePrivateKey(ctx, b, walletID)
 	require.NoError(t, err)
@@ -61,9 +59,8 @@ func TestCantGeneratePrivateDuplicateKeys(t *testing.T) {
 }
 
 func TestCanAddAndSoftDeleteAPublicKey(t *testing.T) {
-	env.SetEnv(t, "test")
 	ctx := context.Background()
-	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx), nil, nil)
+	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx, ""), nil, nil, &config.StartConfig{Environment: config.EnvironmentConfig{Mode: "test"}})
 	walletID := uuid.NewString()
 	pubKey, _, err := ed25519.GenerateKey(nil)
 	require.NoError(t, err)
@@ -105,7 +102,7 @@ func TestCanAddAndSoftDeleteAPublicKey(t *testing.T) {
 
 func TestCantAddADuplicatePublicKey(t *testing.T) {
 	ctx := context.Background()
-	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx), nil, nil)
+	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx, ""), nil, nil, &config.StartConfig{Environment: config.EnvironmentConfig{Mode: "test"}})
 	walletID := uuid.NewString()
 	pubKey, _, err := ed25519.GenerateKey(nil)
 	require.NoError(t, err)
@@ -118,9 +115,8 @@ func TestCantAddADuplicatePublicKey(t *testing.T) {
 }
 
 func TestCanSignAndVerifyCustodialKeys(t *testing.T) {
-	env.SetEnv(t, "test")
 	ctx := context.Background()
-	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx), nil, nil)
+	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx, ""), nil, nil, &config.StartConfig{Environment: config.EnvironmentConfig{Mode: "test"}})
 	walletID := uuid.NewString()
 	err := ops.GeneratePrivateKey(ctx, b, walletID)
 	require.NoError(t, err)
@@ -138,9 +134,8 @@ func TestCanSignAndVerifyCustodialKeys(t *testing.T) {
 }
 
 func TestCantSignWithNonCustodialKeys(t *testing.T) {
-	env.SetEnv(t, "test")
 	ctx := context.Background()
-	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx), nil, nil)
+	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx, ""), nil, nil, &config.StartConfig{Environment: config.EnvironmentConfig{Mode: "test"}})
 	walletID := uuid.NewString()
 	pubKey, _, err := ed25519.GenerateKey(nil)
 	require.NoError(t, err)
@@ -158,9 +153,8 @@ func TestCantSignWithNonCustodialKeys(t *testing.T) {
 }
 
 func TestCanVerifyNonCustodialKeys(t *testing.T) {
-	env.SetEnv(t, "test")
 	ctx := context.Background()
-	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx), nil, nil)
+	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx, ""), nil, nil, &config.StartConfig{Environment: config.EnvironmentConfig{Mode: "test"}})
 	walletID := uuid.NewString()
 	pubKey, privKey, err := ed25519.GenerateKey(nil)
 	require.NoError(t, err)
@@ -185,11 +179,10 @@ func TestCanVerifyNonCustodialKeys(t *testing.T) {
 
 func TestGeneratePrivateVaultKey(t *testing.T) {
 	t.Skip("Skipping test because we are not using vault anymore")
-	env.SetEnv(t, "local")
 	ctx := context.Background()
 	mockCtrl := gomock.NewController(t)
 	vc := vaultmock.NewMockClient(mockCtrl)
-	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx), vc, nil)
+	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx, ""), vc, nil, &config.StartConfig{Environment: config.EnvironmentConfig{Mode: "local"}})
 	vc.EXPECT().CreateKey(gomock.Any())
 	vc.EXPECT().GetPublicKey(gomock.Any()).Return("publicKey", nil)
 
@@ -214,7 +207,6 @@ func TestGeneratePrivateVaultKey(t *testing.T) {
 
 func TestCanSignAndVerifyCustodialKeysVault(t *testing.T) {
 	t.Skip("Skipping because we are not using vault anymore")
-	env.SetEnv(t, "local")
 	ctx := context.Background()
 	mockCtrl := gomock.NewController(t)
 	vc := vaultmock.NewMockClient(mockCtrl)
@@ -222,7 +214,7 @@ func TestCanSignAndVerifyCustodialKeysVault(t *testing.T) {
 	vc.EXPECT().Verify(gomock.Any(), gomock.Any()).Return(true, nil)
 	vc.EXPECT().GetPublicKey(gomock.Any()).Return("publicKey", nil)
 	vc.EXPECT().Sign(gomock.Any(), gomock.Any()).Return([]byte("signature"), nil)
-	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx), vc, nil)
+	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx, ""), vc, nil, &config.StartConfig{Environment: config.EnvironmentConfig{Mode: "local"}})
 	walletID := uuid.NewString()
 	err := ops.GeneratePrivateKey(ctx, b, walletID)
 	require.NoError(t, err)

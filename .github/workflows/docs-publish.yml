@@ -1,0 +1,106 @@
+name: Publish Documentation
+
+# Fires once per GitHub Release (semantic-release's @semantic-release/github
+# plugin creates one for every release, including maintenance `*.x`
+# branches). Fully decoupled from release.yml/build-and-publish.yml so it
+# can't be affected by unrelated changes to that pipeline.
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+concurrency:
+  # Multiple maintenance branches can release at roughly the same time;
+  # serialise pushes to `docs` so they don't race each other. Distinct
+  # release tags still queue rather than cancel, so no release is skipped.
+  group: docs-publish
+  cancel-in-progress: false
+
+jobs:
+  build_and_publish_docs:
+    name: Build and publish mkdocs site
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      VERSION: ${{ github.event.release.tag_name }}
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          persist-credentials: true
+
+      - name: Fetch docs branch
+        run: git fetch origin docs:refs/remotes/origin/docs
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install mike
+        run: pip install --no-cache-dir mike mkdocs-material pymdown-extensions
+
+      - name: Determine whether this release becomes "latest"
+        # Mirrors release.yml's own maintenance-branch detection (branch
+        # names like "1.33.x") so a patch to an old maintenance line never
+        # demotes the real latest release. mike tracks aliases explicitly
+        # in versions.json, so this is a one-time decision per release
+        # rather than something re-derived by rescanning every published
+        # version on each run.
+        id: alias
+        env:
+          TARGET_COMMITISH: ${{ github.event.release.target_commitish }}
+        run: |
+          if [[ "${TARGET_COMMITISH}" =~ ^[0-9]+(\.[0-9]+)?\.x$ ]]; then
+            echo "aliases=" >> "$GITHUB_OUTPUT"
+          else
+            echo "aliases=latest" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish version to docs branch
+        env:
+          ALIASES: ${{ steps.alias.outputs.aliases }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # mike checks the docs branch is up to date with origin before
+          # committing (see "Fetch docs branch" above) and refuses to push
+          # over a real divergence. A concurrent maintenance-branch release
+          # landing in that window is still possible, so retry a few times
+          # rather than failing outright.
+          for attempt in 1 2 3; do
+            if mike deploy \
+                --config-file documentation/mkdocs.yml \
+                --branch docs \
+                --push \
+                --update-aliases \
+                "${VERSION}" ${ALIASES}; then
+              exit 0
+            fi
+            echo "Deploy rejected (attempt ${attempt}/3); re-fetching docs."
+            # A failed mike deploy still leaves its commit on the local
+            # `docs` ref. Drop it before retrying so the next attempt
+            # starts from origin's current state instead of comparing
+            # against that orphaned commit (mike treats the two as
+            # unrelated histories and refuses to proceed otherwise).
+            git branch -D docs 2>/dev/null || true
+            git fetch origin docs:refs/remotes/origin/docs
+          done
+
+          echo "::error::Failed to publish docs for ${VERSION} after 3 attempts."
+          exit 1
+
+      - name: Point the docs branch root at "latest"
+        if: steps.alias.outputs.aliases == 'latest'
+        run: |
+          mike set-default \
+            --config-file documentation/mkdocs.yml \
+            --branch docs \
+            --push \
+            latest

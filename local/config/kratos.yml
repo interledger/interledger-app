@@ -2,33 +2,6 @@ dsn: "postgres://postgres:postgres@postgres:5432/kratos?sslmode=disable"
 cookies:
   same_site: Strict
 courier:
-  templates:
-    verification:
-      valid:
-        email:
-          body:
-            html: https://cdn.fynbos.app/emails/verification/v2/valid/email.body.gotmpl
-            plaintext: https://cdn.fynbos.app/emails/verification/v2/valid/email.body.plaintext.gotmpl
-          subject: https://cdn.fynbos.app/emails/verification/v2/valid/email.subject.gotmpl
-      invalid:
-        email:
-          body:
-            html: https://cdn.fynbos.app/emails/verification/v2/invalid/email.body.gotmpl
-            plaintext: https://cdn.fynbos.app/emails/verification/v2/invalid/email.body.plaintext.gotmpl
-          subject: https://cdn.fynbos.app/emails/verification/v2/invalid/email.subject.gotmpl
-    recovery:
-      valid:
-        email:
-          body:
-            html: https://cdn.fynbos.app/emails/recovery/v2/valid/email.body.gotmpl
-            plaintext: https://cdn.fynbos.app/emails/recovery/v2/valid/email.body.plaintext.gotmpl
-          subject: https://cdn.fynbos.app/emails/recovery/v2/valid/email.subject.gotmpl
-      invalid:
-        email:
-          body:
-            html: https://cdn.fynbos.app/emails/recovery/v2/invalid/email.body.gotmpl
-            plaintext: https://cdn.fynbos.app/emails/recovery/v2/invalid/email.body.plaintext.gotmpl
-          subject: https://cdn.fynbos.app/emails/recovery/v2/invalid/email.subject.gotmpl
   smtp:
     from_address: no-reply@interledger.test
     connection_uri: "smtp://mailhog:1025/?disable_starttls=true"
