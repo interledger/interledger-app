@@ -733,7 +733,7 @@ func CreateDeposit(ctx context.Context, b Backends, wallet *wallets.Wallet, paym
 		return nil
 	}
 	b.Email().SendRampActionEmail(ctx, wallet.ID, email.RampActionEmailArgs{
-		Action:    "We have information about your deposit",
+		Action:    "Deposit Initiated",
 		Status:    "Pending",
 		Amount:    payment.ReceiverAmount,
 		Source:    formatBankSource(bankLA),
@@ -803,7 +803,7 @@ func ConfirmWithdrawal(ctx context.Context, b Backends, ec external.Client, wall
 	}
 
 	b.Email().SendRampActionEmail(ctx, walletID, email.RampActionEmailArgs{
-		Action:    "We have information about your withdrawal",
+		Action:    "Withdrawal Initiated",
 		Status:    "Pending",
 		Amount:    payment.ReceiverAmount,
 		Source:    formatBankSource(bank),
