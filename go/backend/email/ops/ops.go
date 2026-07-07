@@ -437,7 +437,7 @@ func SendRampActionEmail(ctx context.Context, b Backends, walletID string, args 
 		paragraphs = append(paragraphs, map[string]interface{}{"paragraph": "Questions? Contact us at " + support + "."})
 	}
 
-	termsURL := fmt.Sprintf("%s/legal/terms-of-service", strings.TrimSuffix(env.GetUrl(), "/"))
+	termsURL := fmt.Sprintf("%s/legal/terms-of-service", strings.TrimSuffix(b.Config().ApplicationURL, "/"))
 
 	err = b.External().SendTemplate(ctx, args.Action, sendTo, b.OneTemplateID(), map[string]interface{}{
 		"subject": args.Action,
