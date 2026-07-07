@@ -1,6 +1,7 @@
 package ops
 
 import (
+	"github.com/interledger/interledger-app/go/backend/email"
 	"github.com/interledger/interledger-app/go/backend/config"
 	"github.com/interledger/interledger-app/go/backend/kyc"
 	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
@@ -24,4 +25,5 @@ type Backends interface {
 	Pacioli() pacioli.Client
 	Transactions() transactions.Client
 	Wallets() wallets.Client
+	Email() email.Client
 }
