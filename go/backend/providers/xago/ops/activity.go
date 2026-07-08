@@ -14,14 +14,14 @@ import (
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/temporal"
 
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/providers/xago"
-	"gitlab.com/fynbos/backend/providers/xago/external"
-	"gitlab.com/fynbos/backend/slack"
-	"gitlab.com/fynbos/backend/transactions"
-	"gitlab.com/fynbos/pacioli"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/db"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	"github.com/interledger/interledger-app/go/backend/providers/xago"
+	"github.com/interledger/interledger-app/go/backend/providers/xago/external"
+	"github.com/interledger/interledger-app/go/backend/slack"
+	"github.com/interledger/interledger-app/go/backend/transactions"
+	"github.com/interledger/interledger-app/go/pacioli"
 )
 
 func (a *Activity) PollDeposits(ctx context.Context) ([]external.Deposit, error) {

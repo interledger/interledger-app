@@ -3,7 +3,7 @@ package ops
 import (
 	"time"
 
-	gatehub_external "gitlab.com/fynbos/backend/providers/gatehub/external"
+	gatehub_external "github.com/interledger/interledger-app/go/backend/providers/gatehub/external"
 	"go.temporal.io/sdk/workflow"
 )
 

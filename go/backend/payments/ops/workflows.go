@@ -7,8 +7,6 @@ import (
 
 	"github.com/interledger/interledger-app/go/backend/providers/chimoney"
 
-	"github.com/google/uuid"
-
 	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
 	"github.com/interledger/interledger-app/go/backend/payments"
 	"github.com/interledger/interledger-app/go/backend/providers/gatehub"

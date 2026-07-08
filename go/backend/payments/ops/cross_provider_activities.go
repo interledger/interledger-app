@@ -9,13 +9,13 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/payments"
-	"gitlab.com/fynbos/backend/providers/gatehub"
-	"gitlab.com/fynbos/backend/providers/xago"
-	xago_external "gitlab.com/fynbos/backend/providers/xago/external"
-	"gitlab.com/fynbos/pacioli"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/db"
+	"github.com/interledger/interledger-app/go/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
+	"github.com/interledger/interledger-app/go/backend/providers/xago"
+	xago_external "github.com/interledger/interledger-app/go/backend/providers/xago/external"
+	"github.com/interledger/interledger-app/go/pacioli"
 	"go.temporal.io/sdk/temporal"
 )
 
