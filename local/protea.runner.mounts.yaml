@@ -1,8 +1,13 @@
 services:
   protea:
     build:
-      context: ../typescript/protea
+      context: ../typescript
+      dockerfile: protea/Dockerfile
       target: runner
-    volumes: !reset []
-      
-
+    # Drop the live-reload app-source bind mount (this is a production-built
+    # image), but keep the config mount — the runner image has no config.yaml
+    # baked in, same as a real deployment.
+    volumes: !override
+      - ./config/certs/local.crt:/certs/local.crt:ro
+      - ./config/protea.yaml:/etc/protea/config.yaml:ro
+      - ./config-override/protea.yaml:/etc/protea/config-override.yaml:ro

@@ -1,9 +1,9 @@
+import { config } from '~/config.server'
 import { getWalletId } from '~/data/wallet.server'
-import { envValue } from '~/env.server'
 import type { PusherArgs } from '~/lib/usePusher'
 
-const PUSHER_APP_KEY = envValue('PUSHER_APP_KEY')
-const PUSHER_CLUSTER = envValue('PUSHER_APP_CLUSTER') || 'eu'
+const PUSHER_APP_KEY = config.pusher.app_key
+const PUSHER_CLUSTER = config.pusher.app_cluster
 
 export async function getPusherArgs(request: Request): Promise<PusherArgs> {
   const args: PusherArgs = {

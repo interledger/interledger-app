@@ -3,218 +3,121 @@ templates:
   - configMap.frontend.yaml
 set:
   fullnameOverride: wallet
+  frontend:
+    config:
+      target_host: "https://interledger.test"
+      support_email: "support@interledger.app"
+      public_op_auth_host: "auth.interledger.test"
 release:
   name: wallet
 tests:
-  - it: 'Should create a ConfigMap called wallet-frontend-server'
+  - it: 'Should create a ConfigMap called wallet-frontend-config'
     documentSelector:
       path: kind
       value: ConfigMap
     asserts:
       - equal:
           path: metadata.name
-          value: wallet-frontend-server
+          value: wallet-frontend-config
 
-  - it: 'Should contain LOG_LEVEL'
+  - it: 'Should have a config.yaml data key'
+    asserts:
+      - isNotNull:
+          path: data["config.yaml"]
+
+  - it: 'Should serialise log_level and log_pretty into config.yaml'
     set:
       frontend:
         config:
           log_level: "debug"
-    asserts:
-      - equal:
-          path: data.LOG_LEVEL
-          value: "debug"
-
-  - it: 'Should contain LOG_PRETTY as false by default'
-    asserts:
-      - equal:
-          path: data.LOG_PRETTY
-          value: "false"
-
-  - it: 'Should contain LOG_PRETTY as true when set'
-    set:
-      frontend:
-        config:
           log_pretty: true
     asserts:
-      - equal:
-          path: data.LOG_PRETTY
-          value: "true"
+      - matchRegex:
+          path: data["config.yaml"]
+          pattern: "log_level: debug"
+      - matchRegex:
+          path: data["config.yaml"]
+          pattern: "log_pretty: true"
 
-  - it: 'Should contain ILW_ENV'
+  - it: 'Should serialise environment into config.yaml'
     set:
       frontend:
         config:
           environment: "prod"
     asserts:
-      - equal:
-          path: data.ILW_ENV
-          value: "prod"
+      - matchRegex:
+          path: data["config.yaml"]
+          pattern: "environment: prod"
 
-  - it: 'Should contain BACKEND_GRPC_URL'
-    asserts:
-      - equal:
-          path: data.BACKEND_GRPC_URL
-          value: "http://wallet-backend-service-grpc:8443"
-
-  - it: 'Should contain BACKEND_HTTP_URL'
-    asserts:
-      - equal:
-          path: data.BACKEND_HTTP_URL
-          value: "http://wallet-backend-service-http:8080"
-
-  - it: 'Should contain RAFIKI_AUTH_ENDPOINT'
-    asserts:
-      - equal:
-          path: data.RAFIKI_AUTH_ENDPOINT
-          value: "http://rafiki-auth-service:3009"
-
-  - it: 'Should contain PAYMENT_POINTER_BASE'
-    asserts:
-      - equal:
-          path: data.PAYMENT_POINTER_BASE
-          value: "development.ilp.link"
-
-  - it: 'Should contain PTI_CLIENT_ID'
+  - it: 'Should serialise pti config into config.yaml'
     set:
       frontend:
         config:
           pti:
             client_id: "04d3e1b5-96d4-47e4-9eaa-13e9b4b0f219"
-    asserts:
-      - equal:
-          path: data.PTI_CLIENT_ID
-          value: "04d3e1b5-96d4-47e4-9eaa-13e9b4b0f219"
-
-  - it: 'Should contain PTI_SDK_URL'
-    set:
-      frontend:
-        config:
-          pti:
             sdk_url: "https://sdk.staging.fiant.io/latest/index.js"
-    asserts:
-      - equal:
-          path: data.PTI_SDK_URL
-          value: "https://sdk.staging.fiant.io/latest/index.js"
-
-  - it: 'Should contain PTI_FORMS_URL'
-    set:
-      frontend:
-        config:
-          pti:
             forms_url: "https://forms.staging.fiant.io"
     asserts:
-      - equal:
-          path: data.PTI_FORMS_URL
-          value: "https://forms.staging.fiant.io"
+      - matchRegex:
+          path: data["config.yaml"]
+          pattern: "client_id: 04d3e1b5-96d4-47e4-9eaa-13e9b4b0f219"
+      - matchRegex:
+          path: data["config.yaml"]
+          pattern: "sdk_url: https://sdk.staging.fiant.io/latest/index.js"
+      - matchRegex:
+          path: data["config.yaml"]
+          pattern: "forms_url: https://forms.staging.fiant.io"
 
-  - it: 'Should contain TARGET_HOST'
+  - it: 'Should default backend.grpc_url to the in-cluster backend Service when unset'
+    asserts:
+      - matchRegex:
+          path: data["config.yaml"]
+          pattern: "grpc_url: http://wallet-backend-service-grpc:8443"
+
+  - it: 'Should default backend.http_url to the in-cluster backend Service when unset'
+    asserts:
+      - matchRegex:
+          path: data["config.yaml"]
+          pattern: "http_url: http://wallet-backend-service-http:8080"
+
+  - it: 'Should not override an explicitly set backend.grpc_url'
     set:
       frontend:
         config:
-          target_host: "https://interledger.app"
+          backend:
+            grpc_url: "http://custom-backend:9999"
     asserts:
-      - equal:
-          path: data.TARGET_HOST
-          value: "https://interledger.app"
+      - matchRegex:
+          path: data["config.yaml"]
+          pattern: "grpc_url: http://custom-backend:9999"
 
-  - it: 'Should contain SUPPORT_EMAIL'
-    set:
-      frontend:
-        config:
-          support_email: "support@interledger.app"
-    asserts:
-      - equal:
-          path: data.SUPPORT_EMAIL
-          value: "support@interledger.app"
-
-  - it: 'Should contain PUBLIC_OP_AUTH_HOST'
-    set:
-      frontend:
-        config:
-          public_op_auth_host: "auth.ilp.link"
-    asserts:
-      - equal:
-          path: data.PUBLIC_OP_AUTH_HOST
-          value: "auth.ilp.link"
-
-  - it: 'Should contain PERSONA_SDK_URL defaulting to Persona CDN'
-    asserts:
-      - equal:
-          path: data.PERSONA_SDK_URL
-          value: "https://cdn.withpersona.com/dist/persona-v4.8.0-alpha.js"
-
-  - it: 'Should contain MOCKXAGO_ENDPOINT as empty by default'
-    asserts:
-      - equal:
-          path: data.MOCKXAGO_ENDPOINT
-          value: ""
-
-  - it: 'Should contain SENTRY_ENV_LABEL as empty by default'
-    asserts:
-      - equal:
-          path: data.SENTRY_ENV_LABEL
-          value: ""
-
-  - it: 'Should contain SENTRY_ENV_LABEL when set'
-    set:
-      frontend:
-        config:
-          sentry_env_label: "prod"
-    asserts:
-      - equal:
-          path: data.SENTRY_ENV_LABEL
-          value: "prod"
-
-  - it: 'Should contain OP_INTPAY_ENABLED as false by default'
-    asserts:
-      - equal:
-          path: data.OP_INTPAY_ENABLED
-          value: "false"
-
-  - it: 'Should contain OP_INTPAY_ENABLED as true when set'
+  - it: 'Should serialise op_intpay config into config.yaml'
     set:
       frontend:
         config:
           op_intpay:
             enabled: true
+            host: "https://interledger.test/"
+            redirect_url: "https://interledger.test/quick-pay/finish"
+            wallet_address: "https://interledger.test/quickpay"
     asserts:
-      - equal:
-          path: data.OP_INTPAY_ENABLED
-          value: "true"
+      - matchRegex:
+          path: data["config.yaml"]
+          pattern: "enabled: true"
+      - matchRegex:
+          path: data["config.yaml"]
+          pattern: "host: https://interledger.test/"
 
-  - it: 'Should contain OP_INTPAY_HOST'
+  - it: 'Should serialise a {{ secret ... }} template verbatim (resolved by configa at pod startup, not Helm)'
     set:
       frontend:
         config:
-          op_intpay:
-            host: "https://ilp.link/"
+          rafiki:
+            auth_secret: '{{ secret "frontend-secrets" "rafikiAuthSecret" }}'
     asserts:
-      - equal:
-          path: data.OP_INTPAY_HOST
-          value: "https://ilp.link/"
-
-  - it: 'Should contain OP_INTPAY_REDIRECT_URL'
-    set:
-      frontend:
-        config:
-          op_intpay:
-            redirect_url: "https://ilp.link/quick-pay/finish"
-    asserts:
-      - equal:
-          path: data.OP_INTPAY_REDIRECT_URL
-          value: "https://ilp.link/quick-pay/finish"
-
-  - it: 'Should contain OP_INTPAY_WALLET_ADDRESS'
-    set:
-      frontend:
-        config:
-          op_intpay:
-            wallet_address: "https://ilp.link/quickpay"
-    asserts:
-      - equal:
-          path: data.OP_INTPAY_WALLET_ADDRESS
-          value: "https://ilp.link/quickpay"
+      - matchRegex:
+          path: data["config.yaml"]
+          pattern: 'auth_secret: .*secret "frontend-secrets" "rafikiAuthSecret"'
 
   - it: 'Should produce no ConfigMap when frontend is disabled'
     set:

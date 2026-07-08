@@ -5,11 +5,9 @@ import { renderToPipeableStream } from 'react-dom/server'
 import type { EntryContext } from 'react-router'
 import { ServerRouter, isRouteErrorResponse } from 'react-router'
 import { PassThrough } from 'stream'
-import { envValue, envVarValidation } from './env.server'
+import { config } from './config.server'
 import logger, { addRequestId } from './lib/logger.server'
 import { extractOrGenerateRequestId } from './lib/requestContext.server'
-
-envVarValidation()
 
 export const streamTimeout = 5_000
 
@@ -18,12 +16,12 @@ function getResponseTime(startTime: number): number {
   return Date.now() - startTime
 }
 
-if (envValue('SENTRY_DSN')) {
+if (config.sentry.dsn) {
   Sentry.init({
-    dsn: envValue('SENTRY_DSN'),
-    release: envValue('SENTRY_RELEASE'),
+    dsn: config.sentry.dsn,
+    release: process.env.SENTRY_RELEASE,
     tracesSampleRate: 1,
-    environment: envValue('SENTRY_ENV_LABEL'),
+    environment: config.sentry.env_label,
     integrations: [
       Sentry.requestDataIntegration({
         include: {

@@ -31,9 +31,13 @@ jobs:
         with:
           node-version: 24
           cache: 'pnpm'
-          cache-dependency-path: ${{ inputs.working_directory }}/pnpm-lock.yaml
+          cache-dependency-path: typescript/pnpm-lock.yaml
 
+      # Installs the whole pnpm workspace (typescript/), not just this app —
+      # apps depend on workspace packages (e.g. @interledger/configa) and
+      # share a single lockfile at typescript/pnpm-lock.yaml.
       - name: Install dependencies
+        working-directory: typescript
         run: pnpm install --frozen-lockfile
 
       # Generate route types first: React Router writes .react-router/types(.gitignored)

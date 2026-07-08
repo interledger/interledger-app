@@ -1,7 +1,6 @@
 import { type WalletAddress } from '@interledger/open-payments'
 import { redirect } from 'react-router'
 import { z } from 'zod'
-import { envBool } from '~/env.server'
 import { getCurrencySymbol } from '~/lib/helpers'
 import { Errors, FormatAmountArgs, FormattedAmount } from './types'
 
@@ -191,8 +190,8 @@ export const formatAmount = (args: FormatAmountArgs): FormattedAmount => {
   }
 }
 
-export const routeAllowed = (featureName: string) => {
-  if (!envBool(featureName)) {
+export const routeAllowed = (enabled: boolean) => {
+  if (!enabled) {
     throw redirect('/')
   }
 }

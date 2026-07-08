@@ -18,6 +18,7 @@ import {
 } from '~/components'
 import { Icon } from '~/components/Icon'
 import { AmountDisplay } from '~/components/QuickPay/Dialpad'
+import { config } from '~/config.server'
 import {
   NOTE_MAX_CHARACTERS,
   charactersRemaining,
@@ -38,7 +39,7 @@ import { commitSession, getSession } from '~/session.server'
 import type { Route } from './+types/quick-pay_.request'
 
 export async function loader({ request }: Route.LoaderArgs) {
-  routeAllowed('OP_INTPAY_ENABLED')
+  routeAllowed(config.op_intpay.enabled)
   const session = await getSession(request.headers.get('Cookie'))
   const sessionData = session.get('quickPay')
   const walletAddressInfo = sessionData?.senderAddress
@@ -67,7 +68,7 @@ export async function loader({ request }: Route.LoaderArgs) {
         date: formatDate({
           date: incomingPayment.createdAt
         }),
-        url: `${process.env.OP_INTPAY_HOST}quick-pay/payment?url=${incomingPayment.id}&receiver=${incomingPayment.walletAddress}`,
+        url: `${config.op_intpay.host}quick-pay/payment?url=${incomingPayment.id}&receiver=${incomingPayment.walletAddress}`,
         note: incomingPayment?.metadata?.description
       }
     : undefined

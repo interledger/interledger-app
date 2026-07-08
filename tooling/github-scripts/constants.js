@@ -34,7 +34,7 @@ export const TS_PACKAGES = [
   {
     name: "protea",
     type: "ts",
-    context: "./typescript/protea",
+    context: "./typescript",
     file: "./typescript/protea/Dockerfile",
     sentry_project: "interledger-wallet",
     cdn_bucket: "common-interledger-cdn-assets",
@@ -43,10 +43,10 @@ export const TS_PACKAGES = [
   {
     name: "botanist",
     type: "ts",
-    context: "./typescript/botanist",
+    context: "./typescript",
     file: "./typescript/botanist/Dockerfile",
     sentry_project: "",
     cdn_bucket: "common-interledger-cdn-assets",
-    cdn_public_path: "https://cdn.interledger.app/botanist",    
+    cdn_public_path: "https://cdn.interledger.app/botanist",
   },
 ];

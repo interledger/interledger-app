@@ -15,23 +15,36 @@ tests:
           path: metadata.name
           value: wallet-admin-config
 
-  - it: 'Should include BACKEND_GRPC_URL in the ConfigMap data'
+  - it: 'Should have a config.yaml data key'
     asserts:
-      - equal:
-          path: data.BACKEND_GRPC_URL
-          value: "wallet-backend-service-grpc:8448"
+      - isNotNull:
+          path: data["config.yaml"]
 
-  - it: 'Should include KRATOS_ADMIN_URL in the ConfigMap data'
+  - it: 'Should default backend_grpc_url to the in-cluster backend Service gRPC target when unset'
     asserts:
-      - equal:
-          path: data.KRATOS_ADMIN_URL
-          value: "http://kratos-admin:4434"
+      - matchRegex:
+          path: data["config.yaml"]
+          pattern: "backend_grpc_url: wallet-backend-service-grpc:8448"
 
-  - it: 'Should include PAYMENT_POINTER_BASE in the ConfigMap data'
+  - it: 'Should not override an explicitly set backend_grpc_url'
+    set:
+      admin:
+        config:
+          backend_grpc_url: "custom-backend:9999"
     asserts:
-      - equal:
-          path: data.PAYMENT_POINTER_BASE
-          value: "development.ilp.link"
+      - matchRegex:
+          path: data["config.yaml"]
+          pattern: "backend_grpc_url: custom-backend:9999"
+
+  - it: 'Should serialise payment_pointer_base into config.yaml'
+    set:
+      admin:
+        config:
+          payment_pointer_base: "kind.ilp.link"
+    asserts:
+      - matchRegex:
+          path: data["config.yaml"]
+          pattern: "payment_pointer_base: kind.ilp.link"
 
   - it: 'Should produce no ConfigMap when admin is disabled'
     set:

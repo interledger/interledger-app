@@ -76,6 +76,8 @@ prep:
 	@touch config-override/mockxago.yaml
 	@touch config-override/backend.yaml
 	@touch config-override/backend.migration.yaml
+	@touch config-override/protea.yaml
+	@touch config-override/botanist.yaml
 
 infrastructure: prep
 	$(COMPOSE) --profile infrastructure up

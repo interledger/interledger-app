@@ -1,0 +1,62 @@
+{{/*
+Creates a Role and RoleBinding granting the admin service account read-only
+access to the Kubernetes Secrets listed in .Values.admin.secretAccess.
+
+This allows configa's InClusterSecretClient to resolve {{ secret "name" "key" }}
+templates in config.yaml at pod startup without needing cluster-admin privileges.
+
+The SA is expected to already exist (managed externally or via serviceAccount.create).
+
+Rendered as a pre-install/pre-upgrade hook (weight -10), mirroring rbac.backend.yaml
+and rbac.frontend.yaml, so it's recreated cleanly on every upgrade
+(hook-delete-policy: before-hook-creation) while remaining in place at all other
+times, since the admin pods depend on this RBAC continuously.
+
+Set admin.secretAccess in the deploy-repo values to the list of K8s Secret names
+the admin portal needs to read, e.g.:
+  secretAccess:
+    - admin-secrets
+*/}}
+{{- $secretAccess := .Values.admin.secretAccess | default list -}}
+{{- $saName := .Values.admin.server.serviceAccount.name | default "" -}}
+{{- if and (gt (len $secretAccess) 0) (ne $saName "") -}}
+{{- $roleName := printf "%s-admin-secret-reader" (include "common.fullname" .) }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ $roleName }}
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "-10"
+    "helm.sh/hook-delete-policy": before-hook-creation
+  {{- include "common.metadata" (list .) | nindent 2 }}
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames:
+      {{- range $secretAccess }}
+      - {{ . | quote }}
+      {{- end }}
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $roleName }}
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "-10"
+    "helm.sh/hook-delete-policy": before-hook-creation
+  {{- include "common.metadata" (list .) | nindent 2 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ $roleName }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ $saName }}
+    namespace: {{ .Release.Namespace }}
+{{- end }}

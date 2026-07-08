@@ -1,5 +1,5 @@
 import { createClient } from '@redis/client'
-import { envValue } from '~/env.server'
+import { config } from '~/config.server'
 import logger from './logger.server'
 
 type RedisClient = ReturnType<typeof createClient>
@@ -8,7 +8,7 @@ const REDIS_STARTUP_ATTEMPTS = 3
 const REDIS_RETRY_DELAY_MS = 3000
 const DEFAULT_WAIT_TIMEOUT_MS = 5000
 
-const configuredRedisUrl = envValue('REDIS_URL')?.trim()
+const configuredRedisUrl = config.redis.url?.trim()
 
 if (!configuredRedisUrl) {
   logger.error('REDIS_URL config is empty. Exiting process.')
@@ -38,7 +38,7 @@ const getRedisTargetForLogs = (redisUrl: string) => {
 
 logger.info(
   {
-    nodeEnv: envValue('NODE_ENV'),
+    nodeEnv: process.env.NODE_ENV,
     redisTarget: getRedisTargetForLogs(configuredRedisUrl),
     redisUrlFromEnv: Boolean(configuredRedisUrl)
   },

@@ -1,9 +1,9 @@
 import { href } from 'react-router'
+import { config } from '~/config.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import type { Route } from './+types/api_.statements_.transaction.$id'
 
-// TODO: Move to env validation instead of defining it in every resource route.
-const BACKEND_HTTP_URL = process.env.BACKEND_HTTP_URL || 'http://backend:8080'
+const BACKEND_HTTP_URL = config.backend.http_url
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const cookies = request.headers.get('cookie') || ''

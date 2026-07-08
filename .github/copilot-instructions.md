@@ -252,8 +252,8 @@ PRs are automatically labeled by `.github/workflows/labeler.yml` using the confi
 | `xago` | `go/backend/providers/xago/**`, `go/mock/mockxago/**` |
 | `chimoney` | `go/backend/providers/chimoney/**`, `go/mock/mockchimoney/**` |
 | `CI` | `.github/workflows/**`, `tooling/**` |
-| `botanist` | `typescript/botanist/**` |
-| `protea` | `typescript/protea/**` |
+| `botanist` | `typescript/botanist/**`, `typescript/packages/**` |
+| `protea` | `typescript/protea/**`, `typescript/packages/**` |
 | `hortus` | `typescript/hortus/**` |
 | `documentation` | `documentation/**` |
 | `e2e` | `e2e/**` |

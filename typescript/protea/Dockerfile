@@ -1,24 +1,36 @@
 ARG NODE_IMAGE_PREFIX=""
 
-# Install dependencies only when needed
+# Install workspace dependencies needed to build/run protea (and its
+# workspace dependency, @interledger/configa). Build context is the
+# typescript/ workspace root (see local/protea.yaml, k8s/Makefile, CI).
 FROM ${NODE_IMAGE_PREFIX}node:24-alpine AS deps
 RUN apk add --no-cache python3 make g++ curl py3-setuptools
 RUN corepack enable && corepack prepare pnpm@8.5.0 --activate
 
 WORKDIR /app
-COPY package.json pnpm-lock.yaml ./
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml .npmrc ./
+COPY packages/configa/package.json ./packages/configa/package.json
+COPY protea/package.json ./protea/package.json
 
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile --filter protea...
 
-# Rebuild the source code only when needed
-FROM ${NODE_IMAGE_PREFIX}node:24-alpine AS dev 
-WORKDIR /app
-COPY . .
-COPY --from=deps /app/node_modules ./node_modules
+# @interledger/configa ships pre-built (dist/) — build it once here, shared
+# by the dev and builder stages below.
+FROM deps AS configa-build
+COPY packages/configa ./packages/configa
+RUN pnpm --filter @interledger/configa build
+
+# Dev image: full workspace source; app/ is bind-mounted over this for live
+# reload (see local/protea.yaml).
+FROM ${NODE_IMAGE_PREFIX}node:24-alpine AS dev
 RUN corepack enable && corepack prepare pnpm@8.5.0 --activate
+WORKDIR /app
+COPY --from=configa-build /app ./
+COPY protea ./protea
+WORKDIR /app/protea
 CMD ["pnpm", "dev"]
 
-# Rebuild the source code only when needed
+# Build protea's production bundle
 FROM ${NODE_IMAGE_PREFIX}node:24-alpine AS builder
 
 ARG IMAGE_HASH
@@ -42,10 +54,12 @@ USER remix
 ENV COREPACK_HOME=/home/remix/.corepack
 ENV PNPM_HOME=/home/remix/.local/bin
 ENV PATH=${PNPM_HOME}:${PATH}
-COPY --chown=remix:nodejs . .
-COPY --from=deps --chown=remix:nodejs /app/node_modules ./node_modules
+COPY --from=configa-build --chown=remix:nodejs /app ./
+COPY --chown=remix:nodejs protea ./protea
 RUN corepack prepare pnpm@8.5.0 --activate
 RUN mkdir -p "${PNPM_HOME}" && printf '#!/bin/sh\nexec corepack pnpm "$@"\n' > "${PNPM_HOME}/pnpm" && chmod +x "${PNPM_HOME}/pnpm"
+
+WORKDIR /app/protea
 RUN pnpm build
 
 ENV SENTRY_ORG=${SENTRY_ORG}
@@ -60,7 +74,9 @@ RUN if [ -n "${REMIX_PUBLIC_PATH}" ]; then \
     echo "Skipping CDN upload: REMIX_PUBLIC_PATH is not set"; \
     fi
 
-# Production image, copy all the files and run remix
+# Production image. Preserves the workspace's relative layout
+# (/app/{node_modules,packages,protea}) so protea's workspace-dependency
+# symlinks (e.g. @interledger/configa) keep resolving.
 FROM ${NODE_IMAGE_PREFIX}node:24-alpine AS runner
 RUN addgroup -g 1001 -S nodejs
 RUN adduser -S remix -u 1001
@@ -72,17 +88,20 @@ ARG SENTRY_RELEASE
 # Deploy workflow can poll until the new version is live.
 ARG IMAGE_HASH
 
-WORKDIR /app
-ENV COREPACK_HOME=/app/.corepack
-RUN mkdir -p /app/.corepack && chown -R remix:nodejs /app && chmod 755 /app/.corepack
+WORKDIR /app/protea
+ENV COREPACK_HOME=/app/protea/.corepack
+RUN mkdir -p /app/protea/.corepack && chown -R remix:nodejs /app && chmod 755 /app/protea/.corepack
 
 # You only need to copy remix.config.js if you are NOT using the default configuration
-# COPY --from=builder /app/remix.config.js ./
-COPY --from=builder --chown=remix:nodejs /app/public ./public
-COPY --from=builder --chown=remix:nodejs /app/build ./build
-COPY --from=builder --chown=remix:nodejs /app/node_modules ./node_modules
-COPY --from=builder --chown=remix:nodejs /app/package.json ./package.json
-COPY --from=builder --chown=remix:nodejs /app/server.js ./server.js
+# COPY --from=builder /app/protea/remix.config.js ./
+COPY --from=builder --chown=remix:nodejs /app/protea/public ./public
+COPY --from=builder --chown=remix:nodejs /app/protea/build ./build
+COPY --from=builder --chown=remix:nodejs /app/protea/node_modules ./node_modules
+COPY --from=builder --chown=remix:nodejs /app/protea/package.json ./package.json
+COPY --from=builder --chown=remix:nodejs /app/protea/server.js ./server.js
+COPY --from=builder --chown=remix:nodejs /app/protea/app/config.schema.mjs ./app/config.schema.mjs
+COPY --from=builder --chown=remix:nodejs /app/node_modules /app/node_modules
+COPY --from=builder --chown=remix:nodejs /app/packages /app/packages
 
 USER remix
 RUN corepack prepare pnpm@8.5.0 --activate

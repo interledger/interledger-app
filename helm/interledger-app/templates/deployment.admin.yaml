@@ -8,6 +8,11 @@ spec:
     metadata:
       annotations:
         ilf-configmap-admin-sha256: {{ $dataHash | quote }}
+    spec:
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "common.fullname" $top }}-admin-config
 {{- end }}
 {{- end }}
 {{- if .Values.admin.enabled }}

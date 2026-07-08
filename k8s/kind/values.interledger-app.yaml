@@ -169,6 +169,10 @@ backend:
 
   migration:
     config:
+      environment:
+        mode: local
+      agreements:
+        folder_name: local
       db_url: "postgres://postgres:postgres@postgres-postgresql.interledger:5432/backend?sslmode=disable"
       pacioli_db_url: "postgres://postgres:postgres@postgres-postgresql.interledger:5432/pacioli?sslmode=disable"
       open_payments_base_url: "https://interledger.kind"
@@ -248,38 +252,38 @@ backend:
 # =============================================================================
 frontend:
 
+  # Grants the wallet-frontend ServiceAccount read access to these secrets so
+  # configa can resolve {{ secret }} templates in config.yaml at startup.
+  secretAccess:
+    - wallet-frontend
+
   config:
     log_level: "debug"
     log_pretty: true
     environment: local
 
+    # A Kubernetes Secret key can only hold a string, so this resolves to a
+    # JSON-encoded array which the app JSON-decodes (see config.schema.mjs).
+    cookie_secrets: '{{ secret "wallet-frontend" "cookieSecretsArrStr" }}'
+
     backend:
-      grpc:
-        url: "http://wallet-backend-service-grpc.interledger:8443"
-      http:
-        url: "http://wallet-backend-service-http.interledger:8080"
+      grpc_url: "http://wallet-backend-service-grpc.interledger:8443"
+      http_url: "http://wallet-backend-service-http.interledger:8080"
 
     redis:
-      url_ref: redisURL
-
-    cookie_secrets_ref: cookieSecretsArrStr
-
-    otel:
-      endpoint: ""
-      headers_ref: otelExporterHeaders
-      service_name: protea
+      url: '{{ secret "wallet-frontend" "redisURL" }}'
 
     pusher:
-      app_key_ref: pusherAppKey
-      app_cluster_ref: pusherAppCluster
+      app_key: '{{ secret "wallet-frontend" "pusherAppKey" }}'
+      app_cluster: "eu"
 
-    kratos_url: "http://kratos-public.interledger"
+    kratos:
+      url: "http://kratos-public.interledger"
     payment_pointer_base: "kind.ilp.link"
 
-    sentry_dsn_ref: sentryDSN
-    sentry_env_label: "kind"
-
-    segment_api_key_ref: segmentAPIKey
+    sentry:
+      dsn: '{{ secret "wallet-frontend" "sentryDSN" }}'
+      env_label: "kind"
 
     pti:
       client_id: "04d3e1b5-96d4-47e4-9eaa-13e9b4b0f219"
@@ -287,9 +291,8 @@ frontend:
       forms_url: "https://mockpti.interledger.kind/forms"
 
     rafiki:
-      auth:
-        endpoint: "http://rafiki-auth-service:3009"
-        secret_ref: rafikiAuthSecret
+      auth_endpoint: "http://rafiki-auth-service:3009"
+      auth_secret: '{{ secret "wallet-frontend" "rafikiAuthSecret" }}'
 
     target_host: "https://interledger.kind"
     support_email: "support@interledger.app"
@@ -307,6 +310,8 @@ frontend:
     podDisruptionBudget:
       enabled: false
     topologySpreadConstraints: []
+    serviceAccount:
+      name: wallet-frontend
 
 # =============================================================================
 # ADMIN — Botanist
@@ -314,10 +319,7 @@ frontend:
 admin:
 
   config:
-    kratos:
-      adminUrl: "http://kratos-admin.interledger"
-    backend:
-      grpcUrl: "wallet-backend-service-grpc.interledger:8448"
+    backend_grpc_url: "wallet-backend-service-grpc.interledger:8448"
     payment_pointer_base: "kind.ilp.link"
 
   server:

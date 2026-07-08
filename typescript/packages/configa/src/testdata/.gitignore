@@ -1,0 +1,5 @@
+# These are throwaway self-signed test fixtures (not real secrets) used to
+# exercise InClusterSecretClient's TLS/CA-pinning path in k8s.test.ts — they
+# need to be committed for the test suite to run on a fresh checkout or in CI.
+# The repo-wide *.pem rule in the root .gitignore would otherwise exclude them.
+!*.pem

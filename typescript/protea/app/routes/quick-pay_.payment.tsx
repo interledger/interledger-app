@@ -24,6 +24,7 @@ import {
   PayWithInterledgerMark,
   QuoteDialog
 } from '~/components/QuickPay/'
+import { config } from '~/config.server'
 import {
   NOTE_MAX_CHARACTERS,
   charactersRemaining,
@@ -50,11 +51,11 @@ import { commitSession, getSession } from '~/session.server'
 import type { Route } from './+types/quick-pay_.pay'
 
 export async function loader({ request }: Route.LoaderArgs) {
-  routeAllowed('OP_INTPAY_ENABLED')
+  routeAllowed(config.op_intpay.enabled)
   const searchParams = new URL(request.url).searchParams
   const isQuote = searchParams.get('quote') || false
   const paymentId = searchParams.get('url') || ''
-  let receiver = searchParams.get('receiver') || ''
+  const receiver = searchParams.get('receiver') || ''
   let isValidPaymentUrl = true
   let paymentDetails
   let receiverWalletAddress

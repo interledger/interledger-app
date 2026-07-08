@@ -1,9 +1,9 @@
 import { href } from 'react-router'
-import { envValue } from '~/env.server'
+import { config } from '~/config.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import type { Route } from './+types/api_.statements_.accountConfirmation'
 
-const BACKEND_HTTP_URL = envValue('BACKEND_HTTP_URL')
+const BACKEND_HTTP_URL = config.backend.http_url
 
 export async function loader({ request }: Route.LoaderArgs) {
   const cookies = request.headers.get('cookie') || ''

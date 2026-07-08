@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "react-router dev",
+    "dev": "node bootstrap.mjs react-router dev",
     "build": "pnpm typecheck && react-router build",
-    "start": "react-router-serve ./build/server/index.js",
+    "start": "node bootstrap.mjs react-router-serve ./build/server/index.js",
     "lint": "eslint --fix --cache --cache-location ./node_modules/.cache/eslint .",
     "lint:check": "eslint --cache --cache-location ./node_modules/.cache/eslint .",
     "typecheck": "tsc",
@@ -17,6 +17,7 @@
     "test:report": "playwright show-report"
   },
   "dependencies": {
+    "@interledger/configa": "workspace:*",
     "@grpc/grpc-js": "^1.9.16",
     "@headlessui/react": "^1.7.14",
     "@protobuf-ts/grpc-transport": "^2.9.0",
@@ -30,7 +31,8 @@
     "react": "^18.2.0",
     "react-dom": "18.2.0",
     "react-router": "^7.13.1",
-    "uuid": "^11.0.0"
+    "uuid": "^11.0.0",
+    "zod": "^4.0.14"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",

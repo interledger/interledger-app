@@ -56,7 +56,8 @@ Users get a single wallet tied to one payment provider (GateHub, PTI, Xago, or C
 |----------|-------------|
 | [Logging Reference](logging-reference.md) | Log levels, formatting standards, and structured logging guidelines |
 | [Backend Configuration Guide](backend-configuration-guide.md) | The Go backend's YAML config scheme, secret handling, and a full reference of every available setting |
-| [Environment Variables](env-variables.md) | Environment variables for the Protea and Botanist frontends — secret classification, per-environment values, and local defaults |
+| [Frontend Configuration Guide](frontend-configuration-guide.md) | Protea's and Botanist's YAML config scheme, secret handling, and a full reference of every available setting |
+| [Environment Variables](env-variables.md) | The small set of genuine runtime environment variables that remain for the backend, Protea, and Botanist |
 
 ---
 

@@ -1,7 +1,7 @@
 import { Code } from '@bufbuild/connect'
 import type { SuccessfulNativeRegistration } from '@ory/client'
 import { data, href, redirect } from 'react-router'
-import { envValue } from '~/env.server'
+import { config } from '~/config.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { ErrorDescriptions } from '~/lib/error.constants'
 import { error, isConnectError, isOtpValidationError } from '~/lib/error.server'
@@ -29,7 +29,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   await requireNoUserSession(request)
 
-  let response = await grpc.getCountries(request, {})
+  const response = await grpc.getCountries(request, {})
 
   if (isConnectError(response)) throw response.errorResponse
 
@@ -58,7 +58,7 @@ export async function loader({ request }: Route.LoaderArgs) {
       countries,
       kratosFlowId: flowResponse.data.id,
       kratosCsrfToken: getCsrfTokenFromFlow(flowResponse.data),
-      ilwEnv: envValue('ILW_ENV')
+      ilwEnv: config.environment
     },
     {
       headers: buildHeadersWithCookies(flowResponse)

@@ -17,10 +17,10 @@ import {
   Layouts,
   Router
 } from '~/components'
+import { config } from '~/config.server'
 import type { FormattedLinkedAccount } from '~/data/accounts.server'
 import { getLinkedAccountsForPayment } from '~/data/accounts.server'
 import { getFeatures } from '~/data/wallet.server'
-import { envValue } from '~/env.server'
 import type {
   Features,
   Payment,
@@ -119,10 +119,10 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     sendAccounts,
     phoneMask,
     publicWalletInfo,
-    ilwEnv: envValue('ILW_ENV'),
+    ilwEnv: config.environment,
     payment,
     requiresOTP: payment.requiredActions.includes(PaymentRequiredAction.OTP),
-    PTIClientId: envValue('PTI_CLIENT_ID')
+    PTIClientId: config.pti.client_id
   })
 }
 

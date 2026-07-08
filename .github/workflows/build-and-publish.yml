@@ -100,7 +100,10 @@ jobs:
       - name: store-cdn-key
         if: matrix.package.type == 'ts' && needs.determine_version.outputs.dockerPush == 'true'
         run: |
-          cd ${{ matrix.package.context }}
+          # matrix.package.context is the shared typescript/ workspace root, but
+          # the Dockerfile only COPYs the app's own subdirectory into the image
+          # (not the whole context), so the key must live inside it to be picked up.
+          cd ${{ matrix.package.context }}/${{ matrix.package.name }}
           echo "${{ secrets.GCP_CDN_UPLOADER_KEY_JSON_B64 }}" > ./gsa-key.json.b64
           base64 --decode ./gsa-key.json.b64 > ./gsa-key.json
           sha256sum ./gsa-key.json

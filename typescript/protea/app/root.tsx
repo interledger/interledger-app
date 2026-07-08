@@ -32,14 +32,13 @@ import {
 } from '~/components'
 import { Scaffold } from '~/components/Scaffold'
 import { TotpChallengeGlobal } from '~/components/TotpChallengeGlobal'
-import { envBool } from '~/env.server'
 import { isAuthenticated } from '~/lib/kratos/session.server'
 import { getSnackbar } from '~/lib/snackbar.server'
 import styles from '~/styles/app.css?url'
 import type { Route } from './+types/root'
+import { config } from './config.server'
 import { PendingConfirmationsLoader } from './components/PendingConfirmationsLoader'
 import { getFeatures } from './data/wallet.server'
-import { envValue } from './env.server'
 import { Features } from './generated/connect/backend/v1/backend_pb'
 import { isConnectError } from './lib/error.server'
 import { grpc } from './lib/grpc.server'
@@ -144,16 +143,16 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   const url = new URL(request.url)
   const pathname = url.pathname
-  const showQuickPay = envBool('OP_INTPAY_ENABLED') ?? false
+  const showQuickPay = config.op_intpay.enabled
   let features = new Features()
   let isDisabled = false
   let walletAddress = ''
   const env = {
-    ilwEnv: envValue('ILW_ENV'),
-    sentryDsn: envValue('SENTRY_DSN'),
-    sentryRelease: envValue('SENTRY_RELEASE'),
-    targetHost: envValue('TARGET_HOST'),
-    supportEmail: envValue('SUPPORT_EMAIL')
+    ilwEnv: config.environment,
+    sentryDsn: config.sentry.dsn,
+    sentryRelease: process.env.SENTRY_RELEASE,
+    targetHost: config.target_host,
+    supportEmail: config.support_email
   }
 
   if (!isUser) {

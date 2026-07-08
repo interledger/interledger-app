@@ -58,11 +58,13 @@ botanist:
   - changed-files:
       - any-glob-to-any-file:
           - 'typescript/botanist/**'
+          - 'typescript/packages/**'
 
 protea:
   - changed-files:
       - any-glob-to-any-file:
           - 'typescript/protea/**'
+          - 'typescript/packages/**'
 
 hortus:
   - changed-files:

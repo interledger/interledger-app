@@ -1,0 +1,4 @@
+packages:
+  - "protea"
+  - "botanist"
+  - "packages/*"

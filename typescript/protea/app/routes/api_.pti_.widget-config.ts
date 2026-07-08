@@ -1,9 +1,9 @@
-import { envValue } from '~/env.server'
+import { config } from '~/config.server'
 import type { Route } from './+types/api_.pti_.widget-config'
 
 function resolvePtiWidgetConfig() {
-  const sdkUrl = envValue('PTI_SDK_URL')
-  const formsUrl = envValue('PTI_FORMS_URL')
+  const sdkUrl = config.pti.sdk_url
+  const formsUrl = config.pti.forms_url
 
   return { sdkUrl, formsUrl }
 }

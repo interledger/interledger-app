@@ -16,6 +16,7 @@ import {
   type ApplicationProps
 } from '~/components'
 import { BackButton } from '~/components/QuickPay'
+import { config } from '~/config.server'
 import { formatError } from '~/lib/helpers'
 import logger from '~/lib/logger.server'
 import { mergeMeta } from '~/lib/meta'
@@ -27,7 +28,7 @@ import { commitSession, getSession } from '~/session.server'
 import type { Route } from './+types/quick-pay'
 
 export async function loader({ request }: Route.LoaderArgs) {
-  routeAllowed('OP_INTPAY_ENABLED')
+  routeAllowed(config.op_intpay.enabled)
 }
 
 export const handle: ApplicationProps = {

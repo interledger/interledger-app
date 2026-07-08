@@ -37,48 +37,54 @@ data:
     {{- .Values.backend.migration.config | toYaml | nindent 4 }}
 {{- end }}
 
+{{/*
+Renders the frontend (protea) config.yaml ConfigMap by serialising
+.Values.frontend.config verbatim, the same way the backend ConfigMap does.
+The resulting YAML file is mounted into frontend pods at /etc/frontend/config.yaml.
+Secret values should be expressed as configa templates, e.g.:
+  {{ secret "frontend-secrets" "myKey" }}
+which configa resolves against the Kubernetes Secrets API at pod startup.
+backend.grpc_url/backend.http_url default to the in-cluster backend Service
+DNS names when left empty, mirroring the old per-key ConfigMap's behaviour.
+*/}}
 {{- define "interledger-app.frontend.configMap" -}}
+{{- $cfg := deepCopy .Values.frontend.config -}}
+{{- $backend := deepCopy $cfg.backend -}}
+{{- $_ := set $backend "grpc_url" (default (printf "http://%s-backend-service-grpc:8443" (include "common.fullname" .)) $cfg.backend.grpc_url) -}}
+{{- $_ := set $backend "http_url" (default (printf "http://%s-backend-service-http:8080" (include "common.fullname" .)) $cfg.backend.http_url) -}}
+{{- $_ := set $cfg "backend" $backend -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "common.fullname" . }}-{{ .Values.frontend.configMaps.server.name }}
+  name: {{ include "common.fullname" . }}-frontend-config
   namespace: {{ .Release.Namespace }}
   {{- include "common.metadata" (list .) | nindent 2 }}
 data:
-  OTEL_EXPORTER_OTLP_ENDPOINT: {{ .Values.frontend.config.otel.endpoint | quote }}
-  OTEL_SERVICE_NAME: {{ .Values.frontend.config.otel.service_name | quote }}
-  KRATOS_URL: {{ .Values.frontend.config.kratos_url | quote }}
-  PAYMENT_POINTER_BASE: {{ .Values.frontend.config.payment_pointer_base | quote }}
-  RAFIKI_AUTH_ENDPOINT: {{ .Values.frontend.config.rafiki.auth.endpoint | quote }}
-  BACKEND_GRPC_URL: {{ default (printf "http://%s-backend-service-grpc:8443" (include "common.fullname" .)) .Values.frontend.config.backend.grpc.url | quote }}
-  ILW_ENV: {{ .Values.frontend.config.environment | quote }}
-  LOG_LEVEL: {{ .Values.frontend.config.log_level | quote }}
-  LOG_PRETTY: {{ .Values.frontend.config.log_pretty | toString | quote }}
-  PTI_CLIENT_ID: {{ .Values.frontend.config.pti.client_id | quote }}
-  PTI_SDK_URL: {{ .Values.frontend.config.pti.sdk_url | quote }}
-  PTI_FORMS_URL: {{ .Values.frontend.config.pti.forms_url | quote }}
-  BACKEND_HTTP_URL: {{ default (printf "http://%s-backend-service-http:8080" (include "common.fullname" .)) .Values.frontend.config.backend.http.url | quote }}
-  TARGET_HOST: {{ .Values.frontend.config.target_host | quote }}
-  SUPPORT_EMAIL: {{ .Values.frontend.config.support_email | quote }}
-  PUBLIC_OP_AUTH_HOST: {{ .Values.frontend.config.public_op_auth_host | quote }}
-  PERSONA_SDK_URL: {{ .Values.frontend.config.persona_sdk_url | quote }}
-  MOCKXAGO_ENDPOINT: {{ .Values.frontend.config.mockxago_endpoint | quote }}
-  SENTRY_ENV_LABEL: {{ .Values.frontend.config.sentry_env_label | quote }}
-  OP_INTPAY_ENABLED: {{ .Values.frontend.config.op_intpay.enabled | toString | quote }}
-  OP_INTPAY_HOST: {{ .Values.frontend.config.op_intpay.host | quote }}
-  OP_INTPAY_REDIRECT_URL: {{ .Values.frontend.config.op_intpay.redirect_url | quote }}
-  OP_INTPAY_WALLET_ADDRESS: {{ .Values.frontend.config.op_intpay.wallet_address | quote }}
+  config.yaml: |
+    {{- $cfg | toYaml | nindent 4 }}
 {{- end }}
 
+{{/*
+Renders the admin (botanist) config.yaml ConfigMap by serialising
+.Values.admin.config verbatim, the same way the backend/frontend ConfigMaps do.
+The resulting YAML file is mounted into admin pods at /etc/admin/config.yaml.
+Secret values should be expressed as configa templates, e.g.:
+  {{ secret "admin-secrets" "myKey" }}
+which configa resolves against the Kubernetes Secrets API at pod startup.
+backend_grpc_url defaults to the in-cluster backend Service's gRPC target
+(host:port, no scheme — this is a raw gRPC dial target, not an HTTP URL)
+when left empty, mirroring the old per-key ConfigMap's behaviour.
+*/}}
 {{- define "interledger-app.admin.configMap" -}}
+{{- $cfg := deepCopy .Values.admin.config -}}
+{{- $_ := set $cfg "backend_grpc_url" (default (printf "%s-backend-service-grpc:8448" (include "common.fullname" .)) $cfg.backend_grpc_url) -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "common.fullname" . }}-{{ .Values.admin.configMaps.config.name }}
+  name: {{ include "common.fullname" . }}-admin-config
   namespace: {{ .Release.Namespace }}
   {{- include "common.metadata" (list .) | nindent 2 }}
 data:
-  BACKEND_GRPC_URL: {{ default (printf "%s-backend-service-grpc:8448" (include "common.fullname" .)) .Values.admin.config.backend.grpcUrl | quote }}
-  KRATOS_ADMIN_URL: {{ .Values.admin.config.kratos.adminUrl | quote }}
-  PAYMENT_POINTER_BASE: {{ .Values.admin.config.payment_pointer_base | quote }}
+  config.yaml: |
+    {{- $cfg | toYaml | nindent 4 }}
 {{- end }}

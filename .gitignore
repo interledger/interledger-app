@@ -19,6 +19,10 @@
 /node_modules
 typescript/**/node_modules
 
+# built output for typescript/packages/* workspace libraries (e.g. @interledger/configa)
+typescript/packages/*/dist
+typescript/packages/*/*.tsbuildinfo
+
 # test migrations
 testmigrations
 documentation/site

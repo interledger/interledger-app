@@ -1,0 +1,102 @@
+suite: Interledger App - Frontend RBAC
+templates:
+  - rbac.frontend.yaml
+set:
+  fullnameOverride: wallet
+release:
+  name: wallet
+tests:
+  - it: 'Should render nothing when secretAccess is empty (default)'
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: 'Should render nothing when secretAccess is set but serviceAccount name is empty'
+    set:
+      frontend:
+        secretAccess:
+          - frontend-secrets
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: 'Should render nothing when serviceAccount name is set but secretAccess is empty'
+    set:
+      frontend:
+        server:
+          serviceAccount:
+            name: wallet-frontend
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: 'Should render a Role scoped to the configured secret names'
+    set:
+      frontend:
+        secretAccess:
+          - frontend-secrets
+        server:
+          serviceAccount:
+            name: wallet-frontend
+    documentSelector:
+      path: kind
+      value: Role
+    asserts:
+      - equal:
+          path: metadata.name
+          value: wallet-frontend-secret-reader
+      - equal:
+          path: rules[0].resources[0]
+          value: secrets
+      - equal:
+          path: rules[0].resourceNames
+          value:
+            - frontend-secrets
+      - equal:
+          path: rules[0].verbs
+          value:
+            - get
+
+  - it: 'Should render a RoleBinding to the configured ServiceAccount'
+    set:
+      frontend:
+        secretAccess:
+          - frontend-secrets
+        server:
+          serviceAccount:
+            name: wallet-frontend
+    documentSelector:
+      path: kind
+      value: RoleBinding
+    asserts:
+      - equal:
+          path: metadata.name
+          value: wallet-frontend-secret-reader
+      - equal:
+          path: roleRef.name
+          value: wallet-frontend-secret-reader
+      - equal:
+          path: subjects[0].kind
+          value: ServiceAccount
+      - equal:
+          path: subjects[0].name
+          value: wallet-frontend
+
+  - it: 'Should list multiple secret names in the Role'
+    set:
+      frontend:
+        secretAccess:
+          - frontend-secrets
+          - frontend-extra-secrets
+        server:
+          serviceAccount:
+            name: wallet-frontend
+    documentSelector:
+      path: kind
+      value: Role
+    asserts:
+      - equal:
+          path: rules[0].resourceNames
+          value:
+            - frontend-secrets
+            - frontend-extra-secrets

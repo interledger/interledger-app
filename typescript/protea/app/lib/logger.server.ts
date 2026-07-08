@@ -1,7 +1,7 @@
 import { createRequire } from 'node:module'
 import type { LoggerOptions, Logger as PinoLogger } from 'pino'
 import pino from 'pino'
-import { envValue } from '~/env.server'
+import { config } from '~/config.server'
 import { getCorrelationId, getRequestId } from './requestContext.server'
 
 let logger: PinoLogger
@@ -16,7 +16,7 @@ const VALID_LOG_LEVELS = ['fatal', 'error', 'warn', 'info', 'debug', 'trace']
 // Get LOG_LEVEL from environment, default to 'warn'
 // This runs once at module load time
 function getLogLevel(): { level: string; wasDefaulted: boolean } {
-  const envLogLevel = envValue('LOG_LEVEL')
+  const envLogLevel = config.log_level
   const logLevel = envLogLevel || 'warn'
   const wasDefaulted = !envLogLevel
 
@@ -42,16 +42,16 @@ function getLogLevel(): { level: string; wasDefaulted: boolean } {
 // Pino configuration following the logging policy
 function getPinoConfig(): { config: LoggerOptions; wasDefaulted: boolean } {
   const { level: logLevel, wasDefaulted } = getLogLevel()
-  const isDevelopment = envValue('NODE_ENV') === 'development'
+  const isDevelopment = process.env.NODE_ENV === 'development'
 
   const pinoPrettyTarget = resolvePinoPrettyTarget()
 
-  const config: LoggerOptions = {
+  const pinoOptions: LoggerOptions = {
     level: logLevel,
     timestamp: pino.stdTimeFunctions.isoTime, // ISO format timestamp
     // Use different transports for different log levels as per policy
     transport:
-      isDevelopment && envValue('LOG_PRETTY') !== 'false' && pinoPrettyTarget
+      isDevelopment && config.log_pretty && pinoPrettyTarget
         ? {
             target: pinoPrettyTarget,
             options: {
@@ -74,7 +74,7 @@ function getPinoConfig(): { config: LoggerOptions; wasDefaulted: boolean } {
     }
   }
 
-  return { config, wasDefaulted }
+  return { config: pinoOptions, wasDefaulted }
 }
 
 function resolvePinoPrettyTarget(): string | undefined {
@@ -95,7 +95,7 @@ function resolvePinoPrettyTarget(): string | undefined {
 // create a new logger instance with every change either.
 const { config: pinoConfig, wasDefaulted } = getPinoConfig()
 
-if (envValue('NODE_ENV') === 'production') {
+if (process.env.NODE_ENV === 'production') {
   logger = pino(pinoConfig)
 } else {
   if (!global.__logger) {

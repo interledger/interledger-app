@@ -11,6 +11,10 @@ on:
     paths:
       - "typescript/protea/**"
       - "typescript/botanist/**"
+      - "typescript/packages/**"
+      - "typescript/pnpm-workspace.yaml"
+      - "typescript/pnpm-lock.yaml"
+      - "typescript/package.json"
       - ".github/workflows/typescript-checks.yml"
       - ".github/workflows/typescript-check-template.yml"
 

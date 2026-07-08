@@ -213,12 +213,12 @@ build-app:
 	docker build \
 		--tag $(REGISTRY)/protea:$(TAG) \
 		--file $(REPO_ROOT)/typescript/protea/Dockerfile \
-		$(REPO_ROOT)/typescript/protea
+		$(REPO_ROOT)/typescript
 	@echo "==> Building botanist..."
 	docker build \
 		--tag $(REGISTRY)/botanist:$(TAG) \
 		--file $(REPO_ROOT)/typescript/botanist/Dockerfile \
-		$(REPO_ROOT)/typescript/botanist
+		$(REPO_ROOT)/typescript
 
 ## Build all mock service images
 build-mock:

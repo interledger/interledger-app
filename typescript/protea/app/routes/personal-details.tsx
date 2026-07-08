@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { data, href, useLoaderData, useSubmit } from 'react-router'
 import { Button, Card, CardContent, Dialog, Layouts, Shape } from '~/components'
-import { envValue } from '~/env.server'
+import { config } from '~/config.server'
 import { isConnectError } from '~/lib/error.server'
 import type { FiantSdkMessage } from '~/lib/fiant'
 import { exitFlow, flowType, requireFlow } from '~/lib/flows.server'
@@ -53,8 +53,8 @@ export async function loader({ request }: Route.LoaderArgs) {
     gatehubWidget: response.gatehubWidget,
     personaWidget: response.personaInquiry,
     ptiWidget: response.ptiWidget,
-    personaSdkUrl: envValue('PERSONA_SDK_URL'),
-    mockxagoEndpoint: envValue('MOCKXAGO_ENDPOINT')
+    personaSdkUrl: config.persona_sdk_url,
+    mockxagoEndpoint: config.mockxago_endpoint
   })
 }
 
@@ -85,7 +85,7 @@ function PersonaPage() {
       ? '' // Don't load Persona SDK when using MockXago
       : personaSdkUrl
   )
-  let personaRef = useRef<any>(null)
+  const personaRef = useRef<any>(null)
 
   const [setLoading] = useScaffoldStore((state) => [state.setLoading])
 

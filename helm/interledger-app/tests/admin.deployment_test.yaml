@@ -37,12 +37,29 @@ tests:
           path: spec.template.spec.topologySpreadConstraints[0].whenUnsatisfiable
           value: DoNotSchedule
 
-  - it: 'Should reference the admin ConfigMap via envFrom'
+  - it: 'Should set CONFIG to the mounted config.yaml path'
     template: deployment.admin.yaml
     asserts:
-      - equal:
-          path: spec.template.spec.containers[0].envFrom[0].configMapRef.name
-          value: wallet-admin-config
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CONFIG
+            value: /etc/admin/config.yaml
+
+  - it: 'Should mount the admin config ConfigMap at /etc/admin'
+    template: deployment.admin.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: config
+            mountPath: /etc/admin
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: config
+            configMap:
+              name: wallet-admin-config
 
   - it: 'Should set minReadySeconds to 10'
     template: deployment.admin.yaml

@@ -1,15 +1,18 @@
 services:
   botanist:
     build:
-      context: ../typescript/botanist
+      context: ../typescript
+      dockerfile: botanist/Dockerfile
       target: ${BOTANIST_BUILD_TARGET:-dev}
     profiles:
       - application
       - frontend
     restart: always
     volumes:
-      - ../typescript/botanist/app:/app/app:rw
+      - ../typescript/botanist/app:/app/botanist/app:rw
       # Exclude node_modules from sync - use container's version
+      - ./config/botanist.yaml:/etc/botanist/config.yaml:ro
+      - ./config-override/botanist.yaml:/etc/botanist/config-override.yaml:ro
     ports:
       - "13000:3000" # http port
       - "18002:8002" # websocket port
@@ -25,12 +28,10 @@ services:
       - "traefik.http.services.botanist-ws.loadbalancer.server.port=8002"
 
     environment:
-      - ILW_ENV=local
-
       - CHOKIDAR_USEPOLLING=true
-      - BACKEND_GRPC_URL=backend:8448
-
-      - PAYMENT_POINTER_BASE=${BOTANIST_PAYMENT_POINTER_BASE:-local.ilp.link}
+      # Everything else is loaded from the mounted config.yaml/config-override.yaml
+      # above (see local/config/botanist.yaml) — override values there instead of here.
+      - CONFIG=/etc/botanist/config.yaml,/etc/botanist/config-override.yaml
 
     depends_on:
       - backend

@@ -6,6 +6,7 @@ import type { ApplicationProps } from '~/components'
 import { Button, GridColumn, Layouts, WalletGrid } from '~/components'
 import { BackButton } from '~/components/QuickPay'
 import { DialPad, DialPadIds } from '~/components/QuickPay/Dialpad'
+import { config } from '~/config.server'
 import { mergeMeta } from '~/lib/meta'
 import { useDialPadStore } from '~/lib/useDialPadStore'
 import { routeAllowed } from '~/lib/utils.server'
@@ -13,7 +14,7 @@ import { getSession } from '~/session.server'
 import type { Route } from './+types/quick-pay_.amount'
 
 export async function loader({ request }: Route.LoaderArgs) {
-  routeAllowed('OP_INTPAY_ENABLED')
+  routeAllowed(config.op_intpay.enabled)
   const session = await getSession(request.headers.get('Cookie'))
   const walletAddressInfo = session.get('quickPay')
   const assetCode = walletAddressInfo?.senderAddress?.assetCode

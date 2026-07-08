@@ -1,8 +1,8 @@
 import type { PlainMessage } from '@bufbuild/protobuf'
 import type { LoaderFunctionArgs } from 'react-router'
 import { data } from 'react-router'
+import { config } from '~/config.server'
 import { getFeatures } from '~/data/wallet.server'
-import { envValue } from '~/env.server'
 import type {
   Features,
   Payment,
@@ -28,12 +28,12 @@ export async function searchLoader(
 export async function payLoader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
 
-  let results: PlainMessage<SearchResult>[] = []
-  let address: PlainMessage<SearchResult> | null = null
-  let publicWalletInfo: PublicWalletInfo | null = null
-  let phoneMask: string = ''
+  const results: PlainMessage<SearchResult>[] = []
+  const address: PlainMessage<SearchResult> | null = null
+  const publicWalletInfo: PublicWalletInfo | null = null
+  const phoneMask: string = ''
   let features: Features | null = null
-  let payment: PlainMessage<Payment> | null = null
+  const payment: PlainMessage<Payment> | null = null
 
   // used only on route load, params change and form submission
   // TODO should figure out if we need these based on the status of the payment
@@ -47,7 +47,7 @@ export async function payLoader({ request }: LoaderFunctionArgs) {
     address,
     phoneMask,
     publicWalletInfo,
-    ilwEnv: envValue('ILW_ENV'),
+    ilwEnv: config.environment,
     payment
   })
 }

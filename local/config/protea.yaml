@@ -1,0 +1,62 @@
+# Protea (frontend) configuration for local development.
+# Override any value by creating local/config-override/protea.yaml
+# (the file is created empty by `make prep`).
+
+environment: local
+log_level: debug
+log_pretty: true
+
+cookie_secrets:
+  - localsecret
+
+target_host: "https://interledger.test"
+support_email: "support@interledger.app"
+payment_pointer_base: "local.ilp.link"
+public_op_auth_host: "auth.local.ilp.link"
+
+# Persona SDK URL override (MockXago serves Persona-compatible SDK in local).
+persona_sdk_url: "https://mockxago.interledger.test/v1/persona-sdk.js"
+# Browser-accessible MockXago URL, used for the Persona iframe.
+mockxago_endpoint: "https://mockxago.interledger.test"
+
+google_maps_api_key: ""
+
+backend:
+  grpc_url: "http://backend:8443"
+  http_url: "http://backend:8080"
+
+redis:
+  url: "redis://redis:6379/2"
+
+kratos:
+  url: "http://kratos:4433"
+
+rafiki:
+  auth_endpoint: "http://rafiki_auth:3009"
+  auth_secret: "my-super-secret-identity-key"
+
+pti:
+  sdk_url: "https://mockpti.interledger.test/sdk/index.js"
+  forms_url: "https://mockpti.interledger.test/forms"
+  client_id: "04d3e1b5-96d4-47e4-9eaa-13e9b4b0f219"
+
+sentry:
+  dsn: ""
+  env_label: ""
+
+pusher:
+  app_key: ""
+  app_cluster: "eu"
+
+rate_limit:
+  requests: 4
+  window_seconds: 3600
+
+# Interledger Pay (quick-pay) is disabled by default in local dev.
+op_intpay:
+  enabled: false
+  key_id: ""
+  private_key: ""
+  wallet_address: ""
+  host: "https://interledger.test/"
+  redirect_url: "https://interledger.test/quick-pay/finish"

@@ -1,4 +1,4 @@
-import { envValue } from '~/env.server'
+import { config } from '~/config.server'
 import type {
   Query,
   QueryLegalPageArgs,
@@ -6,7 +6,7 @@ import type {
 } from '~/generated/dato-cms-graphql'
 
 export const getContactRoute = async () => {
-  const targetHost = envValue('TARGET_HOST')
+  const targetHost = config.target_host
   return {
     contactRoute: {
       id: '125075088',
@@ -299,7 +299,7 @@ export const getContactRoute = async () => {
 export const getCurrentMarketingPage = async (
   variables: QueryMarketingPageArgs
 ) => {
-  const targetHost = envValue('TARGET_HOST')
+  const targetHost = config.target_host
   switch (variables?.filter?.slug?.eq) {
     case 'legal': {
       return {
@@ -755,8 +755,8 @@ export const getCurrentMarketingPage = async (
 }
 
 export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
-  const supportEmail = envValue('SUPPORT_EMAIL')
-  const targetHost = envValue('TARGET_HOST')
+  const supportEmail = config.support_email
+  const targetHost = config.target_host
   switch (variables?.filter?.slug?.eq) {
     case 'terms-of-service':
       return {

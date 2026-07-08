@@ -9,6 +9,7 @@ import {
   type ApplicationProps
 } from '~/components'
 import { BackButton, FinishCheck, FinishError } from '~/components/QuickPay'
+import { config } from '~/config.server'
 import logger from '~/lib/logger.server'
 import { mergeMeta } from '~/lib/meta'
 import { checkOutgoingPayment, finishPayment } from '~/lib/open-payments.server'
@@ -23,7 +24,7 @@ export type FinishActionData = {
 }
 
 export async function loader({ request }: Route.LoaderArgs) {
-  routeAllowed('OP_INTPAY_ENABLED')
+  routeAllowed(config.op_intpay.enabled)
   const searchParams = new URL(request.url).searchParams
   const paymentId = searchParams.get('paymentId') || ''
   const hash = searchParams.get('hash') || ''

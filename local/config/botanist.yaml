@@ -1,0 +1,6 @@
+# Botanist (admin) configuration for local development.
+# Override any value by creating local/config-override/botanist.yaml
+# (the file is created empty by `make prep`).
+
+backend_grpc_url: "backend:8448"
+payment_pointer_base: "local.ilp.link"
