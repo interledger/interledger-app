@@ -11,29 +11,29 @@ import (
 
 // Config holds the configuration for the Gatehub provider
 type Config struct {
-	AppID                  string
-	Secret                 string
-	CardAppID              string
-	GatewayID              string
-	CardAccountProductCode string
-	PaywiserEuroVaultID    string
-	SendingUserID          string
-	SendingUserAddress     string
-	IntermediaryUserID      string
-	IntermediaryUserAddress string
-	WebhookSecret           string
-	FallbackWebhookURL      string
-	OnOffRampClientID       string
-	OnboardingClientID      string
-	ExchangeClientID        string
-	APIBaseURL              string
-	OnboardingBaseURL       string
-	OnOffRampBaseURL        string
-	EUROpsAccount           string
-	EUROpsLedgerID          uint32
-	OrganizationID          string
-	XagoGatehubGhOmnibusUserID      string
-	XagoGatehubGhOmnibusUserAddress string
+	AppID                       string
+	Secret                      string
+	CardAppID                   string
+	GatewayID                   string
+	CardAccountProductCode      string
+	PaywiserEuroVaultID         string
+	SendingUserID               string
+	SendingUserAddress          string
+	IntermediaryUserID          string
+	IntermediaryUserAddress     string
+	WebhookSecret               string
+	FallbackWebhookURL          string
+	OnOffRampClientID           string
+	OnboardingClientID          string
+	ExchangeClientID            string
+	APIBaseURL                  string
+	OnboardingBaseURL           string
+	OnOffRampBaseURL            string
+	EUROpsAccount               string
+	EUROpsLedgerID              uint32
+	OrganizationID              string
+	OmnibusUserIDForCPXago      string
+	OmnibusUserAddressForCPXago string
 }
 
 const (

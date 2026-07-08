@@ -253,10 +253,10 @@ func NewWebhook(b Backends, cfg gatehub.Config) http.HandlerFunc {
 		intermediaryUserID := cfg.IntermediaryUserID
 		isIntermediary := intermediaryUserID != "" && wh.UserID == intermediaryUserID
 
-		xagoGatehubGhOmnibusUserID := cfg.XagoGatehubGhOmnibusUserID
-		isOmnibusUser := xagoGatehubGhOmnibusUserID != "" && wh.UserID == xagoGatehubGhOmnibusUserID
+		omnibusUserIdForCPXago := cfg.OmnibusUserIDForCPXago
+		isOmnibusUserForCPXago := omnibusUserIdForCPXago != "" && wh.UserID == omnibusUserIdForCPXago
 
-		if _, err := getWalletID(r.Context(), b, wh.UserID); err != nil && !isIntermediary && !isOmnibusUser {
+		if _, err := getWalletID(r.Context(), b, wh.UserID); err != nil && !isIntermediary && !isOmnibusUserForCPXago {
 			log.Info("Wallet not found for Gatehub user; attempting cards fallback",
 				zap.String("external_user_uuid", wh.UserID),
 				zap.Error(err),
