@@ -203,7 +203,7 @@ func SettleDepositWorkflow(ctx workflow.Context, wh pti.TransactionStatusPayload
 
 	sendRampActionEmail(ctx, a, RampActionEmailArgs{
 		WalletID: walletID,
-		Action:   "We have information about your deposit",
+		Action:   "Deposit Completed",
 		Status:   "Completed",
 		Amount:   amt,
 	})
@@ -302,7 +302,7 @@ func MarkTransactionStateWorkflow(ctx workflow.Context, wh pti.TransactionStatus
 
 	sendRampActionEmail(ctx, a, RampActionEmailArgs{
 		WalletID: walletID,
-		Action:   "We have information about your deposit",
+		Action:   "Deposit Failed",
 		Status:   "Failed",
 		Amount:   tx.Amount,
 	})
@@ -411,7 +411,7 @@ func RevertWithdrawWorkflow(ctx workflow.Context, wh pti.TransactionStatusPayloa
 
 	sendRampActionEmail(ctx, a, RampActionEmailArgs{
 		WalletID: walletID,
-		Action:   "We have information about your withdrawal",
+		Action:   "Withdrawal Failed",
 		Status:   "Failed",
 		Amount:   amt,
 	})
@@ -480,7 +480,7 @@ func SettleWithdrawWorkflow(ctx workflow.Context, wh pti.TransactionStatusPayloa
 
 	sendRampActionEmail(ctx, a, RampActionEmailArgs{
 		WalletID: walletID,
-		Action:   "We have information about your withdrawal",
+		Action:   "Withdrawal Completed",
 		Status:   "Completed",
 		Amount:   amt,
 	})
