@@ -80,6 +80,21 @@ func (mr *MockClientMockRecorder) GetKYCStatus(ctx, walletID interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetKYCStatus", reflect.TypeOf((*MockClient)(nil).GetKYCStatus), ctx, walletID)
 }
 
+// GetPersonaAccountAttributes mocks base method.
+func (m *MockClient) GetPersonaAccountAttributes(ctx context.Context, walletID string) (*kyc.PersonaAccountAttributes, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPersonaAccountAttributes", ctx, walletID)
+	ret0, _ := ret[0].(*kyc.PersonaAccountAttributes)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPersonaAccountAttributes indicates an expected call of GetPersonaAccountAttributes.
+func (mr *MockClientMockRecorder) GetPersonaAccountAttributes(ctx, walletID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPersonaAccountAttributes", reflect.TypeOf((*MockClient)(nil).GetPersonaAccountAttributes), ctx, walletID)
+}
+
 // GetPersonaIDNumbers mocks base method.
 func (m *MockClient) GetPersonaIDNumbers(ctx context.Context, walletID string) (*kyc.PersonaIDNumbers, error) {
 	m.ctrl.T.Helper()

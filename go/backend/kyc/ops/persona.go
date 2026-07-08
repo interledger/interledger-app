@@ -154,19 +154,28 @@ func GetPersonaIDNumbers(ctx context.Context, b Backends, cl persona.Client, wal
 	return resp, nil
 }
 
-func GetZAIDNumber(ctx context.Context, b Backends, cl persona.Client, walletID string) (string, error) {
-	var accID string
-	err := b.DB().GetContext(ctx, &accID, "SELECT external_id FROM kyc_persona_accounts WHERE wallet_id=$1", walletID)
-	if errors.Is(err, sql.ErrNoRows) {
-		return "", fmt.Errorf("%w no persona account found", kyc.ErrNoKYCInfo)
-	}
+func GetPersonaAccountAttributes(ctx context.Context, b Backends, cl persona.Client, walletID string) (*kyc.PersonaAccountAttributes, error) {
+	acc, err := getPersonaAccount(ctx, b, cl, walletID)
 	if err != nil {
-		return "", fmt.Errorf("%w %s", kyc.ErrInternal, err)
+		return nil, err
 	}
 
-	acc, err := cl.GetAccount(ctx, accID)
+	return &kyc.PersonaAccountAttributes{
+		FirstName:   acc.Attributes.NameFirst,
+		LastName:    acc.Attributes.NameLast,
+		DateOfBirth: acc.Attributes.Birthdate,
+		Street1:     acc.Attributes.AddressStreet1,
+		Street2:     acc.Attributes.AddressStreet2,
+		City:        acc.Attributes.AddressCity,
+		PostalCode:  acc.Attributes.AddressPostalCode,
+		CountryCode: acc.Attributes.CountryCode,
+	}, nil
+}
+
+func GetZAIDNumber(ctx context.Context, b Backends, cl persona.Client, walletID string) (string, error) {
+	acc, err := getPersonaAccount(ctx, b, cl, walletID)
 	if err != nil {
-		return "", fmt.Errorf("%w %s", kyc.ErrInternal, err)
+		return "", err
 	}
 
 	for _, v := range acc.Attributes.IdentificationNumbers {
@@ -178,6 +187,24 @@ func GetZAIDNumber(ctx context.Context, b Backends, cl persona.Client, walletID 
 	}
 
 	return "", fmt.Errorf("%w no valid ZA ID number on persona account found", kyc.ErrNoKYCInfo)
+}
+
+func getPersonaAccount(ctx context.Context, b Backends, cl persona.Client, walletID string) (*persona.AccountData, error) {
+	var accID string
+	err := b.DB().GetContext(ctx, &accID, "SELECT external_id FROM kyc_persona_accounts WHERE wallet_id=$1", walletID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, fmt.Errorf("%w no persona account found for wallet", kyc.ErrNoKYCInfo)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", kyc.ErrInternal, err)
+	}
+
+	acc, err := cl.GetAccount(ctx, accID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", kyc.ErrInternal, err)
+	}
+
+	return acc, nil
 }
 
 func isValidZAID(idNumber string) bool {

@@ -10,6 +10,9 @@ import (
 
 	"gitlab.com/fynbos/env"
 
+	"github.com/ProtonMail/go-crypto/openpgp"
+	"github.com/ProtonMail/go-crypto/openpgp/armor"
+	"github.com/ProtonMail/go-crypto/openpgp/packet"
 	"github.com/joho/godotenv"
 )
 
@@ -111,7 +114,7 @@ type StartArgs struct {
 	XagoPublicKey                   string
 	XagoSecret                      string
 	XagoPolicyID                    string
-	XagoTravelRulePGPPublicKey      string
+	XagoPGPRecipient                *openpgp.Entity
 	XagoTravelRuleEmail             string
 	PTIEnabled                      bool
 	PTIBaseURL                      string
@@ -496,6 +499,14 @@ func ParseStartArgs() (*StartArgs, error) {
 	if xagoTravelRulePGPPublicKey == "" && env.IsProd() {
 		return nil, errors.New("XAGO_TRAVEL_RULE_PGP_PUBLIC_KEY is required")
 	}
+	var xagoPGPRecipient *openpgp.Entity
+	if xagoTravelRulePGPPublicKey != "" {
+		var err error
+		xagoPGPRecipient, err = parseXagoPGPRecipient(xagoTravelRulePGPPublicKey)
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	xagoTravelRuleEmail := os.Getenv("XAGO_TRAVEL_RULE_EMAIL")
 	if xagoTravelRuleEmail == "" && env.IsProd() {
@@ -639,7 +650,7 @@ func ParseStartArgs() (*StartArgs, error) {
 		XagoPublicKey:                   xagoPublicKey,
 		XagoSecret:                      xagoSecret,
 		XagoPolicyID:                    xagoPolicyID,
-		XagoTravelRulePGPPublicKey:      xagoTravelRulePGPPublicKey,
+		XagoPGPRecipient:                xagoPGPRecipient,
 		XagoTravelRuleEmail:             xagoTravelRuleEmail,
 		PTIEnabled:                      ptiEnabled,
 		PTIBaseURL:                      ptiBaseURL,
@@ -701,4 +712,16 @@ func parseSignupAgreementIDs(raw string) []string {
 		}
 	}
 	return ids
+}
+
+func parseXagoPGPRecipient(pubKey string) (*openpgp.Entity, error) {
+	block, err := armor.Decode(strings.NewReader(pubKey))
+	if err != nil {
+		return nil, fmt.Errorf("invalid XAGO_TRAVEL_RULE_PGP_PUBLIC_KEY: %w", err)
+	}
+	entity, err := openpgp.ReadEntity(packet.NewReader(block.Body))
+	if err != nil {
+		return nil, fmt.Errorf("invalid XAGO_TRAVEL_RULE_PGP_PUBLIC_KEY: %w", err)
+	}
+	return entity, nil
 }

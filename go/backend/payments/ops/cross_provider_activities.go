@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/currency"
+	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	"gitlab.com/fynbos/backend/providers/xago"
@@ -446,4 +447,85 @@ func (a *Activity) CrossProviderGatehubRollbackTransfer(ctx context.Context, pay
 	}
 
 	return nil
+}
+
+func (a *Activity) AddXagoTravelRuleRecord(ctx context.Context, paymentID string) error {
+	payment, err := Lookup(ctx, a.b, paymentID)
+	if err != nil {
+		return err
+	}
+
+	if payment.SenderAccount == "" || payment.ReceiverAccount == "" {
+		return nil
+	}
+
+	senderAccount, err := a.b.LinkedAccounts().Get(ctx, payment.SenderAccount)
+	if err != nil {
+		return err
+	}
+	if senderAccount.Provider != gatehub.ProviderName {
+		return nil
+	}
+
+	receiverAccount, err := a.b.LinkedAccounts().Get(ctx, payment.ReceiverAccount)
+	if err != nil {
+		return err
+	}
+	if receiverAccount.Provider != xago.ProviderName {
+		return nil
+	}
+
+	originator, err := a.b.Gatehub().GetUser(ctx, payment.Sender.WalletID)
+	if err != nil {
+		return err
+	}
+
+	beneficiary, err := a.b.KYC().GetPersonaAccountAttributes(ctx, payment.Receiver.WalletID)
+	if err != nil {
+		return err
+	}
+
+	receiverSubAccount, err := a.b.Xago().LookupSubAccount(ctx, payment.Receiver.WalletID)
+	if err != nil {
+		return err
+	}
+
+	err = a.b.Xago().InsertTravelRuleRecord(ctx, xago.TravelRuleRecordArgs{
+		PaymentID:            payment.ID,
+		TransactionReference: payment.ID,
+		OriginatorName:       joinNonEmpty(" ", originator.Profile.FirstName, originator.Profile.LastName),
+		OriginatorAccountID:  originator.UUID,
+		OriginatorAddress: joinNonEmpty(", ",
+			originator.Profile.AddressStreet1,
+			originator.Profile.AddressStreet2,
+			originator.Profile.AddressCity,
+			originator.Profile.AddressPostalCode,
+			originator.Profile.AddressCountryCode,
+		),
+		OriginatorPlaceOfBirth: joinNonEmpty(", ", originator.Profile.BirthCity, originator.Profile.BirthCountryCode),
+		OriginatorDateOfBirth:  formatDateOfBirth(originator.Profile.BirthYear, originator.Profile.BirthMonth, originator.Profile.BirthDay),
+		BeneficiaryName:        joinNonEmpty(" ", beneficiary.FirstName, beneficiary.LastName),
+		BeneficiaryAccountID:   receiverSubAccount.AccountID,
+	})
+	if db.IsErrorCode(err, db.UniqueViolationError) {
+		return nil
+	}
+	return err
+}
+
+func joinNonEmpty(sep string, parts ...string) string {
+	var out []string
+	for _, p := range parts {
+		if p != "" {
+			out = append(out, p)
+		}
+	}
+	return strings.Join(out, sep)
+}
+
+func formatDateOfBirth(year, month, day int) string {
+	if year == 0 || month == 0 || day == 0 {
+		return ""
+	}
+	return fmt.Sprintf("%04d-%02d-%02d", year, month, day)
 }

@@ -2,11 +2,8 @@ package temporal
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/ProtonMail/go-crypto/openpgp"
-	"github.com/ProtonMail/go-crypto/openpgp/armor"
-	"github.com/ProtonMail/go-crypto/openpgp/packet"
 	"github.com/lestrrat-go/jwx/v3/jwk"
 	"gitlab.com/fynbos/log"
 
@@ -26,7 +23,7 @@ import (
 	"go.temporal.io/sdk/worker"
 )
 
-func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago_external.Config, xagoTravelRulePGPPublicKey, xagoTravelRuleEmail, ptiJWK, ptiBaseURL, ptiClientID, chimoneyToken string, jobsCfg jobs.Config) (worker.Worker, error) {
+func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago_external.Config, xagoPGPRecipient *openpgp.Entity, xagoTravelRuleEmail, ptiJWK, ptiBaseURL, ptiClientID, chimoneyToken string, jobsCfg jobs.Config) (worker.Worker, error) {
 	w := worker.New(b.Temporal(), "backend", worker.Options{})
 
 	w.RegisterActivity(slack.SendToChannelActivity)
@@ -87,19 +84,6 @@ func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago
 	rafiki_workflows.StartRafikiIncomingPaymentsPolling(b)
 
 	// Xago
-	var xagoPGPRecipient *openpgp.Entity
-	if xagoTravelRulePGPPublicKey == "" {
-		log.Warn("XAGO_TRAVEL_RULE_PGP_PUBLIC_KEY not configured: skipping travel rule email workflow")
-	} else {
-		pgpBlock, err := armor.Decode(strings.NewReader(xagoTravelRulePGPPublicKey))
-		if err != nil {
-			return nil, fmt.Errorf("invalid XAGO_TRAVEL_RULE_PGP_PUBLIC_KEY: %w", err)
-		}
-		xagoPGPRecipient, err = openpgp.ReadEntity(packet.NewReader(pgpBlock.Body))
-		if err != nil {
-			return nil, fmt.Errorf("invalid XAGO_TRAVEL_RULE_PGP_PUBLIC_KEY: %w", err)
-		}
-	}
 	w.RegisterActivity(xago_workflows.NewActivity(b, xagoConfig, xagoPGPRecipient, xagoTravelRuleEmail))
 	w.RegisterWorkflow(xago_workflows.CreateBeneficiaryWorkflow)
 	w.RegisterWorkflow(xago_workflows.CreateBalanceAccountWorkflow)
@@ -110,8 +94,15 @@ func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago
 	xago_workflows.StartDepositsPolling(b)
 
 	if xagoPGPRecipient != nil {
+		w.RegisterWorkflow(xago_workflows.ResendTravelRuleReportWorkflow)
+
 		w.RegisterWorkflow(xago_workflows.TravelRuleEmailWorkflow)
 		xago_workflows.StartTravelRuleEmailSending(b)
+
+		w.RegisterWorkflow(xago_workflows.TravelRuleKYCCleanupWorkflow)
+		xago_workflows.StartTravelRuleKYCCleanup(b)
+	} else {
+		log.Warn("XAGO_TRAVEL_RULE_PGP_PUBLIC_KEY not configured: skipping travel rule email + resend workflows")
 	}
 
 	// PTI

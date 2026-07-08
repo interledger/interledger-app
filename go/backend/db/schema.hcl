@@ -2740,6 +2740,10 @@ table "xago_travel_rule_records" {
     null = true
     type = timestamp
   }
+  column "kyc_cleared_at" {
+    null = true
+    type = timestamp
+  }
   primary_key {
     columns = [column.id]
   }

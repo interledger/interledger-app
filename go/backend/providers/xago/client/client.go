@@ -117,6 +117,10 @@ func (c *client) LookupWithdrawal(ctx context.Context, id string) (*xago.Withdra
 	return ops.LookupWithdrawal(ctx, c.b, id)
 }
 
+func (c *client) InsertTravelRuleRecord(ctx context.Context, args xago.TravelRuleRecordArgs) error {
+	return ops.InsertTravelRuleRecord(ctx, c.b, args)
+}
+
 func (c *client) TestDeposit(ctx context.Context, sa xago.SubAccount) error {
 	return ops.TestDeposit(ctx, c.b, sa)
 }

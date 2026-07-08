@@ -23,6 +23,7 @@ import (
 	"gitlab.com/fynbos/backend/features"
 	"gitlab.com/fynbos/backend/identities"
 	id_mock "gitlab.com/fynbos/backend/identities/client/mock"
+	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	linkedaccounts_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
 	"gitlab.com/fynbos/backend/notify"
@@ -50,6 +51,7 @@ type Backends interface {
 	Limits() limits.Client
 	PTI() pti.Client
 	Gatehub() gatehub.Client
+	KYC() kyc.Client
 	Chimoney() chimoney.Client
 	Pacioli() pacioli.Client
 	Features() features.Client
@@ -74,6 +76,10 @@ func (t TestBackends) Chimoney() chimoney.Client {
 }
 
 func (t TestBackends) Gatehub() gatehub.Client {
+	return nil
+}
+
+func (t TestBackends) KYC() kyc.Client {
 	return nil
 }
 

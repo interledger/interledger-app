@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/providers/xago"
 	"gitlab.com/fynbos/backend/providers/xago/external"
@@ -462,4 +463,121 @@ func TestDeposit(ctx context.Context, b Backends, sa xago.SubAccount) error {
 	}
 
 	return err
+}
+
+func InsertTravelRuleRecord(ctx context.Context, b Backends, args xago.TravelRuleRecordArgs) error {
+	_, err := b.DB().ExecContext(ctx, `
+		INSERT INTO xago_travel_rule_records
+			(payment_id, transaction_reference, originator_name, originator_account_id,
+			 originator_address, originator_place_of_birth, originator_date_of_birth,
+			 beneficiary_name, beneficiary_account_id)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+	`,
+		args.PaymentID,
+		args.TransactionReference,
+		args.OriginatorName,
+		args.OriginatorAccountID,
+		args.OriginatorAddress,
+		args.OriginatorPlaceOfBirth,
+		args.OriginatorDateOfBirth,
+		args.BeneficiaryName,
+		args.BeneficiaryAccountID,
+	)
+	return err
+}
+
+func GetUnreportedTravelRuleRecords(ctx context.Context, b Backends, limit int) ([]TravelRuleRecord, error) {
+	var records []TravelRuleRecord
+	err := b.DB().SelectContext(ctx, &records, `
+		SELECT id,
+		       transaction_reference,
+		       originator_name,
+		       originator_account_id,
+		       originator_address,
+		       originator_place_of_birth,
+		       originator_date_of_birth,
+		       beneficiary_name,
+		       beneficiary_account_id
+		FROM xago_travel_rule_records
+		WHERE reported_at IS NULL
+		ORDER BY created_at
+		LIMIT $1
+	`, limit)
+	return records, err
+}
+
+func GetTravelRuleRecordsByReportedAt(ctx context.Context, b Backends, reportedAt time.Time, limit int) ([]TravelRuleRecord, error) {
+	var records []TravelRuleRecord
+	err := b.DB().SelectContext(ctx, &records, `
+		SELECT id,
+		       transaction_reference,
+		       originator_name,
+		       originator_account_id,
+		       originator_address,
+		       originator_place_of_birth,
+		       originator_date_of_birth,
+		       beneficiary_name,
+		       beneficiary_account_id
+		FROM xago_travel_rule_records
+		WHERE reported_at = $1 AND kyc_cleared_at IS NULL
+		ORDER BY created_at
+		LIMIT $2
+	`, reportedAt, limit)
+	return records, err
+}
+
+const travelRuleMarkChunkSize = 5_000
+
+func MarkTravelRuleRecordsAsReported(ctx context.Context, b Backends, ids []string, reportedAt time.Time) error {
+	for start := 0; start < len(ids); start += travelRuleMarkChunkSize {
+		end := min(start+travelRuleMarkChunkSize, len(ids))
+		_, err := b.DB().ExecContext(ctx, `
+			UPDATE xago_travel_rule_records SET
+				reported_at = $2
+			WHERE id = ANY($1::uuid[])`,
+			pq.Array(ids[start:end]),
+			reportedAt,
+		)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func ClearReportedTravelRuleKYC(ctx context.Context, b Backends, cutoff, clearedAt time.Time) (int, error) {
+	total := 0
+	for {
+		res, err := b.DB().ExecContext(ctx, `
+			UPDATE xago_travel_rule_records SET
+				originator_name           = '',
+				originator_account_id     = '',
+				originator_address        = '',
+				originator_place_of_birth = '',
+				originator_date_of_birth  = '',
+				beneficiary_name          = '',
+				beneficiary_account_id    = '',
+				kyc_cleared_at            = $2
+			WHERE id IN (
+				SELECT id FROM xago_travel_rule_records
+				WHERE reported_at < $1 AND kyc_cleared_at IS NULL
+				LIMIT $3
+			)`,
+			cutoff,
+			clearedAt,
+			travelRuleMarkChunkSize,
+		)
+		if err != nil {
+			return total, err
+		}
+		n, err := res.RowsAffected()
+		if err != nil {
+			return total, err
+		}
+		total += int(n)
+		if n < travelRuleMarkChunkSize {
+			break
+		}
+	}
+	return total, nil
 }

@@ -74,6 +74,17 @@ type PersonaInquiry struct {
 	Status persona.InquiryStatus
 }
 
+type PersonaAccountAttributes struct {
+	FirstName   string
+	LastName    string
+	DateOfBirth string
+	Street1     string
+	Street2     string
+	City        string
+	PostalCode  string
+	CountryCode string
+}
+
 type PersonaIDNumbers struct {
 	SocialSecurity       string
 	IssuingCountry       string

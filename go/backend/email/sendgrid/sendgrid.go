@@ -53,10 +53,12 @@ func (c *client) SendTemplate(ctx context.Context, subject string, to []Email, t
 		msg.AddAttachment(&attachment)
 	}
 
-	_, err := c.mailer.SendWithContext(ctx, msg)
+	resp, err := c.mailer.SendWithContext(ctx, msg)
 	if err != nil {
 		return fmt.Errorf("%w %s", ErrExternal, err)
 	}
-
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return fmt.Errorf("%w: status %d: %s", ErrExternal, resp.StatusCode, resp.Body)
+	}
 	return nil
 }

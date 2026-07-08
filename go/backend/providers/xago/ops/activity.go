@@ -8,14 +8,18 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/ProtonMail/go-crypto/openpgp"
-	"github.com/lib/pq"
+	"go.temporal.io/sdk/activity"
+	"go.temporal.io/sdk/temporal"
+
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/xago"
 	"gitlab.com/fynbos/backend/providers/xago/external"
+	"gitlab.com/fynbos/backend/slack"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/pacioli"
 )
@@ -172,29 +176,111 @@ type TravelRuleRecord struct {
 	BeneficiaryAccountID   string `db:"beneficiary_account_id"`
 }
 
-func (a *Activity) GetTravelRuleRecords(ctx context.Context) ([]TravelRuleRecord, error) {
-	var records []TravelRuleRecord
-	err := a.b.DB().SelectContext(ctx, &records, `
-		SELECT id,
-		       transaction_reference,
-		       originator_name,
-		       originator_account_id,
-		       originator_address,
-		       originator_place_of_birth,
-		       originator_date_of_birth,
-		       beneficiary_name,
-		       beneficiary_account_id
-		FROM xago_travel_rule_records
-		WHERE reported_at IS NULL
-	`)
-	return records, err
-}
+const travelRuleReportRowLimit = 30_000
+const travelRuleReportAlertThreshold = travelRuleReportRowLimit * 3 / 4
+const travelRuleKYCRetention = 30 * 24 * time.Hour
 
-func (a *Activity) BuildTravelRuleCSV(_ context.Context, records []TravelRuleRecord) ([]byte, error) {
+func (a *Activity) SendTravelRuleReport(ctx context.Context) error {
 	if a.pgpRecipient == nil {
-		return nil, fmt.Errorf("xago: TravelRulePGPPublicKey is not configured")
+		return temporal.NewNonRetryableApplicationError("xago: TravelRulePGPPublicKey is not configured", "TravelRuleConfig", nil)
 	}
 
+	records, err := GetUnreportedTravelRuleRecords(ctx, a.b, travelRuleReportRowLimit)
+	if err != nil {
+		return err
+	}
+	if len(records) == 0 {
+		return nil
+	}
+
+	if err = sendTravelRuleReportEmail(ctx, a.b, sendTravelRuleReportEmailArgs{
+		Records:   records,
+		Recipient: a.pgpRecipient,
+		Email:     a.travelRuleEmail,
+	}); err != nil {
+		return err
+	}
+
+	ids := make([]string, len(records))
+	for i, r := range records {
+		ids[i] = r.ID
+	}
+
+	reportedAt := time.Now().UTC()
+	if err = MarkTravelRuleRecordsAsReported(ctx, a.b, ids, reportedAt); err != nil {
+		return err
+	}
+
+	logger := activity.GetLogger(ctx)
+	logger.Info("reported xago travel rule records", "count", len(records), "reported_at", reportedAt.Format(time.RFC3339Nano))
+
+	if len(records) >= travelRuleReportAlertThreshold {
+		slack.SendToChannel(ctx, slack.ChannelError, "wallet-info-bot", fmt.Sprintf(
+			"*:::[XAGO TRAVEL RULE]:::* \n *Reported rows:* %d,\n *Cap:* %d,\n *Note:* daily volume is near the cap; reports might start deferring records to the next run",
+			len(records), travelRuleReportRowLimit))
+	}
+	return nil
+}
+
+func (a *Activity) ResendTravelRuleReport(ctx context.Context, reportedAt time.Time) error {
+	if a.pgpRecipient == nil {
+		return temporal.NewNonRetryableApplicationError("xago: TravelRulePGPPublicKey is not configured", "TravelRuleConfig", nil)
+	}
+
+	records, err := GetTravelRuleRecordsByReportedAt(ctx, a.b, reportedAt, travelRuleReportRowLimit)
+	if err != nil {
+		return err
+	}
+	if len(records) == 0 {
+		return temporal.NewNonRetryableApplicationError(
+			fmt.Sprintf("xago: no resendable travel rule records for reported_at %s", reportedAt.Format(time.RFC3339Nano)),
+			"TravelRuleResendEmpty", nil)
+	}
+
+	if err = sendTravelRuleReportEmail(ctx, a.b, sendTravelRuleReportEmailArgs{
+		Records:   records,
+		Recipient: a.pgpRecipient,
+		Email:     a.travelRuleEmail,
+	}); err != nil {
+		return err
+	}
+
+	activity.GetLogger(ctx).Info("resent xago travel rule records", "count", len(records), "reported_at", reportedAt.Format(time.RFC3339Nano))
+
+	return nil
+}
+
+func (a *Activity) ClearTravelRuleKYC(ctx context.Context) error {
+	cutoff := time.Now().UTC().Add(-travelRuleKYCRetention)
+	cleared, err := ClearReportedTravelRuleKYC(ctx, a.b, cutoff, time.Now().UTC())
+	if err != nil {
+		return err
+	}
+	activity.GetLogger(ctx).Info("cleared xago travel rule KYC data", "count", cleared, "cutoff", cutoff)
+	return nil
+}
+
+type sendTravelRuleReportEmailArgs struct {
+	Records   []TravelRuleRecord
+	Recipient *openpgp.Entity
+	Email     string
+}
+
+func sendTravelRuleReportEmail(ctx context.Context, b Backends, args sendTravelRuleReportEmailArgs) error {
+	csv, err := buildTravelRuleCSV(args.Records)
+	if err != nil {
+		return temporal.NewNonRetryableApplicationError("build travel rule csv", "TravelRuleEncoding", err)
+	}
+
+	encryptedCsv, err := encryptPGP(csv, args.Recipient)
+	if err != nil {
+		return temporal.NewNonRetryableApplicationError("encrypt travel rule csv", "TravelRuleEncryption", err)
+	}
+
+	return b.Email().SendXagoTravelRuleEmail(ctx, encryptedCsv, args.Email)
+}
+
+func buildTravelRuleCSV(records []TravelRuleRecord) ([]byte, error) {
 	var buf bytes.Buffer
 	w := csv.NewWriter(&buf)
 
@@ -231,7 +317,7 @@ func (a *Activity) BuildTravelRuleCSV(_ context.Context, records []TravelRuleRec
 		return nil, err
 	}
 
-	return encryptPGP(buf.Bytes(), a.pgpRecipient)
+	return buf.Bytes(), nil
 }
 
 func encryptPGP(plaintext []byte, recipient *openpgp.Entity) ([]byte, error) {
@@ -247,29 +333,4 @@ func encryptPGP(plaintext []byte, recipient *openpgp.Entity) ([]byte, error) {
 		return nil, fmt.Errorf("pgp close: %w", err)
 	}
 	return buf.Bytes(), nil
-}
-
-func (a *Activity) SendTravelRuleEmail(ctx context.Context, csvBytes []byte) error {
-	return a.b.Email().SendXagoTravelRuleEmail(ctx, csvBytes, a.travelRuleEmail)
-}
-
-func (a *Activity) MarkTravelRuleRecordsAsReported(ctx context.Context, records []TravelRuleRecord) error {
-	ids := make([]string, len(records))
-	for i, r := range records {
-		ids[i] = r.ID
-	}
-	_, err := a.b.DB().ExecContext(ctx, `
-		UPDATE xago_travel_rule_records SET
-			originator_name           = '',
-			originator_account_id     = '',
-			originator_address        = '',
-			originator_place_of_birth = '',
-			originator_date_of_birth  = '',
-			beneficiary_name          = '',
-			beneficiary_account_id    = '',
-			reported_at               = now()
-		WHERE id = ANY($1::uuid[])`,
-		pq.Array(ids),
-	)
-	return err
 }

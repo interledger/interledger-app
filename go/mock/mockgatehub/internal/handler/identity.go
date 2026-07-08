@@ -43,7 +43,7 @@ func (h *Handler) GetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := models.GetUserResponse{
-		ID:        user.ID,
+		UUID:      user.ID,
 		Email:     user.Email,
 		Activated: user.Activated,
 		Managed:   user.Managed,

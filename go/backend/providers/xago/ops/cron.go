@@ -33,32 +33,54 @@ func StartTravelRuleEmailSending(b ActivityBackends) {
 func TravelRuleEmailWorkflow(ctx workflow.Context) error {
 	var a *Activity
 	ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
-		StartToCloseTimeout: 10 * time.Minute,
+		StartToCloseTimeout: 20 * time.Minute,
 	})
 
 	logger := workflow.GetLogger(ctx)
 	logger.Info("Starting xago travel rule email")
 
-	var records []TravelRuleRecord
-	if err := workflow.ExecuteActivity(ctx, a.GetTravelRuleRecords).Get(ctx, &records); err != nil {
-		return err
+	return workflow.ExecuteActivity(ctx, a.SendTravelRuleReport).Get(ctx, nil)
+}
+
+func StartTravelRuleKYCCleanup(b ActivityBackends) {
+	schedule := "0 1 * * 0"
+	workflowID := "cron_xago_travel_rule_kyc_cleanup"
+	workflowOptions := client.StartWorkflowOptions{
+		ID:                    workflowID,
+		TaskQueue:             "backend",
+		CronSchedule:          schedule,
+		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
 	}
 
-	if len(records) == 0 {
-		logger.Info("No travel rule payments to report")
-		return nil
+	we, err := b.Temporal().ExecuteWorkflow(context.Background(), workflowOptions, TravelRuleKYCCleanupWorkflow)
+	if err != nil {
+		log.Fatal("Unable to execute workflow", zap.Error(err))
 	}
+	log.Info("Started workflow", zap.String("WorkflowID", we.GetID()), zap.String("RunID", we.GetRunID()))
+}
 
-	var csvBytes []byte
-	if err := workflow.ExecuteActivity(ctx, a.BuildTravelRuleCSV, records).Get(ctx, &csvBytes); err != nil {
-		return err
-	}
+func TravelRuleKYCCleanupWorkflow(ctx workflow.Context) error {
+	var a *Activity
+	ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
+		StartToCloseTimeout: 20 * time.Minute,
+	})
 
-	if err := workflow.ExecuteActivity(ctx, a.SendTravelRuleEmail, csvBytes).Get(ctx, nil); err != nil {
-		return err
-	}
+	logger := workflow.GetLogger(ctx)
+	logger.Info("Starting xago travel rule KYC cleanup")
 
-	return workflow.ExecuteActivity(ctx, a.MarkTravelRuleRecordsAsReported, records).Get(ctx, nil)
+	return workflow.ExecuteActivity(ctx, a.ClearTravelRuleKYC).Get(ctx, nil)
+}
+
+func ResendTravelRuleReportWorkflow(ctx workflow.Context, reportedAt time.Time) error {
+	var a *Activity
+	ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
+		StartToCloseTimeout: 20 * time.Minute,
+	})
+
+	logger := workflow.GetLogger(ctx)
+	logger.Info("Resending xago travel rule report", "reported_at", reportedAt)
+
+	return workflow.ExecuteActivity(ctx, a.ResendTravelRuleReport, reportedAt).Get(ctx, nil)
 }
 
 func StartDepositsPolling(b ActivityBackends) {
@@ -69,7 +91,7 @@ func StartDepositsPolling(b ActivityBackends) {
 		ID:                    workflowID,
 		TaskQueue:             "backend",
 		CronSchedule:          schedule,
-		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING, // There can be only one
+		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
 	}
 
 	we, err := b.Temporal().ExecuteWorkflow(context.Background(), workflowOptions, XagoDepositPollWorkflow)
