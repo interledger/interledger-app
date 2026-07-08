@@ -25,7 +25,7 @@ const OpIntPaySchema = z
     for (const [field, value] of required) {
       if (!value) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: 'custom',
           path: [field],
           message: `op_intpay.${field} is required when op_intpay.enabled is true`
         })
