@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"gitlab.com/fynbos/env"
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/backend/config"
+	"github.com/interledger/interledger-app/go/log"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 	"go.uber.org/zap"
@@ -26,13 +26,6 @@ type MigrationParams struct {
 }
 
 func MigrateWalletAddressesToIlpLinkJob(ctx workflow.Context, params MigrateWalletAddressesParams) error {
-	var domainInfo MigrationParams
-	if params.Revert == "true" {
-		domainInfo = getRevertedMigrationParams()
-	} else {
-		domainInfo = getMigrationParams()
-	}
-
 	var a *Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 10 * time.Second,
@@ -41,6 +34,11 @@ func MigrateWalletAddressesToIlpLinkJob(ctx workflow.Context, params MigrateWall
 		},
 	}
 	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	var domainInfo MigrationParams
+	if err := workflow.ExecuteActivity(ctx, a.GetMigrationParamsActivity, params.Revert).Get(ctx, &domainInfo); err != nil {
+		return err
+	}
 	log.Info("Starting job MigrateWalletAddressesToIlpLinkJob update wallet to " + domainInfo.NewWalletAddress)
 
 	if err := executeActivity(ctx, a.UpdateBackendWalletRootToIlpActivity, "backend", domainInfo); err != nil {
@@ -159,7 +157,15 @@ func (a *Activity) UpdateRafikiAuthWalletRootToIlpActivity(ctx context.Context, 
 	return nil
 }
 
-func getMigrationParams() MigrationParams {
+func (a *Activity) GetMigrationParamsActivity(_ context.Context, revert string) (MigrationParams, error) {
+	env := a.b.Config().Environment
+	if revert == "true" {
+		return getRevertedMigrationParams(env), nil
+	}
+	return getMigrationParams(env), nil
+}
+
+func getMigrationParams(env config.EnvironmentConfig) MigrationParams {
 	prod := MigrationParams{
 		CurrentWalletAddress: "fynbos.me",
 		NewWalletAddress:     "ilp.link",
@@ -181,11 +187,11 @@ func getMigrationParams() MigrationParams {
 	local := prod
 
 	switch {
-	case env.IsLocal():
+	case env.IsModeLocal():
 		return local
-	case env.IsDev():
+	case env.IsModeDev():
 		return dev
-	case env.IsProd():
+	case env.IsModeProd():
 		return prod
 	default:
 		log.Error("Environment not set")
@@ -193,7 +199,7 @@ func getMigrationParams() MigrationParams {
 	}
 }
 
-func getRevertedMigrationParams() MigrationParams {
+func getRevertedMigrationParams(env config.EnvironmentConfig) MigrationParams {
 	prod := MigrationParams{
 		CurrentWalletAddress: "ilp.link",
 		NewWalletAddress:     "fynbos.me",
@@ -215,11 +221,11 @@ func getRevertedMigrationParams() MigrationParams {
 	local := prod
 
 	switch {
-	case env.IsLocal():
+	case env.IsModeLocal():
 		return local
-	case env.IsDev():
+	case env.IsModeDev():
 		return dev
-	case env.IsProd():
+	case env.IsModeProd():
 		return prod
 	default:
 		log.Error("Environment not set")

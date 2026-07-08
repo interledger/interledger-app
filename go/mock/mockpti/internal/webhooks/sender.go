@@ -13,8 +13,8 @@ import (
 	"strings"
 	"time"
 
-	"gitlab.com/fynbos/mock/mockpti/internal/logger"
-	"gitlab.com/fynbos/mock/mockpti/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockpti/internal/logger"
+	"github.com/interledger/interledger-app/go/mock/mockpti/internal/models"
 )
 
 // UserAssessmentPayload is the plain webhook body for USER_ASSESSMENT events.

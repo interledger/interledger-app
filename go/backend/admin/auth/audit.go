@@ -7,15 +7,13 @@ import (
 	"fmt"
 	"strings"
 
-	"gitlab.com/fynbos/env"
-
 	"github.com/jmoiron/sqlx"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-func MakeAuditInterceptor(db *sqlx.DB) grpc.ServerOption {
+func MakeAuditInterceptor(db *sqlx.DB, isLocal bool) grpc.ServerOption {
 	return grpc.ChainUnaryInterceptor(func(
 		ctx context.Context,
 		req interface{},
@@ -28,7 +26,7 @@ func MakeAuditInterceptor(db *sqlx.DB) grpc.ServerOption {
 
 		adminUser, ok := ctx.Value(userCtxKey).(*AdminUser)
 		if !ok || adminUser == nil {
-			if !env.IsLocal() {
+			if !isLocal {
 				return nil, ErrNoUserFound
 			}
 			adminUser = &AdminUser{

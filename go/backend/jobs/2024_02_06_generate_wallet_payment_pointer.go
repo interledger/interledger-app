@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/log"
 	"go.uber.org/zap"
 
 	"go.temporal.io/sdk/temporal"

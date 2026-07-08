@@ -31,7 +31,7 @@ func SignRequest(r *http.Request, secret string, body []byte) {
 
 	r.Header.Set("x-gatehub-timestamp", timestamp)
 	r.Header.Set("x-gatehub-signature", signature)
-	r.Header.Set("x-gatehub-app-id", "gitlab.com/fynbos/mock/mockgatehub")
+	r.Header.Set("x-gatehub-app-id", "github.com/interledger/interledger-app/go/mock/mockgatehub")
 }
 
 func buildOutgoingURL(r *http.Request) string {

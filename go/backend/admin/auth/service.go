@@ -9,8 +9,7 @@ import (
 	"github.com/jmoiron/sqlx"
 
 	"github.com/coreos/go-oidc/v3/oidc"
-	"gitlab.com/fynbos/env"
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/log"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -47,11 +46,12 @@ type IDTokenClaims struct {
 type service struct {
 	verifier *oidc.IDTokenVerifier
 	db       *sqlx.DB
+	isLocal  bool
 }
 
-func NewService(policyAud, teamDomain string, db *sqlx.DB) (Service, error) {
+func NewService(policyAud, teamDomain string, db *sqlx.DB, isLocal bool) (Service, error) {
 
-	if !env.IsLocal() {
+	if !isLocal {
 		if policyAud == "" {
 			return nil, fmt.Errorf("%w %s", ErrInvalidArgument, "Policy audience required.")
 		}
@@ -70,10 +70,11 @@ func NewService(policyAud, teamDomain string, db *sqlx.DB) (Service, error) {
 		return &service{
 			verifier: verifier,
 			db:       db,
+			isLocal:  false,
 		}, nil
 	}
 
-	return &service{db: db}, nil
+	return &service{db: db, isLocal: true}, nil
 }
 
 func (s *service) verifyToken(ctx context.Context) (*oidc.IDToken, error) {
@@ -134,7 +135,7 @@ func (s *service) MakeUnaryInterceptors() []grpc.ServerOption {
 			}
 
 			newCtx := ctx
-			if !env.IsLocal() {
+			if !s.isLocal {
 				token, err := s.verifyToken(ctx)
 				if err != nil {
 					return nil, status.Error(codes.Unauthenticated, "token not verified")
@@ -154,6 +155,6 @@ func (s *service) MakeUnaryInterceptors() []grpc.ServerOption {
 
 			return handler(newCtx, req)
 		}),
-		MakeAuditInterceptor(s.db),
+		MakeAuditInterceptor(s.db, s.isLocal),
 	}
 }

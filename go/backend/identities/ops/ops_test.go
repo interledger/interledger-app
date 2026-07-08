@@ -4,24 +4,32 @@ import (
 	"context"
 	"testing"
 
-	"gitlab.com/fynbos/backend/kyc"
-	"gitlab.com/fynbos/backend/linkedaccounts"
+	"github.com/interledger/interledger-app/go/backend/config"
+	"github.com/interledger/interledger-app/go/backend/kyc"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
 
 	"github.com/google/uuid"
+	"github.com/interledger/interledger-app/go/backend/db"
+	"github.com/interledger/interledger-app/go/backend/identities"
+	"github.com/interledger/interledger-app/go/backend/identities/ops"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/identities"
-	"gitlab.com/fynbos/backend/identities/ops"
-	"gitlab.com/fynbos/env"
 )
+
+const testOpenPaymentsURL = "https://local.ilp.link"
+
+func testCfg() *config.StartConfig {
+	return &config.StartConfig{
+		Environment:         config.EnvironmentConfig{Mode: "test"},
+		OpenPaymentsBaseURL: testOpenPaymentsURL,
+	}
+}
 
 func TestAdd(t *testing.T) {
 	ctx := context.Background()
-	db := db.MigrateTestDB(t, ctx)
-	b := ops.NewTestBackends(t, db)
+	db := db.MigrateTestDB(t, ctx, "")
+	b := ops.NewTestBackends(t, db, testCfg())
 
-	env.SetEnv(t, "local")
 
 	// Publicly visible
 	_, err := ops.Add(ctx, b, identities.AddArgs{
@@ -34,10 +42,9 @@ func TestAdd(t *testing.T) {
 
 func TestList(t *testing.T) {
 	ctx := context.Background()
-	db := db.MigrateTestDB(t, ctx)
-	b := ops.NewTestBackends(t, db)
+	db := db.MigrateTestDB(t, ctx, "")
+	b := ops.NewTestBackends(t, db, testCfg())
 
-	env.SetEnv(t, "local")
 
 	walletID := uuid.NewString()
 	// Publicly visible
@@ -77,12 +84,11 @@ func TestList(t *testing.T) {
 
 func TestDelete(t *testing.T) {
 	ctx := context.Background()
-	db := db.MigrateTestDB(t, ctx)
-	b := ops.NewTestBackends(t, db)
+	db := db.MigrateTestDB(t, ctx, "")
+	b := ops.NewTestBackends(t, db, testCfg())
 
 	walletID := uuid.NewString()
 
-	env.SetEnv(t, "local")
 
 	// Publicly visible
 	iv, err := ops.Add(ctx, b, identities.AddArgs{
@@ -104,12 +110,11 @@ func TestDelete(t *testing.T) {
 
 func TestSetPublic(t *testing.T) {
 	ctx := context.Background()
-	db := db.MigrateTestDB(t, ctx)
-	b := ops.NewTestBackends(t, db)
+	db := db.MigrateTestDB(t, ctx, "")
+	b := ops.NewTestBackends(t, db, testCfg())
 
 	walletID := uuid.NewString()
 
-	env.SetEnv(t, "local")
 
 	// Publicly visible
 	iv, err := ops.Add(ctx, b, identities.AddArgs{
@@ -130,12 +135,11 @@ func TestSetPublic(t *testing.T) {
 
 func TestVerified(t *testing.T) {
 	ctx := context.Background()
-	db := db.MigrateTestDB(t, ctx)
-	b := ops.NewTestBackends(t, db)
+	db := db.MigrateTestDB(t, ctx, "")
+	b := ops.NewTestBackends(t, db, testCfg())
 
 	walletID := uuid.NewString()
 
-	env.SetEnv(t, "local")
 
 	// Publicly visible
 	iv, err := ops.Add(ctx, b, identities.AddArgs{
@@ -162,12 +166,11 @@ func TestVerified(t *testing.T) {
 
 func TestGetBySignatureHash(t *testing.T) {
 	ctx := context.Background()
-	db := db.MigrateTestDB(t, ctx)
-	b := ops.NewTestBackends(t, db)
+	db := db.MigrateTestDB(t, ctx, "")
+	b := ops.NewTestBackends(t, db, testCfg())
 
 	walletID := uuid.NewString()
 
-	env.SetEnv(t, "local")
 
 	// Publicly visible
 	iv, err := ops.Add(ctx, b, identities.AddArgs{
@@ -185,12 +188,11 @@ func TestGetBySignatureHash(t *testing.T) {
 
 func TestGetByIdentifier(t *testing.T) {
 	ctx := context.Background()
-	db := db.MigrateTestDB(t, ctx)
-	b := ops.NewTestBackends(t, db)
+	db := db.MigrateTestDB(t, ctx, "")
+	b := ops.NewTestBackends(t, db, testCfg())
 
 	walletID := uuid.NewString()
 
-	env.SetEnv(t, "local")
 
 	// Publicly visible
 	iv, err := ops.Add(ctx, b, identities.AddArgs{
@@ -211,10 +213,9 @@ func TestGetByIdentifier(t *testing.T) {
 
 func TestSearch(t *testing.T) {
 	ctx := context.Background()
-	db := db.MigrateTestDB(t, ctx)
-	b := ops.NewTestBackends(t, db)
+	db := db.MigrateTestDB(t, ctx, "")
+	b := ops.NewTestBackends(t, db, testCfg())
 
-	env.SetEnv(t, "local")
 	walletID := uuid.NewString()
 
 	_, err := b.DB().ExecContext(ctx, "INSERT INTO wallets (id, name) VALUES ($1, $2)", walletID, "warmer")
@@ -224,7 +225,7 @@ func TestSearch(t *testing.T) {
 		walletID, "warmer", "1234", "testing", "card", uuid.NewString(), linkedaccounts.Verified, true)
 
 	b.DB().MustExecContext(ctx, "INSERT INTO wallet_addresses (wallet_id, url) VALUES ($1, $2)",
-		walletID, env.OpenPaymentsURL()+"/notking")
+		walletID, testOpenPaymentsURL+"/notking")
 
 	// add approved KYC
 	b.DB().MustExecContext(ctx, "INSERT INTO  wallet_kyc_status (wallet_id, status, created_at, updated_at) VALUES ($1, $2, NOW(), NOW())",
@@ -251,11 +252,11 @@ func TestSearch(t *testing.T) {
 	assert.Equal(t, "wallet", res[0].IdentifierType)
 	assert.Equal(t, "warmer", res[0].Identifier)
 	assert.Equal(t, 0.5, res[0].Rank)
-	assert.Equal(t, env.OpenPaymentsURL()+"/notking", res[0].WalletUrl)
+	assert.Equal(t, testOpenPaymentsURL+"/notking", res[0].WalletUrl)
 	assert.Equal(t, string(identities.PlatformTwitter), res[0].SubResults[0].IdentifierType)
 	assert.Equal(t, "king_cold", res[0].SubResults[0].Identifier)
 	assert.Equal(t, 0.5, res[0].SubResults[0].Rank)
-	assert.Equal(t, env.OpenPaymentsURL()+"/notking", res[0].SubResults[0].WalletUrl)
+	assert.Equal(t, testOpenPaymentsURL+"/notking", res[0].SubResults[0].WalletUrl)
 
 	// Can't search for yourself
 	res, err = ops.Search(ctx, b, walletID, "cold")
@@ -269,11 +270,11 @@ func TestSearch(t *testing.T) {
 	assert.Equal(t, "wallet", res[0].IdentifierType)
 	assert.Equal(t, "warmer", res[0].Identifier)
 	assert.Equal(t, float64(1), res[0].Rank)
-	assert.Equal(t, env.OpenPaymentsURL()+"/notking", res[0].WalletUrl)
+	assert.Equal(t, testOpenPaymentsURL+"/notking", res[0].WalletUrl)
 	assert.Equal(t, string(identities.PlatformTwitter), res[0].SubResults[0].IdentifierType)
 	assert.Equal(t, "king_cold", res[0].SubResults[0].Identifier)
 	assert.Equal(t, float64(1), res[0].SubResults[0].Rank)
-	assert.Equal(t, env.OpenPaymentsURL()+"/notking", res[0].SubResults[0].WalletUrl)
+	assert.Equal(t, testOpenPaymentsURL+"/notking", res[0].SubResults[0].WalletUrl)
 
 	// Search payment pointer
 	res, err = ops.Search(ctx, b, uuid.NewString(), "notking")
@@ -282,7 +283,7 @@ func TestSearch(t *testing.T) {
 	assert.Equal(t, string("wallet"), res[0].IdentifierType)
 	assert.Equal(t, "warmer", res[0].Identifier)
 	assert.Equal(t, string("wallet_url"), res[0].SubResults[0].IdentifierType)
-	assert.Equal(t, env.OpenPaymentsURL()+"/notking", res[0].SubResults[0].Identifier)
+	assert.Equal(t, testOpenPaymentsURL+"/notking", res[0].SubResults[0].Identifier)
 
 	// Now for a grouping, wallet and twitter name matches so group em
 	_, err = b.DB().ExecContext(ctx, "UPDATE wallets SET name=$1 WHERE id = $2", "cold_iron", walletID)

@@ -68,9 +68,11 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     )
   }
 
+  // TODO: refactor this wallet info fetching logic to be more generic and reusable across the app
   const walletUrl =
     transaction.type == 'sent' ||
-    transaction.type == 'web_monetization_outgoing'
+    transaction.type == 'web_monetization_outgoing' ||
+    transaction.type == 'open_payments_outgoing'
       ? transaction.destination
       : transaction.source
   const publicWalletInfoResponse = await grpc.getPublicWalletInfo(request, {
@@ -163,7 +165,8 @@ export const meta = mergeMeta(({ data }) => {
           ? 'Payment'
           : // TODO Fix this for withdrawal
             d.transaction.type == 'sent' ||
-              d.transaction.type == 'web_monetization_outgoing'
+              d.transaction.type == 'web_monetization_outgoing' ||
+              d.transaction.type == 'open_payments_outgoing'
             ? `${d.transaction.subtotal} to ${d.transaction.title}`
             : `${d.transaction.formattedAmount} from ${d.transaction.title}`
     }
@@ -179,11 +182,13 @@ export default function Page() {
   return (
     <>
       {(transaction.type == 'sent' ||
-        transaction.type == 'web_monetization_outgoing') && (
+        transaction.type == 'web_monetization_outgoing' ||
+        transaction.type == 'open_payments_outgoing') && (
         <Sent openDialog={() => setShowDialog(true)} />
       )}
       {(transaction.type == 'received' ||
-        transaction.type == 'web_monetization_incoming') && (
+        transaction.type == 'web_monetization_incoming' ||
+        transaction.type == 'open_payments_incoming') && (
         <Received openDialog={() => setShowDialog(true)} />
       )}
       {transaction.type == 'card_transaction' && <CardTransaction />}
@@ -281,12 +286,24 @@ function Withdrawal() {
           </div>
         </CardContent>
         <Label className='mt-2'>Withdrawal to</Label>
-        <div className='my-1 flex space-x-2 rounded-xl bg-nav p-3'>
-          <div className='flex w-full items-center justify-between text-medium'>
-            <div className='flex space-x-2'>
-              <Icon>account_balance</Icon>
-              <span>{receiverAccountTitle}</span>
-            </div>
+        <div className='my-1 rounded-xl bg-nav p-3'>
+          <div className='flex flex-col'>
+            {transaction.recipientIban ? (
+              <>
+                {transaction.recipientName && (
+                  <span className='text-sm text-medium'>
+                    {transaction.recipientName}
+                  </span>
+                )}
+                <span className='text-xs text-weak'>
+                  IBAN: {transaction.recipientIban}
+                </span>
+              </>
+            ) : (
+              <span className='text-sm text-medium'>
+                {receiverAccountTitle}
+              </span>
+            )}
           </div>
         </div>
       </Card>
@@ -382,7 +399,9 @@ function Withdrawal() {
           <CardContent>
             <div className='mt-2 flex w-full justify-between'>
               <span className='text-weak'>Withdrawal from</span>
-              <span className='text-medium'>{senderAccountTitle}</span>
+              <span className='text-medium'>
+                {senderAccountTitle ?? transaction.accountTitle}
+              </span>
             </div>
             <div className='mt-2 flex w-full justify-between'>
               <span className='text-weak'>Fees</span>
@@ -392,6 +411,14 @@ function Withdrawal() {
               <span className='text-weak'>Net amount</span>
               <span className='text-medium'>{transaction.fundsReceived}</span>
             </div>
+            {transaction.paymentChannel && (
+              <div className='mt-2 flex w-full justify-between'>
+                <span className='text-weak'>Payment channel</span>
+                <span className='text-medium'>
+                  {transaction.paymentChannel}
+                </span>
+              </div>
+            )}
             {statement ? (
               <div className='mt-2 flex w-full justify-between font-medium'>
                 <span className='text-weak'>Statement </span>
@@ -418,7 +445,11 @@ function Withdrawal() {
         <Card>
           <CardContent>
             <div className='flex w-full flex-col space-y-1'>
-              <span className='text-weak'>Withdraw note</span>
+              <span className='text-weak'>
+                {transaction.paymentChannel === 'SEPA'
+                  ? 'SEPA Reference'
+                  : 'Withdraw note'}
+              </span>
               <span className='text-medium'>{transaction.reference}</span>
             </div>
           </CardContent>
@@ -637,8 +668,8 @@ function Sent({ openDialog }: { openDialog: () => void }) {
           <AlertContent>
             <AlertTitle>Web monetization</AlertTitle>
             <AlertBody>
-              Payments for the web monetized sites you support are consolidated
-              and refreshed daily.
+              This is an automatic Web Monetization payment supporting a site
+              you visited.
             </AlertBody>
           </AlertContent>
         </Alert>
@@ -810,8 +841,8 @@ function Received({ openDialog }: { openDialog: () => void }) {
           <AlertContent>
             <AlertTitle>Web monetization</AlertTitle>
             <AlertBody>
-              Payments for the web monetized sites you support are consolidated
-              and refreshed daily.
+              This is an automatic Web Monetization payment from someone
+              supporting your content.
             </AlertBody>
           </AlertContent>
         </Alert>

@@ -4,33 +4,35 @@ import (
 	"context"
 	"testing"
 
-	"gitlab.com/fynbos/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/payments"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/interledger/interledger-app/go/backend/config"
 	"github.com/golang/mock/gomock"
+	"github.com/interledger/interledger-app/go/backend/analytics"
+	analytics_client "github.com/interledger/interledger-app/go/backend/analytics/client"
+	"github.com/interledger/interledger-app/go/backend/features"
+	"github.com/interledger/interledger-app/go/backend/images"
+	images_mock "github.com/interledger/interledger-app/go/backend/images/client/mock"
+	"github.com/interledger/interledger-app/go/backend/keys"
+	keys_mock "github.com/interledger/interledger-app/go/backend/keys/client/mock"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	"github.com/interledger/interledger-app/go/backend/notify"
+	notify_mock "github.com/interledger/interledger-app/go/backend/notify/client/mock"
+	payments_mock "github.com/interledger/interledger-app/go/backend/payments/client/mock"
+	"github.com/interledger/interledger-app/go/backend/transactions"
+	"github.com/interledger/interledger-app/go/backend/twilio"
+	"github.com/interledger/interledger-app/go/backend/twitter"
+	twitter_mock "github.com/interledger/interledger-app/go/backend/twitter/client/mock"
+	"github.com/interledger/interledger-app/go/backend/user"
+	"github.com/interledger/interledger-app/go/backend/wallets"
+	wallets_mock "github.com/interledger/interledger-app/go/backend/wallets/client/mock"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/fynbos/backend/analytics"
-	analytics_client "gitlab.com/fynbos/backend/analytics/client"
-	"gitlab.com/fynbos/backend/features"
-	"gitlab.com/fynbos/backend/images"
-	images_mock "gitlab.com/fynbos/backend/images/client/mock"
-	"gitlab.com/fynbos/backend/keys"
-	keys_mock "gitlab.com/fynbos/backend/keys/client/mock"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/notify"
-	notify_mock "gitlab.com/fynbos/backend/notify/client/mock"
-	payments_mock "gitlab.com/fynbos/backend/payments/client/mock"
-	"gitlab.com/fynbos/backend/transactions"
-	"gitlab.com/fynbos/backend/twilio"
-	"gitlab.com/fynbos/backend/twitter"
-	twitter_mock "gitlab.com/fynbos/backend/twitter/client/mock"
-	"gitlab.com/fynbos/backend/user"
-	"gitlab.com/fynbos/backend/wallets"
-	wallets_mock "gitlab.com/fynbos/backend/wallets/client/mock"
 	temporal "go.temporal.io/sdk/client"
 )
 
 type Backends interface {
+	Config() *config.StartConfig
 	Twitter() twitter.Client
 	Validator() *validator.Validate
 	DB() *sqlx.DB
@@ -44,6 +46,7 @@ type Backends interface {
 }
 
 type testBackends struct {
+	cfg *config.StartConfig
 	db  *sqlx.DB
 	val *validator.Validate
 	an  analytics.Client
@@ -53,6 +56,10 @@ type testBackends struct {
 	wc  wallets.Client
 	nc  notify.Client
 	pc  payments.Client
+}
+
+func (t testBackends) Config() *config.StartConfig {
+	return t.cfg
 }
 
 func (t testBackends) Payments() payments.Client {
@@ -115,7 +122,7 @@ func (t testBackends) Notify() notify.Client {
 	return t.nc
 }
 
-func NewTestBackends(t *testing.T, db *sqlx.DB) *testBackends {
+func NewTestBackends(t *testing.T, db *sqlx.DB, cfg *config.StartConfig) *testBackends {
 	ctrl := gomock.NewController(t)
 	kc := keys_mock.NewMockClient(ctrl)
 	tc := twitter_mock.NewMockClient(ctrl)
@@ -145,5 +152,5 @@ func NewTestBackends(t *testing.T, db *sqlx.DB) *testBackends {
 	kc.EXPECT().Sign(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return([]byte{}, nil).AnyTimes()
 	pc.EXPECT().SignalIdentityCreated(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 
-	return &testBackends{db: db, val: validator.New(), an: analytics_client.New(nil, ""), kc: kc, tc: tc, img: img, wc: wc, nc: nc, pc: pc}
+	return &testBackends{cfg: cfg, db: db, val: validator.New(), an: analytics_client.New(nil, ""), kc: kc, tc: tc, img: img, wc: wc, nc: nc, pc: pc}
 }

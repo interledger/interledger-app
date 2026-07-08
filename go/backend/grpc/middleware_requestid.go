@@ -3,7 +3,7 @@ package grpc
 import (
 	"context"
 
-	"gitlab.com/fynbos/backend/appcontext"
+	"github.com/interledger/interledger-app/go/backend/appcontext"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"

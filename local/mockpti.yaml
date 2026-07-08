@@ -14,19 +14,10 @@ services:
       - "traefik.http.routers.mockpti.entrypoints=websecure"
       - "traefik.http.services.mockpti.loadbalancer.server.port=8080"
     environment:
-      LOG_LEVEL: debug
-
-      # Storage configuration
-      MOCKPTI_REDIS_URL: redis://redis:6379
-      MOCKPTI_REDIS_DB: '5'
-
-      # Provider auth compatibility
-      MOCKPTI_CLIENT_ID: ${BACKEND_PTI_CLIENT_ID:-04d3e1b5-96d4-47e4-9eaa-13e9b4b0f219}
-
-      # Webhook configuration
-      MOCKPTI_WEBHOOK_URL: http://backend:8080/webhooks/pti
-      WEBHOOK_MIN_DELAY_SEC: '0.2'
-      MOCKPTI_WEBHOOK_SIGNING_KEY_B64: ${MOCKPTI_WEBHOOK_SIGNING_KEY_B64:-LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1DNENBUUF3QlFZREsyVndCQ0lFSU80OUk0ZmtpcnRuRUtneGNac1RvVE85eTVGUzZzUmRkam1PaWsxN1FoVlMKLS0tLS1FTkQgUFJJVkFURSBLRVktLS0tLQo=}
+      - CONFIG=/etc/mockpti/config.yaml,/etc/mockpti/config-override.yaml
+    volumes:
+      - ./config/mockpti.yaml:/etc/mockpti/config.yaml:ro
+      - ./config-override/mockpti.yaml:/etc/mockpti/config-override.yaml:ro
 
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]

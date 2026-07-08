@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/interledger/interledger-app/go/backend/appcontext"
 	"github.com/stretchr/testify/assert"
-	"gitlab.com/fynbos/backend/appcontext"
 )
 
 func TestRequestIDMiddleware(t *testing.T) {

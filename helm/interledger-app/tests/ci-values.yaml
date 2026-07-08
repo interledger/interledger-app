@@ -16,13 +16,16 @@ backend:
       identity_base_url: "https://ci-id.xago.example.com"
       exchange_base_url: "https://ci-exchange.xago.example.com"
       policy_id: "ci-policy-id"
-    apple_app_id: "com.ci.example"
-    android_package_name: "com.ci.example"
-    android_sha256: "ci-sha256"
+    mobile:
+      apple_app_id: "com.ci.example"
+      android_package_name: "com.ci.example"
+      android_sha256: "ci-sha256"
     gatehub:
       enabled: "false"
     pti:
       enabled: "false"
+    sendgrid:
+      support_email: "support@ci.interledger.example"
 
 frontend:
   config:

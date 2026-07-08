@@ -9,8 +9,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"gitlab.com/fynbos/mock/mockchimoney/internal/config"
-	"gitlab.com/fynbos/mock/mockchimoney/internal/storage"
+	"github.com/interledger/interledger-app/go/mock/mockchimoney/internal/config"
+	"github.com/interledger/interledger-app/go/mock/mockchimoney/internal/storage"
 )
 
 type apiResponse struct {

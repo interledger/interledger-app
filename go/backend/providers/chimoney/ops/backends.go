@@ -1,18 +1,20 @@
 package ops
 
 import (
+	"github.com/interledger/interledger-app/go/backend/config"
+	"github.com/interledger/interledger-app/go/backend/email"
+	"github.com/interledger/interledger-app/go/backend/kyc"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	"github.com/interledger/interledger-app/go/backend/transactions"
+	"github.com/interledger/interledger-app/go/backend/user"
+	"github.com/interledger/interledger-app/go/backend/wallets"
+	"github.com/interledger/interledger-app/go/pacioli"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/fynbos/backend/email"
-	"gitlab.com/fynbos/backend/kyc"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/transactions"
-	"gitlab.com/fynbos/backend/user"
-	"gitlab.com/fynbos/backend/wallets"
-	"gitlab.com/fynbos/pacioli"
 	temporal "go.temporal.io/sdk/client"
 )
 
 type Backends interface {
+	Config() *config.StartConfig
 	DB() *sqlx.DB
 	LinkedAccounts() linkedaccounts.Client
 	Users() user.Client

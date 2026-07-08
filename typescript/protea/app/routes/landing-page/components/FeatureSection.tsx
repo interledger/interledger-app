@@ -70,7 +70,11 @@ export function FeatureSection({
           {body}
         </motion.p>
       )}
-      {widget && <motion.div variants={childVariants}>{widget}</motion.div>}
+      {widget && (
+        <motion.div variants={childVariants} className='feature-col__widget'>
+          {widget}
+        </motion.div>
+      )}
       {visual && <motion.div variants={childVariants}>{visual}</motion.div>}
     </motion.div>
   )

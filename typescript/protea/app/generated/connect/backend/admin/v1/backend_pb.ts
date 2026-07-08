@@ -1558,9 +1558,9 @@ export class Features extends Message<Features> {
   accountsTabEnabled = false;
 
   /**
-   * @generated from field: bool xagoGatehubPaymentsEnabled = 14;
+   * @generated from field: bool deleteAccountEnabled = 14;
    */
-  xagoGatehubPaymentsEnabled = false;
+  deleteAccountEnabled = false;
 
   constructor(data?: PartialMessage<Features>) {
     super();
@@ -1583,7 +1583,7 @@ export class Features extends Message<Features> {
     { no: 11, name: "manageWalletCardsEnabled", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 12, name: "accountEnabled", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 13, name: "accountsTabEnabled", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-    { no: 14, name: "xagoGatehubPaymentsEnabled", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 14, name: "deleteAccountEnabled", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Features {

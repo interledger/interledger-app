@@ -304,7 +304,7 @@ func (sc *E2EContext) getTOTPSecretForEmail(email string) (string, error) {
 	}
 
 	client := &http.Client{Timeout: 30 * time.Second}
-	listReq, err := http.NewRequestWithContext(context.Background(), "GET", kratosAdminURL+"/admin/identities", nil)
+	listReq, err := http.NewRequestWithContext(context.Background(), "GET", kratosAdminURL+"/admin/identities?include_credential=totp", nil)
 	if err != nil {
 		return "", fmt.Errorf("failed to build request: %w", err)
 	}
@@ -329,13 +329,13 @@ func (sc *E2EContext) getTOTPSecretForEmail(email string) (string, error) {
 		traits := identity.Traits
 		if v, ok := traits["email"]; ok {
 			if s, ok2 := v.(string); ok2 && s == email {
-				// Found the identity, extract TOTP secret from credentials
+				// Kratos returns the secret embedded in config.totp_url (otpauth:// URL).
 				if creds, ok := identity.Credentials["totp"]; ok {
 					if credMap, ok := creds.(map[string]interface{}); ok {
 						if config, ok := credMap["config"]; ok {
 							if configMap, ok := config.(map[string]interface{}); ok {
-								if secret, ok := configMap["secret"]; ok {
-									if secretStr, ok := secret.(string); ok && secretStr != "" {
+								if totpURL, ok := configMap["totp_url"].(string); ok && totpURL != "" {
+									if secretStr, err := extractSecretFromURL(totpURL); err == nil && secretStr != "" {
 										debugPrintf("✓ Retrieved TOTP secret for %s\n", email)
 										return secretStr, nil
 									}

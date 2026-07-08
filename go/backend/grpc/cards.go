@@ -7,11 +7,11 @@ import (
 	"strings"
 	"sync"
 
-	"gitlab.com/fynbos/backend/country"
-	"gitlab.com/fynbos/backend/providers/gatehub"
-	"gitlab.com/fynbos/backend/providers/gatehub/external"
-	"gitlab.com/fynbos/log"
-	pb "gitlab.com/fynbos/proto/backend/v1"
+	"github.com/interledger/interledger-app/go/backend/country"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub/external"
+	"github.com/interledger/interledger-app/go/log"
+	pb "github.com/interledger/interledger-app/go/proto/backend/v1"
 	"go.uber.org/zap"
 )
 

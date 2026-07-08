@@ -3,7 +3,7 @@ package grpc
 import (
 	"context"
 
-	pb "gitlab.com/fynbos/proto/backend/v1"
+	pb "github.com/interledger/interledger-app/go/proto/backend/v1"
 )
 
 func (s *rpcService) ListFeatures(ctx context.Context, _ *pb.Empty) (*pb.Features, error) {
@@ -34,6 +34,7 @@ func (s *rpcService) ListFeatures(ctx context.Context, _ *pb.Empty) (*pb.Feature
 		InteracEnabled:           feat.InteraccEnabled,
 		ManageWalletCardsEnabled: feat.ManageWalletCardsEnabled,
 		AccountEnabled:           feat.AccountEnabled,
-		AccountsTabEnabled:          feat.AccountsTabEnabled,
+		AccountsTabEnabled:       feat.AccountsTabEnabled,
+		DeleteAccountEnabled:     feat.DeleteAccountEnabled,
 	}, nil
 }

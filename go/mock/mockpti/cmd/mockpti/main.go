@@ -21,11 +21,11 @@ import (
 	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
 
-	"gitlab.com/fynbos/mock/mockpti/internal/config"
-	"gitlab.com/fynbos/mock/mockpti/internal/handler"
-	"gitlab.com/fynbos/mock/mockpti/internal/jobs"
-	"gitlab.com/fynbos/mock/mockpti/internal/logger"
-	"gitlab.com/fynbos/mock/mockpti/internal/storage"
+	"github.com/interledger/interledger-app/go/mock/mockpti/internal/config"
+	"github.com/interledger/interledger-app/go/mock/mockpti/internal/handler"
+	"github.com/interledger/interledger-app/go/mock/mockpti/internal/jobs"
+	"github.com/interledger/interledger-app/go/mock/mockpti/internal/logger"
+	"github.com/interledger/interledger-app/go/mock/mockpti/internal/storage"
 )
 
 func main() {
@@ -37,16 +37,6 @@ func main() {
 }
 
 func runServer() {
-	b64Key := os.Getenv("MOCKPTI_WEBHOOK_SIGNING_KEY_B64")
-	if b64Key == "" {
-		fmt.Fprintln(os.Stderr, "fatal: MOCKPTI_WEBHOOK_SIGNING_KEY_B64 is required")
-		os.Exit(1)
-	}
-	if _, err := base64.StdEncoding.DecodeString(b64Key); err != nil {
-		fmt.Fprintf(os.Stderr, "fatal: MOCKPTI_WEBHOOK_SIGNING_KEY_B64 is not valid base64: %v\n", err)
-		os.Exit(1)
-	}
-
 	cfg := config.Load()
 
 	if err := logger.Initialize(cfg.LogLevel); err != nil {

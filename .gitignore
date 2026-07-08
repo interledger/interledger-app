@@ -16,8 +16,6 @@
 # VScode workspace files
 *.code-workspace
 
-.fynbos/**
-
 /node_modules
 typescript/**/node_modules
 
@@ -25,6 +23,9 @@ typescript/**/node_modules
 testmigrations
 documentation/site
 coverage.out
+
+# go test -c artifacts
+*.test
 
 .env
 

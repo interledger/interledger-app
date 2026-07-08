@@ -7,7 +7,7 @@ import (
 
 	"github.com/fogleman/gg"
 	"github.com/golang/freetype/truetype"
-	"gitlab.com/fynbos/backend/images"
+	"github.com/interledger/interledger-app/go/backend/images"
 )
 
 func GenerateTwitterImage(_ context.Context, a images.Assets, _ Backends, walletUrl, identifier string) ([]byte, error) {

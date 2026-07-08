@@ -72,7 +72,7 @@ func TestSignRequest_SetsHeaders(t *testing.T) {
 
 	assert.NotEmpty(t, req.Header.Get("x-gatehub-timestamp"))
 	assert.NotEmpty(t, req.Header.Get("x-gatehub-signature"))
-	assert.Equal(t, "gitlab.com/fynbos/mock/mockgatehub", req.Header.Get("x-gatehub-app-id"))
+	assert.Equal(t, "github.com/interledger/interledger-app/go/mock/mockgatehub", req.Header.Get("x-gatehub-app-id"))
 
 	// Signature should be valid
 	ts := req.Header.Get("x-gatehub-timestamp")

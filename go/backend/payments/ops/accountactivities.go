@@ -5,9 +5,9 @@ import (
 
 	"github.com/google/uuid"
 
-	"gitlab.com/fynbos/backend/providers/xago"
+	"github.com/interledger/interledger-app/go/backend/providers/xago"
 
-	"gitlab.com/fynbos/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/payments"
 )
 
 func (a *Activity) WithdrawFromXagoBalance(ctx context.Context, paymentID string) (string, error) {

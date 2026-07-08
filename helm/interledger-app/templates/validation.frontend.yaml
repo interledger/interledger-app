@@ -21,4 +21,23 @@
   {{- fail (printf "The following required frontend values are empty: %s" (join ", " $missingFields)) -}}
 {{- end -}}
 
+{{- if .Values.frontend.config.op_intpay.enabled -}}
+{{- $requiredIntPayFields := list
+  (dict "path" "frontend.config.op_intpay.host"           "value" .Values.frontend.config.op_intpay.host)
+  (dict "path" "frontend.config.op_intpay.redirect_url"   "value" .Values.frontend.config.op_intpay.redirect_url)
+  (dict "path" "frontend.config.op_intpay.wallet_address" "value" .Values.frontend.config.op_intpay.wallet_address)
+-}}
+
+{{- $missingIntPayFields := list -}}
+{{- range $requiredIntPayFields -}}
+  {{- if eq (trim (default "" .value)) "" -}}
+    {{- $missingIntPayFields = append $missingIntPayFields .path -}}
+  {{- end -}}
+{{- end -}}
+
+{{- if gt (len $missingIntPayFields) 0 -}}
+  {{- fail (printf "The following frontend values are required when frontend.config.op_intpay.enabled is true: %s" (join ", " $missingIntPayFields)) -}}
+{{- end -}}
+{{- end -}}
+
 {{- end -}}

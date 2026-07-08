@@ -8,7 +8,7 @@ import (
 	"github.com/playwright-community/playwright-go"
 )
 
-// iWithdrawViaPTIWithdrawForm fills the fynbos withdrawal form (amount + linked bank account)
+// iWithdrawViaPTIWithdrawForm fills the ILP withdrawal form (amount + linked bank account)
 // and completes the PTI confirm step at /withdraw/:paymentId.
 func (sc *E2EContext) iWithdrawViaPTIWithdrawForm(amount, currency string) error {
 	debugPrintf("\n💸 Withdrawing %s %s via PTI withdraw form...\n", amount, currency)

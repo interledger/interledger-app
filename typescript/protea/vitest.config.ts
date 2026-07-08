@@ -12,7 +12,8 @@ export default defineConfig({
     environment: 'jsdom',
     // setupFiles: ['./test/setup-test-env.ts'],
     include: ['./**/*.test.{ts,tsx}'],
-    exclude: ['.*\\/node_modules\\/.*', '.*\\/build\\/.*'],
+    exclude: ['**/node_modules/**', '**/build/**'],
+    passWithNoTests: true,
     env: {
       SESSION_SECRET: 'foobar'
     }

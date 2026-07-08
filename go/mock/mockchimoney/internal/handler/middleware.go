@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	"gitlab.com/fynbos/mock/mockchimoney/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockchimoney/internal/models"
 )
 
 // APIKeyMiddleware validates the X-API-KEY header for protected endpoints.

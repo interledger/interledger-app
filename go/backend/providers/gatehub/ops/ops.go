@@ -12,15 +12,15 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/payments"
-	"gitlab.com/fynbos/backend/providers/gatehub"
-	"gitlab.com/fynbos/backend/providers/gatehub/external"
-	"gitlab.com/fynbos/backend/slack"
-	"gitlab.com/fynbos/backend/transactions"
-	"gitlab.com/fynbos/env"
-	"gitlab.com/fynbos/pacioli"
+	"github.com/interledger/interledger-app/go/backend/config"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	"github.com/interledger/interledger-app/go/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub/external"
+	"github.com/interledger/interledger-app/go/backend/slack"
+	"github.com/interledger/interledger-app/go/backend/transactions"
+	"github.com/interledger/interledger-app/go/pacioli"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/serviceerror"
 	"go.temporal.io/sdk/client"
@@ -449,6 +449,9 @@ func AssignBalance(ctx context.Context, b Backends, linkedAccountID, txID string
 		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
 	}
 	if len(tx) != 0 {
+		if tx[0].Code == pacioli.TransferExists {
+			return nil, nil
+		}
 		if tx[0].Code == pacioli.TransferExceedsCredits || tx[0].Code == pacioli.TransferExceedsDebits || tx[0].Code == pacioli.TransferExceedsPendingTransferAmount {
 			return nil, fmt.Errorf("%w insufficient balance cod (%s)", gatehub.ErrInsufficientBalance, tx[0].Code.String())
 		}
@@ -473,29 +476,45 @@ func AssignBalance(ctx context.Context, b Backends, linkedAccountID, txID string
 }
 
 func CreateTransfer(ctx context.Context, b Backends, ec external.Client, args gatehub.CreateTransferArgs) (*external.Transaction, error) {
-	sendLA, err := b.LinkedAccounts().Get(ctx, args.SendingLinkedAccountID)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	var sendingAddress, sendingUser string
+
+	if args.SendingLinkedAccountID != "" {
+		sendLA, err := b.LinkedAccounts().Get(ctx, args.SendingLinkedAccountID)
+		if err != nil {
+			return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+		}
+		sendingAddress = sendLA.ProviderID
+		sendingUser, err = getExternalUserID(ctx, b, sendLA.WalletID)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		sendingAddress = args.SendingAddress
 	}
 
-	recvLA, err := b.LinkedAccounts().Get(ctx, args.ReceivingLinkedAccountID)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
-	}
+	var receivingAddress string
+	message := args.Message
 
-	recvWallet, err := b.Wallets().Get(ctx, recvLA.WalletID)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
-	}
-
-	sendingUser, err := getExternalUserID(ctx, b, sendLA.WalletID)
-	if err != nil {
-		return nil, err
+	if args.ReceivingLinkedAccountID != "" {
+		recvLA, err := b.LinkedAccounts().Get(ctx, args.ReceivingLinkedAccountID)
+		if err != nil {
+			return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+		}
+		receivingAddress = recvLA.ProviderID
+		if message == "" {
+			recvWallet, err := b.Wallets().Get(ctx, recvLA.WalletID)
+			if err != nil {
+				return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+			}
+			message = fmt.Sprintf("Payment to %s", recvWallet.Name)
+		}
+	} else {
+		receivingAddress = args.ReceivingAddress
 	}
 
 	// Validate vault ID is available before making the external call
 	vaultID := ec.GetVaultID()
-	if vaultID == "" && !env.IsTestExecution() {
+	if vaultID == "" && !config.IsTestExecution(b.Config().Environment.Mode) {
 		return nil, temporal.NewNonRetryableApplicationError(
 			"Gatehub vault ID not configured",
 			"ConfigurationError",
@@ -505,10 +524,10 @@ func CreateTransfer(ctx context.Context, b Backends, ec external.Client, args ga
 
 	externalTx, err := ec.CreateTransaction(ctx, external.CreateTransactionRequest{
 		SendingUserID:    sendingUser,
-		SendingAddress:   sendLA.ProviderID,
-		ReceivingAddress: recvLA.ProviderID,
+		SendingAddress:   sendingAddress,
+		ReceivingAddress: receivingAddress,
 		Amount:           args.Amount.Float64(),
-		Message:          fmt.Sprintf("Payment to %s", recvWallet.Name),
+		Message:          message,
 		Type:             external.TransactionTypeHosted,
 		VaultID:          vaultID,
 	})
@@ -625,7 +644,7 @@ func OrderCard(ctx context.Context, b Backends, ec external.Client, args gatehub
 		}
 	}
 
-	nameOnCard, err := getNameOnCard(args.Wallet.AddressShortString())
+	nameOnCard, err := getNameOnCard(b, args.Wallet.AddressShortString())
 	if err != nil {
 		return err
 	}
@@ -822,7 +841,7 @@ func ThreeDSPaymentConfirmation(ctx context.Context, ec external.Client, userID,
 	})
 }
 
-func getNameOnCard(walletAddress string) (string, error) {
+func getNameOnCard(b Backends, walletAddress string) (string, error) {
 	// For non production environments we generate a random card name.
 	// This might be counter intuitive but we have the limitation of 26 chars
 	// for the name on the card.
@@ -834,8 +853,8 @@ func getNameOnCard(walletAddress string) (string, error) {
 	// For the other environments (sandbox.ilp.link, local.ilp.link, etc...), this
 	// is going to be hard to manage. Therefore we generate a unique name
 	// that fulfills the requirements.
-	if !env.IsProd() {
-		url := env.OpenPaymentsURL()
+	if !b.Config().Environment.IsModeProd() {
+		url := b.Config().OpenPaymentsBaseURL
 		url = strings.Replace(url, "https://", "", 1)
 		url = gatehub.DollarSignPlaceholder + url + "/"
 
@@ -939,17 +958,17 @@ func getPendingCardTransactions(ctx context.Context, b Backends, sqlStmt string,
 	return txs, nil
 }
 
-func UpdateOrganizationConfiguration(ctx context.Context, ec external.Client, apiBaseURL, twoFAType string) (*external.UpdateOrganizationConfigurationResponse, error) {
+func UpdateOrganizationConfiguration(ctx context.Context, b Backends, ec external.Client, apiBaseURL, twoFAType string) (*external.UpdateOrganizationConfigurationResponse, error) {
 	baseURL, err := url.Parse(apiBaseURL)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
 	}
 
-	if !env.IsLocal() && baseURL.Scheme != "https" {
+	if !b.Config().Environment.IsModeLocal() && baseURL.Scheme != "https" {
 		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, "api url must be https")
 	}
 
-	if env.IsLocal() && baseURL.Scheme != "http" && baseURL.Scheme != "https" {
+	if b.Config().Environment.IsModeLocal() && baseURL.Scheme != "http" && baseURL.Scheme != "https" {
 		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, "api url must be http or https")
 	}
 

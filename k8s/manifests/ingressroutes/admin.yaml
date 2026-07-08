@@ -1,0 +1,15 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: admin
+  namespace: interledger
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`admin.mgnt.interledger.kind`)
+      kind: Rule
+      services:
+        - name: wallet-admin-service
+          port: 3000
+  tls: {}

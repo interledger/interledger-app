@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"gitlab.com/fynbos/backend/country"
+	"github.com/interledger/interledger-app/go/backend/country"
 )
 
 type CreateArgs struct {

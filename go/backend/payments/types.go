@@ -3,7 +3,7 @@ package payments
 import (
 	"time"
 
-	"gitlab.com/fynbos/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/currency"
 )
 
 type CreateArgs struct {

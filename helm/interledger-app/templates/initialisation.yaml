@@ -35,23 +35,21 @@ spec:
       serviceAccountName: {{ $initialisation.serviceAccountName | quote }}
       {{- end }}
       restartPolicy: OnFailure
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "common.fullname" $top }}-backend-migration-config
       containers:
         - name: migration
           image: {{ $migrationImageString }}
           imagePullPolicy: {{ $initialisation.imagePullPolicy }}
           env:
-            - name: DB_URL_WITH_CERTS
-              valueFrom:
-                secretKeyRef:
-                  name: '{{ include "common.fullname" $top }}-backend'
-                  key: "{{ $top.Values.backend.initialisation.backend.urlSecretRef }}"
-            - name: PACIOLI_DB_URL_WITH_CERTS
-              valueFrom:
-                secretKeyRef:
-                  name: '{{ include "common.fullname" $top }}-backend'
-                  key: "{{ $top.Values.backend.initialisation.pacioli.urlSecretRef }}"
-            - name: LOG_OUTPUT_PATH
-              value: "stderr"
+            - name: CONFIG
+              value: /etc/backend/config.yaml
+          volumeMounts:
+            - name: config
+              mountPath: /etc/backend
+              readOnly: true
           args: ["migrate"]
 {{- end }}
 {{- include "interledger-app.backend.initialisation" (list . ) | nindent 0 }}

@@ -1,9 +1,9 @@
 package workflows
 
 import (
-	"gitlab.com/fynbos/backend/identities"
-	"gitlab.com/fynbos/backend/twitter"
-	"gitlab.com/fynbos/backend/wallets"
+	"github.com/interledger/interledger-app/go/backend/identities"
+	"github.com/interledger/interledger-app/go/backend/twitter"
+	"github.com/interledger/interledger-app/go/backend/wallets"
 )
 
 type Backends interface {

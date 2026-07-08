@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"gitlab.com/fynbos/mock/mockpti/internal/storage"
+	"github.com/interledger/interledger-app/go/mock/mockpti/internal/storage"
 )
 
 func TestQueue_Enqueue(t *testing.T) {

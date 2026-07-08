@@ -4,15 +4,15 @@ import (
 	"context"
 	"testing"
 
-	"gitlab.com/fynbos/backend/providers/pti"
+	"github.com/interledger/interledger-app/go/backend/providers/pti"
 
-	"gitlab.com/fynbos/backend/linkedaccounts/ops"
-	"gitlab.com/fynbos/backend/wallets"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts/ops"
+	"github.com/interledger/interledger-app/go/backend/wallets"
 
 	"github.com/golang/mock/gomock"
+	"github.com/interledger/interledger-app/go/backend/db"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/linkedaccounts"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"

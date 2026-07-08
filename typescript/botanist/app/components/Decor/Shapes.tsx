@@ -350,7 +350,7 @@ const blogShapes: {
       }
     ]
   ],
-  'card-payments-still-suck': [
+  'card-payments': [
     [
       {
         radius: 'rounded-bl-full',

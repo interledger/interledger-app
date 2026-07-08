@@ -13,7 +13,7 @@ This package contains three core components:
 ## Installation
 
 ```go
-import "gitlab.com/fynbos/geo"
+import "github.com/interledger/interledger-app/go/geo"
 ```
 
 ## Usage

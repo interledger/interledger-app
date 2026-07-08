@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/interledger/interledger-app/go/backend/providers/chimoney/external"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/backend/providers/chimoney/external"
 	"gotest.tools/assert"
 )
 
@@ -18,7 +18,7 @@ func TestRedact(t *testing.T) {
 		{
 			name: "values",
 			input: `{
-   	"email":"maynard@tool.com",
+   	"email":"test@interledger.test",
    	"name":"Maynard Keenan",
    	"phoneNumber":"+1234556",
 	"firstName":"Maynard"

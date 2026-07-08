@@ -9,7 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	external "gitlab.com/fynbos/backend/slack/external"
+	external "github.com/interledger/interledger-app/go/backend/slack/external"
 	oauth2 "golang.org/x/oauth2"
 )
 

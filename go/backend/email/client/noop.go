@@ -3,11 +3,11 @@ package client
 import (
 	"context"
 
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/email"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/payments"
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/email"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	"github.com/interledger/interledger-app/go/backend/payments"
+	"github.com/interledger/interledger-app/go/log"
 	"go.uber.org/zap"
 )
 
@@ -71,6 +71,16 @@ func (n *noopClient) SendKYCDocumentsRequiredEmail(_ context.Context, walletID s
 	log.Info("NOT SENDING: KYC documents required email", zap.String("walletID", walletID))
 }
 
+func (n *noopClient) SendAgreementChangedEmail(_ context.Context, userID string, _ []email.AgreementLink, _ string) error {
+	log.Info("NOT SENDING: agreement changed email", zap.String("userID", userID))
+	return nil
+}
+
+func (n *noopClient) SendAccountDeletionRequested(_ context.Context, userID string) error {
+	log.Info("NOT SENDING: account deletion notification to support", zap.String("userID", userID))
+	return nil
+}
+
 func (n *noopClient) SendAuthenticatorResetEmail(_ context.Context, walletID string) {
 	log.Info("NOT SENDING: authenticator reset email", zap.String("walletID", walletID))
 }
@@ -87,6 +97,13 @@ func (n *noopClient) SendGatehubWithdrawalRejectedEmail(_ context.Context, _, wa
 	log.Info("NOT SENDING: withdrawal rejected email", zap.String("walletID", walletID))
 }
 
+func (c *noopClient) SendSCTRerouteEmail(ctx context.Context, txID, walletID string) {
+	log.Info("NOT SENDING: SCT reroute email", zap.String("txID", txID), zap.String("walletID", walletID))
+}
+
+func (n *noopClient) SendRampActionEmail(_ context.Context, walletID string, args email.RampActionEmailArgs) {
+	log.Info("NOT SENDING: ramp action email", zap.String("walletID", walletID), zap.String("action", args.Action))
+}
 func (n *noopClient) SendXagoTravelRuleEmail(_ context.Context, _ []byte, _ string) error {
 	log.Info("NOT SENDING: Xago travel rule email")
 	return nil

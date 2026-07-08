@@ -3,7 +3,7 @@ package storage
 import (
 	"testing"
 
-	"gitlab.com/fynbos/mock/mockgatehub/internal/consts"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/consts"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

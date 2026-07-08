@@ -8,13 +8,11 @@ import (
 	"strconv"
 	"time"
 
-	"gitlab.com/fynbos/backend/kyc/persona"
+	"github.com/interledger/interledger-app/go/backend/kyc/persona"
 
-	"gitlab.com/fynbos/env"
-
-	"gitlab.com/fynbos/backend/kyc"
-	"gitlab.com/fynbos/backend/kyc/address"
-	"gitlab.com/fynbos/backend/kyc/ops"
+	"github.com/interledger/interledger-app/go/backend/kyc"
+	"github.com/interledger/interledger-app/go/backend/kyc/address"
+	"github.com/interledger/interledger-app/go/backend/kyc/ops"
 )
 
 var _ kyc.Client = client{}
@@ -26,13 +24,12 @@ type client struct {
 	personaCfg persona.Config
 }
 
-func New(b ops.Backends, smartyAuthID, smartyAuthToken string) (kyc.Client, error) {
-	return NewWithPersonaConfig(b, smartyAuthID, smartyAuthToken, persona.Config{})
+func New(b ops.Backends, smartyAuthID, smartyAuthToken string, isProd bool) (kyc.Client, error) {
+	return NewWithPersonaConfig(b, smartyAuthID, smartyAuthToken, persona.Config{}, isProd)
 }
 
-func NewWithPersonaConfig(b ops.Backends, smartyAuthID, smartyAuthToken string, personaCfg persona.Config) (kyc.Client, error) {
-	if (smartyAuthID == "" || smartyAuthToken == "") &&
-		(env.IsSandbox() || env.IsProd()) {
+func NewWithPersonaConfig(b ops.Backends, smartyAuthID, smartyAuthToken string, personaCfg persona.Config, isProd bool) (kyc.Client, error) {
+	if (smartyAuthID == "" || smartyAuthToken == "") && isProd {
 		return nil, errors.New("no auth information for smarty address verification")
 	}
 

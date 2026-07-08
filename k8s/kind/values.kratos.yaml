@@ -1,0 +1,111 @@
+# Kratos values for the local kind environment.
+
+replicaCount: 1
+
+image:
+  repository: oryd/kratos
+  tag: v1.3.1
+
+kratos:
+  automigration:
+    enabled: true
+
+  config:
+    dsn: "postgres://postgres:postgres@postgres-postgresql.interledger:5432/kratos?sslmode=disable"
+
+    cookies:
+      same_site: Strict
+
+
+    hashers:
+      algorithm: argon2
+      argon2:
+        dedicated_memory: 1GB
+        expected_deviation: 500ms
+        expected_duration: 500ms
+        iterations: 1
+        key_length: 16
+        memory: 128MB
+        parallelism: 1
+        salt_length: 16
+
+    identity:
+      default_schema_id: default
+      schemas:
+        - id: default
+          url: base64://ewogICIkaWQiOiAiaHR0cHM6Ly9meW5ib3MuZGV2L3VzZXJzL2VtYWlsLXBhc3N3b3JkL2lkZW50aXR5LnNjaGVtYS5qc29uIiwKICAiJHNjaGVtYSI6ICJodHRwOi8vanNvbi1zY2hlbWEub3JnL2RyYWZ0LTA3L3NjaGVtYSMiLAogICJ0aXRsZSI6ICJVc2VyIiwKICAidHlwZSI6ICJvYmplY3QiLAogICJwcm9wZXJ0aWVzIjogewogICAgInRyYWl0cyI6IHsKICAgICAgInR5cGUiOiAib2JqZWN0IiwKICAgICAgInByb3BlcnRpZXMiOiB7CiAgICAgICAgImVtYWlsIjogewogICAgICAgICAgInR5cGUiOiAic3RyaW5nIiwKICAgICAgICAgICJmb3JtYXQiOiAiZW1haWwiLAogICAgICAgICAgInRpdGxlIjogIkUtTWFpbCIsCiAgICAgICAgICAib3J5LnNoL2tyYXRvcyI6IHsKICAgICAgICAgICAgImNyZWRlbnRpYWxzIjogewogICAgICAgICAgICAgICJwYXNzd29yZCI6IHsKICAgICAgICAgICAgICAgICJpZGVudGlmaWVyIjogdHJ1ZQogICAgICAgICAgICAgIH0sCiAgICAgICAgICAgICAgInRvdHAiOiB7CiAgICAgICAgICAgICAgICAiYWNjb3VudF9uYW1lIjogdHJ1ZQogICAgICAgICAgICAgIH0KICAgICAgICAgICAgfSwKICAgICAgICAgICAgInZlcmlmaWNhdGlvbiI6IHsKICAgICAgICAgICAgICAidmlhIjogImVtYWlsIgogICAgICAgICAgICB9LAogICAgICAgICAgICAicmVjb3ZlcnkiOiB7CiAgICAgICAgICAgICAgInZpYSI6ICJlbWFpbCIKICAgICAgICAgICAgfQogICAgICAgICAgfQogICAgICAgIH0sCiAgICAgICAgInBob25lIjogewogICAgICAgICAgInRpdGxlIjogIlBob25lIiwKICAgICAgICAgICJ0eXBlIjogInN0cmluZyIsCiAgICAgICAgICAiZm9ybWF0IjogInRlbCIsCiAgICAgICAgICAib3J5LnNoL2tyYXRvcyI6IHsKICAgICAgICAgICAgImNyZWRlbnRpYWxzIjogewogICAgICAgICAgICAgICJwYXNzd29yZCI6IHsKICAgICAgICAgICAgICAgICJpZGVudGlmaWVyIjogdHJ1ZQogICAgICAgICAgICAgIH0KICAgICAgICAgICAgfQogICAgICAgICAgfQogICAgICAgIH0sCiAgICAgICAgImZpcnN0TmFtZSI6IHsKICAgICAgICAgICJ0eXBlIjogInN0cmluZyIKICAgICAgICB9LAogICAgICAgICJsYXN0TmFtZSI6IHsKICAgICAgICAgICJ0eXBlIjogInN0cmluZyIKICAgICAgICB9LAogICAgICAgICJjb3VudHJ5Q29kZSI6IHsKICAgICAgICAgICJ0eXBlIjogInN0cmluZyIKICAgICAgICB9LAogICAgICAgICJwaG9uZVZlcmlmaWVkIjogewogICAgICAgICAgInRpdGxlIjogIlBob25lIFZlcmlmaWVkIiwKICAgICAgICAgICJ0eXBlIjogImJvb2xlYW4iLAogICAgICAgICAgImRlZmF1bHQiOiBmYWxzZQogICAgICAgIH0KICAgICAgfSwKICAgICAgInJlcXVpcmVkIjogWyJlbWFpbCIsICJwaG9uZSIsICJmaXJzdE5hbWUiLCAibGFzdE5hbWUiLCAiY291bnRyeUNvZGUiXSwKICAgICAgImFkZGl0aW9uYWxQcm9wZXJ0aWVzIjogZmFsc2UKICAgIH0KICB9Cn0K
+
+    log:
+      format: text
+      leak_sensitive_values: true
+      level: debug
+
+    selfservice:
+      allowed_return_urls:
+        - http://interledger.kind
+        - https://interledger.kind
+        - https://interledger.kind/*
+      default_browser_return_url: https://interledger.kind
+      flows:
+        error:
+          ui_url: https://interledger.kind/error
+        login:
+          after:
+            default_browser_return_url: https://interledger.kind
+          lifespan: 10m
+          ui_url: https://interledger.kind/login
+        logout:
+          after:
+            default_browser_return_url: https://interledger.kind
+        recovery:
+          enabled: false
+        registration:
+          after:
+            default_browser_return_url: https://interledger.kind
+            password:
+              default_browser_return_url: https://interledger.kind
+              hooks:
+                - hook: session
+          enabled: true
+          lifespan: 10m
+          ui_url: https://interledger.kind/signup
+        settings:
+          privileged_session_max_age: 15m
+          ui_url: https://interledger.kind/settings
+        verification:
+          enabled: false
+      methods:
+        link:
+          config:
+            base_url: https://interledger.kind
+            lifespan: 1h
+          enabled: true
+        password:
+          enabled: true
+        totp:
+          enabled: true
+          config:
+            issuer: interledger.kind
+        lookup_secret:
+          enabled: true
+
+    serve:
+      admin:
+        port: 4434
+      public:
+        base_url: https://interledger.kind
+        cors:
+          enabled: true
+        port: 4433
+
+    session:
+      cookie:
+        domain: ""
+        name: ory_kratos_session
+        path: ""
+        persistent: true
+        same_site: Strict
+      earliest_possible_extend: 24h
+      lifespan: 420h
+      whoami:
+        required_aal: highest_available

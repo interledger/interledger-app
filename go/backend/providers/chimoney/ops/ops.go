@@ -8,15 +8,14 @@ import (
 	"math"
 	"time"
 
-	"gitlab.com/fynbos/env"
-	"gitlab.com/fynbos/pacioli"
+	"github.com/interledger/interledger-app/go/pacioli"
 
-	"gitlab.com/fynbos/backend/country"
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/providers/chimoney"
-	"gitlab.com/fynbos/backend/providers/chimoney/external"
-	"gitlab.com/fynbos/backend/slack"
+	"github.com/interledger/interledger-app/go/backend/country"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	"github.com/interledger/interledger-app/go/backend/providers/chimoney"
+	"github.com/interledger/interledger-app/go/backend/providers/chimoney/external"
+	"github.com/interledger/interledger-app/go/backend/slack"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/serviceerror"
 	"go.temporal.io/sdk/client"
@@ -179,7 +178,7 @@ func CreateDepositLink(ctx context.Context, b Backends, ex external.Client, wall
 		ChimoneyWallet:       chiWallet,
 		Email:                userList[0].Email,
 		TurnOffNotifications: true,
-		RedirectURL:          fmt.Sprintf("%s/callbacks/chimoney", env.GetUrl()),
+		RedirectURL:          fmt.Sprintf("%s/callbacks/chimoney", b.Config().ApplicationURL),
 	})
 	if err != nil {
 		return "", fmt.Errorf("%w %s", chimoney.ErrInternal, err)
@@ -577,8 +576,8 @@ func GetKYCWidget(ctx context.Context, b Backends, walletID string) (string, err
 	}
 
 	baseURL := "https://dash.chimoney.io"
-	redirectURL := fmt.Sprintf("%s/callbacks/chimoney?kyc", env.GetUrl())
-	if !env.IsProd() {
+	redirectURL := fmt.Sprintf("%s/callbacks/chimoney?kyc", b.Config().ApplicationURL)
+	if !b.Config().Environment.IsModeProd() {
 		baseURL = "https://sandbox.chimoney.io"
 	}
 

@@ -1,0 +1,332 @@
+# Interledger App helm values for the local kind environment.
+# Images are built and loaded via `make build load` using the `registry.kind`
+# prefix with imagePullPolicy: IfNotPresent so kubelet uses the pre-loaded image.
+# Sensitive fields use configa secret references resolved at pod startup via the
+# K8s Secrets API: '{{ secret "wallet-backend" "key" }}'
+
+fullnameOverride: wallet
+
+# =============================================================================
+# BACKEND
+# =============================================================================
+backend:
+  # imageOverride is used only by the migration job (initialisation.yaml).
+  imageOverride:
+    repository: registry.kind
+    name: backend
+    tag: kind
+
+  initialisation:
+    imagePullPolicy: IfNotPresent
+
+  # Grants the wallet-backend ServiceAccount read access to these secrets so
+  # configa can resolve {{ secret }} templates in config.yaml at startup.
+  secretAccess:
+    - wallet-backend
+
+  config:
+    environment:
+      mode: local
+      label: kind
+    port: "8080"
+    application_url: "https://interledger.kind"
+    open_payments_base_url: "https://interledger.kind"
+    auth_base_url: "https://identity.interledger.kind"
+    log_level: info
+    log_output_path: ""
+    allowed_wallet_ids: []
+    blocked_regions: []
+
+    agreements:
+      folder_name: local
+      signup_agreement_ids:
+        - privacy_policy-0.0.0
+
+    db:
+      url: '{{ secret "wallet-backend" "dbUrl" }}'
+      pacioli_url: '{{ secret "wallet-backend" "dbPacioliUrl" }}'
+
+    kratos:
+      url: "http://kratos-public.interledger"
+      admin_url: "http://kratos-admin.interledger"
+
+    temporal:
+      url: "temporal-frontend.interledger:7233"
+
+    rafiki:
+      node_enabled: false
+      backend_graphql_url: "http://rafiki-backend:3001/graphql"
+      auth_graphql_url: "http://rafiki-auth:3003/graphql"
+      operator_tenant_id: "6b1f9f73-3d4b-4f52-9f2a-9f6a8d0a7c5e"
+      admin_api_secret: "test-admin-api-key"
+      signature_version: "1"
+      db_url: ""
+      auth_db_url: ""
+
+    gatehub:
+      enabled: false
+      api_base_url: "http://mock-services-mockgatehub.interledger:8080"
+      organization_id: "default-org"
+      sending_user_id: "test-sending-user-id"
+      sending_user_address: "rN7n7otQDd6FczFgLdVZGMbpKRtFVfT4hb"
+      intermediary_user_id: "test-sending-user-id"
+      intermediary_user_address: "rN7n7otQDd6FczFgLdVZGMbpKRtFVfT4hb"
+      card_account_product_code: "PWSR_DEBP_2404"
+      fallback_webhook_url: ""
+      app_id: "local-test-app-id"
+      secret: '{{ secret "wallet-backend" "gatehubSecret" }}'
+      card_app_id: "local-test-card-app-id"
+      gateway_id: "b18965b5-8bb0-486e-88b2-7be47b974ac1"
+      webhook_secret: '{{ secret "wallet-backend" "gatehubWebhookSecret" }}'
+      paywiser_euro_vault_id: "a09a0a2c-1a3a-44c5-a1b9-603a6eea9341"
+      on_off_ramp_client_id: "f8119dfd-e563-44ee-9ae2-1e60a4fce74f"
+      onboarding_client_id: "4df24d1b-5796-4eec-951b-21699d61b970"
+      exchange_client_id: "4e28d4df-22d7-414c-97a3-d71956df29ba"
+      onboarding_base_url: "https://mockgatehub.interledger.kind/iframe/onboarding"
+      on_off_ramp_base_url: "https://mockgatehub.interledger.kind"
+      eur_ops_account: "1854f171-eafa-4e30-bf66-7dbfe167ccfa"
+      eur_ops_ledger_id: 4482387
+
+    xago:
+      api_base_url: "http://mock-services-mockxago.interledger:8080/v1"
+      identity_base_url: "http://mock-services-mockxago.interledger:8080/v1"
+      api_public_key: "test-public-key"
+      api_secret: '{{ secret "wallet-backend" "xagoApiSecret" }}'
+      policy_id: "5e2585a474b0e90012ce8ff1"
+
+    pti:
+      enabled: true
+      base_url: "http://mock-services-mockpti.interledger:8080"
+      client_id: "04d3e1b5-96d4-47e4-9eaa-13e9b4b0f219"
+      sdk_url: "https://mockpti.interledger.kind/sdk/index.js"
+      forms_url: "https://mockpti.interledger.kind/forms"
+      jwk: '{{ secret "wallet-backend" "ptiJwk" }}'
+      public_key_jwk: |
+        -----BEGIN PUBLIC KEY-----
+        MCowBQYDK2VwAyEAlXgzWngvg4t6oIvQ5/uFiaHT3bdPDyXtN5dK7nBLzA8=
+        -----END PUBLIC KEY-----
+
+    persona:
+      base_url: "http://mock-services-mockxago.interledger:8080/v1/"
+      token: "test-persona-token"
+      webhook_token: "test-persona-webhook-token"
+      sandbox_fake_za_id: false
+
+    twilio:
+      enabled: false
+      account_sid: ""
+      service_sid: ""
+      account_token: ""
+
+    email:
+      enabled: false
+      sendgrid:
+        api_key: ""
+        from_name: "Interledger Wallet"
+        from_email: "support@interledger.app"
+        one_template_id: ""
+        support_email: "support@interledger.app"
+
+    chimoney:
+      token: ""
+      webhook_secret: ""
+
+    slack:
+      token: ""
+      channel_signup_kyc: ""
+      channel_transaction: ""
+      channel_error: ""
+      client_id: ""
+      client_secret: ""
+
+    admin:
+      policy_aud: "admin-policy"
+      team_domain: "admin-team"
+      base_url: "https://admin.mgnt.interledger.kind"
+
+    mobile:
+      apple_app_id: "6B7AFCRT3V.app.wallet.interledger.dev"
+      android_package_name: "org.interledger.wallet.debug"
+      android_sha256: "19:6D:4E:28:00:95:8B:F4:5C:72:EE:B5:82:70:75:57:48:E6:B7:C1:54:29:75:33:72:47:89:28:D4:E0:BF:F3"
+
+    vault:
+      addr: ""
+      transit_engine_path: ""
+      token: ""
+
+    sentry:
+      dsn: ""
+
+    smarty:
+      auth_id: "not_used"
+      auth_token: "not_used"
+
+    pusher:
+      addr: "http://soketi.interledger:6001"
+
+    segment:
+      key: "kind-segment-key"
+
+  migration:
+    config:
+      db_url: "postgres://postgres:postgres@postgres-postgresql.interledger:5432/backend?sslmode=disable"
+      pacioli_db_url: "postgres://postgres:postgres@postgres-postgresql.interledger:5432/pacioli?sslmode=disable"
+      open_payments_base_url: "https://interledger.kind"
+      kratos_url: "http://kratos-admin.interledger"
+      log_level: "info"
+      log_output_path: "stderr"
+      label: "kind"
+      sentry:
+        dsn: ""
+
+  server:
+    replicaCount: 1
+    image:
+      repository: registry.kind
+      name: backend
+      tag: kind
+    imagePullPolicy: IfNotPresent
+    serviceAccount:
+      name: wallet-backend
+    podDisruptionBudget:
+      enabled: false
+    topologySpreadConstraints: []
+    env:
+      - name: PGSSLMODE
+        value: disable
+      - name: CONFIG
+        value: /etc/backend/config.yaml
+      - name: REDIS_URL
+        valueFrom:
+          secretKeyRef:
+            name: wallet-backend
+            key: redisURL
+      - name: OTEL_EXPORTER_OTLP_ENDPOINT
+        value: ""
+      - name: OTEL_EXPORTER_OTLP_HEADERS
+        valueFrom:
+          secretKeyRef:
+            name: wallet-backend
+            key: otelExporterHeaders
+      - name: OTEL_SERVICE_NAME
+        value: "backend"
+
+  worker:
+    replicaCount: 1
+    image:
+      repository: registry.kind
+      name: backend
+      tag: kind
+    imagePullPolicy: IfNotPresent
+    serviceAccount:
+      name: wallet-backend
+    podDisruptionBudget:
+      enabled: false
+    topologySpreadConstraints: []
+    env:
+      - name: PGSSLMODE
+        value: disable
+      - name: CONFIG
+        value: /etc/backend/config.yaml
+      - name: REDIS_URL
+        valueFrom:
+          secretKeyRef:
+            name: wallet-backend
+            key: redisURL
+      - name: OTEL_EXPORTER_OTLP_ENDPOINT
+        value: ""
+      - name: OTEL_EXPORTER_OTLP_HEADERS
+        valueFrom:
+          secretKeyRef:
+            name: wallet-backend
+            key: otelExporterHeaders
+      - name: OTEL_SERVICE_NAME
+        value: "backend"
+
+# =============================================================================
+# FRONTEND — Protea
+# =============================================================================
+frontend:
+
+  config:
+    log_level: "debug"
+    log_pretty: true
+    environment: local
+
+    backend:
+      grpc:
+        url: "http://wallet-backend-service-grpc.interledger:8443"
+      http:
+        url: "http://wallet-backend-service-http.interledger:8080"
+
+    redis:
+      url_ref: redisURL
+
+    cookie_secrets_ref: cookieSecretsArrStr
+
+    otel:
+      endpoint: ""
+      headers_ref: otelExporterHeaders
+      service_name: protea
+
+    pusher:
+      app_key_ref: pusherAppKey
+      app_cluster_ref: pusherAppCluster
+
+    kratos_url: "http://kratos-public.interledger"
+    payment_pointer_base: "kind.ilp.link"
+
+    sentry_dsn_ref: sentryDSN
+    sentry_env_label: "kind"
+
+    segment_api_key_ref: segmentAPIKey
+
+    pti:
+      client_id: "04d3e1b5-96d4-47e4-9eaa-13e9b4b0f219"
+      sdk_url: "https://mockpti.interledger.kind/sdk/index.js"
+      forms_url: "https://mockpti.interledger.kind/forms"
+
+    rafiki:
+      auth:
+        endpoint: "http://rafiki-auth-service:3009"
+        secret_ref: rafikiAuthSecret
+
+    target_host: "https://interledger.kind"
+    support_email: "support@interledger.app"
+    public_op_auth_host: "auth.kind.ilp.link"
+    persona_sdk_url: "https://mockxago.interledger.kind/v1/persona-sdk.js"
+    mockxago_endpoint: "https://mockxago.interledger.kind"
+
+  server:
+    replicaCount: 2
+    image:
+      repository: registry.kind
+      name: protea
+      tag: kind
+    imagePullPolicy: IfNotPresent
+    podDisruptionBudget:
+      enabled: false
+    topologySpreadConstraints: []
+
+# =============================================================================
+# ADMIN — Botanist
+# =============================================================================
+admin:
+
+  config:
+    kratos:
+      adminUrl: "http://kratos-admin.interledger"
+    backend:
+      grpcUrl: "wallet-backend-service-grpc.interledger:8448"
+    payment_pointer_base: "kind.ilp.link"
+
+  server:
+    replicaCount: 1
+    image:
+      repository: registry.kind
+      name: botanist
+      tag: kind
+    imagePullPolicy: IfNotPresent
+    podDisruptionBudget:
+      enabled: false
+    topologySpreadConstraints: []

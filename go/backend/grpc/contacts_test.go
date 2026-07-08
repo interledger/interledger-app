@@ -6,13 +6,13 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
+	"github.com/interledger/interledger-app/go/backend/contacts"
+	"github.com/interledger/interledger-app/go/backend/user"
+	user_mock "github.com/interledger/interledger-app/go/backend/user/client/mock"
+	"github.com/interledger/interledger-app/go/backend/wallets"
+	backendv1 "github.com/interledger/interledger-app/go/proto/backend/v1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/backend/contacts"
-	"gitlab.com/fynbos/backend/user"
-	user_mock "gitlab.com/fynbos/backend/user/client/mock"
-	"gitlab.com/fynbos/backend/wallets"
-	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 )
 
 func TestCreateContact(t *testing.T) {

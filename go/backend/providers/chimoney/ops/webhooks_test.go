@@ -13,9 +13,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/interledger/interledger-app/go/backend/providers/chimoney/external"
+	"github.com/interledger/interledger-app/go/backend/providers/chimoney/ops"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/backend/providers/chimoney/external"
-	"gitlab.com/fynbos/backend/providers/chimoney/ops"
 	"gotest.tools/assert"
 )
 
@@ -186,7 +186,7 @@ func TestExtractChiWalletIDFromIssueID(t *testing.T) {
 }
 
 func TestWebhookHandler_OptionsMethod(t *testing.T) {
-	handler := ops.NewWebhook(nil, "", "")
+	handler := ops.NewWebhook(nil, "", "", false)
 
 	req := httptest.NewRequest(http.MethodOptions, "/webhook", nil)
 	rec := httptest.NewRecorder()
@@ -197,7 +197,7 @@ func TestWebhookHandler_OptionsMethod(t *testing.T) {
 }
 
 func TestWebhookHandler_InvalidMethod(t *testing.T) {
-	handler := ops.NewWebhook(nil, "", "")
+	handler := ops.NewWebhook(nil, "", "", false)
 
 	req := httptest.NewRequest(http.MethodGet, "/webhook", nil)
 	rec := httptest.NewRecorder()
@@ -211,7 +211,7 @@ func TestWebhookHandler_InvalidJSON(t *testing.T) {
 	secret := []byte("test-secret-key")
 	webhookSecret := "whsec_" + base64.StdEncoding.EncodeToString(secret)
 
-	handler := ops.NewWebhook(nil, webhookSecret, "")
+	handler := ops.NewWebhook(nil, webhookSecret, "", false)
 
 	payload := `{invalid json}`
 	req := createSignedRequest(t, payload, secret)
@@ -226,7 +226,7 @@ func TestWebhookHandler_UnknownEventType(t *testing.T) {
 	secret := []byte("test-secret-key")
 	webhookSecret := "whsec_" + base64.StdEncoding.EncodeToString(secret)
 
-	handler := ops.NewWebhook(nil, webhookSecret, "")
+	handler := ops.NewWebhook(nil, webhookSecret, "", false)
 
 	payload := `{"eventType":"unknown.event.type","issueID":"test-123"}`
 	req := createSignedRequest(t, payload, secret)
@@ -336,7 +336,7 @@ func TestWithdrawEventUnmarshal(t *testing.T) {
 				"issueID": "8bb8011d-4319-4116-89be-9abcd2df0ee5_4_1770363416510",
 				"meta": {
 					"issuer": "8bb8011d-4319-4116-89be-9abcd2df0ee5",
-					"email": "adrian@interledger.foundation",
+					"email": "test-user@interledger.test",
 					"name": "Test User",
 					"type": "interac",
 					"fee": 1

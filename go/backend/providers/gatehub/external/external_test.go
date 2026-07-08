@@ -7,10 +7,9 @@ import (
 	"os"
 	"testing"
 
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub/external"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/backend/providers/gatehub/external"
-	"gitlab.com/fynbos/env"
 )
 
 func TestNewClientValidation(t *testing.T) {
@@ -279,7 +278,6 @@ func TestNewClientValidation(t *testing.T) {
 }
 
 func TestClient(t *testing.T) {
-	env.SetEnv(t, "local")
 	appID := os.Getenv("GATEHUB_APP_ID")
 	secret := os.Getenv("GATEHUB_SECRET")
 	cardAppID := os.Getenv("GATEHUB_CARD_APP_ID")
@@ -324,7 +322,6 @@ func TestClient(t *testing.T) {
 }
 
 func TestUser(t *testing.T) {
-	env.SetEnv(t, "local")
 	appID := os.Getenv("GATEHUB_APP_ID")
 	secret := os.Getenv("GATEHUB_SECRET")
 	cardAppID := os.Getenv("GATEHUB_CARD_APP_ID")

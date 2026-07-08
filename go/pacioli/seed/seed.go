@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"gitlab.com/fynbos/pacioli"
-	"gitlab.com/fynbos/pacioli/ledger"
+	"github.com/interledger/interledger-app/go/pacioli"
+	"github.com/interledger/interledger-app/go/pacioli/ledger"
 	"gopkg.in/yaml.v2"
 )
 

@@ -3,9 +3,9 @@ package admin
 import (
 	"context"
 
-	"gitlab.com/fynbos/backend/features"
+	"github.com/interledger/interledger-app/go/backend/features"
 
-	pb "gitlab.com/fynbos/proto/backend/admin/v1"
+	pb "github.com/interledger/interledger-app/go/proto/backend/admin/v1"
 )
 
 func (s *AdminRpcService) GetWalletFeatures(ctx context.Context, req *pb.GetWalletFeaturesRequest) (*pb.Features, error) {
@@ -15,35 +15,37 @@ func (s *AdminRpcService) GetWalletFeatures(ctx context.Context, req *pb.GetWall
 	}
 
 	return &pb.Features{
-		SendEnabled:                feat.SendEnabled,
-		ReceiveEnabled:             feat.ReceiveEnabled,
-		LinkedAccountsEnabled:      feat.LinkedAccEnabled,
-		CardsEnabled:               feat.CardsEnabled,
-		BanksEnabled:               feat.BanksEnabled,
-		IdentitiesEnabled:          feat.IdentitiesEnabled,
-		TwitterEnabled:             feat.TwitterEnabled,
-		AddCardsEnabled:            feat.AddCardsEnabled,
-		ManageWalletCardsEnabled:   feat.ManageWalletCardsEnabled,
-		AccountEnabled:             feat.AccountEnabled,
-		AccountsTabEnabled:         feat.AccountsTabEnabled,
+		SendEnabled:              feat.SendEnabled,
+		ReceiveEnabled:           feat.ReceiveEnabled,
+		LinkedAccountsEnabled:    feat.LinkedAccEnabled,
+		CardsEnabled:             feat.CardsEnabled,
+		BanksEnabled:             feat.BanksEnabled,
+		IdentitiesEnabled:        feat.IdentitiesEnabled,
+		TwitterEnabled:           feat.TwitterEnabled,
+		AddCardsEnabled:          feat.AddCardsEnabled,
+		ManageWalletCardsEnabled: feat.ManageWalletCardsEnabled,
+		AccountEnabled:           feat.AccountEnabled,
+		AccountsTabEnabled:       feat.AccountsTabEnabled,
+		DeleteAccountEnabled:     feat.DeleteAccountEnabled,
 		XagoGatehubPaymentsEnabled: feat.XagoGatehubPaymentsEnabled,
-		WalletID:                   req.WalletID,
+		WalletID:                 req.WalletID,
 	}, nil
 }
 
 func (s *AdminRpcService) SetWalletFeatures(ctx context.Context, req *pb.Features) (*pb.Features, error) {
 	feat, err := s.b.Features().SetFeatures(ctx, req.WalletID, features.WalletFeatures{
-		SendEnabled:                req.SendEnabled,
-		ReceiveEnabled:             req.ReceiveEnabled,
-		LinkedAccEnabled:           req.LinkedAccountsEnabled,
-		CardsEnabled:               req.CardsEnabled,
-		BanksEnabled:               req.BanksEnabled,
-		IdentitiesEnabled:          req.IdentitiesEnabled,
-		TwitterEnabled:             req.TwitterEnabled,
-		AddCardsEnabled:            req.AddCardsEnabled,
-		ManageWalletCardsEnabled:   req.ManageWalletCardsEnabled,
-		AccountEnabled:             req.AccountEnabled,
-		AccountsTabEnabled:         req.AccountsTabEnabled,
+		SendEnabled:              req.SendEnabled,
+		ReceiveEnabled:           req.ReceiveEnabled,
+		LinkedAccEnabled:         req.LinkedAccountsEnabled,
+		CardsEnabled:             req.CardsEnabled,
+		BanksEnabled:             req.BanksEnabled,
+		IdentitiesEnabled:        req.IdentitiesEnabled,
+		TwitterEnabled:           req.TwitterEnabled,
+		AddCardsEnabled:          req.AddCardsEnabled,
+		ManageWalletCardsEnabled: req.ManageWalletCardsEnabled,
+		AccountEnabled:           req.AccountEnabled,
+		AccountsTabEnabled:       req.AccountsTabEnabled,
+		DeleteAccountEnabled:     req.DeleteAccountEnabled,
 		XagoGatehubPaymentsEnabled: req.XagoGatehubPaymentsEnabled,
 	})
 	if err != nil {
@@ -51,18 +53,19 @@ func (s *AdminRpcService) SetWalletFeatures(ctx context.Context, req *pb.Feature
 	}
 
 	return &pb.Features{
-		SendEnabled:                feat.SendEnabled,
-		ReceiveEnabled:             feat.ReceiveEnabled,
-		LinkedAccountsEnabled:      feat.LinkedAccEnabled,
-		CardsEnabled:               feat.CardsEnabled,
-		BanksEnabled:               feat.BanksEnabled,
-		IdentitiesEnabled:          feat.IdentitiesEnabled,
-		TwitterEnabled:             feat.TwitterEnabled,
-		AddCardsEnabled:            feat.AddCardsEnabled,
-		ManageWalletCardsEnabled:   feat.ManageWalletCardsEnabled,
-		AccountEnabled:             feat.AccountEnabled,
-		AccountsTabEnabled:         feat.AccountsTabEnabled,
+		SendEnabled:              feat.SendEnabled,
+		ReceiveEnabled:           feat.ReceiveEnabled,
+		LinkedAccountsEnabled:    feat.LinkedAccEnabled,
+		CardsEnabled:             feat.CardsEnabled,
+		BanksEnabled:             feat.BanksEnabled,
+		IdentitiesEnabled:        feat.IdentitiesEnabled,
+		TwitterEnabled:           feat.TwitterEnabled,
+		AddCardsEnabled:          feat.AddCardsEnabled,
+		ManageWalletCardsEnabled: feat.ManageWalletCardsEnabled,
+		AccountEnabled:           feat.AccountEnabled,
+		AccountsTabEnabled:       feat.AccountsTabEnabled,
+		DeleteAccountEnabled:     feat.DeleteAccountEnabled,
 		XagoGatehubPaymentsEnabled: feat.XagoGatehubPaymentsEnabled,
-		WalletID:                   req.WalletID,
+		WalletID:                 req.WalletID,
 	}, nil
 }

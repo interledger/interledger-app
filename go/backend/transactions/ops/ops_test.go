@@ -4,25 +4,26 @@ import (
 	"context"
 	"testing"
 
-	"gitlab.com/fynbos/backend/providers/pti"
+	"github.com/interledger/interledger-app/go/backend/config"
+	"github.com/interledger/interledger-app/go/backend/providers/pti"
 
 	"github.com/google/uuid"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/db"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	linkedaccounts_client "github.com/interledger/interledger-app/go/backend/linkedaccounts/client"
+	"github.com/interledger/interledger-app/go/backend/transactions"
+	"github.com/interledger/interledger-app/go/backend/transactions/ops"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	linkedaccounts_client "gitlab.com/fynbos/backend/linkedaccounts/client"
-	"gitlab.com/fynbos/backend/transactions"
-	"gitlab.com/fynbos/backend/transactions/ops"
 )
 
 func TestCreateTransaction(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	dbc := db.MigrateTestDB(t, ctx)
+	dbc := db.MigrateTestDB(t, ctx, "")
 
-	b := ops.NewTestBackends(t, dbc)
+	b := ops.NewTestBackends(t, dbc, &config.StartConfig{})
 	laClient := linkedaccounts_client.New(b)
 	fee := currency.FromFloat64(10, currency.USD)
 
@@ -172,9 +173,9 @@ func TestCreateTransaction(t *testing.T) {
 func TestListWithPendingTransaction(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	dbc := db.MigrateTestDB(t, ctx)
+	dbc := db.MigrateTestDB(t, ctx, "")
 
-	b := ops.NewTestBackends(t, dbc)
+	b := ops.NewTestBackends(t, dbc, &config.StartConfig{})
 	laClient := linkedaccounts_client.New(b)
 	fee := currency.FromFloat64(10, currency.USD)
 
@@ -345,9 +346,9 @@ func TestListWithPendingTransaction(t *testing.T) {
 func TestListWithPendingPagination(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	dbc := db.MigrateTestDB(t, ctx)
+	dbc := db.MigrateTestDB(t, ctx, "")
 
-	b := ops.NewTestBackends(t, dbc)
+	b := ops.NewTestBackends(t, dbc, &config.StartConfig{})
 	fee := currency.FromFloat64(10, currency.USD)
 
 	pendingTxs := make([]transactions.CreateTransactionArgs, 20)
@@ -440,9 +441,9 @@ func TestListWithPendingPagination(t *testing.T) {
 func TestSetTransactionForeignIDs(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	dbc := db.MigrateTestDB(t, ctx)
+	dbc := db.MigrateTestDB(t, ctx, "")
 
-	b := ops.NewTestBackends(t, dbc)
+	b := ops.NewTestBackends(t, dbc, &config.StartConfig{})
 	laClient := linkedaccounts_client.New(b)
 	fee := currency.FromFloat64(10, currency.USD)
 
@@ -512,9 +513,9 @@ func TestSetTransactionForeignIDs(t *testing.T) {
 func TestSetTransferForeignID(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	dbc := db.MigrateTestDB(t, ctx)
+	dbc := db.MigrateTestDB(t, ctx, "")
 
-	b := ops.NewTestBackends(t, dbc)
+	b := ops.NewTestBackends(t, dbc, &config.StartConfig{})
 	laClient := linkedaccounts_client.New(b)
 	fee := currency.FromFloat64(10, currency.USD)
 
@@ -601,9 +602,9 @@ func TestSetTransferForeignID(t *testing.T) {
 func TestSetTransactionState(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	dbc := db.MigrateTestDB(t, ctx)
+	dbc := db.MigrateTestDB(t, ctx, "")
 
-	b := ops.NewTestBackends(t, dbc)
+	b := ops.NewTestBackends(t, dbc, &config.StartConfig{})
 	laClient := linkedaccounts_client.New(b)
 	fee := currency.FromFloat64(10, currency.USD)
 
@@ -674,9 +675,9 @@ func TestSetTransactionState(t *testing.T) {
 func TestSetTransferState(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	dbc := db.MigrateTestDB(t, ctx)
+	dbc := db.MigrateTestDB(t, ctx, "")
 
-	b := ops.NewTestBackends(t, dbc)
+	b := ops.NewTestBackends(t, dbc, &config.StartConfig{})
 	laClient := linkedaccounts_client.New(b)
 	fee := currency.FromFloat64(10, currency.USD)
 

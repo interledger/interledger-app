@@ -4,21 +4,22 @@ import (
 	"context"
 	"net/http"
 
-	"gitlab.com/fynbos/backend/kyc"
-	"gitlab.com/fynbos/backend/providers/chimoney"
-	"gitlab.com/fynbos/backend/providers/gatehub"
-	"gitlab.com/fynbos/backend/providers/pti"
-	"gitlab.com/fynbos/backend/providers/xago"
-	"gitlab.com/fynbos/backend/transactions"
+	"github.com/interledger/interledger-app/go/backend/config"
+	"github.com/interledger/interledger-app/go/backend/kyc"
+	"github.com/interledger/interledger-app/go/backend/providers/chimoney"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
+	"github.com/interledger/interledger-app/go/backend/providers/pti"
+	"github.com/interledger/interledger-app/go/backend/providers/xago"
+	"github.com/interledger/interledger-app/go/backend/transactions"
 
+	"github.com/interledger/interledger-app/go/backend/keys"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	"github.com/interledger/interledger-app/go/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/rafiki"
+	"github.com/interledger/interledger-app/go/backend/rafiki/external"
+	"github.com/interledger/interledger-app/go/backend/rafiki/ops"
+	"github.com/interledger/interledger-app/go/backend/wallets"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/fynbos/backend/keys"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/payments"
-	"gitlab.com/fynbos/backend/rafiki"
-	"gitlab.com/fynbos/backend/rafiki/external"
-	"gitlab.com/fynbos/backend/rafiki/ops"
-	"gitlab.com/fynbos/backend/wallets"
 	temporal "go.temporal.io/sdk/client"
 )
 
@@ -34,6 +35,7 @@ type Backends interface {
 	Xago() xago.Client
 	Chimoney() chimoney.Client
 	KYC() kyc.Client
+	Config() *config.StartConfig
 }
 
 var _ ops.Backends = opsBackends{}
@@ -74,6 +76,9 @@ func (c *client) WebhookHandler() http.HandlerFunc {
 func (c *client) FundOutgoingPayment(ctx context.Context, paymentID string) error {
 	return ops.FundOutgoingPayment(ctx, c.b, paymentID)
 }
+func (c *client) FundSingleOutgoingPayment(ctx context.Context, paymentID string) error {
+	return ops.FundSingleOutgoingPayment(ctx, c.b, paymentID)
+}
 
 func (c *client) FinalizeWebMonetization(ctx context.Context, paymentID string) error {
 	return ops.FinalizeWebMonetization(ctx, c.b, paymentID)
@@ -109,4 +114,20 @@ func (c *client) ListPendingTransactions(ctx context.Context, walletID string) (
 
 func (c *client) UpdateWalletAddressStatus(ctx context.Context, walletID rafiki.UpdateAddressStatus, status bool) error {
 	return ops.UpdateWalletAddressStatus(ctx, c.b, walletID, status)
+}
+
+func (c *client) GetIncomingPayment(ctx context.Context, id string) (*rafiki.IncomingPayment, error) {
+	return ops.GetIncomingPayment(ctx, c.b, id)
+}
+
+func (c *client) CancelOutgoingPayment(ctx context.Context, paymentPointerID, reason string) error {
+	return ops.CancelOutgoingPayment(ctx, c.b, paymentPointerID, reason)
+}
+
+func (c *client) WithdrawIncomingPaymentLiquidity(ctx context.Context, incomingPaymentID string) error {
+	return ops.WithdrawIncomingPaymentLiquidity(ctx, c.b, incomingPaymentID)
+}
+
+func (c *client) WithdrawOutgoingPaymentLiquidity(ctx context.Context, outgoingPaymentID string) error {
+	return ops.WithdrawOutgoingPaymentLiquidity(ctx, c.b, outgoingPaymentID)
 }

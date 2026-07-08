@@ -8,17 +8,17 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	_user "github.com/interledger/interledger-app/go/backend/user"
+	user_mock "github.com/interledger/interledger-app/go/backend/user/client/mock"
+	"github.com/interledger/interledger-app/go/backend/wallets"
+	backendv1 "github.com/interledger/interledger-app/go/proto/backend/v1"
 	"github.com/stretchr/testify/assert"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	_user "gitlab.com/fynbos/backend/user"
-	user_mock "gitlab.com/fynbos/backend/user/client/mock"
-	"gitlab.com/fynbos/backend/wallets"
-	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 )
 
 func TestGetLinkedAccounts(t *testing.T) {
 	t.Parallel()
-	
+
 	ctrl := gomock.NewController(t)
 	t.Cleanup(func() {
 		ctrl.Finish()
@@ -89,7 +89,7 @@ func TestGetLinkedAccounts(t *testing.T) {
 
 func TestGetLinkedAccount(t *testing.T) {
 	t.Parallel()
-		
+
 	ctrl := gomock.NewController(t)
 	t.Cleanup(func() {
 		ctrl.Finish()

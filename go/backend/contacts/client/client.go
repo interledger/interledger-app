@@ -3,10 +3,10 @@ package client
 import (
 	"context"
 
-	"gitlab.com/fynbos/backend/contacts"
-	"gitlab.com/fynbos/backend/contacts/ops"
-	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/wallets"
+	"github.com/interledger/interledger-app/go/backend/contacts"
+	"github.com/interledger/interledger-app/go/backend/contacts/ops"
+	"github.com/interledger/interledger-app/go/backend/db"
+	"github.com/interledger/interledger-app/go/backend/wallets"
 )
 
 var _ contacts.Client = client{}

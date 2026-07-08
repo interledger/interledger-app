@@ -8,12 +8,12 @@ import (
 
 	"github.com/lestrrat-go/jwx/v3/jwk"
 
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/payments"
-	"gitlab.com/fynbos/backend/providers/pti"
-	"gitlab.com/fynbos/backend/providers/pti/external"
-	"gitlab.com/fynbos/backend/providers/pti/ops"
-	"gitlab.com/fynbos/backend/wallets"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/providers/pti"
+	"github.com/interledger/interledger-app/go/backend/providers/pti/external"
+	"github.com/interledger/interledger-app/go/backend/providers/pti/ops"
+	"github.com/interledger/interledger-app/go/backend/wallets"
 )
 
 var _ pti.Client = &Client{}

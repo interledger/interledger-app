@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/providers/xago/external"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/providers/xago/external"
 )
 
 type Client interface {

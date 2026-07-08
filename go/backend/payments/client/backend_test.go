@@ -6,70 +6,71 @@ import (
 	"testing"
 	"time"
 
-	"gitlab.com/fynbos/backend/providers/chimoney"
+	"github.com/interledger/interledger-app/go/backend/providers/chimoney"
 
-	rafiki_mock "gitlab.com/fynbos/backend/rafiki/client/mock"
+	rafiki_mock "github.com/interledger/interledger-app/go/backend/rafiki/client/mock"
 
-	"gitlab.com/fynbos/backend/providers/gatehub"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
 
-	"gitlab.com/fynbos/backend/providers/pti"
+	"github.com/interledger/interledger-app/go/backend/providers/pti"
 
-	"gitlab.com/fynbos/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/currency"
 
-	pacioli_db "gitlab.com/fynbos/pacioli/db"
+	pacioli_db "github.com/interledger/interledger-app/go/pacioli/db"
 
-	xago_client "gitlab.com/fynbos/backend/providers/xago/client"
-	xago_external "gitlab.com/fynbos/backend/providers/xago/external"
-	"gitlab.com/fynbos/pacioli"
-	pacioli_client "gitlab.com/fynbos/pacioli/client"
+	xago_client "github.com/interledger/interledger-app/go/backend/providers/xago/client"
+	xago_external "github.com/interledger/interledger-app/go/backend/providers/xago/external"
+	"github.com/interledger/interledger-app/go/pacioli"
+	pacioli_client "github.com/interledger/interledger-app/go/pacioli/client"
 
-	"gitlab.com/fynbos/backend/providers/xago"
+	"github.com/interledger/interledger-app/go/backend/providers/xago"
 
-	"gitlab.com/fynbos/backend/rafiki"
+	"github.com/interledger/interledger-app/go/backend/rafiki"
 
-	images_client "gitlab.com/fynbos/backend/images/client"
+	images_client "github.com/interledger/interledger-app/go/backend/images/client"
 
-	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
+	kyc_mock "github.com/interledger/interledger-app/go/backend/kyc/client/mock"
 
-	limits_client "gitlab.com/fynbos/backend/limits/client"
+	limits_client "github.com/interledger/interledger-app/go/backend/limits/client"
 
-	payments_client "gitlab.com/fynbos/backend/payments/client"
+	payments_client "github.com/interledger/interledger-app/go/backend/payments/client"
 
-	"gitlab.com/fynbos/backend/limits"
-	"gitlab.com/fynbos/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/limits"
+	"github.com/interledger/interledger-app/go/backend/payments"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/golang/mock/gomock"
+	"github.com/interledger/interledger-app/go/backend/analytics"
+	"github.com/interledger/interledger-app/go/backend/config"
+	analytics_client "github.com/interledger/interledger-app/go/backend/analytics/client"
+	"github.com/interledger/interledger-app/go/backend/db"
+	"github.com/interledger/interledger-app/go/backend/email"
+	email_mock "github.com/interledger/interledger-app/go/backend/email/client/mock"
+	"github.com/interledger/interledger-app/go/backend/identities"
+	id_client "github.com/interledger/interledger-app/go/backend/identities/client"
+	"github.com/interledger/interledger-app/go/backend/images"
+	"github.com/interledger/interledger-app/go/backend/keys"
+	keys_client "github.com/interledger/interledger-app/go/backend/keys/client"
+	"github.com/interledger/interledger-app/go/backend/kyc"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	linkedaccount_client "github.com/interledger/interledger-app/go/backend/linkedaccounts/client"
+	"github.com/interledger/interledger-app/go/backend/notify"
+	notify_client "github.com/interledger/interledger-app/go/backend/notify/client"
+	"github.com/interledger/interledger-app/go/backend/payments/ops"
+	"github.com/interledger/interledger-app/go/backend/signup"
+	temporal_mock "github.com/interledger/interledger-app/go/backend/temporal/mock"
+	"github.com/interledger/interledger-app/go/backend/transactions"
+	transaction_client "github.com/interledger/interledger-app/go/backend/transactions/client"
+	"github.com/interledger/interledger-app/go/backend/twilio"
+	"github.com/interledger/interledger-app/go/backend/twitter"
+	"github.com/interledger/interledger-app/go/backend/user"
+	user_client "github.com/interledger/interledger-app/go/backend/user/client/mock"
+	user_mock "github.com/interledger/interledger-app/go/backend/user/client/mock"
+	"github.com/interledger/interledger-app/go/backend/vault"
+	"github.com/interledger/interledger-app/go/backend/wallets"
+	"github.com/interledger/interledger-app/go/backend/features"
+	wallet_client "github.com/interledger/interledger-app/go/backend/wallets/client"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/fynbos/backend/analytics"
-	analytics_client "gitlab.com/fynbos/backend/analytics/client"
-	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/email"
-	email_mock "gitlab.com/fynbos/backend/email/client/mock"
-	"gitlab.com/fynbos/backend/identities"
-	id_client "gitlab.com/fynbos/backend/identities/client"
-	"gitlab.com/fynbos/backend/images"
-	"gitlab.com/fynbos/backend/keys"
-	keys_client "gitlab.com/fynbos/backend/keys/client"
-	"gitlab.com/fynbos/backend/kyc"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	linkedaccount_client "gitlab.com/fynbos/backend/linkedaccounts/client"
-	"gitlab.com/fynbos/backend/notify"
-	notify_client "gitlab.com/fynbos/backend/notify/client"
-	"gitlab.com/fynbos/backend/features"
-	"gitlab.com/fynbos/backend/payments/ops"
-	"gitlab.com/fynbos/backend/signup"
-	temporal_mock "gitlab.com/fynbos/backend/temporal/mock"
-	"gitlab.com/fynbos/backend/transactions"
-	transaction_client "gitlab.com/fynbos/backend/transactions/client"
-	"gitlab.com/fynbos/backend/twilio"
-	"gitlab.com/fynbos/backend/twitter"
-	"gitlab.com/fynbos/backend/user"
-	user_client "gitlab.com/fynbos/backend/user/client/mock"
-	user_mock "gitlab.com/fynbos/backend/user/client/mock"
-	"gitlab.com/fynbos/backend/vault"
-	"gitlab.com/fynbos/backend/wallets"
-	wallet_client "gitlab.com/fynbos/backend/wallets/client"
 	temporal_client "go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/testsuite"
 	"go.temporal.io/sdk/workflow"
@@ -100,7 +101,7 @@ func NewTestBackends(t *testing.T) *TestBackends {
 
 	_, pacDB := pacioli_db.MigrateTestDB(t, context.Background())
 	b := &TestBackends{
-		db:    db.MigrateTestDB(t, context.Background()),
+		db:    db.MigrateTestDB(t, context.Background(), ""),
 		user:  user_mock.NewMock(),
 		email: em,
 		pac:   pacioli_client.NewLocal(pacDB),
@@ -121,7 +122,7 @@ func NewTestBackends(t *testing.T) *TestBackends {
 	}).AnyTimes()
 	b.temporal = tp
 
-	b.xgo = xago_client.New(b, xago_external.Config{})
+	b.xgo = xago_client.New(b, xago_external.Config{}, true)
 
 	kc := kyc_mock.NewMockClient(ctrl)
 	kc.EXPECT().GetIndividualDetails(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, walletID string) (*kyc.IndividualDetails, error) {
@@ -345,6 +346,10 @@ func (b *TestBackends) Payments() payments.Client {
 func (b *TestBackends) PTI() pti.Client {
 	// return pti_client.New(b)
 	return nil
+}
+
+func (b *TestBackends) Config() *config.StartConfig {
+	return &config.StartConfig{Environment: config.EnvironmentConfig{Mode: "test"}}
 }
 
 func (b *TestBackends) Features() features.Client {

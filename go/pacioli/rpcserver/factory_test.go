@@ -7,11 +7,11 @@ import (
 
 	"google.golang.org/grpc/credentials/insecure"
 
+	"github.com/interledger/interledger-app/go/pacioli/db"
+	"github.com/interledger/interledger-app/go/pacioli/healthcheck"
+	test_utils "github.com/interledger/interledger-app/go/pacioli/utils"
+	pacioliv1 "github.com/interledger/interledger-app/go/proto/pacioli/v1"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/fynbos/pacioli/db"
-	"gitlab.com/fynbos/pacioli/healthcheck"
-	test_utils "gitlab.com/fynbos/pacioli/utils"
-	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
 	"google.golang.org/grpc"
 )
 

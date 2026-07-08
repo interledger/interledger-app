@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"time"
 
-	httplog "gitlab.com/fynbos/backend/providers/http"
+	httplog "github.com/interledger/interledger-app/go/backend/providers/http"
 )
 
 func (c *client) GetAccountStatement(ctx context.Context, userID, walletAddress string, year, month int) (io.ReadCloser, error) {

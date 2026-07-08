@@ -7,13 +7,13 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
+	"github.com/interledger/interledger-app/go/backend/contacts"
+	"github.com/interledger/interledger-app/go/backend/contacts/ops"
+	"github.com/interledger/interledger-app/go/backend/db"
+	"github.com/interledger/interledger-app/go/backend/wallets"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/backend/contacts"
-	"gitlab.com/fynbos/backend/contacts/ops"
-	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/wallets"
 )
 
 type backends struct {
@@ -31,7 +31,7 @@ func (b backends) DB() *sqlx.DB {
 
 func TestCreateAContact(t *testing.T) {
 	ctx := context.Background()
-	testDb := db.MigrateTestDB(t, ctx)
+	testDb := db.MigrateTestDB(t, ctx, "")
 	b := &backends{
 		validator: validator.New(),
 		db:        testDb,
@@ -53,7 +53,7 @@ func TestCreateAContact(t *testing.T) {
 
 func TestListContacts(t *testing.T) {
 	ctx := context.Background()
-	testDb := db.MigrateTestDB(t, ctx)
+	testDb := db.MigrateTestDB(t, ctx, "")
 	b := &backends{
 		validator: validator.New(),
 		db:        testDb,
@@ -116,7 +116,7 @@ func TestListContacts(t *testing.T) {
 
 func TestGetContact(t *testing.T) {
 	ctx := context.Background()
-	testDb := db.MigrateTestDB(t, ctx)
+	testDb := db.MigrateTestDB(t, ctx, "")
 	b := &backends{
 		validator: validator.New(),
 		db:        testDb,
@@ -147,7 +147,7 @@ func TestGetContact(t *testing.T) {
 
 func TestSetLastPaidAtContact(t *testing.T) {
 	ctx := context.Background()
-	testDb := db.MigrateTestDB(t, ctx)
+	testDb := db.MigrateTestDB(t, ctx, "")
 	b := &backends{
 		validator: validator.New(),
 		db:        testDb,

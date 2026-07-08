@@ -5,11 +5,11 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/interledger/interledger-app/go/backend/appcontext"
+	"github.com/interledger/interledger-app/go/backend/errcodes"
+	pb "github.com/interledger/interledger-app/go/proto/backend/v1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/backend/appcontext"
-	"gitlab.com/fynbos/backend/errcodes"
-	pb "gitlab.com/fynbos/proto/backend/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

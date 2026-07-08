@@ -9,9 +9,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"gitlab.com/fynbos/mock/mockpti/internal/jobs"
-	"gitlab.com/fynbos/mock/mockpti/internal/models"
-	"gitlab.com/fynbos/mock/mockpti/internal/storage"
+	"github.com/interledger/interledger-app/go/mock/mockpti/internal/jobs"
+	"github.com/interledger/interledger-app/go/mock/mockpti/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockpti/internal/storage"
 )
 
 // createDepositPayload returns a minimal valid deposit request.

@@ -12,14 +12,13 @@ import (
 	"html/template"
 	"io"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/google/uuid"
-	"gitlab.com/fynbos/mock/mockxago/internal/logger"
-	"gitlab.com/fynbos/mock/mockxago/internal/models"
-	"gitlab.com/fynbos/mock/mockxago/internal/storage"
-	"gitlab.com/fynbos/mock/mockxago/web"
+	"github.com/interledger/interledger-app/go/mock/mockxago/internal/logger"
+	"github.com/interledger/interledger-app/go/mock/mockxago/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockxago/internal/storage"
+	"github.com/interledger/interledger-app/go/mock/mockxago/web"
 )
 
 // KYCIframe serves the KYC verification iframe
@@ -147,11 +146,8 @@ func (h *Handler) saveKYCAndFireWebhooks(ctx context.Context, walletID, firstNam
 }
 
 func (h *Handler) sendPersonaInquiryApproved(walletID string) {
-	webhookURL := os.Getenv("PERSONA_WEBHOOK_URL")
-	if webhookURL == "" {
-		webhookURL = "http://backend:8080/webhooks/persona"
-	}
-	secret := os.Getenv("PERSONA_WEBHOOK_TOKEN")
+	webhookURL := h.personaWebhookURL
+	secret := h.personaWebhookToken
 
 	now := time.Now().UTC().Format(time.RFC3339)
 	inquiry := map[string]interface{}{

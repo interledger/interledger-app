@@ -7,18 +7,17 @@ import (
 	"math"
 	"time"
 
-	"gitlab.com/fynbos/backend/country"
-	"gitlab.com/fynbos/backend/kyc/persona"
-	"gitlab.com/fynbos/backend/providers/chimoney"
-	"gitlab.com/fynbos/backend/providers/gatehub"
-	"gitlab.com/fynbos/backend/providers/pti"
+	"github.com/interledger/interledger-app/go/backend/country"
+	"github.com/interledger/interledger-app/go/backend/kyc/persona"
+	"github.com/interledger/interledger-app/go/backend/providers/chimoney"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
+	"github.com/interledger/interledger-app/go/backend/providers/pti"
 
-	"gitlab.com/fynbos/env"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"gitlab.com/fynbos/backend/kyc"
+	"github.com/interledger/interledger-app/go/backend/kyc"
 
-	pb "gitlab.com/fynbos/proto/backend/v1"
+	pb "github.com/interledger/interledger-app/go/proto/backend/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -198,7 +197,7 @@ func (s *rpcService) IsUSPSAddress(ctx context.Context, req *pb.Address) (*pb.Is
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	if env.IsLocal() {
+	if s.b.Config().Environment.IsModeLocal() {
 		return &pb.IsUSPSAddressResponse{
 			Valid: true,
 		}, nil

@@ -72,6 +72,34 @@ tests:
       - failedTemplate:
           errorMessage: "The following required frontend values are empty: frontend.config.target_host, frontend.config.support_email, frontend.config.public_op_auth_host"
 
+  - it: 'Should succeed when op_intpay is disabled (default) even with no host/redirect_url/wallet_address'
+    asserts:
+      - isNull:
+          path: spec
+
+  - it: 'Should fail when op_intpay is enabled with no host/redirect_url/wallet_address'
+    set:
+      frontend:
+        config:
+          op_intpay:
+            enabled: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "The following frontend values are required when frontend.config.op_intpay.enabled is true: frontend.config.op_intpay.host, frontend.config.op_intpay.redirect_url, frontend.config.op_intpay.wallet_address"
+
+  - it: 'Should succeed when op_intpay is enabled with host/redirect_url/wallet_address set'
+    set:
+      frontend:
+        config:
+          op_intpay:
+            enabled: true
+            host: "https://ilp.link/"
+            redirect_url: "https://ilp.link/quick-pay/finish"
+            wallet_address: "https://ilp.link/quickpay"
+    asserts:
+      - isNull:
+          path: spec
+
   - it: 'Should skip all validation when frontend is disabled'
     set:
       frontend:

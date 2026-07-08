@@ -13,9 +13,12 @@ on:
     paths:
       - ".github/workflows/linting.yml"
       - "go/**/*.go"
+      - "**/go.mod"
+      - "**/go.sum"
+      - "go.work"
+      - "go.work.sum"
 
 jobs:
-
   golangci:
     name: GoLang Linting
     runs-on: ubuntu-latest
@@ -30,3 +33,54 @@ jobs:
         run: |
           cd go
           golangci-lint run ./...
+
+  go-mod-hygiene:
+    name: Verify go modules are tidy and synced
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/interledger/builders/gotester:v1.1.0
+    env:
+      GOFLAGS: -buildvcs=false
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Mark workspace as safe for git
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      # Sync the workspace, tidy each module, then sync again. This mirrors
+      # the standard local workflow and verifies that all generated Go module
+      # metadata has been committed.
+      - name: Tidy each module and sync the workspace
+        shell: bash
+        run: |
+          set -euo pipefail
+          go work sync
+          for m in go e2e local/scripts; do
+            (cd "$m" && go mod tidy)
+          done
+          go work sync
+
+      - name: Fail if modules drifted
+        shell: bash
+        run: |
+          if git diff --exit-code -- '**/go.mod' '**/go.sum' go.work go.work.sum; then
+            echo "All go.mod / go.sum / go.work.sum files are tidy and in sync."
+            exit 0
+          fi
+          echo "::error::Go modules are out of sync — see the diff above and the fix commands below."
+          cat <<'EOF'
+
+          Go modules are out of sync.
+
+          Run:
+
+            go work sync
+            for m in go e2e local/scripts; do
+              (cd "$m" && go mod tidy)
+            done
+            go work sync
+
+          Commit the resulting changes.
+          EOF
+          exit 1

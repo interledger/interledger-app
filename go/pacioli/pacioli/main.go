@@ -9,22 +9,25 @@ import (
 
 	"go.uber.org/zap"
 
+	"github.com/interledger/interledger-app/go/tracing"
 	"github.com/uptrace/opentelemetry-go-extra/otelsql"
 	"github.com/uptrace/opentelemetry-go-extra/otelsqlx"
-	"gitlab.com/fynbos/tracing"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/interledger/interledger-app/go/log"
+	"github.com/interledger/interledger-app/go/pacioli/cli"
+	"github.com/interledger/interledger-app/go/pacioli/db"
+	"github.com/interledger/interledger-app/go/pacioli/healthcheck"
+	"github.com/interledger/interledger-app/go/pacioli/ledger"
+	"github.com/interledger/interledger-app/go/pacioli/rpcserver"
+	"github.com/interledger/interledger-app/go/pacioli/seed"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
-	"gitlab.com/fynbos/log"
-	"gitlab.com/fynbos/pacioli/cli"
-	"gitlab.com/fynbos/pacioli/db"
-	"gitlab.com/fynbos/pacioli/healthcheck"
-	"gitlab.com/fynbos/pacioli/ledger"
-	"gitlab.com/fynbos/pacioli/rpcserver"
-	"gitlab.com/fynbos/pacioli/seed"
 )
+
+// Version is set at build time via -ldflags "-X main.Version=<tag>".
+var Version = "v0.0.0"
 
 func main() {
 	args := os.Args
@@ -91,7 +94,11 @@ func start(args *cli.StartArgs) {
 		log.Fatalln(err)
 	}
 
-	traceShutdown, err := tracing.InitTraceProvider("pacioli")
+	// pacioli has no OTEL YAML config: enable tracing in dev/prod (matching the
+	// previous behaviour) and let the exporter read the standard
+	// OTEL_EXPORTER_OTLP_* env vars.
+	otelEnabled := args.Mode == "dev" || args.Mode == "prod"
+	traceShutdown, err := tracing.InitTraceProvider("pacioli", Version, otelEnabled, "", nil)
 	if err != nil {
 		log.Fatalln(err)
 	}

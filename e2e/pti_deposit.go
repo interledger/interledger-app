@@ -137,7 +137,7 @@ func readActionError(page playwright.Page) string {
 	return strings.TrimSpace(txt)
 }
 
-// iDepositViaPTIDepositForm fills the fynbos deposit form (amount + linked bank account)
+// iDepositViaPTIDepositForm fills the ILP deposit form (amount + linked bank account)
 // and completes the PTI confirm step at /deposit/:paymentId.
 func (sc *E2EContext) iDepositViaPTIDepositForm(amount, currency string) error {
 	debugPrintf("\n💵 Depositing %s %s via PTI deposit form...\n", amount, currency)

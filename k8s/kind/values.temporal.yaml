@@ -1,0 +1,42 @@
+# Temporal values for the local kind environment.
+# Uses the PostgreSQL instance deployed in the same namespace.
+
+server:
+  replicaCount: 1
+
+  config:
+    persistence:
+      defaultStore: default
+      visibilityStore: visibility
+      numHistoryShards: 1
+      datastores:
+        default:
+          sql:
+            pluginName: postgres12
+            databaseName: temporal
+            connectAddr: "postgres-postgresql.interledger:5432"
+            connectProtocol: "tcp"
+            user: postgres
+            password: postgres
+            maxConns: 20
+            maxIdleConns: 20
+            maxConnLifetime: "1h"
+            manageSchema: true
+        visibility:
+          sql:
+            pluginName: postgres12
+            databaseName: temporal
+            connectAddr: "postgres-postgresql.interledger:5432"
+            connectProtocol: "tcp"
+            user: postgres
+            password: postgres
+            maxConns: 5
+            maxIdleConns: 5
+            maxConnLifetime: "1h"
+            manageSchema: true
+
+admintools:
+  enabled: true
+
+web:
+  enabled: false

@@ -3,11 +3,11 @@ package grpc
 import (
 	"context"
 
-	"gitlab.com/fynbos/backend/wallets"
+	"github.com/interledger/interledger-app/go/backend/wallets"
 
-	"gitlab.com/fynbos/backend/contacts"
-	"gitlab.com/fynbos/backend/db"
-	backendv1 "gitlab.com/fynbos/proto/backend/v1"
+	"github.com/interledger/interledger-app/go/backend/contacts"
+	"github.com/interledger/interledger-app/go/backend/db"
+	backendv1 "github.com/interledger/interledger-app/go/proto/backend/v1"
 )
 
 func (s *rpcService) CreateContact(

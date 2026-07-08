@@ -118,87 +118,64 @@ backend:
   # The job can use a different image than the main deployments.
   initialisation:
     serviceAccountName: ""
-    backend:
-      urlSecretRef: "dbBackendMigrationsURL"
-    pacioli:
-      urlSecretRef: "dbPacioliMigrationsURL"
     imagePullPolicy: Always
     # image:
     #   repository: europe-west4-docker.pkg.dev/wallet-451208/interledger-app
     #   name: backend
     #   tag: vA.B.C
 
-  database:
-    backend:
-      urlSecretRef: "dbBackendURL"
-    pacioli:
-      urlSecretRef: "dbPacioliURL"
-    rafiki_backend:
-      urlSecretRef: "dbRafikiBackendURL"
-    rafiki_auth:
-      urlSecretRef: "dbRafikiAuthURL"
+  # List of Kubernetes Secret names configa is allowed to read via the in-cluster
+  # Secrets API. A Role + RoleBinding are created when this is non-empty and
+  # backend.server.serviceAccount.name is set.
+  secretAccess: []
 
+  # Backend start config — serialised verbatim as config.yaml in a ConfigMap and
+  # mounted at /etc/backend/config.yaml. Secret values may use configa templates:
+  #   url: '{{ secret "my-secret" "keyName" }}'
+  # configa resolves these against the K8s Secrets API at pod startup.
   config:
-    application_url: ""
-    environment: dev
-    log_level: "info"
+    environment:
+      # mode is the behavioural switch (consumed by env.SetFynbosEnv). Valid values:
+      # prod, sandbox, dev, local, test.
+      mode: dev
+      # label is the human-readable tag attached to monitoring signals (Sentry, OTEL, etc.).
+      # Typically "production", "sandbox", or similar.
+      label: unknown
     port: "8080"
-    apple_app_id: ""
-    android_package_name: ""
-    android_sha256: ""
+    application_url: ""
+    log_level: "info"
+    log_output_path: "stdout"
+    allowed_wallet_ids: []
+    blocked_regions: []
 
-    admin:
-      # This is used to create links to the admin portal useful for support purposes
-      base_url: ""
-      # Used to configure the admin portal's OIDC integration with Cloudflare Access
-      # for authentication and access control. See the admin portal docs for details.
-      policy_aud_ref: adminPortalCloudFlarePolicyAud
-      team_domain_ref: adminPortalCloudflareTeamDomain
+    agreements:
+      folder_name: ""
+      signup_agreement_ids: []
 
-    # Not used
-    smarty:
-      auth:
-        id: "not_used"
-        token: "not_used"
-
-    region_blocking:
-      blocked_regions: ""
-      allowed_wallet_ids: ""
-
-    twilio:
-      enabled: "false"
-      account_sid_ref: twilioAccountSID
-      service_sid_ref: twilioServiceSID
-      account_token_ref: twilioAccountToken
+    db:
+      url: ""
+      pacioli_url: ""
 
     kratos:
       url: "http://kratos.wallet:4433"
       admin_url: "http://kratos.wallet:4434"
 
-    rafiki:
-      graphql:
-        auth_url: "http://rafiki-auth:3003/graphql"
-        backend_url: "http://rafiki-backend:3001/graphql"
-      # Rafiki multi-tenancy (required as of Rafiki v2.3.0-beta).
-      operator_tenant_id_ref: "rafikiOperatorTenantID"
-      admin_api_secret_ref: "rafikiAdminAPISecret"
-      signature_version_ref: "rafikiSignatureVersion"
-
     temporal:
       url: "temporal:7233"
 
-    otel:
-      exporter_otlp_endpoint: "grpc://api.honeycomb.io:443"
-      exporter_otlp_headers_ref: "otelExporterHeaders"
-      service_name: "backend"
-
-    vault:
-      url: "http://vault:8200"
-      transit_engine_path: "transit/prod/backend"
+    rafiki:
+      node_enabled: false
+      backend_graphql_url: "http://rafiki-backend:3001/graphql"
+      auth_graphql_url: "http://rafiki-auth:3003/graphql"
+      operator_tenant_id: ""
+      admin_api_secret: ""
+      signature_version: ""
+      db_url: ""
+      auth_db_url: ""
 
     gatehub:
-      # Toggle Gatehub-specific validation and runtime config requirements.
-      enabled: "true"
+      # helm-only flag: toggles Helm-level validation for GateHub fields (ignored by Go)
+      enabled: true
       api_base_url: ""
       onboarding_base_url: ""
       on_off_ramp_base_url: ""
@@ -206,75 +183,128 @@ backend:
       organization_id: ""
       sending_user_id: ""
       sending_user_address: ""
+      intermediary_user_id: ""
+      intermediary_user_address: ""
       eur_ops_account: ""
-      eur_ops_ledger_id: ""
+      eur_ops_ledger_id: 0
       on_off_ramp_client_id: ""
       onboarding_client_id: ""
       exchange_client_id: ""
       card_account_product_code: ""
-      app_id_ref: "gatehubAppID"
-      secret_ref: "gatehubSecret"
-      webhook_secret_ref: "gatehubWebhookSecret"
-      gateway_id_ref: "gatehubGatewayId"
-      paywiser_euro_vault_id_ref: "gatehubPaywiserEuroVaultId"
-      card_app_id_ref: "gatehubCardAppId"
-
-    chimoney:
-      webhook_secret_ref: "chimoneyWebhookSecret"
-      token_ref: "chimoneyToken"
-
-    email:
-      enabled: "false"
-
-    sendgrid:
-      api_key_ref: "sendgridApiKey"
-      from_name: ""
-      from_email: ""
-      one_template_id: ""
-
-    pusher:
-      addr_ref: "pusherAddr"
-
-    segment:
-      key_ref: "segmentKey"
-
-    slack:
-      client_id_ref: "slackClientID"
-      client_secret_ref: "slackClientSecret"
-      signing_secret_ref: "slackSigningSecret"
-      token_ref: "slackToken"
-      channel_signup_kyc: ""
-      channel_transaction: ""
-      channel_error: ""
-
-    persona:
-      base_url: "https://api.withpersona.com/api/v1/"
-      token_ref: "personaToken"
-      webhook_token_ref: "personaWebhookToken"
+      app_id: ""
+      secret: ""
+      webhook_secret: ""
+      gateway_id: ""
+      paywiser_euro_vault_id: ""
+      card_app_id: ""
 
     xago:
       api_base_url: ""
       identity_base_url: ""
       exchange_base_url: ""
       policy_id: ""
-      api_secret_ref: "xagoApiSecret"
-      api_public_key_ref: "xagoApiPublicKey"
-
-    sentry:
-      dsn_ref: "sentryDSN"
+      api_secret: ""
+      api_public_key: ""
 
     pti:
-      enabled: "false"
-      base_url: "https://pti-base-url.com"
-      sdk_url: "https://sdk.staging.fiant.io/latest/index.js"
-      forms_url: "https://forms.staging.fiant.io"
-      jwk_ref: "ptiJwk"
-      public_key_jwk_ref: "ptiPublicKeyJwk"
-      client_id_ref: "ptiClientID"
+      enabled: false
+      base_url: ""
+      sdk_url: ""
+      forms_url: ""
+      jwk: ""
+      public_key_jwk: ""
+      client_id: ""
 
-    signup_agreement_ids: ""
+    persona:
+      base_url: "https://api.withpersona.com/api/v1/"
+      token: ""
+      webhook_token: ""
+      # Persona sandbox workaround: sandbox always returns an American profile so
+      # the ZA ID field is null. Setting true makes the backend synthesise a ZA ID
+      # (required for Xago subaccount creation). Must be false in production:
+      # environment.mode=prod with sandbox_fake_za_id=true is rejected at render
+      # time and on startup.
+      sandbox_fake_za_id: false
 
-    redis_url_ref: "redisURL"
+    twilio:
+      # When enabled=false the backend runs a no-op verification service that
+      # "sends" codes without contacting Twilio and treats any submitted code as
+      # valid. This is only permitted outside production: environment.mode=prod
+      # with twilio.enabled=false is rejected at render time and on startup.
+      # Defaults to disabled for non-prod; override to true to test real Twilio.
+      enabled: false
+      account_sid: ""
+      service_sid: ""
+      account_token: ""
+
+    email:
+      enabled: false
+      sendgrid:
+        api_key: ""
+        from_name: ""
+        from_email: ""
+        one_template_id: ""
+        support_email: ""
+
+    slack:
+      client_id: ""
+      client_secret: ""
+      signing_secret: ""
+      token: ""
+      channel_signup_kyc: ""
+      channel_transaction: ""
+      channel_error: ""
+
+    chimoney:
+      webhook_secret: ""
+      token: ""
+
+    admin:
+      # Used to configure the admin portal's OIDC integration with Cloudflare Access.
+      policy_aud: ""
+      team_domain: ""
+      # Used to create links to the admin portal for support purposes.
+      base_url: ""
+
+    mobile:
+      apple_app_id: ""
+      android_package_name: ""
+      android_sha256: ""
+
+    vault:
+      addr: "http://vault:8200"
+      transit_engine_path: "transit/prod/backend"
+
+    sentry:
+      dsn: ""
+
+    # Not used at runtime; kept to satisfy struct validation.
+    smarty:
+      auth_id: "not_used"
+      auth_token: "not_used"
+
+    pusher:
+      addr: ""
+
+    segment:
+      key: ""
+
+  # Migration job config — serialised as config.yaml in a separate ConfigMap and
+  # mounted at /etc/backend/config.yaml in the migration init-job.
+  migration:
+    config:
+      environment:
+        mode: ""
+      agreements:
+        folder_name: ""
+      db_url: ""
+      pacioli_db_url: ""
+      kratos_url: "http://kratos.wallet:4434"
+      log_level: "info"
+      log_output_path: "stderr"
+      label: ""
+      sentry:
+        dsn: ""
 
   server:
     enabled: true
@@ -306,197 +336,33 @@ backend:
         port: 8080
     args:
       - "start"
-    envFrom:
-      - configMapRef:
-          name: '{{ include "common.fullname" . }}-backend-config'
+    serviceAccount:
+      create: false
+      name: ""
+    envFrom: []
     env:
       - name: PGSSLMODE
         value: disable
-      - name: DB_URL
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.database.backend.urlSecretRef }}"
-      - name: PACIOLI_DB_URL
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.database.pacioli.urlSecretRef }}"
-      - name: DB_URL_WITH_CERTS
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.database.backend.urlSecretRef }}"
-      - name: PACIOLI_DB_URL_WITH_CERTS
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.database.pacioli.urlSecretRef }}"
-      - name: RAFIKI_DB_URL
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.database.rafiki_backend.urlSecretRef }}"
-      - name: RAFIKI_AUTH_DB_URL
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.database.rafiki_auth.urlSecretRef }}"
-      - name: TWILIO_ACCOUNT_SID
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.twilio.account_sid_ref }}"
-      - name: TWILIO_ACCOUNT_TOKEN
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.twilio.account_token_ref }}"
-      - name: TWILIO_SERVICE_SID
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.twilio.service_sid_ref }}"
-      - name: SENDGRID_API_KEY
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.sendgrid.api_key_ref }}"
-      - name: PUSHER_ADDR
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.pusher.addr_ref }}"
-      - name: SEGMENT_KEY
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.segment.key_ref }}"
-      - name: PERSONA_TOKEN
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.persona.token_ref }}"
-      - name: PERSONA_WEBHOOK_TOKEN
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.persona.webhook_token_ref }}"
-      - name: SENTRY_DSN
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.sentry.dsn_ref }}"
-      - name: XAGO_API_SECRET
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.xago.api_secret_ref }}"
-      - name: XAGO_API_PUBLIC_KEY
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.xago.api_public_key_ref }}"
-      - name: SLACK_SIGNING_SECRET
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.slack.signing_secret_ref }}"
-      - name: SLACK_TOKEN
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.slack.token_ref }}"
-      - name: GATEHUB_APP_ID
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.gatehub.app_id_ref }}"
-      - name: GATEHUB_SECRET
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.gatehub.secret_ref }}"
-      - name: GATEHUB_WEBHOOK_SECRET
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.gatehub.webhook_secret_ref }}"
-      - name: GATEHUB_GATEWAY_ID
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.gatehub.gateway_id_ref }}"
-      - name: GATEHUB_PAYWISER_EURO_VAULT_ID
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.gatehub.paywiser_euro_vault_id_ref }}"
-      - name: GATEHUB_CARD_APP_ID
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.gatehub.card_app_id_ref }}"
-      - name: CHIMONEY_WEBHOOK_SECRET
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.chimoney.webhook_secret_ref }}"
-      - name: CHIMONEY_TOKEN
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.chimoney.token_ref }}"
-      - name: PTI_JWK
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.pti.jwk_ref }}"
-      - name: PTI_CLIENT_ID
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.pti.client_id_ref }}"
-      - name: PTI_PUBLIC_KEY_JWK
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.pti.public_key_jwk_ref }}"
-      - name: OTEL_EXPORTER_OTLP_HEADERS
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.otel.exporter_otlp_headers_ref }}"
-      - name: ADMIN_POLICY_AUD
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.admin.policy_aud_ref }}"
-      - name: ADMIN_TEAM_DOMAIN
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.admin.team_domain_ref }}"
+      - name: CONFIG
+        value: /etc/backend/config.yaml
       - name: REDIS_URL
         valueFrom:
           secretKeyRef:
             name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.redis_url_ref }}"
-      - name: OPERATOR_TENANT_ID
+            key: "redisURL"
+      - name: OTEL_EXPORTER_OTLP_ENDPOINT
+        value: "grpc://api.honeycomb.io:443"
+      - name: OTEL_EXPORTER_OTLP_HEADERS
         valueFrom:
           secretKeyRef:
             name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.rafiki.operator_tenant_id_ref }}"
-      - name: ADMIN_API_SECRET
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.rafiki.admin_api_secret_ref }}"
-      - name: SIGNATURE_VERSION
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.rafiki.signature_version_ref }}"
+            key: "otelExporterHeaders"
+      - name: OTEL_SERVICE_NAME
+        value: "backend"
+    volumeMounts:
+      - name: config
+        mountPath: /etc/backend
+        readOnly: true
     resources:
       requests:
         memory: 128Mi
@@ -574,207 +440,30 @@ backend:
       httpGet:
         path: /healthz
         port: 8081
-    envFrom:
-      - configMapRef:
-          name: '{{ include "common.fullname" . }}-backend-config'
+    envFrom: []
     env:
       - name: PGSSLMODE
         value: disable
-      - name: DB_URL
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.database.backend.urlSecretRef }}"
-      - name: PACIOLI_DB_URL
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.database.pacioli.urlSecretRef }}"
-      - name: DB_URL_WITH_CERTS
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.database.backend.urlSecretRef }}"
-      - name: PACIOLI_DB_URL_WITH_CERTS
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.database.pacioli.urlSecretRef }}"
-      - name: RAFIKI_DB_URL
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.database.rafiki_backend.urlSecretRef }}"
-      - name: RAFIKI_AUTH_DB_URL
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.database.rafiki_auth.urlSecretRef }}"
-      - name: TWILIO_ACCOUNT_SID
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.twilio.account_sid_ref }}"
-      - name: TWILIO_ACCOUNT_TOKEN
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.twilio.account_token_ref }}"
-      - name: TWILIO_SERVICE_SID
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.twilio.service_sid_ref }}"
-      - name: SENDGRID_API_KEY
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.sendgrid.api_key_ref }}"
-      - name: PUSHER_ADDR
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.pusher.addr_ref }}"
-      - name: SEGMENT_KEY
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.segment.key_ref }}"
-      - name: PERSONA_TOKEN
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.persona.token_ref }}"
-      - name: PERSONA_WEBHOOK_TOKEN
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.persona.webhook_token_ref }}"
-      - name: SENTRY_DSN
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.sentry.dsn_ref }}"
-      - name: XAGO_API_SECRET
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.xago.api_secret_ref }}"
-      - name: XAGO_API_PUBLIC_KEY
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.xago.api_public_key_ref }}"
-      - name: SLACK_CLIENT_ID
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.slack.client_id_ref }}"
-      - name: SLACK_CLIENT_SECRET
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.slack.client_secret_ref }}"
-      - name: SLACK_SIGNING_SECRET
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.slack.signing_secret_ref }}"
-      - name: SLACK_TOKEN
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.slack.token_ref }}"
-      - name: GATEHUB_APP_ID
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.gatehub.app_id_ref }}"
-      - name: GATEHUB_SECRET
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.gatehub.secret_ref }}"
-      - name: GATEHUB_WEBHOOK_SECRET
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.gatehub.webhook_secret_ref }}"
-      - name: GATEHUB_GATEWAY_ID
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.gatehub.gateway_id_ref }}"
-      - name: GATEHUB_PAYWISER_EURO_VAULT_ID
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.gatehub.paywiser_euro_vault_id_ref }}"
-      - name: GATEHUB_CARD_APP_ID
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.gatehub.card_app_id_ref }}"
-      - name: CHIMONEY_WEBHOOK_SECRET
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.chimoney.webhook_secret_ref }}"
-      - name: CHIMONEY_TOKEN
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.chimoney.token_ref }}"
-      - name: PTI_JWK
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.pti.jwk_ref }}"
-      - name: PTI_CLIENT_ID
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.pti.client_id_ref }}"
-      - name: PTI_PUBLIC_KEY_JWK
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.pti.public_key_jwk_ref }}"
-      - name: OTEL_EXPORTER_OTLP_HEADERS
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.otel.exporter_otlp_headers_ref }}"
-      - name: ADMIN_POLICY_AUD
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.admin.policy_aud_ref }}"
-      - name: ADMIN_TEAM_DOMAIN
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.admin.team_domain_ref }}"
+      - name: CONFIG
+        value: /etc/backend/config.yaml
       - name: REDIS_URL
         valueFrom:
           secretKeyRef:
             name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.redis_url_ref }}"
-      - name: OPERATOR_TENANT_ID
+            key: "redisURL"
+      - name: OTEL_EXPORTER_OTLP_ENDPOINT
+        value: "grpc://api.honeycomb.io:443"
+      - name: OTEL_EXPORTER_OTLP_HEADERS
         valueFrom:
           secretKeyRef:
             name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.rafiki.operator_tenant_id_ref }}"
-      - name: ADMIN_API_SECRET
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.rafiki.admin_api_secret_ref }}"
-      - name: SIGNATURE_VERSION
-        valueFrom:
-          secretKeyRef:
-            name: '{{ include "common.fullname" . }}-backend'
-            key: "{{ .Values.backend.config.rafiki.signature_version_ref }}"
+            key: "otelExporterHeaders"
+      - name: OTEL_SERVICE_NAME
+        value: "backend"
+    volumeMounts:
+      - name: config
+        mountPath: /etc/backend
+        readOnly: true
     resources:
       requests:
         memory: 128Mi
@@ -791,114 +480,6 @@ backend:
         topologyKey: kubernetes.io/hostname
         whenUnsatisfiable: DoNotSchedule
 
-  configMaps:
-    config:
-      name: backend-config
-      contentMap:
-        - key: APPLICATION_URL
-          valueRef: backend.config.application_url
-        - key: FYNBOS_ENV
-          valueRef: backend.config.environment
-        - key: KRATOS_URL
-          valueRef: backend.config.kratos.url
-        - key: KRATOS_ADMIN_URL
-          valueRef: backend.config.kratos.admin_url
-        - key: LOG_LEVEL
-          valueRef: backend.config.log_level
-        - key: TEMPORAL_URL
-          valueRef: backend.config.temporal.url
-        - key: OTEL_EXPORTER_OTLP_ENDPOINT
-          valueRef: backend.config.otel.exporter_otlp_endpoint
-        - key: OTEL_SERVICE_NAME
-          valueRef: backend.config.otel.service_name
-        - key: VAULT_ADDR
-          valueRef: backend.config.vault.url
-        - key: VAULT_TRANSIT_ENGINE_PATH
-          valueRef: backend.config.vault.transit_engine_path
-        - key: RAFIKI_BACKEND_GRAPHQL_URL
-          valueRef: backend.config.rafiki.graphql.backend_url
-        - key: RAFIKI_AUTH_GRAPHQL_URL
-          valueRef: backend.config.rafiki.graphql.auth_url
-        - key: SMARTY_AUTH_ID
-          valueRef: backend.config.smarty.auth.id
-        - key: SMARTY_AUTH_TOKEN
-          valueRef: backend.config.smarty.auth.token
-        - key: BLOCKED_REGIONS
-          valueRef: backend.config.region_blocking.blocked_regions
-        - key: ALLOWED_WALLET_IDS
-          valueRef: backend.config.region_blocking.allowed_wallet_ids
-        - key: GATEHUB_API_BASE_URL
-          valueRef: backend.config.gatehub.api_base_url
-        - key: GATEHUB_ONBOARDING_BASE_URL
-          valueRef: backend.config.gatehub.onboarding_base_url
-        - key: GATEHUB_ON_OFF_RAMP_BASE_URL
-          valueRef: backend.config.gatehub.on_off_ramp_base_url
-        - key: GATEHUB_ON_OFF_RAMP_CLIENT_ID
-          valueRef: backend.config.gatehub.on_off_ramp_client_id
-        - key: GATEHUB_ONBOARDING_CLIENT_ID
-          valueRef: backend.config.gatehub.onboarding_client_id
-        - key: GATEHUB_EXCHANGE_CLIENT_ID
-          valueRef: backend.config.gatehub.exchange_client_id
-        - key: GATEHUB_FALLBACK_WEBHOOK_URL
-          valueRef: backend.config.gatehub.fallback_webhook_url
-        - key: GATEHUB_CARD_ACCOUNT_PRODUCT_CODE
-          valueRef: backend.config.gatehub.card_account_product_code
-        - key: GATEHUB_ORGANIZATION_ID
-          valueRef: backend.config.gatehub.organization_id
-        - key: GATEHUB_SENDING_USER_ID
-          valueRef: backend.config.gatehub.sending_user_id
-        - key: GATEHUB_SENDING_USER_ADDRESS
-          valueRef: backend.config.gatehub.sending_user_address
-        - key: GATEHUB_EUR_OPS_ACCOUNT
-          valueRef: backend.config.gatehub.eur_ops_account
-        - key: GATEHUB_EUR_OPS_LEDGER_ID
-          valueRef: backend.config.gatehub.eur_ops_ledger_id
-        - key: XAGO_API_BASE_URL
-          valueRef: backend.config.xago.api_base_url
-        - key: XAGO_IDENTITY_BASE_URL
-          valueRef: backend.config.xago.identity_base_url
-        - key: XAGO_EXCHANGE_BASE_URL
-          valueRef: backend.config.xago.exchange_base_url
-        - key: XAGO_POLICY_ID
-          valueRef: backend.config.xago.policy_id
-        - key: PTI_ENABLED
-          valueRef: backend.config.pti.enabled
-        - key: APPLE_APP_ID
-          valueRef: backend.config.apple_app_id
-        - key: ANDROID_PACKAGE_NAME
-          valueRef: backend.config.android_package_name
-        - key: ANDROID_SHA256
-          valueRef: backend.config.android_sha256
-        - key: PTI_BASE_URL
-          valueRef: backend.config.pti.base_url
-        - key: PTI_SDK_URL
-          valueRef: backend.config.pti.sdk_url
-        - key: PTI_FORMS_URL
-          valueRef: backend.config.pti.forms_url
-        - key: PORT
-          valueRef: backend.config.port
-        - key: EMAIL_ENABLED
-          valueRef: backend.config.email.enabled
-        - key: SENDGRID_FROM_NAME
-          valueRef: backend.config.sendgrid.from_name
-        - key: SENDGRID_FROM_EMAIL
-          valueRef: backend.config.sendgrid.from_email
-        - key: SENDGRID_ONE_TEMPLATE_ID
-          valueRef: backend.config.sendgrid.one_template_id
-        - key: PERSONA_BASE_URL
-          valueRef: backend.config.persona.base_url
-        - key: SIGNUP_AGREEMENT_IDS
-          valueRef: backend.config.signup_agreement_ids
-        - key: TWILIO_ENABLED
-          valueRef: backend.config.twilio.enabled
-        - key: SIGNUP_KYC_SLACK_CHANNEL
-          valueRef: backend.config.slack.channel_signup_kyc
-        - key: TRANSACTION_SLACK_CHANNEL
-          valueRef: backend.config.slack.channel_transaction
-        - key: ERROR_SLACK_CHANNEL
-          valueRef: backend.config.slack.channel_error
-        - key: ADMIN_BASE_URL
-          valueRef: backend.config.admin.base_url
 
 # =============================================================================
 # FRONTEND — Protea user-facing wallet
@@ -977,6 +558,25 @@ frontend:
     # back to the Persona SDK flow. Not required in environments that use Persona
     # SDK directly.
     mockxago_endpoint: ""
+
+    # Open Payments Interledger Pay (quick-pay) support. When disabled, the
+    # remaining op_intpay.* values are unused and the quick-pay routes are
+    # inaccessible.
+    op_intpay:
+      enabled: false
+      # Public base URL of the wallet's Open Payments auth server used to build
+      # quick-pay links. Required when enabled.
+      host: ""
+      # URL the client is redirected back to once a quick-pay grant completes.
+      # Required when enabled.
+      redirect_url: ""
+      # Wallet address (payment pointer) used as the Open Payments client
+      # identity for quick-pay grant requests. Required when enabled.
+      wallet_address: ""
+      # Key id and base64-encoded Ed25519 private key of the Open Payments
+      # client. Stored in the frontend secret; required when enabled.
+      key_id_ref: opIntPayKeyId
+      private_key_ref: opIntPayPrivateKey
 
   server:
     name: frontend-server
@@ -1061,6 +661,16 @@ frontend:
           secretKeyRef:
             name: '{{ include "common.fullname" . }}-frontend'
             key: "{{ .Values.frontend.config.otel.headers_ref }}"
+      - name: OP_INTPAY_KEY_ID
+        valueFrom:
+          secretKeyRef:
+            name: '{{ include "common.fullname" . }}-frontend'
+            key: "{{ .Values.frontend.config.op_intpay.key_id_ref }}"
+      - name: OP_INTPAY_PRIVATE_KEY
+        valueFrom:
+          secretKeyRef:
+            name: '{{ include "common.fullname" . }}-frontend'
+            key: "{{ .Values.frontend.config.op_intpay.private_key_ref }}"
     ports:
       - name: http
         containerPort: 3000
@@ -1077,6 +687,8 @@ frontend:
         whenUnsatisfiable: DoNotSchedule
 
   configMaps:
+    # NOTE: Please see the _configmaps.tpl template for details on how these values are rendered into the ConfigMap.
+    #       and also validation.frontend.yaml for validation of required fields when op_intpay.enabled is true.
     server:
       name: frontend-server
       contentMap:
@@ -1092,7 +704,7 @@ frontend:
           valueRef: frontend.config.rafiki.auth.endpoint
         - key: BACKEND_GRPC_URL
           valueRef: frontend.config.backend.grpc.url
-        - key: FYNBOS_ENV
+        - key: ILW_ENV
           valueRef: frontend.config.environment
         - key: LOG_LEVEL
           valueRef: frontend.config.log_level
@@ -1118,3 +730,15 @@ frontend:
           valueRef: frontend.config.mockxago_endpoint
         - key: SENTRY_ENV_LABEL
           valueRef: frontend.config.sentry_env_label
+
+# --- Open Payments Interledger Pay (quick-pay) ---
+# Config lives at frontend.config.op_intpay above (values ~1006-1021).
+# - enabled/host/redirect_url/wallet_address render into the frontend
+#   ConfigMap via templates/_configmaps.tpl.
+# - key_id_ref/private_key_ref are key *names* looked up in the frontend
+#   Secret; the actual OP_INTPAY_KEY_ID/OP_INTPAY_PRIVATE_KEY env vars are
+#   only injected into the Deployment (templates/deployment.frontend.yaml)
+#   when op_intpay.enabled is true, so existing Secrets don't need these
+#   keys unless the feature is turned on.
+# Validation of the required fields when enabled lives in
+# templates/validation.frontend.yaml.

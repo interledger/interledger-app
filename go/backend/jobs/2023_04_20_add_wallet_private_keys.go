@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"gitlab.com/fynbos/backend/db"
+	"github.com/interledger/interledger-app/go/backend/db"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/workflow"
 )

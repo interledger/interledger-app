@@ -4,15 +4,14 @@ import (
 	"context"
 	"errors"
 
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/limits"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/payments"
-	"gitlab.com/fynbos/backend/providers/xago"
-	"gitlab.com/fynbos/backend/user"
-	"gitlab.com/fynbos/env"
-	"gitlab.com/fynbos/log"
-	pb "gitlab.com/fynbos/proto/backend/v1"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/limits"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	"github.com/interledger/interledger-app/go/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/providers/xago"
+	"github.com/interledger/interledger-app/go/backend/user"
+	"github.com/interledger/interledger-app/go/log"
+	pb "github.com/interledger/interledger-app/go/proto/backend/v1"
 	"go.uber.org/zap"
 )
 
@@ -250,7 +249,7 @@ func (s *rpcService) DepositTestXago(ctx context.Context, req *pb.Empty) (*pb.Em
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	if env.IsProd() {
+	if s.b.Config().Environment.IsModeProd() {
 		log.Warn("received xago test deposit RPC call in non-testing environment", zap.String("userId", u.ID))
 		return nil, ForbiddenError("Forbidden.")
 	}

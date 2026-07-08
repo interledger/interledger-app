@@ -3,13 +3,13 @@ package client
 import (
 	"context"
 
-	"gitlab.com/fynbos/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/currency"
 
-	"gitlab.com/fynbos/backend/db"
+	"github.com/interledger/interledger-app/go/backend/db"
 
+	"github.com/interledger/interledger-app/go/backend/transactions"
+	"github.com/interledger/interledger-app/go/backend/transactions/ops"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/fynbos/backend/transactions"
-	"gitlab.com/fynbos/backend/transactions/ops"
 )
 
 var _ transactions.Client = &client{}

@@ -7,10 +7,10 @@ import (
 
 	"github.com/bxcodec/faker/v3"
 	"github.com/google/uuid"
+	"github.com/interledger/interledger-app/go/pacioli"
+	"github.com/interledger/interledger-app/go/pacioli/ledger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/pacioli"
-	"gitlab.com/fynbos/pacioli/ledger"
 )
 
 func TestPacioli(s *testing.T) {
