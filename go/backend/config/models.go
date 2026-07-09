@@ -107,27 +107,29 @@ type RafikiConfig struct {
 }
 
 type GatehubConfig struct {
-	AppID                   string `yaml:"app_id"`
-	Secret                  string `yaml:"secret"`
-	CardAppID               string `yaml:"card_app_id"`
-	GatewayID               string `yaml:"gateway_id"`
-	CardAccountProductCode  string `yaml:"card_account_product_code"`
-	PaywiserEuroVaultID     string `yaml:"paywiser_euro_vault_id"`
-	SendingUserID           string `yaml:"sending_user_id"`
-	SendingUserAddress      string `yaml:"sending_user_address"`
-	IntermediaryUserID      string `yaml:"intermediary_user_id"`
-	IntermediaryUserAddress string `yaml:"intermediary_user_address"`
-	WebhookSecret           string `yaml:"webhook_secret"`
-	FallbackWebhookURL      string `yaml:"fallback_webhook_url"`
-	OnOffRampClientID       string `yaml:"on_off_ramp_client_id"`
-	OnboardingClientID      string `yaml:"onboarding_client_id"`
-	ExchangeClientID        string `yaml:"exchange_client_id"`
-	APIBaseURL              string `yaml:"api_base_url"`
-	OnboardingBaseURL       string `yaml:"onboarding_base_url"`
-	OnOffRampBaseURL        string `yaml:"on_off_ramp_base_url"`
-	EUROpsAccount           string `yaml:"eur_ops_account"`
-	EUROpsLedgerID          uint32 `yaml:"eur_ops_ledger_id"`
-	OrganizationID          string `yaml:"organization_id"`
+	AppID                       string `yaml:"app_id"`
+	Secret                      string `yaml:"secret"`
+	CardAppID                   string `yaml:"card_app_id"`
+	GatewayID                   string `yaml:"gateway_id"`
+	CardAccountProductCode      string `yaml:"card_account_product_code"`
+	PaywiserEuroVaultID         string `yaml:"paywiser_euro_vault_id"`
+	SendingUserID               string `yaml:"sending_user_id"`
+	SendingUserAddress          string `yaml:"sending_user_address"`
+	IntermediaryUserID          string `yaml:"intermediary_user_id"`
+	IntermediaryUserAddress     string `yaml:"intermediary_user_address"`
+	WebhookSecret               string `yaml:"webhook_secret"`
+	FallbackWebhookURL          string `yaml:"fallback_webhook_url"`
+	OnOffRampClientID           string `yaml:"on_off_ramp_client_id"`
+	OnboardingClientID          string `yaml:"onboarding_client_id"`
+	ExchangeClientID            string `yaml:"exchange_client_id"`
+	APIBaseURL                  string `yaml:"api_base_url"`
+	OnboardingBaseURL           string `yaml:"onboarding_base_url"`
+	OnOffRampBaseURL            string `yaml:"on_off_ramp_base_url"`
+	EUROpsAccount               string `yaml:"eur_ops_account"`
+	EUROpsLedgerID              uint32 `yaml:"eur_ops_ledger_id"`
+	OrganizationID              string `yaml:"organization_id"`
+	OmnibusUserIDForCPXago      string `yaml:"omnibus_user_id_for_cp_xago"`
+	OmnibusUserAddressForCPXago string `yaml:"omnibus_user_address_for_cp_xago"`
 }
 
 type XagoConfig struct {

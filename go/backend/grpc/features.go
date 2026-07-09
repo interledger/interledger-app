@@ -23,18 +23,19 @@ func (s *rpcService) ListFeatures(ctx context.Context, _ *pb.Empty) (*pb.Feature
 	}
 
 	return &pb.Features{
-		SendEnabled:              feat.SendEnabled,
-		ReceiveEnabled:           feat.ReceiveEnabled,
-		LinkedAccountsEnabled:    feat.LinkedAccEnabled,
-		CardsEnabled:             feat.CardsEnabled,
-		BanksEnabled:             feat.BanksEnabled,
-		IdentitiesEnabled:        feat.IdentitiesEnabled,
-		TwitterEnabled:           feat.TwitterEnabled,
-		AddCardsEnabled:          feat.AddCardsEnabled,
-		InteracEnabled:           feat.InteraccEnabled,
-		ManageWalletCardsEnabled: feat.ManageWalletCardsEnabled,
-		AccountEnabled:           feat.AccountEnabled,
-		AccountsTabEnabled:       feat.AccountsTabEnabled,
-		DeleteAccountEnabled:     feat.DeleteAccountEnabled,
+		SendEnabled:                feat.SendEnabled,
+		ReceiveEnabled:             feat.ReceiveEnabled,
+		LinkedAccountsEnabled:      feat.LinkedAccEnabled,
+		CardsEnabled:               feat.CardsEnabled,
+		BanksEnabled:               feat.BanksEnabled,
+		IdentitiesEnabled:          feat.IdentitiesEnabled,
+		TwitterEnabled:             feat.TwitterEnabled,
+		AddCardsEnabled:            feat.AddCardsEnabled,
+		InteracEnabled:             feat.InteraccEnabled,
+		ManageWalletCardsEnabled:   feat.ManageWalletCardsEnabled,
+		AccountEnabled:             feat.AccountEnabled,
+		AccountsTabEnabled:         feat.AccountsTabEnabled,
+		DeleteAccountEnabled:       feat.DeleteAccountEnabled,
+		XagoGatehubPaymentsEnabled: feat.XagoGatehubPaymentsEnabled,
 	}, nil
 }

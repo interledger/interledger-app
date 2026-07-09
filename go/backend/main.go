@@ -992,8 +992,8 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 		EUROpsAccount:               args.Gatehub.EUROpsAccount,
 		EUROpsLedgerID:              args.Gatehub.EUROpsLedgerID,
 		OrganizationID:              args.Gatehub.OrganizationID,
-		OmnibusUserIDForCPXago:      args.XagoGatehubGhOmnibusUserID,
-		OmnibusUserAddressForCPXago: args.XagoGatehubGhOmnibusUserAddress,
+		OmnibusUserIDForCPXago:      args.Gatehub.OmnibusUserIDForCPXago,
+		OmnibusUserAddressForCPXago: args.Gatehub.OmnibusUserAddressForCPXago,
 	}
 	b.gatehub = gatehub_client.New(b, b.gatehubConfig)
 	if b.gatehub == nil {
