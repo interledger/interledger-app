@@ -541,7 +541,8 @@ func CreateTransfer(ctx context.Context, b Backends, ec external.Client, args ga
 	return externalTx, nil
 }
 
-func TransferUserToOmnibus(ctx context.Context, b Backends, ec external.Client, senderLinkedAccountID string, amount currency.Amount, omnibusAddress, vaultID string) (*external.Transaction, error) {
+// TODO this should probably be parametrized to receive the omnibus info
+func TransferUserToOmnibus(ctx context.Context, b Backends, ec external.Client, senderLinkedAccountID string, amount currency.Amount) (*external.Transaction, error) {
 	la, err := b.LinkedAccounts().Get(ctx, senderLinkedAccountID)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
@@ -556,10 +557,10 @@ func TransferUserToOmnibus(ctx context.Context, b Backends, ec external.Client, 
 	externalTx, err := ec.CreateTransaction(ctx, external.CreateTransactionRequest{
 		SendingUserID:    senderExternalUserID,
 		SendingAddress:   la.ProviderID,
-		ReceivingAddress: omnibusAddress,
+		ReceivingAddress: b.Config().Gatehub.OmnibusUserAddressForCPXago,
 		Amount:           amount.Float64(),
 		Type:             external.TransactionTypeHosted,
-		VaultID:          vaultID,
+		VaultID:          b.Config().Gatehub.PaywiserEuroVaultID,
 		Message:          "Transfer from user to omnibus",
 	})
 	if err != nil {
@@ -569,19 +570,20 @@ func TransferUserToOmnibus(ctx context.Context, b Backends, ec external.Client, 
 	return externalTx, nil
 }
 
-func TransferOmnibusToUser(ctx context.Context, b Backends, ec external.Client, receiverLinkedAccountID string, amount currency.Amount, senderUserID, omnibusAddress, vaultID string) (*external.Transaction, error) {
+// TODO this should probably be parametrized to receive the omnibus info
+func TransferOmnibusToUser(ctx context.Context, b Backends, ec external.Client, receiverLinkedAccountID string, amount currency.Amount) (*external.Transaction, error) {
 	receiverLA, err := b.LinkedAccounts().Get(ctx, receiverLinkedAccountID)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
 	}
 
 	externalTx, err := ec.CreateTransaction(ctx, external.CreateTransactionRequest{
-		SendingUserID:    senderUserID,
-		SendingAddress:   omnibusAddress,
+		SendingUserID:    b.Config().Gatehub.OmnibusUserIDForCPXago,
+		SendingAddress:   b.Config().Gatehub.OmnibusUserAddressForCPXago,
 		ReceivingAddress: receiverLA.ProviderID,
 		Amount:           amount.Float64(),
 		Type:             external.TransactionTypeHosted,
-		VaultID:          vaultID,
+		VaultID:          b.Config().Gatehub.PaywiserEuroVaultID,
 		Message:          "Transfer from omnibus to user",
 	})
 	if err != nil {
