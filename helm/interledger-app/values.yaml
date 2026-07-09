@@ -208,6 +208,9 @@ backend:
       travel_rule_pgp_public_key: ""
       travel_rule_email: ""
 
+    features:
+      xago_gatehub_payments_default_enabled: false
+
     pti:
       enabled: false
       base_url: ""
@@ -481,7 +484,6 @@ backend:
       - maxSkew: 1
         topologyKey: kubernetes.io/hostname
         whenUnsatisfiable: DoNotSchedule
-
 
 # =============================================================================
 # FRONTEND — Protea user-facing wallet

@@ -50,6 +50,15 @@ type StartConfig struct {
 	Segment    SegmentConfig    `yaml:"segment"`
 	Agreements AgreementsConfig `yaml:"agreements"`
 	OTEL       OTELConfig       `yaml:"otel"`
+	Features   FeaturesConfig   `yaml:"features"`
+}
+
+// FeaturesConfig holds deployment-level feature-flag defaults. These seed the
+// default value of a per-wallet flag when no wallet_features row exists yet; once
+// an admin persists a wallet's features, the stored value takes precedence and
+// these defaults no longer apply to that wallet.
+type FeaturesConfig struct {
+	XagoGatehubPaymentsDefaultEnabled bool `yaml:"xago_gatehub_payments_default_enabled"`
 }
 
 // OTELConfig configures the OpenTelemetry trace exporter. Enabled is an explicit
