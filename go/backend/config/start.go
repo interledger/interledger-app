@@ -153,6 +153,8 @@ func validateGatehubProd(cfg *StartConfig) error {
 		{"gatehub.on_off_ramp_base_url", g.OnOffRampBaseURL},
 		{"gatehub.eur_ops_account", g.EUROpsAccount},
 		{"gatehub.organization_id", g.OrganizationID},
+		{"gatehub.omnibus_user_id_for_cp_xago", g.OmnibusUserIDForCPXago},
+		{"gatehub.omnibus_user_address_for_cp_xago", g.OmnibusUserAddressForCPXago},
 	}
 	for _, r := range required {
 		if r.value == "" {

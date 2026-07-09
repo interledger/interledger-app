@@ -23,17 +23,17 @@ const (
 	TestEUROpsLedgerID uint32 = 4482387
 
 	// Sandbox test credentials
-	TestAppID                           = "sandbox-test-app-id"
-	TestSecret                          = "sandbox-test-secret"
-	TestCardAppID                       = "sandbox-test-card-app-id"
-	TestGatewayID                       = "test-gateway-id"
-	TestCardAccountProductCode          = "PWSR_DEBP_2404"
-	TestPaywiserEuroVaultID             = "a09a0a2c-1a3a-44c5-a1b9-603a6eea9341"
-	TestSendingUserID                   = "test-sending-user-id"
-	TestSendingUserAddress              = "rN7n7otQDd6FczFgLdVZGMbpKRtFVfT4hb"
-	TestWebhookSecret                   = "test-webhook-secret"
-	TestXagoGatehubGhOmnibusUserID      = "test-xago-gatehub-gh-omnibus-user-id"
-	TestXagoGatehubGhOmnibusUserAddress = "gHOmniXzP7QbwzVBN4sj9mCERK314hhx6M"
+	TestAppID                       = "sandbox-test-app-id"
+	TestSecret                      = "sandbox-test-secret"
+	TestCardAppID                   = "sandbox-test-card-app-id"
+	TestGatewayID                   = "test-gateway-id"
+	TestCardAccountProductCode      = "PWSR_DEBP_2404"
+	TestPaywiserEuroVaultID         = "a09a0a2c-1a3a-44c5-a1b9-603a6eea9341"
+	TestSendingUserID               = "test-sending-user-id"
+	TestSendingUserAddress          = "rN7n7otQDd6FczFgLdVZGMbpKRtFVfT4hb"
+	TestWebhookSecret               = "test-webhook-secret"
+	TestOmnibusUserIDForCPXago      = "test-xago-gatehub-gh-omnibus-user-id"
+	TestOmnibusUserAddressForCPXago = "gHOmniXzP7QbwzVBN4sj9mCERK314hhx6M"
 
 	TestFallbackWebhookURL = "http://localhost:3000/webhooks/gatehub"
 )

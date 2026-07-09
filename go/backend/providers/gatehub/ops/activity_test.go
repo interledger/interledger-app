@@ -56,8 +56,8 @@ func TestSaveUser(t *testing.T) {
 		OnOffRampBaseURL:            gatehub.TestOnOffRampBaseURL,
 		EUROpsAccount:               gatehub.TestEUROpsAccount,
 		EUROpsLedgerID:              gatehub.TestEUROpsLedgerID,
-		OmnibusUserIDForCPXago:      gatehub.TestXagoGatehubGhOmnibusUserID,
-		OmnibusUserAddressForCPXago: gatehub.TestXagoGatehubGhOmnibusUserAddress,
+		OmnibusUserIDForCPXago:      gatehub.TestOmnibusUserIDForCPXago,
+		OmnibusUserAddressForCPXago: gatehub.TestOmnibusUserAddressForCPXago,
 	}
 	a := ops.NewActivity(b, cfg)
 
@@ -100,8 +100,8 @@ func TestLinkGatehubUserToGateway(t *testing.T) {
 		OnOffRampBaseURL:            gatehub.TestOnOffRampBaseURL,
 		EUROpsAccount:               gatehub.TestEUROpsAccount,
 		EUROpsLedgerID:              gatehub.TestEUROpsLedgerID,
-		OmnibusUserIDForCPXago:      gatehub.TestXagoGatehubGhOmnibusUserID,
-		OmnibusUserAddressForCPXago: gatehub.TestXagoGatehubGhOmnibusUserAddress,
+		OmnibusUserIDForCPXago:      gatehub.TestOmnibusUserIDForCPXago,
+		OmnibusUserAddressForCPXago: gatehub.TestOmnibusUserAddressForCPXago,
 	}
 	a := ops.NewActivity(b, cfg)
 
