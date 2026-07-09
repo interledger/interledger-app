@@ -60,6 +60,14 @@
   ) -}}
 {{- end -}}
 
+{{/* mode=prod: all Xago fields required — mirrors the Xago block in start.go */}}
+{{- if eq $mode "prod" -}}
+  {{- $requiredFields = concat $requiredFields (list
+    (dict "path" "backend.config.xago.travel_rule_pgp_public_key" "value" .Values.backend.config.xago.travel_rule_pgp_public_key)
+    (dict "path" "backend.config.xago.travel_rule_email"          "value" .Values.backend.config.xago.travel_rule_email)
+  ) -}}
+{{- end -}}
+
 {{/* mode=prod: all GateHub fields required — mirrors validateGatehubProd in start.go */}}
 {{- if eq $mode "prod" -}}
   {{- $requiredFields = concat $requiredFields (list

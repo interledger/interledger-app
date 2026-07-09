@@ -113,6 +113,15 @@ func validateStart(cfg *StartConfig) error {
 	}
 
 	if cfg.Environment.IsModeProd() {
+		if cfg.Xago.TravelRulePGPPublicKey == "" {
+			return errors.New("xago.travel_rule_pgp_public_key is required in production")
+		}
+		if cfg.Xago.TravelRuleEmail == "" {
+			return errors.New("xago.travel_rule_email is required in production")
+		}
+	}
+
+	if cfg.Environment.IsModeProd() {
 		if err := validateGatehubProd(cfg); err != nil {
 			return err
 		}

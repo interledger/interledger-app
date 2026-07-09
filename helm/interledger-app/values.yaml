@@ -205,6 +205,8 @@ backend:
       policy_id: ""
       api_secret: ""
       api_public_key: ""
+      travel_rule_pgp_public_key: ""
+      travel_rule_email: ""
 
     pti:
       enabled: false
