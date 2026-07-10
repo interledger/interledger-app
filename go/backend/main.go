@@ -918,6 +918,7 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 
 	log.Debug("initialising FIANT")
 	pti_ops.ConfigureWidgetURLs(args.PTI.SDKURL, args.PTI.FormsURL, args.PTI.ClientID)
+	pti.ConfigureScenarios(args.PTI.ScenarioTransfer, args.PTI.ScenarioDeposit, args.PTI.ScenarioWithdrawal)
 	b.pti = pti_client.New(b, args.PTI.JWK, args.PTI.BaseURL, args.PTI.ClientID)
 
 	log.Debug("initialising Gatehub")

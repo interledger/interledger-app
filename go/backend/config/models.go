@@ -130,13 +130,16 @@ type XagoConfig struct {
 }
 
 type PTIConfig struct {
-	Enabled      bool   `yaml:"enabled"`
-	BaseURL      string `yaml:"base_url"`
-	JWK          string `yaml:"jwk"`
-	ClientID     string `yaml:"client_id"`
-	SDKURL       string `yaml:"sdk_url"`
-	FormsURL     string `yaml:"forms_url"`
-	PublicKeyJWK string `yaml:"public_key_jwk"`
+	Enabled            bool   `yaml:"enabled"`
+	BaseURL            string `yaml:"base_url"`
+	JWK                string `yaml:"jwk"`
+	ClientID           string `yaml:"client_id"`
+	SDKURL             string `yaml:"sdk_url"`
+	FormsURL           string `yaml:"forms_url"`
+	PublicKeyJWK       string `yaml:"public_key_jwk"`
+	ScenarioTransfer   string `yaml:"scenario_transfer"`
+	ScenarioDeposit    string `yaml:"scenario_deposit"`
+	ScenarioWithdrawal string `yaml:"scenario_withdrawal"`
 }
 
 type PersonaConfig struct {
