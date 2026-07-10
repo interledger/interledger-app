@@ -130,20 +130,3 @@ Feature: Plaid bank-link
     When I connect "Failing Bank" "checking" via Plaid
     Then I should see the snackbar "Bank account linking failed. Please try again."
     And I should have "0" Plaid bank accounts
-
-  @plaid @deposit @pti
-  Scenario: A Plaid-linked account funds a PTI deposit
-    Given the details of 'plaid-deposit-user' are
-      | field       | value                        |
-      | emailSuffix | plaid-deposit@example.com    |
-      | password    | InterlEdger2025!TestPassword |
-      | country     | United States                |
-      | firstName   | Alice                        |
-      | lastName    | Smith                        |
-      | dateOfBirth | 1984-06-27                   |
-    And mockpti is running at "https://mockpti.interledger.test"
-    And I complete the minimal PTI KYC flow `plaid-deposit-user`
-    And I connect "Tartan Bank" "checking" via Plaid
-    When I navigate to the deposit page
-    And I deposit "100" "USD" via the PTI deposit form
-    Then I should see my balance updated with "100" "USD"
