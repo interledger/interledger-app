@@ -420,12 +420,11 @@ func SendRampActionEmail(ctx context.Context, b Backends, walletID string, args 
 	}
 
 	table := []map[string]interface{}{
-		{"label": "Action", "text": args.Action, "large": true},
 		{"label": "Amount", "text": args.Amount.Format(), "large": true},
-		{"label": "Source", "text": args.Source, "large": true},
-		{"label": "Method", "text": args.Method, "large": true},
-		{"label": "Status", "text": args.Status, "large": true},
-		{"label": "Timestamp", "text": args.Timestamp.Format("Jan 2, 2006 3:04 PM MST"), "large": true},
+		{"label": "Source", "text": args.Source},
+		{"label": "Method", "text": args.Method},
+		{"label": "Status", "text": args.Status},
+		{"label": "Timestamp", "text": args.Timestamp.Format("Jan 2, 2006 3:04 PM MST"),},
 	}
 
 	paragraphs := []map[string]interface{}{
@@ -433,18 +432,13 @@ func SendRampActionEmail(ctx context.Context, b Backends, walletID string, args 
 		{"heading": args.Action},
 		{"table": table},
 	}
-	if support := strings.TrimSpace(b.SupportEmail()); support != "" {
-		paragraphs = append(paragraphs, map[string]interface{}{"paragraph": "Questions? Contact us at " + support + "."})
-	}
-
-	termsURL := fmt.Sprintf("%s/legal/terms-of-service", strings.TrimSuffix(b.Config().ApplicationURL, "/"))
 
 	err = b.External().SendTemplate(ctx, args.Action, sendTo, b.OneTemplateID(), map[string]interface{}{
 		"subject": args.Action,
 		"data":    paragraphs,
 		"cta": map[string]interface{}{
-			"text": "View Terms of Service",
-			"url":  termsURL,
+			"text": "View new Balance",
+			"url":  b.Config().ApplicationURL,
 		},
 	}, nil)
 	if err != nil {
