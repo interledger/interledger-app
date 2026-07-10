@@ -775,8 +775,8 @@ func (sc *E2EContext) enableDeleteAccountForWallet(walletID string) error {
 			wallet_id, send_enabled, receive_enabled, linked_accounts_enabled,
 			cards_enabled, banks_enabled, identities_enabled, twitter_enabled,
 			add_cards_enabled, interac_enabled, manage_wallet_cards_enabled,
-			accounts_tab_enabled, delete_account_enabled
-		) VALUES ($1, true, true, false, false, false, true, true, false, false, true, false, true)
+			accounts_tab_enabled, delete_account_enabled, xago_gatehub_payments_enabled
+		) VALUES ($1, true, true, false, false, false, true, true, false, false, true, false, true, false)
 		ON CONFLICT (wallet_id) DO UPDATE SET
 			delete_account_enabled = true,
 			updated_at = now()
