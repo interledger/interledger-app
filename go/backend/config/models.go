@@ -29,35 +29,35 @@ type StartConfig struct {
 	AllowedWalletIDs    []string          `yaml:"allowed_wallet_ids"`
 	BlockedRegions      []string          `yaml:"blocked_regions"`
 
-	DB         DBConfig         `yaml:"db"`
-	Kratos     KratosConfig     `yaml:"kratos"`
-	Temporal   TemporalConfig   `yaml:"temporal"`
-	Rafiki     RafikiConfig     `yaml:"rafiki"`
-	Gatehub    GatehubConfig    `yaml:"gatehub"`
-	Xago       XagoConfig       `yaml:"xago"`
-	PTI        PTIConfig        `yaml:"pti"`
-	Persona    PersonaConfig    `yaml:"persona"`
-	Twilio     TwilioConfig     `yaml:"twilio"`
-	Email      EmailConfig      `yaml:"email"`
-	Slack      SlackConfig      `yaml:"slack"`
-	Chimoney   ChimoneyConfig   `yaml:"chimoney"`
-	Admin      AdminConfig      `yaml:"admin"`
-	Mobile     MobileConfig     `yaml:"mobile"`
-	Vault      VaultConfig      `yaml:"vault"`
-	Sentry     SentryConfig     `yaml:"sentry"`
-	Smarty     SmartyConfig     `yaml:"smarty"`
-	Pusher     PusherConfig     `yaml:"pusher"`
-	Segment    SegmentConfig    `yaml:"segment"`
-	Agreements AgreementsConfig `yaml:"agreements"`
-	OTEL       OTELConfig       `yaml:"otel"`
-	Features   FeaturesConfig   `yaml:"features"`
+	DB              DBConfig              `yaml:"db"`
+	Kratos          KratosConfig          `yaml:"kratos"`
+	Temporal        TemporalConfig        `yaml:"temporal"`
+	Rafiki          RafikiConfig          `yaml:"rafiki"`
+	Gatehub         GatehubConfig         `yaml:"gatehub"`
+	Xago            XagoConfig            `yaml:"xago"`
+	PTI             PTIConfig             `yaml:"pti"`
+	Persona         PersonaConfig         `yaml:"persona"`
+	Twilio          TwilioConfig          `yaml:"twilio"`
+	Email           EmailConfig           `yaml:"email"`
+	Slack           SlackConfig           `yaml:"slack"`
+	Chimoney        ChimoneyConfig        `yaml:"chimoney"`
+	Admin           AdminConfig           `yaml:"admin"`
+	Mobile          MobileConfig          `yaml:"mobile"`
+	Vault           VaultConfig           `yaml:"vault"`
+	Sentry          SentryConfig          `yaml:"sentry"`
+	Smarty          SmartyConfig          `yaml:"smarty"`
+	Pusher          PusherConfig          `yaml:"pusher"`
+	Segment         SegmentConfig         `yaml:"segment"`
+	Agreements      AgreementsConfig      `yaml:"agreements"`
+	OTEL            OTELConfig            `yaml:"otel"`
+	FeatureDefaults FeatureDefaultsConfig `yaml:"feature_defaults"`
 }
 
-// FeaturesConfig holds deployment-level feature-flag defaults. These seed the
+// FeatureDefaultsConfig holds deployment-level feature-flag defaults. These seed the
 // default value of a per-wallet flag when no wallet_features row exists yet; once
 // an admin persists a wallet's features, the stored value takes precedence and
 // these defaults no longer apply to that wallet.
-type FeaturesConfig struct {
+type FeatureDefaultsConfig struct {
 	XagoGatehubPaymentsDefaultEnabled bool `yaml:"xago_gatehub_payments_default_enabled"`
 }
 

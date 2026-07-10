@@ -110,7 +110,7 @@ func Features(ctx context.Context, b Backends, walletID string, cardsEnabled boo
 		return nil, err
 	}
 
-	res.XagoGatehubPaymentsEnabled = b.Config().Features.XagoGatehubPaymentsDefaultEnabled
+	res.XagoGatehubPaymentsEnabled = b.Config().FeatureDefaults.XagoGatehubPaymentsDefaultEnabled
 
 	if wallet.Country == country.US {
 		res.ReceiveEnabled = true

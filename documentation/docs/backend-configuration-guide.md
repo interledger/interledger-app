@@ -349,13 +349,13 @@ Gated by `email.enabled`; SendGrid fields required only when enabled.
 | `agreements.folder_name` | string | Yes | No | Agreements folder name. |
 | `agreements.signup_agreement_ids` | []string | No | No | Agreement IDs required at signup. |
 
-### Features
+### Feature Flag Defaults
 
 Deployment-level feature-flag defaults. Each seeds the default of a per-wallet flag; once an admin persists a wallet's features, the stored per-wallet value takes precedence and these defaults no longer apply to that wallet.
 
 | Key | Type | Required | Secret | Notes |
 |---|---|---|---|---|
-| `features.xago_gatehub_payments_default_enabled` | bool | No | No | Default for the per-wallet `xago_gatehub_payments_enabled` flag gating cross-provider Xago↔GateHub payments. When this key is omitted it is `false`, so wallets with no stored override default to off. |
+| `feature_defaults.xago_gatehub_payments_default_enabled` | bool | No | No | Default for the per-wallet `xago_gatehub_payments_enabled` flag, gating cross-provider Xago↔GateHub payments. When this key is omitted it is `false`, so wallets with no stored override default to off. |
 
 ### Observability
 

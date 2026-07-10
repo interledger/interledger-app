@@ -208,7 +208,7 @@ backend:
       travel_rule_pgp_public_key: ""
       travel_rule_email: ""
 
-    features:
+    feature_defaults:
       xago_gatehub_payments_default_enabled: false
 
     pti:

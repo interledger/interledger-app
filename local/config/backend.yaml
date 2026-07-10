@@ -71,7 +71,7 @@ xago:
   api_secret: "test-secret"
   policy_id: "5e2585a474b0e90012ce8ff1"
 
-features:
+feature_defaults:
   xago_gatehub_payments_default_enabled: false
 
 # PTI / Fiant — enabled by default in local dev against mockpti.
