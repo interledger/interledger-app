@@ -3097,5 +3097,100 @@ table "atlas_schema_history" {
     default = sql("now()::TIMESTAMP")
   }
 }
+table "entity_confs" {
+  schema = schema.public
+  column "key" {
+    null = false
+    type = text
+  }
+  column "entity_type" {
+    null = false
+    type = text
+  }
+  column "type" {
+    null = false
+    type = text
+  }
+  column "display_name" {
+    null = false
+    type = text
+  }
+  column "description" {
+    null = false
+    type = text
+  }
+  column "code_default" {
+    null = false
+    type = jsonb
+  }
+  column "effective_default" {
+    null = false
+    type = jsonb
+  }
+  column "deprecated_at" {
+    null = true
+    type = timestamp
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now()::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now()::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.key]
+  }
+}
+table "entity_conf_values" {
+  schema = schema.public
+  column "id" {
+    null    = false
+    type    = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "entity_type" {
+    null = false
+    type = text
+  }
+  column "entity_id" {
+    null = false
+    type = uuid
+  }
+  column "conf_key" {
+    null = false
+    type = text
+  }
+  column "value" {
+    null = false
+    type = jsonb
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now()::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now()::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  foreign_key "fk_entity_conf_values_conf_key" {
+    columns     = [column.conf_key]
+    ref_columns = [table.entity_confs.column.key]
+    on_update   = NO_ACTION
+    on_delete   = NO_ACTION
+  }
+  index "entity_conf_values_entity_conf_uidx" {
+    unique  = true
+    columns = [column.entity_type, column.entity_id, column.conf_key]
+  }
+}
 schema "public" {
 }
