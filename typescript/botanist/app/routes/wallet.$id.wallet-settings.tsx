@@ -24,7 +24,7 @@ export default function Page() {
   )
 
   return (
-    <div className='col-span-full flex h-max max-h-max w-full flex-col space-y-4 rounded-2xl bg-page p-4 lg:col-span-4'>
+    <dl className='col-span-full flex h-max max-h-max w-full flex-col space-y-4 rounded-2xl bg-page p-4 lg:col-span-4'>
       <h2 className='font-display text-lg font-medium'>Wallet Settings</h2>
 
       {walletConfs.confs.map((conf) => (
@@ -38,20 +38,22 @@ export default function Page() {
           >
             {conf.displayName || conf.key}
           </dt>
-          {conf.type === 'bool' ? (
-            <Switch
-              checked={conf.boolValue}
-              disabled={false}
-              onChange={(val: any) => _onChangeConfSwitch(conf.key, val)}
-            />
-          ) : (
-            <span className='text-xs text-weak'>
-              {conf.type === 'int' ? conf.intValue : conf.stringValue}
-            </span>
-          )}
+          <dd>
+            {conf.type === 'bool' ? (
+              <Switch
+                checked={conf.boolValue}
+                disabled={false}
+                onChange={(val: any) => _onChangeConfSwitch(conf.key, val)}
+              />
+            ) : (
+              <span className='text-xs text-weak'>
+                {conf.type === 'int' ? conf.intValue : conf.stringValue}
+              </span>
+            )}
+          </dd>
         </div>
       ))}
-    </div>
+    </dl>
   )
 }
 

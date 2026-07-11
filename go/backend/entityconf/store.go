@@ -2,10 +2,9 @@ package entityconf
 
 import "context"
 
-// Store persists conf definitions and per-entity override values. The only
-// implementation in this package today is the in-memory one returned by
-// NewInMemoryStore; a database-backed implementation is future work (see
-// plan.md's "Future: migration" section).
+// Store persists conf definitions and per-entity override values. Two
+// implementations exist: NewInMemoryStore (in-memory, no database) and
+// NewPostgresStore (backed by the entity_confs/entity_conf_values tables).
 type Store interface {
 	// SyncDefinitions upserts the given definitions: EntityType, Type,
 	// DisplayName, Description, and CodeDefault are always refreshed for a
