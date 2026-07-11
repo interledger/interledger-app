@@ -13,12 +13,11 @@ export default function Page() {
   const { walletConfs } = useLoaderData<typeof loader>()
   const fetcher = useFetcher()
 
-  const _onChangeConfSwitch = useCallback<{ (key: string, val: boolean): void }>(
+  const _onChangeConfSwitch = useCallback<{
+    (key: string, val: boolean): void
+  }>(
     (key, val) => {
-      fetcher.submit(
-        { key, boolValue: val.toString() },
-        { method: 'post' }
-      )
+      fetcher.submit({ key, boolValue: val.toString() }, { method: 'post' })
     },
     [fetcher]
   )
