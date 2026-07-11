@@ -21,6 +21,8 @@ service Backend {
   rpc ListAudit(ListAuditRequest) returns (ListAuditResponse);
   rpc GetWalletFeatures(GetWalletFeaturesRequest) returns (Features);
   rpc SetWalletFeatures(Features) returns (Features);
+  rpc GetWalletConfs(GetWalletConfsRequest) returns (WalletConfsResponse);
+  rpc SetWalletConf(SetWalletConfRequest) returns (WalletConfsResponse);
   rpc ListIncompleteLinkedAccountReviews(PaginationRequest) returns (LinkedAccountReviews);
   rpc GetLinkedAccountReview(GetLinkedAccountReviewRequest) returns (LinkedAccountReview);
   rpc CompleteLinkedAccountReview(CompleteLinkedAccountReviewRequest) returns (LinkedAccountReview);
@@ -247,6 +249,33 @@ message Features {
   bool accountEnabled = 12;
   bool accountsTabEnabled = 13;
   bool deleteAccountEnabled = 14;
+}
+
+message WalletConf {
+  string key = 1;
+  string display_name = 2;
+  string description = 3;
+  string type = 4; // "bool" | "int" | "string"
+  bool bool_value = 5;
+  int64 int_value = 6;
+  string string_value = 7;
+}
+
+message GetWalletConfsRequest {
+  string walletID = 1;
+}
+
+message WalletConfsResponse {
+  string walletID = 1;
+  repeated WalletConf confs = 2;
+}
+
+message SetWalletConfRequest {
+  string walletID = 1;
+  string key = 2;
+  bool bool_value = 3;
+  int64 int_value = 4;
+  string string_value = 5;
 }
 
 message ListAuditRequest {

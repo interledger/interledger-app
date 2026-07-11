@@ -46,6 +46,7 @@ import (
 
 	"github.com/interledger/interledger-app/go/backend/email"
 	email_client "github.com/interledger/interledger-app/go/backend/email/client"
+	"github.com/interledger/interledger-app/go/backend/entityconf"
 	"github.com/interledger/interledger-app/go/backend/features"
 	features_client "github.com/interledger/interledger-app/go/backend/features/client"
 	_grpc "github.com/interledger/interledger-app/go/backend/grpc"
@@ -542,42 +543,43 @@ func startWorker(args *cli.StartArgs) {
 }
 
 type backends struct {
-	val            *validator.Validate
-	db             *sqlx.DB
-	twitter        twitter.Client
-	adminAuth      auth.Service
-	agreements     agreements.Client
-	linkedaccounts linkedaccounts.Client
-	healthcheck    healthcheck.Service
-	signup         signup.Client
-	temporal       client.Client
-	twilio         _twilio.Service
-	users          user.Client
-	waitlist       waitlist.Client
-	kyc            kyc.Client
-	keys           keys.Client
-	email          email.Client
-	transactions   transactions.Client
-	notify         notify.Client
-	analytics      analytics.Client
-	contacts       contacts.Client
-	limits         limits.Client
-	ident          identities.Client
-	vault          vault.Client
-	feat           features.Client
-	img            images.Client
-	wallet         wallets.Client
-	payment        payments.Client
-	slack          slack.Client
-	rafiki         rafiki.Client
-	xago           xago.Client
-	xagoConfig     xago_external.Config
-	pac            pacioli.Client
-	pti            pti.Client
-	gatehub        gatehub.Client
-	gatehubConfig  gatehub.Config
-	chimoney       chimoney.Client
-	aasaConfig     aasa_assetlinks.Config
+	val             *validator.Validate
+	db              *sqlx.DB
+	twitter         twitter.Client
+	adminAuth       auth.Service
+	agreements      agreements.Client
+	linkedaccounts  linkedaccounts.Client
+	healthcheck     healthcheck.Service
+	signup          signup.Client
+	temporal        client.Client
+	twilio          _twilio.Service
+	users           user.Client
+	waitlist        waitlist.Client
+	kyc             kyc.Client
+	keys            keys.Client
+	email           email.Client
+	transactions    transactions.Client
+	notify          notify.Client
+	analytics       analytics.Client
+	contacts        contacts.Client
+	limits          limits.Client
+	ident           identities.Client
+	vault           vault.Client
+	feat            features.Client
+	img             images.Client
+	wallet          wallets.Client
+	payment         payments.Client
+	slack           slack.Client
+	rafiki          rafiki.Client
+	xago            xago.Client
+	xagoConfig      xago_external.Config
+	pac             pacioli.Client
+	pti             pti.Client
+	gatehub         gatehub.Client
+	gatehubConfig   gatehub.Config
+	chimoney        chimoney.Client
+	aasaConfig      aasa_assetlinks.Config
+	entityConfStore entityconf.Store
 
 	accountDeletion accountdeletion.Client
 	cfg             *config.StartConfig
@@ -617,6 +619,10 @@ func (b backends) Wallets() wallets.Client {
 
 func (b backends) Features() features.Client {
 	return b.feat
+}
+
+func (b backends) EntityConfStore() entityconf.Store {
+	return b.entityConfStore
 }
 
 func (b backends) Transactions() transactions.Client {
@@ -732,6 +738,11 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 		log.Fatalln(err)
 	}
 	b.db = db
+
+	b.entityConfStore = entityconf.NewPostgresStore(b.db)
+	if err := b.entityConfStore.SyncDefinitions(context.Background(), entityconf.Definitions()); err != nil {
+		log.Fatalln(err)
+	}
 
 	// Initialises the logger we will use throughout
 	err = log.Initialize(args.LogLevel)

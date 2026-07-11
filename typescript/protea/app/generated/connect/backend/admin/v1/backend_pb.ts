@@ -1604,6 +1604,222 @@ export class Features extends Message<Features> {
 }
 
 /**
+ * @generated from message backend.admin.v1.WalletConf
+ */
+export class WalletConf extends Message<WalletConf> {
+  /**
+   * @generated from field: string key = 1;
+   */
+  key = "";
+
+  /**
+   * @generated from field: string display_name = 2;
+   */
+  displayName = "";
+
+  /**
+   * @generated from field: string description = 3;
+   */
+  description = "";
+
+  /**
+   * "bool" | "int" | "string"
+   *
+   * @generated from field: string type = 4;
+   */
+  type = "";
+
+  /**
+   * @generated from field: bool bool_value = 5;
+   */
+  boolValue = false;
+
+  /**
+   * @generated from field: int64 int_value = 6;
+   */
+  intValue = protoInt64.zero;
+
+  /**
+   * @generated from field: string string_value = 7;
+   */
+  stringValue = "";
+
+  constructor(data?: PartialMessage<WalletConf>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.WalletConf";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "key", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "display_name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "bool_value", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 6, name: "int_value", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 7, name: "string_value", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): WalletConf {
+    return new WalletConf().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): WalletConf {
+    return new WalletConf().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): WalletConf {
+    return new WalletConf().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: WalletConf | PlainMessage<WalletConf> | undefined, b: WalletConf | PlainMessage<WalletConf> | undefined): boolean {
+    return proto3.util.equals(WalletConf, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.admin.v1.GetWalletConfsRequest
+ */
+export class GetWalletConfsRequest extends Message<GetWalletConfsRequest> {
+  /**
+   * @generated from field: string walletID = 1;
+   */
+  walletID = "";
+
+  constructor(data?: PartialMessage<GetWalletConfsRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.GetWalletConfsRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "walletID", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetWalletConfsRequest {
+    return new GetWalletConfsRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetWalletConfsRequest {
+    return new GetWalletConfsRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetWalletConfsRequest {
+    return new GetWalletConfsRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetWalletConfsRequest | PlainMessage<GetWalletConfsRequest> | undefined, b: GetWalletConfsRequest | PlainMessage<GetWalletConfsRequest> | undefined): boolean {
+    return proto3.util.equals(GetWalletConfsRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.admin.v1.WalletConfsResponse
+ */
+export class WalletConfsResponse extends Message<WalletConfsResponse> {
+  /**
+   * @generated from field: string walletID = 1;
+   */
+  walletID = "";
+
+  /**
+   * @generated from field: repeated backend.admin.v1.WalletConf confs = 2;
+   */
+  confs: WalletConf[] = [];
+
+  constructor(data?: PartialMessage<WalletConfsResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.WalletConfsResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "walletID", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "confs", kind: "message", T: WalletConf, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): WalletConfsResponse {
+    return new WalletConfsResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): WalletConfsResponse {
+    return new WalletConfsResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): WalletConfsResponse {
+    return new WalletConfsResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: WalletConfsResponse | PlainMessage<WalletConfsResponse> | undefined, b: WalletConfsResponse | PlainMessage<WalletConfsResponse> | undefined): boolean {
+    return proto3.util.equals(WalletConfsResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.admin.v1.SetWalletConfRequest
+ */
+export class SetWalletConfRequest extends Message<SetWalletConfRequest> {
+  /**
+   * @generated from field: string walletID = 1;
+   */
+  walletID = "";
+
+  /**
+   * @generated from field: string key = 2;
+   */
+  key = "";
+
+  /**
+   * @generated from field: bool bool_value = 3;
+   */
+  boolValue = false;
+
+  /**
+   * @generated from field: int64 int_value = 4;
+   */
+  intValue = protoInt64.zero;
+
+  /**
+   * @generated from field: string string_value = 5;
+   */
+  stringValue = "";
+
+  constructor(data?: PartialMessage<SetWalletConfRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.SetWalletConfRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "walletID", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "key", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "bool_value", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 4, name: "int_value", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 5, name: "string_value", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SetWalletConfRequest {
+    return new SetWalletConfRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SetWalletConfRequest {
+    return new SetWalletConfRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SetWalletConfRequest {
+    return new SetWalletConfRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SetWalletConfRequest | PlainMessage<SetWalletConfRequest> | undefined, b: SetWalletConfRequest | PlainMessage<SetWalletConfRequest> | undefined): boolean {
+    return proto3.util.equals(SetWalletConfRequest, a, b);
+  }
+}
+
+/**
  * @generated from message backend.admin.v1.ListAuditRequest
  */
 export class ListAuditRequest extends Message<ListAuditRequest> {

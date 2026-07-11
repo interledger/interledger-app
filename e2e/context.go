@@ -649,6 +649,21 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^the "([^"]*)" feature should be enabled in the database for my wallet$`, func(key string) error {
 		return sc.theFeatureShouldBeEnabledInTheDatabase(key)
 	})
+
+	// Botanist Wallet Settings steps (entityconf-backed, parallel to the
+	// wallet_features "feature toggle" steps above)
+	ctx.Step(`^I navigate to my wallet settings page in the admin portal$`, func() error {
+		return sc.iNavigateToMyWalletSettingsInAdminPortal()
+	})
+	ctx.Step(`^the "([^"]*)" wallet setting toggle should be (on|off)$`, func(key, state string) error {
+		return sc.theWalletSettingToggleShouldBe(key, state)
+	})
+	ctx.Step(`^I toggle the "([^"]*)" wallet setting on$`, func(key string) error {
+		return sc.iToggleTheWalletSettingOn(key)
+	})
+	ctx.Step(`^the "([^"]*)" wallet setting should be enabled in the database for my wallet$`, func(key string) error {
+		return sc.theWalletSettingShouldBeEnabledInTheDatabase(key)
+	})
 }
 
 // Background step implementations

@@ -12,6 +12,7 @@ import type {
   ListWalletsResponse,
   PaginationRequest,
   User,
+  WalletConfsResponse,
   WalletDetails
 } from '~/generated/protobuf-ts/backend/admin/v1/backend'
 import type { Transfer } from '~/generated/protobuf-ts/backend/v1/backend'
@@ -134,6 +135,64 @@ export async function SetWalletFeatures(
         cookies: cookie || ''
       }
     })
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(response)) {
+    throw data({}, httpMapping(response.code))
+  }
+
+  return response.response
+}
+
+// GetWalletConfs/SetWalletConf back the "Wallet Settings" tab, a parallel,
+// independent surface backed by the entityconf library on the backend — not
+// the wallet_features table that GetWalletFeatures/SetWalletFeatures above
+// use.
+export async function GetWalletConfs(
+  request: Request,
+  walletID: string
+): Promise<WalletConfsResponse> {
+  const cookie = String(request.headers.get('cookie'))
+  let response = await grpcClient
+    .getWalletConfs(
+      { walletID },
+      {
+        meta: {
+          cookies: cookie || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(response)) {
+    throw data({}, httpMapping(response.code))
+  }
+
+  return response.response
+}
+
+export async function SetWalletConf(
+  request: Request,
+  walletID: string,
+  key: string,
+  value: { boolValue?: boolean; intValue?: string; stringValue?: string }
+): Promise<WalletConfsResponse> {
+  const cookie = String(request.headers.get('cookie'))
+  let response = await grpcClient
+    .setWalletConf(
+      {
+        walletID,
+        key,
+        boolValue: value.boolValue ?? false,
+        intValue: value.intValue ?? '0',
+        stringValue: value.stringValue ?? ''
+      },
+      {
+        meta: {
+          cookies: cookie || ''
+        }
+      }
+    )
     .then((v) => v)
     .catch(StatusError)
   if (isGrpcError(response)) {

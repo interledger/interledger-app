@@ -52,6 +52,11 @@ export default function Page() {
           <TabItem to={href('/wallet/:id/gatehub', { id: id as string })}>
             Gatehub User
           </TabItem>
+          <TabItem
+            to={href('/wallet/:id/wallet-settings', { id: id as string })}
+          >
+            Wallet Settings
+          </TabItem>
         </div>
       </div>
       <Outlet />

@@ -30,6 +30,8 @@ const (
 	Backend_ListAudit_FullMethodName                          = "/backend.admin.v1.Backend/ListAudit"
 	Backend_GetWalletFeatures_FullMethodName                  = "/backend.admin.v1.Backend/GetWalletFeatures"
 	Backend_SetWalletFeatures_FullMethodName                  = "/backend.admin.v1.Backend/SetWalletFeatures"
+	Backend_GetWalletConfs_FullMethodName                     = "/backend.admin.v1.Backend/GetWalletConfs"
+	Backend_SetWalletConf_FullMethodName                      = "/backend.admin.v1.Backend/SetWalletConf"
 	Backend_ListIncompleteLinkedAccountReviews_FullMethodName = "/backend.admin.v1.Backend/ListIncompleteLinkedAccountReviews"
 	Backend_GetLinkedAccountReview_FullMethodName             = "/backend.admin.v1.Backend/GetLinkedAccountReview"
 	Backend_CompleteLinkedAccountReview_FullMethodName        = "/backend.admin.v1.Backend/CompleteLinkedAccountReview"
@@ -63,6 +65,8 @@ type BackendClient interface {
 	ListAudit(ctx context.Context, in *ListAuditRequest, opts ...grpc.CallOption) (*ListAuditResponse, error)
 	GetWalletFeatures(ctx context.Context, in *GetWalletFeaturesRequest, opts ...grpc.CallOption) (*Features, error)
 	SetWalletFeatures(ctx context.Context, in *Features, opts ...grpc.CallOption) (*Features, error)
+	GetWalletConfs(ctx context.Context, in *GetWalletConfsRequest, opts ...grpc.CallOption) (*WalletConfsResponse, error)
+	SetWalletConf(ctx context.Context, in *SetWalletConfRequest, opts ...grpc.CallOption) (*WalletConfsResponse, error)
 	ListIncompleteLinkedAccountReviews(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*LinkedAccountReviews, error)
 	GetLinkedAccountReview(ctx context.Context, in *GetLinkedAccountReviewRequest, opts ...grpc.CallOption) (*LinkedAccountReview, error)
 	CompleteLinkedAccountReview(ctx context.Context, in *CompleteLinkedAccountReviewRequest, opts ...grpc.CallOption) (*LinkedAccountReview, error)
@@ -187,6 +191,26 @@ func (c *backendClient) SetWalletFeatures(ctx context.Context, in *Features, opt
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Features)
 	err := c.cc.Invoke(ctx, Backend_SetWalletFeatures_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendClient) GetWalletConfs(ctx context.Context, in *GetWalletConfsRequest, opts ...grpc.CallOption) (*WalletConfsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(WalletConfsResponse)
+	err := c.cc.Invoke(ctx, Backend_GetWalletConfs_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendClient) SetWalletConf(ctx context.Context, in *SetWalletConfRequest, opts ...grpc.CallOption) (*WalletConfsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(WalletConfsResponse)
+	err := c.cc.Invoke(ctx, Backend_SetWalletConf_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -377,6 +401,8 @@ type BackendServer interface {
 	ListAudit(context.Context, *ListAuditRequest) (*ListAuditResponse, error)
 	GetWalletFeatures(context.Context, *GetWalletFeaturesRequest) (*Features, error)
 	SetWalletFeatures(context.Context, *Features) (*Features, error)
+	GetWalletConfs(context.Context, *GetWalletConfsRequest) (*WalletConfsResponse, error)
+	SetWalletConf(context.Context, *SetWalletConfRequest) (*WalletConfsResponse, error)
 	ListIncompleteLinkedAccountReviews(context.Context, *PaginationRequest) (*LinkedAccountReviews, error)
 	GetLinkedAccountReview(context.Context, *GetLinkedAccountReviewRequest) (*LinkedAccountReview, error)
 	CompleteLinkedAccountReview(context.Context, *CompleteLinkedAccountReviewRequest) (*LinkedAccountReview, error)
@@ -435,6 +461,12 @@ func (UnimplementedBackendServer) GetWalletFeatures(context.Context, *GetWalletF
 }
 func (UnimplementedBackendServer) SetWalletFeatures(context.Context, *Features) (*Features, error) {
 	return nil, status.Error(codes.Unimplemented, "method SetWalletFeatures not implemented")
+}
+func (UnimplementedBackendServer) GetWalletConfs(context.Context, *GetWalletConfsRequest) (*WalletConfsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetWalletConfs not implemented")
+}
+func (UnimplementedBackendServer) SetWalletConf(context.Context, *SetWalletConfRequest) (*WalletConfsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetWalletConf not implemented")
 }
 func (UnimplementedBackendServer) ListIncompleteLinkedAccountReviews(context.Context, *PaginationRequest) (*LinkedAccountReviews, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListIncompleteLinkedAccountReviews not implemented")
@@ -683,6 +715,42 @@ func _Backend_SetWalletFeatures_Handler(srv interface{}, ctx context.Context, de
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BackendServer).SetWalletFeatures(ctx, req.(*Features))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Backend_GetWalletConfs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetWalletConfsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServer).GetWalletConfs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Backend_GetWalletConfs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServer).GetWalletConfs(ctx, req.(*GetWalletConfsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Backend_SetWalletConf_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetWalletConfRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServer).SetWalletConf(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Backend_SetWalletConf_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServer).SetWalletConf(ctx, req.(*SetWalletConfRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1039,6 +1107,14 @@ var Backend_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetWalletFeatures",
 			Handler:    _Backend_SetWalletFeatures_Handler,
+		},
+		{
+			MethodName: "GetWalletConfs",
+			Handler:    _Backend_GetWalletConfs_Handler,
+		},
+		{
+			MethodName: "SetWalletConf",
+			Handler:    _Backend_SetWalletConf_Handler,
 		},
 		{
 			MethodName: "ListIncompleteLinkedAccountReviews",

@@ -936,3 +936,29 @@ func (sc *E2EContext) getWalletFeatureBool(walletID, column string) (bool, error
 	}
 	return val, nil
 }
+
+// getWalletConfBool resolves a boolean entityconf conf for a wallet the
+// same way go/backend/entityconf's Postgres Store does: the wallet's own
+// override (entity_conf_values) if one exists, else the conf's current
+// effective default (entity_confs). Unlike getWalletFeatureBool, a missing
+// confKey is a real error, not "false" — entity_confs is boot-synced from
+// the app's code registry, so an unknown key means the test asked about a
+// conf that doesn't exist.
+func (sc *E2EContext) getWalletConfBool(walletID, confKey string) (bool, error) {
+	if err := sc.ensureDB(); err != nil {
+		return false, fmt.Errorf("getWalletConfBool: %w", err)
+	}
+
+	var val bool
+	err := sc.db.QueryRow(`
+		SELECT (COALESCE(ecv.value, ec.effective_default) #>> '{}')::boolean
+		FROM entity_confs ec
+		LEFT JOIN entity_conf_values ecv
+			ON ecv.conf_key = ec.key AND ecv.entity_type = 'wallet' AND ecv.entity_id = $1
+		WHERE ec.key = $2
+	`, walletID, confKey).Scan(&val)
+	if err != nil {
+		return false, fmt.Errorf("getWalletConfBool: failed to resolve %q for wallet %s: %w", confKey, walletID, err)
+	}
+	return val, nil
+}

@@ -4,6 +4,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/interledger/interledger-app/go/backend/admin/auth"
 	"github.com/interledger/interledger-app/go/backend/email"
+	"github.com/interledger/interledger-app/go/backend/entityconf"
 	"github.com/interledger/interledger-app/go/backend/features"
 	"github.com/interledger/interledger-app/go/backend/kyc"
 	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
@@ -34,4 +35,5 @@ type Backends interface {
 	Xago() xago.Client
 	PTI() pti.Client
 	Gatehub() gatehub.Client
+	EntityConfStore() entityconf.Store
 }

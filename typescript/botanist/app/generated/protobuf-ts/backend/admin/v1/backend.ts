@@ -624,6 +624,86 @@ export interface Features {
     deleteAccountEnabled: boolean;
 }
 /**
+ * @generated from protobuf message backend.admin.v1.WalletConf
+ */
+export interface WalletConf {
+    /**
+     * @generated from protobuf field: string key = 1;
+     */
+    key: string;
+    /**
+     * @generated from protobuf field: string display_name = 2;
+     */
+    displayName: string;
+    /**
+     * @generated from protobuf field: string description = 3;
+     */
+    description: string;
+    /**
+     * @generated from protobuf field: string type = 4;
+     */
+    type: string; // "bool" | "int" | "string"
+    /**
+     * @generated from protobuf field: bool bool_value = 5;
+     */
+    boolValue: boolean;
+    /**
+     * @generated from protobuf field: int64 int_value = 6;
+     */
+    intValue: string;
+    /**
+     * @generated from protobuf field: string string_value = 7;
+     */
+    stringValue: string;
+}
+/**
+ * @generated from protobuf message backend.admin.v1.GetWalletConfsRequest
+ */
+export interface GetWalletConfsRequest {
+    /**
+     * @generated from protobuf field: string walletID = 1;
+     */
+    walletID: string;
+}
+/**
+ * @generated from protobuf message backend.admin.v1.WalletConfsResponse
+ */
+export interface WalletConfsResponse {
+    /**
+     * @generated from protobuf field: string walletID = 1;
+     */
+    walletID: string;
+    /**
+     * @generated from protobuf field: repeated backend.admin.v1.WalletConf confs = 2;
+     */
+    confs: WalletConf[];
+}
+/**
+ * @generated from protobuf message backend.admin.v1.SetWalletConfRequest
+ */
+export interface SetWalletConfRequest {
+    /**
+     * @generated from protobuf field: string walletID = 1;
+     */
+    walletID: string;
+    /**
+     * @generated from protobuf field: string key = 2;
+     */
+    key: string;
+    /**
+     * @generated from protobuf field: bool bool_value = 3;
+     */
+    boolValue: boolean;
+    /**
+     * @generated from protobuf field: int64 int_value = 4;
+     */
+    intValue: string;
+    /**
+     * @generated from protobuf field: string string_value = 5;
+     */
+    stringValue: string;
+}
+/**
  * @generated from protobuf message backend.admin.v1.ListAuditRequest
  */
 export interface ListAuditRequest {
@@ -3101,6 +3181,271 @@ class Features$Type extends MessageType<Features> {
  */
 export const Features = new Features$Type();
 // @generated message type with reflection information, may provide speed optimized methods
+class WalletConf$Type extends MessageType<WalletConf> {
+    constructor() {
+        super("backend.admin.v1.WalletConf", [
+            { no: 1, name: "key", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "display_name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "description", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "bool_value", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 6, name: "int_value", kind: "scalar", T: 3 /*ScalarType.INT64*/ },
+            { no: 7, name: "string_value", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<WalletConf>): WalletConf {
+        const message = { key: "", displayName: "", description: "", type: "", boolValue: false, intValue: "0", stringValue: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<WalletConf>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: WalletConf): WalletConf {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string key */ 1:
+                    message.key = reader.string();
+                    break;
+                case /* string display_name */ 2:
+                    message.displayName = reader.string();
+                    break;
+                case /* string description */ 3:
+                    message.description = reader.string();
+                    break;
+                case /* string type */ 4:
+                    message.type = reader.string();
+                    break;
+                case /* bool bool_value */ 5:
+                    message.boolValue = reader.bool();
+                    break;
+                case /* int64 int_value */ 6:
+                    message.intValue = reader.int64().toString();
+                    break;
+                case /* string string_value */ 7:
+                    message.stringValue = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: WalletConf, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string key = 1; */
+        if (message.key !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.key);
+        /* string display_name = 2; */
+        if (message.displayName !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.displayName);
+        /* string description = 3; */
+        if (message.description !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.description);
+        /* string type = 4; */
+        if (message.type !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.type);
+        /* bool bool_value = 5; */
+        if (message.boolValue !== false)
+            writer.tag(5, WireType.Varint).bool(message.boolValue);
+        /* int64 int_value = 6; */
+        if (message.intValue !== "0")
+            writer.tag(6, WireType.Varint).int64(message.intValue);
+        /* string string_value = 7; */
+        if (message.stringValue !== "")
+            writer.tag(7, WireType.LengthDelimited).string(message.stringValue);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.WalletConf
+ */
+export const WalletConf = new WalletConf$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GetWalletConfsRequest$Type extends MessageType<GetWalletConfsRequest> {
+    constructor() {
+        super("backend.admin.v1.GetWalletConfsRequest", [
+            { no: 1, name: "walletID", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<GetWalletConfsRequest>): GetWalletConfsRequest {
+        const message = { walletID: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GetWalletConfsRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetWalletConfsRequest): GetWalletConfsRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string walletID */ 1:
+                    message.walletID = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GetWalletConfsRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string walletID = 1; */
+        if (message.walletID !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.walletID);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.GetWalletConfsRequest
+ */
+export const GetWalletConfsRequest = new GetWalletConfsRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class WalletConfsResponse$Type extends MessageType<WalletConfsResponse> {
+    constructor() {
+        super("backend.admin.v1.WalletConfsResponse", [
+            { no: 1, name: "walletID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "confs", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => WalletConf }
+        ]);
+    }
+    create(value?: PartialMessage<WalletConfsResponse>): WalletConfsResponse {
+        const message = { walletID: "", confs: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<WalletConfsResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: WalletConfsResponse): WalletConfsResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string walletID */ 1:
+                    message.walletID = reader.string();
+                    break;
+                case /* repeated backend.admin.v1.WalletConf confs */ 2:
+                    message.confs.push(WalletConf.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: WalletConfsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string walletID = 1; */
+        if (message.walletID !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.walletID);
+        /* repeated backend.admin.v1.WalletConf confs = 2; */
+        for (let i = 0; i < message.confs.length; i++)
+            WalletConf.internalBinaryWrite(message.confs[i], writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.WalletConfsResponse
+ */
+export const WalletConfsResponse = new WalletConfsResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class SetWalletConfRequest$Type extends MessageType<SetWalletConfRequest> {
+    constructor() {
+        super("backend.admin.v1.SetWalletConfRequest", [
+            { no: 1, name: "walletID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "key", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "bool_value", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 4, name: "int_value", kind: "scalar", T: 3 /*ScalarType.INT64*/ },
+            { no: 5, name: "string_value", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<SetWalletConfRequest>): SetWalletConfRequest {
+        const message = { walletID: "", key: "", boolValue: false, intValue: "0", stringValue: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<SetWalletConfRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: SetWalletConfRequest): SetWalletConfRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string walletID */ 1:
+                    message.walletID = reader.string();
+                    break;
+                case /* string key */ 2:
+                    message.key = reader.string();
+                    break;
+                case /* bool bool_value */ 3:
+                    message.boolValue = reader.bool();
+                    break;
+                case /* int64 int_value */ 4:
+                    message.intValue = reader.int64().toString();
+                    break;
+                case /* string string_value */ 5:
+                    message.stringValue = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: SetWalletConfRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string walletID = 1; */
+        if (message.walletID !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.walletID);
+        /* string key = 2; */
+        if (message.key !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.key);
+        /* bool bool_value = 3; */
+        if (message.boolValue !== false)
+            writer.tag(3, WireType.Varint).bool(message.boolValue);
+        /* int64 int_value = 4; */
+        if (message.intValue !== "0")
+            writer.tag(4, WireType.Varint).int64(message.intValue);
+        /* string string_value = 5; */
+        if (message.stringValue !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.stringValue);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.SetWalletConfRequest
+ */
+export const SetWalletConfRequest = new SetWalletConfRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
 class ListAuditRequest$Type extends MessageType<ListAuditRequest> {
     constructor() {
         super("backend.admin.v1.ListAuditRequest", [
@@ -4866,6 +5211,8 @@ export const Backend = new ServiceType("backend.admin.v1.Backend", [
     { name: "ListAudit", options: {}, I: ListAuditRequest, O: ListAuditResponse },
     { name: "GetWalletFeatures", options: {}, I: GetWalletFeaturesRequest, O: Features },
     { name: "SetWalletFeatures", options: {}, I: Features, O: Features },
+    { name: "GetWalletConfs", options: {}, I: GetWalletConfsRequest, O: WalletConfsResponse },
+    { name: "SetWalletConf", options: {}, I: SetWalletConfRequest, O: WalletConfsResponse },
     { name: "ListIncompleteLinkedAccountReviews", options: {}, I: PaginationRequest, O: LinkedAccountReviews },
     { name: "GetLinkedAccountReview", options: {}, I: GetLinkedAccountReviewRequest, O: LinkedAccountReview },
     { name: "CompleteLinkedAccountReview", options: {}, I: CompleteLinkedAccountReviewRequest, O: LinkedAccountReview },
