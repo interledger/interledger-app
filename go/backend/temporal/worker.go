@@ -113,9 +113,6 @@ func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago
 
 		w.RegisterWorkflow(xago_workflows.TravelRuleEmailWorkflow)
 		xago_workflows.StartTravelRuleEmailSending(b)
-
-		w.RegisterWorkflow(xago_workflows.TravelRuleKYCCleanupWorkflow)
-		xago_workflows.StartTravelRuleKYCCleanup(b)
 	} else {
 		log.Warn("xago.travel_rule_pgp_public_key or xago.travel_rule_email not configured: skipping xago travel rule related workflows")
 	}

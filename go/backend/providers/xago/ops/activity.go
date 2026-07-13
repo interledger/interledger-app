@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/ProtonMail/go-crypto/openpgp"
-	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/temporal"
+	"go.uber.org/zap"
 
 	"github.com/interledger/interledger-app/go/backend/currency"
 	"github.com/interledger/interledger-app/go/backend/db"
@@ -21,6 +21,7 @@ import (
 	"github.com/interledger/interledger-app/go/backend/providers/xago/external"
 	"github.com/interledger/interledger-app/go/backend/slack"
 	"github.com/interledger/interledger-app/go/backend/transactions"
+	"github.com/interledger/interledger-app/go/log"
 	"github.com/interledger/interledger-app/go/pacioli"
 )
 
@@ -164,28 +165,28 @@ func (a *Activity) CreateDepositTransactions(ctx context.Context, deposits []ext
 	return nil
 }
 
-type TravelRuleRecord struct {
-	ID                     string `db:"id"`
-	TransactionReference   string `db:"transaction_reference"`
-	OriginatorName         string `db:"originator_name"`
-	OriginatorAccountID    string `db:"originator_account_id"`
-	OriginatorAddress      string `db:"originator_address"`
-	OriginatorPlaceOfBirth string `db:"originator_place_of_birth"`
-	OriginatorDateOfBirth  string `db:"originator_date_of_birth"`
-	BeneficiaryName        string `db:"beneficiary_name"`
-	BeneficiaryAccountID   string `db:"beneficiary_account_id"`
+type travelRuleReportRow struct {
+	TransactionReference   string
+	OriginatorName         string
+	OriginatorAccountID    string
+	OriginatorAddress      string
+	OriginatorPlaceOfBirth string
+	OriginatorDateOfBirth  string
+	BeneficiaryName        string
+	BeneficiaryAccountID   string
 }
 
-const travelRuleReportRowLimit = 30_000
-const travelRuleReportAlertThreshold = travelRuleReportRowLimit * 3 / 4
-const travelRuleKYCRetention = 30 * 24 * time.Hour
+const (
+	travelRuleReportBatchSize = 10_000
+	travelRuleFetchThrottle   = 300 * time.Millisecond
+)
 
-func (a *Activity) SendTravelRuleReport(ctx context.Context) error {
+func (a *Activity) SendTravelRuleReport(ctx context.Context, cutoff time.Time) error {
 	if a.pgpRecipient == nil {
 		return temporal.NewNonRetryableApplicationError("xago: TravelRulePGPPublicKey is not configured", "TravelRuleConfig", nil)
 	}
 
-	records, err := GetUnreportedTravelRuleRecords(ctx, a.b, travelRuleReportRowLimit)
+	records, err := GetUnreportedTravelRuleRecords(ctx, a.b, cutoff)
 	if err != nil {
 		return err
 	}
@@ -193,32 +194,46 @@ func (a *Activity) SendTravelRuleReport(ctx context.Context) error {
 		return nil
 	}
 
-	if err = sendTravelRuleReportEmail(ctx, a.b, sendTravelRuleReportEmailArgs{
-		Records:   records,
-		Recipient: a.pgpRecipient,
-		Email:     a.travelRuleEmail,
-	}); err != nil {
-		return err
+	resolver := newTravelRuleResolver(a.b)
+
+	batchTotal := (len(records) + travelRuleReportBatchSize - 1) / travelRuleReportBatchSize
+
+	var reported, skipped, batchNumber int
+
+	for start := 0; start < len(records); start += travelRuleReportBatchSize {
+		end := min(start+travelRuleReportBatchSize, len(records))
+		batch := records[start:end]
+		batchNumber++
+
+		rows, resolvedIDs, batchSkipped := resolver.resolve(ctx, batch)
+		skipped += batchSkipped
+		if len(rows) == 0 {
+			continue
+		}
+
+		encrypted, err := encryptTravelRuleRows(rows, a.pgpRecipient)
+		if err != nil {
+			return err
+		}
+		if err := a.b.Email().SendXagoTravelRuleEmail(ctx, encrypted, a.travelRuleEmail, cutoff, batchNumber, batchTotal, len(rows)); err != nil {
+			return err
+		}
+
+		reportedAt := time.Now().UTC().Truncate(time.Microsecond)
+		if err := MarkTravelRuleRecordsAsReported(ctx, a.b, resolvedIDs, reportedAt, batchNumber, batchTotal); err != nil {
+			return err
+		}
+		reported += len(rows)
+		log.Info("reported xago travel rule batch", zap.Int("batch", batchNumber), zap.Int("total", batchTotal), zap.Int("count", len(rows)), zap.Time("reported_at", reportedAt))
 	}
 
-	ids := make([]string, len(records))
-	for i, r := range records {
-		ids[i] = r.ID
-	}
+	log.Info("finished xago travel rule report", zap.Int("reported", reported), zap.Int("skipped", skipped))
 
-	reportedAt := time.Now().UTC()
-	if err = MarkTravelRuleRecordsAsReported(ctx, a.b, ids, reportedAt); err != nil {
-		return err
-	}
-
-	logger := activity.GetLogger(ctx)
-	logger.Info("reported xago travel rule records", "count", len(records), "reported_at", reportedAt.Format(time.RFC3339Nano))
-
-	if len(records) >= travelRuleReportAlertThreshold {
+	if skipped > 0 {
 		slack.SendToChannel(ctx, slack.ChannelError, "wallet-info-bot", fmt.Sprintf(
-			"*:::[XAGO TRAVEL RULE]:::* \n *Reported rows:* %d,\n *Cap:* %d,\n *Note:* daily volume is near the cap; reports might start deferring records to the next run",
-			len(records), travelRuleReportRowLimit))
+			"*:::[XAGO TRAVEL RULE]:::* %d some records were skipped", skipped))
 	}
+
 	return nil
 }
 
@@ -227,60 +242,161 @@ func (a *Activity) ResendTravelRuleReport(ctx context.Context, reportedAt time.T
 		return temporal.NewNonRetryableApplicationError("xago: TravelRulePGPPublicKey is not configured", "TravelRuleConfig", nil)
 	}
 
-	records, err := GetTravelRuleRecordsByReportedAt(ctx, a.b, reportedAt, travelRuleReportRowLimit)
+	records, err := GetTravelRuleRecordsByReportedAt(ctx, a.b, reportedAt)
 	if err != nil {
 		return err
 	}
 	if len(records) == 0 {
 		return temporal.NewNonRetryableApplicationError(
-			fmt.Sprintf("xago: no resendable travel rule records for reported_at %s", reportedAt.Format(time.RFC3339Nano)),
+			fmt.Sprintf("xago: no resendable travel rule records for reported_at %s", reportedAt),
 			"TravelRuleResendEmpty", nil)
 	}
 
-	if err = sendTravelRuleReportEmail(ctx, a.b, sendTravelRuleReportEmailArgs{
-		Records:   records,
-		Recipient: a.pgpRecipient,
-		Email:     a.travelRuleEmail,
-	}); err != nil {
+	rows, _, skipped := newTravelRuleResolver(a.b).resolve(ctx, records)
+	if skipped > 0 {
+		slack.SendToChannel(ctx, slack.ChannelError, "wallet-info-bot", fmt.Sprintf(
+			"*:::[XAGO TRAVEL RULE]:::* resend for %s REFUSED: %d of %d records no longer resolve (KYC); see logs for payment IDs", reportedAt, skipped, len(records)))
+		return temporal.NewNonRetryableApplicationError(
+			fmt.Sprintf("xago: %d of %d records for reported_at %s could not be resolved; refusing to send a partial resend (see logs for payment IDs)", skipped, len(records), reportedAt),
+			"TravelRuleResendUnresolved", nil)
+	}
+
+	encrypted, err := encryptTravelRuleRows(rows, a.pgpRecipient)
+	if err != nil {
+		return err
+	}
+	if err = a.b.Email().SendXagoTravelRuleEmail(ctx, encrypted, a.travelRuleEmail, reportedAt, records[0].BatchNumber, records[0].BatchTotal, len(rows)); err != nil {
 		return err
 	}
 
-	activity.GetLogger(ctx).Info("resent xago travel rule records", "count", len(records), "reported_at", reportedAt.Format(time.RFC3339Nano))
+	log.Info("resent xago travel rule records", zap.Int("batch", records[0].BatchNumber), zap.Int("total", records[0].BatchTotal), zap.Int("count", len(rows)), zap.Time("reported_at", reportedAt))
 
 	return nil
 }
 
-func (a *Activity) ClearTravelRuleKYC(ctx context.Context) error {
-	cutoff := time.Now().UTC().Add(-travelRuleKYCRetention)
-	cleared, err := ClearReportedTravelRuleKYC(ctx, a.b, cutoff, time.Now().UTC())
-	if err != nil {
-		return err
-	}
-	activity.GetLogger(ctx).Info("cleared xago travel rule KYC data", "count", cleared, "cutoff", cutoff)
-	return nil
+type travelRuleOriginator struct {
+	name         string
+	accountID    string
+	address      string
+	placeOfBirth string
+	dateOfBirth  string
+}
+type travelRuleBeneficiary struct {
+	name      string
+	accountID string
 }
 
-type sendTravelRuleReportEmailArgs struct {
-	Records   []TravelRuleRecord
-	Recipient *openpgp.Entity
-	Email     string
+type travelRuleResolver struct {
+	b             Backends
+	originators   map[string]travelRuleOriginator
+	beneficiaries map[string]travelRuleBeneficiary
 }
 
-func sendTravelRuleReportEmail(ctx context.Context, b Backends, args sendTravelRuleReportEmailArgs) error {
-	csv, err := buildTravelRuleCSV(args.Records)
-	if err != nil {
-		return temporal.NewNonRetryableApplicationError("build travel rule csv", "TravelRuleEncoding", err)
+func newTravelRuleResolver(b Backends) *travelRuleResolver {
+	return &travelRuleResolver{
+		b:             b,
+		originators:   map[string]travelRuleOriginator{},
+		beneficiaries: map[string]travelRuleBeneficiary{},
 	}
-
-	encryptedCsv, err := encryptPGP(csv, args.Recipient)
-	if err != nil {
-		return temporal.NewNonRetryableApplicationError("encrypt travel rule csv", "TravelRuleEncryption", err)
-	}
-
-	return b.Email().SendXagoTravelRuleEmail(ctx, encryptedCsv, args.Email)
 }
 
-func buildTravelRuleCSV(records []TravelRuleRecord) ([]byte, error) {
+func (res *travelRuleResolver) resolve(ctx context.Context, records []dbTravelRuleRecord) (rows []travelRuleReportRow, resolvedIDs []string, skipped int) {
+	for _, r := range records {
+		originator, ok := res.originators[r.SenderWalletID]
+		if !ok {
+			user, err := res.b.Gatehub().GetUser(ctx, r.SenderWalletID)
+			time.Sleep(travelRuleFetchThrottle)
+			if err != nil {
+				log.Warn("skipping travel rule record: gatehub lookup failed", zap.String("payment_id", r.PaymentID), zap.String("sender_wallet_id", r.SenderWalletID), zap.Error(err))
+				skipped++
+				continue
+			}
+			originator = travelRuleOriginator{
+				name:      joinNonEmpty(" ", user.Profile.FirstName, user.Profile.LastName),
+				accountID: user.UUID,
+				address: joinNonEmpty(", ",
+					user.Profile.AddressStreet1,
+					user.Profile.AddressStreet2,
+					user.Profile.AddressCity,
+					user.Profile.AddressPostalCode,
+					user.Profile.AddressCountryCode,
+				),
+				placeOfBirth: joinNonEmpty(", ", user.Profile.BirthCity, user.Profile.BirthCountryCode),
+				dateOfBirth:  formatDateOfBirth(user.Profile.BirthYear, user.Profile.BirthMonth, user.Profile.BirthDay),
+			}
+			res.originators[r.SenderWalletID] = originator
+		}
+
+		beneficiary, ok := res.beneficiaries[r.ReceiverWalletID]
+		if !ok {
+			user, err := res.b.KYC().GetPersonaAccountAttributes(ctx, r.ReceiverWalletID)
+			time.Sleep(travelRuleFetchThrottle)
+			if err != nil {
+				log.Warn("skipping travel rule record: persona lookup failed", zap.String("payment_id", r.PaymentID), zap.String("receiver_wallet_id", r.ReceiverWalletID), zap.Error(err))
+				skipped++
+				continue
+			}
+			sub, err := LookupSubAccount(ctx, res.b, r.ReceiverWalletID)
+			if err != nil {
+				log.Warn("skipping travel rule record: xago sub-account lookup failed", zap.String("payment_id", r.PaymentID), zap.String("receiver_wallet_id", r.ReceiverWalletID), zap.Error(err))
+				skipped++
+				continue
+			}
+			beneficiary = travelRuleBeneficiary{
+				name:      joinNonEmpty(" ", user.FirstName, user.LastName),
+				accountID: sub.AccountID,
+			}
+			res.beneficiaries[r.ReceiverWalletID] = beneficiary
+		}
+
+		rows = append(rows, travelRuleReportRow{
+			TransactionReference:   r.PaymentID,
+			OriginatorName:         originator.name,
+			OriginatorAccountID:    originator.accountID,
+			OriginatorAddress:      originator.address,
+			OriginatorPlaceOfBirth: originator.placeOfBirth,
+			OriginatorDateOfBirth:  originator.dateOfBirth,
+			BeneficiaryName:        beneficiary.name,
+			BeneficiaryAccountID:   beneficiary.accountID,
+		})
+		resolvedIDs = append(resolvedIDs, r.ID)
+	}
+
+	return rows, resolvedIDs, skipped
+}
+
+func encryptTravelRuleRows(rows []travelRuleReportRow, recipient *openpgp.Entity) ([]byte, error) {
+	csv, err := buildTravelRuleCSV(rows)
+	if err != nil {
+		return nil, temporal.NewNonRetryableApplicationError("build travel rule csv", "TravelRuleEncoding", err)
+	}
+
+	encrypted, err := encryptPGP(csv, recipient)
+	if err != nil {
+		return nil, temporal.NewNonRetryableApplicationError("encrypt travel rule csv", "TravelRuleEncryption", err)
+	}
+
+	return encrypted, nil
+}
+
+func joinNonEmpty(sep string, parts ...string) string {
+	var out []string
+	for _, p := range parts {
+		if p != "" {
+			out = append(out, p)
+		}
+	}
+	return strings.Join(out, sep)
+}
+
+func formatDateOfBirth(year, month, day int) string {
+	if year == 0 || month == 0 || day == 0 {
+		return ""
+	}
+	return fmt.Sprintf("%04d-%02d-%02d", year, month, day)
+}
+
+func buildTravelRuleCSV(records []travelRuleReportRow) ([]byte, error) {
 	var buf bytes.Buffer
 	w := csv.NewWriter(&buf)
 

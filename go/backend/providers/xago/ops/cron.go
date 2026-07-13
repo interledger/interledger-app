@@ -39,36 +39,8 @@ func TravelRuleEmailWorkflow(ctx workflow.Context) error {
 	logger := workflow.GetLogger(ctx)
 	logger.Info("Starting xago travel rule email")
 
-	return workflow.ExecuteActivity(ctx, a.SendTravelRuleReport).Get(ctx, nil)
-}
-
-func StartTravelRuleKYCCleanup(b ActivityBackends) {
-	schedule := "0 1 * * 0"
-	workflowID := "cron_xago_travel_rule_kyc_cleanup"
-	workflowOptions := client.StartWorkflowOptions{
-		ID:                    workflowID,
-		TaskQueue:             "backend",
-		CronSchedule:          schedule,
-		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
-	}
-
-	we, err := b.Temporal().ExecuteWorkflow(context.Background(), workflowOptions, TravelRuleKYCCleanupWorkflow)
-	if err != nil {
-		log.Fatal("Unable to execute workflow", zap.Error(err))
-	}
-	log.Info("Started workflow", zap.String("WorkflowID", we.GetID()), zap.String("RunID", we.GetRunID()))
-}
-
-func TravelRuleKYCCleanupWorkflow(ctx workflow.Context) error {
-	var a *Activity
-	ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
-		StartToCloseTimeout: 20 * time.Minute,
-	})
-
-	logger := workflow.GetLogger(ctx)
-	logger.Info("Starting xago travel rule KYC cleanup")
-
-	return workflow.ExecuteActivity(ctx, a.ClearTravelRuleKYC).Get(ctx, nil)
+	cutoff := workflow.Now(ctx).UTC()
+	return workflow.ExecuteActivity(ctx, a.SendTravelRuleReport, cutoff).Get(ctx, nil)
 }
 
 func ResendTravelRuleReportWorkflow(ctx workflow.Context, reportedAt time.Time) error {

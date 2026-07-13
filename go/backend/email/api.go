@@ -36,7 +36,7 @@ type Client interface {
 	SendSCTITimeoutEmail(ctx context.Context, txID, walletID, amount, name, iban, submittedAt string)
 	SendSCTRerouteEmail(ctx context.Context, txID, walletID string)
 	SendRampActionEmail(ctx context.Context, walletID string, args RampActionEmailArgs)
-	SendXagoTravelRuleEmail(ctx context.Context, csv []byte, recipientEmail string) error
+	SendXagoTravelRuleEmail(ctx context.Context, csv []byte, recipientEmail string, reportDate time.Time, batchNumber, batchTotal, records int) error
 }
 
 // AgreementLink is a single agreement to show in the agreement-change email (display name + URL).

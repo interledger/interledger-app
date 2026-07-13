@@ -14,6 +14,7 @@ import (
 	"github.com/interledger/interledger-app/go/backend/kyc"
 	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
 	"github.com/interledger/interledger-app/go/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
 	"github.com/interledger/interledger-app/go/backend/providers/xago"
 	"github.com/interledger/interledger-app/go/backend/providers/xago/external"
 	mock_client "github.com/interledger/interledger-app/go/backend/providers/xago/external/mock"
@@ -34,6 +35,7 @@ type Backends interface {
 	Wallets() wallets.Client
 	Users() user.Client
 	KYC() kyc.Client
+	Gatehub() gatehub.Client
 	Pacioli() pacioli.Client
 	Transactions() transactions.Client
 	Email() email.Client

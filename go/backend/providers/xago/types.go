@@ -28,15 +28,9 @@ var (
 type Await func(ctx context.Context, result interface{}) error
 
 type TravelRuleRecordArgs struct {
-	PaymentID              string
-	TransactionReference   string
-	OriginatorName         string
-	OriginatorAccountID    string
-	OriginatorAddress      string
-	OriginatorPlaceOfBirth string
-	OriginatorDateOfBirth  string
-	BeneficiaryName        string
-	BeneficiaryAccountID   string
+	PaymentID        string
+	SenderWalletID   string
+	ReceiverWalletID string
 }
 
 type SubAccount struct {

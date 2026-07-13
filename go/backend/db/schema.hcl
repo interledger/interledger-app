@@ -2745,45 +2745,13 @@ table "xago_travel_rule_records" {
     null = false
     type = uuid
   }
-  column "transaction_reference" {
-    null    = false
-    type    = text
-    default = ""
+  column "sender_wallet_id" {
+    null = false
+    type = text
   }
-  column "originator_name" {
-    null    = false
-    type    = text
-    default = ""
-  }
-  column "originator_account_id" {
-    null    = false
-    type    = text
-    default = ""
-  }
-  column "originator_address" {
-    null    = false
-    type    = text
-    default = ""
-  }
-  column "originator_place_of_birth" {
-    null    = false
-    type    = text
-    default = ""
-  }
-  column "originator_date_of_birth" {
-    null    = false
-    type    = text
-    default = ""
-  }
-  column "beneficiary_name" {
-    null    = false
-    type    = text
-    default = ""
-  }
-  column "beneficiary_account_id" {
-    null    = false
-    type    = text
-    default = ""
+  column "receiver_wallet_id" {
+    null = false
+    type = text
   }
   column "created_at" {
     null = false
@@ -2794,9 +2762,13 @@ table "xago_travel_rule_records" {
     null = true
     type = timestamp
   }
-  column "kyc_cleared_at" {
+  column "batch_number" {
     null = true
-    type = timestamp
+    type = int
+  }
+  column "batch_total" {
+    null = true
+    type = int
   }
   primary_key {
     columns = [column.id]
@@ -2804,6 +2776,10 @@ table "xago_travel_rule_records" {
   index "xago_travel_rule_records_payment_id_idx" {
     unique = true
     columns = [column.payment_id]
+  }
+  index "xago_travel_rule_records_unreported_idx" {
+    columns = [column.created_at]
+    where   = "reported_at IS NULL"
   }
 }
 

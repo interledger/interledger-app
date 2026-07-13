@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"time"
 
 	"github.com/interledger/interledger-app/go/backend/currency"
 
@@ -137,6 +138,6 @@ func (c *client) SendRampActionEmail(ctx context.Context, walletID string, args 
 	ops.SendRampActionEmail(ctx, c.b, walletID, args)
 }
 
-func (c *client) SendXagoTravelRuleEmail(ctx context.Context, csv []byte, recipientEmail string) error {
-	return ops.SendXagoTravelRuleEmail(ctx, c.b, csv, recipientEmail)
+func (c *client) SendXagoTravelRuleEmail(ctx context.Context, csv []byte, recipientEmail string, reportDate time.Time, batchNumber, batchTotal, records int) error {
+	return ops.SendXagoTravelRuleEmail(ctx, c.b, csv, recipientEmail, reportDate, batchNumber, batchTotal, records)
 }

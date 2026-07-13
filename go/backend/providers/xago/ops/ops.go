@@ -8,12 +8,12 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/lib/pq"
 	"github.com/interledger/interledger-app/go/backend/currency"
 	"github.com/interledger/interledger-app/go/backend/providers/xago"
 	"github.com/interledger/interledger-app/go/backend/providers/xago/external"
 	"github.com/interledger/interledger-app/go/backend/slack"
 	"github.com/interledger/interledger-app/go/pacioli"
+	"github.com/lib/pq"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/serviceerror"
 	"go.temporal.io/sdk/client"
@@ -465,119 +465,61 @@ func TestDeposit(ctx context.Context, b Backends, sa xago.SubAccount) error {
 	return err
 }
 
+type dbTravelRuleRecord struct {
+	ID               string `db:"id"`
+	PaymentID        string `db:"payment_id"`
+	SenderWalletID   string `db:"sender_wallet_id"`
+	ReceiverWalletID string `db:"receiver_wallet_id"`
+	BatchNumber      int    `db:"batch_number"`
+	BatchTotal       int    `db:"batch_total"`
+}
+
 func InsertTravelRuleRecord(ctx context.Context, b Backends, args xago.TravelRuleRecordArgs) error {
 	_, err := b.DB().ExecContext(ctx, `
 		INSERT INTO xago_travel_rule_records
-			(payment_id, transaction_reference, originator_name, originator_account_id,
-			 originator_address, originator_place_of_birth, originator_date_of_birth,
-			 beneficiary_name, beneficiary_account_id)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+			(payment_id, sender_wallet_id, receiver_wallet_id)
+		VALUES ($1, $2, $3)
 	`,
 		args.PaymentID,
-		args.TransactionReference,
-		args.OriginatorName,
-		args.OriginatorAccountID,
-		args.OriginatorAddress,
-		args.OriginatorPlaceOfBirth,
-		args.OriginatorDateOfBirth,
-		args.BeneficiaryName,
-		args.BeneficiaryAccountID,
+		args.SenderWalletID,
+		args.ReceiverWalletID,
 	)
 	return err
 }
 
-func GetUnreportedTravelRuleRecords(ctx context.Context, b Backends, limit int) ([]TravelRuleRecord, error) {
-	var records []TravelRuleRecord
+func GetUnreportedTravelRuleRecords(ctx context.Context, b Backends, cutoff time.Time) ([]dbTravelRuleRecord, error) {
+	var records []dbTravelRuleRecord
 	err := b.DB().SelectContext(ctx, &records, `
-		SELECT id,
-		       transaction_reference,
-		       originator_name,
-		       originator_account_id,
-		       originator_address,
-		       originator_place_of_birth,
-		       originator_date_of_birth,
-		       beneficiary_name,
-		       beneficiary_account_id
+		SELECT id, payment_id, sender_wallet_id, receiver_wallet_id
 		FROM xago_travel_rule_records
-		WHERE reported_at IS NULL
-		ORDER BY created_at
-		LIMIT $1
-	`, limit)
+		WHERE reported_at IS NULL AND created_at < $1
+		ORDER BY created_at, id
+	`, cutoff)
 	return records, err
 }
 
-func GetTravelRuleRecordsByReportedAt(ctx context.Context, b Backends, reportedAt time.Time, limit int) ([]TravelRuleRecord, error) {
-	var records []TravelRuleRecord
+func GetTravelRuleRecordsByReportedAt(ctx context.Context, b Backends, reportedAt time.Time) ([]dbTravelRuleRecord, error) {
+	var records []dbTravelRuleRecord
 	err := b.DB().SelectContext(ctx, &records, `
-		SELECT id,
-		       transaction_reference,
-		       originator_name,
-		       originator_account_id,
-		       originator_address,
-		       originator_place_of_birth,
-		       originator_date_of_birth,
-		       beneficiary_name,
-		       beneficiary_account_id
+		SELECT id, payment_id, sender_wallet_id, receiver_wallet_id, batch_number, batch_total
 		FROM xago_travel_rule_records
-		WHERE reported_at = $1 AND kyc_cleared_at IS NULL
-		ORDER BY created_at
-		LIMIT $2
-	`, reportedAt, limit)
+		WHERE reported_at = $1
+		ORDER BY created_at, id
+	`, reportedAt)
 	return records, err
 }
 
-const travelRuleMarkChunkSize = 5_000
-
-func MarkTravelRuleRecordsAsReported(ctx context.Context, b Backends, ids []string, reportedAt time.Time) error {
-	for start := 0; start < len(ids); start += travelRuleMarkChunkSize {
-		end := min(start+travelRuleMarkChunkSize, len(ids))
-		_, err := b.DB().ExecContext(ctx, `
-			UPDATE xago_travel_rule_records SET
-				reported_at = $2
-			WHERE id = ANY($1::uuid[])`,
-			pq.Array(ids[start:end]),
-			reportedAt,
-		)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func ClearReportedTravelRuleKYC(ctx context.Context, b Backends, cutoff, clearedAt time.Time) (int, error) {
-	total := 0
-	for {
-		res, err := b.DB().ExecContext(ctx, `
-			UPDATE xago_travel_rule_records SET
-				originator_name           = '',
-				originator_account_id     = '',
-				originator_address        = '',
-				originator_place_of_birth = '',
-				originator_date_of_birth  = '',
-				beneficiary_name          = '',
-				beneficiary_account_id    = '',
-				kyc_cleared_at            = $2
-			WHERE id IN (
-				SELECT id FROM xago_travel_rule_records
-				WHERE reported_at < $1 AND kyc_cleared_at IS NULL
-				LIMIT $3
-			)`,
-			cutoff,
-			clearedAt,
-			travelRuleMarkChunkSize,
-		)
-		if err != nil {
-			return total, err
-		}
-		n, err := res.RowsAffected()
-		if err != nil {
-			return total, err
-		}
-		total += int(n)
-		if n < travelRuleMarkChunkSize {
-			break
-		}
-	}
-	return total, nil
+func MarkTravelRuleRecordsAsReported(ctx context.Context, b Backends, ids []string, reportedAt time.Time, batchNumber, batchTotal int) error {
+	_, err := b.DB().ExecContext(ctx, `
+		UPDATE xago_travel_rule_records SET
+			reported_at = $2,
+			batch_number = $3,
+			batch_total = $4
+		WHERE id = ANY($1::uuid[])`,
+		pq.Array(ids),
+		reportedAt,
+		batchNumber,
+		batchTotal,
+	)
+	return err
 }

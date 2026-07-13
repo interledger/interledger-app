@@ -427,7 +427,7 @@ func SendRampActionEmail(ctx context.Context, b Backends, walletID string, args 
 		{"label": "Source", "text": args.Source},
 		{"label": "Method", "text": args.Method},
 		{"label": "Status", "text": args.Status},
-		{"label": "Timestamp", "text": args.Timestamp.Format("Jan 2, 2006 3:04 PM MST"),},
+		{"label": "Timestamp", "text": args.Timestamp.Format("Jan 2, 2006 3:04 PM MST")},
 	}
 
 	paragraphs := []map[string]interface{}{
@@ -836,19 +836,20 @@ func SendSCTRerouteEmail(ctx context.Context, b Backends, txID, walletID string)
 	}
 }
 
-func SendXagoTravelRuleEmail(ctx context.Context, b Backends, csv []byte, recipientEmail string) error {
+func SendXagoTravelRuleEmail(ctx context.Context, b Backends, csv []byte, recipientEmail string, reportDate time.Time, batchNumber, batchTotal, records int) error {
+	date := reportDate.UTC().Format("2006-01-02")
+	subject := fmt.Sprintf("Travel Rule Report %s (batch %d of %d)", date, batchNumber, batchTotal)
 	to := []sendgrid.Email{{Name: "Xago Travel Rule", Address: recipientEmail}}
-	filename := fmt.Sprintf("travel_rule_%s.csv.gpg", time.Now().UTC().Format("2006-01-02"))
 	attachment := sgmail.Attachment{
 		Content:     base64.StdEncoding.EncodeToString(csv),
 		Type:        "application/octet-stream",
-		Filename:    filename,
+		Filename:    fmt.Sprintf("travel_rule_%s_batch%dof%d.csv.gpg", date, batchNumber, batchTotal),
 		Disposition: "attachment",
 	}
-	return b.External().SendTemplate(ctx, "Travel Rule Report", to, b.OneTemplateID(), map[string]any{
-		"subject": "Travel Rule Report",
+	return b.External().SendTemplate(ctx, subject, to, b.OneTemplateID(), map[string]any{
+		"subject": subject,
 		"data": []map[string]any{
-			{"paragraph": "Please find attached the Travel Rule report for the last 24 hours."},
+			{"paragraph": fmt.Sprintf("Travel Rule report for %s, batch %d of %d (%d records).", date, batchNumber, batchTotal, records)},
 		},
 	}, []sgmail.Attachment{attachment})
 }
