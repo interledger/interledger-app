@@ -163,9 +163,10 @@ func TestCreateDefaultWalletConcurrent(t *testing.T) {
 	require.Len(t, createdWallets, 1)
 }
 
-// A user may only ever have a single wallet (enforced by UNIQUE(user_id) on user_wallets).
-// A second, named create is rejected and the user keeps their original wallet
-func TestOneWalletPerUser(t *testing.T) {
+// A user may have only one default wallet (enforced by the partial unique index on
+// user_wallets(user_id) WHERE is_default). A second create is rejected and the user
+// keeps their original wallet.
+func TestOneDefaultWalletPerUser(t *testing.T) {
 	ctx := context.Background()
 
 	ensureTestDBURL(t)

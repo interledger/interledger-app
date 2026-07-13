@@ -707,6 +707,11 @@ table "user_wallets" {
     null = false
     type = uuid
   }
+  column "is_default" {
+    null    = false
+    type    = boolean
+    default = true
+  }
   primary_key {
     columns = [column.user_id, column.wallet_id]
   }
@@ -720,9 +725,10 @@ table "user_wallets" {
     unique  = true
     columns = [column.wallet_id]
   }
-  index "user_wallets_user_id_uniq" {
+  index "user_wallets_one_default_per_user" {
     unique  = true
     columns = [column.user_id]
+    where   = "is_default"
   }
 }
 table "waitlist_signups" {

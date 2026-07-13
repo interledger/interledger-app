@@ -17,7 +17,9 @@ import (
 	"github.com/interledger/interledger-app/go/backend/wallets"
 )
 
-// One wallet per user is enforced by UNIQUE(user_id) on user_wallets.
+// A user may have many wallets but only one default
+// (partial unique index on user_wallets(user_id) WHERE is_default),
+// so ON CONFLICT targets that partial index.
 func Create(ctx context.Context, b Backends, args wallets.CreateArgs) (*wallets.Wallet, error) {
 	err := b.Validator().StructCtx(ctx, args)
 	if err != nil {
@@ -46,7 +48,8 @@ func Create(ctx context.Context, b Backends, args wallets.CreateArgs) (*wallets.
 			return fmt.Errorf("%w %s", wallets.ErrInternal, err)
 		}
 
-		res, err := tx.ExecContext(ctx, "INSERT INTO user_wallets (user_id, wallet_id) VALUES ($1, $2) ON CONFLICT (user_id) DO NOTHING", userID, walletID)
+		// claim the user's default-wallet slot
+		res, err := tx.ExecContext(ctx, "INSERT INTO user_wallets (user_id, wallet_id, is_default) VALUES ($1, $2, true) ON CONFLICT (user_id) WHERE is_default DO NOTHING", userID, walletID)
 		if err != nil {
 			return fmt.Errorf("%w %s", wallets.ErrInternal, err)
 		}
@@ -55,7 +58,7 @@ func Create(ctx context.Context, b Backends, args wallets.CreateArgs) (*wallets.
 			return fmt.Errorf("%w %s", wallets.ErrInternal, err)
 		}
 		if rows == 0 {
-			// if 0 rows are affected the user already has a wallet,
+			// if 0 rows are affected the user already has a default wallet,
 			// so we roll back (no orphan wallets row) and return ErrDuplicateWallet for the caller to handle
 			return wallets.ErrDuplicateWallet
 		}

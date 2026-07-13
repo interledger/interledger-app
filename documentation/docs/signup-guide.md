@@ -36,6 +36,24 @@ The signup process creates a complete user account with authentication, wallet i
 5. **TOTP Registration** — Time-based one-time password setup for 2FA
 6. **Wallet Address Creation** — Unique payment address (e.g., `https://ilp.link/alice`)
 
+**Where the wallet is created:** the user's default wallet is created once, in
+`CompleteSignup` (right after the password step) — not at the wallet-address screen,
+which only *names* the already-existing wallet.
+
+```mermaid
+flowchart TD
+    A["1 · Profile details<br/>(name, email, country, phone)"] --> B["2 · Password<br/>Kratos creates the identity"]
+    B --> C["CompleteSignup (gRPC)"]
+    C --> W(["🟢 DEFAULT WALLET CREATED HERE<br/>wallets + user_wallets · name = default"])
+    C --> D["3 · Email verification"]
+    D --> E["4 · Phone OTP"]
+    E --> F["5 · TOTP / 2FA"]
+    F --> G["6 · Wallet address<br/>user picks a name → wallet renamed"]
+    G --> H["Dashboard"]
+
+    style W fill:#0E7C5A,stroke:#0E7C5A,color:#fff
+```
+
 ### Step 1 — Profile Details
 
 ```mermaid
@@ -565,7 +583,10 @@ func (g *rpcService) CreateWalletAddress(ctx context.Context, req *pb.CreateWall
 
 ## 7) Wallet Initialization
 
-Every user has exactly **one** wallet, created as part of signup completion.
+Every user gets a **default** wallet, created as part of signup completion. Today
+that is a user's only wallet; the data model allows additional (non-default) wallets
+per user in the future, and the invariant the database enforces is **one *default*
+wallet per user**.
 
 ### When is the Wallet Created?
 
@@ -597,9 +618,9 @@ if err != nil && !errors.Is(err, wallets.ErrDuplicateWallet) {
 
 **Wallet creation:**
 - Takes the user's country from the signup record (`country_code`)
-- Inserts the `wallets` row (named `default`) and links it to the user in `user_wallets`
-- If the user already has a wallet, `Create` makes **no change** and returns `ErrDuplicateWallet`; it never creates a second wallet or returns a different one
-- Idempotent at the signup layer: one wallet per user is enforced by a `UNIQUE(user_id)` constraint plus an `ON CONFLICT (user_id)` insert, and `CompleteSignup` treats `ErrDuplicateWallet` as success — so retries are safe
+- Inserts the `wallets` row (named `default`) and links it to the user in `user_wallets` with `is_default = true`
+- If the user already has a default wallet, `Create` makes **no change** and returns `ErrDuplicateWallet`; it never creates a second default or returns a different wallet
+- Idempotent at the signup layer: "one default wallet per user" is enforced by a partial unique index on `user_wallets(user_id) WHERE is_default`, and `Create` claims that slot with an `INSERT ... ON CONFLICT (user_id) WHERE is_default DO NOTHING`. `CompleteSignup` treats `ErrDuplicateWallet` as success — so retries are safe
 
 **Note:** At this stage the wallet is named `default` and has no linked accounts or address yet. It is renamed when the user picks a name at the wallet-address step (Section 6), and provider account linking happens during KYC activation. The `CreateUserDefaultWallet` gRPC still exists as an idempotent fallback for ensuring a user has a wallet.
 
