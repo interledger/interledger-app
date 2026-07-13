@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/interledger/interledger-app/go/backend/country"
 	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/email"
 	"github.com/interledger/interledger-app/go/backend/kyc"
 	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
 	"github.com/interledger/interledger-app/go/backend/payments"
@@ -19,7 +20,6 @@ import (
 	"github.com/interledger/interledger-app/go/backend/providers/pti/external"
 	"github.com/interledger/interledger-app/go/backend/slack"
 	"github.com/interledger/interledger-app/go/backend/transactions"
-	"github.com/interledger/interledger-app/go/env"
 	"github.com/interledger/interledger-app/go/log"
 	"github.com/interledger/interledger-app/go/pacioli"
 	"github.com/lestrrat-go/jwx/v3/jwk"
@@ -854,6 +854,33 @@ func (a *Activity) FinalizePTIBalance(ctx context.Context, id, walletID string) 
 	return FinaliseReserve(ctx, a.b, tx.ID)
 }
 
+// RampActionEmailArgs describes a completed/failed deposit or withdrawal for SendRampActionEmail.
+type RampActionEmailArgs struct {
+	WalletID string
+	Action   string
+	Status   string
+	Amount   currency.Amount
+}
+
+// SendRampActionEmail is a best-effort notification: it never fails the calling workflow.
+func (a *Activity) SendRampActionEmail(ctx context.Context, args RampActionEmailArgs) error {
+	bankLA, err := getBankLinkedAccount(ctx, a.b, args.WalletID)
+	if err != nil {
+		log.Error("Failed to resolve bank account for ramp action email", zap.Error(err), zap.String("walletID", args.WalletID), zap.String("action", args.Action))
+		return nil
+	}
+
+	a.b.Email().SendRampActionEmail(ctx, args.WalletID, email.RampActionEmailArgs{
+		Action:    args.Action,
+		Status:    args.Status,
+		Amount:    args.Amount,
+		Source:    formatBankSource(bankLA),
+		Method:    "ACH",
+		Timestamp: time.Now(),
+	})
+	return nil
+}
+
 func (a *Activity) UpdatePaymentState(ctx context.Context, paymentID string, state payments.State) error {
 	_, err := a.b.DB().ExecContext(ctx, "UPDATE payments SET state=$1, updated_at=now() where id=$2", payments.StateCompleted, paymentID)
 	if err != nil {
@@ -865,7 +892,7 @@ func (a *Activity) UpdatePaymentState(ctx context.Context, paymentID string, sta
 func (a *Activity) UpdateTransactionState(ctx context.Context, walletID, transactionID string, state transactions.State) error {
 	info := activity.GetInfo(ctx)
 	if info.Attempt == 1 && state == transactions.StateFailed {
-		slack.SendToChannel(ctx, slack.ChannelError, "wallet-info-bot", fmt.Sprintf("Pti withdrawal failed. %s/wallet/%s/transactions/%s", env.AdminURL(), walletID, transactionID))
+		slack.SendToChannel(ctx, slack.ChannelError, "wallet-info-bot", fmt.Sprintf("Pti withdrawal failed. %s/wallet/%s/transactions/%s", a.b.Config().Admin.BaseURL, walletID, transactionID))
 	}
 
 	transfers, err := a.b.Transactions().ListTransfers(ctx, transactionID)

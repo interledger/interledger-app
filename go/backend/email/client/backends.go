@@ -1,6 +1,7 @@
 package client
 
 import (
+	"github.com/interledger/interledger-app/go/backend/config"
 	"github.com/interledger/interledger-app/go/backend/email/sendgrid"
 	"github.com/interledger/interledger-app/go/backend/kyc"
 	"github.com/interledger/interledger-app/go/backend/user"
@@ -11,6 +12,7 @@ type Backends interface {
 	Users() user.Client
 	KYC() kyc.Client
 	Wallets() wallets.Client
+	Config() *config.StartConfig
 }
 
 type opsBackends struct {

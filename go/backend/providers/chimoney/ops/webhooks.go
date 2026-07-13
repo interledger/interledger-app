@@ -76,7 +76,7 @@ func ParseWebhookSecret(input string) []byte {
 	return secret
 }
 
-func NewWebhook(b Backends, webhookSecret, apiKey string) http.HandlerFunc {
+func NewWebhook(b Backends, webhookSecret, apiKey string, isProd bool) http.HandlerFunc {
 	if webhookSecret == "" {
 		log.Error("CHIMONEY_WEBHOOK_SECRET is empty")
 	}
@@ -89,6 +89,7 @@ func NewWebhook(b Backends, webhookSecret, apiKey string) http.HandlerFunc {
 				httplogger.NewTransport(http.DefaultTransport, b, external.Redact),
 			),
 		},
+		isProd,
 	)
 
 	return func(w http.ResponseWriter, r *http.Request) {

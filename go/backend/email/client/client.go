@@ -132,3 +132,7 @@ func (c *client) SendGatehubWithdrawalRejectedEmail(ctx context.Context, txID, w
 func (c *client) SendSCTRerouteEmail(ctx context.Context, txID, walletID string) {
 	ops.SendSCTRerouteEmail(ctx, c.b, txID, walletID)
 }
+
+func (c *client) SendRampActionEmail(ctx context.Context, walletID string, args email.RampActionEmailArgs) {
+	ops.SendRampActionEmail(ctx, c.b, walletID, args)
+}

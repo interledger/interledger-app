@@ -32,7 +32,7 @@ import (
 func setupTest(t *testing.T) (context.Context, *ops.TestBackends) {
 
 	ctx := context.Background()
-	dbc := db.MigrateTestDB(t, ctx)
+	dbc := db.MigrateTestDB(t, ctx, "")
 
 	b := &ops.TestBackends{
 		DBC: dbc,

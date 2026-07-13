@@ -166,6 +166,56 @@ tests:
           path: data.SENTRY_ENV_LABEL
           value: "prod"
 
+  - it: 'Should contain OP_INTPAY_ENABLED as false by default'
+    asserts:
+      - equal:
+          path: data.OP_INTPAY_ENABLED
+          value: "false"
+
+  - it: 'Should contain OP_INTPAY_ENABLED as true when set'
+    set:
+      frontend:
+        config:
+          op_intpay:
+            enabled: true
+    asserts:
+      - equal:
+          path: data.OP_INTPAY_ENABLED
+          value: "true"
+
+  - it: 'Should contain OP_INTPAY_HOST'
+    set:
+      frontend:
+        config:
+          op_intpay:
+            host: "https://ilp.link/"
+    asserts:
+      - equal:
+          path: data.OP_INTPAY_HOST
+          value: "https://ilp.link/"
+
+  - it: 'Should contain OP_INTPAY_REDIRECT_URL'
+    set:
+      frontend:
+        config:
+          op_intpay:
+            redirect_url: "https://ilp.link/quick-pay/finish"
+    asserts:
+      - equal:
+          path: data.OP_INTPAY_REDIRECT_URL
+          value: "https://ilp.link/quick-pay/finish"
+
+  - it: 'Should contain OP_INTPAY_WALLET_ADDRESS'
+    set:
+      frontend:
+        config:
+          op_intpay:
+            wallet_address: "https://ilp.link/quickpay"
+    asserts:
+      - equal:
+          path: data.OP_INTPAY_WALLET_ADDRESS
+          value: "https://ilp.link/quickpay"
+
   - it: 'Should produce no ConfigMap when frontend is disabled'
     set:
       frontend:

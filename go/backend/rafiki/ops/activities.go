@@ -395,10 +395,15 @@ func (a *Activity) CreateIncomingPaymentTransaction(ctx context.Context, ip inco
 		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
 	}
 
+	txType := transactions.TransactionTypeOpenPaymentIncoming
+	if isWebMonetizationPayment(ip.Metadata) {
+		txType = transactions.TransactionTypeWebMonetizationIncoming
+	}
+
 	_, err = a.b.Transactions().CreateTransaction(ctx, transactions.CreateTransactionArgs{
 		WalletID:                walletID,
 		ForeignID:               ip.ID,
-		ForeignType:             transactions.TransactionTypeOpenPaymentIncoming,
+		ForeignType:             txType,
 		Provider:                gatehub.ProviderName,
 		State:                   transactions.StateCompleted,
 		Source:                  wallet.AddressString(),
@@ -467,6 +472,23 @@ func (a *Activity) WithdrawIncomingPaymentLiquidity(ctx context.Context, incomin
 	return nil
 }
 
+func (a *Activity) resolveReceiverWalletAddress(ctx context.Context, receiverUrl string) (string, error) {
+	ip, err := a.b.Rafiki().GetIncomingPayment(ctx, extractIncomingPaymentID(receiverUrl))
+	if err != nil {
+		return "", fmt.Errorf("%w failed to get receiver incoming payment: %s", rafiki.ErrInternal, err)
+	}
+	receiverWalletID, err := lookupWalletIDFromActivity(ctx, a.b, ip.WalletAddressID)
+	if err != nil {
+		return "", fmt.Errorf("%w failed to look up receiver wallet: %s", rafiki.ErrInternal, err)
+	}
+	wallet, err := a.b.Wallets().Get(ctx, receiverWalletID)
+	if err != nil {
+		return "", fmt.Errorf("%w failed to get receiver wallet: %s", rafiki.ErrInternal, err)
+	}
+
+	return wallet.AddressString(), nil
+}
+
 func (a *Activity) CreateOutgoingPaymentTransaction(ctx context.Context, op outgoingPaymentData) error {
 	walletID, err := lookupWalletIDFromActivity(ctx, a.b, op.WalletAddressID)
 	if err != nil {
@@ -491,17 +513,27 @@ func (a *Activity) CreateOutgoingPaymentTransaction(ctx context.Context, op outg
 		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
 	}
 
+	txType := transactions.TransactionTypeOpenOutgoingPayment
+	if isWebMonetizationPayment(op.Metadata) {
+		txType = transactions.TransactionTypeWebMonetizationOutgoing
+	}
+
+	receiverAddress, err := a.resolveReceiverWalletAddress(ctx, op.Receiver)
+	if err != nil {
+		return err
+	}
+
 	_, err = a.b.Transactions().CreateTransaction(ctx, transactions.CreateTransactionArgs{
 		WalletID:                walletID,
 		ForeignID:               op.ID,
-		ForeignType:             transactions.TransactionTypeOpenOutgoingPayment,
+		ForeignType:             txType,
 		Provider:                gatehub.ProviderName,
 		State:                   transactions.StatePending,
 		Source:                  wallet.AddressString(),
-		Destination:             op.Receiver,
+		Destination:             receiverAddress,
 		Title:                   "Outgoing Payment",
-		DestinationIdentity:     op.Receiver,
-		DestinationIdentityType: payments.IdentityTypeExternalWalletURL.String(),
+		DestinationIdentity:     receiverAddress,
+		DestinationIdentityType: payments.IdentityTypeWalletURL.String(),
 		Amount:                  amt,
 		LinkedAccountTitle:      "EUR Balance",
 		Transfers: []transactions.TransferArgs{

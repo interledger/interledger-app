@@ -12,7 +12,6 @@ import (
 
 	"github.com/interledger/interledger-app/go/backend/currency"
 	httplog "github.com/interledger/interledger-app/go/backend/providers/http"
-	"github.com/interledger/interledger-app/go/env"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
@@ -34,9 +33,9 @@ type client struct {
 	api     *http.Client
 }
 
-func New(apiKey string, transport *http.Client) Client {
+func New(apiKey string, transport *http.Client, isProd bool) Client {
 	baseURL := "https://api.chimoney.io/v0.2.4"
-	if !env.IsProd() {
+	if !isProd {
 		baseURL = "https://api-v2-sandbox.chimoney.io/v0.2.4"
 	}
 

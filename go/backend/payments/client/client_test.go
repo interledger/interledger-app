@@ -24,7 +24,6 @@ import (
 	"github.com/interledger/interledger-app/go/backend/payments/client"
 	"github.com/interledger/interledger-app/go/backend/transactions"
 	"github.com/interledger/interledger-app/go/backend/wallets"
-	"github.com/interledger/interledger-app/go/env"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -43,7 +42,6 @@ type AssertTransfer struct {
 }
 
 func TestClient(t *testing.T) {
-	env.SetEnv(t, "test")
 	ctx := context.Background()
 	b := NewTestBackends(t)
 
@@ -452,7 +450,7 @@ Seeds a user:
 */
 func createTestWallet(t *testing.T, b *TestBackends) testWallet {
 	userID := uuid.NewString()
-	address, err := wallets.ParseAddress(fmt.Sprintf("%s/%s", env.OpenPaymentsURL(), faker.FirstName()))
+	address, err := wallets.ParseAddress(fmt.Sprintf("%s/%s", "https://local.ilp.link", faker.FirstName()))
 	if err != nil {
 		t.Fatal(err)
 	}

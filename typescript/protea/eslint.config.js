@@ -8,6 +8,7 @@ import tseslint from 'typescript-eslint'
 export default tseslint.config(
   {
     ignores: [
+      '.corepack/',
       'build/',
       '.react-router/',
       'coverage/',
@@ -60,6 +61,17 @@ export default tseslint.config(
     // we need to update tailwind's deps to the latest version before we can switch to ESM imports in these files
     files: ['**/*.config.{js,ts}'],
     rules: { '@typescript-eslint/no-require-imports': 'off' }
+  },
+  {
+    // server.js is a Node.js ESM file — declare the Node built-ins it uses.
+    files: ['server.js'],
+    languageOptions: {
+      globals: {
+        process: 'readonly',
+        console: 'readonly',
+        setTimeout: 'readonly'
+      }
+    }
   },
   prettier
 )

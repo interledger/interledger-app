@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/interledger/interledger-app/go/backend/agreements"
-	"github.com/interledger/interledger-app/go/env"
+	"github.com/interledger/interledger-app/go/backend/config"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -99,9 +99,9 @@ func MigrateFromMarkdowns(ctx context.Context, db *sqlx.DB, dir string) error {
 	return nil
 }
 
-func MigrateFromEmbeddedMarkdowns(ctx context.Context, db *sqlx.DB) ([]string, error) {
-	envName := env.GetEnv()
-	dir := fmt.Sprintf("assets/%s", envName)
+func MigrateFromEmbeddedMarkdowns(ctx context.Context, db *sqlx.DB, cfg *config.MigrationConfig) ([]string, error) {
+
+	dir := fmt.Sprintf("assets/%s", cfg.Agreements.AgreementsFolderName)
 	agreementFiles, err := fs.ReadDir(dir)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", agreements.ErrNotFound, err)
@@ -156,7 +156,7 @@ func MigrateFromEmbeddedMarkdowns(ctx context.Context, db *sqlx.DB) ([]string, e
 			return nil, fmt.Errorf("%w %s", agreements.ErrInternal, err.Error())
 		}
 
-		gitFilePath := gitFilePathForAsset(envName, agreementFile.Name())
+		gitFilePath := gitFilePathForAsset(cfg.Agreements.AgreementsFolderName, agreementFile.Name())
 
 		_, err = txStmt.Exec(agreementID, agreementName, agreementVersion, string(agreementContent), gitFilePath)
 		if err != nil {
