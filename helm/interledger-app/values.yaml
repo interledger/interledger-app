@@ -202,6 +202,7 @@ backend:
     xago:
       api_base_url: ""
       identity_base_url: ""
+      exchange_base_url: ""
       policy_id: ""
       api_secret: ""
       api_public_key: ""

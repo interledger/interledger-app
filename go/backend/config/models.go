@@ -126,6 +126,7 @@ type GatehubConfig struct {
 type XagoConfig struct {
 	APIBaseURL      string `yaml:"api_base_url"      validate:"required"`
 	IdentityBaseURL string `yaml:"identity_base_url" validate:"required"`
+	ExchangeBaseURL string `yaml:"exchange_base_url" validate:"required"`
 	APIPublicKey    string `yaml:"api_public_key"    validate:"required"`
 	APISecret       string `yaml:"api_secret"        validate:"required"`
 	PolicyID        string `yaml:"policy_id"         validate:"required"`

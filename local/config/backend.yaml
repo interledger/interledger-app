@@ -67,6 +67,7 @@ gatehub:
 xago:
   api_base_url: "http://mockxago:8080/v1"
   identity_base_url: "http://mockxago:8080/v1"
+  exchange_base_url: "http://mockxago:8080/v1"
   api_public_key: "test-public-key"
   api_secret: "test-secret"
   policy_id: "5e2585a474b0e90012ce8ff1"

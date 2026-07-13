@@ -830,6 +830,36 @@ func (r *RedisStorage) ClearJobs(ctx context.Context) error {
 	return err
 }
 
+func currencyConversionKey(convertID string) string {
+	return fmt.Sprintf("conversion:%s", convertID)
+}
+
+func (r *RedisStorage) SaveCurrencyConversion(ctx context.Context, conv *models.CurrencyConversion) error {
+	data, err := json.Marshal(conv)
+	if err != nil {
+		return fmt.Errorf("failed to marshal currency conversion: %w", err)
+	}
+
+	return r.client.Set(ctx, currencyConversionKey(conv.ConvertID), data, 24*time.Hour).Err()
+}
+
+func (r *RedisStorage) GetCurrencyConversion(ctx context.Context, convertID string) (*models.CurrencyConversion, error) {
+	data, err := r.client.Get(ctx, currencyConversionKey(convertID)).Bytes()
+	if err != nil {
+		if err == redis.Nil {
+			return nil, ErrCurrencyConversionNotFound
+		}
+		return nil, fmt.Errorf("failed to get currency conversion: %w", err)
+	}
+
+	var conv models.CurrencyConversion
+	if err := json.Unmarshal(data, &conv); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal currency conversion: %w", err)
+	}
+
+	return &conv, nil
+}
+
 // Reset all data (for testing)
 func (r *RedisStorage) Reset(ctx context.Context) error {
 	return r.client.FlushDB(ctx).Err()

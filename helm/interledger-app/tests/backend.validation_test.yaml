@@ -32,6 +32,7 @@ set:
       xago:
         api_base_url: "https://api.xago.io"
         identity_base_url: "https://identity.xago.io"
+        exchange_base_url: "https://exchange.xago.io"
         api_public_key: "xago-public-key"
         api_secret: "xago-secret"
         policy_id: "policy-1"
