@@ -45,7 +45,7 @@ func roundTo6Decimals(v float64) float64 {
 	return math.Round(v*1000000) / 1000000
 }
 
-// ConvertCurrencyHandler handles POST /v1/exchange/currencyconvert.
+// ConvertCurrencyHandler handles POST /v1/currencyconvert.
 // When estimateCalculation is true it returns an EstimateConvertCurrencyResponse.
 // When estimateCalculation is false it records the conversion and returns its UUID.
 func (h *Handler) ConvertCurrencyHandler(w http.ResponseWriter, r *http.Request) {
@@ -123,7 +123,7 @@ func (h *Handler) ConvertCurrencyHandler(w http.ResponseWriter, r *http.Request)
 	h.sendJSON(w, http.StatusOK, conv.ConvertID)
 }
 
-// GetConvertCurrencyDetails handles GET /v1/exchange/currencyconvert?convertId=...
+// GetConvertCurrencyDetails handles GET /v1/currencyconvert?convertId=...
 func (h *Handler) GetConvertCurrencyDetails(w http.ResponseWriter, r *http.Request) {
 	convertID := r.URL.Query().Get("convertId")
 	if convertID == "" {

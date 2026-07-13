@@ -16,7 +16,7 @@ import (
 func doConvertCurrency(t *testing.T, h *Handler, req models.ConvertCurrencyRequest) *httptest.ResponseRecorder {
 	t.Helper()
 	body, _ := json.Marshal(req)
-	httpReq := httptest.NewRequest(http.MethodPost, "/xago/v1/exchange/currencyconvert", bytes.NewReader(body))
+	httpReq := httptest.NewRequest(http.MethodPost, "/xago/v1/currencyconvert", bytes.NewReader(body))
 	w := httptest.NewRecorder()
 	h.ConvertCurrencyHandler(w, httpReq)
 	return w
@@ -120,7 +120,7 @@ func TestConvertCurrencyHandler_Actual_Success(t *testing.T) {
 func TestConvertCurrencyHandler_InvalidJSON(t *testing.T) {
 	h := setupTestHandler(t)
 
-	httpReq := httptest.NewRequest(http.MethodPost, "/xago/v1/exchange/currencyconvert", bytes.NewReader([]byte("not json")))
+	httpReq := httptest.NewRequest(http.MethodPost, "/xago/v1/currencyconvert", bytes.NewReader([]byte("not json")))
 	w := httptest.NewRecorder()
 	h.ConvertCurrencyHandler(w, httpReq)
 
@@ -188,7 +188,7 @@ func TestGetConvertCurrencyDetails_Success(t *testing.T) {
 	var convertID string
 	json.NewDecoder(createW.Body).Decode(&convertID)
 
-	getReq := httptest.NewRequest(http.MethodGet, "/xago/v1/exchange/currencyconvert?convertId="+convertID, nil)
+	getReq := httptest.NewRequest(http.MethodGet, "/xago/v1/currencyconvert?convertId="+convertID, nil)
 	w := httptest.NewRecorder()
 	h.GetConvertCurrencyDetails(w, getReq)
 
@@ -207,7 +207,7 @@ func TestGetConvertCurrencyDetails_Success(t *testing.T) {
 func TestGetConvertCurrencyDetails_MissingConvertID(t *testing.T) {
 	h := setupTestHandler(t)
 
-	getReq := httptest.NewRequest(http.MethodGet, "/xago/v1/exchange/currencyconvert", nil)
+	getReq := httptest.NewRequest(http.MethodGet, "/xago/v1/currencyconvert", nil)
 	w := httptest.NewRecorder()
 	h.GetConvertCurrencyDetails(w, getReq)
 
@@ -220,7 +220,7 @@ func TestGetConvertCurrencyDetails_MissingConvertID(t *testing.T) {
 func TestGetConvertCurrencyDetails_NotFound(t *testing.T) {
 	h := setupTestHandler(t)
 
-	getReq := httptest.NewRequest(http.MethodGet, "/xago/v1/exchange/currencyconvert?convertId=nonexistent", nil)
+	getReq := httptest.NewRequest(http.MethodGet, "/xago/v1/currencyconvert?convertId=nonexistent", nil)
 	w := httptest.NewRecorder()
 	h.GetConvertCurrencyDetails(w, getReq)
 
