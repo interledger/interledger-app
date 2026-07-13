@@ -12,7 +12,7 @@ import (
 	"github.com/interledger/interledger-app/go/backend/kyc"
 	"github.com/interledger/interledger-app/go/backend/payments"
 
-	"github.com/interledger/interledger-app/go/env"
+	"github.com/interledger/interledger-app/go/backend/config"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/interledger/interledger-app/go/backend/identities"
@@ -96,7 +96,7 @@ func toGRPCError(err error) error {
 		return nil
 	}
 
-	if !env.IsTest() {
+	if !config.IsTestExecution("") {
 		// This is an info log so that we can omit it easily in production. This should not be a warning
 		// because it can be a common occurrence, such as a user not being found. This log is suppressed for
 		// unit tests to avoid cluttering the test output.

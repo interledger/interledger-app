@@ -100,3 +100,7 @@ func (n *noopClient) SendGatehubWithdrawalRejectedEmail(_ context.Context, _, wa
 func (c *noopClient) SendSCTRerouteEmail(ctx context.Context, txID, walletID string) {
 	log.Info("NOT SENDING: SCT reroute email", zap.String("txID", txID), zap.String("walletID", walletID))
 }
+
+func (n *noopClient) SendRampActionEmail(_ context.Context, walletID string, args email.RampActionEmailArgs) {
+	log.Info("NOT SENDING: ramp action email", zap.String("walletID", walletID), zap.String("action", args.Action))
+}

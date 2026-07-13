@@ -1,12 +1,17 @@
 {{- define "interledger-app.backend.server.deployment" -}}
 {{- $top := first . }}
-{{- $cfgObj := include "common.configMapper" (list $top $top.Values.backend.configMaps.config) | fromYaml -}}
+{{- $cfgObj := include "interledger-app.backend.configMap" $top | fromYaml -}}
 {{- $dataHash := $cfgObj.data | toJson | sha256sum -}}
 spec:
   template:
     metadata:
       annotations:
-        ilf-configmap-worker-sha256: {{ $dataHash | quote }}
+        ilf-configmap-backend-sha256: {{ $dataHash | quote }}
+    spec:
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "common.fullname" $top }}-backend-config
 {{- end }}
 {{- if .Values.backend.server.enabled }}
 {{- include "common.deployment" (list . .Values.backend.server .Values.backend.server.autoscaling .Values.backend.server.serviceAccount "interledger-app.backend.server.deployment") }}

@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/interledger/interledger-app/go/backend/config"
 	"github.com/interledger/interledger-app/go/backend/country"
 	"github.com/interledger/interledger-app/go/backend/db"
 	"github.com/interledger/interledger-app/go/backend/email"
@@ -126,6 +127,9 @@ type testBackends struct {
 	supportEmail string
 }
 
+func (t *testBackends) Config() *config.StartConfig {
+	return &config.StartConfig{Environment: config.EnvironmentConfig{Mode: "test"}}
+}
 func (t *testBackends) External() sendgrid.Client { return t.external }
 func (t *testBackends) OneTemplateID() string     { return "template-id" }
 func (t *testBackends) SupportEmail() string      { return t.supportEmail }

@@ -21,7 +21,7 @@ import (
 func TestExceedsKYCLimits(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	dbc := db.MigrateTestDB(t, ctx)
+	dbc := db.MigrateTestDB(t, ctx, "")
 	fee := currency.FromFloat64(2, currency.USD)
 
 	b := NewTestBackends(t, dbc, users_mock.NewMock())

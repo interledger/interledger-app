@@ -41,7 +41,7 @@ func TestGetPersonaInquiry(t *testing.T) {
 
 	sc := signup_mock.NewMockClient(ctrl)
 
-	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx), nil, uc, sc, nil, nil, wc)
+	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx, ""), nil, uc, sc, nil, nil, wc)
 	pc := persona_mock.NewMockClient(ctrl)
 
 	// There is no existing inquiry or KYC data
@@ -95,7 +95,7 @@ func TestGetApprovedPersonaInquiryURL(t *testing.T) {
 	uc.WalletUser[walletID] = userID
 	wc := wallet_mock.NewMockClient(ctrl)
 	sc := signup_mock.NewMockClient(ctrl)
-	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx), nil, uc, sc, nil, nil, wc)
+	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx, ""), nil, uc, sc, nil, nil, wc)
 
 	inquiryID := uuid.NewString()
 	b.DB().MustExec("INSERT INTO kyc_persona_inquiries (external_id, wallet_id, state) VALUES ($1,$2,$3);", inquiryID, walletID, persona.InquiryFailed)
@@ -123,7 +123,7 @@ func TestGetZAIDNumber(t *testing.T) {
 	uc := user_mock.NewMock()
 	wc := wallet_mock.NewMockClient(ctrl)
 	sc := signup_mock.NewMockClient(ctrl)
-	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx), nil, uc, sc, nil, nil, wc)
+	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx, ""), nil, uc, sc, nil, nil, wc)
 	pc := persona_mock.NewMockClient(ctrl)
 
 	t.Run("returns ErrNoKYCInfo when no persona account record exists", func(t *testing.T) {

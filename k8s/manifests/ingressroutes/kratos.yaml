@@ -1,0 +1,15 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: kratos
+  namespace: interledger
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`identity.interledger.kind`)
+      kind: Rule
+      services:
+        - name: kratos-public
+          port: 80
+  tls: {}
