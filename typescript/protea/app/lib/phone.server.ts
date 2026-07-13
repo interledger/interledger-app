@@ -4,7 +4,7 @@ import { parsePhoneNumber, parsePhoneNumberWithError } from 'libphonenumber-js'
 import { href, redirect } from 'react-router'
 import { ErrorDescriptions } from '~/lib/error.constants'
 import type { TwillioError } from '~/lib/error.mappers'
-import { isConnectError, isOtpValidationError } from '~/lib/error.server'
+import { error, isConnectError, isOtpValidationError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { getUserSession } from '~/lib/kratos/session.server'
 import {
@@ -179,51 +179,81 @@ export async function handleUpdatePhone(request: Request, form: FormData) {
  */
 export async function handleResendOtp(request: Request, phone: string) {
   const errors: Partial<TwillioError> = { otp: '' }
-  const parsedPhone = parseUserPhone(phone)
 
-  if (!parsedPhone.success) {
-    return {
-      codeSent: false as const,
-      error: 'invalidPhone' as const,
-      message: parsedPhone.error
+  try {
+    const parsedPhone = parseUserPhone(phone)
+
+    if (!parsedPhone.success) {
+      return {
+        codeSent: false as const,
+        error: 'invalidPhone' as const,
+        message: parsedPhone.error
+      }
     }
-  }
-  const otpRateLimitResult = await applyPhoneOtpRateLimit(request)
 
-  if (otpRateLimitResult) {
-    return {
-      codeSent: false as const,
-      error: 'rateLimited' as const,
-      retryAfter: otpRateLimitResult.retryAfter,
-      message: otpRateLimitResult.message
+    const otpRateLimitResult = await applyPhoneOtpRateLimit(request)
+
+    if (otpRateLimitResult) {
+      return {
+        codeSent: false as const,
+        error: 'rateLimited' as const,
+        retryAfter: otpRateLimitResult.retryAfter,
+        message: otpRateLimitResult.message
+      }
     }
-  }
 
-  const response = await grpc.sendPhoneVerification(request, {
-    to: parsedPhone.phone
-  })
+    const response = await grpc.sendPhoneVerification(request, {
+      to: parsedPhone.phone
+    })
 
-  if (isConnectError(response)) {
-    if (response.code === Code.InvalidArgument) {
-      return response.error(
-        { errors },
-        {},
-        {
-          action: 'Update mobile number',
-          message:
-            'Your mobile number format is invalid. Please update it and try again.'
-        }
-      )
-    } else {
+    if (isConnectError(response)) {
+      if (response.code === Code.InvalidArgument) {
+        return response.error(
+          { errors },
+          {},
+          {
+            action: 'Update mobile number',
+            message:
+              'Your mobile number format is invalid. Please update it and try again.'
+          }
+        )
+      }
+
       return response.error(
         { errors },
         {},
         { action: 'Contact support', message: ErrorDescriptions.DEFAULT }
       )
     }
-  }
 
-  return { codeSent: true as const }
+    return { codeSent: true as const }
+  } catch (caught) {
+    if (isConnectError(caught)) {
+      if (caught.code === Code.InvalidArgument) {
+        return caught.error(
+          { errors },
+          {},
+          {
+            action: 'Update mobile number',
+            message:
+              'Your mobile number format is invalid. Please update it and try again.'
+          }
+        )
+      }
+
+      return caught.error(
+        { errors },
+        {},
+        { action: 'Contact support', message: ErrorDescriptions.DEFAULT }
+      )
+    }
+
+    return error(
+      request,
+      { errors },
+      { action: 'Contact support', message: ErrorDescriptions.DEFAULT }
+    )
+  }
 }
 
 /**
