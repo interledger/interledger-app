@@ -840,7 +840,7 @@ func (r *RedisStorage) SaveCurrencyConversion(ctx context.Context, conv *models.
 		return fmt.Errorf("failed to marshal currency conversion: %w", err)
 	}
 
-	return r.client.Set(ctx, currencyConversionKey(conv.ConvertID), data, 24*time.Hour).Err()
+	return r.client.Set(ctx, currencyConversionKey(conv.ConvertID), data, 0).Err()
 }
 
 func (r *RedisStorage) GetCurrencyConversion(ctx context.Context, convertID string) (*models.CurrencyConversion, error) {

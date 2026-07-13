@@ -682,26 +682,15 @@ func applyFXCreate(ctx context.Context, b Backends, args payments.CreateArgs) (p
 		return args, 0, 0, nil
 	}
 
-	// TODO maybe extract this into a separate function, maybe reuse in both applyFXCreate and applyFXUpdate
 	// Cross-provider GateHub <-> Xago FX
 	if isXagoGatehubPair(senderAcc.Provider, receiverAcc.Provider) {
-		var pair xago_external.ConvertCurrencyPairEnum
-		var receiverCurrency currency.Currency
-		if senderAcc.Provider == gatehub.ProviderName {
-			pair = xago_external.EURtoZAR
-			receiverCurrency = currency.ZAR
-		} else {
-			pair = xago_external.ZARtoEUR
-			receiverCurrency = currency.EUR
-		}
-
-		estimate, err := b.Xago().EstimateConvertCurrency(ctx, pair, args.SenderAmount.Float64())
+		receiverAmount, estimatedRate, err := estimateXagoGatehubFX(ctx, b, senderAcc.Provider, args.SenderAmount)
 		if err != nil {
-			return args, 0, 0, fmt.Errorf("%w failed to estimate FX rate: %s", payments.ErrInternal, err)
+			return args, 0, 0, err
 		}
+		args.ReceiverAmount = receiverAmount
 
-		args.ReceiverAmount = currency.FromFloat64(estimate.ReceivedAmount, receiverCurrency)
-		return args, estimate.EstimatedRate, 0, nil
+		return args, estimatedRate, 0, nil
 	}
 
 	if senderAcc.SendCurrency != currency.USD || receiverAcc.ReceiveCurrency == currency.USD {
@@ -1210,29 +1199,19 @@ func applyFXUpdate(ctx context.Context, b Backends, existing *dbPayment, receive
 		return existing, nil
 	}
 
-	// TODO maybe extract this into a separate function, maybe reuse in both applyFXCreate and applyFXUpdate
 	// Cross-provider GateHub <-> Xago FX
 	if isXagoGatehubPair(senderAcc.Provider, receiverAcc.Provider) {
-		var pair xago_external.ConvertCurrencyPairEnum
-		var receiverCurrency currency.Currency
-		if senderAcc.Provider == gatehub.ProviderName {
-			pair = xago_external.EURtoZAR
-			receiverCurrency = currency.ZAR
-		} else {
-			pair = xago_external.ZARtoEUR
-			receiverCurrency = currency.EUR
-		}
-
 		senderAmount := currency.FromUInt64(existing.SenderAmount, currency.ParseCurrency(existing.SenderCurrency))
-		estimate, err := b.Xago().EstimateConvertCurrency(ctx, pair, senderAmount.Float64())
+
+		receiverAmt, estimatedRate, err := estimateXagoGatehubFX(ctx, b, senderAcc.Provider, senderAmount)
 		if err != nil {
-			return existing, fmt.Errorf("%w failed to estimate FX rate: %s", payments.ErrInternal, err)
+			return existing, err
 		}
 
-		receiverAmt := currency.FromFloat64(estimate.ReceivedAmount, receiverCurrency)
 		existing.ReceiverAmount = receiverAmt.Value
-		existing.ReceiverCurrency = receiverCurrency.String()
-		existing.FXRate = sql.NullFloat64{Float64: estimate.EstimatedRate, Valid: true}
+		existing.ReceiverCurrency = receiverAmt.Currency.String()
+		existing.FXRate = sql.NullFloat64{Float64: estimatedRate, Valid: true}
+
 		return existing, nil
 	}
 
@@ -1387,4 +1366,43 @@ func NewSoftDescriptor(date time.Time) (string, error) {
 
 	// Trim key to 12 characters, we don't care about the last 4 bits
 	return key[:12], nil
+}
+
+// getXagoGatehubConvertCurrencyPair returns the Xago conversion pair and receiver currency
+// for a cross-provider GateHub <-> Xago FX, based on which side the sender is on.
+func getXagoGatehubConvertCurrencyPair(senderProvider string) (xago_external.ConvertCurrencyPairEnum, currency.Currency, error) {
+	switch senderProvider {
+	case gatehub.ProviderName:
+		return xago_external.EURtoZAR, currency.ZAR, nil
+	case xago.ProviderName:
+		return xago_external.ZARtoEUR, currency.EUR, nil
+	default:
+		return "", "", fmt.Errorf("%w provider pair not supported", payments.ErrInternal)
+	}
+}
+
+// estimateXagoGatehubFX estimates the receiver amount and FX rate for a cross-provider
+// GateHub <-> Xago conversion, based on which side the sender is on.
+func estimateXagoGatehubFX(ctx context.Context, b Backends, senderProvider string, senderAmt currency.Amount) (currency.Amount, float64, error) {
+	pair, receiverCurrency, err := getXagoGatehubConvertCurrencyPair(senderProvider)
+	if err != nil {
+		return currency.Amount{}, 0, err
+	}
+
+	senderAmountF64 := senderAmt.Float64()
+	estimate, err := b.Xago().EstimateConvertCurrency(ctx, pair, senderAmountF64)
+	if err != nil {
+		return currency.Amount{}, 0, fmt.Errorf("%w failed to estimate FX rate: %s", payments.ErrInternal, err)
+	}
+
+	receivedAmount, err := estimate.ReceivedAmount.Float64()
+	if err != nil {
+		return currency.Amount{}, 0, fmt.Errorf("%w failed to parse FX received amount: %s", payments.ErrInternal, err)
+	}
+	estimatedRate, err := estimate.EstimatedRate.Float64()
+	if err != nil {
+		return currency.Amount{}, 0, fmt.Errorf("%w failed to parse FX estimated rate: %s", payments.ErrInternal, err)
+	}
+
+	return currency.FromFloat64(receivedAmount, receiverCurrency), estimatedRate, nil
 }

@@ -14,10 +14,10 @@ import (
 
 // fxParams holds mock FX parameters for a currency pair.
 type fxParams struct {
-	rate            float64 // send-to-receive rate
-	buyPrice        float64 // send-currency per XRP
-	sellPrice       float64 // receive-currency per XRP
-	sendFeeRate     float64 // fraction of send amount charged as fee
+	rate            float64
+	buyPrice        float64
+	sellPrice       float64
+	sendFeeRate     float64
 	sendCurrency    string
 	receiveCurrency string
 }
@@ -41,11 +41,11 @@ var pairParams = map[models.ConvertCurrencyPairEnum]fxParams{
 	},
 }
 
-func round6(v float64) float64 {
-	return math.Round(v*1e6) / 1e6
+func roundTo6Decimals(v float64) float64 {
+	return math.Round(v*1000000) / 1000000
 }
 
-// ConvertCurrencyHandler handles POST /v1/exchange/currencyconvert.
+// ConvertCurrencyHandler handles POST /v1/currencyconvert.
 // When estimateCalculation is true it returns an EstimateConvertCurrencyResponse.
 // When estimateCalculation is false it records the conversion and returns its UUID.
 func (h *Handler) ConvertCurrencyHandler(w http.ResponseWriter, r *http.Request) {
@@ -67,9 +67,9 @@ func (h *Handler) ConvertCurrencyHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	sendFee := round6(req.Amount * params.sendFeeRate)
-	finalBuyAmount := round6(req.Amount / params.buyPrice)
-	receivedAmount := round6(req.Amount * params.rate)
+	sendFee := roundTo6Decimals(req.Amount * params.sendFeeRate)
+	finalBuyAmount := roundTo6Decimals(req.Amount / params.buyPrice)
+	receivedAmount := roundTo6Decimals(req.Amount * params.rate)
 
 	if req.EstimateCalculation {
 		resp := models.EstimateConvertCurrencyResponse{
@@ -124,7 +124,7 @@ func (h *Handler) ConvertCurrencyHandler(w http.ResponseWriter, r *http.Request)
 	h.sendJSON(w, http.StatusOK, conv.ConvertID)
 }
 
-// GetConvertCurrencyDetails handles GET /v1/exchange/currencyconvert?convertId=...
+// GetConvertCurrencyDetails handles GET /v1/currencyconvert?convertId=...
 func (h *Handler) GetConvertCurrencyDetails(w http.ResponseWriter, r *http.Request) {
 	convertID := r.URL.Query().Get("convertId")
 	if convertID == "" {

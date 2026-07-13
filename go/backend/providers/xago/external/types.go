@@ -220,14 +220,14 @@ type ConvertCurrencyRequest struct {
 }
 
 type EstimateConvertCurrencyResponse struct {
-	BuyAveragePrice float64 `json:"buyAveragePrice"`
-	BuyOrders       float64 `json:"buyOrders"`
-	EstimatedRate   float64 `json:"estimatedRate"`
-	FinalBuyAmount  float64 `json:"finalBuyAmount"`
-	FinalSellAmount float64 `json:"finalSellAmount"`
-	QuoteAmount     float64 `json:"quoteAmount"`
-	ReceivedAmount  float64 `json:"receivedAmount"`
-	SellOrders      float64 `json:"sellOrders"`
+	BuyAveragePrice json.Number `json:"buyAveragePrice"`
+	BuyOrders       json.Number `json:"buyOrders"`
+	EstimatedRate   json.Number `json:"estimatedRate"`
+	FinalBuyAmount  json.Number `json:"finalBuyAmount"`
+	FinalSellAmount json.Number `json:"finalSellAmount"`
+	QuoteAmount     json.Number `json:"quoteAmount"`
+	ReceivedAmount  json.Number `json:"receivedAmount"`
+	SellOrders      json.Number `json:"sellOrders"`
 }
 
 type ConvertCurrencyResponse string

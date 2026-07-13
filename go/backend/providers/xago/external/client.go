@@ -160,7 +160,7 @@ func (c *client) refreshAccessToken(ctx context.Context) error {
 		if resp.StatusCode != http.StatusOK {
 			return fmt.Errorf("failed to get xargo access token code (%d - %s)", resp.StatusCode, resp.Status)
 		}
-		
+
 		respBody, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return err
@@ -913,7 +913,7 @@ func (c *client) UpdateSubAccount(ctx context.Context, accountID string, reqStru
 	if resp.StatusCode != http.StatusOK {
 		respBody, err := io.ReadAll(resp.Body)
 		if err != nil {
-				return fmt.Errorf("failed to read body on: update xago inquiry url for (%s) response code: %d", accountID, resp.StatusCode)
+			return fmt.Errorf("failed to read body on: update xago inquiry url for (%s) response code: %d", accountID, resp.StatusCode)
 		}
 		return fmt.Errorf("failed to update xago inquiry url for  (%s), response code: %d error: %v", accountID, resp.StatusCode, respBody)
 	}
@@ -933,68 +933,13 @@ func (c *client) EstimateConvertCurrency(ctx context.Context, currencyPair Conve
 		EstimateCalculation: true,
 	}
 
-	reqBody, err := json.Marshal(reqStruct)
-	if err != nil {
-		return nil, err
-	}
-
-	meta, ok := httplog.MetaForContext(ctx)
-	if ok {
-		meta.Method = "POST"
-		meta.Provider = "xago"
-	} else {
-		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
-			Method:   "POST",
-			Provider: "xago",
-		})
-	}
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqUrl, bytes.NewReader(reqBody))
-	if err != nil {
-		return nil, err
-	}
-	token, err := c.AccessToken(ctx, false)
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Accept", "application/json")
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+token.Token)
-
-	resp, err := c.api.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode == http.StatusUnauthorized {
-		token, err = c.AccessToken(ctx, true)
-		if err != nil {
-			return nil, err
-		}
-		req.Header.Set("Authorization", "Bearer "+token.Token)
-
-		resp, err = c.api.Do(req)
-		if err != nil {
-			return nil, err
-		}
-		if resp.StatusCode == http.StatusUnauthorized {
-			log.Info("refreshed xago token not authorized for EstimateConvertCurrency")
-		}
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to estimate currency conversion (%d - %s)", resp.StatusCode, resp.Status)
-	}
-
-	respBody, err := io.ReadAll(resp.Body)
+	respBody, err := c.doPostRequest(ctx, "EstimateConvertCurrency", reqUrl, reqStruct)
 	if err != nil {
 		return nil, err
 	}
 
 	var quote EstimateConvertCurrencyResponse
-	err = json.Unmarshal(respBody, &quote)
-	if err != nil {
+	if err := json.Unmarshal(respBody, &quote); err != nil {
 		return nil, err
 	}
 
@@ -1013,68 +958,13 @@ func (c *client) ConvertCurrency(ctx context.Context, currencyPair ConvertCurren
 		EstimateCalculation: false,
 	}
 
-	reqBody, err := json.Marshal(reqStruct)
-	if err != nil {
-		return nil, err
-	}
-
-	meta, ok := httplog.MetaForContext(ctx)
-	if ok {
-		meta.Method = "POST"
-		meta.Provider = "xago"
-	} else {
-		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
-			Method:   "POST",
-			Provider: "xago",
-		})
-	}
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqUrl, bytes.NewReader(reqBody))
-	if err != nil {
-		return nil, err
-	}
-	token, err := c.AccessToken(ctx, false)
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Accept", "application/json")
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+token.Token)
-
-	resp, err := c.api.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode == http.StatusUnauthorized {
-		token, err = c.AccessToken(ctx, true)
-		if err != nil {
-			return nil, err
-		}
-		req.Header.Set("Authorization", "Bearer "+token.Token)
-
-		resp, err = c.api.Do(req)
-		if err != nil {
-			return nil, err
-		}
-		if resp.StatusCode == http.StatusUnauthorized {
-			log.Info("refreshed xago token not authorized for ConvertCurrency")
-		}
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to currency conversion (%d - %s)", resp.StatusCode, resp.Status)
-	}
-
-	respBody, err := io.ReadAll(resp.Body)
+	respBody, err := c.doPostRequest(ctx, "ConvertCurrency", reqUrl, reqStruct)
 	if err != nil {
 		return nil, err
 	}
 
 	var quote ConvertCurrencyResponse
-	err = json.Unmarshal(respBody, &quote)
-	if err != nil {
+	if err := json.Unmarshal(respBody, &quote); err != nil {
 		return nil, err
 	}
 
@@ -1087,26 +977,81 @@ func (c *client) GetConvertCurrencyDetails(ctx context.Context, convertID string
 		return nil, err
 	}
 
-	meta, ok := httplog.MetaForContext(ctx)
-	if ok {
-		meta.Method = "GET"
-		meta.Provider = "xago"
-	} else {
-		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
-			Method:   "GET",
-			Provider: "xago",
-		})
-	}
-
 	q := reqUrl.Query()
 	q.Set("convertId", convertID)
 	reqUrl.RawQuery = q.Encode()
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqUrl.String(), nil)
+	respBody, err := c.doGetRequest(ctx, "GetConvertCurrencyDetails", reqUrl.String(), nil)
 	if err != nil {
 		return nil, err
 	}
-	token, err := c.AccessToken(ctx, false)
+
+	var details GetConvertCurrencyDetailsResponse
+	if err := json.Unmarshal(respBody, &details); err != nil {
+		return nil, err
+	}
+
+	return &details, nil
+}
+
+func (c *client) doGetRequest(ctx context.Context, logHint string, reqUrl string, reqStruct any) ([]byte, error) {
+	return c.doRequest(ctx, logHint, "GET", reqUrl, reqStruct)
+}
+
+func (c *client) doPostRequest(ctx context.Context, logHint string, reqUrl string, reqStruct any) ([]byte, error) {
+	return c.doRequest(ctx, logHint, "POST", reqUrl, reqStruct)
+}
+
+func (c *client) doRequest(ctx context.Context, logHint string, method string, reqUrl string, reqStruct any) ([]byte, error) {
+	var reqBody []byte
+	if reqStruct != nil {
+		var err error
+		reqBody, err = json.Marshal(reqStruct)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	ctx = c.contextWithMeta(ctx, method)
+	resp, err := c.doRawRequest(ctx, method, reqUrl, reqBody, false)
+	if err != nil {
+		return nil, err
+	}
+
+	// Retry with a new token
+	if resp.StatusCode == http.StatusUnauthorized {
+		// Closing the current response body to avoid leaks
+		resp.Body.Close()
+
+		resp, err = c.doRawRequest(ctx, method, reqUrl, reqBody, true)
+		if err != nil {
+			return nil, err
+		}
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		log.Info("Unauthorized for " + logHint)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("status code not ok for %s (%d - %s)", logHint, resp.StatusCode, resp.Status)
+	}
+
+	return io.ReadAll(resp.Body)
+}
+
+func (c *client) doRawRequest(ctx context.Context, method string, reqUrl string, reqBody []byte, forceAccessTokenRefresh bool) (*http.Response, error) {
+	var bodyReader io.Reader
+	if reqBody != nil {
+		bodyReader = bytes.NewReader(reqBody)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, method, reqUrl, bodyReader)
+	if err != nil {
+		return nil, err
+	}
+	token, err := c.AccessToken(ctx, forceAccessTokenRefresh)
 	if err != nil {
 		return nil, err
 	}
@@ -1118,37 +1063,20 @@ func (c *client) GetConvertCurrencyDetails(ctx context.Context, convertID string
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	return resp, nil
+}
 
-	if resp.StatusCode == http.StatusUnauthorized {
-		token, err = c.AccessToken(ctx, true)
-		if err != nil {
-			return nil, err
-		}
-		req.Header.Set("Authorization", "Bearer "+token.Token)
-
-		resp, err = c.api.Do(req)
-		if err != nil {
-			return nil, err
-		}
-		if resp.StatusCode == http.StatusUnauthorized {
-			log.Info("refreshed xago token not authorized for GetConvertCurrencyDetails")
-		}
+func (c *client) contextWithMeta(ctx context.Context, method string) context.Context {
+	if meta, ok := httplog.MetaForContext(ctx); ok {
+		m := *meta // creating a copy so that we don't mutate the shared struct
+		m.Method = method
+		m.Provider = "xago"
+		ctx = context.WithValue(ctx, httplog.ContextKey, &m)
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   method,
+			Provider: "xago",
+		})
 	}
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to get currency convert details (%d - %s)", resp.StatusCode, resp.Status)
-	}
-
-	respBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	var convertDetails GetConvertCurrencyDetailsResponse
-	if err = json.Unmarshal(respBody, &convertDetails); err != nil {
-		return nil, err
-	}
-
-	return &convertDetails, nil
+	return ctx
 }

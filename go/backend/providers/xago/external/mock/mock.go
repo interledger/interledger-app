@@ -128,21 +128,6 @@ func (mr *MockClientMockRecorder) EstimateConvertCurrency(ctx, currencyPair, amo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EstimateConvertCurrency", reflect.TypeOf((*MockClient)(nil).EstimateConvertCurrency), ctx, currencyPair, amount)
 }
 
-// GetDeposit mocks base method.
-func (m *MockClient) GetDeposit(ctx context.Context, id string) (*external.Deposit, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetDeposit", ctx, id)
-	ret0, _ := ret[0].(*external.Deposit)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetDeposit indicates an expected call of GetDeposit.
-func (mr *MockClientMockRecorder) GetDeposit(ctx, id interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDeposit", reflect.TypeOf((*MockClient)(nil).GetDeposit), ctx, id)
-}
-
 // GetConvertCurrencyDetails mocks base method.
 func (m *MockClient) GetConvertCurrencyDetails(ctx context.Context, convertID string) (*external.GetConvertCurrencyDetailsResponse, error) {
 	m.ctrl.T.Helper()
@@ -156,6 +141,21 @@ func (m *MockClient) GetConvertCurrencyDetails(ctx context.Context, convertID st
 func (mr *MockClientMockRecorder) GetConvertCurrencyDetails(ctx, convertID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetConvertCurrencyDetails", reflect.TypeOf((*MockClient)(nil).GetConvertCurrencyDetails), ctx, convertID)
+}
+
+// GetDeposit mocks base method.
+func (m *MockClient) GetDeposit(ctx context.Context, id string) (*external.Deposit, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetDeposit", ctx, id)
+	ret0, _ := ret[0].(*external.Deposit)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetDeposit indicates an expected call of GetDeposit.
+func (mr *MockClientMockRecorder) GetDeposit(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDeposit", reflect.TypeOf((*MockClient)(nil).GetDeposit), ctx, id)
 }
 
 // GetWithdrawal mocks base method.
