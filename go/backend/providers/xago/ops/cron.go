@@ -196,7 +196,7 @@ func (a *Activity) CreateDepositTransactions(ctx context.Context, deposits []ext
 		// Also an idempotent call
 		tr, err := a.b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
 			{
-				ID:              dep.TransactionID,
+				TransactionID:   dep.TransactionID,
 				Amount:          currency.FromFloat64(dep.Amount, currency.ZAR).Value,
 				DebitAccountID:  xago.ZAROpsAccount,
 				CreditAccountID: acc.ID,

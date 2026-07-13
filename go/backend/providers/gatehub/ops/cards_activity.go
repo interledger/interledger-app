@@ -436,7 +436,7 @@ type createCardTransactionLedgerTransferArgs struct {
 
 func createCardTransactionLedgerTransfer(ctx context.Context, client pacioli.Client, args createCardTransactionLedgerTransferArgs) error {
 	createArgs := []pacioli.CreateTransferArgs{{
-		ID:              args.txID,
+		TransactionID:   args.txID,
 		Amount:          args.amount.Value,
 		DebitAccountID:  args.debitID,
 		CreditAccountID: args.creditID,

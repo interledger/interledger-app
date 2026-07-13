@@ -668,12 +668,14 @@ type Transfer struct {
 	CreditAccountId string                 `protobuf:"bytes,3,opt,name=creditAccountId,proto3" json:"creditAccountId,omitempty"`
 	Amount          uint64                 `protobuf:"varint,4,opt,name=amount,proto3" json:"amount,omitempty"`
 	Code            uint32                 `protobuf:"varint,5,opt,name=code,proto3" json:"code,omitempty"`
-	Timeout         uint64                 `protobuf:"varint,7,opt,name=timeout,proto3" json:"timeout,omitempty"`
-	Ledger          uint32                 `protobuf:"varint,8,opt,name=ledger,proto3" json:"ledger,omitempty"`
-	PendingId       string                 `protobuf:"bytes,9,opt,name=pendingId,proto3" json:"pendingId,omitempty"`
-	Pending         bool                   `protobuf:"varint,10,opt,name=pending,proto3" json:"pending,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// transactionId links this transfer to the backend transactions.id.
+	TransactionId string `protobuf:"bytes,6,opt,name=transactionId,proto3" json:"transactionId,omitempty"`
+	Timeout       uint64 `protobuf:"varint,7,opt,name=timeout,proto3" json:"timeout,omitempty"`
+	Ledger        uint32 `protobuf:"varint,8,opt,name=ledger,proto3" json:"ledger,omitempty"`
+	PendingId     string `protobuf:"bytes,9,opt,name=pendingId,proto3" json:"pendingId,omitempty"`
+	Pending       bool   `protobuf:"varint,10,opt,name=pending,proto3" json:"pending,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Transfer) Reset() {
@@ -739,6 +741,13 @@ func (x *Transfer) GetCode() uint32 {
 		return x.Code
 	}
 	return 0
+}
+
+func (x *Transfer) GetTransactionId() string {
+	if x != nil {
+		return x.TransactionId
+	}
+	return ""
 }
 
 func (x *Transfer) GetTimeout() uint64 {
@@ -1216,13 +1225,14 @@ const file_pacioli_v1_pacioli_proto_rawDesc = "" +
 	"\x12GetAccountsRequest\x12\x10\n" +
 	"\x03ids\x18\x01 \x03(\tR\x03ids\"F\n" +
 	"\x13GetAccountsResponse\x12/\n" +
-	"\baccounts\x18\x01 \x03(\v2\x13.pacioli.v1.AccountR\baccounts\"\x82\x02\n" +
+	"\baccounts\x18\x01 \x03(\v2\x13.pacioli.v1.AccountR\baccounts\"\xa8\x02\n" +
 	"\bTransfer\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12&\n" +
 	"\x0edebitAccountId\x18\x02 \x01(\tR\x0edebitAccountId\x12(\n" +
 	"\x0fcreditAccountId\x18\x03 \x01(\tR\x0fcreditAccountId\x12\x16\n" +
 	"\x06amount\x18\x04 \x01(\x04R\x06amount\x12\x12\n" +
-	"\x04code\x18\x05 \x01(\rR\x04code\x12\x18\n" +
+	"\x04code\x18\x05 \x01(\rR\x04code\x12$\n" +
+	"\rtransactionId\x18\x06 \x01(\tR\rtransactionId\x12\x18\n" +
 	"\atimeout\x18\a \x01(\x04R\atimeout\x12\x16\n" +
 	"\x06ledger\x18\b \x01(\rR\x06ledger\x12\x1c\n" +
 	"\tpendingId\x18\t \x01(\tR\tpendingId\x12\x18\n" +

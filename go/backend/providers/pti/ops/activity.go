@@ -745,7 +745,7 @@ func (a *Activity) FinalizePTIDeposit(ctx context.Context, id, walletID string, 
 	ledger := pti.LedgerIDUSD
 	tx, err := a.b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
 		{
-			ID:              id,
+			TransactionID:   id,
 			Amount:          amount.Value,
 			CreditAccountID: USDBalance.ID,
 			DebitAccountID:  opsAcc,
@@ -1057,7 +1057,7 @@ func (a *Activity) PostTransfer(ctx context.Context, transactionID, walletID str
 
 	tx, err := a.b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
 		{
-			ID:              returnTransaction.ID,
+			TransactionID:   returnTransaction.ID,
 			Amount:          returnTransaction.Amount.Value,
 			CreditAccountID: creditAccountID,
 			DebitAccountID:  debitAccountID,

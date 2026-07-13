@@ -201,6 +201,12 @@ export interface Transfer {
      */
     code: number;
     /**
+     * transactionId links this transfer to the backend transactions.id.
+     *
+     * @generated from protobuf field: string transactionId = 6;
+     */
+    transactionId: string;
+    /**
      * @generated from protobuf field: uint64 timeout = 7;
      */
     timeout: string;
@@ -967,6 +973,7 @@ class Transfer$Type extends MessageType<Transfer> {
             { no: 3, name: "creditAccountId", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 4, name: "amount", kind: "scalar", T: 4 /*ScalarType.UINT64*/ },
             { no: 5, name: "code", kind: "scalar", T: 13 /*ScalarType.UINT32*/ },
+            { no: 6, name: "transactionId", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 7, name: "timeout", kind: "scalar", T: 4 /*ScalarType.UINT64*/ },
             { no: 8, name: "ledger", kind: "scalar", T: 13 /*ScalarType.UINT32*/ },
             { no: 9, name: "pendingId", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
@@ -974,7 +981,7 @@ class Transfer$Type extends MessageType<Transfer> {
         ]);
     }
     create(value?: PartialMessage<Transfer>): Transfer {
-        const message = { id: "", debitAccountId: "", creditAccountId: "", amount: "0", code: 0, timeout: "0", ledger: 0, pendingId: "", pending: false };
+        const message = { id: "", debitAccountId: "", creditAccountId: "", amount: "0", code: 0, transactionId: "", timeout: "0", ledger: 0, pendingId: "", pending: false };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Transfer>(this, message, value);
@@ -999,6 +1006,9 @@ class Transfer$Type extends MessageType<Transfer> {
                     break;
                 case /* uint32 code */ 5:
                     message.code = reader.uint32();
+                    break;
+                case /* string transactionId */ 6:
+                    message.transactionId = reader.string();
                     break;
                 case /* uint64 timeout */ 7:
                     message.timeout = reader.uint64().toString();
@@ -1039,6 +1049,9 @@ class Transfer$Type extends MessageType<Transfer> {
         /* uint32 code = 5; */
         if (message.code !== 0)
             writer.tag(5, WireType.Varint).uint32(message.code);
+        /* string transactionId = 6; */
+        if (message.transactionId !== "")
+            writer.tag(6, WireType.LengthDelimited).string(message.transactionId);
         /* uint64 timeout = 7; */
         if (message.timeout !== "0")
             writer.tag(7, WireType.Varint).uint64(message.timeout);

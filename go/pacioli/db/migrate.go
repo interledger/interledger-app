@@ -69,6 +69,31 @@ func Migrate(ctx context.Context, connString string) error {
 
 	log.Info("Pacioli Atlas migration applied successfully", zap.String("output", string(out)))
 
+	// Atlas applies schema only, so the one-off data backfill lives here (idempotent).
+	// TODO(cleanup): remove once every environment has run it.
+	if err := backfillTransferTransactionIDs(ctx, connString); err != nil {
+		return fmt.Errorf("failed to backfill ledger_transfers.transaction_id: %w", err)
+	}
+
+	return nil
+}
+
+// backfillTransferTransactionIDs copies id -> transaction_id for legacy rows. Idempotent.
+func backfillTransferTransactionIDs(ctx context.Context, connString string) error {
+	conn, err := sqlx.Connect("postgres", connString)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	res, err := conn.ExecContext(ctx,
+		"UPDATE ledger_transfers SET transaction_id = id WHERE transaction_id IS NULL")
+	if err != nil {
+		return err
+	}
+	if n, err := res.RowsAffected(); err == nil {
+		log.Info("backfilled ledger_transfers.transaction_id", zap.Int64("rows", n))
+	}
 	return nil
 }
 

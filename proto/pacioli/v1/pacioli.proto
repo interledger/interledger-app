@@ -82,6 +82,7 @@ message Transfer {
   string creditAccountId = 3;
   uint64 amount = 4;
   uint32 code = 5;
+  string transactionId = 6;
   uint64 timeout = 7;
   uint32 ledger = 8;
   string pendingId = 9;

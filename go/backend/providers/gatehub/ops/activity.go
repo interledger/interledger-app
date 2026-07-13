@@ -357,7 +357,7 @@ func (a *Activity) FinalizeGatehubDeposit(ctx context.Context, id, walletID stri
 	ledger := gatehub.LedgerIDEUR
 	tx, err := a.b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
 		{
-			ID:              id,
+			TransactionID:   id,
 			Amount:          amount.Value,
 			CreditAccountID: eurBalance.ID,
 			DebitAccountID:  opsAcc,

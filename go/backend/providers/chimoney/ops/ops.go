@@ -424,7 +424,7 @@ func ReserveBalance(ctx context.Context, b Backends, linkedAccountID, txID strin
 	ledger := chimoney.LedgerIDCAD
 	tx, err := b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
 		{
-			ID:              txID,
+			TransactionID:   txID,
 			Amount:          amt.Value,
 			DebitAccountID:  la.ID,
 			CreditAccountID: opsAcc,
@@ -502,7 +502,7 @@ func AssignBalance(ctx context.Context, b Backends, linkedAccountID, txID string
 	ledger := chimoney.LedgerIDCAD
 	tx, err := b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
 		{
-			ID:              txID,
+			TransactionID:   txID,
 			Amount:          amt.Value,
 			CreditAccountID: la.ID,
 			DebitAccountID:  opsAcc,

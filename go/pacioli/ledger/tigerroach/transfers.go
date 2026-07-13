@@ -13,6 +13,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
+	"github.com/google/uuid"
 	"github.com/interledger/interledger-app/go/pacioli"
 	"github.com/jmoiron/sqlx"
 )
@@ -176,6 +177,16 @@ func createTransfer(ctx context.Context, b Backends, args pacioli.CreateTransfer
 		return pacioli.TransferExceedsDebits, nil
 	}
 
+	transferID := args.ID
+	if transferID == "" {
+		transferID = uuid.NewString()
+	}
+	// TODO(PR3): drop the args.ID fallback once every caller sets TransactionID.
+	transactionID := args.TransactionID
+	if transactionID == "" {
+		transactionID = args.ID
+	}
+
 	// All validation passed, create entry and update account values
 	err = crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
 		state := pacioli.TransferStatePosted
@@ -189,8 +200,8 @@ func createTransfer(ctx context.Context, b Backends, args pacioli.CreateTransfer
 				Valid: true,
 			}
 		}
-		_, err := tx.ExecContext(ctx, "INSERT INTO ledger_transfers (id, ledger_id, code, debit_account_id, credit_account_id, amount, state, timeout_at) "+
-			"VALUES ($1, $2, $3, $4, $5, $6, $7, $8)", args.ID, args.Ledger, args.Code, args.DebitAccountID, args.CreditAccountID, args.Amount, state, timeoutAt)
+		_, err := tx.ExecContext(ctx, "INSERT INTO ledger_transfers (id, transaction_id, ledger_id, code, debit_account_id, credit_account_id, amount, state, timeout_at) "+
+			"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)", transferID, transactionID, args.Ledger, args.Code, args.DebitAccountID, args.CreditAccountID, args.Amount, state, timeoutAt)
 		if err != nil {
 			return err
 		}
@@ -240,11 +251,12 @@ func createTransfer(ctx context.Context, b Backends, args pacioli.CreateTransfer
 
 type ledgerTransfer struct {
 	pacioli.Transfer
-	PendingID sql.NullString        `db:"pending_id"`
-	State     pacioli.TransferState `db:"state"`
-	Timeout   sql.NullTime          `db:"timeout_at"`
-	CreatedAt time.Time             `db:"created_at"`
-	UpdatedAt time.Time             `db:"updated_at"`
+	TransactionID sql.NullString        `db:"transaction_id"` // nullable during PR1 transition (backfilled)
+	PendingID     sql.NullString        `db:"pending_id"`
+	State         pacioli.TransferState `db:"state"`
+	Timeout       sql.NullTime          `db:"timeout_at"`
+	CreatedAt     time.Time             `db:"created_at"`
+	UpdatedAt     time.Time             `db:"updated_at"`
 }
 
 func getTransfer(ctx context.Context, b Backends, id string) (*ledgerTransfer, error) {
@@ -260,14 +272,25 @@ func getTransfer(ctx context.Context, b Backends, id string) (*ledgerTransfer, e
 	return &tr, nil
 }
 
-func GetTransfer(ctx context.Context, b Backends, id string) (*pacioli.Transfer, error) {
-	tr, err := getTransfer(ctx, b, id)
+// getTransferByTransactionID resolves the transfer linked to a backend transaction.
+// TODO: handle >1 transfer per transaction once a one-to-many producer exists.
+func getTransferByTransactionID(ctx context.Context, b Backends, transactionID string) (*ledgerTransfer, error) {
+	var tr ledgerTransfer
+	err := b.DB().GetContext(ctx, &tr, "SELECT * FROM ledger_transfers WHERE transaction_id=$1", transactionID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, pacioli.ErrNotFound
+	}
 	if err != nil {
 		return nil, err
 	}
 
-	return &pacioli.Transfer{
+	return &tr, nil
+}
+
+func toTransfer(tr *ledgerTransfer) pacioli.Transfer {
+	return pacioli.Transfer{
 		ID:              tr.ID,
+		TransactionID:   tr.TransactionID.String,
 		LedgerID:        tr.LedgerID,
 		DebitAccountID:  tr.DebitAccountID,
 		CreditAccountID: tr.CreditAccountID,
@@ -275,7 +298,28 @@ func GetTransfer(ctx context.Context, b Backends, id string) (*pacioli.Transfer,
 		State:           tr.State,
 		Code:            tr.Code,
 		Timeout:         uint64(tr.Timeout.Time.UnixNano()),
-	}, nil
+	}
+}
+
+func GetTransfer(ctx context.Context, b Backends, id string) (*pacioli.Transfer, error) {
+	tr, err := getTransfer(ctx, b, id)
+	if err != nil {
+		return nil, err
+	}
+
+	t := toTransfer(tr)
+	return &t, nil
+}
+
+// GetTransferByTransactionID returns the transfer linked to a backend transaction id.
+func GetTransferByTransactionID(ctx context.Context, b Backends, transactionID string) (*pacioli.Transfer, error) {
+	tr, err := getTransferByTransactionID(ctx, b, transactionID)
+	if err != nil {
+		return nil, err
+	}
+
+	t := toTransfer(tr)
+	return &t, nil
 }
 
 func ListTransfers(ctx context.Context, b Backends, ids []string) ([]pacioli.Transfer, error) {
@@ -290,17 +334,8 @@ func ListTransfers(ctx context.Context, b Backends, ids []string) ([]pacioli.Tra
 	}
 
 	resp := make([]pacioli.Transfer, len(transfers))
-	for i, tr := range transfers {
-		resp[i] = pacioli.Transfer{
-			ID:              tr.ID,
-			LedgerID:        tr.LedgerID,
-			DebitAccountID:  tr.DebitAccountID,
-			CreditAccountID: tr.CreditAccountID,
-			Amount:          tr.Amount,
-			State:           tr.State,
-			Code:            tr.Code,
-			Timeout:         uint64(tr.Timeout.Time.UnixNano()),
-		}
+	for i := range transfers {
+		resp[i] = toTransfer(&transfers[i])
 	}
 
 	return resp, nil
@@ -389,7 +424,12 @@ func TryTimeoutTransfers(ctx context.Context, b Backends, ids []string) ([]strin
 }
 
 func transferExists(ctx context.Context, b Backends, args pacioli.CreateTransferArgs) (pacioli.TransferResultCode, error) {
-	ex, err := GetTransfer(ctx, b, args.ID)
+	// TODO: dedupe by transaction_id is correct only while transfers are 1:1 with transactions.
+	transactionID := args.TransactionID
+	if transactionID == "" {
+		transactionID = args.ID
+	}
+	ex, err := GetTransferByTransactionID(ctx, b, transactionID)
 	if err != nil {
 		return 0, err
 	}
@@ -425,7 +465,7 @@ func PostTransfers(ctx context.Context, b Backends, ids []string) (pendingPosted
 	resMap := make(map[int]pacioli.TransferResult)
 	pendingPostedIDs = make(map[string]string)
 	for i, tid := range ids {
-		ex, err := getTransfer(ctx, b, tid)
+		ex, err := getTransferByTransactionID(ctx, b, tid)
 		if errors.Is(err, pacioli.ErrNotFound) {
 			resMap[i] = pacioli.TransferResult{
 				Index: uint32(i),
@@ -535,7 +575,7 @@ func VoidTransfers(ctx context.Context, b Backends, ids []string) ([]pacioli.Tra
 	resMap := make(map[int]pacioli.TransferResult)
 
 	for i, tid := range ids {
-		ex, err := getTransfer(ctx, b, tid)
+		ex, err := getTransferByTransactionID(ctx, b, tid)
 		if errors.Is(err, pacioli.ErrNotFound) {
 			resMap[i] = pacioli.TransferResult{
 				Index: uint32(i),
