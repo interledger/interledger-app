@@ -196,7 +196,7 @@ func (a *Activity) SendTravelRuleReport(ctx context.Context, cutoff time.Time) e
 
 	resolver := newTravelRuleResolver(a.b)
 
-	batchTotal := (len(records) + travelRuleReportBatchSize - 1) / travelRuleReportBatchSize
+	batchTotal := travelRuleBatchTotal(len(records), travelRuleReportBatchSize)
 
 	var reported, skipped, batchNumber int
 
@@ -394,6 +394,10 @@ func formatDateOfBirth(year, month, day int) string {
 		return ""
 	}
 	return fmt.Sprintf("%04d-%02d-%02d", year, month, day)
+}
+
+func travelRuleBatchTotal(n, size int) int {
+	return (n + size - 1) / size
 }
 
 func buildTravelRuleCSV(records []travelRuleReportRow) ([]byte, error) {
