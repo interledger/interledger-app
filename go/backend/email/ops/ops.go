@@ -20,7 +20,7 @@ import (
 	"go.uber.org/zap"
 )
 
-const agreementUpdatedSubject = "We've updated our terms"
+const agreementUpdatedSubject = "We have updated our terms"
 
 func getEmailsAndGreeting(ctx context.Context, b Backends, walletID string) ([]sendgrid.Email, string, error) {
 	users, err := b.Users().ListUsers(ctx, walletID)
@@ -681,9 +681,9 @@ func SendAccountDeletionRequestedEmail(ctx context.Context, b Backends, userID s
 	}
 	name := strings.TrimSpace(u.FirstName + " " + u.LastName)
 	confirmTo := []sendgrid.Email{{Name: name, Address: u.Email}}
-	confirmSubject := "We've received your account deletion request"
+	confirmSubject := "We have received your account deletion request"
 	userData := []map[string]interface{}{
-		{"paragraph": "We've received your request to delete your account."},
+		{"paragraph": "We have received your request to delete your account."},
 		{"paragraph": "If you still have funds in your account, please withdraw them within the next 2–3 days."},
 		{"paragraph": "Our support team will let you know when the process starts."},
 	}
