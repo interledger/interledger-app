@@ -67,9 +67,9 @@ type Transfer struct {
 type CreateTransferArgs struct {
 	// TODO(cleanup): drop ID; the ledger autogenerates the primary key.
 	ID string `validate:"omitempty,uuid4"`
-	// TransactionID links a transfer to backend transactions.id (idempotency key; may repeat).
-	// TODO(PR3): make required once every caller sets it.
-	TransactionID   string `validate:"omitempty,uuid4"`
+	// links a transfer to backend transactions.id (idempotency key; may repeat).
+	// TODO(PR3): make unconditionally required once every caller sets it.
+	TransactionID   string `validate:"required_without=ID,omitempty,uuid4"`
 	Amount          int64  `validate:"gt=0"`
 	DebitAccountID  string `validate:"required,uuid4"`
 	CreditAccountID string `validate:"required,uuid4"`

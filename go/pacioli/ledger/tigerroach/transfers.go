@@ -311,7 +311,6 @@ func GetTransfer(ctx context.Context, b Backends, id string) (*pacioli.Transfer,
 	return &t, nil
 }
 
-// GetTransferByTransactionID returns the transfer linked to a backend transaction id.
 func GetTransferByTransactionID(ctx context.Context, b Backends, transactionID string) (*pacioli.Transfer, error) {
 	tr, err := getTransferByTransactionID(ctx, b, transactionID)
 	if err != nil {
