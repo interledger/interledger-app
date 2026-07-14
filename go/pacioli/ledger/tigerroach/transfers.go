@@ -309,16 +309,6 @@ func GetTransfer(ctx context.Context, b Backends, id string) (*pacioli.Transfer,
 	return &t, nil
 }
 
-func GetTransferByTransactionID(ctx context.Context, b Backends, transactionID string) (*pacioli.Transfer, error) {
-	tr, err := getTransferByTransactionID(ctx, b, transactionID)
-	if err != nil {
-		return nil, err
-	}
-
-	t := toTransfer(tr)
-	return &t, nil
-}
-
 func ListTransfers(ctx context.Context, b Backends, ids []string) ([]pacioli.Transfer, error) {
 	var transfers []ledgerTransfer
 	query, args, err := sqlx.In("SELECT * FROM ledger_transfers WHERE id IN (?);", ids)
@@ -425,7 +415,7 @@ func transferExists(ctx context.Context, b Backends, args pacioli.CreateTransfer
 	if transactionID == "" {
 		transactionID = args.ID
 	}
-	ex, err := GetTransferByTransactionID(ctx, b, transactionID)
+	ex, err := getTransferByTransactionID(ctx, b, transactionID)
 	if err != nil {
 		return 0, err
 	}
@@ -439,7 +429,7 @@ func transferExists(ctx context.Context, b Backends, args pacioli.CreateTransfer
 	if args.Pending {
 		// Compare timeouts with a minute grace period.
 		newTimeout := time.Now().Add(time.Millisecond * time.Duration(args.Timeout))
-		existingTimeout := time.Unix(0, int64(ex.Timeout))
+		existingTimeout := ex.Timeout.Time
 		if newTimeout.Before(existingTimeout.Add(time.Minute)) &&
 			newTimeout.After(existingTimeout.Add(time.Minute*-1)) {
 			return pacioli.TransferExistsWithDifferentTimeout, nil
