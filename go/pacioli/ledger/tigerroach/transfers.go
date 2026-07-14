@@ -251,7 +251,7 @@ func createTransfer(ctx context.Context, b Backends, args pacioli.CreateTransfer
 
 type ledgerTransfer struct {
 	pacioli.Transfer
-	TransactionID sql.NullString        `db:"transaction_id"` // nullable during PR1 transition (backfilled)
+	TransactionID sql.NullString        `db:"transaction_id"`
 	PendingID     sql.NullString        `db:"pending_id"`
 	State         pacioli.TransferState `db:"state"`
 	Timeout       sql.NullTime          `db:"timeout_at"`
@@ -272,8 +272,6 @@ func getTransfer(ctx context.Context, b Backends, id string) (*ledgerTransfer, e
 	return &tr, nil
 }
 
-// getTransferByTransactionID resolves the transfer linked to a backend transaction.
-// TODO: handle >1 transfer per transaction once a one-to-many producer exists.
 func getTransferByTransactionID(ctx context.Context, b Backends, transactionID string) (*ledgerTransfer, error) {
 	var tr ledgerTransfer
 	err := b.DB().GetContext(ctx, &tr, "SELECT * FROM ledger_transfers WHERE transaction_id=$1", transactionID)
@@ -423,7 +421,6 @@ func TryTimeoutTransfers(ctx context.Context, b Backends, ids []string) ([]strin
 }
 
 func transferExists(ctx context.Context, b Backends, args pacioli.CreateTransferArgs) (pacioli.TransferResultCode, error) {
-	// TODO: dedupe by transaction_id is correct only while transfers are 1:1 with transactions.
 	transactionID := args.TransactionID
 	if transactionID == "" {
 		transactionID = args.ID

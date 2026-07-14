@@ -54,7 +54,7 @@ func (ts TransferState) IsValid() bool {
 
 type Transfer struct {
 	ID              string        `db:"id"`
-	TransactionID   string        `db:"-"`         // links to backend transactions.id; populated manually (see ledgerTransfer)
+	TransactionID   string        `db:"-"`         // links to backend transactions.id
 	LedgerID        uint32        `db:"ledger_id"` // this field is coming soon to a TigerBeetle near you.
 	DebitAccountID  string        `db:"debit_account_id"`
 	CreditAccountID string        `db:"credit_account_id"`
