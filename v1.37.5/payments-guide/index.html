@@ -1,0 +1,3870 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for the Interledger App Wallet — a reference implementation for Account Servicing Entities (ASEs) integrating with the Interledger network.">
+      
+      
+      
+      
+        <link rel="prev" href="../agreements-guide/">
+      
+      
+        <link rel="next" href="../transaction-types-reference/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Payments & Transactions - Interledger App Wallet</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#payments-transactions-a-non-technical-guide-to-the-interledger-wallet" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Interledger App Wallet" class="md-header__button md-logo" aria-label="Interledger App Wallet" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Interledger App Wallet
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Payments & Transactions
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Interledger App Wallet" class="md-nav__button md-logo" aria-label="Interledger App Wallet" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Interledger App Wallet
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../terminology/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Terminology
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../signup-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Signup Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../kyc-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    KYC & Identity Verification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../kyc-resubmission-flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    KYC Resubmission Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../account-deletion-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Account Deletion Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wallets-accounts-addresses-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wallets, Accounts & Addresses
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ledger-system-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dual-Ledger System
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../agreements-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agreements & Legal Consent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Payments
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Payments
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Payments & Transactions
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Payments & Transactions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table of Contents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-big-picture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Big Picture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#wallets-and-accounts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Wallets and Accounts
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Wallets and Accounts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#your-wallet-one-financial-identity-one-provider" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Wallet = One Financial Identity, One Provider
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-is-a-linked-account" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What is a Linked Account?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multiple-accounts-single-provider" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multiple Accounts, Single Provider
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-payment-story" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Payment Story
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The Payment Story">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#alice-sends-bob-100" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Alice Sends Bob £100
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Alice Sends Bob £100">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-alice-initiates-the-payment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Alice Initiates the Payment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-alices-money-is-reserved" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Alice's Money is Reserved
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-the-system-creates-a-transaction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: The System Creates a Transaction
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-the-system-tells-gatehub" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: The System Tells GateHub
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-wait-for-completion-the-hidden-part" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Wait for Completion (The Hidden Part)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-money-actually-moves" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Money Actually Moves
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-7-status-is-completed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7: Status is Completed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#understanding-transactions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Understanding Transactions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Understanding Transactions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#payment-vs-transaction-at-a-glance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Payment vs Transaction (at a glance)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-is-a-transaction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What is a Transaction?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-track-both-send-and-receive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why Track Both Send AND Receive?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#transaction-states" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Transaction States
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-two-ledgers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Two Ledgers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The Two Ledgers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Setup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-have-two-ledgers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why Have Two Ledgers?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-normal-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Normal Flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#when-ledgers-disagree" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When Ledgers Disagree
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-reconciliation-means" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Reconciliation Means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-this-matters-for-settlement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why This Matters for Settlement
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fees-and-costs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fees and Costs
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Fees and Costs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-three-types-of-fees" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Three Types of Fees
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The Three Types of Fees">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-provider-fees-per-transaction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Provider Fees (Per Transaction)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-currency-conversion-fees-cross-currency-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Currency Conversion Fees (Cross-Currency Only)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-settlement-fees-provider-account-level" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Settlement Fees (Provider Account Level)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-the-system-handles-fees" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How the System Handles Fees
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#provider-differences" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Provider Differences
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Provider Differences">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#three-major-provider-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Three Major Provider Types
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#comparison-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Comparison Table
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gatehub-the-multi-currency-custodian" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GateHub: The Multi-Currency Custodian
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pti-the-bank-network" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PTI: The Bank Network
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#xago-regional-payments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Xago: Regional Payments
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#chimoney-international-remittance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Chimoney: International Remittance
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-these-differences-matter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why These Differences Matter
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#settlement-making-it-real" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Settlement: Making It Real
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Settlement: Making It Real">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-settlement-is" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Settlement Is
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-settlement-process" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Settlement Process
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-settlement-matters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why Settlement Matters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#real-world-settlement-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Real-World Settlement Example
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#three-levels-of-settlement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Three Levels of Settlement
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Three Levels of Settlement">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-data-level-settlement-continuous" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Data-Level Settlement (Continuous)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-financial-level-settlement-dailyweekly" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Financial-Level Settlement (Daily/Weekly)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-cash-level-settlement-monthlyquarterly" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Cash-Level Settlement (Monthly/Quarterly)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-settlement-is-not" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Settlement Is NOT
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#settlement-at-scale" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Settlement at Scale
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#provider-specific-settlement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Provider-Specific Settlement
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting-philosophy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Troubleshooting Philosophy
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting Philosophy">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-debugging-framework" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Debugging Framework
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#common-problems-and-root-causes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common Problems and Root Causes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Common Problems and Root Causes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#problem-account-shows-100-but-the-balance-calculation-says-it-should-be-150" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Problem: "Account shows £100, but the balance calculation says it should be £150"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#problem-payment-appears-stuck-in-processing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Problem: "Payment appears stuck in 'Processing'"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#problem-user-says-they-sent-money-but-recipient-didnt-receive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Problem: "User says they sent money but recipient didn't receive"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#problem-we-show-different-balance-than-the-provider" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Problem: "We show different balance than the provider"
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#further-reading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Further Reading
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../transaction-types-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transaction Types Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../provider-payments-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Provider Comparison
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Integrations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Integrations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gatehub-cards-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GateHub Cards
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rafiki-full-node-upgrade-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rafiki Full Node Upgrade
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Operations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../payment-troubleshooting-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Payment Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developers
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Developers
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../error-handling-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Error Handling Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../logging-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Logging Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend-configuration-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backend Configuration Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../env-variables/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment Variables
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table of Contents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-big-picture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Big Picture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#wallets-and-accounts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Wallets and Accounts
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Wallets and Accounts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#your-wallet-one-financial-identity-one-provider" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Wallet = One Financial Identity, One Provider
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-is-a-linked-account" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What is a Linked Account?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multiple-accounts-single-provider" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multiple Accounts, Single Provider
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-payment-story" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Payment Story
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The Payment Story">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#alice-sends-bob-100" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Alice Sends Bob £100
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Alice Sends Bob £100">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-alice-initiates-the-payment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Alice Initiates the Payment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-alices-money-is-reserved" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Alice's Money is Reserved
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-the-system-creates-a-transaction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: The System Creates a Transaction
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-the-system-tells-gatehub" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: The System Tells GateHub
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-wait-for-completion-the-hidden-part" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Wait for Completion (The Hidden Part)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-money-actually-moves" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Money Actually Moves
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-7-status-is-completed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7: Status is Completed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#understanding-transactions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Understanding Transactions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Understanding Transactions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#payment-vs-transaction-at-a-glance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Payment vs Transaction (at a glance)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-is-a-transaction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What is a Transaction?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-track-both-send-and-receive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why Track Both Send AND Receive?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#transaction-states" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Transaction States
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-two-ledgers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Two Ledgers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The Two Ledgers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Setup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-have-two-ledgers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why Have Two Ledgers?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-normal-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Normal Flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#when-ledgers-disagree" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When Ledgers Disagree
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-reconciliation-means" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Reconciliation Means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-this-matters-for-settlement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why This Matters for Settlement
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fees-and-costs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fees and Costs
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Fees and Costs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-three-types-of-fees" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Three Types of Fees
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The Three Types of Fees">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-provider-fees-per-transaction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Provider Fees (Per Transaction)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-currency-conversion-fees-cross-currency-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Currency Conversion Fees (Cross-Currency Only)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-settlement-fees-provider-account-level" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Settlement Fees (Provider Account Level)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-the-system-handles-fees" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How the System Handles Fees
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#provider-differences" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Provider Differences
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Provider Differences">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#three-major-provider-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Three Major Provider Types
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#comparison-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Comparison Table
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gatehub-the-multi-currency-custodian" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GateHub: The Multi-Currency Custodian
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pti-the-bank-network" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PTI: The Bank Network
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#xago-regional-payments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Xago: Regional Payments
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#chimoney-international-remittance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Chimoney: International Remittance
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-these-differences-matter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why These Differences Matter
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#settlement-making-it-real" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Settlement: Making It Real
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Settlement: Making It Real">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-settlement-is" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Settlement Is
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-settlement-process" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Settlement Process
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-settlement-matters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why Settlement Matters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#real-world-settlement-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Real-World Settlement Example
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#three-levels-of-settlement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Three Levels of Settlement
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Three Levels of Settlement">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-data-level-settlement-continuous" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Data-Level Settlement (Continuous)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-financial-level-settlement-dailyweekly" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Financial-Level Settlement (Daily/Weekly)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-cash-level-settlement-monthlyquarterly" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Cash-Level Settlement (Monthly/Quarterly)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-settlement-is-not" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Settlement Is NOT
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#settlement-at-scale" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Settlement at Scale
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#provider-specific-settlement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Provider-Specific Settlement
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting-philosophy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Troubleshooting Philosophy
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting Philosophy">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-debugging-framework" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Debugging Framework
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#common-problems-and-root-causes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common Problems and Root Causes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Common Problems and Root Causes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#problem-account-shows-100-but-the-balance-calculation-says-it-should-be-150" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Problem: "Account shows £100, but the balance calculation says it should be £150"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#problem-payment-appears-stuck-in-processing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Problem: "Payment appears stuck in 'Processing'"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#problem-user-says-they-sent-money-but-recipient-didnt-receive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Problem: "User says they sent money but recipient didn't receive"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#problem-we-show-different-balance-than-the-provider" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Problem: "We show different balance than the provider"
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#further-reading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Further Reading
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="payments-transactions-a-non-technical-guide-to-the-interledger-wallet">Payments &amp; Transactions: A Non-Technical Guide to the Interledger Wallet<a class="headerlink" href="#payments-transactions-a-non-technical-guide-to-the-interledger-wallet" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p><strong>Payments guide.</strong> End-to-end explanation of how money moves through Interledger App.</p>
+</blockquote>
+<p><strong>Related documents:</strong></p>
+<ul>
+<li><a href="../terminology/">Concepts</a> — Core terminology and provider translation</li>
+<li><a href="../wallets-accounts-addresses-guide/">Wallets vs Accounts vs Addresses</a> — Wallet and linked-account architecture</li>
+<li><a href="../provider-payments-reference/">Provider Payments Guide</a> — Provider-specific payment behavior</li>
+<li><a href="../ledger-system-guide/">Ledger System Architecture</a> — Why we run dual ledgers and reconciliation</li>
+<li><a href="../transaction-types-reference/">Transaction Types Reference</a> — Transaction fields, states, and mappings</li>
+<li><a href="../payment-troubleshooting-guide/">Payment Troubleshooting</a> — Systematic payment debugging</li>
+<li><a href="../kyc-guide/">KYC Explainer</a> — KYC gating and provider-specific verification paths</li>
+<li><a href="../env-variables/">Environment Variables</a> — Runtime payment provider endpoints, feature toggles, and credentials</li>
+</ul>
+<h2 id="table-of-contents">Table of Contents<a class="headerlink" href="#table-of-contents" title="Permanent link">&para;</a></h2>
+<ol>
+<li><a href="#the-big-picture">The Big Picture</a></li>
+<li><a href="#wallets-and-accounts">Wallets and Accounts</a></li>
+<li><a href="#the-payment-story">The Payment Story</a></li>
+<li><a href="#understanding-transactions">Understanding Transactions</a></li>
+<li><a href="#the-two-ledgers">The Two Ledgers</a></li>
+<li><a href="#fees-and-costs">Fees and Costs</a></li>
+<li><a href="#provider-differences">Provider Differences</a></li>
+<li><a href="#settlement-making-it-real">Settlement: Making It Real</a></li>
+<li><a href="#troubleshooting-philosophy">Troubleshooting Philosophy</a></li>
+</ol>
+<hr />
+<h2 id="the-big-picture">The Big Picture<a class="headerlink" href="#the-big-picture" title="Permanent link">&para;</a></h2>
+<p>The Interledger Wallet helps people manage their money across currencies and send payments globally. Think of it like a personal accountant who works with your bank on your behalf — and can still reach people at other banks.</p>
+<p><strong>The core problem we solve</strong>: People want to move money between different financial systems (open payment networks, banks, card networks) without having to maintain separate accounts and logins at each one.</p>
+<p><strong>The solution</strong>: A wallet that:
+- Connects you to a payment provider based on your country
+- Tracks every transaction that happens
+- Keeps its own records to ensure nothing gets lost
+- Settles with providers regularly to match accounts</p>
+<p><strong>Three core ideas behind the design:</strong>
+1. <strong>Provider-agnostic orchestration</strong> — one payment engine coordinates money movement across providers.
+2. <strong>Double-entry accounting</strong> — Pacioli records every debit and credit to prevent loss or double-spend.
+3. <strong>Durable workflows</strong> — Temporal orchestrates multi-step payments with retries and recovery.</p>
+<hr />
+<h2 id="wallets-and-accounts">Wallets and Accounts<a class="headerlink" href="#wallets-and-accounts" title="Permanent link">&para;</a></h2>
+<h3 id="your-wallet-one-financial-identity-one-provider">Your Wallet = One Financial Identity, One Provider<a class="headerlink" href="#your-wallet-one-financial-identity-one-provider" title="Permanent link">&para;</a></h3>
+<p>In the Interledger system, you have <strong>one wallet per user</strong>. This wallet represents your financial identity and is tied to <strong>one payment provider</strong> based on your country.</p>
+<pre class="mermaid"><code>graph TD
+    JaneUser["👤 Jane (Europe-based)&lt;br/&gt;Kratos Identity"]
+    JaneWallet["🏦 Jane's Wallet&lt;br/&gt;Provider: GateHub"]
+
+    AlessandroUser["👤 Alessandro (South Africa)&lt;br/&gt;Kratos Identity"]
+    AlessandroWallet["🏦 Alessandro's Wallet&lt;br/&gt;Provider: Xago"]
+
+    PatrickUser["👤 Patrick (US-based)&lt;br/&gt;Kratos Identity"]
+    PatrickWallet["🏦 Patrick's Wallet&lt;br/&gt;Provider: PTI"]
+
+    JaneUser --&gt;|has| JaneWallet
+    AlessandroUser --&gt;|has| AlessandroWallet
+    PatrickUser --&gt;|has| PatrickWallet
+
+    JaneWallet --&gt;|multi-currency balance| LA1["EUR Account&lt;br/&gt;€5,000"]
+    JaneWallet --&gt;|multi-currency balance| LA2["GBP Account&lt;br/&gt;£3,000"]
+    JaneWallet --&gt;|card account| LA3["EUR Debit Card"]
+
+    AlessandroWallet --&gt;|ZAR balance| LA4["ZAR Account&lt;br/&gt;R50,000"]
+    AlessandroWallet --&gt;|payments via| LA5["South African Banking&lt;br/&gt;Integration"]
+
+    PatrickWallet --&gt;|multi-currency balance| LA6["USD Account&lt;br/&gt;$7,000"]
+    PatrickWallet --&gt;|bank account| LA7["Bank Account&lt;br/&gt;US Bank"]
+
+    LA1 &amp; LA2 &amp; LA3 --&gt;|provider| GH["GateHub&lt;br/&gt;(Multi-currency custodian)"]
+    LA4 &amp; LA5 --&gt;|provider| XG["Xago&lt;br/&gt;(South African payments)"]
+    LA6 &amp; LA7 --&gt;|provider| PTI["PTI&lt;br/&gt;(Bank network)"]
+
+    style JaneUser fill:#e8f4f8,stroke:#0066cc,color:#000
+    style JaneWallet fill:#d0e8f2,stroke:#0066cc,color:#000
+    style AlessandroUser fill:#e8f4f8,stroke:#0066cc,color:#000
+    style AlessandroWallet fill:#d0e8f2,stroke:#0066cc,color:#000
+    style PatrickUser fill:#e8f4f8,stroke:#0066cc,color:#000
+    style PatrickWallet fill:#d0e8f2,stroke:#0066cc,color:#000
+    style GH fill:#fff3cd,stroke:#ff9800,color:#000
+    style XG fill:#fff3cd,stroke:#ff9800,color:#000
+    style PTI fill:#fff3cd,stroke:#ff9800,color:#000</code></pre>
+<h3 id="what-is-a-linked-account">What is a Linked Account?<a class="headerlink" href="#what-is-a-linked-account" title="Permanent link">&para;</a></h3>
+<p>Within your wallet, you can have multiple <strong>Linked Accounts</strong> across different currencies and account types — all connected to your <strong>single provider</strong>:</p>
+<ul>
+<li><strong>Balance account</strong>: Money sitting with your provider (like a savings account)</li>
+<li><strong>Bank account</strong>: Your real bank connected for deposits/withdrawals</li>
+<li><strong>Card account</strong>: Your debit/credit card for payments</li>
+<li><strong>Interac account</strong>: Canadian e-transfer account (if your provider is Chimoney)</li>
+</ul>
+<p>Each linked account has:
+- The account type (balance, bank, card, interac)
+- A currency (USD, EUR, ZAR, etc.)
+- A unique identifier at your provider (the <code>provider_id</code>)</p>
+<p><strong>See <a href="../wallets-accounts-addresses-guide/#system-model-one-wallet-many-linked-accounts">Wallets vs Accounts vs Addresses</a> for detailed explanation of linked-account properties and provider-specific differences.</strong></p>
+<h3 id="multiple-accounts-single-provider">Multiple Accounts, Single Provider<a class="headerlink" href="#multiple-accounts-single-provider" title="Permanent link">&para;</a></h3>
+<p>Your wallet connects to <strong>one payment provider</strong> based on your country. This keeps things simple: you only go through <strong>one KYC verification process</strong>, deal with one set of compliance rules, and have a single provider managing your funds.</p>
+<ul>
+<li><strong>In Europe?</strong> You connect to <strong>GateHub</strong> and hold EUR, GBP, and other currencies within GateHub</li>
+<li><strong>In South Africa?</strong> You connect to <strong>Xago</strong> and hold ZAR with integration to SA banking</li>
+<li><strong>In the US?</strong> You connect to <strong>PTI</strong> for bank transfers and a USD balance</li>
+<li><strong>In Canada?</strong> You might connect to <strong>Chimoney</strong> for Interac e-transfer support</li>
+</ul>
+<p><strong>In-app P2P payments require the same provider.</strong> Alice (GateHub) can send to Bob (GateHub), but cannot send directly to Alessandro (Xago) via in-app P2P — the backend rejects cross-provider P2P with <code>ErrIncompatibleAccounts</code>. Cross-provider payments are only possible via <strong>Open Payments</strong> (the Interledger protocol), which is a separate flow from in-app P2P.</p>
+<hr />
+<h2 id="the-payment-story">The Payment Story<a class="headerlink" href="#the-payment-story" title="Permanent link">&para;</a></h2>
+<p>Let's follow a real-world example to understand how payments work.</p>
+<h3 id="alice-sends-bob-100">Alice Sends Bob £100<a class="headerlink" href="#alice-sends-bob-100" title="Permanent link">&para;</a></h3>
+<p><strong>Setup:</strong>
+- Alice is a Europe-based user connected to GateHub with £4,500 in her GBP account
+- Bob is also connected to GateHub (same provider) and has just signed up with no balance
+- Both are users of the Interledger Wallet
+- GateHub charges a 2% fee on peer-to-peer transfers</p>
+<p><strong>Alice decides to send Bob £100 for a shared meal.</strong></p>
+<p><em>Note: Both users connect to the same provider (GateHub) for this example. Cross-provider payments work similarly, but are routed through the Interledger network with additional routing steps.</em></p>
+<h4 id="step-1-alice-initiates-the-payment">Step 1: Alice Initiates the Payment<a class="headerlink" href="#step-1-alice-initiates-the-payment" title="Permanent link">&para;</a></h4>
+<p>Alice opens the wallet app and clicks "Send Money."</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Amount: £100
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>To: bob@example.com
+</code></pre></div>
+<p><strong>Note on addresses:</strong> The email address (or wallet URL/payment pointer) is used for discovery — finding Bob's wallet. Behind the scenes, the actual money moves through <a href="../wallets-accounts-addresses-guide/#address-model-wallet-urls-vs-ilpopen-payments-addresses">linked accounts</a>. The system resolves the email to Bob's wallet address and then selects appropriate linked accounts for settlement.</p>
+<p>What happens:
+- The wallet checks: "Does Alice have £100?"
+- Yes ✓ (she has £4,500)
+- The wallet records: "Alice intends to send Bob £100"
+- Status: <strong>Processing</strong></p>
+<h4 id="step-2-alices-money-is-reserved">Step 2: Alice's Money is Reserved<a class="headerlink" href="#step-2-alices-money-is-reserved" title="Permanent link">&para;</a></h4>
+<p>The wallet doesn't immediately take the money. Instead, it <strong>reserves</strong> it.</p>
+<p>Think of reservation like putting a hold on a hotel room:
+- The room is no longer available to book
+- But the payment hasn't actually been collected
+- You could still cancel before checkout</p>
+<p>In our system:
+- Alice's balance shows: £4,500 - £100 = £4,400 (reserved, but not final)
+- The money is locked in the <strong>Pacioli ledger</strong> (our internal accounting system)
+- GateHub itself doesn't know about this yet</p>
+<p><strong>About the dual-ledger system:</strong> We maintain our own accounting records (Pacioli) separate from the provider's records. See <a href="#the-two-ledgers">The Two Ledgers</a> below for a detailed explanation of why this matters.</p>
+<h4 id="step-3-the-system-creates-a-transaction">Step 3: The System Creates a Transaction<a class="headerlink" href="#step-3-the-system-creates-a-transaction" title="Permanent link">&para;</a></h4>
+<p>Behind the scenes, the wallet creates two transactions:</p>
+<ol>
+<li><strong>Alice's send transaction</strong>: "Alice is sending £100"</li>
+<li><strong>Bob's receive transaction</strong>: "Bob is receiving £100"</li>
+</ol>
+<p>Both start as <strong>pending</strong>.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Send Transaction (Alice)
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>├─ Amount: £100
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>├─ Status: Pending
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>├─ Target: Bob&#39;s account
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>└─ Fee: £2 (GateHub&#39;s 2% fee)
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>Receive Transaction (Bob)
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>├─ Amount: £100 (minus fee)
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>├─ Status: Pending
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>└─ From: Alice
+</code></pre></div>
+<h4 id="step-4-the-system-tells-gatehub">Step 4: The System Tells GateHub<a class="headerlink" href="#step-4-the-system-tells-gatehub" title="Permanent link">&para;</a></h4>
+<p>The system sends a message to GateHub:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>&quot;Create a transfer of £100 
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>from Alice&#39;s account to Bob&#39;s account&quot;
+</code></pre></div>
+<p>GateHub responds with:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>{
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>  &quot;transaction_id&quot;: &quot;txn_abc123&quot;,
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>  &quot;amount&quot;: &quot;100.00&quot;,
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>  &quot;fee&quot;: &quot;2.00&quot;,
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>  &quot;status&quot;: &quot;1&quot; (pending)
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>}
+</code></pre></div></p>
+<h4 id="step-5-wait-for-completion-the-hidden-part">Step 5: Wait for Completion (The Hidden Part)<a class="headerlink" href="#step-5-wait-for-completion-the-hidden-part" title="Permanent link">&para;</a></h4>
+<p>Here's where it gets interesting. The transfer is pending at GateHub. But when will it complete?</p>
+<p>The system uses <strong>two mechanisms</strong> to find out:</p>
+<p><strong>A) Webhook (Fast Path - Normal Case)</strong>
+- GateHub sends a message: "Transfer completed!"
+- The system receives it instantly
+- Transactions are marked complete
+- Takes 1-5 seconds</p>
+<p><strong>B) Polling (Safety Net - Backup Case)</strong>
+- If 20 minutes pass without a webhook, the system checks manually
+- "Hey GateHub, what's the status of transaction txn_abc123?"
+- Ensures we never lose track of money</p>
+<p>Most of the time, webhooks work fine. The polling is just insurance.</p>
+<h4 id="step-6-money-actually-moves">Step 6: Money Actually Moves<a class="headerlink" href="#step-6-money-actually-moves" title="Permanent link">&para;</a></h4>
+<p>Once GateHub confirms completion:</p>
+<ol>
+<li><strong>Alice's balance is finalized</strong></li>
+<li>£4,500 → £4,400 (minus the £100 sent)</li>
+<li>Wait, the fee! Let's calculate:</li>
+<li>Amount sent: £100</li>
+<li>Fee charged: £2 (2% of £100)</li>
+<li>Total deducted: £102</li>
+<li>
+<p>New balance: £4,398</p>
+</li>
+<li>
+<p><strong>Bob receives the money</strong></p>
+</li>
+<li>Bob's balance: £0 → £100 (he gets the full £100, fee was Alice's responsibility)</li>
+<li>
+<p>Bob gets a notification: "You received £100 from Alice"</p>
+</li>
+<li>
+<p><strong>The transactions flip to completed</strong></p>
+</li>
+<li>Alice's send transaction: ✓ Completed</li>
+<li>Bob's receive transaction: ✓ Completed</li>
+</ol>
+<h4 id="step-7-status-is-completed">Step 7: Status is Completed<a class="headerlink" href="#step-7-status-is-completed" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>Send Transaction (Alice)
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>├─ Amount: £100
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>├─ Status: ✓ Completed
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>├─ Fee: £2
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>├─ Net deducted: £102
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>└─ Balance after: £4,398
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>Receive Transaction (Bob)
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>├─ Amount: £100
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>├─ Status: ✓ Completed
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>├─ Fee: £0 (receiver pays nothing)
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>└─ Balance after: £100
+</code></pre></div>
+<p><strong>Timeline visualization:</strong></p>
+<pre class="mermaid"><code>sequenceDiagram
+    participant Alice as Alice's App
+    participant Wallet as Wallet Backend
+    participant Ledger as Pacioli Ledger&lt;br/&gt;(Our Records)
+    participant GateHub as GateHub&lt;br/&gt;(Provider)
+
+    Alice-&gt;&gt;Wallet: "Send Bob £100"
+    Wallet-&gt;&gt;Wallet: Check: Alice has £100? ✓
+    Wallet-&gt;&gt;Ledger: Reserve £100 from Alice
+    Wallet-&gt;&gt;Wallet: Create pending transactions
+    Wallet-&gt;&gt;GateHub: "Create transfer: £100"
+    GateHub-&gt;&gt;GateHub: Process transfer
+    GateHub--&gt;&gt;Wallet: Webhook: "Transfer completed!"
+    Wallet-&gt;&gt;Ledger: Finalize: Deduct £102 from Alice&lt;br/&gt;(including £2 fee)
+    Wallet-&gt;&gt;Ledger: Finalize: Add £100 to Bob
+    Wallet-&gt;&gt;Wallet: Mark transactions complete
+    Wallet--&gt;&gt;Alice: "✓ Sent! Bob now has £100"</code></pre>
+<hr />
+<h2 id="understanding-transactions">Understanding Transactions<a class="headerlink" href="#understanding-transactions" title="Permanent link">&para;</a></h2>
+<h3 id="payment-vs-transaction-at-a-glance">Payment vs Transaction (at a glance)<a class="headerlink" href="#payment-vs-transaction-at-a-glance" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Payment</th>
+<th>Transaction</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Represents</strong></td>
+<td>Intent to move money</td>
+<td>Ledger record of what happened to one wallet</td>
+</tr>
+<tr>
+<td><strong>Visibility</strong></td>
+<td>Internal orchestration lifecycle</td>
+<td>User-facing history item</td>
+</tr>
+<tr>
+<td><strong>Per transfer</strong></td>
+<td>Usually one payment</td>
+<td>Usually two transactions (<code>sent</code> + <code>received</code>) for P2P</td>
+</tr>
+<tr>
+<td><strong>State focus</strong></td>
+<td>Created → Confirmed → Processing → Completed/Failed</td>
+<td>Pending → Completed/Failed/OnHold</td>
+</tr>
+<tr>
+<td><strong>Primary fields</strong></td>
+<td>Sender, receiver, amounts, FX, routing</td>
+<td>Wallet owner, amount, provider, transfer details</td>
+</tr>
+</tbody>
+</table>
+<h3 id="what-is-a-transaction">What is a Transaction?<a class="headerlink" href="#what-is-a-transaction" title="Permanent link">&para;</a></h3>
+<p>A <strong>transaction</strong> is a record of money movement. It's like a receipt.</p>
+<p><strong>Every transaction has:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Meaning</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>ID</strong></td>
+<td>Unique identifier</td>
+<td><code>txn_abc123</code></td>
+</tr>
+<tr>
+<td><strong>Type</strong></td>
+<td>What kind of movement</td>
+<td><code>sent</code>, <code>received</code>, <code>deposit</code>, <code>withdrawal</code>, <code>card_transaction</code></td>
+</tr>
+<tr>
+<td><strong>Amount</strong></td>
+<td>How much money</td>
+<td>£100.00</td>
+</tr>
+<tr>
+<td><strong>Currency</strong></td>
+<td>What currency</td>
+<td>GBP</td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>Where it is in process</td>
+<td>Pending, Completed, Failed, OnHold</td>
+</tr>
+<tr>
+<td><strong>Provider Fee</strong></td>
+<td>Cost charged by the provider</td>
+<td>£2.00</td>
+</tr>
+<tr>
+<td><strong>Provider ID</strong></td>
+<td>ID at the provider's system</td>
+<td>GateHub ID: <code>txn_gate_xyz</code></td>
+</tr>
+<tr>
+<td><strong>Timestamp</strong></td>
+<td>When it happened</td>
+<td>2026-03-03 14:30:45 UTC</td>
+</tr>
+</tbody>
+</table>
+<h3 id="why-track-both-send-and-receive">Why Track Both Send AND Receive?<a class="headerlink" href="#why-track-both-send-and-receive" title="Permanent link">&para;</a></h3>
+<p>You might wonder: if Alice sent £100 and Bob received £100, isn't that the same thing?</p>
+<p><strong>No, and here's why:</strong></p>
+<ol>
+<li><strong>Each person needs a record</strong> of what happened to their balance</li>
+<li>Alice's send transaction: "My balance went down by £102"</li>
+<li>
+<p>Bob's receive transaction: "My balance went up by £100"</p>
+</li>
+<li>
+<p><strong>Fees might be different</strong></p>
+</li>
+<li>On a deposit from a bank: "You received £100, but the bank charged £2.50 fee, so your net was £97.50"</li>
+<li>
+<p>On a withdrawal to a bank: "You wanted £50 out, but the bank charged £1 fee, so we took £51 from your balance"</p>
+</li>
+<li>
+<p><strong>Different providers track things differently</strong></p>
+</li>
+<li>Some providers track the fee separately</li>
+<li>Some providers bake the fee into the amount</li>
+<li>
+<p>Our system normalizes everything to the same format</p>
+</li>
+<li>
+<p><strong>Debugging and reconciliation</strong></p>
+</li>
+<li>When money goes missing, we can trace both sides</li>
+<li>If Alice says she sent it but Bob says he didn't receive it, we have records from both</li>
+</ol>
+<h3 id="transaction-states">Transaction States<a class="headerlink" href="#transaction-states" title="Permanent link">&para;</a></h3>
+<p>Transactions use a simple four-state model. These are distinct from the internal <strong>Payment</strong> states (Created → Confirmed → Processing → Completed/Failed) which track orchestration internally.</p>
+<pre class="mermaid"><code>stateDiagram-v2
+    [*] --&gt; Pending: Transaction created
+
+    Pending --&gt; Completed: Provider confirms success
+    Pending --&gt; Failed: Provider reports error
+    Pending --&gt; OnHold: Requires manual review
+
+    OnHold --&gt; Completed: Issue resolved
+    OnHold --&gt; Failed: Cannot resolve
+
+    Completed --&gt; [*]
+    Failed --&gt; [*]</code></pre>
+<hr />
+<h2 id="the-two-ledgers">The Two Ledgers<a class="headerlink" href="#the-two-ledgers" title="Permanent link">&para;</a></h2>
+<p>This is one of the most important concepts to understand, and also one of the most confusing.</p>
+<h3 id="the-setup">The Setup<a class="headerlink" href="#the-setup" title="Permanent link">&para;</a></h3>
+<p>We have two separate record-keeping systems:</p>
+<ol>
+<li><strong>Our Ledger</strong> (Pacioli - internal accounting system)</li>
+<li>We own the data</li>
+<li>Immediately updated</li>
+<li>Single source of truth for our business logic</li>
+<li>
+<p>Can be updated retroactively if needed</p>
+</li>
+<li>
+<p><strong>Provider's Ledger</strong> (GateHub, Xago, PTI, Chimoney)</p>
+</li>
+<li>They own the data</li>
+<li>Updated when they confirm</li>
+<li>Single source of truth for their system</li>
+<li>We can't change it</li>
+</ol>
+<h3 id="why-have-two-ledgers">Why Have Two Ledgers?<a class="headerlink" href="#why-have-two-ledgers" title="Permanent link">&para;</a></h3>
+<p><strong>Scenario 1: Network Failure</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>13:45 - Alice sends Bob £100
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>13:45:30 - Our system: Balance updated ✓
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>13:45:31 - Internet cuts out  🔌
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>13:47 - Internet comes back
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>13:48 - GateHub reply finally arrives: ✓ Confirmed
+</code></pre></div>
+<p>If we ONLY relied on the provider:
+- When the internet cut, we wouldn't know if the payment succeeded
+- Alice would see her balance unchanged from her perspective
+- We'd have to wait for confirmation before telling Alice anything</p>
+<p>If we ONLY relied on our ledger:
+- We assume it worked and credit both accounts
+- But then GateHub says the transfer failed (insufficient funds error he didn't know about)
+- We'd have to reverse the transaction and lose consistency</p>
+<p><strong>With both ledgers:</strong>
+- Our ledger is "optimistic" - we assume it works and update immediately
+- Provider's ledger is "authoritative" - we constantly check against it
+- When values differ, we reconcile</p>
+<p><strong>Scenario 2: Provider System is Down</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>14:00 - Alice&#39;s bank account is temporarily locked
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>14:00 - Alice tries to withdraw £200 via PTI
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>14:01 - Our ledger: &quot;Withdrawal created, let me tell PTI&quot;
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>14:02 - PTI responds: &quot;Sorry, can&#39;t process. Account locked.&quot;
+</code></pre></div>
+<p>If we ONLY had the provider:
+- Alice would see nothing for 1-2 minutes until PTI responds
+- Bad user experience</p>
+<p>With both ledgers:
+- Alice's app shows "Withdrawal processing" immediately
+- Behind the scenes, we handle the PTI failure gracefully
+- We can retry or show her a helpful error message</p>
+<p><strong>Scenario 3: Internal Transfers (Xago and Similar Providers)</strong></p>
+<p>This is a unique case: some providers like Xago allow us to transfer money between subaccounts <strong>without telling the provider</strong>.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>Alice and Bob are both Xago users in South Africa
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>Alice wants to send Bob money
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>Option A (Tell Xago):
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>├─ We ask Xago: &quot;Transfer £100 from Alice to Bob&quot;
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>├─ Xago processes it
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>├─ Xago confirms completion
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>└─ Everyone agrees on the balance
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>Option B (Internal Transfer):
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>├─ We check: &quot;Alice and Bob both use Xago? ✓&quot;
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>├─ Our Ledger: Deduct £100 from Alice, Add £100 to Bob ✓
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>├─ We DON&#39;T tell Xago anything
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>├─ Xago&#39;s records remain unchanged
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a>└─ But we know exactly who owns what
+</code></pre></div>
+<p><strong>Why would we do Option B?</strong>
+- <strong>Speed</strong>: Instant to users (no API call to Xago needed)
+- <strong>Cost</strong>: No per-transaction fee from Xago
+- <strong>Resilience</strong>: Works even if Xago's API is temporarily down
+- <strong>Simplicity</strong>: Fewer external dependencies</p>
+<p><strong>The catch</strong>: We must maintain our own ledger accurately, because Xago's ledger won't reflect the transfer. If someone asks Xago "what's my balance?", Xago might give a different answer than we do—and our answer is the real one for our users.</p>
+<p>This is why the internal ledger (Pacioli) is so critical: <strong>for some transactions, it's the only record of what actually happened.</strong></p>
+<p>With both ledgers:
+- We can make fast, cheap internal transfers between our users
+- But we must reconcile with Xago periodically to catch any discrepancies
+- If Xago ever disagrees with us, we investigate why</p>
+<p><strong>Scenario 4: Fast P2P Payments (GateHub and Future Optimization)</strong></p>
+<p>GateHub transfers can take seconds to minutes to finalize. But from a user experience perspective, this feels slow.</p>
+<p>Today (cautious approach):
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>Alice sends Bob £100 (GateHub)
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>├─ T=0s: Our Ledger updated, user sees &quot;sending&quot;
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>├─ T=0.5s: Message sent to GateHub
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>├─ T=1s: GateHub confirms (status: pending)
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>├─ T=20s: Webhook arrives: &quot;Transfer complete!&quot;
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>├─ T=20s: Bob&#39;s app notification arrives
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>└─ User experience: 20-second delay
+</code></pre></div></p>
+<p>Future (optimistic approach):
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>Alice sends Bob £100 (GateHub)
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>├─ T=0s: Our Ledger updated, user sees &quot;sent&quot;
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>├─ T=0.5s: Message sent to GateHub
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>├─ T=0.5s: Bob&#39;s app shows &quot;received&quot; (optimistic)
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>├─ T=1s: GateHub confirms (status: pending)
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>├─ Background: Verify with GateHub asynchronously
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>└─ User experience: near-instant to both parties
+</code></pre></div></p>
+<p><strong>The Risk Trade-off:</strong></p>
+<p>With the optimistic approach, we're taking on financial risk:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>Optimistic scenario:
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>├─ Alice sends Bob £100
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>├─ We immediately credit Bob in our ledger
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>├─ Bob sees £100 received and spends it
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>├─ T=5s: GateHub responds &quot;Transfer failed: insufficient funds&quot;
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>│
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>Problem:
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>├─ Our ledger says Bob has £100
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>├─ GateHub says he doesn&#39;t
+<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a>├─ Bob already spent the money
+<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>└─ We have a real financial liability
+</code></pre></div>
+<p><strong>Why Take This Risk?</strong></p>
+<p>Because the alternative is poor user experience. If we always wait for provider confirmation, payments feel slow. By using our ledger as a "financial buffer":</p>
+<ol>
+<li>Users get near-instant feedback (great UX)</li>
+<li>We handle the rare failure case gracefully (reversals, notifications)</li>
+<li>We can afford this risk because most transactions succeed (99%+)</li>
+<li>We maintain reconciliation to catch and fix any discrepancies</li>
+</ol>
+<p>This is why the internal ledger is essential: <strong>it lets us separate user experience (fast) from financial settlement (reliable) and bridge the gap carefully.</strong></p>
+<p>With both ledgers:
+- We can optimize for user experience by moving money in our ledger immediately
+- We can manage risk by monitoring provider confirmation asynchronously
+- If something goes wrong, we have a complete audit trail to fix it</p>
+<h3 id="the-normal-flow">The Normal Flow<a class="headerlink" href="#the-normal-flow" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>Time → Alice sends Bob £100
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>│
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>├─ Instant (0s)
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>│  └─ Our Ledger: Deduct £100 from Alice
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>│     (User sees immediate feedback)
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>│
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>├─ Near-instant (0.5-5 seconds)
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>│  ├─ Message sent to Provider: &quot;Please confirm&quot;
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>│  └─ Our Ledger: Mark as &quot;Pending&quot;
+<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a>│
+<a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a>├─ Provider processes (backend, not visible to user)
+<a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a>│  └─ Provider Ledger: Transfer confirmed ✓
+<a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a>│
+<a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a>└─ Confirmation returns (1-30 seconds typical)
+<a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a>   ├─ Webhook arrives: &quot;Transfer completed!&quot;
+<a id="__codelineno-11-16" name="__codelineno-11-16" href="#__codelineno-11-16"></a>   ├─ Our Ledger: Mark as &quot;Completed&quot; ✓
+<a id="__codelineno-11-17" name="__codelineno-11-17" href="#__codelineno-11-17"></a>   └─ Bob&#39;s app: Notification &quot;You received £100&quot;
+</code></pre></div>
+<h3 id="when-ledgers-disagree">When Ledgers Disagree<a class="headerlink" href="#when-ledgers-disagree" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>sequenceDiagram
+    participant Us as Our System
+    participant Pacioli as Our Ledger&lt;br/&gt;(Pacioli)
+    participant Provider as Provider API&lt;br/&gt;(GateHub)
+    participant ProviderLedger as Provider's Ledger
+
+    Us-&gt;&gt;Pacioli: "Transfer £100"
+    Pacioli-&gt;&gt;Pacioli: Balance updated immediately
+    Us-&gt;&gt;Provider: "Process transaction txn_123"
+    Provider-&gt;&gt;ProviderLedger: Start transfer
+
+    Note over Us,ProviderLedger: At this moment:
+    Note over Pacioli: Our Ledger: "Transfer complete"
+    Note over ProviderLedger: Provider Ledger: "Transfer pending"
+
+    ProviderLedger-&gt;&gt;ProviderLedger: Process transfer (1-30s)
+    ProviderLedger-&gt;&gt;Provider: "Status: Complete"
+    Provider--&gt;&gt;Us: Webhook: txn_123 completed
+    Us-&gt;&gt;Pacioli: "Confirm transaction txn_123"
+
+    Note over Us,ProviderLedger: Now synchronized ✓</code></pre>
+<h3 id="what-reconciliation-means">What Reconciliation Means<a class="headerlink" href="#what-reconciliation-means" title="Permanent link">&para;</a></h3>
+<p>Periodically (and when problems arise), we <strong>reconcile</strong> the ledgers:</p>
+<ol>
+<li><strong>Pull data from provider</strong>: "What's the status of all our transactions?"</li>
+<li><strong>Compare with our records</strong>: "Do we agree?"</li>
+<li><strong>If different</strong>:</li>
+<li>If provider says "completed" and we say "pending" → We update ours to completed</li>
+<li>If provider says "failed" and we say "completed" → ALERT! Something went wrong, investigate</li>
+<li>If provider has transactions we don't know about → Create records locally</li>
+</ol>
+<p>Example:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>Provider says: &quot;Transaction ABC is complete, balance is £4,398&quot;
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>We say: &quot;Transaction ABC is still pending, balance is £4,500&quot;
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>Reconciliation action:
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>├─ Mark transaction ABC as complete ✓
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>├─ Update balance to £4,398 ✓
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>└─ Send notification to user if needed ✓
+</code></pre></div>
+<h3 id="why-this-matters-for-settlement">Why This Matters for Settlement<a class="headerlink" href="#why-this-matters-for-settlement" title="Permanent link">&para;</a></h3>
+<p>(We'll cover settlement in detail later, but here's how it connects)</p>
+<p>Settlement is the <strong>reconciliation of MONEY</strong>, not just data:</p>
+<ol>
+<li><strong>Our ledger says</strong>: "We have £50,000 owed to Alice, £30,000 owed to Bob"</li>
+<li>This includes internal transfers (£5,000 transfer from Alice to Bob) that Xago doesn't know about</li>
+<li>It also includes API calls to Xago that Xago definitely knows about</li>
+<li><strong>Provider's ledger says</strong>: "We have £79,500 on deposit from the Interledger organization"</li>
+<li>This does NOT include our internal Alice-to-Bob transfer</li>
+<li>It only reflects what Xago confirmed on their side</li>
+<li><strong>Settlement</strong>: "We need to verify these match and move real money if needed"</li>
+<li>We reconcile: "Our internal transfers netted to $X movement, API transfers were $Y, so total provider balance should be $Z"</li>
+<li>If provider agrees, we're good</li>
+<li>If they disagree, we investigate which transfers weren't recorded by the provider</li>
+</ol>
+<p>The ledgers have to <strong>logically agree</strong> before we can safely settle, even if they track different sets of transactions.</p>
+<hr />
+<h2 id="fees-and-costs">Fees and Costs<a class="headerlink" href="#fees-and-costs" title="Permanent link">&para;</a></h2>
+<h3 id="the-three-types-of-fees">The Three Types of Fees<a class="headerlink" href="#the-three-types-of-fees" title="Permanent link">&para;</a></h3>
+<h4 id="1-provider-fees-per-transaction">1. Provider Fees (Per Transaction)<a class="headerlink" href="#1-provider-fees-per-transaction" title="Permanent link">&para;</a></h4>
+<p>When transactions happen, providers take a small cut.</p>
+<p><strong>Deposit Fee</strong> (money coming in):
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>You receive £100 from outside
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>Provider charges 1.5% fee: £1.50
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>You actually get: £98.50
+</code></pre></div></p>
+<p><strong>Withdrawal Fee</strong> (money going out):
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>You want to withdraw £100
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>Provider charges 2% fee: £2.00
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>Total deducted from balance: £102
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>You receive: £100 at your bank
+</code></pre></div></p>
+<p><strong>Who pays?</strong>
+- <strong>Deposits</strong>: The person receiving pays implicitly (gets less)
+- <strong>Withdrawals</strong>: The person withdrawing pays explicitly (balance goes down more)
+- <strong>P2P Transfers</strong>: Usually the sender pays (but Interledger absorbs this currently)</p>
+<p><strong>Example with Alice and Bob:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>Alice sends Bob £100
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>├─ Provider fee: £2 (2% of £100)
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>├─ Alice&#39;s balance: -£102 (amount + fee)
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>└─ Bob&#39;s balance: +£100 (amount, no fee)
+</code></pre></div>
+<h4 id="2-currency-conversion-fees-cross-currency-only">2. Currency Conversion Fees (Cross-Currency Only)<a class="headerlink" href="#2-currency-conversion-fees-cross-currency-only" title="Permanent link">&para;</a></h4>
+<p><em>(Currently not supported in the system, but worth understanding)</em></p>
+<p>When converting between currencies:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>Alice has USD, Bob receives GBP
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>├─ Exchange rate used: 1 USD = 0.79 GBP (might be real market rate or marked up)
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>├─ FX Fee: Usually 1-3% markup on the rate
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>└─ Example:
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>   Alice sends USD 100
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>   Market rate: 1 USD = 0.79 GBP = 79 GBP
+<a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>   With 2% FX fee: 1 USD = 0.7742 GBP (worse rate for sender)
+<a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>   Bob receives: 77.42 GBP
+</code></pre></div></p>
+<h4 id="3-settlement-fees-provider-account-level">3. Settlement Fees (Provider Account Level)<a class="headerlink" href="#3-settlement-fees-provider-account-level" title="Permanent link">&para;</a></h4>
+<p>When we settle with the provider, they might charge:
+- Monthly account fees
+- Batch processing fees
+- API usage fees</p>
+<p>These are handled at the business/accounting level, not visible in individual transactions.</p>
+<h3 id="how-the-system-handles-fees">How the System Handles Fees<a class="headerlink" href="#how-the-system-handles-fees" title="Permanent link">&para;</a></h3>
+<p><strong>Fees come from the Provider's Response:</strong></p>
+<p>When we create a transaction, GateHub tells us the fee:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>Request: Create transfer of £100
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>Response: 
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>{
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a>  &quot;id&quot;: &quot;txn_123&quot;,
+<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a>  &quot;amount&quot;: &quot;100.00&quot;,
+<a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a>  &quot;fee&quot;: &quot;2.00&quot;,
+<a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a>  &quot;total_amount&quot;: &quot;100.00&quot;,
+<a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a>  &quot;status&quot;: &quot;pending&quot;
+<a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a>}
+</code></pre></div>
+<p>Then we:
+1. <strong>Store the fee</strong> in our transaction record
+2. <strong>Calculate the user's net impact</strong>:
+   - For deposits: credited amount = amount - fee
+   - For withdrawals: debited amount = amount + fee
+3. <strong>Update balances accordingly</strong></p>
+<p><strong>What the User Sees:</strong></p>
+<p>In normal operation, the frontend shows "0.00" fees with a message:</p>
+<blockquote>
+<p>"For a limited time, the Interledger Wallet will absorb all fees."</p>
+</blockquote>
+<p>But if we're testing locally or in production with real fees:
+- Transaction list shows the actual fee
+- Balance reflects the fee automatically
+- User knows exactly what they paid</p>
+<hr />
+<h2 id="provider-differences">Provider Differences<a class="headerlink" href="#provider-differences" title="Permanent link">&para;</a></h2>
+<p>When you sign up for the Interledger Wallet, you choose <strong>one payment provider</strong> based on your location and needs. Different providers have different characteristics, speeds, and capabilities.</p>
+<p>Different payment providers work differently. Here's how to think about the variations:</p>
+<h3 id="three-major-provider-types">Three Major Provider Types<a class="headerlink" href="#three-major-provider-types" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>graph TD
+    IP["Interledger Payment Providers"]
+
+    IP --&gt;|Multi-currency custodian| GH["GateHub"]
+    IP --&gt;|Bank network provider| PTI["PTI"]
+    IP --&gt;|Regional payment network| XG["Xago"]
+    IP --&gt;|International remittance| CH["Chimoney"]
+
+    GH --&gt;|Stores| STR1["Money in their accounts&lt;br/&gt;XRPL-based infrastructure"]
+    PTI --&gt;|Connects| STR2["Bank accounts directly&lt;br/&gt;Multiple currencies"]
+    XG --&gt;|Handles| STR3["South African banking&lt;br/&gt;ZAR primary"]
+    CH --&gt;|Supports| STR4["International transfers&lt;br/&gt;Multiple payment methods"]
+
+    style IP fill:#e3f2fd,stroke:#1976d2,color:#000
+    style GH fill:#fff9c4,stroke:#f57f17,color:#000
+    style PTI fill:#f3e5f5,stroke:#7b1fa2,color:#000
+    style XG fill:#e8f5e9,stroke:#388e3c,color:#000
+    style CH fill:#fce4ec,stroke:#c2185b,color:#000</code></pre>
+<h3 id="comparison-table">Comparison Table<a class="headerlink" href="#comparison-table" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>GateHub</th>
+<th>PTI</th>
+<th>Xago</th>
+<th>Chimoney</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Primary Use</strong></td>
+<td>Holds multi-currency balances</td>
+<td>Bank integration on/off ramps</td>
+<td>South African payments</td>
+<td>International remittance</td>
+</tr>
+<tr>
+<td><strong>Account Model</strong></td>
+<td>User account holds multiple currency vaults</td>
+<td>Each transfer is separate</td>
+<td>SubAccount per user</td>
+<td>External IDs per user</td>
+</tr>
+<tr>
+<td><strong>Transaction Types</strong></td>
+<td>Deposit, Withdrawal, Hosted Transfer</td>
+<td>Transfer, Card Payment</td>
+<td>Transfer (limited)</td>
+<td>Transfer, Interac</td>
+</tr>
+<tr>
+<td><strong>Status Codes</strong></td>
+<td>Numeric (0=pending, 1=processing, 100=completed, 101=failed)</td>
+<td>String (PENDING, SETTLED, FAILED)</td>
+<td>String (pending, completed, failed)</td>
+<td>Varies by service</td>
+</tr>
+<tr>
+<td><strong>Fee Structure</strong></td>
+<td>Per-transaction deposit/withdrawal fees</td>
+<td>Per-transaction fees</td>
+<td>Per-transaction fees</td>
+<td>Per-transfer fees</td>
+</tr>
+<tr>
+<td><strong>KYC</strong></td>
+<td>GateHub's KYC flow</td>
+<td>Integrated into platform</td>
+<td>Varies by method</td>
+<td>External KYC typically</td>
+</tr>
+<tr>
+<td><strong>Supported Currencies</strong></td>
+<td>20+ currencies</td>
+<td>10+ currencies</td>
+<td>Limited (ZAR primary)</td>
+<td>20+ currencies</td>
+</tr>
+<tr>
+<td><strong>Webhook Integration</strong></td>
+<td>Strong (reliable webhooks)</td>
+<td>Varies</td>
+<td>Less reliable</td>
+<td>Integration-dependent</td>
+</tr>
+<tr>
+<td><strong>Settlement</strong></td>
+<td>Continuous with user balance management</td>
+<td>Periodic with batch settlement</td>
+<td>Periodic</td>
+<td>Periodic</td>
+</tr>
+</tbody>
+</table>
+<h3 id="gatehub-the-multi-currency-custodian">GateHub: The Multi-Currency Custodian<a class="headerlink" href="#gatehub-the-multi-currency-custodian" title="Permanent link">&para;</a></h3>
+<p><strong>What it does:</strong> Holds your money in multiple currencies like a bank.</p>
+<p><strong>How it works:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>You have:
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>├─ USD 5,000 vault
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>├─ EUR 3,000 vault
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a>└─ GBP 2,000 vault
+<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a>
+<a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a>You send someone £100
+<a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a>├─ GateHub checks GBP vault: Has £2,000? ✓
+<a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a>├─ GateHub transfers £100
+<a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a>├─ Creates transaction with status &quot;pending&quot;
+<a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a>├─ Webhook arrives: &quot;Done!&quot; (status: 100)
+<a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a>└─ Balance updated: GBP vault now £1,900
+</code></pre></div></p>
+<p><strong>Key traits:</strong>
+- Most reliable for webhooks
+- Clear numeric status codes
+- Fast completion (usually &lt;5 seconds)</p>
+<h3 id="pti-the-bank-network">PTI: The Bank Network<a class="headerlink" href="#pti-the-bank-network" title="Permanent link">&para;</a></h3>
+<p><strong>What it does:</strong> Connects directly to traditional banking systems.</p>
+<p><strong>How it works:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>You want to withdraw £200 to your UK bank
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>├─ System creates withdrawal transaction at PTI
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>├─ PTI initiates bank transfer
+<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a>├─ Status: PENDING (string, not number)
+<a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a>├─ Bank processes (might take 1-3 business days)
+<a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a>├─ PTI sends webhook: SETTLED
+<a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a>└─ Balance updated after bank clears
+</code></pre></div></p>
+<p><strong>Key traits:</strong>
+- Slower (bank transfer timing)
+- String-based status codes
+- Real money through actual banks
+- Used for real on/off ramps</p>
+<h3 id="xago-regional-payments">Xago: Regional Payments<a class="headerlink" href="#xago-regional-payments" title="Permanent link">&para;</a></h3>
+<p><strong>What it does:</strong> Dominates in South Africa, connects ZAR to banking system.</p>
+<p><strong>How it works:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>South African user wants to pay another SA user
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>├─ Creates transfer via Xago ZAR account
+<a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>├─ Xago processes through ZAR banking
+<a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a>├─ May route through EFT system
+<a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a>├─ Status eventually returns as &quot;completed&quot;
+<a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a>└─ Money arrives within SA banking timeline
+</code></pre></div></p>
+<p><strong>Key traits:</strong>
+- Regional specialist (South Africa)
+- ZAR focus
+- Integration with local banking system
+- Different fee structures</p>
+<h3 id="chimoney-international-remittance">Chimoney: International Remittance<a class="headerlink" href="#chimoney-international-remittance" title="Permanent link">&para;</a></h3>
+<p><strong>What it does:</strong> Connects to various international payment methods.</p>
+<p><strong>How it works:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>You want to send money via Interac (Canada)
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>├─ Chimoney accepts request
+<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>├─ Routes to Interac network
+<a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a>├─ Recipient can pick up as e-transfer
+<a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a>├─ Status updated asynchronously
+<a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a>└─ Chimoney webhook: Payment processed
+</code></pre></div></p>
+<p><strong>Key traits:</strong>
+- Multiple payment methods per region
+- Good for remittances
+- Can be slower
+- Flexible recipient options</p>
+<h3 id="why-these-differences-matter">Why These Differences Matter<a class="headerlink" href="#why-these-differences-matter" title="Permanent link">&para;</a></h3>
+<p><strong>For Operations:</strong>
+- If GateHub is down, we can still use PTI/Xago for other regions
+- Different speed expectations (GateHub: seconds, PTI: hours/days)
+- Different status code formats require provider-specific handling</p>
+<p><strong>For Users:</strong>
+- Some providers are faster (GateHub)
+- Some provide better rates (Xago in South Africa)
+- Some offer multiple withdrawal methods (Chimoney)</p>
+<p><strong>For Reconciliation:</strong>
+- Some providers are aggressive with webhooks (GateHub)
+- Some need polling and retries (Xago, Chimoney)
+- Some have unreliable network connections
+- Our system handles all these variations</p>
+<hr />
+<h2 id="settlement-making-it-real">Settlement: Making It Real<a class="headerlink" href="#settlement-making-it-real" title="Permanent link">&para;</a></h2>
+<p>Now let's talk about the most important concept: <strong>settlement</strong>.</p>
+<h3 id="what-settlement-is">What Settlement Is<a class="headerlink" href="#what-settlement-is" title="Permanent link">&para;</a></h3>
+<p>Settlement is <strong>reconciliation of real money</strong> between us and the provider.</p>
+<p>Think of it like a restaurant's end-of-day:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>During the day:
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>├─ Server writes down orders on a notepad
+<a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>├─ Customer takes credit card payment
+<a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a>├─ Server updates their balance
+<a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a>└─ But no money has actually moved to the restaurant&#39;s bank account
+<a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a>
+<a id="__codelineno-22-7" name="__codelineno-22-7" href="#__codelineno-22-7"></a>At end of day:
+<a id="__codelineno-22-8" name="__codelineno-22-8" href="#__codelineno-22-8"></a>├─ Manager reviews all transactions
+<a id="__codelineno-22-9" name="__codelineno-22-9" href="#__codelineno-22-9"></a>├─ Confirms all payments went through
+<a id="__codelineno-22-10" name="__codelineno-22-10" href="#__codelineno-22-10"></a>├─ Submits batch to credit card processor
+<a id="__codelineno-22-11" name="__codelineno-22-11" href="#__codelineno-22-11"></a>├─ Real money arrives in restaurant&#39;s bank account next day
+<a id="__codelineno-22-12" name="__codelineno-22-12" href="#__codelineno-22-12"></a>└─ Restaurant&#39;s bank account now matches the notepad
+</code></pre></div>
+<p>Our system works the same way.</p>
+<h3 id="the-settlement-process">The Settlement Process<a class="headerlink" href="#the-settlement-process" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>sequenceDiagram
+    participant Users as Users&lt;br/&gt;(Alice, Bob, etc)
+    participant OurSystem as Our Wallet&lt;br/&gt;System
+    participant OurBank as Our Bank&lt;br/&gt;Account
+    participant Provider as Provider&lt;br/&gt;(GateHub, etc)
+    participant ProviderBank as Provider's&lt;br/&gt;Bank
+
+    Note over Users,ProviderBank: During Day → Continuous
+    Users-&gt;&gt;OurSystem: Send/Receive payments
+    OurSystem-&gt;&gt;OurSystem: Track all&lt;br/&gt;transactions
+
+    Note over Users,ProviderBank: End of Day/Week → Settlement
+    OurSystem-&gt;&gt;OurSystem: Tally up: "Alice received&lt;br/&gt;£500, Bob sent £1,000"
+    OurSystem-&gt;&gt;Provider: "Our records: We owe&lt;br/&gt;you £X, you owe us £Y"
+    Provider-&gt;&gt;Provider: Check against their ledger
+    Provider--&gt;&gt;OurSystem: "Confirm match" or "Discrepancy!"
+
+    alt Settlement Confirmed
+        Provider-&gt;&gt;ProviderBank: Transfer £X to our bank
+        ProviderBank-&gt;&gt;OurBank: Money arrives
+        OurBank--&gt;&gt;OurSystem: Balance updated
+        Note over OurSystem: Settlement Complete ✓
+    else Discrepancy Found
+        OurSystem-&gt;&gt;OurSystem: Investigate
+        Note over OurSystem: Review logs, find issue
+        Note over OurSystem: Manual adjustment or retry
+    end</code></pre>
+<h3 id="why-settlement-matters">Why Settlement Matters<a class="headerlink" href="#why-settlement-matters" title="Permanent link">&para;</a></h3>
+<p><strong>Without Settlement:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>Tuesday morning:
+<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>├─ Our ledger says: Users have £100,000 total
+<a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a>├─ Provider&#39;s ledger says: We have £95,000 on deposit
+<a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a>├─ Difference: £5,000 MISSING
+<a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a>│
+<a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a>What happened?
+<a id="__codelineno-23-7" name="__codelineno-23-7" href="#__codelineno-23-7"></a>├─ Option A: Our records are wrong
+<a id="__codelineno-23-8" name="__codelineno-23-8" href="#__codelineno-23-8"></a>├─ Option B: Provider has a bug
+<a id="__codelineno-23-9" name="__codelineno-23-9" href="#__codelineno-23-9"></a>├─ Option C: We&#39;re not tracking something
+<a id="__codelineno-23-10" name="__codelineno-23-10" href="#__codelineno-23-10"></a>│
+<a id="__codelineno-23-11" name="__codelineno-23-11" href="#__codelineno-23-11"></a>We don&#39;t know until we settle!
+</code></pre></div>
+<p><strong>With Settlement:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>Tuesday end-of-day:
+<a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>├─ Our system: &quot;We have released £100,000 in total to users&quot;
+<a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a>├─ Provider: &quot;We have received £100,000 from Interledger organization&quot;
+<a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a>├─ Match: ✓ Perfect
+<a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a>│
+<a id="__codelineno-24-6" name="__codelineno-24-6" href="#__codelineno-24-6"></a>Tomorrow:
+<a id="__codelineno-24-7" name="__codelineno-24-7" href="#__codelineno-24-7"></a>└─ Interledger org pays provider&#39;s invoice
+<a id="__codelineno-24-8" name="__codelineno-24-8" href="#__codelineno-24-8"></a>   (Actual legal/financial settlement)
+</code></pre></div>
+<h3 id="real-world-settlement-example">Real-World Settlement Example<a class="headerlink" href="#real-world-settlement-example" title="Permanent link">&para;</a></h3>
+<p>Let's say the Interledger Wallet operates one week:</p>
+<p><strong>What Users Did:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>Alice deposited:     $500
+<a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a>Bob deposited:       $300
+<a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a>Charlie withdrew:   -$200
+<a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a>Diana sent Alice:    $50
+<a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a>Eddie&#39;s card charged: $100 (fee: $2)
+</code></pre></div></p>
+<p><strong>Our System Calculates:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>Deposits received:    $800
+<a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>Withdrawals given:   -$200
+<a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a>P2P transfers:        £50 (separate currency tracking)
+<a id="__codelineno-26-4" name="__codelineno-26-4" href="#__codelineno-26-4"></a>Card fees earned:     $2
+<a id="__codelineno-26-5" name="__codelineno-26-5" href="#__codelineno-26-5"></a>Total liability:      $602 (we owe this to the provider organization)
+</code></pre></div></p>
+<p><strong>Settlement:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a>Weekly:
+<a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a>├─ Compare our ledger vs Provider ledger
+<a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a>├─ Both agree we have $602 worth of obligations
+<a id="__codelineno-27-4" name="__codelineno-27-4" href="#__codelineno-27-4"></a>├─ Provider sends invoice to Interledger Foundation: $602
+<a id="__codelineno-27-5" name="__codelineno-27-5" href="#__codelineno-27-5"></a>└─ Interledger closes out that week&#39;s accounting
+<a id="__codelineno-27-6" name="__codelineno-27-6" href="#__codelineno-27-6"></a>
+<a id="__codelineno-27-7" name="__codelineno-27-7" href="#__codelineno-27-7"></a>Monthly:
+<a id="__codelineno-27-8" name="__codelineno-27-8" href="#__codelineno-27-8"></a>├─ Tally all weekly settlements
+<a id="__codelineno-27-9" name="__codelineno-27-9" href="#__codelineno-27-9"></a>├─ Pay consolidated invoice
+<a id="__codelineno-27-10" name="__codelineno-27-10" href="#__codelineno-27-10"></a>└─ Provider confirms receipt
+</code></pre></div></p>
+<h3 id="three-levels-of-settlement">Three Levels of Settlement<a class="headerlink" href="#three-levels-of-settlement" title="Permanent link">&para;</a></h3>
+<h4 id="1-data-level-settlement-continuous">1. <strong>Data-Level Settlement</strong> (Continuous)<a class="headerlink" href="#1-data-level-settlement-continuous" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a>Every few minutes:
+<a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a>├─ Check: &quot;What transactions are pending with provider?&quot;
+<a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a>├─ Compare: &quot;Do our records match provider&#39;s records?&quot;
+<a id="__codelineno-28-4" name="__codelineno-28-4" href="#__codelineno-28-4"></a>├─ If different: Investigate and fix
+<a id="__codelineno-28-5" name="__codelineno-28-5" href="#__codelineno-28-5"></a>└─ Ensures no money is lost in limbo
+</code></pre></div>
+<h4 id="2-financial-level-settlement-dailyweekly">2. <strong>Financial-Level Settlement</strong> (Daily/Weekly)<a class="headerlink" href="#2-financial-level-settlement-dailyweekly" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a>End of day:
+<a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a>├─ Tally: &quot;How much did we send to users this week?&quot;
+<a id="__codelineno-29-3" name="__codelineno-29-3" href="#__codelineno-29-3"></a>├─ Tally: &quot;How much did users send out this week?&quot;
+<a id="__codelineno-29-4" name="__codelineno-29-4" href="#__codelineno-29-4"></a>├─ Calculate: Net position to provider
+<a id="__codelineno-29-5" name="__codelineno-29-5" href="#__codelineno-29-5"></a>├─ Generate: Invoice or reconciliation statement
+<a id="__codelineno-29-6" name="__codelineno-29-6" href="#__codelineno-29-6"></a>└─ Ensures provider agrees on amounts
+</code></pre></div>
+<h4 id="3-cash-level-settlement-monthlyquarterly">3. <strong>Cash-Level Settlement</strong> (Monthly/Quarterly)<a class="headerlink" href="#3-cash-level-settlement-monthlyquarterly" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a>End of period:
+<a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a>├─ Provider sends invoice: &quot;You owe us $X&quot;
+<a id="__codelineno-30-3" name="__codelineno-30-3" href="#__codelineno-30-3"></a>├─ Or we receive: &quot;We owe you $Y&quot;
+<a id="__codelineno-30-4" name="__codelineno-30-4" href="#__codelineno-30-4"></a>├─ Interledger Foundation pays the invoice
+<a id="__codelineno-30-5" name="__codelineno-30-5" href="#__codelineno-30-5"></a>├─ Actual money transfers between bank accounts
+<a id="__codelineno-30-6" name="__codelineno-30-6" href="#__codelineno-30-6"></a>└─ Completes the full financial cycle
+</code></pre></div>
+<h3 id="what-settlement-is-not">What Settlement Is NOT<a class="headerlink" href="#what-settlement-is-not" title="Permanent link">&para;</a></h3>
+<p><strong>❌ Settlement ≠ Closing an Account</strong>
+- Settlement happens while accounts stay open
+- Users can keep transacting</p>
+<p><strong>❌ Settlement ≠ Withdrawing User Money</strong>
+- Settlement is about our organization's money with provider
+- User balances stay intact</p>
+<p><strong>❌ Settlement ≠ End of Service</strong>
+- Settlement is regular business operation
+- Not a one-time event</p>
+<h3 id="settlement-at-scale">Settlement at Scale<a class="headerlink" href="#settlement-at-scale" title="Permanent link">&para;</a></h3>
+<p>With thousands of users, settlement becomes critical:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a>If Interledger reaches:
+<a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a>├─ 5,000 users
+<a id="__codelineno-31-3" name="__codelineno-31-3" href="#__codelineno-31-3"></a>├─ $10M total in user balances
+<a id="__codelineno-31-4" name="__codelineno-31-4" href="#__codelineno-31-4"></a>├─ 50,000 transactions per day
+<a id="__codelineno-31-5" name="__codelineno-31-5" href="#__codelineno-31-5"></a>│
+<a id="__codelineno-31-6" name="__codelineno-31-6" href="#__codelineno-31-6"></a>Then we need:
+<a id="__codelineno-31-7" name="__codelineno-31-7" href="#__codelineno-31-7"></a>├─ Automated reconciliation (hourly checks)
+<a id="__codelineno-31-8" name="__codelineno-31-8" href="#__codelineno-31-8"></a>├─ Real-time discrepancy alerts
+<a id="__codelineno-31-9" name="__codelineno-31-9" href="#__codelineno-31-9"></a>├─ Clear financial reporting
+<a id="__codelineno-31-10" name="__codelineno-31-10" href="#__codelineno-31-10"></a>└─ Fast resolution procedures
+</code></pre></div>
+<h3 id="provider-specific-settlement">Provider-Specific Settlement<a class="headerlink" href="#provider-specific-settlement" title="Permanent link">&para;</a></h3>
+<p>Different providers handle it differently:</p>
+<p><strong>GateHub:</strong>
+- Continuous settlement model
+- Real-time balance updates
+- Monthly reconciliation statements
+- Pay-for-what-you-use billing</p>
+<p><strong>PTI:</strong>
+- Batch settlement
+- Daily batch files
+- Weekly payment due
+- More traditional banking model</p>
+<p><strong>Xago:</strong>
+- Daily settlement
+- Nightly reconciliation
+- Transfer by next business day
+- South African banking rules</p>
+<p><strong>Chimoney:</strong>
+- Per-transfer settlement (sometimes)
+- Or weekly batch
+- Depends on payment method
+- International remittance timing</p>
+<hr />
+<h2 id="troubleshooting-philosophy">Troubleshooting Philosophy<a class="headerlink" href="#troubleshooting-philosophy" title="Permanent link">&para;</a></h2>
+<p>When something goes wrong, here's how to think about it systematically.</p>
+<h3 id="the-debugging-framework">The Debugging Framework<a class="headerlink" href="#the-debugging-framework" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>graph TD
+    Problem["Payment not completing?&lt;br/&gt;Balance wrong?&lt;br/&gt;Transaction stuck?"]
+
+    Problem --&gt;|Step 1| CheckData{"Do our ledgers&lt;br/&gt;agree?"}
+
+    CheckData --&gt;|No| FindDiff["Find the&lt;br/&gt;discrepancy"]
+    CheckData --&gt;|Yes| CheckTx["Check transaction&lt;br/&gt;status with provider"]
+
+    FindDiff --&gt; WhichOne{"Who's right?&lt;br/&gt;Us or provider?"}
+    WhichOne --&gt;|Provider| Update["Update our&lt;br/&gt;records to match"]
+    WhichOne --&gt;|Us| Retry["Retry sending&lt;br/&gt;to provider"]
+    WhichOne --&gt;|Unknown| Escalate["Investigate logs&lt;br/&gt;Check webhooks&lt;br/&gt;Manual review"]
+
+    CheckTx --&gt; TxStatus{"What status&lt;br/&gt;did provider say?"}
+    TxStatus --&gt;|Completed| MarkComplete["Mark transaction&lt;br/&gt;complete in our system"]
+    TxStatus --&gt;|Pending| CheckWebhook["Did we get a&lt;br/&gt;webhook?"]
+    TxStatus --&gt;|Failed| MarkFailed["Mark failed&lt;br/&gt;Investigate error"]
+
+    CheckWebhook --&gt;|Yes| Strange["Strange - webhook&lt;br/&gt;says complete but&lt;br/&gt;provider says pending"]
+    CheckWebhook --&gt;|No| Wait["Wait 20 min, then&lt;br/&gt;check again&lt;br/&gt;Might be network issue"]
+
+    style Problem fill:#ff6b6b,stroke:#cc0000,color:#fff
+    style FindDiff fill:#ffd93d,stroke:#cc8800,color:#000
+    style Update fill:#70d070,stroke:#008800,color:#fff
+    style Retry fill:#70d070,stroke:#008800,color:#fff
+    style MarkComplete fill:#70d070,stroke:#008800,color:#fff
+    style MarkFailed fill:#ff9999,stroke:#cc0000,color:#fff
+    style Escalate fill:#ffd93d,stroke:#cc8800,color:#000</code></pre>
+<h3 id="common-problems-and-root-causes">Common Problems and Root Causes<a class="headerlink" href="#common-problems-and-root-causes" title="Permanent link">&para;</a></h3>
+<h4 id="problem-account-shows-100-but-the-balance-calculation-says-it-should-be-150">Problem: "Account shows £100, but the balance calculation says it should be £150"<a class="headerlink" href="#problem-account-shows-100-but-the-balance-calculation-says-it-should-be-150" title="Permanent link">&para;</a></h4>
+<p><strong>Root Cause Checklist:</strong>
+1. ✓ Unprocessed deposits? (Check transaction status)
+2. ✓ Failed withdrawal we didn't mark as failed? (Check provider)
+3. ✓ Fee we didn't subtract? (Check transaction fee field)
+4. ✓ Database synchronization lag? (Wait 30 seconds, check again)
+5. ✓ Concurrent transaction? (Two payments at same time?)</p>
+<h4 id="problem-payment-appears-stuck-in-processing">Problem: "Payment appears stuck in 'Processing'"<a class="headerlink" href="#problem-payment-appears-stuck-in-processing" title="Permanent link">&para;</a></h4>
+<p><strong>Root Cause Checklist:</strong>
+1. ✓ Webhook never arrived (network issue?)
+2. ✓20-minute timer expires → manual poll
+3. ✓ Provider never confirmed (ask provider support)
+4. ✓ Our poll didn't find completion (timeout issue)
+5. ✓ Money actually moved, but we didn't update (data sync bug)</p>
+<h4 id="problem-user-says-they-sent-money-but-recipient-didnt-receive">Problem: "User says they sent money but recipient didn't receive"<a class="headerlink" href="#problem-user-says-they-sent-money-but-recipient-didnt-receive" title="Permanent link">&para;</a></h4>
+<p><strong>Investigation Steps:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a>Step 1: Check Ledgers Agree
+<a id="__codelineno-32-2" name="__codelineno-32-2" href="#__codelineno-32-2"></a>├─ Sender&#39;s debit: ✓ Confirmed?
+<a id="__codelineno-32-3" name="__codelineno-32-3" href="#__codelineno-32-3"></a>└─ Recipient&#39;s credit: ? Missing?
+<a id="__codelineno-32-4" name="__codelineno-32-4" href="#__codelineno-32-4"></a>
+<a id="__codelineno-32-5" name="__codelineno-32-5" href="#__codelineno-32-5"></a>Step 2: Check Transactions
+<a id="__codelineno-32-6" name="__codelineno-32-6" href="#__codelineno-32-6"></a>├─ Send transaction: Status?
+<a id="__codelineno-32-7" name="__codelineno-32-7" href="#__codelineno-32-7"></a>└─ Receive transaction: Was it created?
+<a id="__codelineno-32-8" name="__codelineno-32-8" href="#__codelineno-32-8"></a>
+<a id="__codelineno-32-9" name="__codelineno-32-9" href="#__codelineno-32-9"></a>Step 3: Check Provider
+<a id="__codelineno-32-10" name="__codelineno-32-10" href="#__codelineno-32-10"></a>├─ Ask Provider: &quot;Did transfer succeed?&quot;
+<a id="__codelineno-32-11" name="__codelineno-32-11" href="#__codelineno-32-11"></a>├─ If yes: Create missing receive transaction
+<a id="__codelineno-32-12" name="__codelineno-32-12" href="#__codelineno-32-12"></a>├─ If no: Create failed status record
+<a id="__codelineno-32-13" name="__codelineno-32-13" href="#__codelineno-32-13"></a>
+<a id="__codelineno-32-14" name="__codelineno-32-14" href="#__codelineno-32-14"></a>Step 4: Check Webhooks
+<a id="__codelineno-32-15" name="__codelineno-32-15" href="#__codelineno-32-15"></a>├─ Did webhook logs show receipt?
+<a id="__codelineno-32-16" name="__codelineno-32-16" href="#__codelineno-32-16"></a>├─ If not: Might be network issue at provider
+<a id="__codelineno-32-17" name="__codelineno-32-17" href="#__codelineno-32-17"></a>└─ Manual retry with support
+</code></pre></div></p>
+<h4 id="problem-we-show-different-balance-than-the-provider">Problem: "We show different balance than the provider"<a class="headerlink" href="#problem-we-show-different-balance-than-the-provider" title="Permanent link">&para;</a></h4>
+<p><strong>This is a settlement issue:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a>1. Pull official balance from provider: $5,000
+<a id="__codelineno-33-2" name="__codelineno-33-2" href="#__codelineno-33-2"></a>2. Calculate our expected balance: $4,876
+<a id="__codelineno-33-3" name="__codelineno-33-3" href="#__codelineno-33-3"></a>3. Difference: $124
+<a id="__codelineno-33-4" name="__codelineno-33-4" href="#__codelineno-33-4"></a>
+<a id="__codelineno-33-5" name="__codelineno-33-5" href="#__codelineno-33-5"></a>4. Investigate:
+<a id="__codelineno-33-6" name="__codelineno-33-6" href="#__codelineno-33-6"></a>   ├─ Find transaction #45: $124 deposit
+<a id="__codelineno-33-7" name="__codelineno-33-7" href="#__codelineno-33-7"></a>   ├─ Check: Did we credit the user? No!
+<a id="__codelineno-33-8" name="__codelineno-33-8" href="#__codelineno-33-8"></a>   ├─ Root cause: Transaction webhook lost
+<a id="__codelineno-33-9" name="__codelineno-33-9" href="#__codelineno-33-9"></a>   └─ Fix: Manually create receive transaction
+<a id="__codelineno-33-10" name="__codelineno-33-10" href="#__codelineno-33-10"></a>
+<a id="__codelineno-33-11" name="__codelineno-33-11" href="#__codelineno-33-11"></a>5. Recheck: Now we show $5,000 ✓
+</code></pre></div></p>
+<hr />
+<h2 id="further-reading">Further Reading<a class="headerlink" href="#further-reading" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong><a href="../provider-payments-reference/">Provider Payments Guide</a></strong> - Provider-by-provider payment behavior and edge cases</li>
+<li><strong><a href="../transaction-types-reference/">Transaction Types Reference</a></strong> - Transaction fields, states, and fee mapping</li>
+<li><strong><a href="../terminology/">Concepts Reference</a></strong> - Provider terminology guide</li>
+<li><strong><a href="../ledger-system-guide/">Ledger System Architecture</a></strong> - How dual-ledger reconciliation works</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.top", "navigation.indexes", "search.highlight", "search.suggest", "content.code.copy", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
