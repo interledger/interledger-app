@@ -381,7 +381,7 @@ func TestGetUser_Success(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 	var resp models.GetUserResponse
 	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
-	assert.Equal(t, consts.TestUser1ID, resp.ID)
+	assert.Equal(t, consts.TestUser1ID, resp.UUID)
 	assert.Equal(t, consts.TestUser1Email, resp.Email)
 	assert.True(t, resp.Activated)
 	assert.Equal(t, 0, resp.Verifications[0].Status)
