@@ -19,7 +19,7 @@ Feature: Botanist Wallets Filter
     And I impersonate 'botanist-user'
 
   @botanist @wallets-filter @xago
-  Scenario: Admin can search wallets by wallet name after a user signs up
+  Scenario: Admin can search wallets by email, wallet address, and both combined after a user signs up
     Given that my "country" is "South Africa"
     And I completed the signup workflow
     And I take a screenshot "signup-complete"
@@ -38,11 +38,26 @@ Feature: Botanist Wallets Filter
     Then my wallet should appear in the wallets list
     And the wallets list should have more than 1 result
     And I take a screenshot "wallet-visible-unfiltered"
-    When I filter the wallets list by my wallet name
-    And I take a screenshot "filter-applied"
+
+    When I filter the wallets list by my email
+    And I take a screenshot "filter-applied-email"
     Then my wallet should appear in the wallets list
     And the wallets list should show exactly 1 result
-    And I take a screenshot "wallet-visible-filtered"
+    And I take a screenshot "wallet-visible-filtered-email"
+
+    When I navigate to the botanist wallets page
+    And I filter the wallets list by my wallet address
+    And I take a screenshot "filter-applied-wallet-address"
+    Then my wallet should appear in the wallets list
+    And the wallets list should show exactly 1 result
+    And I take a screenshot "wallet-visible-filtered-wallet-address"
+
+    When I navigate to the botanist wallets page
+    And I filter the wallets list by my email and wallet address
+    And I take a screenshot "filter-applied-combined"
+    Then my wallet should appear in the wallets list
+    And the wallets list should show exactly 1 result
+    And I take a screenshot "wallet-visible-filtered-combined"
 
   @botanist @wallets-totp-reset @xago
   Scenario: Admin can reset a wallet user's authenticator enrollment
