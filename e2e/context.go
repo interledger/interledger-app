@@ -849,14 +849,21 @@ func (sc *E2EContext) getKratosUserIDByEmail(email string) string {
 		kratosAdminURL = "http://localhost:4434"
 	}
 
+	// Use Kratos' server-side credentials_identifier filter (exact, indexed
+	// lookup). Listing all identities and scanning client-side flakes once the
+	// local Kratos accumulates >250 identities (every run mints fresh users),
+	// because the default page holds only the first 250. This filter is
+	// independent of total identity count.
+	listURL := kratosAdminURL + "/admin/identities?credentials_identifier=" + url.QueryEscape(email)
+
 	client := &http.Client{Timeout: 30 * time.Second}
-	listReq, err := http.NewRequestWithContext(context.Background(), "GET", kratosAdminURL+"/admin/identities", nil)
+	listReq, err := http.NewRequestWithContext(context.Background(), "GET", listURL, nil)
 	if err != nil {
 		debugPrintf("⚠️  getKratosUserIDByEmail: failed to build request: %v\n", err)
 		return ""
 	}
 
-	debugPrintf("→ GET %s/admin/identities\n", kratosAdminURL)
+	debugPrintf("→ GET %s\n", listURL)
 	listResp, err := client.Do(listReq)
 	if err != nil {
 		debugPrintf("⚠️  getKratosUserIDByEmail: request error: %v\n", err)
