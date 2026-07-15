@@ -564,13 +564,6 @@ export class Transfer extends Message<Transfer> {
   code = 0;
 
   /**
-   * transactionId links this transfer to the backend transactions.id.
-   *
-   * @generated from field: string transactionId = 6;
-   */
-  transactionId = "";
-
-  /**
    * @generated from field: uint64 timeout = 7;
    */
   timeout = protoInt64.zero;
@@ -590,6 +583,11 @@ export class Transfer extends Message<Transfer> {
    */
   pending = false;
 
+  /**
+   * @generated from field: string transactionId = 11;
+   */
+  transactionId = "";
+
   constructor(data?: PartialMessage<Transfer>) {
     super();
     proto3.util.initPartial(data, this);
@@ -603,11 +601,11 @@ export class Transfer extends Message<Transfer> {
     { no: 3, name: "creditAccountId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "amount", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 5, name: "code", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
-    { no: 6, name: "transactionId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 7, name: "timeout", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 8, name: "ledger", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
     { no: 9, name: "pendingId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 10, name: "pending", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 11, name: "transactionId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Transfer {
