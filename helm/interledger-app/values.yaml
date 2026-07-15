@@ -147,6 +147,7 @@ backend:
     log_output_path: "stdout"
     allowed_wallet_ids: []
     blocked_regions: []
+    delete_account_enabled: false
 
     agreements:
       folder_name: ""

@@ -152,6 +152,7 @@ Loaded by the backend `start` and `worker` commands. **Required** means the fiel
 | `log_output_path` | string | No | No | Log destination. Default `stdout`. |
 | `allowed_wallet_ids` | []string | No | No | Wallet IDs allowed through regional blocks. |
 | `blocked_regions` | []string | No | No | ISO country codes to block. Prod: `US`. |
+| `delete_account_enabled` | bool | No | No | Global switch for the account-deletion flow. Applies to every eligible wallet. |
 
 ### Database
 

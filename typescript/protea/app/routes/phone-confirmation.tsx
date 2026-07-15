@@ -31,12 +31,14 @@ import {
   handleUpdatePhone,
   handleVerifyOtp
 } from '~/lib/phone.server'
+import { isResendRateLimitedResult } from '~/lib/resend-otp-result'
 import { safeReturnTo } from '~/lib/url.server'
 import { formatCountdown, useCountdown } from '~/lib/useCountdown'
 import styles from '~/styles/flags.css?url'
 import type { Route } from './+types/phone-confirmation'
 
 const RESEND_DELAY = 60 * 1000 // 1 minute
+const OPEN_CHANGE_PHONE_EVENT = 'phone-confirmation:open-change-phone'
 
 export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url)
@@ -92,31 +94,32 @@ export default function Page() {
   const [otpSent, setOtpSent] = useState(false)
   const [currentPhone, setCurrentPhone] = useState(phone)
   const [showChangePhone, setShowChangePhone] = useState(false)
+  const resendData = resendFetcher.data
   const otpError =
     actionData && 'errors' in actionData
       ? (actionData.errors as { otp?: string } | undefined)?.otp
       : undefined
   const resendError =
-    resendFetcher.data && 'message' in resendFetcher.data
-      ? resendFetcher.data.message
-      : undefined
+    resendData && 'message' in resendData ? resendData.message : undefined
+  const resendCodeSent =
+    resendData && 'codeSent' in resendData && resendData.codeSent === true
+  const resendRetryAfter = isResendRateLimitedResult(resendData)
+    ? resendData.retryAfter
+    : undefined
 
   // Start countdown after a successful send/resend or a rate-limit response.
   useEffect(() => {
-    if (resendFetcher.data?.codeSent) {
+    if (resendCodeSent) {
       setOtpSent(true)
       start(RESEND_DELAY)
       return
     }
 
-    if (
-      resendFetcher.data?.error === 'rateLimited' &&
-      typeof resendFetcher.data.retryAfter === 'number'
-    ) {
+    if (typeof resendRetryAfter === 'number') {
       setOtpSent(true)
-      start(resendFetcher.data.retryAfter * 1000)
+      start(resendRetryAfter * 1000)
     }
-  }, [resendFetcher.data, start])
+  }, [resendCodeSent, resendRetryAfter, start])
 
   // After phone update: refresh displayed number, hide form, show OTP field
   useEffect(() => {
@@ -127,6 +130,15 @@ export default function Page() {
       start(RESEND_DELAY)
     }
   }, [updateFetcher.data, start])
+
+  useEffect(() => {
+    const openChangePhone = () => setShowChangePhone(true)
+    window.addEventListener(OPEN_CHANGE_PHONE_EVENT, openChangePhone)
+
+    return () => {
+      window.removeEventListener(OPEN_CHANGE_PHONE_EVENT, openChangePhone)
+    }
+  }, [])
 
   const isResendDisabled = isActive || resendFetcher.state !== 'idle'
   const actionPath = `/phone-confirmation?returnTo=${encodeURIComponent(
@@ -246,7 +258,7 @@ export async function action({ request }: Route.ActionArgs) {
 
   if (intent === 'resend') {
     const resendPhone = (form.get('phone') as string) || phone
-    return handleResendOtp(request, resendPhone)
+    return await handleResendOtp(request, resendPhone)
   }
 
   // intent === 'verify'

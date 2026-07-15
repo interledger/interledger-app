@@ -612,9 +612,6 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	})
 
 	// Account deletion steps
-	ctx.Step(`^the delete-account feature is enabled for my wallet$`, func() error {
-		return sc.iEnableDeleteAccountFeatureForMyWallet()
-	})
 	ctx.Step(`^an account-deletion request exists for me with status "([^"]*)"$`, func(status string) error {
 		return sc.aPendingAccountDeletionRequestExistsForMeWithStatus(status)
 	})
@@ -647,17 +644,6 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	})
 	ctx.Step(`^the TOTP step-up popup should not appear$`, func() error {
 		return sc.theTOTPStepUpPopupShouldNotAppear()
-	})
-
-	// Botanist feature toggle steps
-	ctx.Step(`^the "([^"]*)" feature toggle should be (on|off)$`, func(key, state string) error {
-		return sc.theFeatureToggleShouldBe(key, state)
-	})
-	ctx.Step(`^I toggle the "([^"]*)" feature on$`, func(key string) error {
-		return sc.iToggleTheFeatureOn(key)
-	})
-	ctx.Step(`^the "([^"]*)" feature should be enabled in the database for my wallet$`, func(key string) error {
-		return sc.theFeatureShouldBeEnabledInTheDatabase(key)
 	})
 }
 

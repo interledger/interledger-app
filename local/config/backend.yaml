@@ -13,6 +13,7 @@ log_level: info
 log_output_path: ""
 allowed_wallet_ids: []
 blocked_regions: []
+delete_account_enabled: true
 
 agreements:
   folder_name: local
