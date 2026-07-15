@@ -180,16 +180,12 @@ func createTransfer(ctx context.Context, b Backends, args pacioli.CreateTransfer
 	if transactionID == "" {
 		transactionID = args.ID
 	}
-	// For now a transfer's id IS its transaction_id (one transfer per transaction).
 	transferID := args.ID
 	if transferID == "" {
 		transferID = transactionID
 	}
-	// Multiple transfers per transaction (a distinct id sharing one transaction_id)
-	// isn't fully supported yet — post/void still resolve a transaction to a single
-	// transfer — so surface any caller that sends an id differing from transaction_id.
 	if transferID != transactionID {
-		log.Warn("ledger_transfer id differs from transaction_id; multiple transfers per transaction are not yet fully supported",
+		log.Warn("ledger_transfer id differs from transaction_id;",
 			zap.String("id", transferID),
 			zap.String("transaction_id", transactionID))
 	}
