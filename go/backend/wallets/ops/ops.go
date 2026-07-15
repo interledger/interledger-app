@@ -3,6 +3,7 @@ package ops
 import (
 	"context"
 	"database/sql"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"strings"
@@ -15,6 +16,7 @@ import (
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 
 	"github.com/interledger/interledger-app/go/backend/wallets"
 )
@@ -242,6 +244,44 @@ func List(ctx context.Context, b Backends, userID string) ([]wallets.Wallet, err
 	return wl, nil
 }
 
+// todo remove after testing!!! Debug-only: expands a sqlx named query (:name)
+// into a copy-pasteable literal SQL string for manual EXPLAIN ANALYZE in psql.
+func debugSQL(query string, args map[string]any) string {
+	bound, vals, err := sqlx.Named(query, args)
+	if err != nil {
+		return fmt.Sprintf("-- failed to bind debug query: %v", err)
+	}
+
+	var sb strings.Builder
+	vi := 0
+	for _, r := range bound {
+		if r == '?' && vi < len(vals) {
+			sb.WriteString(sqlLiteral(vals[vi]))
+			vi++
+		} else {
+			sb.WriteRune(r)
+		}
+	}
+	return sb.String()
+}
+
+func sqlLiteral(v any) string {
+	switch val := v.(type) {
+	case nil:
+		return "NULL"
+	case string:
+		return "'" + strings.ReplaceAll(val, "'", "''") + "'"
+	case driver.Valuer:
+		dv, err := val.Value()
+		if err != nil {
+			return "NULL"
+		}
+		return sqlLiteral(dv)
+	default:
+		return fmt.Sprintf("%v", val)
+	}
+}
+
 func ListAll(ctx context.Context, b Backends, page db.Pagination) ([]wallets.Wallet, error) {
 	args := map[string]any{}
 	conditions := []string{}
@@ -262,13 +302,50 @@ func ListAll(ctx context.Context, b Backends, page db.Pagination) ([]wallets.Wal
 		}
 	}
 
+	filter := page.Filter
+
+	if filter.FirstName != "" || filter.LastName != "" {
+		// Single EXISTS so both names (when both are set) must match the SAME
+		// individual_kyc_details row
+		nameConds := []string{}
+		if filter.FirstName != "" {
+			nameConds = append(nameConds, "lower(k.first_name) LIKE :firstname")
+			args["firstname"] = escapeLike(strings.ToLower(filter.FirstName)) + "%"
+		}
+		if filter.LastName != "" {
+			nameConds = append(nameConds, "lower(k.last_name) LIKE :lastname")
+			args["lastname"] = escapeLike(strings.ToLower(filter.LastName)) + "%"
+		}
+		conditions = append(conditions, fmt.Sprintf(
+			"EXISTS (SELECT 1 FROM individual_kyc_details k WHERE k.wallet_id = wallets.id AND %s)",
+			strings.Join(nameConds, " AND "),
+		))
+	}
+
+	if filter.WalletAddress != "" {
+		conditions = append(conditions, "EXISTS (SELECT 1 FROM wallet_addresses a WHERE a.wallet_id = wallets.id AND lower(a.url) LIKE :walletaddress)")
+		// Use partial search instead of the prefix so you won't need to complete with the host, like https://local.ilp.link/<wallet_address>
+		args["walletaddress"] = "%" + escapeLike(strings.ToLower(filter.WalletAddress)) + "%"
+	}
+
+	if filter.ProviderID != "" {
+		conditions = append(conditions, "EXISTS (SELECT 1 FROM linked_accounts la WHERE la.wallet_id = wallets.id AND la.provider_id = :providerid)")
+		args["providerid"] = filter.ProviderID
+	}
+
+	if filter.WalletIDs != nil {
+		conditions = append(conditions, "id = ANY(:walletids)")
+		args["walletids"] = pq.Array(filter.WalletIDs)
+	}
+
 	query := "select id, name, country, exceeded_limits from wallets"
 	if len(conditions) > 0 {
 		query += " where " + strings.Join(conditions, " AND ")
 	}
 	query += " order by created_at DESC, id DESC %s"
+	finalQuery := fmt.Sprintf(query, page.SQL())
 
-	nstmt, err := b.DB().PrepareNamed(fmt.Sprintf(query, page.SQL()))
+	nstmt, err := b.DB().PrepareNamed(finalQuery)
 	if err != nil {
 		return nil, err
 	}
@@ -293,6 +370,13 @@ func ListAll(ctx context.Context, b Backends, page db.Pagination) ([]wallets.Wal
 	}
 
 	return wl, nil
+}
+
+// escapeLike escapes the LIKE/ILIKE metacharacters backslash, % and _ (in
+// that order) so a user-supplied search term is matched literally.
+func escapeLike(s string) string {
+	replacer := strings.NewReplacer(`\`, `\\`, `%`, `\%`, `_`, `\_`)
+	return replacer.Replace(s)
 }
 
 func SetWalletName(ctx context.Context, b Backends, id, name string) (*wallets.Wallet, error) {

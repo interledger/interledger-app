@@ -1,31 +1,63 @@
 import type { LoaderFunctionArgs } from 'react-router'
 
-import { Router, Grid } from '~/components'
+import { Router, Grid, TextField } from '~/components'
 import { data, href, Form, useLoaderData, useNavigation } from 'react-router'
 import { ListWallets } from '~/lib/wallet.server'
+
+const FILTER_FIELDS = [
+  { name: 'firstName', label: 'First name' },
+  { name: 'lastName', label: 'Last name' },
+  { name: 'walletAddress', label: 'Wallet account' },
+  { name: 'email', label: 'Email' },
+  { name: 'phoneNumber', label: 'Phone number' },
+  { name: 'providerId', label: 'Provider ID' }
+] as const
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
   const pageSize = url.searchParams.get('pageSize') || '50'
   const pageToken = url.searchParams.get('pageToken') || ''
-  const search = url.searchParams.get('search') || ''
-  const wallets = await ListWallets(request, {
-    pageSize: parseInt(pageSize),
-    pageToken: pageToken,
-    search: search || undefined
-  })
+
+  const filters = Object.fromEntries(
+    FILTER_FIELDS.map(({ name }) => [
+      name,
+      (url.searchParams.get(name) || '').trim()
+    ])
+  ) as Record<(typeof FILTER_FIELDS)[number]['name'], string>
+
+  const hasFilter = Object.values(filters).some((v) => v !== '')
+
+  const wallets = await ListWallets(
+    request,
+    {
+      pageSize: parseInt(pageSize),
+      pageToken: pageToken || undefined
+    },
+    hasFilter ? filters : undefined
+  )
 
   return data({
     wallets,
     pageSize,
-    search
+    filters,
+    hasFilter
   })
 }
 
 export default function Page() {
-  const { wallets, pageSize, search } = useLoaderData<typeof loader>()
+  const { wallets, pageSize, filters, hasFilter } =
+    useLoaderData<typeof loader>()
   const navigation = useNavigation()
   const isSearching = navigation.state === 'loading'
+
+  const nextPageParams = new URLSearchParams()
+  if (wallets.nextPageToken) {
+    nextPageParams.set('pageToken', wallets.nextPageToken)
+    nextPageParams.set('pageSize', pageSize)
+    for (const { name } of FILTER_FIELDS) {
+      if (filters[name]) nextPageParams.set(name, filters[name])
+    }
+  }
 
   return (
     <Grid>
@@ -42,22 +74,35 @@ export default function Page() {
         <div className='mt-4'>
           <Form method='get' action='/wallets'>
             <input type='hidden' name='pageSize' value={pageSize} />
-            <input
-              key={search}
-              id='wallet-search'
-              name='search'
-              type='search'
-              placeholder='Search by ID or name…'
-              aria-label='Search wallets'
-              defaultValue={search}
-              className='w-full max-w-sm rounded-xl border-2 border-base px-4 py-2 text-sm focus:border-focus focus:outline-none'
-            />
+            <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3'>
+              {FILTER_FIELDS.map(({ name, label }) => (
+                <TextField
+                  key={`${name}-${filters[name]}`}
+                  id={`wallet-search-${name}`}
+                  name={name}
+                  type='search'
+                  label={label}
+                  placeholder={`Search by ${label.toLowerCase()}…`}
+                  defaultValue={filters[name]}
+                />
+              ))}
+            </div>
+            <div className='mt-2 flex items-center gap-3'>
+              <button
+                type='submit'
+                className='rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white'
+              >
+                Search
+              </button>
+              <Router to='/wallets' className='text-sm text-primary'>
+                Clear
+              </Router>
+            </div>
           </Form>
-          {search && (
-            <p className='mt-1 text-xs text-medium'>
+          {hasFilter && (
+            <p className='mt-2 text-xs text-medium'>
               {wallets.wallets.length} result
-              {wallets.wallets.length !== 1 ? 's' : ''} for &ldquo;{search}
-              &rdquo;
+              {wallets.wallets.length !== 1 ? 's' : ''}
             </p>
           )}
         </div>
@@ -103,6 +148,16 @@ export default function Page() {
                     </tr>
                   </thead>
                   <tbody className='divide-y divide-gray-200 bg-white'>
+                    {wallets.wallets.length === 0 && hasFilter && (
+                      <tr>
+                        <td
+                          colSpan={5}
+                          className='p-4 text-center text-sm text-weak'
+                        >
+                          No users found
+                        </td>
+                      </tr>
+                    )}
                     {wallets.wallets.map((wallet) => (
                       <tr key={wallet.walletID}>
                         <td className='p-4 text-sm font-medium text-gray-900'>
@@ -151,13 +206,7 @@ export default function Page() {
                         <div className='flex flex-1 justify-between pr-3 sm:justify-end'>
                           {wallets.nextPageToken && (
                             <Router
-                              to={`/wallets?pageToken=${
-                                wallets.nextPageToken
-                              }&pageSize=${pageSize}${
-                                search
-                                  ? `&search=${encodeURIComponent(search)}`
-                                  : ''
-                              }`}
+                              to={`/wallets?${nextPageParams.toString()}`}
                               className='relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50'
                             >
                               Next

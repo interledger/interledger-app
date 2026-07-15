@@ -284,6 +284,10 @@ table "linked_accounts" {
     unique  = false
     columns = [column.wallet_id, column.can_receive, column.state]
   }
+  index "linked_accounts_provider_id" {
+    unique  = false
+    columns = [column.provider_id]
+  }
 }
 table "linked_account_reviews" {
   schema = schema.public

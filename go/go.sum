@@ -379,6 +379,8 @@ github.com/opencontainers/image-spec v1.1.1/go.mod h1:qpqAh3Dmcf36wStyyWU+kCeDgr
 github.com/opentracing/opentracing-go v1.1.0/go.mod h1:UkNAQd3GIcIGf0SeVgPpRdFStlNbqXla1AfSYxPUl2o=
 github.com/ory/kratos-client-go v0.13.1 h1:o+pFV9ZRMFSBa4QeNJYbJeLz036UWU4p+7yfKghK+0E=
 github.com/ory/kratos-client-go v0.13.1/go.mod h1:hkrFJuHSBQw+qN6Ks0faOAYhAKwtpjvhCZzsQ7g/Ufc=
+github.com/ory/kratos-client-go v1.3.8 h1:S4D5dAURq5C6LbOUU+DgE4ZXxp37IlJG2GngemdF9h0=
+github.com/ory/kratos-client-go v1.3.8/go.mod h1:Dc+ANapsPxu+CfdC0yk8TxmvceCmrvNozW+ZGS/xq5o=
 github.com/pingcap/errors v0.11.4 h1:lFuQV/oaUMGcD2tqt+01ROSmJs75VG1ToEOkZIZ4nE4=
 github.com/pingcap/errors v0.11.4/go.mod h1:Oi8TUi2kEtXXLMJk9l1cGmz20kV3TaQ0usTwv5KuLY8=
 github.com/pkg/diff v0.0.0-20210226163009-20ebb0f2a09e/go.mod h1:pJLUxLENpZxwdsKMEsNbx1VGcRFpLqf3715MtcvvzbA=
