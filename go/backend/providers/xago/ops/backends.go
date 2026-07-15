@@ -14,6 +14,7 @@ import (
 	"github.com/interledger/interledger-app/go/backend/kyc"
 	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
 	"github.com/interledger/interledger-app/go/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
 	"github.com/interledger/interledger-app/go/backend/providers/xago/external"
 	external_mock "github.com/interledger/interledger-app/go/backend/providers/xago/external/mock"
 	"github.com/interledger/interledger-app/go/backend/user"
@@ -30,6 +31,7 @@ type Backends interface {
 	Wallets() wallets.Client
 	Users() user.Client
 	KYC() kyc.Client
+	Gatehub() gatehub.Client
 	Temporal() temporal.Client
 	Pacioli() pacioli.Client
 	Transactions() transactions.Client
@@ -43,6 +45,7 @@ type ActivityBackends interface {
 	Wallets() wallets.Client
 	Users() user.Client
 	KYC() kyc.Client
+	Gatehub() gatehub.Client
 	Temporal() temporal.Client
 	Pacioli() pacioli.Client
 	Transactions() transactions.Client
@@ -53,6 +56,8 @@ type TestBackends struct {
 	DBC  *sqlx.DB
 	Extr *external_mock.MockClient
 	La   *linkedaccounts_mock.MockClient
+	Gh   gatehub.Client
+	Kyc  kyc.Client
 }
 
 func (t TestBackends) Email() email.Client {
@@ -92,7 +97,11 @@ func (t TestBackends) Users() user.Client {
 }
 
 func (t TestBackends) KYC() kyc.Client {
-	return nil
+	return t.Kyc
+}
+
+func (t TestBackends) Gatehub() gatehub.Client {
+	return t.Gh
 }
 
 func (t TestBackends) Temporal() temporal.Client {

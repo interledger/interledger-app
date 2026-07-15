@@ -14,6 +14,7 @@ import (
 	"github.com/interledger/interledger-app/go/backend/kyc"
 	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
 	"github.com/interledger/interledger-app/go/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
 	"github.com/interledger/interledger-app/go/backend/providers/xago"
 	"github.com/interledger/interledger-app/go/backend/providers/xago/external"
 	mock_client "github.com/interledger/interledger-app/go/backend/providers/xago/external/mock"
@@ -34,6 +35,7 @@ type Backends interface {
 	Wallets() wallets.Client
 	Users() user.Client
 	KYC() kyc.Client
+	Gatehub() gatehub.Client
 	Pacioli() pacioli.Client
 	Transactions() transactions.Client
 	Email() email.Client
@@ -114,6 +116,10 @@ func (c *client) AssignBalance(ctx context.Context, linkedAccountID, txID string
 
 func (c *client) LookupWithdrawal(ctx context.Context, id string) (*xago.Withdrawal, error) {
 	return ops.LookupWithdrawal(ctx, c.b, id)
+}
+
+func (c *client) InsertTravelRuleRecord(ctx context.Context, args xago.TravelRuleRecordArgs) error {
+	return ops.InsertTravelRuleRecord(ctx, c.b, args)
 }
 
 func (c *client) TestDeposit(ctx context.Context, sa xago.SubAccount) error {

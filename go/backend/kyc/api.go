@@ -9,6 +9,7 @@ type Client interface {
 	GetKYCStatus(ctx context.Context, walletID string) (Status, error)
 	SetKYCStatus(ctx context.Context, walletID string, status Status) error
 	GetPersonaInquiry(ctx context.Context, walletID, idempotencyKey string) (*PersonaInquiry, error)
+	GetPersonaAccountAttributes(ctx context.Context, walletID string) (*PersonaAccountAttributes, error)
 	GetPersonaIDNumbers(ctx context.Context, walletID string) (*PersonaIDNumbers, error)
 	GetPersonaZAIDNumber(ctx context.Context, walletID string) (string, error)
 	GetApprovedPersonaInquiryURL(ctx context.Context, walletID string) (string, error)

@@ -112,7 +112,7 @@ func PaymentWorkflow(ctx workflow.Context, id string) error {
 		return err
 	}
 
-	return nil
+	return workflow.ExecuteActivity(ctx, a.AddXagoTravelRuleRecord, id).Get(ctx, nil)
 }
 
 func PayinWorkflow(ctx workflow.Context, paymentID string) error {

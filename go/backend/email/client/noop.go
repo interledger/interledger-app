@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"time"
 
 	"github.com/interledger/interledger-app/go/backend/currency"
 	"github.com/interledger/interledger-app/go/backend/email"
@@ -103,4 +104,8 @@ func (c *noopClient) SendSCTRerouteEmail(ctx context.Context, txID, walletID str
 
 func (n *noopClient) SendRampActionEmail(_ context.Context, walletID string, args email.RampActionEmailArgs) {
 	log.Info("NOT SENDING: ramp action email", zap.String("walletID", walletID), zap.String("action", args.Action))
+}
+func (n *noopClient) SendXagoTravelRuleEmail(_ context.Context, _ []byte, _ string, _ time.Time, _, _, _ int) error {
+	log.Info("NOT SENDING: Xago travel rule email")
+	return nil
 }

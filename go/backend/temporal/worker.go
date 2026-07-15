@@ -2,7 +2,11 @@ package temporal
 
 import (
 	"fmt"
+	"strings"
 
+	"github.com/ProtonMail/go-crypto/openpgp"
+	"github.com/ProtonMail/go-crypto/openpgp/armor"
+	"github.com/ProtonMail/go-crypto/openpgp/packet"
 	"github.com/interledger/interledger-app/go/log"
 	"github.com/lestrrat-go/jwx/v3/jwk"
 
@@ -22,7 +26,7 @@ import (
 	"go.temporal.io/sdk/worker"
 )
 
-func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago_external.Config, ptiJWK, ptiBaseURL, ptiClientID, chimoneyToken string, rafikiNodeEnabled bool, jobsCfg jobs.Config) (worker.Worker, error) {
+func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago_external.Config, xagoTravelRulePGPPublicKey, xagoTravelRuleEmail, ptiJWK, ptiBaseURL, ptiClientID, chimoneyToken string, rafikiNodeEnabled bool, jobsCfg jobs.Config) (worker.Worker, error) {
 	w := worker.New(b.Temporal(), "backend", worker.Options{})
 
 	w.RegisterActivity(slack.SendToChannelActivity)
@@ -90,13 +94,27 @@ func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago
 	rafiki_workflows.StartRafikiIncomingPaymentsPolling(b)
 
 	// Xago
-	w.RegisterActivity(xago_workflows.NewActivity(b, xagoConfig))
+	xagoPGPRecipient, err := parseXagoPGPRecipient(xagoTravelRulePGPPublicKey)
+	if err != nil {
+		return nil, err
+	}
+
+	w.RegisterActivity(xago_workflows.NewActivity(b, xagoConfig, xagoPGPRecipient, xagoTravelRuleEmail))
 	w.RegisterWorkflow(xago_workflows.CreateBeneficiaryWorkflow)
 	w.RegisterWorkflow(xago_workflows.CreateBalanceAccountWorkflow)
 	w.RegisterWorkflow(xago_workflows.XagoDepositPollWorkflow)
 	w.RegisterWorkflow(xago_workflows.UpdateInquiryLinkWorkflow)
 
 	xago_workflows.StartDepositsPolling(b)
+
+	if xagoPGPRecipient != nil && xagoTravelRuleEmail != "" {
+		w.RegisterWorkflow(xago_workflows.ResendTravelRuleReportWorkflow)
+
+		w.RegisterWorkflow(xago_workflows.TravelRuleEmailWorkflow)
+		xago_workflows.StartTravelRuleEmailSending(b)
+	} else {
+		log.Warn("xago.travel_rule_pgp_public_key or xago.travel_rule_email not configured: skipping xago travel rule related workflows")
+	}
 
 	// PTI
 	if ptiJWK == "" {
@@ -155,4 +173,24 @@ func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago
 	w.RegisterWorkflow(chimoney_workflows.ExecuteChimoneyFinishWithdrawalWorkflow)
 
 	return w, nil
+}
+
+// parseXagoPGPRecipient decodes an armored PGP public key into the recipient
+// entity used to encrypt the Xago travel rule email report.
+//
+//   - An empty key returns a nil entity.
+//   - A malformed key is a fatal error surfaced to the caller.
+func parseXagoPGPRecipient(pubKey string) (*openpgp.Entity, error) {
+	if pubKey == "" {
+		return nil, nil
+	}
+	block, err := armor.Decode(strings.NewReader(pubKey))
+	if err != nil {
+		return nil, fmt.Errorf("error decoding xago travel rule PGP public key: %w", err)
+	}
+	entity, err := openpgp.ReadEntity(packet.NewReader(block.Body))
+	if err != nil {
+		return nil, fmt.Errorf("error reading xago travel rule PGP public key: %w", err)
+	}
+	return entity, nil
 }

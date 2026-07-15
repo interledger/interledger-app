@@ -2,11 +2,14 @@ package ops
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/interledger/interledger-app/go/backend/currency"
+	sgmail "github.com/sendgrid/sendgrid-go/helpers/mail"
 
 	"github.com/interledger/interledger-app/go/backend/email"
 	"github.com/interledger/interledger-app/go/backend/email/sendgrid"
@@ -424,7 +427,7 @@ func SendRampActionEmail(ctx context.Context, b Backends, walletID string, args 
 		{"label": "Source", "text": args.Source},
 		{"label": "Method", "text": args.Method},
 		{"label": "Status", "text": args.Status},
-		{"label": "Timestamp", "text": args.Timestamp.Format("Jan 2, 2006 3:04 PM MST"),},
+		{"label": "Timestamp", "text": args.Timestamp.Format("Jan 2, 2006 3:04 PM MST")},
 	}
 
 	paragraphs := []map[string]interface{}{
@@ -831,6 +834,24 @@ func SendSCTRerouteEmail(ctx context.Context, b Backends, txID, walletID string)
 	if err != nil {
 		log.Error("Failed to send sct reroute email.", zap.Error(err), zap.String("walletID", walletID))
 	}
+}
+
+func SendXagoTravelRuleEmail(ctx context.Context, b Backends, csv []byte, recipientEmail string, reportDate time.Time, batchNumber, batchTotal, records int) error {
+	date := reportDate.UTC().Format("2006-01-02")
+	subject := fmt.Sprintf("Travel Rule Report %s (batch %d of %d)", date, batchNumber, batchTotal)
+	to := []sendgrid.Email{{Name: "Xago Travel Rule", Address: recipientEmail}}
+	attachment := sgmail.Attachment{
+		Content:     base64.StdEncoding.EncodeToString(csv),
+		Type:        "application/octet-stream",
+		Filename:    fmt.Sprintf("travel_rule_%s_batch%dof%d.csv.gpg", date, batchNumber, batchTotal),
+		Disposition: "attachment",
+	}
+	return b.External().SendTemplate(ctx, subject, to, b.OneTemplateID(), map[string]any{
+		"subject": subject,
+		"data": []map[string]any{
+			{"paragraph": fmt.Sprintf("Travel Rule report for %s, batch %d of %d (%d records).", date, batchNumber, batchTotal, records)},
+		},
+	}, []sgmail.Attachment{attachment})
 }
 
 func maskIBAN(iban string) string {

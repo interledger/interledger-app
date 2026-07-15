@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ProtonMail/go-crypto/openpgp"
 	"github.com/google/uuid"
 	"github.com/interledger/interledger-app/go/backend/country"
 	"github.com/interledger/interledger-app/go/backend/currency"
@@ -34,20 +35,23 @@ func (o opsBackends) External() external.Client {
 }
 
 type Activity struct {
-	b Backends
+	b               Backends
+	pgpRecipient    *openpgp.Entity
+	travelRuleEmail string
 }
 
-func NewActivity(ab ActivityBackends, cfg external.Config) *Activity {
+func NewActivity(ab ActivityBackends, extCfg external.Config, pgpRecipient *openpgp.Entity, travelRuleEmail string) *Activity {
 	ex := external.New(&http.Client{
 		Transport: otelhttp.NewTransport(
 			httplogger.NewTransport(http.DefaultTransport, ab, nil),
 		),
-	}, ab.DB(), cfg)
+	}, ab.DB(), extCfg)
 
-	return &Activity{b: &opsBackends{
-		ActivityBackends: ab,
-		xagoExt:          ex,
-	}}
+	return &Activity{
+		b:               &opsBackends{ActivityBackends: ab, xagoExt: ex},
+		pgpRecipient:    pgpRecipient,
+		travelRuleEmail: travelRuleEmail,
+	}
 }
 
 func (a *Activity) WalletHasSubAccount(ctx context.Context, walletID string) (bool, error) {

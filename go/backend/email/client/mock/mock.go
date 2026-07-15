@@ -7,6 +7,7 @@ package mock
 import (
 	context "context"
 	reflect "reflect"
+	time "time"
 
 	gomock "github.com/golang/mock/gomock"
 	currency "github.com/interledger/interledger-app/go/backend/currency"
@@ -328,4 +329,18 @@ func (m *MockClient) SendWithdrawalFailedEmail(ctx context.Context, walletID str
 func (mr *MockClientMockRecorder) SendWithdrawalFailedEmail(ctx, walletID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendWithdrawalFailedEmail", reflect.TypeOf((*MockClient)(nil).SendWithdrawalFailedEmail), ctx, walletID)
+}
+
+// SendXagoTravelRuleEmail mocks base method.
+func (m *MockClient) SendXagoTravelRuleEmail(ctx context.Context, csv []byte, recipientEmail string, reportDate time.Time, batchNumber, batchTotal, records int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SendXagoTravelRuleEmail", ctx, csv, recipientEmail, reportDate, batchNumber, batchTotal, records)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SendXagoTravelRuleEmail indicates an expected call of SendXagoTravelRuleEmail.
+func (mr *MockClientMockRecorder) SendXagoTravelRuleEmail(ctx, csv, recipientEmail, reportDate, batchNumber, batchTotal, records interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendXagoTravelRuleEmail", reflect.TypeOf((*MockClient)(nil).SendXagoTravelRuleEmail), ctx, csv, recipientEmail, reportDate, batchNumber, batchTotal, records)
 }

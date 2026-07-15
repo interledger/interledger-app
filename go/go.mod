@@ -4,6 +4,7 @@ go 1.25.0
 
 require (
 	github.com/Khan/genqlient v0.6.0
+	github.com/ProtonMail/go-crypto v1.4.1
 	github.com/alicebob/miniredis/v2 v2.35.0
 	github.com/bxcodec/faker/v3 v3.6.0
 	github.com/cockroachdb/cockroach-go v2.0.1+incompatible
@@ -65,6 +66,7 @@ require (
 	github.com/cenkalti/backoff/v3 v3.0.0 // indirect
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
+	github.com/cloudflare/circl v1.6.2 // indirect
 	github.com/cockroachdb/cockroach-go/v2 v2.2.1 // indirect
 	github.com/containerd/log v0.1.0 // indirect
 	github.com/containerd/platforms v0.2.1 // indirect

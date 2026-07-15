@@ -13,6 +13,7 @@ import (
 	"github.com/interledger/interledger-app/go/backend/providers/xago/external"
 	"github.com/interledger/interledger-app/go/backend/slack"
 	"github.com/interledger/interledger-app/go/pacioli"
+	"github.com/lib/pq"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/serviceerror"
 	"go.temporal.io/sdk/client"
@@ -437,5 +438,64 @@ func TestDeposit(ctx context.Context, b Backends, sa xago.SubAccount) error {
 		return fmt.Errorf("%w %s", xago.ErrInternal, err)
 	}
 
+	return err
+}
+
+type dbTravelRuleRecord struct {
+	ID               string `db:"id"`
+	PaymentID        string `db:"payment_id"`
+	SenderWalletID   string `db:"sender_wallet_id"`
+	ReceiverWalletID string `db:"receiver_wallet_id"`
+	BatchNumber      int    `db:"batch_number"`
+	BatchTotal       int    `db:"batch_total"`
+}
+
+func InsertTravelRuleRecord(ctx context.Context, b Backends, args xago.TravelRuleRecordArgs) error {
+	_, err := b.DB().ExecContext(ctx, `
+		INSERT INTO xago_travel_rule_records
+			(payment_id, sender_wallet_id, receiver_wallet_id)
+		VALUES ($1, $2, $3)
+	`,
+		args.PaymentID,
+		args.SenderWalletID,
+		args.ReceiverWalletID,
+	)
+	return err
+}
+
+func GetUnreportedTravelRuleRecords(ctx context.Context, b Backends, cutoff time.Time) ([]dbTravelRuleRecord, error) {
+	var records []dbTravelRuleRecord
+	err := b.DB().SelectContext(ctx, &records, `
+		SELECT id, payment_id, sender_wallet_id, receiver_wallet_id
+		FROM xago_travel_rule_records
+		WHERE reported_at IS NULL AND created_at < $1
+		ORDER BY created_at, id
+	`, cutoff)
+	return records, err
+}
+
+func GetTravelRuleRecordsByReportedAt(ctx context.Context, b Backends, reportedAt time.Time) ([]dbTravelRuleRecord, error) {
+	var records []dbTravelRuleRecord
+	err := b.DB().SelectContext(ctx, &records, `
+		SELECT id, payment_id, sender_wallet_id, receiver_wallet_id, batch_number, batch_total
+		FROM xago_travel_rule_records
+		WHERE reported_at = $1
+		ORDER BY created_at, id
+	`, reportedAt)
+	return records, err
+}
+
+func MarkTravelRuleRecordsAsReported(ctx context.Context, b Backends, ids []string, reportedAt time.Time, batchNumber, batchTotal int) error {
+	_, err := b.DB().ExecContext(ctx, `
+		UPDATE xago_travel_rule_records SET
+			reported_at = $2,
+			batch_number = $3,
+			batch_total = $4
+		WHERE id = ANY($1::uuid[])`,
+		pq.Array(ids),
+		reportedAt,
+		batchNumber,
+		batchTotal,
+	)
 	return err
 }

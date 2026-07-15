@@ -20,6 +20,12 @@ var (
 
 type Await func(ctx context.Context, result interface{}) error
 
+type TravelRuleRecordArgs struct {
+	PaymentID        string
+	SenderWalletID   string
+	ReceiverWalletID string
+}
+
 type SubAccount struct {
 	ID               string `db:"id"`
 	AccountID        string `db:"account_id"`

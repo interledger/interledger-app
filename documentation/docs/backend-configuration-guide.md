@@ -218,6 +218,8 @@ Required in **production** (validated when `environment.mode` is `prod`). See co
 | `xago.api_public_key` | string | Yes | Yes | API public key credential. |
 | `xago.api_secret` | string | Yes | Yes | API secret key credential. |
 | `xago.policy_id` | string | Yes | No | Login policy ID. |
+| `xago.travel_rule_pgp_public_key` | string | Prod | Yes | PGP public key received from Xago for the travel rule report. |
+| `xago.travel_rule_email` | string | Prod | No | Xago recipient email for the travel rule report. |
 
 ### PTI / Fiant
 
