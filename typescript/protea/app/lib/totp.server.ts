@@ -40,9 +40,8 @@ export const NON_VERIFIED_EMAIL_ROUTES = ['/logout', '/verify']
 /**
  * Whether the identity has a TOTP credential enrolled in Kratos.
  *
- * Does not treat an aal2 session as sufficient — credentials can be removed
- * out-of-band while a session still reports aal2. Prefer this when gating
- * destructive actions (e.g. account deletion).
+ * Ignores aal2 (unlike isTotpSet): a session can still report aal2 after the
+ * credential was removed out-of-band. Use to gate destructive actions.
  */
 export async function isTotpEnrolled(request: Request): Promise<boolean> {
   return hasTotpUnlinkNode(request.headers)
