@@ -614,6 +614,9 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I click the destructive "Delete account" button$`, func() error {
 		return sc.iClickTheDestructiveDeleteAccountButton()
 	})
+	ctx.Step(`^the destructive "Delete account" button should be disabled$`, func() error {
+		return sc.theDestructiveDeleteAccountButtonShouldBeDisabled()
+	})
 	ctx.Step(`^I complete the TOTP step-up challenge$`, func() error {
 		return sc.iCompleteTheTOTPStepUpChallenge()
 	})

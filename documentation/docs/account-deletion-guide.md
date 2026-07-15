@@ -127,7 +127,8 @@ The `settings.delete-account.tsx` loader treats any non-`UNSPECIFIED` status fro
 - **Delete-account page** (`/settings/delete-account`)
   - Warning card explaining irreversibility and the need to withdraw funds within 2–3 days.
   - Cancel and "Delete account" buttons.
-  - Clicking "Delete account" opens the global TOTP step-up popup. After verify, the action submits with an empty body; on success the user is redirected to `/settings` with a confirmation snackbar.
+  - Loader checks Kratos TOTP enrolment (`isTotpEnrolled`). If missing, the Delete button is disabled and an inline alert explains that two-factor authentication must be configured, with a link to set it up.
+  - When TOTP is enrolled, clicking "Delete account" opens the global TOTP step-up popup. After verify, the action submits with an empty body; on success the user is redirected to `/settings` with a confirmation snackbar.
 
 ## API & Backend Changes
 
@@ -144,7 +145,7 @@ The `settings.delete-account.tsx` loader treats any non-`UNSPECIFIED` status fro
 ## Testing & Monitoring
 
 - **Handler unit tests** in `go/backend/grpc/account_deletion_test.go` cover the happy path, the rollback-on-support-email-error regression, the wallet-lookup-failure-tolerated case (Slack post is skipped, request still succeeds), the TOTP-not-enrolled precondition, and the already-requested duplicate (both assert the structured AppError reason code).
-- **End-to-end scenarios** in `e2e/features/006-account-deletion.feature` run with the flag on (`delete_account_enabled: true`) and cover the link being visible, the full delete flow with TOTP step-up, the pending/in-progress indicators, the missing-TOTP precondition, and duplicate-rejection.
+- **End-to-end scenarios** in `e2e/features/006-account-deletion.feature` run with the flag on (`delete_account_enabled: true`) and cover the link being visible, the full delete flow with TOTP step-up, the pending/in-progress indicators, the missing-TOTP precondition (message + disabled Delete button), and duplicate-rejection.
 - **Alerts:** Sentry captures rollback failures with the user ID and both underlying errors. User-confirmation email failures and wallet-list failures (which suppress the Slack post) are logged as warnings, not paged.
 
 ## Support Playbook

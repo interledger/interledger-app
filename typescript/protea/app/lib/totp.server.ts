@@ -38,13 +38,17 @@ const PASSWORD_RECOVERY_ALLOWED_ROUTES = [
 export const NON_VERIFIED_EMAIL_ROUTES = ['/logout', '/verify']
 
 /**
- * Check if the user has TOTP enabled
+ * Whether the identity has a TOTP credential enrolled in Kratos.
+ *
+ * Does not treat an aal2 session as sufficient — credentials can be removed
+ * out-of-band while a session still reports aal2. Prefer this when gating
+ * destructive actions (e.g. account deletion).
  */
-async function isTotpSet(session: Session, headers: Headers): Promise<boolean> {
-  if (session?.authenticator_assurance_level === 'aal2') {
-    return true
-  }
+export async function isTotpEnrolled(request: Request): Promise<boolean> {
+  return hasTotpUnlinkNode(request.headers)
+}
 
+async function hasTotpUnlinkNode(headers: Headers): Promise<boolean> {
   try {
     const cookie = headers.get('cookie') ?? ''
     const { data: flow } = await kratosPublic.createBrowserSettingsFlow(
@@ -55,14 +59,25 @@ async function isTotpSet(session: Session, headers: Headers): Promise<boolean> {
     const nodes = flow.ui.nodes ?? []
     // If TOTP is configured, the settings flow contains totp group nodes
     // with an "unlink" action. If not configured, the nodes offer "enable".
-    const isSet = nodes.some(
+    return nodes.some(
       (node: any) =>
         node.group === 'totp' && node.attributes?.name === 'totp_unlink'
     )
-    return isSet
-  } catch (error) {
+  } catch {
     return false
   }
+}
+
+/**
+ * Check if the user has TOTP available for the AAL2 route guard.
+ * An aal2 session is treated as sufficient (avoids an extra Kratos call).
+ */
+async function isTotpSet(session: Session, headers: Headers): Promise<boolean> {
+  if (session?.authenticator_assurance_level === 'aal2') {
+    return true
+  }
+
+  return hasTotpUnlinkNode(headers)
 }
 
 function isEmailVerified(session: Session): boolean {

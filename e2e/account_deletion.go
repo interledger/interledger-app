@@ -67,6 +67,29 @@ func (sc *E2EContext) iClickTheDestructiveDeleteAccountButton() error {
 	return nil
 }
 
+func (sc *E2EContext) theDestructiveDeleteAccountButtonShouldBeDisabled() error {
+	btn := sc.page.GetByRole(*playwright.AriaRoleButton, playwright.PageGetByRoleOptions{
+		Name: "Delete account",
+	})
+	if err := btn.First().WaitFor(playwright.LocatorWaitForOptions{
+		State:   playwright.WaitForSelectorStateVisible,
+		Timeout: playwright.Float(5000),
+	}); err != nil {
+		_ = sc.iTakeAScreenshot("delete-account-button-missing")
+		return fmt.Errorf("Delete account button not visible: %w", err)
+	}
+	disabled, err := btn.First().IsDisabled()
+	if err != nil {
+		return fmt.Errorf("failed to inspect Delete account button disabled state: %w", err)
+	}
+	if !disabled {
+		_ = sc.iTakeAScreenshot("delete-account-button-unexpectedly-enabled")
+		return fmt.Errorf("Delete account button should be disabled when TOTP is not configured")
+	}
+	debugPrintln("✓ Delete account button is disabled")
+	return nil
+}
+
 func (sc *E2EContext) iCompleteTheTOTPStepUpChallenge() error {
 	popupInput := sc.page.Locator("input[name='totp_code']")
 	if err := popupInput.First().WaitFor(playwright.LocatorWaitForOptions{
