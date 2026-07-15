@@ -13,14 +13,6 @@ import (
 	"github.com/playwright-community/playwright-go"
 )
 
-func (sc *E2EContext) iEnableDeleteAccountFeatureForMyWallet() error {
-	walletID, err := sc.resolveCurrentWalletID()
-	if err != nil {
-		return err
-	}
-	return sc.enableDeleteAccountForWallet(walletID)
-}
-
 func (sc *E2EContext) aPendingAccountDeletionRequestExistsForMeWithStatus(status string) error {
 	kratosID, err := sc.resolveCurrentKratosID()
 	if err != nil {
@@ -230,16 +222,4 @@ func (sc *E2EContext) resolveCurrentKratosID() (string, error) {
 		return "", fmt.Errorf("cannot resolve kratos id for email %q", email)
 	}
 	return kratosID, nil
-}
-
-func (sc *E2EContext) resolveCurrentWalletID() (string, error) {
-	kratosID, err := sc.resolveCurrentKratosID()
-	if err != nil {
-		return "", err
-	}
-	walletID, err := sc.getWalletIDForUser(kratosID)
-	if err != nil {
-		return "", fmt.Errorf("cannot resolve wallet id: %w", err)
-	}
-	return walletID, nil
 }
