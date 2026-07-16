@@ -306,7 +306,7 @@ func searchTotpURL(credentials map[string]client.IdentityCredentials) (string, e
 			continue
 		}
 
-		if *cred.Type != TOTP_CREDENTIAL_TYPE {
+		if *cred.Type != totpCredentialType {
 			continue
 		}
 
