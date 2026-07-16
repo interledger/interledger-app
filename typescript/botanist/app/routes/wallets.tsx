@@ -12,6 +12,7 @@ const FILTER_FIELDS = [
   { name: 'phoneNumber', label: 'Phone number' },
   { name: 'providerId', label: 'Provider ID' }
 ] as const
+type FilterField = (typeof FILTER_FIELDS)[number]['name']
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
@@ -23,7 +24,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       name,
       (url.searchParams.get(name) || '').trim()
     ])
-  ) as Record<(typeof FILTER_FIELDS)[number]['name'], string>
+  ) as Record<FilterField, string>
 
   const hasFilter = Object.values(filters).some((v) => v !== '')
 
@@ -82,7 +83,6 @@ export default function Page() {
                   name={name}
                   type='search'
                   label={label}
-                  placeholder={`Search by ${label.toLowerCase()}…`}
                   defaultValue={filters[name]}
                 />
               ))}
