@@ -3,7 +3,6 @@ package ops
 import (
 	"context"
 	"database/sql"
-	"database/sql/driver"
 	"errors"
 	"fmt"
 	"strings"
@@ -242,44 +241,6 @@ func List(ctx context.Context, b Backends, userID string) ([]wallets.Wallet, err
 	}
 
 	return wl, nil
-}
-
-// todo remove after testing!!! Debug-only: expands a sqlx named query (:name)
-// into a copy-pasteable literal SQL string for manual EXPLAIN ANALYZE in psql.
-func debugSQL(query string, args map[string]any) string {
-	bound, vals, err := sqlx.Named(query, args)
-	if err != nil {
-		return fmt.Sprintf("-- failed to bind debug query: %v", err)
-	}
-
-	var sb strings.Builder
-	vi := 0
-	for _, r := range bound {
-		if r == '?' && vi < len(vals) {
-			sb.WriteString(sqlLiteral(vals[vi]))
-			vi++
-		} else {
-			sb.WriteRune(r)
-		}
-	}
-	return sb.String()
-}
-
-func sqlLiteral(v any) string {
-	switch val := v.(type) {
-	case nil:
-		return "NULL"
-	case string:
-		return "'" + strings.ReplaceAll(val, "'", "''") + "'"
-	case driver.Valuer:
-		dv, err := val.Value()
-		if err != nil {
-			return "NULL"
-		}
-		return sqlLiteral(dv)
-	default:
-		return fmt.Sprintf("%v", val)
-	}
 }
 
 func ListAll(ctx context.Context, b Backends, page db.Pagination) ([]wallets.Wallet, error) {
