@@ -684,6 +684,11 @@ func applyFXCreate(ctx context.Context, b Backends, args payments.CreateArgs) (p
 
 	// Cross-provider GateHub <-> Xago FX
 	if isXagoGatehubPair(senderAcc.Provider, receiverAcc.Provider) {
+		if args.SenderAmount.Value == 0 {
+			args.ReceiverAmount = currency.FromFloat64(0, receiverAcc.ReceiveCurrency)
+			return args, 0, 0, nil
+		}
+
 		receiverAmount, estimatedRate, err := estimateXagoGatehubFX(ctx, b, senderAcc.Provider, args.SenderAmount)
 		if err != nil {
 			return args, 0, 0, err
@@ -1201,6 +1206,13 @@ func applyFXUpdate(ctx context.Context, b Backends, existing *dbPayment, receive
 
 	// Cross-provider GateHub <-> Xago FX
 	if isXagoGatehubPair(senderAcc.Provider, receiverAcc.Provider) {
+		if existing.SenderAmount == 0 {
+			existing.ReceiverAmount = 0
+			existing.ReceiverCurrency = receiverAcc.ReceiveCurrency.String()
+			existing.FXRate = sql.NullFloat64{}
+			return existing, nil
+		}
+
 		senderAmount := currency.FromUInt64(existing.SenderAmount, currency.ParseCurrency(existing.SenderCurrency))
 
 		receiverAmt, estimatedRate, err := estimateXagoGatehubFX(ctx, b, senderAcc.Provider, senderAmount)
@@ -1390,6 +1402,7 @@ func estimateXagoGatehubFX(ctx context.Context, b Backends, senderProvider strin
 	}
 
 	senderAmountF64 := senderAmt.Float64()
+
 	estimate, err := b.Xago().EstimateConvertCurrency(ctx, pair, senderAmountF64)
 	if err != nil {
 		return currency.Amount{}, 0, fmt.Errorf("%w failed to estimate FX rate: %s", payments.ErrInternal, err)
