@@ -78,7 +78,7 @@ func Migrate(ctx context.Context, connString string) error {
 }
 
 func backfillTransferTransactionIDs(ctx context.Context, connString string) error {
-	conn, err := sqlx.Connect("postgres", connString)
+	conn, err := sqlx.ConnectContext(ctx, "postgres", connString)
 	if err != nil {
 		return err
 	}

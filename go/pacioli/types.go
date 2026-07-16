@@ -65,9 +65,8 @@ type Transfer struct {
 }
 
 type CreateTransferArgs struct {
-	ID string `validate:"omitempty,uuid4"`
-	// TODO(PR3): make unconditionally required once every caller sets it.
-	TransactionID   string `validate:"required_without=ID,omitempty,uuid4"`
+	ID              string `validate:"required,uuid4"`
+	TransactionID   string `validate:"omitempty,uuid4"` // links to backend transactions.id; defaults to ID
 	Amount          int64  `validate:"gt=0"`
 	DebitAccountID  string `validate:"required,uuid4"`
 	CreditAccountID string `validate:"required,uuid4"`

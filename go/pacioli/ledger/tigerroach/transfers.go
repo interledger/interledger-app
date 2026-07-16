@@ -176,18 +176,10 @@ func createTransfer(ctx context.Context, b Backends, args pacioli.CreateTransfer
 		return pacioli.TransferExceedsDebits, nil
 	}
 
+	// If transactionID is not provided, default to transfer ID
 	transactionID := args.TransactionID
 	if transactionID == "" {
 		transactionID = args.ID
-	}
-	transferID := args.ID
-	if transferID == "" {
-		transferID = transactionID
-	}
-	if transferID != transactionID {
-		log.Warn("ledger_transfer id differs from transaction_id;",
-			zap.String("id", transferID),
-			zap.String("transaction_id", transactionID))
 	}
 
 	// All validation passed, create entry and update account values
@@ -204,7 +196,7 @@ func createTransfer(ctx context.Context, b Backends, args pacioli.CreateTransfer
 			}
 		}
 		_, err := tx.ExecContext(ctx, "INSERT INTO ledger_transfers (id, transaction_id, ledger_id, code, debit_account_id, credit_account_id, amount, state, timeout_at) "+
-			"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)", transferID, transactionID, args.Ledger, args.Code, args.DebitAccountID, args.CreditAccountID, args.Amount, state, timeoutAt)
+			"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)", args.ID, transactionID, args.Ledger, args.Code, args.DebitAccountID, args.CreditAccountID, args.Amount, state, timeoutAt)
 		if err != nil {
 			return err
 		}
@@ -401,12 +393,7 @@ func TryTimeoutTransfers(ctx context.Context, b Backends, ids []string) ([]strin
 }
 
 func transferExists(ctx context.Context, b Backends, args pacioli.CreateTransferArgs) (pacioli.TransferResultCode, error) {
-	// Dedup by the transfer's id (which is the transaction_id for now).
-	transferID := args.ID
-	if transferID == "" {
-		transferID = args.TransactionID
-	}
-	ex, err := getTransfer(ctx, b, transferID)
+	ex, err := getTransfer(ctx, b, args.ID)
 	if err != nil {
 		return 0, err
 	}
