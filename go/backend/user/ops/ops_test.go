@@ -133,7 +133,7 @@ func TestSearchTotpURL(t *testing.T) {
 			credentials: map[string]kratos.IdentityCredentials{
 				"totp": {
 					Identifiers: []string{"totp"},
-					Type:        ptr("totp"),
+					Type:        ptr(totpCredentialType),
 					Config: map[string]any{
 						"totp_url": []string{"totp://totp"},
 					},
@@ -175,7 +175,7 @@ func TestSearchTotpURL(t *testing.T) {
 			credentials: map[string]kratos.IdentityCredentials{
 				"totp": {
 					Identifiers: []string{"totp"},
-					Type:        ptr("totp"),
+					Type:        ptr(totpCredentialType),
 					Config:      map[string]any{
 						// no "totp_url"
 					},
@@ -208,7 +208,7 @@ func TestSearchTotpURL(t *testing.T) {
 				},
 				"totp": {
 					Identifiers: []string{"totp"},
-					Type:        ptr("totp"),
+					Type:        ptr(totpCredentialType),
 					Config: map[string]any{
 						"totp_url": "totp://totp",
 					},
@@ -222,7 +222,7 @@ func TestSearchTotpURL(t *testing.T) {
 			credentials: map[string]kratos.IdentityCredentials{
 				"totp": {
 					Identifiers: []string{"totp"},
-					Type:        ptr("totp"),
+					Type:        ptr(totpCredentialType),
 					Config: map[string]any{
 						"totp_url": "",
 					},
@@ -236,7 +236,7 @@ func TestSearchTotpURL(t *testing.T) {
 			credentials: map[string]kratos.IdentityCredentials{
 				"totp": {
 					Identifiers: []string{"totp"},
-					Type:        ptr("totp"),
+					Type:        ptr(totpCredentialType),
 					Config: map[string]any{
 						"totp_url": nil,
 					},
