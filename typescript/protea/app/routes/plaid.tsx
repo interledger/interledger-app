@@ -8,6 +8,7 @@ import {
 import type { ServerResponse } from '~/lib/error-handling/types'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 
+import { validateCSRFToken } from '~/lib/csrf.server'
 import { getUserSession } from '~/lib/kratos/session.server'
 import plaid, { isPlaidError } from '~/lib/plaid.server'
 import type { Route } from './+types/plaid'
@@ -39,6 +40,7 @@ export async function action({
 }: Route.ActionArgs): Promise<ActionData | Response> {
   await getUserSession(request)
   const form = await request.formData()
+  await validateCSRFToken(request, form)
   const intent = String(form.get('intent') || '')
 
   switch (intent) {

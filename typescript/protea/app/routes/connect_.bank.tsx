@@ -1,9 +1,10 @@
 import { useEffect, useRef } from 'react'
-import { href, redirect, useNavigate } from 'react-router'
+import { href, redirect, useLoaderData, useNavigate } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts } from '~/components'
 import { usePlaidLinkFlow } from '~/components/Plaid/usePlaidLinkFlow'
 import { getFeatures } from '~/data/wallet.server'
+import { jsonWithCSRF } from '~/lib/csrf.server'
 import { envBool } from '~/env.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
@@ -26,7 +27,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   )
     throw redirect(href('/'))
 
-  return null
+  return jsonWithCSRF(request, {})
 }
 
 export const handle: ApplicationProps = {
@@ -46,8 +47,10 @@ export const meta = mergeMeta(() => [
 ])
 
 export default function Page() {
+  const { csrfToken } = useLoaderData<typeof loader>()
   const navigate = useNavigate()
   const { connect, busy, scriptError } = usePlaidLinkFlow({
+    csrfToken,
     // User dismissed the Plaid overlay — leave the dedicated page.
     onCancel: () => navigate(href('/'))
   })

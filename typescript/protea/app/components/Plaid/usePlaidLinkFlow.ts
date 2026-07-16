@@ -12,6 +12,7 @@ type SerializedActionData = Exclude<ActionData, Promise<Response>>
 const PLAID_ACTION_PATH = '/plaid'
 
 interface PlaidLinkFlowOptions {
+  csrfToken: string
   onCancel?: () => void
   onError?: (message: string) => void
 }
@@ -26,8 +27,8 @@ interface PlaidLinkFlowOptions {
  *   5. hook POSTs {intent: exchange, public_token, account_id} to /plaid action
  *   6. action exchanges + persists; React Router auto-revalidates the loader.
  */
-export function usePlaidLinkFlow(opts: PlaidLinkFlowOptions = {}) {
-  const { onCancel, onError } = opts
+export function usePlaidLinkFlow(opts: PlaidLinkFlowOptions) {
+  const { csrfToken, onCancel, onError } = opts
   const linkFetcher = useFetcher<SerializedActionData>()
   const exchangeFetcher = useFetcher<SerializedActionData>()
 
@@ -75,6 +76,7 @@ export function usePlaidLinkFlow(opts: PlaidLinkFlowOptions = {}) {
       fd.append('account_id', account?.id ?? '')
       fd.append('account_name', account?.name ?? '')
       fd.append('account_mask', account?.mask ?? '')
+      fd.append('csrfToken', csrfToken)
       exchangeFetcher.submit(fd, { method: 'POST', action: PLAID_ACTION_PATH })
     },
     onExit: (err) => {
@@ -155,8 +157,9 @@ export function usePlaidLinkFlow(opts: PlaidLinkFlowOptions = {}) {
     pendingOpenRef.current = true
     const fd = new FormData()
     fd.append('intent', 'create_link_token')
+    fd.append('csrfToken', csrfToken)
     linkFetcher.submit(fd, { method: 'POST', action: PLAID_ACTION_PATH })
-  }, [linkFetcher])
+  }, [linkFetcher, csrfToken])
 
   const submitting =
     linkFetcher.state !== 'idle' || exchangeFetcher.state !== 'idle'
