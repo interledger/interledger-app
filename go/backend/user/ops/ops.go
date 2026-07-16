@@ -23,7 +23,7 @@ const (
 	kratosTimeout        = 1500 * time.Millisecond
 	kratosCookieName     = "ory_kratos_session"
 	aal2RequiredErrorID  = "session_aal2_required"
-	TOTP_CREDENTIAL_TYPE = "totp"
+	totpCredentialType = "totp"
 )
 
 type sessionRetrievalErrorResponse struct {
