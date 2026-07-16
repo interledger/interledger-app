@@ -39,7 +39,7 @@ type FiantLinker struct {
 
 func NewFiantLinker(b FiantLinkerBackends, ptiBaseURL, ptiClientID, ptiJWK string) (*FiantLinker, error) {
 	if ptiJWK == "" {
-		return nil, nil
+		return nil, fmt.Errorf("plaid/fiant linker: PTI JWK is required when PTI is enabled")
 	}
 	pk, err := jwk.ParseKey([]byte(ptiJWK))
 	if err != nil {
