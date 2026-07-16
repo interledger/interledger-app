@@ -1415,15 +1415,18 @@ func validateAccountsIfCrossProviderPayment(ctx context.Context, b Backends, typ
 	}
 
 	if senderAcc.State != linkedaccounts.Verified || receiverAcc.State != linkedaccounts.Verified {
+		log.Info("Cross provider account validation failed: Account state not verified")
 		return payments.ErrIncompatibleAccounts
 	}
 
 	if !senderAcc.CanSend || !receiverAcc.CanReceive {
+		log.Info("Cross provider account validation failed: Sender cannot send or receiver cannot receive")
 		return payments.ErrIncompatibleAccounts
 	}
 
 	// Supported provider pair only
 	if !isXagoGatehubPair(senderAcc.Provider, receiverAcc.Provider) {
+		log.Info("Cross provider account validation failed: Cross provider payment is only supported for Xago Gatehub pair")
 		return payments.ErrIncompatibleAccounts
 	}
 
@@ -1431,11 +1434,13 @@ func validateAccountsIfCrossProviderPayment(ctx context.Context, b Backends, typ
 	if senderAcc.Provider == xago.ProviderName {
 		// Balance accounts only
 		if senderAcc.Type != xago.AccTypeBalance || receiverAcc.Type != gatehub.AccTypeBalance {
+			log.Info("Cross provider account validation failed: Balance accounts only")
 			return payments.ErrIncompatibleAccounts
 		}
 
 		// Compatible currencies only
 		if senderAcc.SendCurrency != currency.ZAR || receiverAcc.ReceiveCurrency != currency.EUR {
+			log.Info("Cross provider account validation failed: Incompatible currencies")
 			return payments.ErrIncompatibleAccounts
 		}
 	}
@@ -1444,11 +1449,13 @@ func validateAccountsIfCrossProviderPayment(ctx context.Context, b Backends, typ
 	if senderAcc.Provider == gatehub.ProviderName {
 		// Balance accounts only
 		if senderAcc.Type != gatehub.AccTypeBalance || receiverAcc.Type != xago.AccTypeBalance {
+			log.Info("Cross provider account validation failed: Only balance accounts are supported")
 			return payments.ErrIncompatibleAccounts
 		}
 
 		// Compatible currencies only
 		if senderAcc.SendCurrency != currency.EUR || receiverAcc.ReceiveCurrency != currency.ZAR {
+			log.Info("Cross provider account validation failed: Incompatible currencies")
 			return payments.ErrIncompatibleAccounts
 		}
 	}
@@ -1464,6 +1471,7 @@ func validateAccountsIfCrossProviderPayment(ctx context.Context, b Backends, typ
 	}
 
 	if !senderFeats.XagoGatehubPaymentsEnabled || !receiverFeats.XagoGatehubPaymentsEnabled {
+		log.Info("Cross provider account validation failed: XagoGatehubPaymentsEnabled is false")
 		return payments.ErrIncompatibleAccounts
 	}
 
