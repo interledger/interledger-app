@@ -27,6 +27,7 @@ import {
   handleUpdatePhone,
   handleVerifyOtp
 } from '~/lib/phone.server'
+import { isResendRateLimitedResult } from '~/lib/resend-otp-result'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { formatCountdown, useCountdown } from '~/lib/useCountdown'
 import styles from '~/styles/flags.css?url'
@@ -75,6 +76,7 @@ export default function Page() {
   const { start, isActive, remainingSeconds } = useCountdown()
   const [otpSent, setOtpSent] = useState(false)
   const [newPhone, setNewPhone] = useState<string | null>(null)
+  const resendData = resendFetcher.data
   const updateCodeSent =
     updateFetcher.data &&
     'codeSent' in updateFetcher.data &&
@@ -90,9 +92,12 @@ export default function Page() {
       ? (actionData.errors as { otp?: string } | undefined)?.otp
       : undefined
   const resendError =
-    resendFetcher.data && 'message' in resendFetcher.data
-      ? resendFetcher.data.message
-      : undefined
+    resendData && 'message' in resendData ? resendData.message : undefined
+  const resendCodeSent =
+    resendData && 'codeSent' in resendData && resendData.codeSent === true
+  const resendRetryAfter = isResendRateLimitedResult(resendData)
+    ? resendData.retryAfter
+    : undefined
 
   useEffect(() => {
     if (updateCodeSent && updatedPhone) {
@@ -103,18 +108,15 @@ export default function Page() {
   }, [start, updateCodeSent, updatedPhone])
 
   useEffect(() => {
-    if (resendFetcher.data?.codeSent) {
+    if (resendCodeSent) {
       start(RESEND_DELAY)
       return
     }
 
-    if (
-      resendFetcher.data?.error === 'rateLimited' &&
-      typeof resendFetcher.data.retryAfter === 'number'
-    ) {
-      start(resendFetcher.data.retryAfter * 1000)
+    if (typeof resendRetryAfter === 'number') {
+      start(resendRetryAfter * 1000)
     }
-  }, [resendFetcher.data, start])
+  }, [resendCodeSent, resendRetryAfter, start])
 
   const isResendDisabled = isActive || resendFetcher.state !== 'idle'
 
@@ -232,7 +234,7 @@ export async function action({ request }: Route.ActionArgs) {
 
   if (intent === 'resend') {
     const phone = form.get('phone') as string
-    return handleResendOtp(request, phone)
+    return await handleResendOtp(request, phone)
   }
 
   // intent === 'verify'

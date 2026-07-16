@@ -19,15 +19,16 @@ func (e EnvironmentConfig) IsModeSandbox() bool { return e.Mode == "sandbox" }
 // Secrets may be embedded as {{ secret "k8s-secret-name" "key" }} template expressions,
 // which configa resolves against the Kubernetes Secrets API at startup.
 type StartConfig struct {
-	Environment         EnvironmentConfig `yaml:"environment"`
-	Port                string            `yaml:"port"`
-	ApplicationURL      string            `yaml:"application_url"       validate:"required"`
-	OpenPaymentsBaseURL string            `yaml:"open_payments_base_url" validate:"required"`
-	AuthBaseURL         string            `yaml:"auth_base_url"          validate:"required"`
-	LogLevel            string            `yaml:"log_level"`
-	LogOutputPath       string            `yaml:"log_output_path"`
-	AllowedWalletIDs    []string          `yaml:"allowed_wallet_ids"`
-	BlockedRegions      []string          `yaml:"blocked_regions"`
+	Environment          EnvironmentConfig `yaml:"environment"`
+	Port                 string            `yaml:"port"`
+	ApplicationURL       string            `yaml:"application_url"       validate:"required"`
+	OpenPaymentsBaseURL  string            `yaml:"open_payments_base_url" validate:"required"`
+	AuthBaseURL          string            `yaml:"auth_base_url"          validate:"required"`
+	LogLevel             string            `yaml:"log_level"`
+	LogOutputPath        string            `yaml:"log_output_path"`
+	AllowedWalletIDs     []string          `yaml:"allowed_wallet_ids"`
+	BlockedRegions       []string          `yaml:"blocked_regions"`
+	DeleteAccountEnabled bool              `yaml:"delete_account_enabled"`
 
 	DB              DBConfig              `yaml:"db"`
 	Kratos          KratosConfig          `yaml:"kratos"`

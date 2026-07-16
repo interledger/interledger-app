@@ -1865,7 +1865,6 @@ type Features struct {
 	ManageWalletCardsEnabled   bool                   `protobuf:"varint,11,opt,name=manageWalletCardsEnabled,proto3" json:"manageWalletCardsEnabled,omitempty"`
 	AccountEnabled             bool                   `protobuf:"varint,12,opt,name=accountEnabled,proto3" json:"accountEnabled,omitempty"`
 	AccountsTabEnabled         bool                   `protobuf:"varint,13,opt,name=accountsTabEnabled,proto3" json:"accountsTabEnabled,omitempty"`
-	DeleteAccountEnabled       bool                   `protobuf:"varint,14,opt,name=deleteAccountEnabled,proto3" json:"deleteAccountEnabled,omitempty"`
 	XagoGatehubPaymentsEnabled bool                   `protobuf:"varint,15,opt,name=xagoGatehubPaymentsEnabled,proto3" json:"xagoGatehubPaymentsEnabled,omitempty"`
 	unknownFields              protoimpl.UnknownFields
 	sizeCache                  protoimpl.SizeCache
@@ -1988,13 +1987,6 @@ func (x *Features) GetAccountEnabled() bool {
 func (x *Features) GetAccountsTabEnabled() bool {
 	if x != nil {
 		return x.AccountsTabEnabled
-	}
-	return false
-}
-
-func (x *Features) GetDeleteAccountEnabled() bool {
-	if x != nil {
-		return x.DeleteAccountEnabled
 	}
 	return false
 }
@@ -3900,7 +3892,7 @@ const file_backend_admin_v1_backend_proto_rawDesc = "" +
 	"\x06reason\x18\x02 \x01(\tR\x06reason\x12\x1a\n" +
 	"\bnewState\x18\x03 \x01(\tR\bnewState\"6\n" +
 	"\x18GetWalletFeaturesRequest\x12\x1a\n" +
-	"\bwalletID\x18\x01 \x01(\tR\bwalletID\"\xa4\x05\n" +
+	"\bwalletID\x18\x01 \x01(\tR\bwalletID\"\x8c\x05\n" +
 	"\bFeatures\x12 \n" +
 	"\vsendEnabled\x18\x01 \x01(\bR\vsendEnabled\x12&\n" +
 	"\x0ereceiveEnabled\x18\x02 \x01(\bR\x0ereceiveEnabled\x124\n" +
@@ -3915,9 +3907,8 @@ const file_backend_admin_v1_backend_proto_rawDesc = "" +
 	" \x01(\bR\x11zarBalanceEnabled\x12:\n" +
 	"\x18manageWalletCardsEnabled\x18\v \x01(\bR\x18manageWalletCardsEnabled\x12&\n" +
 	"\x0eaccountEnabled\x18\f \x01(\bR\x0eaccountEnabled\x12.\n" +
-	"\x12accountsTabEnabled\x18\r \x01(\bR\x12accountsTabEnabled\x122\n" +
-	"\x14deleteAccountEnabled\x18\x0e \x01(\bR\x14deleteAccountEnabled\x12>\n" +
-	"\x1axagoGatehubPaymentsEnabled\x18\x0f \x01(\bR\x1axagoGatehubPaymentsEnabled\".\n" +
+	"\x12accountsTabEnabled\x18\r \x01(\bR\x12accountsTabEnabled\x12>\n" +
+	"\x1axagoGatehubPaymentsEnabled\x18\x0f \x01(\bR\x1axagoGatehubPaymentsEnabledJ\x04\b\x0e\x10\x0fR\x14deleteAccountEnabled\".\n" +
 	"\x10ListAuditRequest\x12\x1a\n" +
 	"\bwalletID\x18\x01 \x01(\tR\bwalletID\"U\n" +
 	"\x11ListAuditResponse\x12@\n" +

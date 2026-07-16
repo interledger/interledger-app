@@ -1763,11 +1763,6 @@ table "wallet_features" {
     type = boolean
     default = true
   }
-  column "delete_account_enabled" {
-    null = false
-    type = boolean
-    default = false
-  }
   column "xago_gatehub_payments_enabled" {
     null = false
     type = boolean
