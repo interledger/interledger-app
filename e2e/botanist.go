@@ -246,31 +246,150 @@ func (sc *E2EContext) iFilterTheWalletsListByMyWalletAddress() error {
 	return nil
 }
 
-// iFilterTheWalletsListByMyEmailAndWalletAddress fills both the email and
-// walletAddress fields before submitting once, proving the two filters are
-// ANDed together server-side rather than applied independently.
-func (sc *E2EContext) iFilterTheWalletsListByMyEmailAndWalletAddress() error {
-	email, err := sc.getCurrentUserEmail()
-	if err != nil {
-		return fmt.Errorf("cannot resolve current user email: %w", err)
+// iFilterTheWalletsListByMyFirstName filters the wallets list by the current
+// impersonated user's first name.
+func (sc *E2EContext) iFilterTheWalletsListByMyFirstName() error {
+	firstName := sc.kycFirstName()
+	if firstName == "" {
+		return fmt.Errorf("no first name set for current user")
 	}
 
-	details, err := sc.currentUserWalletDetails()
-	if err != nil {
-		return err
-	}
-
-	debugPrintf("🔍 Filtering wallets by email %q AND walletAddress %q\n", email, details.WalletAddress)
-	if err := sc.fillWalletsFilterField("email", email); err != nil {
-		return err
-	}
-	if err := sc.fillWalletsFilterField("walletAddress", details.WalletAddress); err != nil {
+	debugPrintf("🔍 Filtering wallets by first name %q\n", firstName)
+	if err := sc.fillWalletsFilterField("firstName", firstName); err != nil {
 		return err
 	}
 	if err := sc.submitWalletsFilterForm(); err != nil {
 		return err
 	}
-	debugPrintf("✓ Combined filter applied: email=%q walletAddress=%q\n", email, details.WalletAddress)
+	debugPrintf("✓ Filter applied: firstName=%q\n", firstName)
+	return nil
+}
+
+// kycFirstName and kycLastName return the current user's first/last name as
+// verified by the mock KYC provider — suffixed with the per-run test
+// identifier (see xago_kyc.go) so that repeat runs of this scenario never
+// collide on a shared static name (e.g. "Botanist"/"Tester" from the
+// scenario's Background).
+func (sc *E2EContext) kycFirstName() string {
+	if sc.firstName == "" {
+		return ""
+	}
+	return sc.firstName + sc.testIdentifier
+}
+
+func (sc *E2EContext) kycLastName() string {
+	if sc.lastName == "" {
+		return ""
+	}
+	return sc.lastName + sc.testIdentifier
+}
+
+// iFilterTheWalletsListByMyLastName filters the wallets list by the current
+// impersonated user's last name.
+func (sc *E2EContext) iFilterTheWalletsListByMyLastName() error {
+	lastName := sc.kycLastName()
+	if lastName == "" {
+		return fmt.Errorf("no last name set for current user")
+	}
+
+	debugPrintf("🔍 Filtering wallets by last name %q\n", lastName)
+	if err := sc.fillWalletsFilterField("lastName", lastName); err != nil {
+		return err
+	}
+	if err := sc.submitWalletsFilterForm(); err != nil {
+		return err
+	}
+	debugPrintf("✓ Filter applied: lastName=%q\n", lastName)
+	return nil
+}
+
+// iFilterTheWalletsListByMyPhoneNumber filters the wallets list by the current
+// impersonated user's phone number.
+func (sc *E2EContext) iFilterTheWalletsListByMyPhoneNumber() error {
+	phone, err := sc.getCurrentUserPhone()
+	if err != nil {
+		return fmt.Errorf("cannot resolve current user phone: %w", err)
+	}
+
+	debugPrintf("🔍 Filtering wallets by phone number %q\n", phone)
+	if err := sc.fillWalletsFilterField("phoneNumber", phone); err != nil {
+		return err
+	}
+	if err := sc.submitWalletsFilterForm(); err != nil {
+		return err
+	}
+	debugPrintf("✓ Filter applied: phoneNumber=%q\n", phone)
+	return nil
+}
+
+// iFilterTheWalletsListByMyProviderID filters the wallets list by the current
+// impersonated user's linked-account provider ID.
+func (sc *E2EContext) iFilterTheWalletsListByMyProviderID() error {
+	details, err := sc.currentUserWalletDetails()
+	if err != nil {
+		return err
+	}
+	if details.ProviderID == "" {
+		return fmt.Errorf("no provider ID found for current user's wallet")
+	}
+
+	debugPrintf("🔍 Filtering wallets by provider ID %q\n", details.ProviderID)
+	if err := sc.fillWalletsFilterField("providerId", details.ProviderID); err != nil {
+		return err
+	}
+	if err := sc.submitWalletsFilterForm(); err != nil {
+		return err
+	}
+	debugPrintf("✓ Filter applied: providerId=%q\n", details.ProviderID)
+	return nil
+}
+
+// iFilterTheWalletsListByAllFilters fills every filter field at once before
+// submitting, proving all six filters are ANDed together server-side rather
+// than applied independently.
+func (sc *E2EContext) iFilterTheWalletsListByAllFilters() error {
+	email, err := sc.getCurrentUserEmail()
+	if err != nil {
+		return fmt.Errorf("cannot resolve current user email: %w", err)
+	}
+	phone, err := sc.getCurrentUserPhone()
+	if err != nil {
+		return fmt.Errorf("cannot resolve current user phone: %w", err)
+	}
+	firstName := sc.kycFirstName()
+	lastName := sc.kycLastName()
+	if firstName == "" || lastName == "" {
+		return fmt.Errorf("no first/last name set for current user")
+	}
+	details, err := sc.currentUserWalletDetails()
+	if err != nil {
+		return err
+	}
+	if details.ProviderID == "" {
+		return fmt.Errorf("no provider ID found for current user's wallet")
+	}
+
+	debugPrintf("🔍 Filtering wallets by all filters: firstName=%q lastName=%q email=%q phoneNumber=%q walletAddress=%q providerId=%q\n",
+		firstName, lastName, email, phone, details.WalletAddress, details.ProviderID)
+
+	fields := map[string]string{
+		"firstName":     firstName,
+		"lastName":      lastName,
+		"email":         email,
+		"phoneNumber":   phone,
+		"walletAddress": details.WalletAddress,
+		"providerId":    details.ProviderID,
+	}
+	for _, field := range []string{"firstName", "lastName", "email", "phoneNumber", "walletAddress", "providerId"} {
+		if err := sc.fillWalletsFilterField(field, fields[field]); err != nil {
+			return err
+		}
+	}
+	if err := sc.submitWalletsFilterForm(); err != nil {
+		return err
+	}
+
+	debugPrintf("✓ All filters applied\n")
 	return nil
 }
 
