@@ -113,7 +113,7 @@ func TestSearchTotpURL(t *testing.T) {
 			credentials: map[string]kratos.IdentityCredentials{
 				"totp": {
 					Identifiers: []string{"totp"},
-					Type:        ptr("totp"),
+					Type:        ptr(totpCredentialType),
 					Config: map[string]any{
 						"totp_url": "totp://totp",
 					},
