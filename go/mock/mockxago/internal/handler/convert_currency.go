@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"math"
 	"net/http"
 	"time"
@@ -45,6 +46,10 @@ func roundTo6Decimals(v float64) float64 {
 	return math.Round(v*1000000) / 1000000
 }
 
+// the smallest amount the real Xago exchange endpoint accepts
+// It rejects anything below 1 whole unit (e.g. < 1 EUR / < 1 ZAR)
+const minConvertAmount = 1.0
+
 // ConvertCurrencyHandler handles POST /v1/currencyconvert.
 // When estimateCalculation is true it returns an EstimateConvertCurrencyResponse.
 // When estimateCalculation is false it records the conversion and returns its UUID.
@@ -61,9 +66,8 @@ func (h *Handler) ConvertCurrencyHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// TODO <= 0
-	if req.Amount < 0 {
-		h.sendError(w, http.StatusBadRequest, "invalid_request", "amount must be positive")
+	if req.Amount < minConvertAmount {
+		h.sendError(w, http.StatusBadRequest, "invalid_request", fmt.Sprintf("amount must be at least %g", minConvertAmount))
 		return
 	}
 

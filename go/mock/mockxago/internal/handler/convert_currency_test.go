@@ -145,34 +145,40 @@ func TestConvertCurrencyHandler_UnsupportedPair(t *testing.T) {
 	assert.Equal(t, "invalid_request", resp.Error)
 }
 
-func TestConvertCurrencyHandler_ZeroAmount(t *testing.T) {
-	h := setupTestHandler(t)
+// TestConvertCurrencyHandler_AmountMinimum pins the minimum-amount contract to
+// the literal 1 that the real Xago exchange enforces: it rejects anything below
+// 1 unit and accepts exactly 1 or above.
+func TestConvertCurrencyHandler_AmountMinimum(t *testing.T) {
+	tests := []struct {
+		name         string
+		amount       float64
+		shouldReject bool
+	}{
+		{"just below minimum", 0.99, true},
+		{"exactly minimum", 1, false},
+		{"above minimum", 1.01, false},
+	}
 
-	w := doConvertCurrency(t, h, models.ConvertCurrencyRequest{
-		ConvertCurrencyPair: models.ZARtoEUR,
-		Amount:              0,
-		EstimateCalculation: true,
-	})
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := setupTestHandler(t)
 
-	assert.Equal(t, http.StatusBadRequest, w.Code)
-	var resp models.ErrorResponse
-	json.NewDecoder(w.Body).Decode(&resp)
-	assert.Equal(t, "invalid_request", resp.Error)
-}
+			w := doConvertCurrency(t, h, models.ConvertCurrencyRequest{
+				ConvertCurrencyPair: models.ZARtoEUR,
+				Amount:              tt.amount,
+				EstimateCalculation: true,
+			})
 
-func TestConvertCurrencyHandler_NegativeAmount(t *testing.T) {
-	h := setupTestHandler(t)
-
-	w := doConvertCurrency(t, h, models.ConvertCurrencyRequest{
-		ConvertCurrencyPair: models.ZARtoEUR,
-		Amount:              -50,
-		EstimateCalculation: true,
-	})
-
-	assert.Equal(t, http.StatusBadRequest, w.Code)
-	var resp models.ErrorResponse
-	json.NewDecoder(w.Body).Decode(&resp)
-	assert.Equal(t, "invalid_request", resp.Error)
+			if tt.shouldReject {
+				assert.Equal(t, http.StatusBadRequest, w.Code)
+				var resp models.ErrorResponse
+				assert.NoError(t, json.NewDecoder(w.Body).Decode(&resp))
+				assert.Equal(t, "invalid_request", resp.Error)
+			} else {
+				assert.Equal(t, http.StatusOK, w.Code)
+			}
+		})
+	}
 }
 
 func TestGetConvertCurrencyDetails_Success(t *testing.T) {
