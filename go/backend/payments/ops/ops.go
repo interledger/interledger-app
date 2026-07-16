@@ -354,12 +354,10 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 			}
 		}
 
+		// Find compatible balance accounts
 		for _, sendLA := range sendBalances {
 			for _, recvLA := range recvBalances {
-				// TODO check if we can find a better way
-				crossProvider := isXagoGatehubPair(sendLA.Provider, recvLA.Provider) &&
-					recvLA.CanReceive && recvLA.State == linkedaccounts.Verified
-				if sendLA.CanPay(recvLA) || crossProvider {
+				if sendLA.CanPay(recvLA) || isCrossProviderPair(&sendLA, &recvLA) {
 					p.SenderAccount = sendLA.ID
 					p.ReceiverAccount = recvLA.ID
 					p.SenderAmount.Currency = sendLA.SendCurrency
@@ -372,6 +370,11 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 				break
 			}
 		}
+	}
+
+	err = validateAccountsIfCrossProviderPayment(ctx, b, p.Type, p.SenderAccount, p.ReceiverAccount)
+	if err != nil {
+		return nil, err
 	}
 
 	canSend, sendCurrency, err := accountCanSend(ctx, b, senderWallet, p.SenderAccount, p.Type)
@@ -582,44 +585,6 @@ func validateWithdrawal(ctx context.Context, b Backends, typ payments.Type, send
 	return nil
 }
 
-func isXagoGatehubPair(senderProvider, receiverProvider string) bool {
-	isXagoGatehubPair := (senderProvider == gatehub.ProviderName && receiverProvider == xago.ProviderName) ||
-		(senderProvider == xago.ProviderName && receiverProvider == gatehub.ProviderName)
-
-	return isXagoGatehubPair
-}
-
-// Allow cross-provider transfers only for supported provider pair and only if the feature is enabled for both wallets
-func validateCrossProviderSenderReceiver(ctx context.Context, b Backends, senderAcc, receiverAcc *linkedaccounts.LinkedAccount) error {
-	// Supported provider pair only
-	if !isXagoGatehubPair(senderAcc.Provider, receiverAcc.Provider) {
-		return payments.ErrIncompatibleAccounts
-	}
-
-	// Check feature flag enabled for both wallets
-	senderFeats, err := b.Features().Features(ctx, senderAcc.WalletID)
-	if err != nil {
-		return err
-	}
-	receiverFeats, err := b.Features().Features(ctx, receiverAcc.WalletID)
-	if err != nil {
-		return err
-	}
-	if !senderFeats.XagoGatehubPaymentsEnabled || !receiverFeats.XagoGatehubPaymentsEnabled {
-		return payments.ErrIncompatibleAccounts
-	}
-
-	// Check account type
-	if senderAcc.Provider == xago.ProviderName && senderAcc.Type != xago.AccTypeBalance {
-		return payments.ErrIncompatibleAccounts
-	}
-	if receiverAcc.Provider == xago.ProviderName && receiverAcc.Type != xago.AccTypeBalance {
-		return payments.ErrIncompatibleAccounts
-	}
-
-	return nil
-}
-
 func validateSenderReceiver(ctx context.Context, b Backends, typ payments.Type, senderAccID, receiverAccID string) error {
 	if typ != payments.TypePeer2Peer || senderAccID == "" || receiverAccID == "" {
 		return nil
@@ -633,10 +598,6 @@ func validateSenderReceiver(ctx context.Context, b Backends, typ payments.Type, 
 	receiverAcc, err := b.LinkedAccounts().Get(ctx, receiverAccID)
 	if err != nil {
 		return err
-	}
-
-	if senderAcc.Provider != receiverAcc.Provider {
-		return validateCrossProviderSenderReceiver(ctx, b, senderAcc, receiverAcc)
 	}
 
 	if senderAcc.Provider == xago.ProviderName && (senderAcc.Type != xago.AccTypeBalance || receiverAcc.Type != xago.AccTypeBalance) {
@@ -1418,4 +1379,93 @@ func estimateXagoGatehubFX(ctx context.Context, b Backends, senderProvider strin
 	}
 
 	return currency.FromFloat64(receivedAmount, receiverCurrency), estimatedRate, nil
+}
+
+func isCrossProviderPair(sendLA, recvLA *linkedaccounts.LinkedAccount) bool {
+	return sendLA.Provider != recvLA.Provider
+}
+
+func isXagoGatehubPair(senderProvider, receiverProvider string) bool {
+	isXagoGatehubPair := (senderProvider == gatehub.ProviderName && receiverProvider == xago.ProviderName) ||
+		(senderProvider == xago.ProviderName && receiverProvider == gatehub.ProviderName)
+
+	return isXagoGatehubPair
+}
+
+// validateAccountsIfCrossProviderPayment performs cross-provider specific validations if it detects that this is a cross provider payment
+func validateAccountsIfCrossProviderPayment(ctx context.Context, b Backends, typ payments.Type, senderAccID, receiverAccID string) error {
+	// Return early if this is not a cross provider payment
+	if typ != payments.TypePeer2Peer || senderAccID == "" || receiverAccID == "" {
+		return nil
+	}
+
+	senderAcc, err := b.LinkedAccounts().Get(ctx, senderAccID)
+	if err != nil {
+		return err
+	}
+
+	receiverAcc, err := b.LinkedAccounts().Get(ctx, receiverAccID)
+	if err != nil {
+		return err
+	}
+
+	// Return early if this is not a cross provider payment
+	if !isCrossProviderPair(senderAcc, receiverAcc) {
+		return nil
+	}
+
+	if senderAcc.State != linkedaccounts.Verified || receiverAcc.State != linkedaccounts.Verified {
+		return payments.ErrIncompatibleAccounts
+	}
+
+	if !senderAcc.CanSend || !receiverAcc.CanReceive {
+		return payments.ErrIncompatibleAccounts
+	}
+
+	// Supported provider pair only
+	if !isXagoGatehubPair(senderAcc.Provider, receiverAcc.Provider) {
+		return payments.ErrIncompatibleAccounts
+	}
+
+	// Xago to Gatehub validations
+	if senderAcc.Provider == xago.ProviderName {
+		// Balance accounts only
+		if senderAcc.Type != xago.AccTypeBalance || receiverAcc.Type != gatehub.AccTypeBalance {
+			return payments.ErrIncompatibleAccounts
+		}
+
+		// Compatible currencies only
+		if senderAcc.SendCurrency != currency.ZAR || receiverAcc.ReceiveCurrency != currency.EUR {
+			return payments.ErrIncompatibleAccounts
+		}
+	}
+
+	// Gatehub to Xago validations
+	if senderAcc.Provider == gatehub.ProviderName {
+		// Balance accounts only
+		if senderAcc.Type != gatehub.AccTypeBalance || receiverAcc.Type != xago.AccTypeBalance {
+			return payments.ErrIncompatibleAccounts
+		}
+
+		// Compatible currencies only
+		if senderAcc.SendCurrency != currency.EUR || receiverAcc.ReceiveCurrency != currency.ZAR {
+			return payments.ErrIncompatibleAccounts
+		}
+	}
+
+	// Feature flags checks
+	senderFeats, err := b.Features().Features(ctx, senderAcc.WalletID)
+	if err != nil {
+		return err
+	}
+	receiverFeats, err := b.Features().Features(ctx, receiverAcc.WalletID)
+	if err != nil {
+		return err
+	}
+
+	if !senderFeats.XagoGatehubPaymentsEnabled || !receiverFeats.XagoGatehubPaymentsEnabled {
+		return payments.ErrIncompatibleAccounts
+	}
+
+	return nil
 }
