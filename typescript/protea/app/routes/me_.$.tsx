@@ -177,6 +177,9 @@ export default function Page() {
           Payments are currently in beta and are only enabled for certain users.
         </p>
       )}
+
+{!isUser &&  <ButtonRouter to={`/login?returnTo=${walletAddress.address}`}>Log in</ButtonRouter>}
+
       {!isUser && (
         <Card>
           <CardHeader>
