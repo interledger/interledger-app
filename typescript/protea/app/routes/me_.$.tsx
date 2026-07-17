@@ -20,9 +20,11 @@ import {
   CardContent,
   CardCopy,
   CardHeader,
+  CardIcon,
   CardTitle,
   Chip,
   ChipColor,
+  InterledgerIcon,
   Layouts
 } from '~/components'
 import { Label } from '~/components/Label'
@@ -174,7 +176,27 @@ export default function Page() {
           Payments are currently in beta and are only enabled for certain users.
         </p>
       )}
-      {!isUser && <ButtonRouter to={href('/signup')}>Sign up</ButtonRouter>}
+      {!isUser && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Join Interledger Wallet</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className='mb-4 flex items-start space-x-4'>
+              <CardIcon>
+                <InterledgerIcon />
+              </CardIcon>
+              <div className='flex flex-col space-y-4'>
+                <p className='text-sm text-medium'>
+                  For a secure digital wallet built for the world of Open
+                  Payments, join the waitlist now.
+                </p>
+              </div>
+            </div>
+            <ButtonRouter to={href('/signup')}>Sign up</ButtonRouter>
+          </CardContent>
+        </Card>
+      )}
     </>
   )
 }
