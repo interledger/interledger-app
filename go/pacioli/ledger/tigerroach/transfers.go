@@ -176,9 +176,14 @@ func createTransfer(ctx context.Context, b Backends, args pacioli.CreateTransfer
 		return pacioli.TransferExceedsDebits, nil
 	}
 
-	// If transactionID is not provided, default to transfer ID
 	transactionID := args.TransactionID
 	if transactionID == "" {
+		// falls back to keep id == transaction_id
+		// fix the caller to set TransactionID, otherwise this will point at a transaction that does NOT exist
+		log.Warn("MISSING transaction_id on create transfer",
+			zap.String("id", args.ID),
+			zap.String("debit_account_id", args.DebitAccountID),
+			zap.String("credit_account_id", args.CreditAccountID))
 		transactionID = args.ID
 	}
 
