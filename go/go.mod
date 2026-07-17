@@ -25,7 +25,7 @@ require (
 	github.com/lib/pq v1.10.9
 	github.com/machinebox/graphql v0.2.2
 	github.com/n0madic/twitter-scraper v0.0.0-20230423143228-6d13e319a39d
-	github.com/ory/kratos-client-go v0.13.1
+	github.com/ory/kratos-client-go v1.3.8
 	github.com/pquerna/otp v1.5.0
 	github.com/pusher/pusher-http-go/v5 v5.1.1
 	github.com/quasilyte/go-ruleguard/dsl v0.3.23

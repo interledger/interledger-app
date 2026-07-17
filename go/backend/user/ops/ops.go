@@ -20,9 +20,10 @@ import (
 )
 
 const (
-	kratosTimeout       = 1500 * time.Millisecond
-	kratosCookieName    = "ory_kratos_session"
-	aal2RequiredErrorID = "session_aal2_required"
+	kratosTimeout        = 1500 * time.Millisecond
+	kratosCookieName     = "ory_kratos_session"
+	aal2RequiredErrorID  = "session_aal2_required"
+	totpCredentialType = "totp"
 )
 
 type sessionRetrievalErrorResponse struct {
@@ -60,7 +61,7 @@ func UserForCookie(ctx context.Context, b Backends, cookie string) (*user.User, 
 	ctx, cancel := context.WithTimeout(ctx, kratosTimeout)
 	defer cancel()
 
-	session, resp, err := b.Kratos().FrontendApi.ToSession(ctx).Cookie(kratosCookieName + "=" + cookie).Execute()
+	session, resp, err := b.Kratos().FrontendAPI.ToSession(ctx).Cookie(kratosCookieName + "=" + cookie).Execute()
 	if err != nil {
 		return nil, getSessionRetrievalError(resp, err)
 	}
@@ -77,7 +78,7 @@ func UserForToken(ctx context.Context, b Backends, token string) (*user.User, er
 	ctx, cancel := context.WithTimeout(ctx, kratosTimeout)
 	defer cancel()
 
-	session, resp, err := b.Kratos().FrontendApi.ToSession(ctx).XSessionToken(token).Execute()
+	session, resp, err := b.Kratos().FrontendAPI.ToSession(ctx).XSessionToken(token).Execute()
 	if err != nil {
 		return nil, getSessionRetrievalError(resp, err)
 	}
@@ -87,7 +88,7 @@ func UserForToken(ctx context.Context, b Backends, token string) (*user.User, er
 }
 
 func GetUser(ctx context.Context, b Backends, userID string) (*user.User, error) {
-	id, _, err := b.Kratos().IdentityApi.GetIdentity(ctx, userID).Execute()
+	id, _, err := b.Kratos().IdentityAPI.GetIdentity(ctx, userID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", user.ErrInternal, err)
 	}
@@ -136,7 +137,7 @@ func UserForContext(ctx context.Context) (*user.User, error) {
 //
 //	// Use totpURL
 func GetTotpURL(ctx context.Context, b Backends, userID string) (string, error) {
-	identity, _, err := b.Kratos().IdentityApi.GetIdentity(ctx, userID).IncludeCredential([]string{"totp"}).Execute()
+	identity, _, err := b.Kratos().IdentityAPI.GetIdentity(ctx, userID).IncludeCredential([]string{"totp"}).Execute()
 	if err != nil {
 		return "", fmt.Errorf("%w %s", user.ErrInternal, err)
 	}
@@ -174,7 +175,7 @@ func FindWalletIDByEmail(ctx context.Context, b Backends, email string) (string,
 
 	// Kratos admin API is at server index 1.
 	kratosCtx := context.WithValue(ctx, client.ContextServerIndex, 1)
-	identities, _, err := b.Kratos().IdentityApi.ListIdentities(kratosCtx).CredentialsIdentifier(email).Execute()
+	identities, _, err := b.Kratos().IdentityAPI.ListIdentities(kratosCtx).CredentialsIdentifier(email).Execute()
 	if err != nil {
 		return "", fmt.Errorf("%w %s", user.ErrInternal, err)
 	}
@@ -241,7 +242,7 @@ func ListUsers(ctx context.Context, b Backends, walletID string) ([]user.User, e
 			wg.Add(1)
 			go func(uID string) {
 				defer wg.Done()
-				id, _, err := b.Kratos().IdentityApi.GetIdentity(ctx, uID).Execute()
+				id, _, err := b.Kratos().IdentityAPI.GetIdentity(ctx, uID).Execute()
 				if err != nil {
 					anyErr = err
 					return
@@ -264,7 +265,7 @@ func ListUsers(ctx context.Context, b Backends, walletID string) ([]user.User, e
 }
 
 func CheckUserTotpEnabled(ctx context.Context, b Backends, identityID string) (bool, error) {
-	identity, _, err := b.Kratos().IdentityApi.GetIdentity(ctx, identityID).Execute()
+	identity, _, err := b.Kratos().IdentityAPI.GetIdentity(ctx, identityID).Execute()
 	if err != nil {
 		return false, fmt.Errorf("%w %s", user.ErrInternal, err)
 	}
@@ -280,13 +281,13 @@ func CheckUserTotpEnabled(ctx context.Context, b Backends, identityID string) (b
 }
 
 func Delete2FATotpEnrollment(ctx context.Context, b Backends, identityID string) error {
-	identity, _, err := b.Kratos().IdentityApi.GetIdentity(ctx, identityID).Execute()
+	identity, _, err := b.Kratos().IdentityAPI.GetIdentity(ctx, identityID).Execute()
 	if err != nil {
 		return fmt.Errorf("%w %s", user.ErrInternal, err)
 	}
 
-	req := b.Kratos().IdentityApi.DeleteIdentityCredentials(ctx, identity.Id, "totp")
-	_, _, err = req.Execute()
+	req := b.Kratos().IdentityAPI.DeleteIdentityCredentials(ctx, identity.Id, "totp")
+	_, err = req.Execute()
 	if err != nil {
 		return fmt.Errorf("%w %s", user.ErrInternal, err)
 	}
@@ -305,7 +306,7 @@ func searchTotpURL(credentials map[string]client.IdentityCredentials) (string, e
 			continue
 		}
 
-		if *cred.Type != client.IDENTITYCREDENTIALSTYPE_TOTP {
+		if *cred.Type != totpCredentialType {
 			continue
 		}
 
@@ -333,7 +334,7 @@ func SetPhoneVerified(ctx context.Context, b Backends, userID string) error {
 	// Required for kratos to use admin server
 	ctx = context.WithValue(ctx, client.ContextServerIndex, 1)
 
-	identity, _, err := b.Kratos().IdentityApi.GetIdentity(ctx, userID).Execute()
+	identity, _, err := b.Kratos().IdentityAPI.GetIdentity(ctx, userID).Execute()
 	if err != nil {
 		return fmt.Errorf("%w %s", user.ErrInternal, err)
 	}
@@ -345,7 +346,7 @@ func SetPhoneVerified(ctx context.Context, b Backends, userID string) error {
 	traits["phoneVerified"] = true
 
 	update := client.UpdateIdentityBody{Traits: traits}
-	_, _, err = b.Kratos().IdentityApi.UpdateIdentity(ctx, userID).UpdateIdentityBody(update).Execute()
+	_, _, err = b.Kratos().IdentityAPI.UpdateIdentity(ctx, userID).UpdateIdentityBody(update).Execute()
 	if err != nil {
 		return fmt.Errorf("%w %s", user.ErrInternal, err)
 	}
@@ -357,7 +358,7 @@ func UpdateUserPhone(ctx context.Context, b Backends, userID string, phone strin
 	// Required for kratos to use admin server
 	ctx = context.WithValue(ctx, client.ContextServerIndex, 1)
 
-	identity, _, err := b.Kratos().IdentityApi.GetIdentity(ctx, userID).Execute()
+	identity, _, err := b.Kratos().IdentityAPI.GetIdentity(ctx, userID).Execute()
 	if err != nil {
 		return fmt.Errorf("%w %s", user.ErrInternal, err)
 	}
@@ -370,7 +371,7 @@ func UpdateUserPhone(ctx context.Context, b Backends, userID string, phone strin
 	traits["phoneVerified"] = false
 
 	update := client.UpdateIdentityBody{Traits: traits}
-	_, response, err := b.Kratos().IdentityApi.UpdateIdentity(ctx, userID).UpdateIdentityBody(update).Execute()
+	_, response, err := b.Kratos().IdentityAPI.UpdateIdentity(ctx, userID).UpdateIdentityBody(update).Execute()
 	if err != nil {
 		if response != nil && response.StatusCode == 400 {
 			return fmt.Errorf("%w %s", user.ErrInvalidArgument, err)
