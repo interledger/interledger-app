@@ -54,7 +54,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   const searchParams = new URL(request.url).searchParams
   const isQuote = searchParams.get('quote') || false
   const paymentId = searchParams.get('url') || ''
-  let receiver = searchParams.get('receiver') || ''
+  const receiver = searchParams.get('receiver') || ''
   let isValidPaymentUrl = true
   let paymentDetails
   let receiverWalletAddress
