@@ -22,9 +22,10 @@ import (
 )
 
 const (
-	kratosTimeout       = 1500 * time.Millisecond
-	kratosCookieName    = "ory_kratos_session"
-	aal2RequiredErrorID = "session_aal2_required"
+	kratosTimeout        = 1500 * time.Millisecond
+	kratosCookieName     = "ory_kratos_session"
+	aal2RequiredErrorID  = "session_aal2_required"
+	totpCredentialType = "totp"
 )
 
 type sessionRetrievalErrorResponse struct {
@@ -361,7 +362,7 @@ func searchTotpURL(credentials map[string]client.IdentityCredentials) (string, e
 			continue
 		}
 
-		if *cred.Type != "totp" {
+		if *cred.Type != totpCredentialType {
 			continue
 		}
 

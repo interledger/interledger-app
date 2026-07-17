@@ -47,13 +47,14 @@ func TestUpdateUserPhone_StatusMapping(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			var srv *httptest.Server
+			srv = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				if r.Method == http.MethodGet {
 					w.Header().Set("Content-Type", "application/json")
 					_ = json.NewEncoder(w).Encode(map[string]any{
 						"id":         "user-id",
 						"schema_id":  "default",
-						"schema_url": "https://kratos.example/schemas/default",
+						"schema_url": srv.URL + "/schemas/default",
 						"traits": map[string]any{
 							"phone":         "+10000000000",
 							"phoneVerified": true,
@@ -112,7 +113,7 @@ func TestSearchTotpURL(t *testing.T) {
 			credentials: map[string]kratos.IdentityCredentials{
 				"totp": {
 					Identifiers: []string{"totp"},
-					Type:        ptr("totp"),
+					Type:        ptr(totpCredentialType),
 					Config: map[string]any{
 						"totp_url": "totp://totp",
 					},
@@ -132,7 +133,7 @@ func TestSearchTotpURL(t *testing.T) {
 			credentials: map[string]kratos.IdentityCredentials{
 				"totp": {
 					Identifiers: []string{"totp"},
-					Type:        ptr("totp"),
+					Type:        ptr(totpCredentialType),
 					Config: map[string]any{
 						"totp_url": []string{"totp://totp"},
 					},
@@ -174,7 +175,7 @@ func TestSearchTotpURL(t *testing.T) {
 			credentials: map[string]kratos.IdentityCredentials{
 				"totp": {
 					Identifiers: []string{"totp"},
-					Type:        ptr("totp"),
+					Type:        ptr(totpCredentialType),
 					Config:      map[string]any{
 						// no "totp_url"
 					},
@@ -188,7 +189,7 @@ func TestSearchTotpURL(t *testing.T) {
 			credentials: map[string]kratos.IdentityCredentials{
 				"totp": {
 					Identifiers: []string{"totp"},
-					Type:        ptr("totp"),
+					Type:        ptr(totpCredentialType),
 					Config:      nil,
 				},
 			},
@@ -207,7 +208,7 @@ func TestSearchTotpURL(t *testing.T) {
 				},
 				"totp": {
 					Identifiers: []string{"totp"},
-					Type:        ptr("totp"),
+					Type:        ptr(totpCredentialType),
 					Config: map[string]any{
 						"totp_url": "totp://totp",
 					},
@@ -221,7 +222,7 @@ func TestSearchTotpURL(t *testing.T) {
 			credentials: map[string]kratos.IdentityCredentials{
 				"totp": {
 					Identifiers: []string{"totp"},
-					Type:        ptr("totp"),
+					Type:        ptr(totpCredentialType),
 					Config: map[string]any{
 						"totp_url": "",
 					},
@@ -235,7 +236,7 @@ func TestSearchTotpURL(t *testing.T) {
 			credentials: map[string]kratos.IdentityCredentials{
 				"totp": {
 					Identifiers: []string{"totp"},
-					Type:        ptr("totp"),
+					Type:        ptr(totpCredentialType),
 					Config: map[string]any{
 						"totp_url": nil,
 					},
@@ -355,7 +356,8 @@ func TestFindWalletIDsByIdentifierPrefix(t *testing.T) {
 func newEmailTestBackends(t *testing.T, dbc *sqlx.DB, identityIDs []string) Backends {
 	t.Helper()
 
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+	var srv *httptest.Server
+	srv = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		type identityStub struct {
 			ID        string         `json:"id"`
 			SchemaID  string         `json:"schema_id"`
@@ -364,7 +366,12 @@ func newEmailTestBackends(t *testing.T, dbc *sqlx.DB, identityIDs []string) Back
 		}
 		stubs := make([]identityStub, len(identityIDs))
 		for i, id := range identityIDs {
-			stubs[i] = identityStub{ID: id, SchemaID: "default", SchemaURL: "https://kratos.example/schemas/default", Traits: map[string]any{}}
+			stubs[i] = identityStub{
+				ID:        id,
+				SchemaID:  "default",
+				SchemaURL: srv.URL + "/schemas/default",
+				Traits:    map[string]any{},
+			}
 		}
 		w.Header().Set("Content-Type", "application/json")
 		if err := json.NewEncoder(w).Encode(stubs); err != nil {
