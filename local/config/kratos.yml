@@ -29,7 +29,6 @@ selfservice:
   allowed_return_urls:
     - http://interledger.test
     - https://interledger.test/*
-    - https://local.ilp.link/*
   default_browser_return_url: http://interledger.test
   flows:
     error:

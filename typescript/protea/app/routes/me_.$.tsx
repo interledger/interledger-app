@@ -39,6 +39,8 @@ import { mergeMeta } from '~/lib/meta'
 import type { Route } from './+types/me_.$'
 
 export async function loader({ request, params }: Route.LoaderArgs) {
+  const url = new URL(request.url)
+  const page = url.pathname + url.search
   const unsanitizedWalletAddressParam = params['*'] as string
   let profilePicture: { person: Query['person'] } | { person: null } = {
     person: null
@@ -76,6 +78,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   }
 
   return data({
+    page,
     profilePicture,
     isUser,
     canSendToAddress,
@@ -103,6 +106,7 @@ export const meta = mergeMeta(({ data, location }) => [
 
 export default function Page() {
   const {
+    page,
     profilePicture,
     isUser,
     wallet,
@@ -110,6 +114,8 @@ export default function Page() {
     walletAddress,
     paymentPointerParam
   } = useLoaderData<typeof loader>()
+
+  
 
   return (
     <>
@@ -180,7 +186,7 @@ export default function Page() {
 
       {!isUser && (
         <ButtonRouter
-          to={`/login?returnTo=${encodeURIComponent(walletAddress.address)}`}
+          to={`/login?returnTo=${encodeURIComponent(page)}`}
         >
           Log in
         </ButtonRouter>
