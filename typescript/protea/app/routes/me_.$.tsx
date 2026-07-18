@@ -178,7 +178,13 @@ export default function Page() {
         </p>
       )}
 
-{!isUser &&  <ButtonRouter to={`/login?returnTo=${walletAddress.address}`}>Log in</ButtonRouter>}
+      {!isUser && (
+        <ButtonRouter
+          to={`/login?returnTo=${encodeURIComponent(walletAddress.address)}`}
+        >
+          Log in
+        </ButtonRouter>
+      )}
 
       {!isUser && (
         <Card>
