@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"gitlab.com/fynbos/mock/mockpti/internal/jobs"
-	"gitlab.com/fynbos/mock/mockpti/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockpti/internal/jobs"
+	"github.com/interledger/interledger-app/go/mock/mockpti/internal/models"
 )
 
 // NewUserAssessmentWebhookJobHandler returns a worker handler for USER_ASSESSMENT jobs.

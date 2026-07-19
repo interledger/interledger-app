@@ -16,20 +16,18 @@ import (
 	"strings"
 	"testing"
 
-	"gitlab.com/fynbos/env"
-
 	"github.com/google/uuid"
+	"github.com/interledger/interledger-app/go/log"
 	"github.com/jmoiron/sqlx"
 	"github.com/uptrace/opentelemetry-go-extra/otelsql"
 	"github.com/uptrace/opentelemetry-go-extra/otelsqlx"
-	"gitlab.com/fynbos/log"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	"go.uber.org/zap"
 )
 
 const testingConnectionString = "postgres://postgres:password@127.0.0.1:55432/%s?sslmode=disable"
 
-func Migrate(ctx context.Context, connString string) error {
+func Migrate(ctx context.Context, connString string, openPaymentsURL string) error {
 	_, moduleDir, _, ok := runtime.Caller(0)
 	if !ok {
 		return fmt.Errorf("Could not get directory path for utils/testing.")
@@ -61,7 +59,7 @@ func Migrate(ctx context.Context, connString string) error {
 
 	if strings.EqualFold(currentHash, schemaHash) {
 		log.Info("Schema already deployed.", zap.String("hash", currentHash))
-		return seedSysAccounts(ctx, db)
+		return seedSysAccounts(ctx, db, openPaymentsURL)
 	}
 
 	_, err = exec.LookPath("atlas")
@@ -99,7 +97,7 @@ func Migrate(ctx context.Context, connString string) error {
 		}
 	}
 
-	err = seedSysAccounts(ctx, db)
+	err = seedSysAccounts(ctx, db, openPaymentsURL)
 
 	if err == nil {
 		log.Info("MIGRATION APPLIED for backend")
@@ -117,7 +115,11 @@ func CreateExpIndex(ctx context.Context, db *sqlx.DB) error {
 	return nil
 }
 
-func MigrateTestDB(t *testing.T, ctx context.Context) *sqlx.DB {
+func MigrateTestDB(t *testing.T, ctx context.Context, openPaymentsURL string) *sqlx.DB {
+	if openPaymentsURL == "" {
+		openPaymentsURL = "https://local.ilp.link"
+	}
+
 	_, moduleDir, _, ok := runtime.Caller(0)
 	if !ok {
 		t.Fatal("Could not get directory path for utils/testing.")
@@ -203,7 +205,7 @@ func MigrateTestDB(t *testing.T, ctx context.Context) *sqlx.DB {
 		t.Fatal(err)
 	}
 
-	err = seedSysAccounts(ctx, conn)
+	err = seedSysAccounts(ctx, conn, openPaymentsURL)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -211,10 +213,10 @@ func MigrateTestDB(t *testing.T, ctx context.Context) *sqlx.DB {
 	return conn
 }
 
-func seedSysAccounts(ctx context.Context, dbc *sqlx.DB) error {
+func seedSysAccounts(ctx context.Context, dbc *sqlx.DB, openPaymentsURL string) error {
 	log.Info("Seeding system accounts...")
 	// Can't use linkedaccount/rafiki constants for cyclic dependencies
-	_, err := dbc.ExecContext(ctx, fmt.Sprintf(seedSQL, env.OpenPaymentsURL()))
+	_, err := dbc.ExecContext(ctx, fmt.Sprintf(seedSQL, openPaymentsURL))
 
 	return err
 }

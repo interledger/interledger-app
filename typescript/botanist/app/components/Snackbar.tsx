@@ -59,7 +59,7 @@ export const Snackbar: FC<SnackbarProps> = ({
           leaveFrom='opacity-100 scale-100'
           leaveTo='opacity-0 scale-95'
         >
-          <div className='mx-4 flex w-full transform items-center justify-between space-x-3 overflow-hidden rounded-xl bg-snackbar py-3 px-4 text-left align-middle shadow-lg transition-all sm:max-w-[22rem]'>
+          <div className='mx-4 flex w-full transform items-center justify-between space-x-3 overflow-hidden rounded-xl bg-snackbar px-4 py-3 text-left align-middle shadow-lg transition-all sm:max-w-[22rem]'>
             <p className='text-sm text-white'>{message}</p>
             {action && (
               <TextButton onClick={() => onClose()}>{action}</TextButton>

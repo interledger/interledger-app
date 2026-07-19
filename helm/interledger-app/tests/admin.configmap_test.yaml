@@ -19,7 +19,7 @@ tests:
     asserts:
       - equal:
           path: data.BACKEND_GRPC_URL
-          value: "http://wallet-backend-service-grpc:8448"
+          value: "wallet-backend-service-grpc:8448"
 
   - it: 'Should include KRATOS_ADMIN_URL in the ConfigMap data'
     asserts:

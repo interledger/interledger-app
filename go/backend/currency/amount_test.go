@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/interledger/interledger-app/go/backend/currency"
 	"github.com/stretchr/testify/assert"
-	"gitlab.com/fynbos/backend/currency"
 )
 
 func TestCurrency(t *testing.T) {
 	t.Parallel()
-		
+
 	cases := []struct {
 		cc    string
 		valid bool
@@ -44,7 +44,7 @@ func TestCurrency(t *testing.T) {
 
 func TestAmount_Float64(t *testing.T) {
 	t.Parallel()
-		
+
 	cases := []struct {
 		name string
 		in   currency.Amount
@@ -85,7 +85,7 @@ func TestAmount_Float64(t *testing.T) {
 
 func TestAmount_FormatAmount(t *testing.T) {
 	t.Parallel()
-		
+
 	cases := []struct {
 		name string
 		in   currency.Amount
@@ -126,7 +126,7 @@ func TestAmount_FormatAmount(t *testing.T) {
 
 func TestAmount_Format(t *testing.T) {
 	t.Parallel()
-	
+
 	cases := []struct {
 		name string
 		in   currency.Amount
@@ -177,7 +177,7 @@ func TestAmount_Format(t *testing.T) {
 
 func TestFromFloat(t *testing.T) {
 	t.Parallel()
-		
+
 	cases := []struct {
 		name    string
 		in      float64

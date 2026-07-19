@@ -5,8 +5,8 @@ import (
 	"errors"
 	"time"
 
-	temporal_context "gitlab.com/fynbos/backend/temporal/context"
-	"gitlab.com/fynbos/log"
+	temporal_context "github.com/interledger/interledger-app/go/backend/temporal/context"
+	"github.com/interledger/interledger-app/go/log"
 	"go.temporal.io/api/serviceerror"
 	"go.temporal.io/api/workflowservice/v1"
 	"go.temporal.io/sdk/client"

@@ -10,13 +10,13 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/golang/mock/gomock"
+	"github.com/interledger/interledger-app/go/backend/db"
+	"github.com/interledger/interledger-app/go/backend/signup"
+	"github.com/interledger/interledger-app/go/backend/signup/ops"
+	"github.com/interledger/interledger-app/go/backend/twilio"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/signup"
-	"gitlab.com/fynbos/backend/signup/ops"
-	"gitlab.com/fynbos/backend/twilio"
 )
 
 type backends struct {
@@ -40,7 +40,7 @@ func (b backends) Twilio() twilio.Service {
 func setupTest(t *testing.T) (context.Context, *backends) {
 
 	ctx := context.Background()
-	db := db.MigrateTestDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx, "")
 	b := &backends{
 		validator: validator.New(),
 		db:        db,
@@ -51,7 +51,7 @@ func setupTest(t *testing.T) (context.Context, *backends) {
 func setupTestWithTwilio(t *testing.T) (context.Context, *backends) {
 
 	ctx := context.Background()
-	db := db.MigrateTestDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx, "")
 	tw := twilio.NewMockService(gomock.NewController(t))
 	tw.EXPECT().CheckVerificationCode(ctx, gomock.Any()).Return(&twilio.Verification{Status: "approved"}, nil).AnyTimes()
 	b := &backends{

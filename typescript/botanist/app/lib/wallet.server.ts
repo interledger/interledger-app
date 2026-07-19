@@ -90,10 +90,10 @@ export async function GetWalletDetails(
       response.response.gender == 0
         ? 'Unknown'
         : response.response.gender == 1
-        ? 'Male'
-        : response.response.gender == 2
-        ? 'Female'
-        : 'Other',
+          ? 'Male'
+          : response.response.gender == 2
+            ? 'Female'
+            : 'Other',
     dateOfBirth: DateTime.fromSeconds(
       parseInt(response.response.dateOfBirth?.seconds ?? '')
     ).toLocaleString(DateTime.DATETIME_FULL)

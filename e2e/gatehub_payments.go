@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net/url"
 	"strings"
 	"time"
 
@@ -397,15 +398,28 @@ func (sc *E2EContext) iSelectThePaymentCurrency(currency string) error {
 func (sc *E2EContext) iSubmitThePayment() error {
 	debugPrintln("\n📤 Submitting payment...")
 
+	confirmButton, err := sc.advanceToConfirmStep()
+	if err != nil {
+		return err
+	}
+
+	return sc.confirmPaymentAgreementAndSubmit(confirmButton)
+}
+
+// advanceToConfirmStep drives the two-step Pay SPA to the Confirm step and
+// returns the Confirm payment button locator. If we're already on the Confirm
+// step it returns immediately; otherwise it clicks Continue on the Amount step
+// and waits for the Confirm button to appear.
+func (sc *E2EContext) advanceToConfirmStep() (playwright.Locator, error) {
 	confirmButton := sc.page.Locator("[data-testid='pay-confirm-submit']")
 	continueButton := sc.page.Locator("[data-testid='pay-amount-continue']")
 
-	// If we're already on the Confirm step, just check agreement and submit.
+	// If we're already on the Confirm step, return its button straight away.
 	if err := confirmButton.First().WaitFor(playwright.LocatorWaitForOptions{
 		State:   playwright.WaitForSelectorStateVisible,
 		Timeout: playwright.Float(500),
 	}); err == nil {
-		return sc.confirmPaymentAgreementAndSubmit(confirmButton)
+		return confirmButton, nil
 	}
 
 	// Otherwise we expect to be on the Amount step. Wait for the Continue
@@ -415,7 +429,7 @@ func (sc *E2EContext) iSubmitThePayment() error {
 		State:   playwright.WaitForSelectorStateVisible,
 		Timeout: playwright.Float(10000),
 	}); err != nil {
-		return fmt.Errorf("pay-amount-continue button not visible: %w", err)
+		return confirmButton, fmt.Errorf("pay-amount-continue button not visible: %w", err)
 	}
 
 	// Allow any in-flight amount-update fetcher request to settle so the
@@ -428,7 +442,7 @@ func (sc *E2EContext) iSubmitThePayment() error {
 	}
 
 	if err := continueButton.First().Click(); err != nil {
-		return fmt.Errorf("failed to click pay-amount-continue: %w", err)
+		return confirmButton, fmt.Errorf("failed to click pay-amount-continue: %w", err)
 	}
 	debugPrintln("✓ Clicked Continue, waiting for Confirm step...")
 
@@ -436,19 +450,30 @@ func (sc *E2EContext) iSubmitThePayment() error {
 		State:   playwright.WaitForSelectorStateVisible,
 		Timeout: playwright.Float(15000),
 	}); err != nil {
-		return fmt.Errorf("pay-confirm-submit button did not appear: %w", err)
+		return confirmButton, fmt.Errorf("pay-confirm-submit button did not appear: %w", err)
 	}
 
-	return sc.confirmPaymentAgreementAndSubmit(confirmButton)
+	return confirmButton, nil
 }
 
-// confirmPaymentAgreementAndSubmit ticks the service-agreement checkbox and
-// clicks the Confirm payment button. After clicking, the protea action
-// redirects to '/' on success. The agreement checkbox is required by the
-// backend, so any failure to tick it is treated as a hard error rather than
-// silently swallowed (which would let the subsequent submit appear to
-// succeed while the server rejects the request).
+// confirmPaymentAgreementAndSubmit ticks the service agreement and submits the
+// Confirm step. On success the protea action redirects to '/'.
 func (sc *E2EContext) confirmPaymentAgreementAndSubmit(confirmButton playwright.Locator) error {
+	if err := sc.tickServiceAgreement(); err != nil {
+		return err
+	}
+
+	if err := confirmButton.First().Click(); err != nil {
+		return fmt.Errorf("failed to click pay-confirm-submit: %w", err)
+	}
+	debugPrintln("✓ Submitted payment confirmation")
+	return nil
+}
+
+// tickServiceAgreement ticks the mandatory service-agreement checkbox. Failing
+// to tick it is a hard error: otherwise the submit would appear to succeed
+// while the server rejects it.
+func (sc *E2EContext) tickServiceAgreement() error {
 	agreement := sc.page.Locator("[data-testid='pay-confirm-agreement']")
 	if aCount, _ := agreement.Count(); aCount > 0 {
 		if err := agreement.First().WaitFor(playwright.LocatorWaitForOptions{
@@ -464,11 +489,77 @@ func (sc *E2EContext) confirmPaymentAgreementAndSubmit(confirmButton playwright.
 			}
 		}
 	}
+	return nil
+}
 
-	if err := confirmButton.First().Click(); err != nil {
-		return fmt.Errorf("failed to click pay-confirm-submit: %w", err)
+// iRapidlyDoubleClickToSubmitThePayment double-clicks the Confirm button to
+// exercise the double-submit fix: the button disables after the first click
+// (see Confirm.tsx), so only one payment is created and protea redirects Home.
+func (sc *E2EContext) iRapidlyDoubleClickToSubmitThePayment() error {
+	debugPrintln("\n📤 Submitting payment via rapid double-click...")
+
+	confirmButton, err := sc.advanceToConfirmStep()
+	if err != nil {
+		return err
 	}
-	debugPrintln("✓ Submitted payment confirmation")
+	if err := sc.tickServiceAgreement(); err != nil {
+		return err
+	}
+
+	// First click is the real submit.
+	if err := confirmButton.First().Click(playwright.LocatorClickOptions{
+		Timeout: playwright.Float(5000),
+	}); err != nil {
+		return fmt.Errorf("failed first click on pay-confirm-submit: %w", err)
+	}
+
+	// Second click in quick succession. With the fix the button is disabled (or
+	// the page is navigating), so this is a no-op — ignore its result.
+	_ = confirmButton.First().Click(playwright.LocatorClickOptions{
+		Timeout: playwright.Float(1000),
+	})
+
+	debugPrintln("✓ Double-clicked payment confirmation")
+	return nil
+}
+
+// iShouldLandOnHomeAndBeAbleToNavigate asserts the post-confirm redirect lands
+// on the dashboard (not stranded on Pay search) and that back navigation does
+// not bounce into the /pay/:paymentId -> /pay loop the regression produced.
+func (sc *E2EContext) iShouldLandOnHomeAndBeAbleToNavigate() error {
+	debugPrintln("\n🧭 Verifying post-payment navigation...")
+
+	var currentURL string
+	for i := 0; i < 15; i++ {
+		currentURL = sc.page.URL()
+		if isDashboardURL(currentURL, sc.baseURL) {
+			break
+		}
+		debugPrintf("   still on %s, waiting for dashboard redirect...\n", currentURL)
+		time.Sleep(1 * time.Second)
+	}
+
+	if !isDashboardURL(currentURL, sc.baseURL) {
+		return fmt.Errorf(
+			"expected redirect to the home page after confirm, but was stranded at %s",
+			currentURL,
+		)
+	}
+	debugPrintf("✓ Redirected to the home page at %s\n", currentURL)
+
+	// The bug also trapped back navigation: /pay/:paymentId re-redirected to
+	// /pay. Verify going back doesn't leave us stuck on that route.
+	if _, err := sc.page.GoBack(playwright.PageGoBackOptions{
+		Timeout:   playwright.Float(5000),
+		WaitUntil: playwright.WaitUntilStateNetworkidle,
+	}); err != nil {
+		debugPrintf("⚠ go back returned: %v (continuing)\n", err)
+	}
+	time.Sleep(1 * time.Second)
+	if afterBack := sc.page.URL(); isPaymentDetailURL(afterBack) {
+		return fmt.Errorf("back navigation trapped the user on the payment confirm route at %s", afterBack)
+	}
+	debugPrintf("✓ Back navigation healthy, landed at %s\n", sc.page.URL())
 	return nil
 }
 
@@ -567,6 +658,19 @@ func isDashboardURL(currentURL, baseURL string) bool {
 		trimmed = trimmed[:idx]
 	}
 	return trimmed == strings.TrimSuffix(baseURL, "/")
+}
+
+// isPaymentDetailURL returns true for a payment confirm route
+// (/pay/:paymentId) — the route the double-submit regression trapped users on
+// via its confirmed-payment redirect loop. The bare /pay search page is a
+// normal, navigable destination and is deliberately not matched.
+func isPaymentDetailURL(currentURL string) bool {
+	parsed, err := url.Parse(currentURL)
+	if err != nil {
+		return strings.Contains(currentURL, "/pay/")
+	}
+	path := strings.Trim(parsed.Path, "/")
+	return strings.HasPrefix(path, "pay/")
 }
 
 // iDepositViATheDepositIframeAsUser completes the deposit flow for a specific user

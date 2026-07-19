@@ -3,8 +3,8 @@ package db
 import (
 	"fmt"
 
-	adminpb "gitlab.com/fynbos/proto/backend/admin/v1"
-	pb "gitlab.com/fynbos/proto/backend/v1"
+	adminpb "github.com/interledger/interledger-app/go/proto/backend/admin/v1"
+	pb "github.com/interledger/interledger-app/go/proto/backend/v1"
 )
 
 type Pagination struct {

@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import { useEffect, useState } from 'react'
-import { useDialPadStore } from '~/lib/useDialPadStore'
 import { getCurrencySymbol } from '~/lib/helpers'
+import { useDialPadStore } from '~/lib/useDialPadStore'
 
 export enum DialPadIds {
   Backspace = 'Backspace',
@@ -17,7 +17,12 @@ export enum DialPadIds {
   Eight = '8',
   Nine = '9'
 }
-const handleDialPadInputs = (id: string, amountValue: string, setAmountValue: (amount: string) => void, triggerKey?: (key: string) => void,) => {
+const handleDialPadInputs = (
+  id: string,
+  amountValue: string,
+  setAmountValue: (amount: string) => void,
+  triggerKey?: (key: string) => void
+) => {
   if (triggerKey) {
     triggerKey(id)
   }
@@ -54,10 +59,11 @@ export const DialPad = () => {
     setTimeout(() => {
       setActiveKey(null)
     }, 500)
-  };
+  }
 
   useEffect(() => {
-    const eventHandleDialPadInputs = (e: KeyboardEvent) => handleDialPadInputs(e.key, amountValue, setAmountValue, triggerKey)
+    const eventHandleDialPadInputs = (e: KeyboardEvent) =>
+      handleDialPadInputs(e.key, amountValue, setAmountValue, triggerKey)
 
     document.addEventListener('keydown', eventHandleDialPadInputs)
 
@@ -66,7 +72,7 @@ export const DialPad = () => {
     }
   }, [amountValue, setAmountValue, triggerKey])
   return (
-    <div className="flex flex-col text-xl">
+    <div className='flex flex-col text-xl'>
       <AmountDisplay />
       <DialPadRow
         first={DialPadIds.One}
@@ -89,7 +95,7 @@ export const DialPad = () => {
       <DialPadRow
         first={DialPadIds.Dot}
         second={DialPadIds.Zero}
-        third="<"
+        third='<'
         idThird={DialPadIds.Backspace}
         activeKey={activeKey}
       />
@@ -118,10 +124,22 @@ const DialPadRow = ({
 }: DialPadRowProps) => {
   return (
     <div>
-      <ul className="flex justify-between">
-        <DialPadKey label={first} id={idFirst ? idFirst : first} activeKey={activeKey} />
-        <DialPadKey label={second} id={idSecond ? idSecond : second} activeKey={activeKey} />
-        <DialPadKey label={third} id={idThird ? idThird : third} activeKey={activeKey} />
+      <ul className='flex justify-between'>
+        <DialPadKey
+          label={first}
+          id={idFirst ? idFirst : first}
+          activeKey={activeKey}
+        />
+        <DialPadKey
+          label={second}
+          id={idSecond ? idSecond : second}
+          activeKey={activeKey}
+        />
+        <DialPadKey
+          label={third}
+          id={idThird ? idThird : third}
+          activeKey={activeKey}
+        />
       </ul>
     </div>
   )

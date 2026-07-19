@@ -6,16 +6,19 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/interledger/interledger-app/go/log"
 	"github.com/twilio/twilio-go"
 	"github.com/twilio/twilio-go/client"
 	verify "github.com/twilio/twilio-go/rest/verify/v2"
-	"gitlab.com/fynbos/log"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.uber.org/zap"
 )
+
+var twilioRequestTimeout = 10 * time.Second
 
 var (
 	ErrInvalidArgument = errors.New("twilio error: invalid argument")
@@ -37,14 +40,12 @@ type (
 		AccountToken string `validate:"required"`
 		ServiceSid   string `validate:"required"`
 		ApiBaseUrl   string // use this to override the default base url
-		Enabled      bool   // when false, all methods return stub responses without calling Twilio
 	}
 
 	service struct {
 		validator    *validator.Validate
 		serviceSid   string
 		twilioClient *twilio.RestClient
-		enabled      bool
 	}
 
 	Verification struct {
@@ -63,11 +64,10 @@ func NewService(args *ServiceArgs) (Service, error) {
 	if args == nil {
 		return nil, fmt.Errorf("%w: args must not be nil", ErrInvalidArgument)
 	}
-	if args.Enabled {
-		validator := validator.New()
-		if err := validator.Struct(args); err != nil {
-			return nil, fmt.Errorf("%w: %s", ErrInvalidArgument, err)
-		}
+
+	v := validator.New()
+	if err := v.Struct(args); err != nil {
+		return nil, fmt.Errorf("%w: %s", ErrInvalidArgument, err)
 	}
 
 	customClient := &CustomClient{
@@ -78,32 +78,52 @@ func NewService(args *ServiceArgs) (Service, error) {
 
 	customClient.SetAccountSid(args.AccountSid)
 	customClient.BaseURL = args.ApiBaseUrl
-	customClient.HTTPClient = otelhttp.DefaultClient
+	customClient.HTTPClient = cloneHTTPClientWithTimeout(otelhttp.DefaultClient, twilioRequestTimeout)
 
 	twilioClient := twilio.NewRestClientWithParams(twilio.ClientParams{
 		Client: customClient,
 	})
 
+	if err := validateConfiguration(twilioClient, args.ServiceSid); err != nil {
+		return nil, err
+	}
+
 	return &service{
 		validator:    validator.New(),
 		twilioClient: twilioClient,
 		serviceSid:   args.ServiceSid,
-		enabled:      args.Enabled,
 	}, nil
+}
+
+func cloneHTTPClientWithTimeout(base *http.Client, timeout time.Duration) *http.Client {
+	if base == nil {
+		return &http.Client{Timeout: timeout}
+	}
+
+	cloned := *base
+	cloned.Timeout = timeout
+
+	return &cloned
+}
+
+func validateConfiguration(twilioClient *twilio.RestClient, serviceSid string) error {
+	_, err := twilioClient.VerifyV2.FetchService(serviceSid)
+	if err == nil {
+		return nil
+	}
+
+	var twilioError *client.TwilioRestError
+	if errors.As(err, &twilioError) {
+		return fmt.Errorf("%w: twilio verify service validation failed (code=%d): %s", ErrInvalidArgument, twilioError.Code, twilioError.Message)
+	}
+
+	return fmt.Errorf("%w: twilio verify service validation failed: %s", ErrInternal, err)
 }
 
 func (s *service) SendVerificationCode(ctx context.Context, phoneNumber string) (*Verification, error) {
 	err := s.validator.Var(phoneNumber, "required,e164")
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", ErrInvalidArgument, err)
-	}
-
-	if !s.enabled {
-		return &Verification{
-			Sid:         "1234",
-			PhoneNumber: phoneNumber,
-			Status:      "pending",
-		}, nil
 	}
 
 	params := &verify.CreateVerificationParams{}
@@ -138,14 +158,6 @@ type CheckVerificationCodeArgs struct {
 }
 
 func (s *service) CheckVerificationCode(ctx context.Context, args *CheckVerificationCodeArgs) (*Verification, error) {
-	if !s.enabled {
-		return &Verification{
-			Sid:         "1234",
-			PhoneNumber: args.PhoneNumber,
-			Status:      statusApproved,
-		}, nil
-	}
-
 	err := s.validator.Struct(args)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", ErrInvalidArgument, err)
@@ -195,17 +207,6 @@ type ListSuccessfulVerificationAttemptsArgs struct {
 }
 
 func (s *service) ListSuccessfulVerificationAttempts(ctx context.Context, args ListSuccessfulVerificationAttemptsArgs) ([]Verification, error) {
-	if !s.enabled {
-		return []Verification{
-			{
-				Sid:         "1234",
-				PhoneNumber: args.To,
-				Status:      statusApproved,
-				UpdatedAt:   time.Now(),
-			},
-		}, nil
-	}
-
 	converted := "converted"
 	params := &verify.ListVerificationAttemptParams{
 		ChannelDataTo:    &args.To,

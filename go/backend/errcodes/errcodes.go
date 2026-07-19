@@ -33,4 +33,12 @@ const (
 	ErrCodePaymentsInsufficientFunds AppErrorCode = "PAYMENTS_INSUFFICIENT_FUNDS"
 
 	ErrCodeKYCResubmissionRequired AppErrorCode = "KYC_RESUBMISSION_REQUIRED"
+
+	ErrCodeUserInvalidTotpCode   AppErrorCode = "USER_INVALID_TOTP_CODE"
+	ErrCodeUserTotpNotConfigured AppErrorCode = "USER_TOTP_NOT_CONFIGURED"
+	ErrCodeUserInvalidTotpConfig AppErrorCode = "USER_INVALID_TOTP_CONFIG"
+
+	ErrCodeEmailSupportInboxNotConfigured AppErrorCode = "EMAIL_SUPPORT_INBOX_NOT_CONFIGURED"
+
+	ErrCodeAccountDeletionAlreadyRequested AppErrorCode = "ACCOUNT_DELETION_ALREADY_REQUESTED"
 )

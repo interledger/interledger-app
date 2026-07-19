@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"time"
 
-	"gitlab.com/fynbos/backend/country"
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/payments"
-	"gitlab.com/fynbos/backend/providers/pti"
-	"gitlab.com/fynbos/backend/providers/pti/external"
-	"gitlab.com/fynbos/backend/transactions"
+	"github.com/interledger/interledger-app/go/backend/country"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	"github.com/interledger/interledger-app/go/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/providers/pti"
+	"github.com/interledger/interledger-app/go/backend/providers/pti/external"
+	"github.com/interledger/interledger-app/go/backend/transactions"
+	"github.com/interledger/interledger-app/go/backend/wallets"
 
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
@@ -200,6 +201,13 @@ func SettleDepositWorkflow(ctx workflow.Context, wh pti.TransactionStatusPayload
 		return "", err
 	}
 
+	sendRampActionEmail(ctx, a, RampActionEmailArgs{
+		WalletID: walletID,
+		Action:   "Deposit Completed",
+		Status:   "Completed",
+		Amount:   amt,
+	})
+
 	return txID, nil
 }
 
@@ -242,6 +250,23 @@ func ReturnedWorkflow(ctx workflow.Context, wh pti.TransactionStatusPayload) (st
 		return "", err
 	}
 
+	var originalTx *transactions.Transaction
+	err = workflow.ExecuteActivity(ctx, a.GetTransactionByForeignID, walletID, originalTransactionID).Get(ctx, &originalTx)
+	if err != nil {
+		return "", err
+	}
+
+	action := "Deposit Returned"
+	if originalTx.Type == transactions.TransactionTypeWithdrawal {
+		action = "Withdrawal Returned"
+	}
+	sendRampActionEmail(ctx, a, RampActionEmailArgs{
+		WalletID: walletID,
+		Action:   action,
+		Status:   "Returned",
+		Amount:   amt,
+	})
+
 	return returnTransactionID, nil
 }
 
@@ -275,10 +300,17 @@ func MarkTransactionStateWorkflow(ctx workflow.Context, wh pti.TransactionStatus
 		return err
 	}
 
+	sendRampActionEmail(ctx, a, RampActionEmailArgs{
+		WalletID: walletID,
+		Action:   "Deposit Failed",
+		Status:   "Failed",
+		Amount:   tx.Amount,
+	})
+
 	return nil
 }
 
-func DepositWorkflow(ctx workflow.Context, payment *payments.Payment, la *linkedaccounts.LinkedAccount) error {
+func DepositWorkflow(ctx workflow.Context, payment *payments.Payment, wallet *wallets.Wallet) error {
 	var a *Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 10 * time.Second,
@@ -286,19 +318,24 @@ func DepositWorkflow(ctx workflow.Context, payment *payments.Payment, la *linked
 
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
+	err := workflow.ExecuteActivity(ctx, a.ValidateLinkedAccounts, payment, wallet.ID).Get(ctx, nil)
+	if err != nil {
+		return temporal.NewNonRetryableApplicationError("Invalid linked account", "ErrInternal", err)
+	}
+
 	pitArgs := pti.TransactionArgs{
 		PaymentID:       payment.ID,
-		WalletID:        la.WalletID,
+		WalletID:        wallet.ID,
 		Amount:          payment.ReceiverAmount,
-		LinkedAccountID: la.ID,
+		LinkedAccountID: payment.SenderAccount,
 	}
 	var externalTxID string
-	err := workflow.ExecuteActivity(ctx, a.PTIDeposit, pitArgs).Get(ctx, &externalTxID)
+	err = workflow.ExecuteActivity(ctx, a.PTIDeposit, pitArgs).Get(ctx, &externalTxID)
 	if err != nil {
 		return err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.CreateTransaction, la, payment.ReceiverAmount, externalTxID, payment.Note).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.CreateTransaction, wallet.ID, payment, externalTxID).Get(ctx, nil)
 	if err != nil {
 		return err
 	}
@@ -372,6 +409,13 @@ func RevertWithdrawWorkflow(ctx workflow.Context, wh pti.TransactionStatusPayloa
 		return err
 	}
 
+	sendRampActionEmail(ctx, a, RampActionEmailArgs{
+		WalletID: walletID,
+		Action:   "Withdrawal Failed",
+		Status:   "Failed",
+		Amount:   amt,
+	})
+
 	return nil
 }
 
@@ -434,7 +478,26 @@ func SettleWithdrawWorkflow(ctx workflow.Context, wh pti.TransactionStatusPayloa
 		return "", err
 	}
 
+	sendRampActionEmail(ctx, a, RampActionEmailArgs{
+		WalletID: walletID,
+		Action:   "Withdrawal Completed",
+		Status:   "Completed",
+		Amount:   amt,
+	})
+
 	return txID, nil
+}
+
+// sendRampActionEmail is a best-effort, bounded-retry notification: failures are logged by the
+// activity itself and never propagated, so they can't hang or fail the calling workflow.
+func sendRampActionEmail(ctx workflow.Context, a *Activity, args RampActionEmailArgs) {
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Second,
+		RetryPolicy:         &temporal.RetryPolicy{MaximumAttempts: 3},
+	}
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	_ = workflow.ExecuteActivity(ctx, a.SendRampActionEmail, args).Get(ctx, nil)
 }
 
 func handlePtiFailedWithdrawal(ctx workflow.Context, a *Activity, walletID, transactionID string) {

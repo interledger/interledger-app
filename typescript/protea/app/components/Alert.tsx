@@ -24,10 +24,11 @@ const Alert = forwardRef<HTMLDivElement, AlertProps>(
 Alert.displayName = 'Alert'
 
 const AlertTitle = forwardRef<
-  HTMLParagraphElement,
+  HTMLHeadingElement,
   HTMLAttributes<HTMLHeadingElement>
 >(({ className, ...props }, ref) => {
   return (
+    // eslint-disable-next-line jsx-a11y/heading-has-content -- heading content is supplied by the consumer via {...props}
     <h2
       ref={ref}
       className={clsx('font-medium text-medium', className)}
@@ -39,7 +40,7 @@ AlertTitle.displayName = 'AlertTitle'
 
 const AlertBody = forwardRef<
   HTMLParagraphElement,
-  HTMLAttributes<HTMLHeadingElement>
+  HTMLAttributes<HTMLParagraphElement>
 >(({ className, ...props }, ref) => {
   return <p ref={ref} className={clsx('text-medium', className)} {...props} />
 })

@@ -2,12 +2,16 @@ package main
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"net"
 	"net/http"
 	"os"
 	"os/signal"
+	"sort"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -15,101 +19,108 @@ import (
 	"github.com/getsentry/sentry-go"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
+	aasa_assetlinks "github.com/interledger/interledger-app/go/backend/aasa_assetlinks"
+	"github.com/interledger/interledger-app/go/backend/accountdeletion"
+	accountdeletion_client "github.com/interledger/interledger-app/go/backend/accountdeletion/client"
+	"github.com/interledger/interledger-app/go/backend/admin"
+	"github.com/interledger/interledger-app/go/backend/admin/auth"
+	"github.com/interledger/interledger-app/go/backend/agreements"
+	agreements_client "github.com/interledger/interledger-app/go/backend/agreements/client"
+	agreements_migrations "github.com/interledger/interledger-app/go/backend/agreements/migrations"
+	"github.com/interledger/interledger-app/go/backend/analytics"
+	analytics_client "github.com/interledger/interledger-app/go/backend/analytics/client"
+	analytics_webhook "github.com/interledger/interledger-app/go/backend/analytics/webhook"
+	"github.com/interledger/interledger-app/go/backend/api"
+	"github.com/interledger/interledger-app/go/backend/cli"
+	"github.com/interledger/interledger-app/go/backend/config"
+	"github.com/interledger/interledger-app/go/backend/contacts"
+	contacts_client "github.com/interledger/interledger-app/go/backend/contacts/client"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/db"
+	"github.com/interledger/interledger-app/go/backend/jobs"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/riandyrn/otelchi"
 	"github.com/uptrace/opentelemetry-go-extra/otelsql"
 	"github.com/uptrace/opentelemetry-go-extra/otelsqlx"
-	aasa_assetlinks "gitlab.com/fynbos/backend/aasa_assetlinks"
-	"gitlab.com/fynbos/backend/admin"
-	"gitlab.com/fynbos/backend/admin/auth"
-	"gitlab.com/fynbos/backend/agreements"
-	agreements_client "gitlab.com/fynbos/backend/agreements/client"
-	agreements_migrations "gitlab.com/fynbos/backend/agreements/migrations"
-	"gitlab.com/fynbos/backend/analytics"
-	analytics_client "gitlab.com/fynbos/backend/analytics/client"
-	analytics_webhook "gitlab.com/fynbos/backend/analytics/webhook"
-	"gitlab.com/fynbos/backend/api"
-	"gitlab.com/fynbos/backend/cli"
-	"gitlab.com/fynbos/backend/contacts"
-	contacts_client "gitlab.com/fynbos/backend/contacts/client"
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/jobs"
 
-	"gitlab.com/fynbos/backend/email"
-	email_client "gitlab.com/fynbos/backend/email/client"
-	"gitlab.com/fynbos/backend/features"
-	features_client "gitlab.com/fynbos/backend/features/client"
-	_grpc "gitlab.com/fynbos/backend/grpc"
-	"gitlab.com/fynbos/backend/healthcheck"
-	"gitlab.com/fynbos/backend/identities"
-	identities_client "gitlab.com/fynbos/backend/identities/client"
-	"gitlab.com/fynbos/backend/images"
-	img_client "gitlab.com/fynbos/backend/images/client"
-	"gitlab.com/fynbos/backend/keys"
-	keys_client "gitlab.com/fynbos/backend/keys/client"
-	"gitlab.com/fynbos/backend/kyc"
-	kyc_client "gitlab.com/fynbos/backend/kyc/client"
-	kyc_ops "gitlab.com/fynbos/backend/kyc/ops"
-	"gitlab.com/fynbos/backend/kyc/persona"
-	"gitlab.com/fynbos/backend/limits"
-	limits_client "gitlab.com/fynbos/backend/limits/client"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	linked_account_client "gitlab.com/fynbos/backend/linkedaccounts/client"
-	"gitlab.com/fynbos/backend/notify"
-	notify_client "gitlab.com/fynbos/backend/notify/client"
-	"gitlab.com/fynbos/backend/payments"
-	payments_client "gitlab.com/fynbos/backend/payments/client"
-	"gitlab.com/fynbos/backend/providers/chimoney"
-	chimoney_client "gitlab.com/fynbos/backend/providers/chimoney/client"
-	chimoney_ops "gitlab.com/fynbos/backend/providers/chimoney/ops"
-	"gitlab.com/fynbos/backend/providers/gatehub"
-	gatehub_client "gitlab.com/fynbos/backend/providers/gatehub/client"
-	gatehub_ops "gitlab.com/fynbos/backend/providers/gatehub/ops"
-	"gitlab.com/fynbos/backend/providers/pti"
-	pti_client "gitlab.com/fynbos/backend/providers/pti/client"
-	pti_ops "gitlab.com/fynbos/backend/providers/pti/ops"
-	"gitlab.com/fynbos/backend/providers/xago"
-	xago_client "gitlab.com/fynbos/backend/providers/xago/client"
-	xago_external "gitlab.com/fynbos/backend/providers/xago/external"
-	"gitlab.com/fynbos/backend/rafiki"
-	rafiki_client "gitlab.com/fynbos/backend/rafiki/client"
-	rafiki_external "gitlab.com/fynbos/backend/rafiki/external"
-	"gitlab.com/fynbos/backend/signup"
-	signup_client "gitlab.com/fynbos/backend/signup/client"
-	"gitlab.com/fynbos/backend/slack"
-	slack_client "gitlab.com/fynbos/backend/slack/client"
-	slack_external "gitlab.com/fynbos/backend/slack/external"
-	"gitlab.com/fynbos/backend/temporal"
-	"gitlab.com/fynbos/backend/transactions"
-	transactions_client "gitlab.com/fynbos/backend/transactions/client"
-	_twilio "gitlab.com/fynbos/backend/twilio"
-	"gitlab.com/fynbos/backend/twitter"
-	twitter_client "gitlab.com/fynbos/backend/twitter/client"
-	"gitlab.com/fynbos/backend/user"
-	user_client "gitlab.com/fynbos/backend/user/client"
-	"gitlab.com/fynbos/backend/vault"
-	"gitlab.com/fynbos/backend/waitlist"
-	waitlist_client "gitlab.com/fynbos/backend/waitlist/client"
-	"gitlab.com/fynbos/backend/wallets"
-	wallets_client "gitlab.com/fynbos/backend/wallets/client"
-	wallet_handler "gitlab.com/fynbos/backend/wallets/handler"
-	"gitlab.com/fynbos/log"
-	"gitlab.com/fynbos/pacioli"
-	pacioli_client "gitlab.com/fynbos/pacioli/client"
-	pacioli_db "gitlab.com/fynbos/pacioli/db"
-	"gitlab.com/fynbos/tracing"
+	"github.com/interledger/interledger-app/go/backend/email"
+	email_client "github.com/interledger/interledger-app/go/backend/email/client"
+	"github.com/interledger/interledger-app/go/backend/features"
+	features_client "github.com/interledger/interledger-app/go/backend/features/client"
+	_grpc "github.com/interledger/interledger-app/go/backend/grpc"
+	"github.com/interledger/interledger-app/go/backend/healthcheck"
+	"github.com/interledger/interledger-app/go/backend/identities"
+	identities_client "github.com/interledger/interledger-app/go/backend/identities/client"
+	"github.com/interledger/interledger-app/go/backend/images"
+	img_client "github.com/interledger/interledger-app/go/backend/images/client"
+	"github.com/interledger/interledger-app/go/backend/keys"
+	keys_client "github.com/interledger/interledger-app/go/backend/keys/client"
+	"github.com/interledger/interledger-app/go/backend/kyc"
+	kyc_client "github.com/interledger/interledger-app/go/backend/kyc/client"
+	kyc_ops "github.com/interledger/interledger-app/go/backend/kyc/ops"
+	"github.com/interledger/interledger-app/go/backend/kyc/persona"
+	"github.com/interledger/interledger-app/go/backend/limits"
+	limits_client "github.com/interledger/interledger-app/go/backend/limits/client"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	linked_account_client "github.com/interledger/interledger-app/go/backend/linkedaccounts/client"
+	"github.com/interledger/interledger-app/go/backend/notify"
+	notify_client "github.com/interledger/interledger-app/go/backend/notify/client"
+	"github.com/interledger/interledger-app/go/backend/payments"
+	payments_client "github.com/interledger/interledger-app/go/backend/payments/client"
+	"github.com/interledger/interledger-app/go/backend/providers/chimoney"
+	chimoney_client "github.com/interledger/interledger-app/go/backend/providers/chimoney/client"
+	chimoney_ops "github.com/interledger/interledger-app/go/backend/providers/chimoney/ops"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
+	gatehub_client "github.com/interledger/interledger-app/go/backend/providers/gatehub/client"
+	gatehub_ops "github.com/interledger/interledger-app/go/backend/providers/gatehub/ops"
+	"github.com/interledger/interledger-app/go/backend/providers/pti"
+	pti_client "github.com/interledger/interledger-app/go/backend/providers/pti/client"
+	pti_ops "github.com/interledger/interledger-app/go/backend/providers/pti/ops"
+	"github.com/interledger/interledger-app/go/backend/providers/xago"
+	xago_client "github.com/interledger/interledger-app/go/backend/providers/xago/client"
+	xago_external "github.com/interledger/interledger-app/go/backend/providers/xago/external"
+	"github.com/interledger/interledger-app/go/backend/rafiki"
+	rafiki_client "github.com/interledger/interledger-app/go/backend/rafiki/client"
+	rafiki_external "github.com/interledger/interledger-app/go/backend/rafiki/external"
+	"github.com/interledger/interledger-app/go/backend/signup"
+	signup_client "github.com/interledger/interledger-app/go/backend/signup/client"
+	"github.com/interledger/interledger-app/go/backend/slack"
+	slack_client "github.com/interledger/interledger-app/go/backend/slack/client"
+	slack_external "github.com/interledger/interledger-app/go/backend/slack/external"
+	"github.com/interledger/interledger-app/go/backend/temporal"
+	"github.com/interledger/interledger-app/go/backend/transactions"
+	transactions_client "github.com/interledger/interledger-app/go/backend/transactions/client"
+	_twilio "github.com/interledger/interledger-app/go/backend/twilio"
+	"github.com/interledger/interledger-app/go/backend/twitter"
+	twitter_client "github.com/interledger/interledger-app/go/backend/twitter/client"
+	"github.com/interledger/interledger-app/go/backend/user"
+	user_client "github.com/interledger/interledger-app/go/backend/user/client"
+	"github.com/interledger/interledger-app/go/backend/vault"
+	"github.com/interledger/interledger-app/go/backend/waitlist"
+	waitlist_client "github.com/interledger/interledger-app/go/backend/waitlist/client"
+	"github.com/interledger/interledger-app/go/backend/wallets"
+	wallets_client "github.com/interledger/interledger-app/go/backend/wallets/client"
+	wallet_handler "github.com/interledger/interledger-app/go/backend/wallets/handler"
+	"github.com/interledger/interledger-app/go/log"
+	"github.com/interledger/interledger-app/go/pacioli"
+	pacioli_client "github.com/interledger/interledger-app/go/pacioli/client"
+	pacioli_db "github.com/interledger/interledger-app/go/pacioli/db"
+	"github.com/interledger/interledger-app/go/tracing"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
+	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 
 	// bradu
+	fiant "github.com/interledger/interledger-app/go/backend/providers/fiant/v1"
 	"github.com/lestrrat-go/jwx/v3/jwk"
-	fiant "gitlab.com/fynbos/backend/providers/fiant/v1"
 )
+
+// Version is set at build time via -ldflags "-X main.Version=<tag>".
+var Version = "v0.0.0"
 
 func main() {
 	if len(os.Args) < 2 {
@@ -126,7 +137,7 @@ func main() {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		initSentry(args.SentryDSN, args.SentryRelease)
+		initSentry(args.Sentry.DSN, Version, args.Label)
 		defer sentry.Flush(2 * time.Second)
 		migrate(args)
 	case "start":
@@ -134,7 +145,7 @@ func main() {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		initSentry(args.SentryDSN, args.SentryRelease)
+		initSentry(args.Sentry.DSN, Version, args.Environment.Label)
 		defer sentry.Flush(2 * time.Second)
 		start(args)
 	case "worker":
@@ -142,7 +153,7 @@ func main() {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		initSentry(args.SentryDSN, args.SentryRelease)
+		initSentry(args.Sentry.DSN, Version, args.Environment.Label)
 		defer sentry.Flush(2 * time.Second)
 		startWorker(args)
 	case "dev":
@@ -150,7 +161,7 @@ func main() {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		initSentry(args.SentryDSN, args.SentryRelease)
+		initSentry(args.Sentry.DSN, Version, args.Environment.Label)
 		defer sentry.Flush(2 * time.Second)
 		go func() {
 			startWorker(args)
@@ -161,13 +172,14 @@ func main() {
 	}
 }
 
-func initSentry(dsn, release string) {
+func initSentry(dsn, release, environment string) {
 	if dsn == "" {
 		return
 	}
 	err := sentry.Init(sentry.ClientOptions{
 		Dsn:              dsn,
 		Release:          release,
+		Environment:      environment,
 		TracesSampleRate: 1.0,
 	})
 	if err != nil {
@@ -176,7 +188,7 @@ func initSentry(dsn, release string) {
 }
 
 func start(args *cli.StartArgs) {
-	traceShutdown, err := tracing.InitTraceProvider("backend")
+	traceShutdown, err := tracing.InitTraceProvider("backend", Version, args.OTEL.Enabled, args.OTEL.Endpoint, args.OTEL.Headers)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -189,6 +201,24 @@ func start(args *cli.StartArgs) {
 
 	b := NewBackends(args, false)
 	defer CloseBackends(b)
+
+	// Atomically claim unnotified agreements
+	var newAgreementIDs []string
+	if err := b.DB().SelectContext(context.Background(), &newAgreementIDs, "UPDATE agreements SET notified = true WHERE notified = false RETURNING id"); err != nil {
+		log.Warn("failed to claim unnotified agreements", zap.Error(err))
+	} else if len(newAgreementIDs) > 0 {
+		deadlineDate := time.Now().UTC().Add(jobs.AgreementChangeDeadlineDays * 24 * time.Hour).Format("January 2, 2006")
+		sort.Strings(newAgreementIDs)
+		h := sha256.Sum256([]byte(strings.Join(newAgreementIDs, ",")))
+		wo := client.StartWorkflowOptions{
+			ID:                    "agreement_change_notify_" + hex.EncodeToString(h[:8]),
+			TaskQueue:             "backend",
+			WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_ALLOW_DUPLICATE_FAILED_ONLY,
+		}
+		if _, err := b.Temporal().ExecuteWorkflow(context.Background(), wo, jobs.NotifyAgreementChangedWorkflow, newAgreementIDs, deadlineDate, 0, nil, nil); err != nil {
+			log.Warn("failed to start agreement change notification workflow", zap.Error(err), zap.Strings("agreementIDs", newAgreementIDs))
+		}
+	}
 
 	router := chi.NewRouter()
 	router.Routes()
@@ -203,17 +233,17 @@ func start(args *cli.StartArgs) {
 	router.Handle("/rafiki", b.rafiki.WebhookHandler())
 	router.Handle("/webhooks/xago", b.xago.WebhookHandler())
 	personaClient := persona.New(persona.Config{
-		BaseURL:       args.PersonaBaseURL,
-		BearerToken:   args.PersonaToken,
-		WebhookSecret: args.PersonaWebhookToken,
+		BaseURL:       args.Persona.BaseURL,
+		BearerToken:   args.Persona.Token,
+		WebhookSecret: args.Persona.WebhookToken,
 	})
 	router.Handle("/webhooks/persona", kyc_ops.NewHandlePersonaWebhook(b, personaClient))
-	router.Handle("/webhooks/chimoney", chimoney_ops.NewWebhook(b, args.ChimoneyWebhookSecret, args.ChimoneyToken))
+	router.Handle("/webhooks/chimoney", chimoney_ops.NewWebhook(b, args.Chimoney.WebhookSecret, args.Chimoney.Token, args.Environment.IsModeProd()))
 	router.Handle("/.well-known/apple-app-site-association", aasa_assetlinks.AppSiteAssociationHandler(b.aasaConfig))
 	router.Handle("/.well-known/assetlinks.json", aasa_assetlinks.AssetLinksHandler(b.aasaConfig))
 
-	if args.PTIEnabled {
-		ptiWebhook, err := pti_ops.Webhook(b, args.PTIClientID, args.PTIPublicKeyJWK)
+	if args.PTI.Enabled {
+		ptiWebhook, err := pti_ops.Webhook(b, args.PTI.ClientID, args.PTI.PublicKeyJWK)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -225,15 +255,15 @@ func start(args *cli.StartArgs) {
 	router.NotFound(wallet_handler.WalletRedirectHandler(b))
 
 	// fiant sandbox actions (only when PTI is enabled)
-	if args.PTIEnabled {
-		ptiPrivateKey, err := jwk.ParseKey([]byte(args.PTIJWK))
+	if args.PTI.Enabled {
+		ptiPrivateKey, err := jwk.ParseKey([]byte(args.PTI.JWK))
 		if err != nil {
 			log.Fatalln(err)
 		}
 
 		ctrl, err := fiant.NewController(
-			fiant.WithBaseURL(args.PTIBaseURL),
-			fiant.WithClientID(args.PTIClientID),
+			fiant.WithBaseURL(args.PTI.BaseURL),
+			fiant.WithClientID(args.PTI.ClientID),
 			fiant.WithDerivedKeys(ptiPrivateKey),
 		)
 		if err != nil {
@@ -323,12 +353,12 @@ func serveHTTP(server *http.Server, wg *sync.WaitGroup) {
 }
 
 func migrate(args *cli.MigrationArgs) {
-	err := db.Migrate(context.Background(), args.ConnectionString)
+	err := db.Migrate(context.Background(), args.DBUrl, args.OpenPaymentsBaseURL)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	dbConn, err := sqlx.Connect("postgres", args.ConnectionString)
+	dbConn, err := sqlx.Connect("postgres", args.DBUrl)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -343,17 +373,17 @@ func migrate(args *cli.MigrationArgs) {
 		log.Fatalln(err)
 	}
 
-	err = agreements_migrations.MigrateFromEmbeddedMarkdowns(context.Background(), dbConn)
+	_, err = agreements_migrations.MigrateFromEmbeddedMarkdowns(context.Background(), dbConn, args.MigrationConfig)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	err = pacioli_db.Migrate(context.Background(), args.PacioliConnectionString)
+	err = pacioli_db.Migrate(context.Background(), args.PacioliDBUrl)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	pacCon, err := sqlx.Connect("postgres", args.PacioliConnectionString)
+	pacCon, err := sqlx.Connect("postgres", args.PacioliDBUrl)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -462,7 +492,7 @@ func migrate(args *cli.MigrationArgs) {
 func startWorker(args *cli.StartArgs) {
 	log.Info("begin worker start")
 
-	traceShutdown, err := tracing.InitTraceProvider("backend-worker")
+	traceShutdown, err := tracing.InitTraceProvider("backend-worker", Version, args.OTEL.Enabled, args.OTEL.Endpoint, args.OTEL.Headers)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -489,16 +519,16 @@ func startWorker(args *cli.StartArgs) {
 	serveHTTP(&http.Server{Addr: ":8081", Handler: router}, &wg)
 
 	log.Info("Worker creating")
-	w, err := temporal.NewTemporalWorker(b, b.gatehubConfig, b.xagoConfig, args.PTIJWK, args.PTIBaseURL, args.PTIClientID, args.ChimoneyToken, jobs.Config{
-		KratosURL:         args.KratosUrl,
-		KratosAdminURL:    args.KratosAdminUrl,
-		PTIJWK:            args.PTIJWK,
-		PTIBaseURL:        args.PTIBaseURL,
-		PTIClientID:       args.PTIClientID,
-		RafikiDBURL:       args.RafikiDBURL,
-		RafikiAuthDBURL:   args.RafikiAuthDBURL,
-		TempGatehubAppID:  args.TempGatehubAppID,
-		TempGatehubSecret: args.TempGatehubSecret,
+	w, err := temporal.NewTemporalWorker(b, b.gatehubConfig, b.xagoConfig, args.PTI.JWK, args.PTI.BaseURL, args.PTI.ClientID, args.Chimoney.Token, args.Rafiki.NodeEnabled, jobs.Config{
+		KratosURL:         args.Kratos.URL,
+		KratosAdminURL:    args.Kratos.AdminURL,
+		PTIJWK:            args.PTI.JWK,
+		PTIBaseURL:        args.PTI.BaseURL,
+		PTIClientID:       args.PTI.ClientID,
+		RafikiDBURL:       args.Rafiki.DBURL,
+		RafikiAuthDBURL:   args.Rafiki.AuthDBURL,
+		TempGatehubAppID:  "",
+		TempGatehubSecret: "",
 	})
 	if err != nil {
 		log.Fatalln(err)
@@ -548,6 +578,9 @@ type backends struct {
 	gatehubConfig  gatehub.Config
 	chimoney       chimoney.Client
 	aasaConfig     aasa_assetlinks.Config
+
+	accountDeletion accountdeletion.Client
+	cfg             *config.StartConfig
 }
 
 func (b backends) Chimoney() chimoney.Client {
@@ -682,10 +715,19 @@ func (b backends) PTI() pti.Client {
 	return b.pti
 }
 
+func (b backends) AccountDeletion() accountdeletion.Client {
+	return b.accountDeletion
+}
+
+func (b backends) Config() *config.StartConfig {
+	return b.cfg
+}
+
 func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	b := &backends{}
+	b.cfg = args.StartConfig
 
-	db, err := otelsqlx.Connect("postgres", args.DbConnectionString, otelsql.WithAttributes(semconv.DBSystemCockroachdb), otelsql.WithDBName("cockroachdb"))
+	db, err := otelsqlx.Connect("postgres", args.DB.URL, otelsql.WithAttributes(semconv.DBSystemCockroachdb), otelsql.WithDBName("cockroachdb"))
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -697,13 +739,13 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 		log.Fatalln(err)
 	}
 
-	tp, err := temporal.NewTemporalClient(args.TemporalUrl)
+	tp, err := temporal.NewTemporalClient(args.Temporal.URL)
 	if err != nil {
 		log.Fatalln(err)
 	}
 	b.temporal = tp
 
-	b.users = user_client.New(b, args.KratosUrl, args.KratosAdminUrl)
+	b.users = user_client.New(b, args.Kratos.URL, args.Kratos.AdminURL)
 
 	b.wallet = wallets_client.New(b)
 
@@ -713,48 +755,57 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 
 	b.signup = signup_client.New(b)
 
+	b.accountDeletion = accountdeletion_client.New(b)
+
 	b.waitlist = waitlist_client.New(b, log.Logger())
 
 	b.twitter = twitter_client.New(b, &twitter_client.NewClientArgs{
-		ClientID:      args.TwitterClientID,
-		ClientSecret:  args.TwitterClientSecret,
+		ClientID:      "DEPRECATED",
+		ClientSecret:  "DEPRECATED",
 		AuthEndpoint:  "https://twitter.com/i/oauth2/authorize",
 		TokenEndpoint: "https://api.twitter.com/2/oauth2/token",
-		RedirectURL:   args.TwitterRedirectURL,
-		BearerToken:   args.TwitterBearerToken,
+		RedirectURL:   "DEPRECATED",
+		BearerToken:   "DEPRECATED",
 	})
 
-	slack.Init(args.SlackToken, map[slack.Channel]string{
-		slack.ChannelSignupKYC:   args.SlackChannelSignupKYC,
-		slack.ChannelTransaction: args.SlackChannelTransaction,
-		slack.ChannelError:       args.SlackChannelError,
+	slack.Init(args.Slack.Token, map[slack.Channel]string{
+		slack.ChannelSignupKYC:   args.Slack.ChannelSignupKYC,
+		slack.ChannelTransaction: args.Slack.ChannelTransaction,
+		slack.ChannelError:       args.Slack.ChannelError,
 	})
-	_grpc.InitAgreementIDs(args.SignupAgreementIDs)
+	_grpc.InitAgreementIDs(args.Agreements.SignupAgreementIDs)
 
 	b.slack, err = slack_client.New(b, slack_external.Config{
-		ClientID:       args.SlackClientID,
-		ClientSecret:   args.SlackClientSecret,
-		RedirectURL:    args.SlackRedirectURL,
-		BotRedirectURL: args.SlackBotRedirectURL,
+		ClientID:       args.Slack.ClientID,
+		ClientSecret:   args.Slack.ClientSecret,
+		RedirectURL:    "",
+		BotRedirectURL: "",
+		ApplicationURL: args.ApplicationURL,
 	})
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	b.analytics = analytics_client.New(b, args.SegmentKey)
+	b.analytics = analytics_client.New(b, args.Segment.Key)
 
-	b.feat = features_client.New(b)
+	b.feat = features_client.New(b, true)
 
-	twilioService, err := _twilio.NewService(&_twilio.ServiceArgs{
-		AccountSid:   args.TwilioSid,
-		AccountToken: args.TwilioSecret,
-		ServiceSid:   args.TwilioServiceSid,
-		Enabled:      args.TwilioEnabled,
-	})
-	if err != nil {
-		log.Fatalln(err)
+	// When Twilio is disabled we run a no-op service that approves any code.
+	// This is only reachable outside environment.mode=prod: config validation
+	// (and the Helm chart) reject twilio.enabled=false in production.
+	if args.Twilio.Enabled {
+		twilioService, err := _twilio.NewService(&_twilio.ServiceArgs{
+			AccountSid:   args.Twilio.AccountSID,
+			AccountToken: args.Twilio.AccountToken,
+			ServiceSid:   args.Twilio.ServiceSID,
+		})
+		if err != nil {
+			log.Fatalln(err)
+		}
+		b.twilio = twilioService
+	} else {
+		b.twilio = _twilio.NewNoOp()
 	}
-	b.twilio = twilioService
 
 	if !isWorker {
 		health, err := healthcheck.NewService()
@@ -763,7 +814,7 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 		}
 		b.healthcheck = health
 
-		adminUsers, err := auth.NewService(args.AdminPolicyAud, args.AdminTeamDomain, b.DB())
+		adminUsers, err := auth.NewService(args.Admin.PolicyAud, args.Admin.TeamDomain, b.DB(), args.Environment.IsModeLocal())
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -774,38 +825,40 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 
 	b.kyc, err = kyc_client.NewWithPersonaConfig(
 		b,
-		args.SmartyAuthID,
-		args.SmartyAuthToken,
+		args.Smarty.AuthID,
+		args.Smarty.AuthToken,
 		persona.Config{
-			BaseURL:       args.PersonaBaseURL,
-			BearerToken:   args.PersonaToken,
-			WebhookSecret: args.PersonaWebhookToken,
-			FakeZAID:      args.PersonaSandboxFakeZAID,
+			BaseURL:       args.Persona.BaseURL,
+			BearerToken:   args.Persona.Token,
+			WebhookSecret: args.Persona.WebhookToken,
+			FakeZAID:      args.Persona.SandboxFakeZAID,
 		},
+		args.Environment.IsModeProd(),
 	)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	if args.EmailEnabled {
+	if args.Email.Enabled {
 		log.Debug("initialising SendGrid email client")
 	} else {
 		log.Debug("email disabled; initialising noop email client")
 	}
 	b.email = email_client.New(
 		b,
-		args.EmailEnabled,
-		args.SendgridAPIKey,
-		args.SendgridFromName,
-		args.SendgridFromEmail,
-		args.SendgridOneTemplateID,
+		args.Email.Enabled,
+		args.Email.Sendgrid.APIKey,
+		args.Email.Sendgrid.FromName,
+		args.Email.Sendgrid.FromEmail,
+		args.Email.Sendgrid.OneTemplateID,
+		args.Email.Sendgrid.SupportEmail,
 	)
 
 	log.Debug("initialising transactions")
 	b.transactions = transactions_client.New(b)
 
 	log.Debug("initialising notify")
-	b.notify = notify_client.New(b, args.PusherAddr)
+	b.notify = notify_client.New(b, args.Pusher.Addr)
 
 	log.Debug("initialising limits")
 	b.limits = limits_client.New(b)
@@ -821,9 +874,10 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 
 	log.Debug("initialising vault")
 	vc, err := vault.NewClient(vault.Config{
-		Addr:              args.VaultAddr,
-		TransitEnginePath: args.VaultTransitEnginePath,
-		Token:             args.VaultToken,
+		Addr:              args.Vault.Addr,
+		TransitEnginePath: args.Vault.TransitEnginePath,
+		Token:             args.Vault.Token,
+		IsLocalOrTest:     args.Environment.IsModeLocal() || args.Environment.IsModeTest(),
 	})
 	if err != nil {
 		log.Error("error vault", zap.Error(err))
@@ -838,15 +892,15 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 
 	log.Debug("initialising rafiki")
 	b.rafiki = rafiki_client.New(b, rafiki_external.AdminSigningConfig{
-		OperatorTenantID:  args.OperatorTenantID,
-		AdminAPISecret:    args.AdminAPISecret,
-		SignatureVersion:  args.SignatureVersion,
-		BackendGraphQLURL: args.RafikiBackendGraphQLURL,
-		AuthGraphQLURL:    args.RafikiAuthGraphQLURL,
+		OperatorTenantID:  args.Rafiki.OperatorTenantID,
+		AdminAPISecret:    args.Rafiki.AdminAPISecret,
+		SignatureVersion:  args.Rafiki.SignatureVersion,
+		BackendGraphQLURL: args.Rafiki.BackendGraphQLURL,
+		AuthGraphQLURL:    args.Rafiki.AuthGraphQLURL,
 	})
 
 	log.Debug("initialising pacioli")
-	pacDB, err := otelsqlx.Connect("postgres", args.PacioliDBConString, otelsql.WithAttributes(semconv.DBSystemCockroachdb), otelsql.WithDBName("cockroachdb"))
+	pacDB, err := otelsqlx.Connect("postgres", args.DB.PacioliURL, otelsql.WithAttributes(semconv.DBSystemCockroachdb), otelsql.WithDBName("cockroachdb"))
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -854,39 +908,41 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 
 	log.Debug("initialising xago")
 	b.xagoConfig = xago_external.Config{
-		APIBaseURL:      args.XagoAPIBaseURL,
-		IdentityBaseURL: args.XagoIdentityBaseURL,
-		PublicKey:       args.XagoPublicKey,
-		Secret:          args.XagoSecret,
-		PolicyID:        args.XagoPolicyID,
+		APIBaseURL:      args.Xago.APIBaseURL,
+		IdentityBaseURL: args.Xago.IdentityBaseURL,
+		PublicKey:       args.Xago.APIPublicKey,
+		Secret:          args.Xago.APISecret,
+		PolicyID:        args.Xago.PolicyID,
 	}
-	b.xago = xago_client.New(b, b.xagoConfig)
+	b.xago = xago_client.New(b, b.xagoConfig, args.Environment.IsModeTest())
 
 	log.Debug("initialising FIANT")
-	pti_ops.ConfigureWidgetURLs(args.PTISDKURL, args.PTIFormsURL, args.PTIClientID)
-	b.pti = pti_client.New(b, args.PTIJWK, args.PTIBaseURL, args.PTIClientID)
+	pti_ops.ConfigureWidgetURLs(args.PTI.SDKURL, args.PTI.FormsURL, args.PTI.ClientID)
+	b.pti = pti_client.New(b, args.PTI.JWK, args.PTI.BaseURL, args.PTI.ClientID)
 
 	log.Debug("initialising Gatehub")
 	b.gatehubConfig = gatehub.Config{
-		AppID:                  args.GatehubAppID,
-		Secret:                 args.GatehubSecret,
-		CardAppID:              args.GatehubCardAppID,
-		GatewayID:              args.GatehubGatewayID,
-		CardAccountProductCode: args.GatehubCardAccountProductCode,
-		PaywiserEuroVaultID:    args.GatehubPaywiserEuroVaultID,
-		SendingUserID:          args.GatehubSendingUserID,
-		SendingUserAddress:     args.GatehubSendingUserAddress,
-		WebhookSecret:          args.GatehubWebhookSecret,
-		FallbackWebhookURL:     args.GatehubFallbackWebhookURL,
-		OnOffRampClientID:      args.GatehubOnOffRampClientID,
-		OnboardingClientID:     args.GatehubOnboardingClientID,
-		ExchangeClientID:       args.GatehubExchangeClientID,
-		APIBaseURL:             args.GatehubAPIBaseURL,
-		OnboardingBaseURL:      args.GatehubOnboardingBaseURL,
-		OnOffRampBaseURL:       args.GatehubOnOffRampBaseURL,
-		EUROpsAccount:          args.GatehubEUROpsAccount,
-		EUROpsLedgerID:         args.GatehubEUROpsLedgerID,
-		OrganizationID:         args.GatehubOrganizationID,
+		AppID:                   args.Gatehub.AppID,
+		Secret:                  args.Gatehub.Secret,
+		CardAppID:               args.Gatehub.CardAppID,
+		GatewayID:               args.Gatehub.GatewayID,
+		CardAccountProductCode:  args.Gatehub.CardAccountProductCode,
+		PaywiserEuroVaultID:     args.Gatehub.PaywiserEuroVaultID,
+		SendingUserID:           args.Gatehub.SendingUserID,
+		SendingUserAddress:      args.Gatehub.SendingUserAddress,
+		IntermediaryUserID:      args.Gatehub.IntermediaryUserID,
+		IntermediaryUserAddress: args.Gatehub.IntermediaryUserAddress,
+		WebhookSecret:           args.Gatehub.WebhookSecret,
+		FallbackWebhookURL:      args.Gatehub.FallbackWebhookURL,
+		OnOffRampClientID:       args.Gatehub.OnOffRampClientID,
+		OnboardingClientID:      args.Gatehub.OnboardingClientID,
+		ExchangeClientID:        args.Gatehub.ExchangeClientID,
+		APIBaseURL:              args.Gatehub.APIBaseURL,
+		OnboardingBaseURL:       args.Gatehub.OnboardingBaseURL,
+		OnOffRampBaseURL:        args.Gatehub.OnOffRampBaseURL,
+		EUROpsAccount:           args.Gatehub.EUROpsAccount,
+		EUROpsLedgerID:          args.Gatehub.EUROpsLedgerID,
+		OrganizationID:          args.Gatehub.OrganizationID,
 	}
 	b.gatehub = gatehub_client.New(b, b.gatehubConfig)
 	if b.gatehub == nil {
@@ -894,12 +950,12 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	}
 
 	log.Debug("initialising Chimoney")
-	b.chimoney = chimoney_client.New(b, args.ChimoneyToken)
+	b.chimoney = chimoney_client.New(b, args.Chimoney.Token, args.Environment.IsModeProd())
 
 	b.aasaConfig = aasa_assetlinks.Config{
-		AppleAppID:         args.AppleAppID,
-		AndroidPackageName: args.AndroidPackageName,
-		AndroidSHA256:      args.AndroidSHA256,
+		AppleAppID:         args.Mobile.AppleAppID,
+		AndroidPackageName: args.Mobile.AndroidPackageName,
+		AndroidSHA256:      args.Mobile.AndroidSHA256,
 	}
 
 	return b

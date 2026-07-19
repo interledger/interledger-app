@@ -4,7 +4,7 @@ services:
   postgres:
     image: postgres:16.1
     networks:
-      fynbos-dev:
+      ilp-dev:
     ports:
       - "5432:5432"
     volumes:
@@ -16,4 +16,4 @@ volumes:
   postgres:
 
 networks:
-  fynbos-dev:
+  ilp-dev:

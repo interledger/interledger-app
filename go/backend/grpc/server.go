@@ -1,9 +1,9 @@
 package grpc
 
 import (
-	user_middleware "gitlab.com/fynbos/backend/user/middleware"
-	wallets_middleware "gitlab.com/fynbos/backend/wallets/middleware"
-	backendv1 "gitlab.com/fynbos/proto/backend/v1"
+	user_middleware "github.com/interledger/interledger-app/go/backend/user/middleware"
+	wallets_middleware "github.com/interledger/interledger-app/go/backend/wallets/middleware"
+	backendv1 "github.com/interledger/interledger-app/go/proto/backend/v1"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health/grpc_health_v1"

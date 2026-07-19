@@ -6,20 +6,21 @@ import (
 	"net/url"
 	"strings"
 
-	"gitlab.com/fynbos/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/currency"
 
-	"gitlab.com/fynbos/backend/email"
-	"gitlab.com/fynbos/backend/email/sendgrid"
-	"gitlab.com/fynbos/backend/kyc"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/payments"
-	"gitlab.com/fynbos/backend/providers/pti"
-	"gitlab.com/fynbos/backend/providers/xago"
-	"gitlab.com/fynbos/backend/wallets"
-	"gitlab.com/fynbos/env"
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/backend/email"
+	"github.com/interledger/interledger-app/go/backend/email/sendgrid"
+	"github.com/interledger/interledger-app/go/backend/kyc"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	"github.com/interledger/interledger-app/go/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/providers/pti"
+	"github.com/interledger/interledger-app/go/backend/providers/xago"
+	"github.com/interledger/interledger-app/go/backend/wallets"
+	"github.com/interledger/interledger-app/go/log"
 	"go.uber.org/zap"
 )
+
+const agreementUpdatedSubject = "We've updated our terms"
 
 func getEmailsAndGreeting(ctx context.Context, b Backends, walletID string) ([]sendgrid.Email, string, error) {
 	users, err := b.Users().ListUsers(ctx, walletID)
@@ -91,7 +92,7 @@ func SendApplicationApprovedEmail(ctx context.Context, b Backends, walletID stri
 		},
 		"cta": map[string]interface{}{
 			"text": "Connect an account",
-			"url":  fmt.Sprintf("%s/connect/card", env.GetUrl()),
+			"url":  fmt.Sprintf("%s/connect/card", b.Config().ApplicationURL),
 		},
 	}, nil)
 	if err != nil {
@@ -151,7 +152,7 @@ func SendConnectedAccountEmail(ctx context.Context, b Backends, la linkedaccount
 		},
 		"cta": map[string]interface{}{
 			"text": "View your account",
-			"url":  fmt.Sprintf("%s/accounts/%s", env.GetUrl(), la.ID),
+			"url":  fmt.Sprintf("%s/accounts/%s", b.Config().ApplicationURL, la.ID),
 		},
 	}, nil)
 	if err != nil {
@@ -196,7 +197,7 @@ func SendPaymentSentEmailV2(ctx context.Context, b Backends, walletID string, pa
 		return
 	}
 
-	txURL, err := url.JoinPath(env.GetUrl(), "transactions", payment.SendTransactionID)
+	txURL, err := url.JoinPath(b.Config().ApplicationURL, "transactions", payment.SendTransactionID)
 	if err != nil {
 		log.Error("Failed to send payment sent email.", zap.Error(err), zap.String("walletID", walletID), zap.String("trxID", payment.SendTransactionID))
 		return
@@ -241,7 +242,7 @@ func SendPaymentReceivedEmailV2(ctx context.Context, b Backends, walletID string
 		return
 	}
 
-	txURL, err := url.JoinPath(env.GetUrl(), "transactions", payment.ReceiveTransactionID)
+	txURL, err := url.JoinPath(b.Config().ApplicationURL, "transactions", payment.ReceiveTransactionID)
 	if err != nil {
 		log.Error("Failed to send payment received email.", zap.Error(err), zap.String("walletID", walletID), zap.String("trxID", payment.ReceiveTransactionID))
 		return
@@ -276,7 +277,7 @@ func SendPaymentFailedEmail(ctx context.Context, b Backends, walletID string) {
 		return
 	}
 
-	actionUrl, err := url.JoinPath(env.GetUrl(), "pay")
+	actionUrl, err := url.JoinPath(b.Config().ApplicationURL, "pay")
 	if err != nil {
 		log.Error("Failed to send payment failed email.", zap.Error(err), zap.String("walletID", walletID))
 		return
@@ -323,7 +324,7 @@ func SendDepositReceivedEmail(ctx context.Context, b Backends, walletID string, 
 		},
 		"cta": map[string]interface{}{
 			"text": "View new Balance",
-			"url":  env.GetUrl(),
+			"url":  b.Config().ApplicationURL,
 		},
 	}, nil)
 	if err != nil {
@@ -355,7 +356,7 @@ func SendWithdrawalEmail(ctx context.Context, b Backends, walletID string, amt c
 		},
 		"cta": map[string]interface{}{
 			"text": "View new Balance",
-			"url":  env.GetUrl(),
+			"url":  b.Config().ApplicationURL,
 		},
 	}, nil)
 	if err != nil {
@@ -379,7 +380,7 @@ func SendWithdrawalFailedEmail(ctx context.Context, b Backends, walletID string)
 		},
 		"cta": map[string]interface{}{
 			"text": "Try again",
-			"url":  env.GetUrl(),
+			"url":  b.Config().ApplicationURL,
 		},
 	}, nil)
 	if err != nil {
@@ -403,11 +404,45 @@ func SendDepositFailedEmail(ctx context.Context, b Backends, walletID string) {
 		},
 		"cta": map[string]interface{}{
 			"text": "Try again",
-			"url":  env.GetUrl(),
+			"url":  b.Config().ApplicationURL,
 		},
 	}, nil)
 	if err != nil {
 		log.Error("Failed to send deposit failed email.", zap.Error(err), zap.String("walletID", walletID))
+	}
+}
+
+func SendRampActionEmail(ctx context.Context, b Backends, walletID string, args email.RampActionEmailArgs) {
+	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
+	if err != nil {
+		log.Error("Failed to send ramp action email.", zap.Error(err), zap.String("walletID", walletID), zap.String("action", args.Action))
+		return
+	}
+
+	table := []map[string]interface{}{
+		{"label": "Amount", "text": args.Amount.Format(), "large": true},
+		{"label": "Source", "text": args.Source},
+		{"label": "Method", "text": args.Method},
+		{"label": "Status", "text": args.Status},
+		{"label": "Timestamp", "text": args.Timestamp.Format("Jan 2, 2006 3:04 PM MST"),},
+	}
+
+	paragraphs := []map[string]interface{}{
+		{"paragraph": greeting},
+		{"heading": args.Action},
+		{"table": table},
+	}
+
+	err = b.External().SendTemplate(ctx, args.Action, sendTo, b.OneTemplateID(), map[string]interface{}{
+		"subject": args.Action,
+		"data":    paragraphs,
+		"cta": map[string]interface{}{
+			"text": "View new Balance",
+			"url":  b.Config().ApplicationURL,
+		},
+	}, nil)
+	if err != nil {
+		log.Error("Failed to send ramp action email.", zap.Error(err), zap.String("walletID", walletID), zap.String("action", args.Action))
 	}
 }
 
@@ -418,7 +453,7 @@ func SendLimitsExceededEmail(ctx context.Context, b Backends, walletID string) {
 		return
 	}
 
-	support, err := url.JoinPath(env.GetUrl(), "support")
+	support, err := url.JoinPath(b.Config().ApplicationURL, "support")
 	if err != nil {
 		log.Error("Failed to send limits exceeded email.", zap.Error(err), zap.String("walletID", walletID))
 		return
@@ -448,7 +483,7 @@ func SendCardCreatedEmail(ctx context.Context, b Backends, walletID, cardID stri
 		return
 	}
 
-	cardURL, err := url.JoinPath(env.GetUrl(), "cards", cardID)
+	cardURL, err := url.JoinPath(b.Config().ApplicationURL, "cards", cardID)
 	if err != nil {
 		log.Error("Failed to send card created email.", zap.Error(err), zap.String("walletID", walletID))
 		return
@@ -477,7 +512,7 @@ func SendPending3DSConfirmation(ctx context.Context, b Backends, walletID, confi
 		return
 	}
 
-	confirmationURL, err := url.JoinPath(env.GetUrl(), "confirmations", confirmationID)
+	confirmationURL, err := url.JoinPath(b.Config().ApplicationURL, "confirmations", confirmationID)
 	if err != nil {
 		log.Error("Failed to send card created email.", zap.Error(err), zap.String("walletID", walletID))
 		return
@@ -542,7 +577,7 @@ func SendKYCDocumentsRequiredEmail(ctx context.Context, b Backends, walletID str
 		return
 	}
 
-	kycURL, err := url.JoinPath(env.GetUrl(), "personal-details")
+	kycURL, err := url.JoinPath(b.Config().ApplicationURL, "personal-details")
 	if err != nil {
 		log.Error("Failed to send KYC documents required email.", zap.Error(err), zap.String("walletID", walletID))
 		return
@@ -565,6 +600,104 @@ func SendKYCDocumentsRequiredEmail(ctx context.Context, b Backends, walletID str
 	}
 }
 
+func SendAgreementChangedEmail(ctx context.Context, b Backends, userID string, agreements []email.AgreementLink, deadlineDate string) error {
+	u, err := b.Users().GetUser(ctx, userID)
+	if err != nil {
+		log.Error("Failed to send agreement changed email: could not get user.", zap.Error(err), zap.String("userID", userID))
+		return err
+	}
+	greeting := strings.TrimSpace(fmt.Sprintf("Hello %s", u.FirstName)) + ","
+	sendTo := []sendgrid.Email{{Name: u.FirstName + " " + u.LastName, Address: u.Email}}
+
+	tableRows := make([]map[string]interface{}, 0, len(agreements))
+	for _, a := range agreements {
+		tableRows = append(tableRows, map[string]interface{}{"label": a.DisplayName, "text": a.TermsURL})
+	}
+	closingParagraph := fmt.Sprintf("If you don't agree with these changes, you can close your Interledger Wallet account at no charge until %s by contacting support using the details below, but we'll be sad to see you go.", deadlineDate)
+
+	data := []map[string]interface{}{
+		{"paragraph": greeting},
+		{"heading": agreementUpdatedSubject},
+		{"paragraph": "You don't need to do anything for these changes to come into effect. You can check the updated documents below."},
+		{"table": tableRows},
+		{"paragraph": closingParagraph},
+	}
+	err = b.External().SendTemplate(ctx, agreementUpdatedSubject, sendTo, b.OneTemplateID(), map[string]interface{}{
+		"subject": agreementUpdatedSubject,
+		"data":    data,
+	}, nil)
+	if err != nil {
+		log.Error("Failed to send agreement changed email.", zap.Error(err), zap.String("userID", userID))
+		return err
+	}
+	return nil
+}
+
+func SendAccountDeletionRequestedEmail(ctx context.Context, b Backends, userID string) error {
+	support := strings.TrimSpace(b.SupportEmail())
+	if support == "" {
+		return email.ErrSupportInboxNotConfigured
+	}
+
+	u, err := b.Users().GetUser(ctx, userID)
+	if err != nil {
+		return fmt.Errorf("%w: %w", email.ErrInternal, err)
+	}
+
+	userWallets, err := b.Wallets().List(ctx, userID)
+	if err != nil {
+		return fmt.Errorf("%w: %w", email.ErrInternal, err)
+	}
+
+	paragraphs := []string{
+		"A user requested app account deletion.",
+		"Environment: " + b.Config().Environment.Mode,
+		"User ID: " + u.ID,
+		"Email: " + strings.TrimSpace(u.Email),
+		fmt.Sprintf("Wallet count: %d", len(userWallets)),
+	}
+	for _, w := range userWallets {
+		paragraphs = append(paragraphs, "Wallet ID: "+w.ID)
+	}
+
+	sendTo := []sendgrid.Email{{Name: "Support", Address: support}}
+	subject := "[" + b.Config().Environment.Mode + "] Account deletion requested — user " + userID
+	supportData := make([]map[string]interface{}, 0, len(paragraphs))
+	for _, p := range paragraphs {
+		supportData = append(supportData, map[string]interface{}{"paragraph": p})
+	}
+	if err := b.External().SendTemplate(ctx, subject, sendTo, b.OneTemplateID(), map[string]interface{}{
+		"subject": subject,
+		"data":    supportData,
+	}, nil); err != nil {
+		return fmt.Errorf("%w: %w", email.ErrInternal, err)
+	}
+
+	// User-facing acknowledgement is courtesy only — log failures, don't fail the RPC.
+	if strings.TrimSpace(u.Email) == "" {
+		log.Warn("skipping account deletion confirmation email; user has no address on file",
+			zap.String("userID", userID))
+		return nil
+	}
+	name := strings.TrimSpace(u.FirstName + " " + u.LastName)
+	confirmTo := []sendgrid.Email{{Name: name, Address: u.Email}}
+	confirmSubject := "We've received your account deletion request"
+	userData := []map[string]interface{}{
+		{"paragraph": "We've received your request to delete your account."},
+		{"paragraph": "If you still have funds in your account, please withdraw them within the next 2–3 days."},
+		{"paragraph": "Our support team will let you know when the process starts."},
+	}
+	if err := b.External().SendTemplate(ctx, confirmSubject, confirmTo, b.OneTemplateID(), map[string]interface{}{
+		"subject": confirmSubject,
+		"data":    userData,
+	}, nil); err != nil {
+		log.Error("Failed to send account deletion confirmation email to user.",
+			zap.Error(err),
+			zap.String("userID", userID))
+	}
+	return nil
+}
+
 func SendAuthenticatorResetEmail(ctx context.Context, b Backends, walletID string) {
 	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
 	if err != nil {
@@ -572,7 +705,7 @@ func SendAuthenticatorResetEmail(ctx context.Context, b Backends, walletID strin
 		return
 	}
 
-	securityURL, err := url.JoinPath(env.GetUrl(), "settings")
+	securityURL, err := url.JoinPath(b.Config().ApplicationURL, "settings")
 	if err != nil {
 		log.Error("Failed to build settings URL for authenticator reset email.", zap.Error(err), zap.String("walletID", walletID))
 		return
@@ -594,4 +727,116 @@ func SendAuthenticatorResetEmail(ctx context.Context, b Backends, walletID strin
 	if err != nil {
 		log.Error("Failed to send authenticator reset email.", zap.Error(err), zap.String("walletID", walletID))
 	}
+}
+
+func SendSCTITimeoutEmail(ctx context.Context, b Backends, txID, walletID, amount, name, iban, submittedAt string) {
+	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
+	if err != nil {
+		log.Error("Failed to send scti timeout email.", zap.Error(err), zap.String("walletID", walletID))
+		return
+	}
+
+	txURL, err := url.JoinPath(b.Config().ApplicationURL, "payments", txID)
+	if err != nil {
+		log.Error("Failed to send scti timeout email.", zap.Error(err), zap.String("walletID", walletID))
+		return
+	}
+
+	table := []map[string]any{
+		{"label": "Beneficiary Name:", "text": name},
+		{"label": "Beneficiary IBAN:", "text": maskIBAN(iban)},
+		{"label": "Amount:", "text": amount},
+		{"label": "Submitted:", "text": submittedAt},
+	}
+
+	data := []map[string]any{
+		{"paragraph": greeting},
+		{"paragraph": "We wanted to let you know that your instant payment is still being processed. We did not receive confirmation within 10 seconds, but this does not mean the payment has failed."},
+		{"table": table},
+		{"paragraph": "The payment status will update automatically once the final outcome is available. Please do not resend the payment until you receive confirmation of the final status."},
+		{"paragraph": "If you need any help, please contact us."},
+		{"paragraph": "Thank you for your patience."},
+	}
+
+	err = b.External().SendTemplate(ctx, "SCTI Payment Still In Processing", sendTo, b.OneTemplateID(), map[string]any{
+		"subject": "SCTI Payment Still In Processing",
+		"data":    data,
+		"cta": map[string]any{
+			"text": "View payment",
+			"url":  txURL,
+		},
+	}, nil)
+	if err != nil {
+		log.Error("Failed to send scti timeout email.", zap.Error(err), zap.String("walletID", walletID))
+	}
+}
+
+func SendGatehubWithdrawalRejectedEmail(ctx context.Context, b Backends, txID, walletID, amount, currency, iban, name string) {
+	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
+	if err != nil {
+		log.Error("Failed to send withdrawal rejected email.", zap.Error(err), zap.String("walletID", walletID))
+		return
+	}
+
+	body := fmt.Sprintf("The amount of %s %s was not received by %s in the account %s.", amount, currency, name, maskIBAN(iban))
+	txURL, err := url.JoinPath(b.Config().ApplicationURL, "payments", txID)
+	if err != nil {
+		log.Error("Failed to send withdrawal rejected email.", zap.Error(err), zap.String("walletID", walletID))
+		return
+	}
+
+	err = b.External().SendTemplate(ctx, "Withdrawal unsuccessful", sendTo, b.OneTemplateID(), map[string]interface{}{
+		"subject": "Withdrawal unsuccessful",
+		"data": []map[string]interface{}{
+			{"paragraph": greeting},
+			{"paragraph": "We would like to inform you that your withdrawal was unsuccessful."},
+			{"paragraph": body},
+		},
+		"cta": map[string]any{
+			"text": "View payment",
+			"url":  txURL,
+		},
+	}, nil)
+	if err != nil {
+		log.Error("Failed to send withdrawal rejected email.", zap.Error(err), zap.String("walletID", walletID))
+	}
+}
+
+func SendSCTRerouteEmail(ctx context.Context, b Backends, txID, walletID string) {
+	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
+	if err != nil {
+		log.Error("Failed to send sct reroute email.", zap.Error(err), zap.String("walletID", walletID))
+		return
+	}
+
+	txURL, err := url.JoinPath(b.Config().ApplicationURL, "payments", txID)
+	if err != nil {
+		log.Error("Failed to send sct reroute email.", zap.Error(err), zap.String("walletID", walletID))
+		return
+	}
+
+	data := []map[string]any{
+		{"paragraph": greeting},
+		{"paragraph": "Your payment is processed as a SEPA Credit Transfer Instant by default. However, due to technical limitations your payment will be processed as a standard SEPA Credit Transfer."},
+	}
+
+	err = b.External().SendTemplate(ctx, "Payment rerouted to standard SEPA Credit Transfer", sendTo, b.OneTemplateID(), map[string]any{
+		"subject": "Payment rerouted to standard SEPA Credit Transfer",
+		"data":    data,
+		"cta": map[string]any{
+			"text": "View payment",
+			"url":  txURL,
+		},
+	}, nil)
+	if err != nil {
+		log.Error("Failed to send sct reroute email.", zap.Error(err), zap.String("walletID", walletID))
+	}
+}
+
+func maskIBAN(iban string) string {
+	s := strings.ReplaceAll(iban, " ", "")
+	if len(s) < 15 { // minimum valid IBAN length (ISO 13616)
+		return s
+	}
+	return s[:4] + strings.Repeat("X", len(s)-8) + s[len(s)-4:]
 }

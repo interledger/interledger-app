@@ -1,6 +1,6 @@
 import { Outlet, href } from 'react-router'
 import { useState } from 'react'
-import { IconButton, Logo, Router } from '~/components'
+import { IconButton, InterledgerWalletLogo, Router } from '~/components'
 import { NavDrawer } from './NavDrawer'
 
 export function AdminLayout() {
@@ -11,8 +11,8 @@ export function AdminLayout() {
         <NavDrawer>
           <NavDrawer.List>
             <div className='ml-4'>
-              <Router to={href('/')} aria-label='Interledger logo'>
-                <Logo className='h-8' />
+              <Router to={href('/')} aria-label='Interledger Wallet logo'>
+                <InterledgerWalletLogo className='h-8' />
               </Router>
             </div>
             <NavDrawer.ListItem to={href('/')}>Home</NavDrawer.ListItem>
@@ -26,7 +26,7 @@ export function AdminLayout() {
               Reviews
             </NavDrawer.ListItem>
           </NavDrawer.List>
-          <footer className='flex w-full space-x-3 pl-4 pb-2'>
+          <footer className='flex w-full space-x-3 pb-2 pl-4'>
             <span className='text-xs font-medium text-medium'>
               &copy;Interledger
             </span>
@@ -42,8 +42,8 @@ export function AdminLayout() {
           >
             menu
           </IconButton>
-          <Router to={href('/')} aria-label='Interledger logo'>
-            <Logo className='h-8' />
+          <Router to={href('/')} aria-label='Interledger Wallet logo'>
+            <InterledgerWalletLogo className='h-8' />
           </Router>
         </header>
         <div className='my-16 lg:my-6 lg:ml-64 lg:mr-6'>
@@ -53,15 +53,15 @@ export function AdminLayout() {
       <NavDrawer.Modal open={openNavModal} setOpen={setOpenNavModal}>
         <NavDrawer>
           <NavDrawer.List>
-            <div className='relative ml-1 mb-8 flex items-center space-x-4'>
+            <div className='relative mb-8 ml-1 flex items-center space-x-4'>
               <IconButton
                 onClick={() => setOpenNavModal(!openNavModal)}
                 aria-label='Close menu'
               >
                 menu_open
               </IconButton>
-              <Router to={href('/')} aria-label='Interledger logo'>
-                <Logo className='h-8' />
+              <Router to={href('/')} aria-label='Interledger Wallet logo'>
+                <InterledgerWalletLogo className='h-8' />
               </Router>
             </div>
             <NavDrawer.ListItem to={href('/')}>Home</NavDrawer.ListItem>
@@ -75,7 +75,7 @@ export function AdminLayout() {
               Reviews
             </NavDrawer.ListItem>
           </NavDrawer.List>
-          <footer className='flex w-full space-x-3 pl-4 pb-2'>
+          <footer className='flex w-full space-x-3 pb-2 pl-4'>
             <span className='text-xs font-medium text-medium'>
               &copy;Interledger
             </span>

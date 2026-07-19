@@ -1,0 +1,27 @@
+# PostgreSQL values for the local kind environment.
+# Non-persistent (emptyDir) — data is lost when the cluster is deleted.
+
+architecture: standalone
+
+auth:
+  postgresPassword: postgres
+  username: postgres
+  password: postgres
+  database: postgres
+
+primary:
+  persistence:
+    enabled: false
+
+  # Create all databases that the application stack requires.
+  initdb:
+    scripts:
+      01-kratos.sql: |
+        CREATE DATABASE kratos;
+      02-temporal.sql: |
+        CREATE DATABASE temporal;
+      03-wallet.sql: |
+        CREATE DATABASE backend;
+        CREATE DATABASE pacioli;
+        \c backend;
+        CREATE EXTENSION IF NOT EXISTS pg_trgm;

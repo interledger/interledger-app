@@ -7,9 +7,9 @@ import (
 	"io"
 	"time"
 
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/providers/gatehub"
-	"gitlab.com/fynbos/backend/providers/gatehub/external"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub/external"
 )
 
 func GetAccountStatement(ctx context.Context, b Backends, ec external.Client, walletID string, year, month int) (io.ReadCloser, error) {

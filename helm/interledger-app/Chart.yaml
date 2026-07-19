@@ -5,8 +5,8 @@ home: https://github.com/interledger/interledger-app
 
 type: application
 # version and appVersion is linked because we are doing this in the same repo
-version: 1.24.0
-appVersion: v1.24.0
+version: 1.37.4
+appVersion: v1.37.4
 
 dependencies:
   - name: common
@@ -14,7 +14,5 @@ dependencies:
     repository: https://interledger.github.io/charts/interledger
 
 maintainers:
-  - name: Stephan Butler
-    email: stephan@interledger.foundation
-  - name: Radu Popa
-    email: radu@interledger.foundation
+  - name: Interledger Foundation
+    url: https://interledger.org

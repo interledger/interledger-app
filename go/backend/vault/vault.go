@@ -6,14 +6,14 @@ import (
 	"strings"
 
 	vault "github.com/hashicorp/vault/api"
-	"gitlab.com/fynbos/env"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 type Config struct {
-	Addr               string
-	TransitEnginePath  string
-	Token              string
+	Addr              string
+	TransitEnginePath string
+	Token             string
+	IsLocalOrTest     bool
 }
 
 type client struct {
@@ -23,7 +23,7 @@ type client struct {
 
 func NewClient(cfg Config) (Client, error) {
 	// Only login to vault on non-local environments.
-	if !(env.IsLocal() || env.IsTest()) {
+	if !cfg.IsLocalOrTest {
 		config := vault.DefaultConfig()
 		config.Address = cfg.Addr
 		config.HttpClient = otelhttp.DefaultClient

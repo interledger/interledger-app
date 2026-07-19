@@ -34,7 +34,7 @@ export const Button = forwardRef<any, ButtonProps>(
 
 Button.displayName = 'Button'
 
-interface TextButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {}
+type TextButtonProps = ButtonHTMLAttributes<HTMLButtonElement>
 
 export const TextButton = forwardRef<any, TextButtonProps>(
   ({ children, ...buttonProps }, ref) => {

@@ -30,8 +30,18 @@ table "agreement_signatures" {
   primary_key {
     columns = [column.id]
   }
+  column "last_notified_agreement_id" {
+    null = true
+    type = text
+  }
   foreign_key "fk_agreement" {
     columns     = [column.agreement_id]
+    ref_columns = [table.agreements.column.id]
+    on_update   = NO_ACTION
+    on_delete   = NO_ACTION
+  }
+  foreign_key "fk_last_notified_agreement" {
+    columns     = [column.last_notified_agreement_id]
     ref_columns = [table.agreements.column.id]
     on_update   = NO_ACTION
     on_delete   = NO_ACTION
@@ -71,6 +81,11 @@ table "agreements" {
   column "git_file_path" {
     null = true
     type = text
+  }
+  column "notified" {
+    null    = false
+    type    = boolean
+    default = true
   }
   primary_key {
     columns = [column.id]
@@ -646,6 +661,40 @@ table "signups" {
   }
   primary_key {
     columns = [column.id]
+  }
+}
+table "account_deletion_requests" {
+  schema = schema.public
+  column "id" {
+    null    = false
+    type    = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "user_id" {
+    null = false
+    type = uuid
+  }
+  column "status" {
+    null    = false
+    type    = text
+    default = "pending"
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now()::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now()::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "account_deletion_requests_user_id_uniq" {
+    unique  = true
+    columns = [column.user_id]
   }
 }
 table "user_wallets" {
@@ -1713,6 +1762,11 @@ table "wallet_features" {
     null = false
     type = boolean
     default = true
+  }
+  column "delete_account_enabled" {
+    null = false
+    type = boolean
+    default = false
   }
   column "created_at" {
     null    = false
@@ -3007,6 +3061,25 @@ table "chi_money_interac_emails" {
   }
 }
 
+table "rafiki_gatehub_transfers" {
+  schema = schema.public
+  column "gatehub_tx_id" {
+    null = false
+    type = text
+  }
+  column "workflow_id" {
+    null = false
+    type = text
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now()::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.gatehub_tx_id]
+  }
+}
 table "atlas_schema_history" {
   schema = schema.public
   column "id" {

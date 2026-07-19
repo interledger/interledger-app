@@ -5,22 +5,24 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
+	"github.com/interledger/interledger-app/go/backend/db"
+	"github.com/interledger/interledger-app/go/backend/email"
+	email_mock "github.com/interledger/interledger-app/go/backend/email/client/mock"
+	"github.com/interledger/interledger-app/go/backend/kyc"
+	kyc_mock "github.com/interledger/interledger-app/go/backend/kyc/client/mock"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	la_mock "github.com/interledger/interledger-app/go/backend/linkedaccounts/client/mock"
+	"github.com/interledger/interledger-app/go/backend/payments"
+	payments_mock "github.com/interledger/interledger-app/go/backend/payments/client/mock"
+	temporal_mock "github.com/interledger/interledger-app/go/backend/temporal/mock"
+	"github.com/interledger/interledger-app/go/backend/transactions"
+	transactions_mock "github.com/interledger/interledger-app/go/backend/transactions/client/mock"
+	"github.com/interledger/interledger-app/go/backend/user"
+	user_mock "github.com/interledger/interledger-app/go/backend/user/client/mock"
+	"github.com/interledger/interledger-app/go/backend/wallets"
+	wallets_mock "github.com/interledger/interledger-app/go/backend/wallets/client/mock"
+	"github.com/interledger/interledger-app/go/pacioli"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/kyc"
-	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	la_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
-	"gitlab.com/fynbos/backend/payments"
-	payments_mock "gitlab.com/fynbos/backend/payments/client/mock"
-	temporal_mock "gitlab.com/fynbos/backend/temporal/mock"
-	"gitlab.com/fynbos/backend/transactions"
-	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
-	"gitlab.com/fynbos/backend/user"
-	user_mock "gitlab.com/fynbos/backend/user/client/mock"
-	"gitlab.com/fynbos/backend/wallets"
-	wallets_mock "gitlab.com/fynbos/backend/wallets/client/mock"
-	"gitlab.com/fynbos/pacioli"
 	temporal "go.temporal.io/sdk/client"
 )
 
@@ -33,6 +35,7 @@ type Backends struct {
 	tp    *temporal_mock.MockClient
 	txc   *transactions_mock.MockClient
 	wc    *wallets_mock.MockClient
+	email *email_mock.MockClient
 }
 
 func (b Backends) Payments() payments.Client {
@@ -69,6 +72,10 @@ func (b Backends) Wallets() wallets.Client {
 	return b.wc
 }
 
+func (b Backends) Email() email.Client {
+	return b.email
+}
+
 func NewBackends(t *testing.T) *Backends {
 	ctrl := gomock.NewController(t)
 	t.Cleanup(func() {
@@ -76,10 +83,11 @@ func NewBackends(t *testing.T) *Backends {
 	})
 
 	return &Backends{
-		db:    db.MigrateTestDB(t, context.Background()),
+		db:    db.MigrateTestDB(t, context.Background(), ""),
 		kyc:   kyc_mock.NewMockClient(ctrl),
 		la:    la_mock.NewMockClient(ctrl),
 		users: user_mock.NewMock(),
 		pc:    payments_mock.NewMockClient(ctrl),
+		email: email_mock.NewMockClient(ctrl),
 	}
 }

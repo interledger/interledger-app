@@ -7,7 +7,7 @@ import (
 
 	miniredis "github.com/alicebob/miniredis/v2"
 
-	"gitlab.com/fynbos/mock/mockpti/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockpti/internal/models"
 )
 
 func TestNewRedisStorage_AddressParsingAndConnectionError(t *testing.T) {

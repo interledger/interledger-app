@@ -10,12 +10,13 @@ import {
 import { createId } from '@paralleldrive/cuid2'
 import { randomUUID } from 'crypto'
 import { envValue } from '~/env.server'
+import { toWalletAddressUrl } from './utils.server'
 
 export async function createClient() {
   return await createAuthenticatedClient({
-    keyId: envValue("OP_INTPAY_KEY_ID")!,
-    privateKey: Buffer.from(envValue("OP_INTPAY_PRIVATE_KEY")!, 'base64'),
-    walletAddressUrl: envValue("OP_INTPAY_WALLET_ADDRESS")!,
+    keyId: envValue('OP_INTPAY_KEY_ID')!,
+    privateKey: Buffer.from(envValue('OP_INTPAY_PRIVATE_KEY')!, 'base64'),
+    walletAddressUrl: envValue('OP_INTPAY_WALLET_ADDRESS')!,
     validateResponses: false
   })
 }
@@ -275,7 +276,7 @@ async function createOutgoingPaymentGrant(
           start: ['redirect'],
           finish: {
             method: 'redirect',
-            uri: `${envValue("OP_INTPAY_REDIRECT_URL")}?paymentId=${paymentId}`,
+            uri: `${envValue('OP_INTPAY_REDIRECT_URL')}?paymentId=${paymentId}`,
             nonce: nonce || ''
           }
         }
@@ -417,7 +418,7 @@ export async function getRequestPaymentDetails(
       accessToken: incomingPaymentGrant.access_token?.value || ''
     })
     .catch((err) => {
-      console.log({err})
+      console.log({ err })
       throw new Error('Could not retrieve payment details.')
     })
 
@@ -514,7 +515,7 @@ export async function getGrantStatus(
       }
     )
     .catch((err) => {
-      console.log({err})
+      console.log({ err })
       throw new Error('Could not retrieve grant status.')
     })
 
@@ -531,6 +532,7 @@ export async function getGrantStatus(
 
 export async function getValidWalletAddress(walletAddress: string) {
   const opClient = await createClient()
-  const response = await getWalletAddress(walletAddress, opClient)
-  return response
+  const url = toWalletAddressUrl(walletAddress)
+
+  return await getWalletAddress(url, opClient)
 }

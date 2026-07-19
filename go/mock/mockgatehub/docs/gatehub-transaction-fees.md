@@ -171,7 +171,7 @@ Along with a hardcoded fee display of `0.00`:
 <span className='text-medium'>0.00</span>
 ```
 
-Source: `typescript/protea/app/routes/deposit/fynbos.tsx`, `withdraw.tsx`, `pay_.$paymentId/Amount.tsx`
+Source: `typescript/protea/app/routes/deposit/ilw.tsx`, `withdraw.tsx`, `pay_.$paymentId/Amount.tsx`
 
 **What "absorb" means in practice today:**
 
@@ -517,6 +517,6 @@ For reference, the status codes used when the app polls/validates transactions:
 - Fee parsing: `interledger-app/go/backend/providers/gatehub/ops/utils.go`
 - Fee fetching: `interledger-app/go/backend/providers/gatehub/ops/activity.go` (`GetFeeFromGatehubTrasaction`)
 - Transaction display: `interledger-app/go/backend/grpc/transactions.go` (`transformTransaction`)
-- Frontend fee display: `interledger-app/typescript/protea/app/routes/deposit/fynbos.tsx`
+- Frontend fee display: `interledger-app/typescript/protea/app/routes/deposit/ilw.tsx`
 - MockGateHub transactions: `mockgatehub/internal/handler/core.go`, `handler.go`
 - MockGateHub models: `mockgatehub/internal/models/models.go`

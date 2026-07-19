@@ -1,0 +1,15 @@
+port: "8080"
+log_level: debug
+
+redis_url: redis://redis:6379
+redis_db: 0
+
+public_key: test_public_key_12345
+secret: test_secret_key_98765
+test_mode: true
+
+webhook_url: http://host.docker.internal:24100/xago/webhooks
+webhook_secret: test-webhook-secret
+
+persona_webhook_url: http://host.docker.internal:24100/persona/webhooks
+persona_webhook_token: test-persona-webhook-token

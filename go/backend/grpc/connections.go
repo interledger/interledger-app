@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/interledger/interledger-app/go/backend/keys"
+	backendv1 "github.com/interledger/interledger-app/go/proto/backend/v1"
 	"github.com/lestrrat-go/jwx/v2/jwk"
-	"gitlab.com/fynbos/backend/keys"
-	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 )
 
 type validateCreateConnectionArgs struct {

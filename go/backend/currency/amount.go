@@ -7,12 +7,12 @@ import (
 	"strconv"
 	"strings"
 
-	adminv1 "gitlab.com/fynbos/proto/backend/admin/v1"
+	adminv1 "github.com/interledger/interledger-app/go/proto/backend/admin/v1"
 
-	"gitlab.com/fynbos/backend/country"
-	pb "gitlab.com/fynbos/proto/backend/v1"
+	"github.com/interledger/interledger-app/go/backend/country"
+	pb "github.com/interledger/interledger-app/go/proto/backend/v1"
 
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/log"
 	"go.uber.org/zap"
 )
 

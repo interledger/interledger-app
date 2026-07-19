@@ -9,11 +9,12 @@ import (
 	"testing"
 	"time"
 
-	"gitlab.com/fynbos/mock/mockgatehub/internal/handler"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/logger"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/models"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/storage"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/webhook"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/config"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/handler"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/logger"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/storage"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/webhook"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -39,7 +40,15 @@ func NewTestServer() *TestServer {
 	}
 
 	webhookManager := webhook.NewManager("", "test-secret", nil, nil, "")
-	h := handler.NewHandler(store, webhookManager)
+	h := handler.NewHandlerWithConfig(&config.Config{
+		Port:                  "8080",
+		LogLevel:              "info",
+		WebhookSecret:         "test-secret",
+		WebhookMinDelaySec:    2,
+		EnforceAuthentication: false,
+		DefaultOrganizationID: "default-org",
+		ValidCredentials:      map[string]string{"local-test-app-id": "local-test-app-secret"},
+	}, store, webhookManager)
 
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)

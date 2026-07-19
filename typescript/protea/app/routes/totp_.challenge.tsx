@@ -75,7 +75,9 @@ export async function loader({ request }: Route.LoaderArgs) {
     if (session.data.authenticator_assurance_level === 'aal2') {
       return redirect(returnTo)
     }
-  } catch (_) {}
+  } catch {
+    // ignore lookup failure and continue
+  }
 
   if (!flowId) {
     let aal2Flow: CreateBrowserLoginFlowResponse
@@ -201,7 +203,7 @@ export async function action({ request }: Route.ActionArgs) {
     const flowStatus = kratosError.response.status
 
     switch (flowStatus) {
-      case 400:
+      case 400: {
         const errorMapping = { form: '', totp_code: '' }
         mapFlowToFieldErrors(flowData, errorMapping)
         if (isSessionAlreadyExistsMessage(errorMapping.form)) {
@@ -215,6 +217,7 @@ export async function action({ request }: Route.ActionArgs) {
               'Unknown error, please retry.'
           }
         })
+      }
 
       case 410:
         // Flow expired

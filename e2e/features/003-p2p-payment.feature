@@ -106,12 +106,14 @@ Feature: Peer-to-Peer Payments
     And I take a screenshot "send-payment-page-target"        
     And I fill in the payment amount "100"
     And I select the payment currency "EUR"
-    And I take a screenshot "payment-form-ready"    
-    And I submit the payment
-    And I wait "5" seconds for the payment to complete
+    And I take a screenshot "payment-form-ready"
+    # Double-submit regression: one payment, redirect Home, not stranded on Pay search.
+    And I rapidly double-click to submit the payment
+    And I wait for the payment to complete
 
-    # Verify payment succeeded
+    # Verify payment succeeded and post-confirm navigation is healthy
     Then I should see a payment confirmation
+    And I should be redirected to the home page and able to navigate away
     And I navigate to the payments history page
     And I should see the payment in my transaction history
 

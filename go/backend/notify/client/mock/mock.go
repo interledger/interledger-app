@@ -9,7 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	notify "gitlab.com/fynbos/backend/notify"
+	notify "github.com/interledger/interledger-app/go/backend/notify"
 )
 
 // MockClient is a mock of Client interface.

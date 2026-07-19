@@ -8,20 +8,19 @@ import (
 	"strings"
 	"time"
 
-	"gitlab.com/fynbos/backend/wallets"
+	"github.com/interledger/interledger-app/go/backend/wallets"
 
-	"gitlab.com/fynbos/backend/slack"
-	"gitlab.com/fynbos/env"
+	"github.com/interledger/interledger-app/go/backend/slack"
 
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/google/uuid"
+	"github.com/interledger/interledger-app/go/backend/analytics"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/db"
+	"github.com/interledger/interledger-app/go/backend/notify"
+	"github.com/interledger/interledger-app/go/backend/transactions"
+	"github.com/interledger/interledger-app/go/log"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/fynbos/backend/analytics"
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/notify"
-	"gitlab.com/fynbos/backend/transactions"
-	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
 )
 
@@ -135,7 +134,7 @@ func createTransaction(ctx context.Context, dbc sqlx.ExecerContext, b Backends, 
 		UserID:      userID,
 	})
 
-	slack.SendToChannel(ctx, slack.ChannelTransaction, "wallet-info-bot", fmt.Sprintf(":money_with_wings: New Transaction Created\nID: %s\nWallet ID: %s\nAmount:%s\nFee:%s\nLink: %s", transID, args.WalletID, args.Amount.Format(), args.ProviderFee.Format(), env.AdminURL()+"/wallet/"+args.WalletID+"/transactions"))
+	slack.SendToChannel(ctx, slack.ChannelTransaction, "wallet-info-bot", fmt.Sprintf(":money_with_wings: New Transaction Created\nID: %s\nWallet ID: %s\nAmount:%s\nFee:%s\nLink: %s", transID, args.WalletID, args.Amount.Format(), args.ProviderFee.Format(), b.Config().Admin.BaseURL+"/wallet/"+args.WalletID+"/transactions"))
 
 	return transID, nil
 }

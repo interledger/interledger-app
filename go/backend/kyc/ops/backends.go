@@ -3,17 +3,18 @@ package ops
 import (
 	"testing"
 
-	"gitlab.com/fynbos/backend/providers/chimoney"
-	"gitlab.com/fynbos/backend/providers/pti"
-	"gitlab.com/fynbos/backend/rafiki"
+	"github.com/interledger/interledger-app/go/backend/providers/chimoney"
+	"github.com/interledger/interledger-app/go/backend/providers/pti"
+	"github.com/interledger/interledger-app/go/backend/rafiki"
 
-	"gitlab.com/fynbos/backend/email"
-	"gitlab.com/fynbos/backend/notify"
-	"gitlab.com/fynbos/backend/providers/xago"
-	"gitlab.com/fynbos/backend/wallets"
+	"github.com/interledger/interledger-app/go/backend/email"
+	"github.com/interledger/interledger-app/go/backend/notify"
+	"github.com/interledger/interledger-app/go/backend/providers/xago"
+	"github.com/interledger/interledger-app/go/backend/wallets"
 
-	"gitlab.com/fynbos/backend/signup"
-	"gitlab.com/fynbos/backend/user"
+	"github.com/interledger/interledger-app/go/backend/config"
+	"github.com/interledger/interledger-app/go/backend/signup"
+	"github.com/interledger/interledger-app/go/backend/user"
 
 	temporal "go.temporal.io/sdk/client"
 
@@ -34,6 +35,7 @@ type Backends interface {
 	PTI() pti.Client
 	Chimoney() chimoney.Client
 	Rafiki() rafiki.Client
+	Config() *config.StartConfig
 }
 
 type testBackends struct {
@@ -47,6 +49,7 @@ type testBackends struct {
 	wc  wallets.Client
 	xg  xago.Client
 	rf  rafiki.Client
+	cfg *config.StartConfig
 }
 
 func (b testBackends) Chimoney() chimoney.Client {
@@ -96,6 +99,10 @@ func (t testBackends) Rafiki() rafiki.Client {
 	return t.rf
 }
 
+func (t testBackends) Config() *config.StartConfig {
+	return t.cfg
+}
+
 func NewTestBackends(_ *testing.T, db *sqlx.DB, tp temporal.Client, uc user.Client, sc signup.Client, nc notify.Client, em email.Client, wc wallets.Client) Backends {
-	return &testBackends{db: db, val: validator.New(), tp: tp, uc: uc, sc: sc, nc: nc, em: em, wc: wc}
+	return &testBackends{db: db, val: validator.New(), tp: tp, uc: uc, sc: sc, nc: nc, em: em, wc: wc, cfg: &config.StartConfig{}}
 }

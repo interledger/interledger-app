@@ -5,10 +5,13 @@ interface ActionMessageProps {
   message?: string
 }
 
-export function ActionMessage({ className = 'min-w-full', message }: ActionMessageProps) {
+export function ActionMessage({
+  className = 'min-w-full',
+  message
+}: ActionMessageProps) {
   return (
     <div className={className}>
-      <div className="min-h-[1.75rem] pl-2 pt-2">
+      <div className='min-h-[1.75rem] pl-2 pt-2'>
         <AnimatePresence>
           {message && (
             <motion.p
@@ -16,7 +19,7 @@ export function ActionMessage({ className = 'min-w-full', message }: ActionMessa
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-              className="text-sm text-error"
+              className='text-sm text-error'
             >
               {message}
             </motion.p>

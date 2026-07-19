@@ -8,10 +8,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"gitlab.com/fynbos/mock/mockgatehub/internal/consts"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/models"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/storage"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/webhook"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/consts"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/storage"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/webhook"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
@@ -371,12 +371,12 @@ func TestCreateTransaction_HostedDebit(t *testing.T) {
 	require.NoError(t, err)
 
 	body := map[string]interface{}{
-		"user_id":          consts.TestUser1ID,
-		"amount":           100.0,
-		"currency":         "USD",
-		"type":             consts.TransactionTypeHosted,
-		"deposit_type":     consts.DepositTypeHosted,
-		"sending_address":  walletAddr,
+		"user_id":           consts.TestUser1ID,
+		"amount":            100.0,
+		"currency":          "USD",
+		"type":              consts.TransactionTypeHosted,
+		"deposit_type":      consts.DepositTypeHosted,
+		"sending_address":   walletAddr,
 		"receiving_address": "rExternal",
 	}
 	bodyBytes, _ := json.Marshal(body)

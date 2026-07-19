@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: soketi
+  namespace: interledger
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: soketi
+  template:
+    metadata:
+      labels:
+        app: soketi
+    spec:
+      containers:
+        - name: soketi
+          image: quay.io/soketi/soketi:1.6-16-alpine
+          env:
+            - name: SOKETI_DEBUG
+              value: "0"
+            - name: SOKETI_DEFAULT_APP_ID
+              value: "kind-app-id"
+            - name: SOKETI_DEFAULT_APP_KEY
+              value: "kind-pusher-app-key"
+            - name: SOKETI_DEFAULT_APP_SECRET
+              value: "kind-pusher-app-secret"
+          ports:
+            - name: http
+              containerPort: 6001
+          resources:
+            requests:
+              memory: 64Mi
+              cpu: 10m
+            limits:
+              memory: 256Mi
+              cpu: 500m
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: soketi
+  namespace: interledger
+spec:
+  selector:
+    app: soketi
+  ports:
+    - name: http
+      port: 6001
+      targetPort: 6001

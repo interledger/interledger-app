@@ -9,7 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	waitlist "gitlab.com/fynbos/backend/waitlist"
+	waitlist "github.com/interledger/interledger-app/go/backend/waitlist"
 )
 
 // MockClient is a mock of Client interface.

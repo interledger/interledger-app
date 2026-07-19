@@ -1,5 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
+export function formatCountdown(remainingSeconds: number): string {
+  if (remainingSeconds < 60) {
+    return `${remainingSeconds}s`
+  }
+
+  const minutes = Math.floor(remainingSeconds / 60)
+  const seconds = remainingSeconds % 60
+
+  return `${minutes}m ${seconds}s`
+}
+
 /**
  * Hook for countdown timer
  * @returns Object with start function, isActive flag, and remainingSeconds

@@ -5,11 +5,11 @@ import (
 	"net/http"
 	"time"
 
-	"gitlab.com/fynbos/backend/providers/gatehub"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
 
-	"gitlab.com/fynbos/backend/providers/gatehub/external"
-	httplogger "gitlab.com/fynbos/backend/providers/http"
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub/external"
+	httplogger "github.com/interledger/interledger-app/go/backend/providers/http"
+	"github.com/interledger/interledger-app/go/log"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"

@@ -1,11 +1,11 @@
-import { z } from 'zod'
 import { type WalletAddress } from '@interledger/open-payments'
-import { Errors, FormattedAmount, FormatAmountArgs } from './types'
 import { redirect } from 'react-router'
-import { getCurrencySymbol } from '~/lib/helpers'
+import { z } from 'zod'
 import { envBool } from '~/env.server'
+import { getCurrencySymbol } from '~/lib/helpers'
+import { Errors, FormatAmountArgs, FormattedAmount } from './types'
 
-export class WalletAddressFormatError extends Error { }
+export class WalletAddressFormatError extends Error {}
 
 export const walletSchema = z.object({
   walletAddress: z
@@ -49,8 +49,8 @@ export const requestSchema = z.object({
 })
 
 export const requestPaymentSchema = paymentSchema.extend({
-  senderAddress: paymentSchema.shape.senderAddress.optional(),
-});
+  senderAddress: paymentSchema.shape.senderAddress.optional()
+})
 
 function checkHrefFormat(href: string): void {
   let url: URL
@@ -112,14 +112,16 @@ async function isValidWalletAddress(
 export function createError(key: string, message: string): Errors {
   return {
     [key]: {
-      errors: [message],
-    },
+      errors: [message]
+    }
   }
 }
 
-export const isWalletAddress = (
-  o: WalletAddress
-): o is WalletAddress => {
+export function isWalletAddress(obj: unknown): obj is WalletAddress {
+  if (!obj || typeof obj !== 'object') {
+    return false
+  }
+  const o = obj as Record<string, unknown>
   return !!(
     o.id &&
     typeof o.id === 'string' &&
@@ -134,8 +136,15 @@ export const isWalletAddress = (
   )
 }
 
+// https://github.com/interledger/web-monetization-extension/blob/305b47c9f67ca604c79cfbfb083e5fcd1a579161/src/shared/helpers/wallet.ts#L13-L21
 export function toWalletAddressUrl(s: string): string {
-  return s.startsWith('$') ? s.replace('$', 'https://') : s
+  if (s.startsWith('https://')) return s
+
+  const addr = s.replace(/^\$/, 'https://').replace(/\/$/, '')
+  if (/^https:\/\/.*\/[^/].*$/.test(addr)) {
+    return addr
+  }
+  return `${addr}/.well-known/pay`
 }
 
 type FormatDateArgs = {
@@ -187,5 +196,3 @@ export const routeAllowed = (featureName: string) => {
     throw redirect('/')
   }
 }
-
-type FormDataObject = Record<string, FormDataEntryValue>

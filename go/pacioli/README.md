@@ -1,22 +1,14 @@
 # Pacioli
-This provides a multi-tenant accounts and policy service. Metadata about accounts and transfers are stored in CockroachDB. This takes the form of account categories and transaction types. TigerBeetle is used to store the actual account and transfer data.
+This provides a multi-tenant accounts and policy service. Account and transfer
+data, along with their metadata (account categories and transaction types), are
+stored in CockroachDB.
 
-## TigerBeetle client
-The tigerbeetle client code is found in `../tigerbeetle_go`. It only supports linux for the moment and the will be removed from the repo once the TigerBeetle team officially release the Go client.
-
-This does mean that for the moment building the `pacioli` docker image requires first manually installing zig and building the C ABI for TigerBeetle.
-
-```sh
-# make sure you have zig installed https://github.com/coilhq/tigerbeetle/blob/main/scripts/install_zig.sh
-cd ../tigerbeetle_go
-
-git submodule update --remote
-zig build-lib --main-pkg-path ./internal -dynamic -lc -ODebug internal/client_c/client_c.zig
-```
+The ledger logic lives in the `ledger/tigerroach` package, which implements an
+accounts-and-transfers ledger API (modelled on TigerBeetle's double-entry
+semantics) backed by CockroachDB.
 
 ## Local dev
-Make sure you have built the TigerBeetle C ABI. Then run
+Run the tests with:
 ```sh
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../../tigerbeetle_go
 go test ./...
 ```

@@ -1,16 +1,18 @@
 package ops
 
 import (
-	"gitlab.com/fynbos/backend/wallets"
+	"github.com/interledger/interledger-app/go/backend/wallets"
 	"testing"
 
-	"gitlab.com/fynbos/backend/linkedaccounts"
+	"github.com/interledger/interledger-app/go/backend/config"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
 
+	"github.com/interledger/interledger-app/go/backend/kyc"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/fynbos/backend/kyc"
 )
 
 type Backends interface {
+	Config() *config.StartConfig
 	DB() *sqlx.DB
 	KYC() kyc.Client
 	LinkedAccounts() linkedaccounts.Client
@@ -18,10 +20,15 @@ type Backends interface {
 }
 
 type testBackends struct {
+	cfg *config.StartConfig
 	db  *sqlx.DB
 	kyc kyc.Client
 	la  linkedaccounts.Client
 	w   wallets.Client
+}
+
+func (t testBackends) Config() *config.StartConfig {
+	return t.cfg
 }
 
 func (t testBackends) LinkedAccounts() linkedaccounts.Client {
@@ -40,6 +47,6 @@ func (t testBackends) Wallets() wallets.Client {
 	return t.w
 }
 
-func NewTestBackends(t *testing.T, db *sqlx.DB, kyc kyc.Client, la linkedaccounts.Client, w wallets.Client) Backends {
-	return &testBackends{db: db, kyc: kyc, la: la, w: w}
+func NewTestBackends(t *testing.T, db *sqlx.DB, kyc kyc.Client, la linkedaccounts.Client, w wallets.Client, cfg *config.StartConfig) Backends {
+	return &testBackends{cfg: cfg, db: db, kyc: kyc, la: la, w: w}
 }

@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	httplog "gitlab.com/fynbos/backend/providers/http"
+	httplog "github.com/interledger/interledger-app/go/backend/providers/http"
 )
 
 func (c client) StartTransferAssessment(ctx context.Context, args TransferArgs) (*IDResponse, error) {

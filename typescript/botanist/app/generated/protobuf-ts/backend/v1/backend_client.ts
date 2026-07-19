@@ -6,6 +6,8 @@ import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { BackendService } from "./backend";
 import type { UpdateUserPhoneRequest } from "./backend";
 import type { ConfirmUserPhoneRequest } from "./backend";
+import type { AccountDeletionStatus } from "./backend";
+import type { RequestAccountDeletionRequest } from "./backend";
 import type { ThreeDSPaymentConfirmationRequest } from "./backend";
 import type { GetPendingThreeDSConfirmationsResponse } from "./backend";
 import type { BlockCardRequest } from "./backend";
@@ -616,6 +618,18 @@ export interface IBackendServiceClient {
      * @generated from protobuf rpc: ThreeDSPaymentConfirmation(backend.v1.ThreeDSPaymentConfirmationRequest) returns (backend.v1.Empty);
      */
     threeDSPaymentConfirmation(input: ThreeDSPaymentConfirmationRequest, options?: RpcOptions): UnaryCall<ThreeDSPaymentConfirmationRequest, Empty>;
+    /**
+     * Records a pending account-deletion request; requires AAL2 + TOTP enrolled.
+     *
+     * @generated from protobuf rpc: RequestAccountDeletion(backend.v1.RequestAccountDeletionRequest) returns (backend.v1.Empty);
+     */
+    requestAccountDeletion(input: RequestAccountDeletionRequest, options?: RpcOptions): UnaryCall<RequestAccountDeletionRequest, Empty>;
+    /**
+     * Returns whether the authenticated user has a pending account deletion request.
+     *
+     * @generated from protobuf rpc: GetAccountDeletionStatus(backend.v1.Empty) returns (backend.v1.AccountDeletionStatus);
+     */
+    getAccountDeletionStatus(input: Empty, options?: RpcOptions): UnaryCall<Empty, AccountDeletionStatus>;
     /**
      * Phone confirmation
      *
@@ -1424,19 +1438,37 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
         return stackIntercept<ThreeDSPaymentConfirmationRequest, Empty>("unary", this._transport, method, opt, input);
     }
     /**
+     * Records a pending account-deletion request; requires AAL2 + TOTP enrolled.
+     *
+     * @generated from protobuf rpc: RequestAccountDeletion(backend.v1.RequestAccountDeletionRequest) returns (backend.v1.Empty);
+     */
+    requestAccountDeletion(input: RequestAccountDeletionRequest, options?: RpcOptions): UnaryCall<RequestAccountDeletionRequest, Empty> {
+        const method = this.methods[105], opt = this._transport.mergeOptions(options);
+        return stackIntercept<RequestAccountDeletionRequest, Empty>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * Returns whether the authenticated user has a pending account deletion request.
+     *
+     * @generated from protobuf rpc: GetAccountDeletionStatus(backend.v1.Empty) returns (backend.v1.AccountDeletionStatus);
+     */
+    getAccountDeletionStatus(input: Empty, options?: RpcOptions): UnaryCall<Empty, AccountDeletionStatus> {
+        const method = this.methods[106], opt = this._transport.mergeOptions(options);
+        return stackIntercept<Empty, AccountDeletionStatus>("unary", this._transport, method, opt, input);
+    }
+    /**
      * Phone confirmation
      *
      * @generated from protobuf rpc: ConfirmUserPhone(backend.v1.ConfirmUserPhoneRequest) returns (backend.v1.Empty);
      */
     confirmUserPhone(input: ConfirmUserPhoneRequest, options?: RpcOptions): UnaryCall<ConfirmUserPhoneRequest, Empty> {
-        const method = this.methods[105], opt = this._transport.mergeOptions(options);
+        const method = this.methods[107], opt = this._transport.mergeOptions(options);
         return stackIntercept<ConfirmUserPhoneRequest, Empty>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: UpdateUserPhone(backend.v1.UpdateUserPhoneRequest) returns (backend.v1.Empty);
      */
     updateUserPhone(input: UpdateUserPhoneRequest, options?: RpcOptions): UnaryCall<UpdateUserPhoneRequest, Empty> {
-        const method = this.methods[106], opt = this._transport.mergeOptions(options);
+        const method = this.methods[108], opt = this._transport.mergeOptions(options);
         return stackIntercept<UpdateUserPhoneRequest, Empty>("unary", this._transport, method, opt, input);
     }
 }

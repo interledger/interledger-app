@@ -12,22 +12,22 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
+	"github.com/interledger/interledger-app/go/backend/config"
+	"github.com/interledger/interledger-app/go/backend/db"
+	email "github.com/interledger/interledger-app/go/backend/email"
+	email_mock "github.com/interledger/interledger-app/go/backend/email/client/mock"
+	kycclient "github.com/interledger/interledger-app/go/backend/kyc"
+	kyc_mock "github.com/interledger/interledger-app/go/backend/kyc/client/mock"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	"github.com/interledger/interledger-app/go/backend/notify"
+	"github.com/interledger/interledger-app/go/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/transactions"
+	"github.com/interledger/interledger-app/go/backend/user"
+	"github.com/interledger/interledger-app/go/backend/wallets"
+	"github.com/interledger/interledger-app/go/pacioli"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/backend/db"
-	email "gitlab.com/fynbos/backend/email"
-	email_mock "gitlab.com/fynbos/backend/email/client/mock"
-	kycclient "gitlab.com/fynbos/backend/kyc"
-	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/notify"
-	"gitlab.com/fynbos/backend/payments"
-	"gitlab.com/fynbos/backend/transactions"
-	"gitlab.com/fynbos/backend/user"
-	"gitlab.com/fynbos/backend/wallets"
-	"gitlab.com/fynbos/env"
-	"gitlab.com/fynbos/pacioli"
 	temporal "go.temporal.io/sdk/client"
 )
 
@@ -69,12 +69,14 @@ func (b actionRequiredWebhookBackends) KYC() kycclient.Client                 { 
 func (b actionRequiredWebhookBackends) Transactions() transactions.Client     { return nil }
 func (b actionRequiredWebhookBackends) Payments() payments.Client             { return nil }
 func (b actionRequiredWebhookBackends) Notify() notify.Client                 { return nil }
+func (b actionRequiredWebhookBackends) Config() *config.StartConfig {
+	return &config.StartConfig{Environment: config.EnvironmentConfig{Mode: "test"}}
+}
 
 func TestHandleActionRequiredWebhook_StatusDocumentsRequired(t *testing.T) {
-	env.SetEnv(t, "local")
 
 	ctx := context.Background()
-	testDB := db.MigrateTestDB(t, ctx)
+	testDB := db.MigrateTestDB(t, ctx, "")
 	ctrl := gomock.NewController(t)
 	t.Cleanup(ctrl.Finish)
 
@@ -124,7 +126,6 @@ func TestHandleActionRequiredWebhook_StatusDocumentsRequired(t *testing.T) {
 }
 
 func TestHandleActionRequiredWebhook_InvalidPayload(t *testing.T) {
-	env.SetEnv(t, "local")
 
 	rr := httptest.NewRecorder()
 	HandleActionRequiredWebhook(context.Background(), actionRequiredWebhookBackends{}, json.RawMessage(`{"event_type":`), rr)
@@ -132,10 +133,9 @@ func TestHandleActionRequiredWebhook_InvalidPayload(t *testing.T) {
 }
 
 func TestHandleActionRequiredWebhook_WalletNotFound(t *testing.T) {
-	env.SetEnv(t, "local")
 
 	ctx := context.Background()
-	testDB := db.MigrateTestDB(t, ctx)
+	testDB := db.MigrateTestDB(t, ctx, "")
 	ctrl := gomock.NewController(t)
 	t.Cleanup(ctrl.Finish)
 
@@ -156,10 +156,9 @@ func TestHandleActionRequiredWebhook_WalletNotFound(t *testing.T) {
 }
 
 func TestHandleActionRequiredWebhook_IgnoresOtherGateways(t *testing.T) {
-	env.SetEnv(t, "local")
 
 	ctx := context.Background()
-	testDB := db.MigrateTestDB(t, ctx)
+	testDB := db.MigrateTestDB(t, ctx, "")
 	ctrl := gomock.NewController(t)
 	t.Cleanup(ctrl.Finish)
 
@@ -180,10 +179,9 @@ func TestHandleActionRequiredWebhook_IgnoresOtherGateways(t *testing.T) {
 }
 
 func TestHandleActionRequiredWebhook_SetKYCStatusError(t *testing.T) {
-	env.SetEnv(t, "local")
 
 	ctx := context.Background()
-	testDB := db.MigrateTestDB(t, ctx)
+	testDB := db.MigrateTestDB(t, ctx, "")
 	ctrl := gomock.NewController(t)
 	t.Cleanup(ctrl.Finish)
 

@@ -1,9 +1,7 @@
 import { Errors } from './types'
 
 export function formatError(error: Errors | null | undefined) {
-  const filteredErrors = error?.errors?.filter(
-    (e): e is string => Boolean(e)
-  )
+  const filteredErrors = error?.errors?.filter((e): e is string => Boolean(e))
 
   if (!filteredErrors?.length) return undefined
 
@@ -23,6 +21,9 @@ export const getCurrencySymbol = (assetCode: string): string => {
 }
 
 export const NOTE_MAX_CHARACTERS = 255
-export const charactersRemaining = (text: string, limit: number = NOTE_MAX_CHARACTERS) => {
+export const charactersRemaining = (
+  text: string,
+  limit: number = NOTE_MAX_CHARACTERS
+) => {
   return `Characters remaining ${limit - text.length}`
 }

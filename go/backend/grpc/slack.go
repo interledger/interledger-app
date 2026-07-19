@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 
-	"gitlab.com/fynbos/backend/identities"
-	"gitlab.com/fynbos/backend/slack"
-	pb "gitlab.com/fynbos/proto/backend/v1"
+	"github.com/interledger/interledger-app/go/backend/identities"
+	"github.com/interledger/interledger-app/go/backend/slack"
+	pb "github.com/interledger/interledger-app/go/proto/backend/v1"
 )
 
 func (s *rpcService) CreateSlackAuthURL(ctx context.Context, _ *pb.Empty) (*pb.CreateSlackAuthURLResponse, error) {

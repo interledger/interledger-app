@@ -204,7 +204,12 @@ export function useHeroSnap({
      * Cooldown (600ms) covers the full inertia lifetime so one flick = one advance.
      */
     const onWheel = (e: WheelEvent) => {
-      if (!state.locked) return
+      if (!state.locked) {
+        // At scrollY 0 an upward wheel fires no `scroll` event, so onScroll can't
+        // re-engage — re-engage from the wheel instead. Dead-zone vs noise.
+        if (e.deltaY <= -WHEEL_DEAD_ZONE && tryReengage()) e.preventDefault()
+        return
+      }
       if (performance.now() < state.reengageBlockUntil) {
         e.preventDefault()
         return
@@ -238,8 +243,8 @@ export function useHeroSnap({
       navigate(dir)
     }
 
+    // Recorded even when unlocked, so the re-engage path can read swipe direction.
     const onTouchStart = (e: TouchEvent) => {
-      if (!state.locked) return
       state.touchStartY = e.touches[0]?.clientY ?? null
     }
 
@@ -248,14 +253,21 @@ export function useHeroSnap({
     }
 
     const onTouchEnd = (e: TouchEvent) => {
-      if (!state.locked) return
-      if (performance.now() < state.reengageBlockUntil) return
       const startY = state.touchStartY
       state.touchStartY = null
       if (startY == null) return
       const endY = e.changedTouches[0]?.clientY ?? startY
       const delta = startY - endY
       if (Math.abs(delta) < TOUCH_THRESHOLD_PX) return
+
+      if (!state.locked) {
+        // Wheel counterpart: a swipe up toward the hero (delta < 0) at the top
+        // fires no `scroll` event, so re-engage from the touch instead.
+        if (delta < 0) tryReengage()
+        return
+      }
+
+      if (performance.now() < state.reengageBlockUntil) return
       if (performance.now() - state.lastAdvanceAt < cooldownMs) return
       navigate(delta > 0 ? 1 : -1)
     }
@@ -280,22 +292,36 @@ export function useHeroSnap({
     }
 
     // ── Lock lifecycle ────────────────────────────────────────────────
-    /** Re-engage when the user scrolls back up to the hero from below. */
-    const onScroll = () => {
-      if (state.locked) return
-      if (performance.now() - state.lastReleaseAt < REENGAGE_COOLDOWN_MS) return
+    const isHeroPinnedAtTop = () => {
       const rect = section.getBoundingClientRect()
-      const fullyAtTop =
-        rect.top >= 0 && rect.top < window.innerHeight && rect.bottom > 0
-      if (!fullyAtTop) return
-      const fromBelow = rect.bottom <= window.innerHeight + 4
-      const entryScreen = (fromBelow ? screenCount : 1) as CarouselScreen
-      state.screen = entryScreen
-      setActiveScreen(entryScreen)
-      if (fromBelow)
-        state.reengageBlockUntil = performance.now() + REENGAGE_PAUSE_MS
+      return rect.top >= 0 && rect.top < window.innerHeight && rect.bottom > 0
+    }
+
+    // Release a stale lock: Chromium restores scroll position after this effect
+    // locks at the top, stranding the lock past the hero with no other release path.
+    const releaseStaleLock = () => {
+      if (state.locked && !isHeroPinnedAtTop()) unlockBody()
+    }
+
+    /** Re-engage the hero lock when scrolled back to the top. Returns true if it did. */
+    const tryReengage = (): boolean => {
+      if (state.locked) return false
+      if (performance.now() - state.lastReleaseAt < REENGAGE_COOLDOWN_MS)
+        return false
+      if (!isHeroPinnedAtTop()) return false
+      const rect = section.getBoundingClientRect()
+      state.screen = screenCount as CarouselScreen
+      setActiveScreen(screenCount as CarouselScreen)
+      state.reengageBlockUntil = performance.now() + REENGAGE_PAUSE_MS
       lockBody()
       window.scrollTo({ top: window.scrollY + rect.top, behavior: 'auto' })
+      return true
+    }
+
+    /** Re-engage when the user scrolls back up to the hero from below. */
+    const onScroll = () => {
+      if (state.locked) return releaseStaleLock()
+      tryReengage()
     }
 
     const initLockState = () => {
@@ -306,6 +332,9 @@ export function useHeroSnap({
     }
 
     initLockState()
+    // Re-sync after scroll restoration (next frame) and BFCache restore (pageshow).
+    const rafId = requestAnimationFrame(releaseStaleLock)
+    const onPageShow = () => releaseStaleLock()
 
     window.addEventListener('wheel', onWheel, { passive: false })
     window.addEventListener('touchstart', onTouchStart, { passive: true })
@@ -313,6 +342,7 @@ export function useHeroSnap({
     window.addEventListener('touchend', onTouchEnd, { passive: true })
     window.addEventListener('keydown', onKeyDown)
     window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('pageshow', onPageShow)
 
     return () => {
       window.removeEventListener('wheel', onWheel)
@@ -321,6 +351,8 @@ export function useHeroSnap({
       window.removeEventListener('touchend', onTouchEnd)
       window.removeEventListener('keydown', onKeyDown)
       window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('pageshow', onPageShow)
+      cancelAnimationFrame(rafId)
       if (state.wheelEndTimer) clearTimeout(state.wheelEndTimer)
       unlockBody()
     }

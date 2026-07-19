@@ -17,7 +17,8 @@
 .anim-scroll-fade-up {
   opacity: 0;
   transform: translateY(var(--anim-transform-start, 40px));
-  transition: opacity var(--anim-scroll-duration, 500ms)
+  transition:
+    opacity var(--anim-scroll-duration, 500ms)
       var(--anim-scroll-easing, ease-out),
     transform var(--anim-scroll-duration, 500ms)
       var(--anim-scroll-easing, ease-out);
@@ -44,12 +45,25 @@
 
 @media (prefers-reduced-motion: reduce) {
   .anim-enter,
-  .anim-scroll-fade,
-  .anim-scroll-transform {
+  .anim-scroll-fade-up,
+  .anim-scroll-fade-up.is-visible {
     opacity: 1;
     transform: none;
     transition: none;
     animation: none;
+  }
+
+  /* Safety net: kill animation/transition duration everywhere (incl. hover and
+     future sections). End-states are still set by the per-section blocks. */
+  .landing-shell *,
+  .landing-shell *::before,
+  .landing-shell *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
   }
 }
 

@@ -3,10 +3,10 @@ package admin
 import (
 	"context"
 
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/providers/xago"
-	adminv1 "gitlab.com/fynbos/proto/backend/admin/v1"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	"github.com/interledger/interledger-app/go/backend/providers/xago"
+	adminv1 "github.com/interledger/interledger-app/go/proto/backend/admin/v1"
 	_ "google.golang.org/protobuf/types/known/emptypb"
 )
 

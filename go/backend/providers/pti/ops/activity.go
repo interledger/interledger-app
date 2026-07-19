@@ -10,19 +10,19 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/interledger/interledger-app/go/backend/country"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/email"
+	"github.com/interledger/interledger-app/go/backend/kyc"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	"github.com/interledger/interledger-app/go/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/providers/pti"
+	"github.com/interledger/interledger-app/go/backend/providers/pti/external"
+	"github.com/interledger/interledger-app/go/backend/slack"
+	"github.com/interledger/interledger-app/go/backend/transactions"
+	"github.com/interledger/interledger-app/go/log"
+	"github.com/interledger/interledger-app/go/pacioli"
 	"github.com/lestrrat-go/jwx/v3/jwk"
-	"gitlab.com/fynbos/backend/country"
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/kyc"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/payments"
-	"gitlab.com/fynbos/backend/providers/pti"
-	"gitlab.com/fynbos/backend/providers/pti/external"
-	"gitlab.com/fynbos/backend/slack"
-	"gitlab.com/fynbos/backend/transactions"
-	"gitlab.com/fynbos/env"
-	"gitlab.com/fynbos/log"
-	"gitlab.com/fynbos/pacioli"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/temporal"
 	"go.uber.org/zap"
@@ -555,12 +555,15 @@ func (a *Activity) GetWalletFromPTIUser(ctx context.Context, externalUserID stri
 	return walletID, nil
 }
 
-func (a *Activity) CreateTransaction(ctx context.Context, la *linkedaccounts.LinkedAccount, amount currency.Amount, externalID, note string) error {
-	if amount.Currency != currency.USD {
+func (a *Activity) CreateTransaction(ctx context.Context, walletId string, payment *payments.Payment, externalID string) error {
+	if payment == nil {
+		return temporal.NewNonRetryableApplicationError("Payment is nil", "ErrInternal", fmt.Errorf("%w payment is nil", pti.ErrInternal))
+	}
+	if payment.ReceiverAmount.Currency != currency.USD {
 		return temporal.NewNonRetryableApplicationError("Invalid currency", "ErrInternal", fmt.Errorf("%w invalid currency", pti.ErrInternal))
 	}
 
-	wallet, err := a.b.Wallets().Get(ctx, la.WalletID)
+	wallet, err := a.b.Wallets().Get(ctx, walletId)
 	if errors.Is(err, pti.ErrNotFound) {
 		return temporal.NewNonRetryableApplicationError("Wallet not found", "ErrNotFound", fmt.Errorf("%w No wallet found for pti user", pti.ErrNotFound))
 	}
@@ -579,14 +582,15 @@ func (a *Activity) CreateTransaction(ctx context.Context, la *linkedaccounts.Lin
 		Title:                   "Deposit",
 		DestinationIdentity:     wallet.ID,
 		DestinationIdentityType: payments.IdentityTypeWalletID.String(),
-		Amount:                  amount,
+		Amount:                  payment.ReceiverAmount,
 		ProviderFee:             nil,
-		LinkedAccountTitle:      "US Balance",
+		LinkedAccountTitle:      "USD Balance",
+		Note:                    payment.Note,
 		Transfers: []transactions.TransferArgs{
 			{
-				LinkedAccountID: la.ID,
+				LinkedAccountID: payment.ReceiverAccount,
 				ForeignID:       externalID,
-				Amount:          amount,
+				Amount:          payment.ReceiverAmount,
 				Type:            transactions.TransferTypeCreditBalance,
 				State:           transactions.StatePending,
 			},
@@ -698,7 +702,7 @@ func (a *Activity) SettleTransaction(ctx context.Context, transactionID, walletI
 		DestinationIdentityType: payments.IdentityTypeWalletID.String(),
 		Amount:                  amount,
 		ProviderFee:             nil,
-		LinkedAccountTitle:      "US Balance",
+		LinkedAccountTitle:      "USD Balance",
 		Transfers: []transactions.TransferArgs{
 			{
 				LinkedAccountID: eurBalance.ID,
@@ -768,6 +772,37 @@ func (a *Activity) FinalizePTIDeposit(ctx context.Context, id, walletID string, 
 	return nil
 }
 
+func (a *Activity) ValidateLinkedAccounts(ctx context.Context, payment *payments.Payment, walletId string) error {
+	las, err := a.b.LinkedAccounts().ListByWalletId(ctx, walletId)
+	if err != nil {
+		return fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+
+	var balance *linkedaccounts.LinkedAccount
+	for _, la := range las {
+		if la.Provider == pti.ProviderName && la.Type == pti.AccTypeBalance && la.ID == payment.ReceiverAccount {
+			balance = &la
+			break
+		}
+	}
+	if balance == nil {
+		return fmt.Errorf("%w balance account not found", pti.ErrNotFound)
+	}
+	// only allow withdrawing from bank
+	var bank *linkedaccounts.LinkedAccount
+	for _, la := range las {
+		if la.Provider == pti.ProviderName && la.Type == pti.TypeBank && la.ID == payment.SenderAccount {
+			bank = &la
+			break
+		}
+	}
+	if bank == nil {
+		return fmt.Errorf("%w bank account not found", pti.ErrNotFound)
+	}
+	return nil
+
+}
+
 func (a *Activity) PTIDeposit(ctx context.Context, ptiArgs pti.TransactionArgs) (string, error) {
 	return DepositToWallet(ctx, a.b, a.external, ptiArgs)
 
@@ -819,6 +854,33 @@ func (a *Activity) FinalizePTIBalance(ctx context.Context, id, walletID string) 
 	return FinaliseReserve(ctx, a.b, tx.ID)
 }
 
+// RampActionEmailArgs describes a completed/failed deposit or withdrawal for SendRampActionEmail.
+type RampActionEmailArgs struct {
+	WalletID string
+	Action   string
+	Status   string
+	Amount   currency.Amount
+}
+
+// SendRampActionEmail is a best-effort notification: it never fails the calling workflow.
+func (a *Activity) SendRampActionEmail(ctx context.Context, args RampActionEmailArgs) error {
+	bankLA, err := getBankLinkedAccount(ctx, a.b, args.WalletID)
+	if err != nil {
+		log.Error("Failed to resolve bank account for ramp action email", zap.Error(err), zap.String("walletID", args.WalletID), zap.String("action", args.Action))
+		return nil
+	}
+
+	a.b.Email().SendRampActionEmail(ctx, args.WalletID, email.RampActionEmailArgs{
+		Action:    args.Action,
+		Status:    args.Status,
+		Amount:    args.Amount,
+		Source:    formatBankSource(bankLA),
+		Method:    "ACH",
+		Timestamp: time.Now(),
+	})
+	return nil
+}
+
 func (a *Activity) UpdatePaymentState(ctx context.Context, paymentID string, state payments.State) error {
 	_, err := a.b.DB().ExecContext(ctx, "UPDATE payments SET state=$1, updated_at=now() where id=$2", payments.StateCompleted, paymentID)
 	if err != nil {
@@ -830,7 +892,7 @@ func (a *Activity) UpdatePaymentState(ctx context.Context, paymentID string, sta
 func (a *Activity) UpdateTransactionState(ctx context.Context, walletID, transactionID string, state transactions.State) error {
 	info := activity.GetInfo(ctx)
 	if info.Attempt == 1 && state == transactions.StateFailed {
-		slack.SendToChannel(ctx, slack.ChannelError, "wallet-info-bot", fmt.Sprintf("Pti withdrawal failed. %s/wallet/%s/transactions/%s", env.AdminURL(), walletID, transactionID))
+		slack.SendToChannel(ctx, slack.ChannelError, "wallet-info-bot", fmt.Sprintf("Pti withdrawal failed. %s/wallet/%s/transactions/%s", a.b.Config().Admin.BaseURL, walletID, transactionID))
 	}
 
 	transfers, err := a.b.Transactions().ListTransfers(ctx, transactionID)
@@ -929,7 +991,7 @@ func (a *Activity) ReturnTransaction(ctx context.Context, originalTransactionID,
 		DestinationIdentityType: payments.IdentityTypeWalletID.String(),
 		Amount:                  amount,
 		ProviderFee:             nil,
-		LinkedAccountTitle:      "US Balance",
+		LinkedAccountTitle:      "USD Balance",
 		Transfers: []transactions.TransferArgs{
 			{
 				LinkedAccountID: balance.ID,

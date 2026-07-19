@@ -13,12 +13,12 @@ import (
 	"regexp"
 	"strings"
 
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/kyc"
-	"gitlab.com/fynbos/backend/providers/chimoney"
-	"gitlab.com/fynbos/backend/providers/chimoney/external"
-	httplogger "gitlab.com/fynbos/backend/providers/http"
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/kyc"
+	"github.com/interledger/interledger-app/go/backend/providers/chimoney"
+	"github.com/interledger/interledger-app/go/backend/providers/chimoney/external"
+	httplogger "github.com/interledger/interledger-app/go/backend/providers/http"
+	"github.com/interledger/interledger-app/go/log"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.uber.org/zap"
 )
@@ -76,7 +76,7 @@ func ParseWebhookSecret(input string) []byte {
 	return secret
 }
 
-func NewWebhook(b Backends, webhookSecret, apiKey string) http.HandlerFunc {
+func NewWebhook(b Backends, webhookSecret, apiKey string, isProd bool) http.HandlerFunc {
 	if webhookSecret == "" {
 		log.Error("CHIMONEY_WEBHOOK_SECRET is empty")
 	}
@@ -89,6 +89,7 @@ func NewWebhook(b Backends, webhookSecret, apiKey string) http.HandlerFunc {
 				httplogger.NewTransport(http.DefaultTransport, b, external.Redact),
 			),
 		},
+		isProd,
 	)
 
 	return func(w http.ResponseWriter, r *http.Request) {

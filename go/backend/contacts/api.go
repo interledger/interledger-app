@@ -3,8 +3,8 @@ package contacts
 import (
 	"context"
 
-	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/wallets"
+	"github.com/interledger/interledger-app/go/backend/db"
+	"github.com/interledger/interledger-app/go/backend/wallets"
 )
 
 type Client interface {

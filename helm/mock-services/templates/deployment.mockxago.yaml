@@ -8,8 +8,14 @@ spec:
     metadata:
       annotations:
         ilf-configmap-mockxago-sha256: {{ $dataHash | quote }}
+    spec:
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "common.fullname" $top }}-{{ $top.Values.mockxago.configMaps.config.name }}
 {{- end }}
 {{- end }}
 {{- if and (kindIs "bool" .Values.mockxago.enabled) .Values.mockxago.enabled }}
-{{- include "common.deployment" (list . .Values.mockxago.server .Values.mockxago.server.autoscaling .Values.mockxago.server.serviceAccount "mock-services.mockxago.deployment") }}
+{{- $sa := include "mock-services.saSpec" (list . .Values.mockxago "mockxago") | fromYaml }}
+{{- include "common.deployment" (list . .Values.mockxago.server .Values.mockxago.server.autoscaling $sa "mock-services.mockxago.deployment") }}
 {{- end }}

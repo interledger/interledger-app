@@ -5,10 +5,10 @@ import (
 	"net/http"
 	"time"
 
-	"gitlab.com/fynbos/mock/mockgatehub/internal/consts"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/logger"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/models"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/utils"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/consts"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/logger"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/utils"
 
 	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
@@ -486,6 +486,14 @@ func (h *Handler) GetTransaction(w http.ResponseWriter, r *http.Request) {
 		"receiving_wallet": map[string]interface{}{
 			"address": tx.ReceivingAddress,
 		},
+	}
+
+	if tx.Type == consts.TransactionTypeWithdrawal {
+		response["message"] = tx.Message
+		response["account"] = map[string]interface{}{
+			"iban":       tx.AccountIBAN,
+			"legal_name": tx.AccountLegalName,
+		}
 	}
 
 	h.sendJSON(w, http.StatusOK, response)

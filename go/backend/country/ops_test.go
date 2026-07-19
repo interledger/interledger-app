@@ -3,9 +3,9 @@ package country_test
 import (
 	"testing"
 
+	"github.com/interledger/interledger-app/go/backend/country"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/backend/country"
 )
 
 func TestGetStateCode(t *testing.T) {

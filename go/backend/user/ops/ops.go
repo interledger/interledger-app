@@ -10,13 +10,13 @@ import (
 	"sync"
 	"time"
 
-	"gitlab.com/fynbos/backend/country"
-	"gitlab.com/fynbos/backend/wallets"
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/backend/country"
+	"github.com/interledger/interledger-app/go/backend/wallets"
+	"github.com/interledger/interledger-app/go/log"
 	"go.uber.org/zap"
 
+	"github.com/interledger/interledger-app/go/backend/user"
 	client "github.com/ory/kratos-client-go"
-	"gitlab.com/fynbos/backend/user"
 )
 
 const (
@@ -208,7 +208,7 @@ func ListUsers(ctx context.Context, b Backends, walletID string) ([]user.User, e
 		return []user.User{
 			{
 				ID:          "6b5ada19-1638-4c09-a0f6-9cdbb34abc42",
-				Email:       "openpayments.dev@fynbos.dev",
+				Email:       "openpayments.dev@interledger.test",
 				PhoneNumber: "",
 			},
 		}, nil

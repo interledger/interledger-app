@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"gitlab.com/fynbos/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/currency"
 )
 
 type TransactionType string
@@ -154,7 +154,7 @@ func (ct CardType) String() string {
 
 type CreateTransactionArgs struct {
 	ID                      string          `validate:"omitempty,uuid"`
-	WalletID                string          `validate:"uuid"` // Fynbos wallet ID
+	WalletID                string          `validate:"uuid"` // ILP wallet ID
 	ForeignID               string          `validate:"omitempty"`
 	ForeignType             TransactionType `validate:"required"`
 	Provider                Provider        `validate:"required"`

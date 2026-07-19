@@ -6,10 +6,10 @@ import (
 	"errors"
 	"fmt"
 
-	"gitlab.com/fynbos/backend/identities"
+	"github.com/interledger/interledger-app/go/backend/identities"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	pb "gitlab.com/fynbos/proto/backend/v1"
+	pb "github.com/interledger/interledger-app/go/proto/backend/v1"
 )
 
 func (s *rpcService) ListIdentities(ctx context.Context, _ *pb.Empty) (*pb.ListIdentitiesResponse, error) {

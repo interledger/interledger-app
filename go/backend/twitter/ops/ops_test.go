@@ -8,25 +8,25 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
+	"github.com/interledger/interledger-app/go/backend/db"
+	"github.com/interledger/interledger-app/go/backend/twitter"
+	external_mock "github.com/interledger/interledger-app/go/backend/twitter/external/client/mock"
+	"github.com/interledger/interledger-app/go/backend/twitter/ops"
 	"github.com/stretchr/testify/assert"
-	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/twitter"
-	external_mock "gitlab.com/fynbos/backend/twitter/external/client/mock"
-	"gitlab.com/fynbos/backend/twitter/ops"
 	"golang.org/x/oauth2"
 )
 
 func TestCreateAuthURL(t *testing.T) {
 	ctx := context.Background()
 	b := ops.NewTestBackends(func(tb *ops.TestBackends) {
-		tb.Db = db.MigrateTestDB(t, ctx)
+		tb.Db = db.MigrateTestDB(t, ctx, "")
 	})
 
 	url, err := ops.CreateAuthURL(ctx, b, &ops.CreateAuthURLArgs{
 		ClientID:     uuid.NewString(),
 		WalletID:     uuid.NewString(),
 		Scopes:       []string{"tweet.read"},
-		RedirectURL:  "https://fynbos.app/twitter/callback",
+		RedirectURL:  "https://interledger.app/twitter/callback",
 		AuthEndpoint: "https://twitter.com/i/oauth2/authorize",
 	})
 	if err != nil {
@@ -40,7 +40,7 @@ func TestCreateToken(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	b := ops.NewTestBackends(func(tb *ops.TestBackends) {
-		tb.Db = db.MigrateTestDB(t, ctx)
+		tb.Db = db.MigrateTestDB(t, ctx, "")
 		tb.ExternalClient = external_mock.NewMockClient(ctrl)
 	})
 
@@ -50,7 +50,7 @@ func TestCreateToken(t *testing.T) {
 		ClientID:     uuid.NewString(),
 		WalletID:     uuid.NewString(),
 		Scopes:       []string{"tweet.read"},
-		RedirectURL:  "https://fynbos.app/twitter/callback",
+		RedirectURL:  "https://interledger.app/twitter/callback",
 		AuthEndpoint: "https://twitter.com/i/oauth2/authorize",
 		State:        state,
 	})
@@ -89,7 +89,7 @@ func TestGetWalletConnections(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	b := ops.NewTestBackends(func(tb *ops.TestBackends) {
-		tb.Db = db.MigrateTestDB(t, ctx)
+		tb.Db = db.MigrateTestDB(t, ctx, "")
 		tb.ExternalClient = external_mock.NewMockClient(ctrl)
 	})
 
@@ -100,7 +100,7 @@ func TestGetWalletConnections(t *testing.T) {
 		ClientID:     uuid.NewString(),
 		WalletID:     walletId,
 		Scopes:       []string{"tweet.read", "tweet.write"},
-		RedirectURL:  "https://fynbos.app/twitter/callback",
+		RedirectURL:  "https://interledger.app/twitter/callback",
 		AuthEndpoint: "https://twitter.com/i/oauth2/authorize",
 		State:        state,
 	})

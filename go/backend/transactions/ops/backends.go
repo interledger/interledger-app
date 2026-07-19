@@ -3,26 +3,27 @@ package ops
 import (
 	"testing"
 
-	payments_mock "gitlab.com/fynbos/backend/payments/client/mock"
+	payments_mock "github.com/interledger/interledger-app/go/backend/payments/client/mock"
 
-	"gitlab.com/fynbos/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/config"
+	"github.com/interledger/interledger-app/go/backend/payments"
 
-	"gitlab.com/fynbos/backend/email"
-	email_mock "gitlab.com/fynbos/backend/email/client/mock"
-	"gitlab.com/fynbos/backend/kyc"
-	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
-	"gitlab.com/fynbos/backend/wallets"
-	wallets_mock "gitlab.com/fynbos/backend/wallets/client/mock"
+	"github.com/interledger/interledger-app/go/backend/email"
+	email_mock "github.com/interledger/interledger-app/go/backend/email/client/mock"
+	"github.com/interledger/interledger-app/go/backend/kyc"
+	kyc_mock "github.com/interledger/interledger-app/go/backend/kyc/client/mock"
+	"github.com/interledger/interledger-app/go/backend/wallets"
+	wallets_mock "github.com/interledger/interledger-app/go/backend/wallets/client/mock"
 
 	"github.com/golang/mock/gomock"
-	"gitlab.com/fynbos/backend/analytics"
-	analytics_client "gitlab.com/fynbos/backend/analytics/client"
-	"gitlab.com/fynbos/backend/notify"
-	notify_client "gitlab.com/fynbos/backend/notify/client/mock"
+	"github.com/interledger/interledger-app/go/backend/analytics"
+	analytics_client "github.com/interledger/interledger-app/go/backend/analytics/client"
+	"github.com/interledger/interledger-app/go/backend/notify"
+	notify_client "github.com/interledger/interledger-app/go/backend/notify/client/mock"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/interledger/interledger-app/go/backend/user"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/fynbos/backend/user"
 )
 
 type Backends interface {
@@ -35,6 +36,7 @@ type Backends interface {
 	KYC() kyc.Client
 	Email() email.Client
 	Payments() payments.Client
+	Config() *config.StartConfig
 }
 
 type testBackends struct {
@@ -46,6 +48,7 @@ type testBackends struct {
 	kyc    *kyc_mock.MockClient
 	pc     *payments_mock.MockClient
 	wc     *wallets_mock.MockClient
+	cfg    *config.StartConfig
 }
 
 func (t testBackends) Payments() payments.Client {
@@ -84,7 +87,11 @@ func (t testBackends) Email() email.Client {
 	return t.ec
 }
 
-func NewTestBackends(t *testing.T, db *sqlx.DB) Backends {
+func (t testBackends) Config() *config.StartConfig {
+	return t.cfg
+}
+
+func NewTestBackends(t *testing.T, db *sqlx.DB, cfg *config.StartConfig) Backends {
 	ctrl := gomock.NewController(t)
 	nc := notify_client.NewMockClient(ctrl)
 	nc.EXPECT().NotifyWallet(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
@@ -96,5 +103,8 @@ func NewTestBackends(t *testing.T, db *sqlx.DB) Backends {
 	pc.EXPECT().SignalAccountLinked(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 	wc := wallets_mock.NewMockClient(ctrl)
 	wc.EXPECT().GetFromAddress(gomock.Any(), gomock.Any()).AnyTimes()
-	return &testBackends{db: db, val: validator.New(), notify: nc, ac: analytics_client.New(nil, ""), ec: ec, kyc: kycMock, pc: pc, wc: wc}
+	if cfg == nil {
+		cfg = &config.StartConfig{}
+	}
+	return &testBackends{db: db, val: validator.New(), notify: nc, ac: analytics_client.New(nil, ""), ec: ec, kyc: kycMock, pc: pc, wc: wc, cfg: cfg}
 }

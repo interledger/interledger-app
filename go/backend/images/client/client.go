@@ -3,21 +3,29 @@ package client
 import (
 	"bytes"
 	"context"
+	"errors"
+	"fmt"
 	"image"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/golang/freetype/truetype"
-	"gitlab.com/fynbos/backend/images"
-	"gitlab.com/fynbos/backend/images/ops"
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/backend/images"
+	"github.com/interledger/interledger-app/go/backend/images/ops"
+	"github.com/interledger/interledger-app/go/log"
+	"go.uber.org/zap"
 )
 
 var _ images.Client = client{}
+var errAssetsUnavailable = errors.New("images: assets unavailable")
+
+var assetHTTPClient = &http.Client{Timeout: 10 * time.Second}
 
 type client struct {
-	b ops.Backends
-	a images.Assets
+	b  ops.Backends
+	a  images.Assets
+	ok bool
 }
 
 func New(b ops.Backends) images.Client {
@@ -25,72 +33,92 @@ func New(b ops.Backends) images.Client {
 	// Load the files
 	assets, err := loadAssets()
 	if err != nil {
-		log.Error("images: failed to load assets")
+		log.Error("images: failed to load assets; identity image generation disabled", zap.Error(err))
+		return &client{b: b}
 	}
 
 	return &client{
-		a: *assets,
-		b: b,
+		a:  *assets,
+		b:  b,
+		ok: true,
 	}
 }
 
 func (c client) GenerateTwitterIdentity(ctx context.Context, walletUrl, identifier string) ([]byte, error) {
+	if !c.ok {
+		return nil, errAssetsUnavailable
+	}
 	return ops.GenerateTwitterImage(ctx, c.a, c.b, walletUrl, identifier)
 }
 
 func (c client) GenerateTwitterIdentityOG(ctx context.Context, walletUrl, identifier string) ([]byte, error) {
+	if !c.ok {
+		return nil, errAssetsUnavailable
+	}
 	return ops.GenerateTwitterOGImage(ctx, c.a, c.b, walletUrl, identifier)
 }
 
 func (c client) GenerateDomainIdentity(ctx context.Context, walletUrl, identifier string) ([]byte, error) {
+	if !c.ok {
+		return nil, errAssetsUnavailable
+	}
 	return ops.GenerateDomainImage(ctx, c.a, c.b, walletUrl, identifier)
 }
 
 func (c client) GenerateDomainIdentityOG(ctx context.Context, walletUrl, identifier string) ([]byte, error) {
+	if !c.ok {
+		return nil, errAssetsUnavailable
+	}
 	return ops.GenerateDomainOGImage(ctx, c.a, c.b, walletUrl, identifier)
 }
 
 func (c client) GenerateSlackIdentity(ctx context.Context, walletUrl, identifier string) ([]byte, error) {
+	if !c.ok {
+		return nil, errAssetsUnavailable
+	}
 	return ops.GenerateSlackImage(ctx, c.a, c.b, walletUrl, identifier)
 }
 
 func (c client) GenerateSlackIdentityOG(ctx context.Context, walletUrl, identifier string) ([]byte, error) {
+	if !c.ok {
+		return nil, errAssetsUnavailable
+	}
 	return ops.GenerateSlackOGImage(ctx, c.a, c.b, walletUrl, identifier)
 }
 
 func loadAssets() (*images.Assets, error) {
-	twitterImg, err := loadImageFromURL("https://cdn.fynbos.app/identities/twitter/template.png")
+	twitterImg, err := loadImageFromURL("https://mockcdn.interledger.test/identities/twitter/template.png")
 	if err != nil {
 		return nil, err
 	}
-	twitterImgOG, err := loadImageFromURL("https://cdn.fynbos.app/identities/twitter/og-template.png")
+	twitterImgOG, err := loadImageFromURL("https://mockcdn.interledger.test/identities/twitter/og-template.png")
 	if err != nil {
 		return nil, err
 	}
-	domainImg, err := loadImageFromURL("https://cdn.fynbos.app/identities/domain/v3/template.png")
+	domainImg, err := loadImageFromURL("https://mockcdn.interledger.test/identities/domain/v3/template.png")
 	if err != nil {
 		return nil, err
 	}
-	domainImgOG, err := loadImageFromURL("https://cdn.fynbos.app/identities/domain/v2/og-template.png")
-	if err != nil {
-		return nil, err
-	}
-
-	slackImg, err := loadImageFromURL("https://cdn.fynbos.app/identities/slack/template.png")
-	if err != nil {
-		return nil, err
-	}
-	slackImgOG, err := loadImageFromURL("https://cdn.fynbos.app/identities/slack/og-template.png")
+	domainImgOG, err := loadImageFromURL("https://mockcdn.interledger.test/identities/domain/v2/og-template.png")
 	if err != nil {
 		return nil, err
 	}
 
-	fontMedium, err := loadFontFromURL("https://cdn.fynbos.app/fonts/inter/v12/Medium-Desktop.ttf")
+	slackImg, err := loadImageFromURL("https://mockcdn.interledger.test/identities/slack/template.png")
+	if err != nil {
+		return nil, err
+	}
+	slackImgOG, err := loadImageFromURL("https://mockcdn.interledger.test/identities/slack/og-template.png")
 	if err != nil {
 		return nil, err
 	}
 
-	fontRegular, err := loadFontFromURL("https://cdn.fynbos.app/fonts/inter/v12/Regular-Desktop.ttf")
+	fontMedium, err := loadFontFromURL("https://mockcdn.interledger.test/fonts/inter/v12/Medium-Desktop.ttf")
+	if err != nil {
+		return nil, err
+	}
+
+	fontRegular, err := loadFontFromURL("https://mockcdn.interledger.test/fonts/inter/v12/Regular-Desktop.ttf")
 	if err != nil {
 		return nil, err
 	}
@@ -108,11 +136,15 @@ func loadAssets() (*images.Assets, error) {
 }
 
 func loadImageFromURL(url string) (img image.Image, err error) {
-	resp, err := http.Get(url)
+	resp, err := assetHTTPClient.Get(url)
 	if err != nil {
 		return
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("images: GET %s returned status %d", url, resp.StatusCode)
+	}
 
 	pix, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -124,11 +156,15 @@ func loadImageFromURL(url string) (img image.Image, err error) {
 }
 
 func loadFontFromURL(url string) (*truetype.Font, error) {
-	resp, err := http.Get(url)
+	resp, err := assetHTTPClient.Get(url)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("images: GET %s returned status %d", url, resp.StatusCode)
+	}
 
 	fontBytes, err := io.ReadAll(resp.Body)
 	if err != nil {

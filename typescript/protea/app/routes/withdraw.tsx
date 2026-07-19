@@ -63,7 +63,7 @@ export async function loader(args: Route.LoaderArgs) {
     return gatehubWithdrawalLoader(args)
   } else if (providerResponse.provider == 'pti')
     return ptiWithdrawalLoader(args)
-  else return fynbosWithdrawalLoader(args)
+  else return ilwWithdrawalLoader(args)
 }
 
 async function gatehubWithdrawalLoader({ request }: Route.LoaderArgs) {
@@ -76,7 +76,7 @@ async function gatehubWithdrawalLoader({ request }: Route.LoaderArgs) {
   })
 }
 
-async function fynbosWithdrawalLoader({ request }: Route.LoaderArgs) {
+async function ilwWithdrawalLoader({ request }: Route.LoaderArgs) {
   return await addProviderToLoader(request, 'interledger')
 }
 
@@ -148,7 +148,7 @@ export default function Page() {
 
   if (provider == 'gatehub') {
     return <GatehubWithdrawalPage />
-  } else return <FynbosWithdrawalPage />
+  } else return <IlwWithdrawalPage />
 }
 
 function GatehubWithdrawalPage() {
@@ -194,7 +194,7 @@ function GatehubWithdrawalPage() {
   )
 }
 
-function FynbosWithdrawalPage() {
+function IlwWithdrawalPage() {
   const data = useLoaderData()
   const amountData: WithdrawalLoaderData = {
     balances: data.balances,

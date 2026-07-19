@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"gitlab.com/fynbos/mock/mockchimoney/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockchimoney/internal/models"
 )
 
 func (h *Handler) respondOK(w http.ResponseWriter, statusCode int, data any) {

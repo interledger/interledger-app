@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/log"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.uber.org/zap"
 
@@ -34,6 +34,14 @@ func Init(token string, channels map[Channel]string) {
 			log.Info("slack channel not configured", zap.String("channel", string(ch)))
 		}
 	}
+}
+
+// workflow code must notify slack through this activity
+// rather than calling SendToChanneldirectly,
+// which would run a blocking HTTP call on the workflow goroutine and re-fire on every replay
+func SendToChannelActivity(ctx context.Context, channel Channel, fromUser, message string) error {
+	SendToChannel(ctx, channel, fromUser, message)
+	return nil
 }
 
 func SendToChannel(ctx context.Context, channel Channel, fromUser, message string) {

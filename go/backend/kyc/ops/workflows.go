@@ -5,16 +5,15 @@ import (
 	"fmt"
 	"time"
 
-	"gitlab.com/fynbos/backend/country"
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/kyc"
-	"gitlab.com/fynbos/backend/notify"
-	"gitlab.com/fynbos/backend/providers/xago"
-	"gitlab.com/fynbos/backend/rafiki"
-	"gitlab.com/fynbos/backend/slack"
-	"gitlab.com/fynbos/backend/wallets"
-	"gitlab.com/fynbos/env"
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/backend/country"
+	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/kyc"
+	"github.com/interledger/interledger-app/go/backend/notify"
+	"github.com/interledger/interledger-app/go/backend/providers/xago"
+	"github.com/interledger/interledger-app/go/backend/rafiki"
+	"github.com/interledger/interledger-app/go/backend/slack"
+	"github.com/interledger/interledger-app/go/backend/wallets"
+	"github.com/interledger/interledger-app/go/log"
 	"go.temporal.io/sdk/workflow"
 	"go.uber.org/zap"
 )
@@ -62,12 +61,11 @@ func SetKYCStatusWorkflow(ctx workflow.Context, args SetKYCStatusWorkflowArgs) e
 	} else if oldStatus != kyc.StatusDocumentsRequired && status == kyc.StatusDocumentsRequired {
 		_ = workflow.ExecuteActivity(ctx, a.SendKYCDocumentsRequiredEmail, walletID).Get(ctx, nil)
 	} else if oldStatus != kyc.StatusLevel1 && oldStatus != kyc.StatusLevel2 && (status == kyc.StatusLevel1 || status == kyc.StatusLevel2) {
-		_ = workflow.ExecuteActivity(ctx, a.SendApprovedEmail, walletID).Get(ctx, nil)
-
 		err = workflow.ExecuteActivity(ctx, a.CreateKYCWallets, walletID).Get(ctx, nil)
 		if err != nil {
 			return err
 		}
+		_ = workflow.ExecuteActivity(ctx, a.SendApprovedEmail, walletID).Get(ctx, nil)
 	}
 
 	err = workflow.ExecuteActivity(ctx, a.UpdateRafikiStatus, walletID, status).Get(ctx, nil)
@@ -147,7 +145,7 @@ func (a *Activity) CreateKYCWallets(ctx context.Context, walletID string) error 
 			return err
 		}
 	} else {
-		slack.SendToChannel(ctx, slack.ChannelSignupKYC, "wallet-info-bot", fmt.Sprintf("KYC approved for wallet. %s/wallet/%s/profile. Country=%s. Manual creation of balance account required.", env.AdminURL(), walletID, w.Country))
+		slack.SendToChannel(ctx, slack.ChannelSignupKYC, "wallet-info-bot", fmt.Sprintf(":white_check_mark: *KYC approved*\n*Country:* %s\n*Profile:* %s/wallet/%s/profile\n:warning: Manual creation of balance account required.", w.Country, a.b.Config().Admin.BaseURL, walletID))
 		return nil
 	}
 

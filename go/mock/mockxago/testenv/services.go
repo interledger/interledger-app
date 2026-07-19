@@ -10,7 +10,7 @@ import (
 	"os/exec"
 	"time"
 
-	"gitlab.com/fynbos/mock/mockxago/internal/logger"
+	"github.com/interledger/interledger-app/go/mock/mockxago/internal/logger"
 	"go.uber.org/zap"
 )
 

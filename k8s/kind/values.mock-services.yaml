@@ -1,0 +1,75 @@
+# Mock service values for the local kind environment.
+# Points browser-accessible callbacks to https://*.interledger.kind via Traefik.
+# Images are built locally and loaded into kind (make build load).
+
+mockpti:
+  enabled: true
+  serviceAccount:
+    create: true
+  secretAccess:
+    - mock-secrets
+  server:
+    image:
+      repository: registry.kind
+      name: mockpti
+      tag: kind
+    imagePullPolicy: IfNotPresent
+  config:
+    log_level: "debug"
+    redis_url: "{{ secret \"mock-secrets\" \"redisUrl\" }}"
+    redis_db: "5"
+    client_id: "04d3e1b5-96d4-47e4-9eaa-13e9b4b0f219"
+    webhook_url: "https://interledger.kind/webhooks/pti"
+    webhook_signing_key: "kind-test-signing-key"
+    forms_mutation_token: "kind-forms-token"
+    public_base_url: "https://mockpti.interledger.kind"
+
+mockgatehub:
+  enabled: true
+  serviceAccount:
+    create: true
+  secretAccess:
+    - mock-secrets
+  server:
+    image:
+      repository: registry.kind
+      name: mockgatehub
+      tag: kind
+    imagePullPolicy: IfNotPresent
+  config:
+    log_level: "debug"
+    redis_url: "{{ secret \"mock-secrets\" \"redisUrl\" }}"
+    redis_db: 2
+    webhook_url: "https://interledger.kind/webhooks/gatehub"
+    webhook_secret: "6d6f636b5f776562686f6f6b5f736563726574"
+    webhook_min_delay_sec: 2
+    enforce_authentication: true
+    valid_credentials:
+      local-test-app-id: local-test-app-secret
+    default_organization_id: "default-org"
+    public_base_url: "https://mockgatehub.interledger.kind"
+
+mockxago:
+  enabled: true
+  serviceAccount:
+    create: true
+  secretAccess:
+    - mock-secrets
+  server:
+    image:
+      repository: registry.kind
+      name: mockxago
+      tag: kind
+    imagePullPolicy: IfNotPresent
+  config:
+    log_level: "debug"
+    redis_url: "{{ secret \"mock-secrets\" \"redisUrl\" }}"
+    redis_db: 4
+    public_key: "test-public-key"
+    secret: "test-secret"
+    test_mode: true
+    webhook_url: "https://interledger.kind/webhooks/xago"
+    webhook_secret: "kind-webhook-secret"
+    webhook_min_delay_sec: 2
+    persona_webhook_url: "https://interledger.kind/webhooks/persona"
+    public_base_url: "https://mockxago.interledger.kind"

@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"gitlab.com/fynbos/mock/mockgatehub/internal/logger"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/models"
-	"gitlab.com/fynbos/mock/mockgatehub/internal/utils"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/logger"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/models"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/utils"
 
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
@@ -716,6 +716,23 @@ func (s *RedisStorage) CreateTransaction(tx *models.Transaction) error {
 	return nil
 }
 
+func (s *RedisStorage) ListTransactionsByUser(userID string) ([]*models.Transaction, error) {
+	ids, err := s.client.LRange(s.ctx, s.userTransactionsKey(userID), 0, -1).Result()
+	if err != nil {
+		return nil, fmt.Errorf("failed to list transaction IDs for user: %w", err)
+	}
+
+	transactions := make([]*models.Transaction, 0, len(ids))
+	for _, id := range ids {
+		tx, err := s.GetTransaction(id)
+		if err != nil {
+			continue
+		}
+		transactions = append(transactions, tx)
+	}
+	return transactions, nil
+}
+
 func (s *RedisStorage) GetTransaction(id string) (*models.Transaction, error) {
 	data, err := s.client.Get(s.ctx, s.txKey(id)).Result()
 	if err == redis.Nil {
@@ -1097,25 +1114,6 @@ func (s *RedisStorage) ListUsers() ([]*models.User, error) {
 	}
 
 	return users, nil
-}
-
-// ListTransactionsByUser returns all transactions for the given user by reading
-// from the per-user transaction index list "user:{id}:transactions".
-func (s *RedisStorage) ListTransactionsByUser(userID string) ([]*models.Transaction, error) {
-	ids, err := s.client.LRange(s.ctx, s.userTransactionsKey(userID), 0, -1).Result()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get user transaction index: %w", err)
-	}
-
-	txns := make([]*models.Transaction, 0, len(ids))
-	for _, id := range ids {
-		tx, err := s.GetTransaction(id)
-		if err != nil {
-			continue
-		}
-		txns = append(txns, tx)
-	}
-	return txns, nil
 }
 
 // GetAllBalances returns a map of currency → amount for the given user by

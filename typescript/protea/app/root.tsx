@@ -149,7 +149,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   let isDisabled = false
   let walletAddress = ''
   const env = {
-    fynbosEnv: envValue('FYNBOS_ENV'),
+    ilwEnv: envValue('ILW_ENV'),
     sentryDsn: envValue('SENTRY_DSN'),
     sentryRelease: envValue('SENTRY_RELEASE'),
     targetHost: envValue('TARGET_HOST'),
@@ -157,16 +157,19 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
 
   if (!isUser) {
-    return data({
-      isDisabled,
-      walletAddress,
-      isUser: false,
-      features,
-      snackbar,
-      pusherArgs,
-      showQuickPay,
-      env
-    }, { headers })
+    return data(
+      {
+        isDisabled,
+        walletAddress,
+        isUser: false,
+        features,
+        snackbar,
+        pusherArgs,
+        showQuickPay,
+        env
+      },
+      { headers }
+    )
   }
 
   await recoveryLinkSessionInvalidationGuard(pathname, request)
@@ -188,16 +191,19 @@ export async function loader({ request }: LoaderFunctionArgs) {
     }
   })
 
-  return data({
-    isDisabled,
-    walletAddress,
-    isUser,
-    features,
-    snackbar,
-    pusherArgs,
-    showQuickPay,
-    env
-  }, { headers })
+  return data(
+    {
+      isDisabled,
+      walletAddress,
+      isUser,
+      features,
+      snackbar,
+      pusherArgs,
+      showQuickPay,
+      env
+    },
+    { headers }
+  )
 }
 
 export type RootLoaderData = Route.ComponentProps['loaderData']
@@ -235,7 +241,7 @@ export function ErrorBoundary() {
   captureException(error)
 
   if (isRouteErrorResponse(error)) {
-    return error.data?.code === "QUICKPAY_SESSION_ERROR" ? (
+    return error.data?.code === 'QUICKPAY_SESSION_ERROR' ? (
       <Document>
         <QuickPayError
           status={error.status}

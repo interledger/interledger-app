@@ -8,8 +8,8 @@ import (
 	"sort"
 	"time"
 
+	"github.com/interledger/interledger-app/go/pacioli"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/fynbos/pacioli"
 )
 
 type ledgerAccount struct {

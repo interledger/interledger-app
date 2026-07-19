@@ -5,10 +5,10 @@ import (
 	"math/rand"
 	"time"
 
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/log"
 	"go.uber.org/zap"
 
-	"gitlab.com/fynbos/pacioli/ledger/tigerroach"
+	"github.com/interledger/interledger-app/go/pacioli/ledger/tigerroach"
 )
 
 func TimeoutTransfersForever(b Backends) {

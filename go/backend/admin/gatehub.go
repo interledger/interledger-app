@@ -5,9 +5,9 @@ import (
 	"errors"
 	"time"
 
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/providers/gatehub"
-	pb "gitlab.com/fynbos/proto/backend/admin/v1"
+	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
+	pb "github.com/interledger/interledger-app/go/proto/backend/admin/v1"
 )
 
 func (s *AdminRpcService) CreateGatehubUser(

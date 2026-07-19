@@ -7,14 +7,14 @@ import (
 	"fmt"
 	"strings"
 
-	"gitlab.com/fynbos/backend/slack"
-	"gitlab.com/fynbos/backend/twilio"
-	"gitlab.com/fynbos/log"
+	"github.com/interledger/interledger-app/go/backend/slack"
+	"github.com/interledger/interledger-app/go/backend/twilio"
+	"github.com/interledger/interledger-app/go/log"
 	"go.uber.org/zap"
 
 	"github.com/google/uuid"
 
-	"gitlab.com/fynbos/backend/signup"
+	"github.com/interledger/interledger-app/go/backend/signup"
 )
 
 type dbSignup struct {
@@ -189,7 +189,7 @@ func Complete(ctx context.Context, b Backends, id, userID string) error {
 		return fmt.Errorf("%w %s", signup.ErrInternal, err)
 	}
 
-	slack.SendToChannel(ctx, slack.ChannelSignupKYC, "wallet-info-bot", fmt.Sprintf(":baby: New Sign Up\nID: %s\nUser ID: %s\nFull name: %s\nCountry: %s", current.ID, userID, current.FirstName+" "+current.LastName, current.CountryCode))
+	slack.SendToChannel(ctx, slack.ChannelSignupKYC, "wallet-info-bot", fmt.Sprintf(":baby: New Sign Up\nID: %s\nUser ID: %s\nCountry: %s", current.ID, userID, current.CountryCode))
 
 	return nil
 }
