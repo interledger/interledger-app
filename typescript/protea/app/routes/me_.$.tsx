@@ -115,8 +115,6 @@ export default function Page() {
     paymentPointerParam
   } = useLoaderData<typeof loader>()
 
-  
-
   return (
     <>
       <Card>
@@ -185,9 +183,7 @@ export default function Page() {
       )}
 
       {!isUser && (
-        <ButtonRouter
-          to={`/login?returnTo=${encodeURIComponent(page)}`}
-        >
+        <ButtonRouter to={`/login?returnTo=${encodeURIComponent(page)}`}>
           Log in
         </ButtonRouter>
       )}
