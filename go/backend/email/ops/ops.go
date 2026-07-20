@@ -833,6 +833,43 @@ func SendSCTRerouteEmail(ctx context.Context, b Backends, txID, walletID string)
 	}
 }
 
+func SendGatehubWithdrawalSettledEmail(ctx context.Context, b Backends, txID, walletID, amount, iban, name, timestamp string) {
+	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
+	if err != nil {
+		log.Error("Failed to send withdrawal rejected email.", zap.Error(err), zap.String("walletID", walletID))
+		return
+	}
+
+	txURL, err := url.JoinPath(b.Config().ApplicationURL, "payments", txID)
+	if err != nil {
+		log.Error("Failed to send withdrawal rejected email.", zap.Error(err), zap.String("walletID", walletID))
+		return
+	}
+
+	table := []map[string]any{
+		{"label": "Beneficiary Name:", "text": name},
+		{"label": "Beneficiary IBAN:", "text": maskIBAN(iban)},
+		{"label": "Amount:", "text": amount},
+		{"label": "Submitted:", "text": timestamp},
+	}
+
+	err = b.External().SendTemplate(ctx, "SEPA Transfer Completed", sendTo, b.OneTemplateID(), map[string]interface{}{
+		"subject": "SEPA Transfer Completed",
+		"data": []map[string]interface{}{
+			{"paragraph": greeting},
+			{"paragraph": "We would like to inform you that the counterparty received your SEPA transfer"},
+			{"table": table},
+		},
+		"cta": map[string]any{
+			"text": "View payment",
+			"url":  txURL,
+		},
+	}, nil)
+	if err != nil {
+		log.Error("Failed to send withdrawal rejected email.", zap.Error(err), zap.String("walletID", walletID))
+	}
+}
+
 func maskIBAN(iban string) string {
 	s := strings.ReplaceAll(iban, " ", "")
 	if len(s) < 15 { // minimum valid IBAN length (ISO 13616)
