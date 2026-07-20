@@ -47,6 +47,8 @@ Feature: User KYC and Account Activation
     Then my KYC status should be documents required
     And I should see the reactivate wallet prompt on the dashboard
     When I navigate to the personal details page to activate wallet
+    And I should see the activate wallet button
+    And I click the "Continue" button
     And I wait for the KYC iframe to load
     And I fill and submit the mockgatehub KYC iframe
     And I wait for the KYC completion
