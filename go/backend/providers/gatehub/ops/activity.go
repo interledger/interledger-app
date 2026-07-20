@@ -608,3 +608,8 @@ func (a *Activity) SendWithdrawalReroutedEmail(ctx context.Context, txID, wallet
 	a.b.Email().SendSCTRerouteEmail(ctx, txID, walletID)
 	return nil
 }
+
+func (a *Activity) SendWithdrawalSettledEmail(ctx context.Context, txID, walletID, amount, iban, name, timestamp string) error {
+	a.b.Email().SendGatehubWithdrawalSettledEmail(ctx, txID, walletID, amount, iban, name, timestamp)
+	return nil
+}
