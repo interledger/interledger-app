@@ -202,6 +202,14 @@ func lookupWalletIDFromActivity(ctx context.Context, b ActivityBackends, payment
 	return wid, nil
 }
 
+func (a *Activity) resolveTransactionID(ctx context.Context, walletID, paymentID string) (string, error) {
+	trx, err := a.b.Transactions().GetTransactionByForeignID(ctx, walletID, paymentID)
+	if err != nil {
+		return "", fmt.Errorf("%w transaction not found for payment %s: %s", rafiki.ErrInternal, paymentID, err)
+	}
+	return trx.ID, nil
+}
+
 // Creates a GateHub hosted transfer from the system intermediary
 // account to the user's GateHub wallet. Returns the GateHub transaction ID.
 func (a *Activity) TransferFromIntermediaryToUser(ctx context.Context, info GatehubLinkedAccountInfo, amt amount) (string, error) {
@@ -428,7 +436,12 @@ func (a *Activity) CreateIncomingPaymentTransaction(ctx context.Context, ip inco
 
 // Creates a non-pending Pacioli ledger transfer (debit ops account, credit user account) and posts it immediately.
 func (a *Activity) CreateAndPostLedgerTransferForIncoming(ctx context.Context, ip incomingPaymentData) error {
-	la, _, err := a.getGatehubLinkedAccount(ctx, ip.WalletAddressID)
+	la, walletID, err := a.getGatehubLinkedAccount(ctx, ip.WalletAddressID)
+	if err != nil {
+		return err
+	}
+
+	txID, err := a.resolveTransactionID(ctx, walletID, ip.ID)
 	if err != nil {
 		return err
 	}
@@ -443,9 +456,8 @@ func (a *Activity) CreateAndPostLedgerTransferForIncoming(ctx context.Context, i
 
 	results, err := a.b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
 		{
-			// TODO(PR2): use transactions.id, not ip.ID (the Rafiki payment id == transactions.foreign_id).
 			ID:              ip.ID,
-			TransactionID:   ip.ID,
+			TransactionID:   txID,
 			Amount:          receivedAmt,
 			CreditAccountID: la.ID,
 			DebitAccountID:  opsAcc,
@@ -553,7 +565,12 @@ func (a *Activity) CreateOutgoingPaymentTransaction(ctx context.Context, op outg
 
 // Creates a pending Pacioli ledger transfer (debit user account, credit ops account) to reserve the outgoing payment amount.
 func (a *Activity) ReserveBalanceForOutgoing(ctx context.Context, op outgoingPaymentData) error {
-	la, _, err := a.getGatehubLinkedAccount(ctx, op.WalletAddressID)
+	la, walletID, err := a.getGatehubLinkedAccount(ctx, op.WalletAddressID)
+	if err != nil {
+		return err
+	}
+
+	txID, err := a.resolveTransactionID(ctx, walletID, op.ID)
 	if err != nil {
 		return err
 	}
@@ -569,9 +586,8 @@ func (a *Activity) ReserveBalanceForOutgoing(ctx context.Context, op outgoingPay
 
 	results, err := a.b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
 		{
-			// TODO(PR2): use transactions.id, not op.ID (the Rafiki payment id == transactions.foreign_id).
 			ID:              op.ID,
-			TransactionID:   op.ID,
+			TransactionID:   txID,
 			Amount:          debitAmt,
 			DebitAccountID:  la.ID,
 			CreditAccountID: opsAcc,

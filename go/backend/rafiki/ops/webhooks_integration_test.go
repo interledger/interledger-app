@@ -530,12 +530,18 @@ func TestCreateAndPostLedgerTransferForIncoming_Success(t *testing.T) {
 	}, nil)
 	ab.SetLinkedAccounts(linkedMock)
 
+	txID := uuid.NewString()
+	txMock := transactions_mock.NewMockClient(ctrl)
+	txMock.EXPECT().GetTransactionByForeignID(gomock.Any(), walletID, ip.ID).
+		Return(&transactions.Transaction{ID: txID}, nil)
+	ab.SetTransactions(txMock)
+
 	pacioliMock := pacioli_mock.NewMockClient(ctrl)
 	pacioliMock.EXPECT().CreateTransfers(gomock.Any(), gomock.Any()).
 		DoAndReturn(func(_ context.Context, args []pacioli.CreateTransferArgs) ([]pacioli.TransferResult, error) {
 			require.Len(t, args, 1)
-			assert.Equal(t, ip.ID, args[0].TransactionID)
-			assert.Equal(t, ip.ID, args[0].ID, "transfer id is set to the transaction id for now")
+			assert.Equal(t, txID, args[0].TransactionID)
+			assert.Equal(t, ip.ID, args[0].ID, "transfer id remains the payment id; transaction_id links to transactions.id")
 			assert.Equal(t, int64(5000), args[0].Amount)
 			assert.Equal(t, laID, args[0].CreditAccountID)
 			assert.Equal(t, gatehub.EUROpsAccount, args[0].DebitAccountID)
@@ -570,6 +576,11 @@ func TestCreateAndPostLedgerTransferForIncoming_ExceedsCredits_Fails(t *testing.
 	}, nil)
 	ab.SetLinkedAccounts(linkedMock)
 
+	txMock := transactions_mock.NewMockClient(ctrl)
+	txMock.EXPECT().GetTransactionByForeignID(gomock.Any(), walletID, ip.ID).
+		Return(&transactions.Transaction{ID: uuid.NewString()}, nil)
+	ab.SetTransactions(txMock)
+
 	pacioliMock := pacioli_mock.NewMockClient(ctrl)
 	pacioliMock.EXPECT().CreateTransfers(gomock.Any(), gomock.Any()).
 		Return([]pacioli.TransferResult{{Index: 0, Code: pacioli.TransferExceedsCredits}}, nil)
@@ -603,12 +614,18 @@ func TestReserveBalanceForOutgoing_Success(t *testing.T) {
 	}, nil)
 	ab.SetLinkedAccounts(linkedMock)
 
+	txID := uuid.NewString()
+	txMock := transactions_mock.NewMockClient(ctrl)
+	txMock.EXPECT().GetTransactionByForeignID(gomock.Any(), walletID, op.ID).
+		Return(&transactions.Transaction{ID: txID}, nil)
+	ab.SetTransactions(txMock)
+
 	pacioliMock := pacioli_mock.NewMockClient(ctrl)
 	pacioliMock.EXPECT().CreateTransfers(gomock.Any(), gomock.Any()).
 		DoAndReturn(func(_ context.Context, args []pacioli.CreateTransferArgs) ([]pacioli.TransferResult, error) {
 			require.Len(t, args, 1)
-			assert.Equal(t, op.ID, args[0].TransactionID)
-			assert.Equal(t, op.ID, args[0].ID, "transfer id is set to the transaction id for now")
+			assert.Equal(t, txID, args[0].TransactionID)
+			assert.Equal(t, op.ID, args[0].ID, "transfer id remains the payment id; transaction_id links to transactions.id")
 			assert.True(t, args[0].Pending, "reserve transfer must be pending")
 			assert.Equal(t, laID, args[0].DebitAccountID)
 			assert.Equal(t, gatehub.EUROpsAccount, args[0].CreditAccountID)
@@ -627,8 +644,7 @@ func TestPostLedgerTransferForOutgoing_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	ab := NewTestActivityBackends()
-	op := outgoingPaymentData{ID: uuid.NewString()}
+	ab, op := setupOutgoingLedgerTest(t, ctrl)
 
 	pacioliMock := pacioli_mock.NewMockClient(ctrl)
 	pacioliMock.EXPECT().PostTransfers(gomock.Any(), []string{op.ID}).Return(nil, nil)
@@ -643,8 +659,7 @@ func TestPostLedgerTransferForOutgoing_AlreadyPosted_Tolerated(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	ab := NewTestActivityBackends()
-	op := outgoingPaymentData{ID: uuid.NewString()}
+	ab, op := setupOutgoingLedgerTest(t, ctrl)
 
 	pacioliMock := pacioli_mock.NewMockClient(ctrl)
 	pacioliMock.EXPECT().PostTransfers(gomock.Any(), []string{op.ID}).
@@ -660,8 +675,7 @@ func TestPostLedgerTransferForOutgoing_NotFound_Fails(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	ab := NewTestActivityBackends()
-	op := outgoingPaymentData{ID: uuid.NewString()}
+	ab, op := setupOutgoingLedgerTest(t, ctrl)
 
 	pacioliMock := pacioli_mock.NewMockClient(ctrl)
 	pacioliMock.EXPECT().PostTransfers(gomock.Any(), []string{op.ID}).
@@ -678,8 +692,7 @@ func TestPostLedgerTransferForOutgoing_AlreadyVoided_Fails(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	ab := NewTestActivityBackends()
-	op := outgoingPaymentData{ID: uuid.NewString()}
+	ab, op := setupOutgoingLedgerTest(t, ctrl)
 
 	pacioliMock := pacioli_mock.NewMockClient(ctrl)
 	pacioliMock.EXPECT().PostTransfers(gomock.Any(), []string{op.ID}).
@@ -697,8 +710,7 @@ func TestVoidLedgerTransferForOutgoing_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	ab := NewTestActivityBackends()
-	op := outgoingPaymentData{ID: uuid.NewString()}
+	ab, op := setupOutgoingLedgerTest(t, ctrl)
 
 	pacioliMock := pacioli_mock.NewMockClient(ctrl)
 	pacioliMock.EXPECT().VoidTransfers(gomock.Any(), []string{op.ID}).Return(nil, nil)
@@ -713,8 +725,7 @@ func TestVoidLedgerTransferForOutgoing_AlreadyVoided_Tolerated(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	ab := NewTestActivityBackends()
-	op := outgoingPaymentData{ID: uuid.NewString()}
+	ab, op := setupOutgoingLedgerTest(t, ctrl)
 
 	pacioliMock := pacioli_mock.NewMockClient(ctrl)
 	pacioliMock.EXPECT().VoidTransfers(gomock.Any(), []string{op.ID}).
@@ -730,8 +741,7 @@ func TestVoidLedgerTransferForOutgoing_NotFound_Tolerated(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	ab := NewTestActivityBackends()
-	op := outgoingPaymentData{ID: uuid.NewString()}
+	ab, op := setupOutgoingLedgerTest(t, ctrl)
 
 	pacioliMock := pacioli_mock.NewMockClient(ctrl)
 	pacioliMock.EXPECT().VoidTransfers(gomock.Any(), []string{op.ID}).
@@ -747,8 +757,7 @@ func TestVoidLedgerTransferForOutgoing_Expired_Tolerated(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	ab := NewTestActivityBackends()
-	op := outgoingPaymentData{ID: uuid.NewString()}
+	ab, op := setupOutgoingLedgerTest(t, ctrl)
 
 	pacioliMock := pacioli_mock.NewMockClient(ctrl)
 	pacioliMock.EXPECT().VoidTransfers(gomock.Any(), []string{op.ID}).
@@ -764,8 +773,7 @@ func TestVoidLedgerTransferForOutgoing_AlreadyPosted_Fails(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	ab := NewTestActivityBackends()
-	op := outgoingPaymentData{ID: uuid.NewString()}
+	ab, op := setupOutgoingLedgerTest(t, ctrl)
 
 	pacioliMock := pacioli_mock.NewMockClient(ctrl)
 	pacioliMock.EXPECT().VoidTransfers(gomock.Any(), []string{op.ID}).
@@ -1254,6 +1262,18 @@ func setupActivityBackends(t *testing.T, ctrl *gomock.Controller, walletID, ppID
 	ab := NewTestActivityBackends()
 	ab.SetDB(conn)
 	return ab
+}
+
+func setupOutgoingLedgerTest(t *testing.T, ctrl *gomock.Controller) (ab *TestActivityBackends, op outgoingPaymentData) {
+	t.Helper()
+	walletID := uuid.NewString()
+	ppID := "wa_" + uuid.NewString()[:8]
+	op = outgoingPaymentData{ID: uuid.NewString(), WalletAddressID: ppID}
+
+	// Post/void look transfers up by the transfer id (the Rafiki payment id), so
+	// these paths do not resolve the transaction id.
+	ab = setupActivityBackends(t, ctrl, walletID, ppID)
+	return ab, op
 }
 
 func setupActivityBackendsWithReceiver(t *testing.T, ctrl *gomock.Controller, senderWalletID, senderPP, receiverWalletID, receiverPP string) *TestActivityBackends {
