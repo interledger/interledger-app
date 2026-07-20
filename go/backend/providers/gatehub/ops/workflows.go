@@ -338,7 +338,7 @@ func NotifyWithdrawalReroutedWorkflow(ctx workflow.Context, wh MoreBridgeWithdra
 	}
 
 	var tx transactions.Transaction
-	err = workflow.ExecuteActivity(ctx, a.GetGateHubTransactionByForeignID, walletID, wh.Data.ID).Get(ctx, &tx)
+	err = workflow.ExecuteActivity(ctx, a.GetGateHubTransactionByForeignID, walletID, wh.Data.TxID).Get(ctx, &tx)
 	if err != nil {
 		return err
 	}

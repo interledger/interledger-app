@@ -420,12 +420,11 @@ func SendRampActionEmail(ctx context.Context, b Backends, walletID string, args 
 	}
 
 	table := []map[string]interface{}{
-		{"label": "Action", "text": args.Action},
 		{"label": "Amount", "text": args.Amount.Format(), "large": true},
 		{"label": "Source", "text": args.Source},
 		{"label": "Method", "text": args.Method},
 		{"label": "Status", "text": args.Status},
-		{"label": "Timestamp", "text": args.Timestamp.Format("Jan 2, 2006 3:04 PM MST")},
+		{"label": "Timestamp", "text": args.Timestamp.Format("Jan 2, 2006 3:04 PM MST"),},
 	}
 
 	paragraphs := []map[string]interface{}{
@@ -434,17 +433,12 @@ func SendRampActionEmail(ctx context.Context, b Backends, walletID string, args 
 		{"table": table},
 	}
 
-	termsURL, err := url.JoinPath(b.Config().ApplicationURL, "payments")
-	if err != nil {
-		log.Error("Failed to send ramp action email.", zap.Error(err), zap.String("walletID", walletID))
-		return
-	}
 	err = b.External().SendTemplate(ctx, args.Action, sendTo, b.OneTemplateID(), map[string]interface{}{
 		"subject": args.Action,
 		"data":    paragraphs,
 		"cta": map[string]interface{}{
-			"text": "View Terms of Service",
-			"url":  termsURL,
+			"text": "View new Balance",
+			"url":  b.Config().ApplicationURL,
 		},
 	}, nil)
 	if err != nil {

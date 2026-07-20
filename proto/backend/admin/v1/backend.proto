@@ -246,7 +246,8 @@ message Features {
   bool manageWalletCardsEnabled = 11;
   bool accountEnabled = 12;
   bool accountsTabEnabled = 13;
-  bool deleteAccountEnabled = 14;
+  reserved 14;
+  reserved "deleteAccountEnabled";
 }
 
 message ListAuditRequest {

@@ -9,36 +9,8 @@ Feature: Account Deletion
     And mockgatehub is running at "https://mockgatehub.interledger.test"
     And Rafiki assets are seeded
 
-  @account-deletion @gatehub @ff-off
-  Scenario: Feature flag off — settings link is hidden
-    Given the details of 'delete-link-off-user' are
-      | field       | value                        |
-      | emailSuffix | delete-link-off@example.com  |
-      | password    | InterlEdger2025!TestPassword |
-      | country     | Germany                      |
-      | firstName   | Delete                       |
-      | lastName    | LinkOff                      |
-      | dateOfBirth | 1988-06-15                   |
-    And I complete the minimal KYC flow `delete-link-off-user`
-    When I navigate to "/settings"
-    Then the "Delete account" settings link should not be visible
-
-  @account-deletion @gatehub @ff-off
-  Scenario: Feature flag off — direct navigation redirects to settings
-    Given the details of 'delete-route-off-user' are
-      | field       | value                        |
-      | emailSuffix | delete-route-off@example.com |
-      | password    | InterlEdger2025!TestPassword |
-      | country     | Germany                      |
-      | firstName   | Delete                       |
-      | lastName    | RouteOff                     |
-      | dateOfBirth | 1988-06-15                   |
-    And I complete the minimal KYC flow `delete-route-off-user`
-    When I navigate to "/settings/delete-account"
-    Then I should be redirected to "/settings"
-
   @account-deletion @gatehub
-  Scenario: Feature flag on — settings shows the Delete account link
+  Scenario: Settings shows the Delete account link
     Given the details of 'delete-link-on-user' are
       | field       | value                        |
       | emailSuffix | delete-link-on@example.com   |
@@ -48,7 +20,6 @@ Feature: Account Deletion
       | lastName    | LinkOn                       |
       | dateOfBirth | 1988-06-15                   |
     And I complete the minimal KYC flow `delete-link-on-user`
-    And the delete-account feature is enabled for my wallet
     When I navigate to "/settings"
     Then the "Delete account" settings link should be visible
 
@@ -63,7 +34,6 @@ Feature: Account Deletion
       | lastName    | Happy                        |
       | dateOfBirth | 1988-06-15                   |
     And I complete the minimal KYC flow `delete-happy-user`
-    And the delete-account feature is enabled for my wallet
     When I navigate to "/settings/delete-account"
     And I click the destructive "Delete account" button
     And I complete the TOTP step-up challenge
@@ -81,7 +51,6 @@ Feature: Account Deletion
       | lastName    | Pending                      |
       | dateOfBirth | 1988-06-15                   |
     And I complete the minimal KYC flow `delete-pending-user`
-    And the delete-account feature is enabled for my wallet
     And an account-deletion request exists for me with status "pending"
     When I navigate to "/settings"
     Then the pending account-deletion indicator should be visible
@@ -98,7 +67,6 @@ Feature: Account Deletion
       | lastName    | InProgress                    |
       | dateOfBirth | 1988-06-15                    |
     And I complete the minimal KYC flow `delete-inprogress-user`
-    And the delete-account feature is enabled for my wallet
     And an account-deletion request exists for me with status "in_progress"
     When I navigate to "/settings"
     Then the in-progress account-deletion indicator should be visible
@@ -115,7 +83,6 @@ Feature: Account Deletion
       | lastName    | NoTotp                       |
       | dateOfBirth | 1988-06-15                   |
     And I complete the minimal KYC flow `delete-no-totp-user`
-    And the delete-account feature is enabled for my wallet
     And my TOTP enrollment is removed
     When I navigate to "/settings/delete-account"
     And I click the destructive "Delete account" button
@@ -133,7 +100,6 @@ Feature: Account Deletion
       | lastName    | Dup                          |
       | dateOfBirth | 1988-06-15                   |
     And I complete the minimal KYC flow `delete-dup-user`
-    And the delete-account feature is enabled for my wallet
     And an account-deletion request exists for me with status "pending"
     When I navigate to "/settings/delete-account"
     Then I should be redirected to "/settings"

@@ -204,7 +204,7 @@ type (
 	}
 
 	MoreBridgeWithdrawalReroutedWebhookData struct {
-		ID             string `json:"id"`
+		TxID           string `json:"txUuid"`
 		OriginalScheme string `json:"originalScheme"`
 		Scheme         string `json:"scheme"`
 		Reason         string `json:"reason"`
@@ -803,7 +803,7 @@ func HandleWithdrawalRerouted(ctx context.Context, b Backends, raw json.RawMessa
 	}
 
 	wo := client.StartWorkflowOptions{
-		ID:                    "gatehub_withdrawal_rerouted_" + wh.ID,
+		ID:                    "gatehub_withdrawal_rerouted_" + wh.TxID,
 		TaskQueue:             "backend",
 		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
 	}
