@@ -1,3 +1,4 @@
+import { Code } from '@bufbuild/connect'
 import type { PlainMessage } from '@bufbuild/protobuf'
 import clsx from 'clsx'
 import { useState } from 'react'
@@ -29,7 +30,6 @@ import {
 } from '~/components'
 import { Label } from '~/components/Label'
 import { type PublicWalletInfo } from '~/generated/connect/backend/v1/backend_pb'
-import { Code } from '~/generated/connect/google/rpc/code_pb'
 import {
   computeCardPaymentLabel,
   computeCardSubtotalStyles
@@ -48,7 +48,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     id: params.paymentId as string
   })
   if (isConnectError(transaction)) {
-    if (transaction.code === Code.INTERNAL) throw redirect(href('/'))
+    if (transaction.code === Code.Internal) throw redirect(href('/'))
     throw transaction.errorResponse
   }
 
