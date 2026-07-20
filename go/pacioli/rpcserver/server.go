@@ -158,6 +158,7 @@ func (s *rpcServer) CreateTransfers(ctx context.Context, req *pacioliv1.CreateTr
 	for i, transfer := range transfers {
 		transferArgs[i] = pacioli.CreateTransferArgs{
 			ID:              transfer.GetId(),
+			TransactionID:   transfer.GetTransactionId(),
 			Amount:          int64(transfer.GetAmount()),
 			DebitAccountID:  transfer.GetDebitAccountId(),
 			CreditAccountID: transfer.GetCreditAccountId(),
@@ -202,6 +203,7 @@ func (s *rpcServer) GetTransfers(ctx context.Context, req *pacioliv1.GetTransfer
 	for i, transfer := range transfers {
 		transfersToReturn[i] = &pacioliv1.Transfer{
 			Id:              transfer.ID,
+			TransactionId:   transfer.TransactionID,
 			DebitAccountId:  transfer.DebitAccountID,
 			CreditAccountId: transfer.CreditAccountID,
 			Amount:          transfer.Amount,
