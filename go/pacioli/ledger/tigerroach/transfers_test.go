@@ -48,6 +48,7 @@ func TestCreateTransfers(t *testing.T) {
 			input: []pacioli.CreateTransferArgs{
 				{
 					ID:              "62eb03aa-2e73-464a-be1e-547429ddc86a",
+					TransactionID:   "62eb03aa-2e73-464a-be1e-547429ddc86a",
 					Amount:          1000,
 					DebitAccountID:  "aace20cf-177d-418d-93bd-f6d9cb0d49d1",
 					CreditAccountID: "e139db65-fed1-4e1b-a15b-b1c98d718e39",
@@ -61,6 +62,7 @@ func TestCreateTransfers(t *testing.T) {
 			input: []pacioli.CreateTransferArgs{
 				{
 					ID:              "a0d03fc7-f7a8-486b-8b4a-2a5786e02f76",
+					TransactionID:   "a0d03fc7-f7a8-486b-8b4a-2a5786e02f76",
 					Amount:          1000,
 					DebitAccountID:  "b9877da9-a44c-413a-b0c2-4dbfac4e1dcd",
 					CreditAccountID: "aad81360-b31a-4d70-ab28-acd8fb0e3d26",
@@ -76,6 +78,7 @@ func TestCreateTransfers(t *testing.T) {
 			input: []pacioli.CreateTransferArgs{
 				{
 					ID:              "09c135b0-a648-4298-9bf9-509890168968",
+					TransactionID:   "09c135b0-a648-4298-9bf9-509890168968",
 					Amount:          1000,
 					DebitAccountID:  "dae2b2a6-3a1f-4818-af68-85dd7c34ed49",
 					CreditAccountID: "0c895c5b-a369-41a8-8071-e69394b2f269",
@@ -84,6 +87,7 @@ func TestCreateTransfers(t *testing.T) {
 				},
 				{
 					ID:              "09c135b0-a648-4298-9bf9-509890168968",
+					TransactionID:   "09c135b0-a648-4298-9bf9-509890168968",
 					Amount:          1000,
 					DebitAccountID:  "dae2b2a6-3a1f-4818-af68-85dd7c34ed49",
 					CreditAccountID: "0c895c5b-a369-41a8-8071-e69394b2f269",
@@ -97,6 +101,7 @@ func TestCreateTransfers(t *testing.T) {
 			input: []pacioli.CreateTransferArgs{
 				{
 					ID:              "7f000ca0-c6e8-4e9b-993c-a27aca075b97",
+					TransactionID:   "7f000ca0-c6e8-4e9b-993c-a27aca075b97",
 					Amount:          1000,
 					DebitAccountID:  "d7374522-c847-4bec-856b-f607743bb6d3",
 					CreditAccountID: "35993786-91e0-49bd-8699-dd0c4870dd30",
@@ -107,6 +112,7 @@ func TestCreateTransfers(t *testing.T) {
 				},
 				{
 					ID:              "7f000ca0-c6e8-4e9b-993c-a27aca075b97",
+					TransactionID:   "7f000ca0-c6e8-4e9b-993c-a27aca075b97",
 					Amount:          1000,
 					DebitAccountID:  "d7374522-c847-4bec-856b-f607743bb6d3",
 					CreditAccountID: "35993786-91e0-49bd-8699-dd0c4870dd30",
@@ -123,6 +129,7 @@ func TestCreateTransfers(t *testing.T) {
 				{
 					// Success
 					ID:              "db3b784d-fe3a-4604-a127-1086f6f3dbf9",
+					TransactionID:   "db3b784d-fe3a-4604-a127-1086f6f3dbf9",
 					Amount:          1000,
 					DebitAccountID:  "a9f5ddd2-995f-47af-9c2a-6c7ef2084d22",
 					CreditAccountID: "d85b0d50-7058-4ba8-af2e-b57ae6456c5b",
@@ -132,6 +139,7 @@ func TestCreateTransfers(t *testing.T) {
 				{
 					// Different Amount
 					ID:              "db3b784d-fe3a-4604-a127-1086f6f3dbf9",
+					TransactionID:   "db3b784d-fe3a-4604-a127-1086f6f3dbf9",
 					Amount:          4000,
 					DebitAccountID:  "a9f5ddd2-995f-47af-9c2a-6c7ef2084d22",
 					CreditAccountID: "d85b0d50-7058-4ba8-af2e-b57ae6456c5b",
@@ -141,6 +149,7 @@ func TestCreateTransfers(t *testing.T) {
 				{
 					// Different Debit account
 					ID:              "db3b784d-fe3a-4604-a127-1086f6f3dbf9",
+					TransactionID:   "db3b784d-fe3a-4604-a127-1086f6f3dbf9",
 					Amount:          1000,
 					DebitAccountID:  "7857b38c-1acb-4bf0-804d-1878eb7bfd56",
 					CreditAccountID: "d85b0d50-7058-4ba8-af2e-b57ae6456c5b",
@@ -150,6 +159,7 @@ func TestCreateTransfers(t *testing.T) {
 				{
 					// Different Credit Account
 					ID:              "db3b784d-fe3a-4604-a127-1086f6f3dbf9",
+					TransactionID:   "db3b784d-fe3a-4604-a127-1086f6f3dbf9",
 					Amount:          1000,
 					DebitAccountID:  "a9f5ddd2-995f-47af-9c2a-6c7ef2084d22",
 					CreditAccountID: "95943c31-2f20-4744-800e-d9b8b5199918",
@@ -159,6 +169,7 @@ func TestCreateTransfers(t *testing.T) {
 				{
 					// Different Code
 					ID:              "db3b784d-fe3a-4604-a127-1086f6f3dbf9",
+					TransactionID:   "db3b784d-fe3a-4604-a127-1086f6f3dbf9",
 					Amount:          1000,
 					DebitAccountID:  "a9f5ddd2-995f-47af-9c2a-6c7ef2084d22",
 					CreditAccountID: "d85b0d50-7058-4ba8-af2e-b57ae6456c5b",
@@ -190,6 +201,7 @@ func TestCreateTransfers(t *testing.T) {
 			input: []pacioli.CreateTransferArgs{
 				{
 					ID:              "fc35bd84-9a6d-4536-988e-5add749cf16b",
+					TransactionID:   "fc35bd84-9a6d-4536-988e-5add749cf16b",
 					Amount:          1000,
 					DebitAccountID:  "403a4d1d-3780-4199-a5c9-7251fc9b3fda",
 					CreditAccountID: "403a4d1d-3780-4199-a5c9-7251fc9b3fda",
@@ -198,6 +210,7 @@ func TestCreateTransfers(t *testing.T) {
 				},
 				{
 					ID:              "e78c6564-7562-47c3-9452-0f42a4be177c",
+					TransactionID:   "e78c6564-7562-47c3-9452-0f42a4be177c",
 					Amount:          1000,
 					DebitAccountID:  "acc817ba-9482-421e-8d32-ac44d7cdce41",
 					CreditAccountID: "b0288fe7-9198-43f0-af9e-1e54ec2ab16a",
@@ -207,6 +220,7 @@ func TestCreateTransfers(t *testing.T) {
 				},
 				{
 					ID:              "e78c6564-7562-47c3-9452-0f42a4be177c",
+					TransactionID:   "e78c6564-7562-47c3-9452-0f42a4be177c",
 					Amount:          1000,
 					DebitAccountID:  "acc817ba-9482-421e-8d32-ac44d7cdce41",
 					CreditAccountID: "b0288fe7-9198-43f0-af9e-1e54ec2ab16a",
@@ -331,6 +345,7 @@ func TestPostTransfers(t *testing.T) {
 			input: []pacioli.CreateTransferArgs{
 				{
 					ID:              "7f000ca0-c6e8-4e9b-993c-a27aca075b97",
+					TransactionID:   "7f000ca0-c6e8-4e9b-993c-a27aca075b97",
 					Amount:          1000,
 					DebitAccountID:  "d7374522-c847-4bec-856b-f607743bb6d3",
 					CreditAccountID: "35993786-91e0-49bd-8699-dd0c4870dd30",
@@ -346,6 +361,7 @@ func TestPostTransfers(t *testing.T) {
 			input: []pacioli.CreateTransferArgs{
 				{
 					ID:              "7ccaf0be-d114-4e66-b2b9-21389f5ca996",
+					TransactionID:   "7ccaf0be-d114-4e66-b2b9-21389f5ca996",
 					Amount:          1000,
 					DebitAccountID:  "f35459cd-1ea0-4402-8462-8b1a15fa8841",
 					CreditAccountID: "025f782d-6389-4307-a08d-43fee5b1ec34",
@@ -356,6 +372,7 @@ func TestPostTransfers(t *testing.T) {
 				},
 				{
 					ID:              "7ccaf0be-d114-4e66-b2b9-21389f5ca996",
+					TransactionID:   "7ccaf0be-d114-4e66-b2b9-21389f5ca996",
 					Amount:          1000,
 					DebitAccountID:  "f35459cd-1ea0-4402-8462-8b1a15fa8841",
 					CreditAccountID: "025f782d-6389-4307-a08d-43fee5b1ec34",
@@ -477,6 +494,7 @@ func TestVoidTransfers(t *testing.T) {
 			input: []pacioli.CreateTransferArgs{
 				{
 					ID:              "7f000ca0-c6e8-4e9b-993c-a27aca075b97",
+					TransactionID:   "7f000ca0-c6e8-4e9b-993c-a27aca075b97",
 					Amount:          1000,
 					DebitAccountID:  "d7374522-c847-4bec-856b-f607743bb6d3",
 					CreditAccountID: "35993786-91e0-49bd-8699-dd0c4870dd30",
@@ -492,6 +510,7 @@ func TestVoidTransfers(t *testing.T) {
 			input: []pacioli.CreateTransferArgs{
 				{
 					ID:              "7ccaf0be-d114-4e66-b2b9-21389f5ca996",
+					TransactionID:   "7ccaf0be-d114-4e66-b2b9-21389f5ca996",
 					Amount:          1000,
 					DebitAccountID:  "f35459cd-1ea0-4402-8462-8b1a15fa8841",
 					CreditAccountID: "025f782d-6389-4307-a08d-43fee5b1ec34",
@@ -502,6 +521,7 @@ func TestVoidTransfers(t *testing.T) {
 				},
 				{
 					ID:              "7ccaf0be-d114-4e66-b2b9-21389f5ca996",
+					TransactionID:   "7ccaf0be-d114-4e66-b2b9-21389f5ca996",
 					Amount:          1000,
 					DebitAccountID:  "f35459cd-1ea0-4402-8462-8b1a15fa8841",
 					CreditAccountID: "025f782d-6389-4307-a08d-43fee5b1ec34",
@@ -619,6 +639,7 @@ func TestTimeoutTransfers(t *testing.T) {
 			input: []pacioli.CreateTransferArgs{
 				{
 					ID:              "7f000ca0-c6e8-4e9b-993c-a27aca075b97",
+					TransactionID:   "7f000ca0-c6e8-4e9b-993c-a27aca075b97",
 					Amount:          1000,
 					DebitAccountID:  "d7374522-c847-4bec-856b-f607743bb6d3",
 					CreditAccountID: "35993786-91e0-49bd-8699-dd0c4870dd30",

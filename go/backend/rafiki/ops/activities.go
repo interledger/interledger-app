@@ -443,7 +443,9 @@ func (a *Activity) CreateAndPostLedgerTransferForIncoming(ctx context.Context, i
 
 	results, err := a.b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
 		{
+			// TODO(PR2): use transactions.id, not ip.ID (the Rafiki payment id == transactions.foreign_id).
 			ID:              ip.ID,
+			TransactionID:   ip.ID,
 			Amount:          receivedAmt,
 			CreditAccountID: la.ID,
 			DebitAccountID:  opsAcc,
@@ -470,6 +472,23 @@ func (a *Activity) WithdrawIncomingPaymentLiquidity(ctx context.Context, incomin
 			zap.Error(err))
 	}
 	return nil
+}
+
+func (a *Activity) resolveReceiverWalletAddress(ctx context.Context, receiverUrl string) (string, error) {
+	ip, err := a.b.Rafiki().GetIncomingPayment(ctx, extractIncomingPaymentID(receiverUrl))
+	if err != nil {
+		return "", fmt.Errorf("%w failed to get receiver incoming payment: %s", rafiki.ErrInternal, err)
+	}
+	receiverWalletID, err := lookupWalletIDFromActivity(ctx, a.b, ip.WalletAddressID)
+	if err != nil {
+		return "", fmt.Errorf("%w failed to look up receiver wallet: %s", rafiki.ErrInternal, err)
+	}
+	wallet, err := a.b.Wallets().Get(ctx, receiverWalletID)
+	if err != nil {
+		return "", fmt.Errorf("%w failed to get receiver wallet: %s", rafiki.ErrInternal, err)
+	}
+
+	return wallet.AddressString(), nil
 }
 
 func (a *Activity) CreateOutgoingPaymentTransaction(ctx context.Context, op outgoingPaymentData) error {
@@ -501,6 +520,11 @@ func (a *Activity) CreateOutgoingPaymentTransaction(ctx context.Context, op outg
 		txType = transactions.TransactionTypeWebMonetizationOutgoing
 	}
 
+	receiverAddress, err := a.resolveReceiverWalletAddress(ctx, op.Receiver)
+	if err != nil {
+		return err
+	}
+
 	_, err = a.b.Transactions().CreateTransaction(ctx, transactions.CreateTransactionArgs{
 		WalletID:                walletID,
 		ForeignID:               op.ID,
@@ -508,10 +532,10 @@ func (a *Activity) CreateOutgoingPaymentTransaction(ctx context.Context, op outg
 		Provider:                gatehub.ProviderName,
 		State:                   transactions.StatePending,
 		Source:                  wallet.AddressString(),
-		Destination:             op.Receiver,
+		Destination:             receiverAddress,
 		Title:                   "Outgoing Payment",
-		DestinationIdentity:     op.Receiver,
-		DestinationIdentityType: payments.IdentityTypeExternalWalletURL.String(),
+		DestinationIdentity:     receiverAddress,
+		DestinationIdentityType: payments.IdentityTypeWalletURL.String(),
 		Amount:                  amt,
 		LinkedAccountTitle:      "EUR Balance",
 		Transfers: []transactions.TransferArgs{
@@ -545,7 +569,9 @@ func (a *Activity) ReserveBalanceForOutgoing(ctx context.Context, op outgoingPay
 
 	results, err := a.b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
 		{
+			// TODO(PR2): use transactions.id, not op.ID (the Rafiki payment id == transactions.foreign_id).
 			ID:              op.ID,
+			TransactionID:   op.ID,
 			Amount:          debitAmt,
 			DebitAccountID:  la.ID,
 			CreditAccountID: opsAcc,

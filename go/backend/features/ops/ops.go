@@ -27,8 +27,8 @@ import (
 func SetFeatures(ctx context.Context, b Backends, walletID string, feat features.WalletFeatures) (*features.WalletFeatures, error) {
 
 	_, err := b.DB().ExecContext(ctx, "INSERT INTO wallet_features "+
-		"(wallet_id, send_enabled, receive_enabled, linked_accounts_enabled, cards_enabled, banks_enabled, identities_enabled, twitter_enabled, add_cards_enabled, interac_enabled, manage_wallet_cards_enabled, accounts_tab_enabled, delete_account_enabled) "+
-		"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)  ON CONFLICT (wallet_id) DO UPDATE SET "+
+		"(wallet_id, send_enabled, receive_enabled, linked_accounts_enabled, cards_enabled, banks_enabled, identities_enabled, twitter_enabled, add_cards_enabled, interac_enabled, manage_wallet_cards_enabled, accounts_tab_enabled) "+
+		"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)  ON CONFLICT (wallet_id) DO UPDATE SET "+
 		"send_enabled = excluded.send_enabled, "+
 		"receive_enabled = excluded.receive_enabled, "+
 		"linked_accounts_enabled = excluded.linked_accounts_enabled, "+
@@ -40,9 +40,8 @@ func SetFeatures(ctx context.Context, b Backends, walletID string, feat features
 		"interac_enabled = excluded.interac_enabled, "+
 		"manage_wallet_cards_enabled = excluded.manage_wallet_cards_enabled, "+
 		"accounts_tab_enabled = excluded.accounts_tab_enabled, "+
-		"delete_account_enabled = excluded.delete_account_enabled, "+
 		"updated_at=now()",
-		walletID, feat.SendEnabled, feat.ReceiveEnabled, feat.LinkedAccEnabled, feat.CardsEnabled, feat.BanksEnabled, feat.IdentitiesEnabled, feat.TwitterEnabled, feat.AddCardsEnabled, feat.InteraccEnabled, feat.ManageWalletCardsEnabled, feat.AccountsTabEnabled, feat.DeleteAccountEnabled)
+		walletID, feat.SendEnabled, feat.ReceiveEnabled, feat.LinkedAccEnabled, feat.CardsEnabled, feat.BanksEnabled, feat.IdentitiesEnabled, feat.TwitterEnabled, feat.AddCardsEnabled, feat.InteraccEnabled, feat.ManageWalletCardsEnabled, feat.AccountsTabEnabled)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", features.ErrInternal, err)
 	}
@@ -73,13 +72,16 @@ func Features(ctx context.Context, b Backends, walletID string, cardsEnabled boo
 		}, nil
 	}
 
+	deleteAccountEnabled := b.Config().DeleteAccountEnabled
+
 	var res features.WalletFeatures
 	// Check DB for feature overrides
 	err = b.DB().GetContext(ctx, &res,
-		"SELECT send_enabled, receive_enabled, linked_accounts_enabled, cards_enabled, banks_enabled, identities_enabled, twitter_enabled, add_cards_enabled, interac_enabled, manage_wallet_cards_enabled, accounts_tab_enabled, delete_account_enabled FROM wallet_features WHERE wallet_id=$1",
+		"SELECT send_enabled, receive_enabled, linked_accounts_enabled, cards_enabled, banks_enabled, identities_enabled, twitter_enabled, add_cards_enabled, interac_enabled, manage_wallet_cards_enabled, accounts_tab_enabled FROM wallet_features WHERE wallet_id=$1",
 		walletID)
 	if err == nil {
 		res.AccountEnabled = true
+		res.DeleteAccountEnabled = deleteAccountEnabled
 		return &res, nil
 	}
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
@@ -118,7 +120,6 @@ func Features(ctx context.Context, b Backends, walletID string, cardsEnabled boo
 		res.CardsEnabled = false // todo(bradu): talk with pti for cards
 		res.AddCardsEnabled = false
 		res.ManageWalletCardsEnabled = false
-		res.DeleteAccountEnabled = false
 		// it enables the feature by default for sandbox / dev
 		res.AccountEnabled = true
 	}
@@ -131,7 +132,6 @@ func Features(ctx context.Context, b Backends, walletID string, cardsEnabled boo
 		res.CardsEnabled = false
 		res.AddCardsEnabled = false
 		res.ManageWalletCardsEnabled = false
-		res.DeleteAccountEnabled = false
 		res.AccountEnabled = true
 	}
 	if country.EUCountries[wallet.Country] {
@@ -144,7 +144,6 @@ func Features(ctx context.Context, b Backends, walletID string, cardsEnabled boo
 		res.CardsEnabled = false
 		res.AddCardsEnabled = false
 		res.ManageWalletCardsEnabled = cardsEnabled
-		res.DeleteAccountEnabled = false
 		res.AccountEnabled = true
 		res.AccountsTabEnabled = false
 	}
@@ -157,9 +156,10 @@ func Features(ctx context.Context, b Backends, walletID string, cardsEnabled boo
 		res.AddCardsEnabled = false
 		res.InteraccEnabled = canAddInterac
 		res.ManageWalletCardsEnabled = false
-		res.DeleteAccountEnabled = false
 		res.AccountEnabled = true
 	}
+
+	res.DeleteAccountEnabled = deleteAccountEnabled
 
 	return &res, nil
 }

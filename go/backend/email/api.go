@@ -2,6 +2,7 @@ package email
 
 import (
 	"context"
+	"time"
 
 	"github.com/interledger/interledger-app/go/backend/currency"
 
@@ -24,6 +25,7 @@ type Client interface {
 	SendWithdrawalEmail(ctx context.Context, walletID string, amt currency.Amount, destinationAccount, date string)
 	SendWithdrawalFailedEmail(ctx context.Context, walletID string)
 	SendGatehubWithdrawalRejectedEmail(ctx context.Context, txID, walletID, amount, currency, iban, name string)
+	SendGatehubWithdrawalSettledEmail(ctx context.Context, txID, walletID, amount, iban, name, timestmap string)
 	SendLimitsExceededEmail(ctx context.Context, walletID string)
 	SendCardCreatedEmail(ctx context.Context, walletID, cardID string)
 	SendPending3DSConfirmation(ctx context.Context, walletID, confirmationID string)
@@ -34,10 +36,21 @@ type Client interface {
 	SendCardTransactionFXEmail(ctx context.Context, walletID, maskedPAN, merchantName, date, surcharge, transactionAmount, billingAmount string)
 	SendSCTITimeoutEmail(ctx context.Context, txID, walletID, amount, name, iban, submittedAt string)
 	SendSCTRerouteEmail(ctx context.Context, txID, walletID string)
+	SendRampActionEmail(ctx context.Context, walletID string, args RampActionEmailArgs)
 }
 
 // AgreementLink is a single agreement to show in the agreement-change email (display name + URL).
 type AgreementLink struct {
 	DisplayName string
 	TermsURL    string
+}
+
+// RampActionEmailArgs describes a single deposit/withdrawal lifecycle event (created, completed, or failed).
+type RampActionEmailArgs struct {
+	Action    string // e.g. "Deposit Initiated", "Withdrawal Completed", "Deposit Failed"
+	Status    string // e.g. "Pending", "Completed", "Failed"
+	Amount    currency.Amount
+	Source    string // e.g. "Bank Account (...1234)"
+	Method    string // e.g. "ACH"
+	Timestamp time.Time
 }

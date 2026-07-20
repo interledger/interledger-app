@@ -10,6 +10,7 @@ const Stage = forwardRef<any>(({ ...motionProps }, ref) => {
   const [snackbar, setSnackbar] = useState<SnackbarType | null>(null)
   let dismissRef = useRef<NodeJS.Timeout>()
   const navigate = useNavigate()
+  const OPEN_CHANGE_PHONE_EVENT = 'phone-confirmation:open-change-phone'
 
   const [snackbars, shiftSnackbar] = useScaffoldStore((state) => [
     state.snackbars,
@@ -25,6 +26,10 @@ const Stage = forwardRef<any>(({ ...motionProps }, ref) => {
       case 'View cards':
         shiftSnackbar()
         navigate(href('/cards'))
+        break
+      case 'Update mobile number':
+        shiftSnackbar()
+        window.dispatchEvent(new Event(OPEN_CHANGE_PHONE_EVENT))
         break
       default:
         shiftSnackbar()
