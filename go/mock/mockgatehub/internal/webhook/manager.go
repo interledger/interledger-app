@@ -216,7 +216,8 @@ func normalizeVerificationPayload(eventType string, data any) map[string]interfa
 	converted := coerceToMap(data)
 
 	switch eventType {
-	case "id.verification.accepted", "id.verification.rejected", "id.verification.action_required":
+	case "id.verification.accepted", "id.verification.rejected", "id.verification.action_required",
+		"id.verification.resubmission", "id.document_notice.expired", "id.document_notice.warning":
 		if _, ok := converted["gateway"]; !ok {
 			converted["gateway"] = "paywiser"
 		}
@@ -231,9 +232,11 @@ func normalizeVerificationPayload(eventType string, data any) map[string]interfa
 				short = "rejected"
 				status = 2
 			}
-			converted["verified"] = map[string]interface{}{
-				"short":  short,
-				"status": status,
+			if eventType == "id.verification.accepted" || eventType == "id.verification.rejected" || eventType == "id.verification.action_required" {
+				converted["verified"] = map[string]interface{}{
+					"short":  short,
+					"status": status,
+				}
 			}
 		}
 	}

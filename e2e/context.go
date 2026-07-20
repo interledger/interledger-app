@@ -219,6 +219,15 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I should be navigated back to the dashboard with reserved wallet status$`, func() error { return sc.iShouldBeNavigatedBackToTheDashboardWithReservedWalletStatus() })
 	ctx.Step(`^I should be navigated back to the dashboard with approved kyc status$`, func() error { return sc.iShouldBeNavigatedBackToTheDashboardWithApprovedKYCStatus() })
 	ctx.Step(`^I should see my account balance with kyc approved$`, func() error { return sc.iShouldSeeMyAccountBalanceWithKYCApproved() })
+	ctx.Step(`^I trigger GateHub KYC webhook "([^"]*)" for myself$`, func(eventType string) error {
+		return sc.iTriggerGateHubKYCWebhookForMyself(eventType)
+	})
+	ctx.Step(`^my KYC status should be (.+)$`, func(statusName string) error {
+		return sc.myKYCStatusShouldBe(statusName)
+	})
+	ctx.Step(`^I should see the reactivate wallet prompt on the dashboard$`, func() error {
+		return sc.iShouldSeeTheReactivateWalletPromptOnTheDashboard()
+	})
 
 	// Deposit steps
 	ctx.Step(`^I navigate to the deposit page$`, func() error { return sc.iNavigateToTheDepositPage() })
