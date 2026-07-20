@@ -2,7 +2,7 @@ import type { PlainMessage } from '@bufbuild/protobuf'
 import clsx from 'clsx'
 import { useState } from 'react'
 import type { UIMatch } from 'react-router'
-import { data, href, Link, useLoaderData } from 'react-router'
+import { Link, data, href, redirect, useLoaderData } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   Alert,
@@ -29,6 +29,7 @@ import {
 } from '~/components'
 import { Label } from '~/components/Label'
 import { type PublicWalletInfo } from '~/generated/connect/backend/v1/backend_pb'
+import { Code } from '~/generated/connect/google/rpc/code_pb'
 import {
   computeCardPaymentLabel,
   computeCardSubtotalStyles
@@ -43,11 +44,13 @@ import type { Route } from './+types/payments.$paymentId'
 export async function loader({ request, params }: Route.LoaderArgs) {
   let statement = false
   let senderAccountTitle, receiverAccountTitle
-
   const transaction = await grpc.lookupTransaction(request, {
     id: params.paymentId as string
   })
-  if (isConnectError(transaction)) throw transaction.errorResponse
+  if (isConnectError(transaction)) {
+    if (transaction.code === Code.INTERNAL) throw redirect(href('/'))
+    throw transaction.errorResponse
+  }
 
   if (transaction.type == 'withdrawal' || transaction.type == 'deposit') {
     const linkedAccountsResponse = await grpc.getLinkedAccounts(request, {})
