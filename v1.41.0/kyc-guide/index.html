@@ -1,0 +1,3324 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for the Interledger App Wallet — a reference implementation for Account Servicing Entities (ASEs) integrating with the Interledger network.">
+      
+      
+      
+      
+        <link rel="prev" href="../signup-guide/">
+      
+      
+        <link rel="next" href="../kyc-resubmission-flow/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>KYC & Identity Verification - Interledger App Wallet</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#kyc-explainer" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Interledger App Wallet" class="md-header__button md-logo" aria-label="Interledger App Wallet" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Interledger App Wallet
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              KYC & Identity Verification
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Interledger App Wallet" class="md-nav__button md-logo" aria-label="Interledger App Wallet" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Interledger App Wallet
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../terminology/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Terminology
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../signup-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Signup Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    KYC & Identity Verification
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    KYC & Identity Verification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-user-journey-first-signup-activate-wallet-kyc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1) User journey first: signup → activate wallet → KYC
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-what-kyc-means-in-interledger-app" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2) What KYC means in Interledger App
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-why-we-intentionally-keep-kyc-data-minimal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3) Why we intentionally keep KYC data minimal
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-compliance-reality-kyc-is-tied-to-transactions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4) Compliance reality: KYC is tied to transactions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-language-guidance-for-support-conversations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5) Language guidance for support conversations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-high-level-system-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6) High-level system flow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-how-provider-routing-works-today-wallet-country-driven" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7) How provider routing works today (wallet-country driven)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-provider-deep-dive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8) Provider deep dive
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#81-gatehub-eu-heavy-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.1 GateHub (EU-heavy path)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8.1 GateHub (EU-heavy path)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-it-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How it works
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#support-implications" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Support implications
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sequence-gatehub-acceptance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sequence (GateHub acceptance)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#82-xago-and-persona-south-africa-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.2 Xago and Persona (South Africa path)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8.2 Xago and Persona (South Africa path)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-it-works_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How it works
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-this-creates-migration-complexity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why this creates migration complexity
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sequence-xago-persona" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sequence (Xago + Persona)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#support-implications_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Support implications
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#83-pti-us-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.3 PTI (US path)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8.3 PTI (US path)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-it-works_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How it works
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#support-implications_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Support implications
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#84-chimoney-canada-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.4 Chimoney (Canada path)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8.4 Chimoney (Canada path)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-it-works_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How it works
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#support-implications_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Support implications
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-kyc-migration-and-future-licensing-key-support-answer-patterns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9) KYC migration and future licensing: key support answer patterns
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-mixed-provider-reality-within-one-country" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10) Mixed-provider reality within one country
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-practical-troubleshooting-checklist-for-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11) Practical troubleshooting checklist for support
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-suggested-support-phrasing-library" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12) Suggested support phrasing library
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-temporal-debugging-guide-for-kyc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13) Temporal Debugging Guide for KYC
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="13) Temporal Debugging Guide for KYC">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#understanding-kyc-workflow-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Understanding KYC Workflow Structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#finding-a-stuck-kyc-process-in-temporal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Finding a Stuck KYC Process in Temporal
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#investigating-a-running-kyc-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Investigating a Running KYC Workflow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#common-kyc-temporal-scenarios" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common KYC Temporal Scenarios
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Common KYC Temporal Scenarios">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scenario-1-waiting-for-provider-webhook-gatehub-xago" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario 1: Waiting for Provider Webhook (GateHub, Xago)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scenario-2-polling-for-completion-chimoney-some-pti" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario 2: Polling for Completion (Chimoney, some PTI)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scenario-3-activity-stuck-or-failing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario 3: Activity Stuck or Failing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scenario-4-workflow-completed-but-kyc-status-not-updated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario 4: Workflow Completed but KYC Status Not Updated
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#provider-specific-debugging-tips" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Provider-Specific Debugging Tips
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Provider-Specific Debugging Tips">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#gatehub-kyc-troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GateHub KYC Troubleshooting
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#xago-persona-troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Xago + Persona Troubleshooting
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pti-kyc-troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PTI KYC Troubleshooting
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#chimoney-kyc-troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Chimoney KYC Troubleshooting
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manual-intervention-signaling-kyc-workflows" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Manual Intervention: Signaling KYC Workflows
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kyc-workflow-best-practices-for-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        KYC Workflow Best Practices for Support
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kyc-workflow-lifecycle-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        KYC Workflow Lifecycle Summary
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-final-mental-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14) Final mental model
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../kyc-resubmission-flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    KYC Resubmission Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../account-deletion-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Account Deletion Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wallets-accounts-addresses-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wallets, Accounts & Addresses
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ledger-system-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dual-Ledger System
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../agreements-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agreements & Legal Consent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Payments
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Payments
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../payments-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Payments & Transactions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../transaction-types-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transaction Types Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../provider-payments-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Provider Comparison
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Integrations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Integrations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gatehub-cards-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GateHub Cards
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rafiki-full-node-upgrade-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rafiki Full Node Upgrade
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Operations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../payment-troubleshooting-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Payment Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developers
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Developers
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../error-handling-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Error Handling Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../logging-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Logging Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend-configuration-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backend Configuration Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../env-variables/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment Variables
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-user-journey-first-signup-activate-wallet-kyc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1) User journey first: signup → activate wallet → KYC
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-what-kyc-means-in-interledger-app" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2) What KYC means in Interledger App
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-why-we-intentionally-keep-kyc-data-minimal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3) Why we intentionally keep KYC data minimal
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-compliance-reality-kyc-is-tied-to-transactions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4) Compliance reality: KYC is tied to transactions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-language-guidance-for-support-conversations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5) Language guidance for support conversations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-high-level-system-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6) High-level system flow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-how-provider-routing-works-today-wallet-country-driven" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7) How provider routing works today (wallet-country driven)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-provider-deep-dive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8) Provider deep dive
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#81-gatehub-eu-heavy-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.1 GateHub (EU-heavy path)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8.1 GateHub (EU-heavy path)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-it-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How it works
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#support-implications" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Support implications
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sequence-gatehub-acceptance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sequence (GateHub acceptance)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#82-xago-and-persona-south-africa-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.2 Xago and Persona (South Africa path)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8.2 Xago and Persona (South Africa path)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-it-works_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How it works
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-this-creates-migration-complexity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why this creates migration complexity
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sequence-xago-persona" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sequence (Xago + Persona)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#support-implications_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Support implications
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#83-pti-us-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.3 PTI (US path)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8.3 PTI (US path)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-it-works_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How it works
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#support-implications_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Support implications
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#84-chimoney-canada-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.4 Chimoney (Canada path)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8.4 Chimoney (Canada path)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-it-works_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How it works
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#support-implications_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Support implications
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-kyc-migration-and-future-licensing-key-support-answer-patterns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9) KYC migration and future licensing: key support answer patterns
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-mixed-provider-reality-within-one-country" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10) Mixed-provider reality within one country
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-practical-troubleshooting-checklist-for-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11) Practical troubleshooting checklist for support
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-suggested-support-phrasing-library" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12) Suggested support phrasing library
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-temporal-debugging-guide-for-kyc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13) Temporal Debugging Guide for KYC
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="13) Temporal Debugging Guide for KYC">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#understanding-kyc-workflow-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Understanding KYC Workflow Structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#finding-a-stuck-kyc-process-in-temporal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Finding a Stuck KYC Process in Temporal
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#investigating-a-running-kyc-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Investigating a Running KYC Workflow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#common-kyc-temporal-scenarios" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common KYC Temporal Scenarios
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Common KYC Temporal Scenarios">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scenario-1-waiting-for-provider-webhook-gatehub-xago" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario 1: Waiting for Provider Webhook (GateHub, Xago)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scenario-2-polling-for-completion-chimoney-some-pti" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario 2: Polling for Completion (Chimoney, some PTI)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scenario-3-activity-stuck-or-failing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario 3: Activity Stuck or Failing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scenario-4-workflow-completed-but-kyc-status-not-updated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario 4: Workflow Completed but KYC Status Not Updated
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#provider-specific-debugging-tips" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Provider-Specific Debugging Tips
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Provider-Specific Debugging Tips">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#gatehub-kyc-troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GateHub KYC Troubleshooting
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#xago-persona-troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Xago + Persona Troubleshooting
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pti-kyc-troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PTI KYC Troubleshooting
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#chimoney-kyc-troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Chimoney KYC Troubleshooting
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manual-intervention-signaling-kyc-workflows" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Manual Intervention: Signaling KYC Workflows
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kyc-workflow-best-practices-for-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        KYC Workflow Best Practices for Support
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kyc-workflow-lifecycle-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        KYC Workflow Lifecycle Summary
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-final-mental-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14) Final mental model
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="kyc-explainer">KYC Explainer<a class="headerlink" href="#kyc-explainer" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p><strong>Identity verification guide.</strong> Understand KYC flows and how they gate wallet activation across providers.</p>
+</blockquote>
+<p><strong>Related documents:</strong></p>
+<ul>
+<li><a href="../terminology/">Concepts</a> — Wallet and linked-account terminology</li>
+<li><a href="../payments-guide/">Payments Guide</a> — How KYC gates transaction authorization</li>
+<li><a href="../provider-payments-reference/">Provider Payments Guide</a> — Provider-specific KYC implementations</li>
+<li><a href="../ledger-system-guide/">Ledger System Architecture</a> — How KYC completion affects balance/account provisioning</li>
+<li><a href="../wallets-accounts-addresses-guide/">Wallets vs Accounts</a> — Wallet activation architecture</li>
+<li><a href="../payment-troubleshooting-guide/">Payment Troubleshooting</a> — Debugging KYC-blocked transactions</li>
+<li><a href="../env-variables/">Environment Variables</a> — Provider endpoints and KYC integration credentials by environment</li>
+</ul>
+<p><strong>Quick Navigation:</strong></p>
+<ul>
+<li><strong>User stuck in KYC?</strong> → Jump to <a href="#8-provider-deep-dive">Provider Deep Dive</a></li>
+<li><strong>Need context for <code>action_required</code>?</strong> → See <a href="#81-gatehub-eu-heavy-path">GateHub KYC Flow</a></li>
+<li><strong>GateHub iframe issues?</strong> → See <a href="#81-gatehub-eu-heavy-path">GateHub KYC Flow</a></li>
+<li><strong>Xago verification problems?</strong> → See <a href="#82-xago-and-persona-south-africa-path">Xago KYC Flow</a></li>
+<li><strong>General KYC troubleshooting?</strong> → See <a href="#11-practical-troubleshooting-checklist-for-support">Practical Troubleshooting Checklist</a></li>
+</ul>
+<p><strong>Scope:</strong> What KYC is, how it works in Interledger App, and how provider differences affect the user journey.</p>
+<hr />
+<h2 id="1-user-journey-first-signup-activate-wallet-kyc">1) User journey first: signup → activate wallet → KYC<a class="headerlink" href="#1-user-journey-first-signup-activate-wallet-kyc" title="Permanent link">&para;</a></h2>
+<p>Before going deep into KYC internals, this is the user-facing journey to keep in mind.</p>
+<p>After a user completes signup (account creation, verification, and wallet address setup), the app asks them to <strong>Activate wallet</strong>.</p>
+<p>In plain terms, <strong>Activate wallet</strong> means:</p>
+<ul>
+<li>“Finish the required identity checks so this wallet can perform regulated financial actions.”</li>
+</ul>
+<p>So when a user clicks <strong>Continue</strong> on the Activate wallet prompt, they are starting or resuming their provider-specific KYC flow.</p>
+<pre class="mermaid"><code>sequenceDiagram
+    participant U as User
+    participant FE as Frontend
+    participant BE as Wallet Backend
+    participant KP as KYC Provider
+
+    U-&gt;&gt;FE: Complete signup flow
+    FE--&gt;&gt;U: Show "Activate wallet"
+    U-&gt;&gt;FE: Click "Continue"
+    FE-&gt;&gt;BE: GetKYCProviderWidget
+    BE--&gt;&gt;FE: KYC widget/session details
+    FE-&gt;&gt;KP: User completes KYC steps</code></pre>
+<p>This framing helps avoid confusion: KYC is not a separate product area from activation; it is the core part of wallet activation.</p>
+<hr />
+<h2 id="2-what-kyc-means-in-interledger-app">2) What KYC means in Interledger App<a class="headerlink" href="#2-what-kyc-means-in-interledger-app" title="Permanent link">&para;</a></h2>
+<p>KYC (Know Your Customer) is the process of verifying a user’s real-world identity before allowing regulated financial activity.</p>
+<p>From an Interledger App wallet perspective:</p>
+<ul>
+<li>A user has <strong>one Interledger wallet</strong>.</li>
+<li>That wallet has <strong>linked accounts</strong> at its associated provider (see <a href="../terminology/#core-terms">Concepts</a> for definitions).</li>
+<li>KYC status is tracked at the wallet level in Interledger App, but <strong>evidence and verification workflows are often provider-specific</strong>.</li>
+</ul>
+<p>In practice, KYC should be understood as:</p>
+<ol>
+<li><strong>A compliance gate</strong> (can this wallet perform regulated actions?)</li>
+<li><strong>A provider integration</strong> (which external party performed verification?)</li>
+<li><strong>A changing legal requirement</strong> (rules vary by country, provider, and over time)</li>
+</ol>
+<hr />
+<h2 id="3-why-we-intentionally-keep-kyc-data-minimal">3) Why we intentionally keep KYC data minimal<a class="headerlink" href="#3-why-we-intentionally-keep-kyc-data-minimal" title="Permanent link">&para;</a></h2>
+<p>A core operating principle is data minimization:</p>
+<ul>
+<li>We want to keep as little private user information as possible on our side.</li>
+<li>More PII and biometric data stored by us means more legal, compliance, and breach risk.</li>
+<li>Where possible, providers (or their KYC vendors) handle document capture/biometrics and hold the most sensitive artifacts.</li>
+</ul>
+<p>Support talk track:</p>
+<ul>
+<li>“Interledger App tracks KYC status and required profile details to operate the wallet, but the detailed identity verification evidence is generally handled by the provider-side KYC systems.”</li>
+</ul>
+<hr />
+<h2 id="4-compliance-reality-kyc-is-tied-to-transactions">4) Compliance reality: KYC is tied to transactions<a class="headerlink" href="#4-compliance-reality-kyc-is-tied-to-transactions" title="Permanent link">&para;</a></h2>
+<p>At a policy level, KYC is linked to anti-money-laundering (AML) obligations. Operationally, this means:</p>
+<ul>
+<li>Transactions must be attributable to appropriately verified users (see <a href="../payments-guide/#understanding-transactions">Payments &amp; Transactions</a>).</li>
+<li>The exact requirement can differ by country and provider.</li>
+<li>We should expect policy evolution, including possibilities like:</li>
+<li>KYC expiration/reverification windows</li>
+<li>rule changes by jurisdiction</li>
+<li>different thresholds for different transaction types</li>
+</ul>
+<p><strong>Important support framing:</strong></p>
+<p>We are still refining exact interpretations per provider/country. The system is designed to be flexible because legal requirements may change.</p>
+<hr />
+<h2 id="5-language-guidance-for-support-conversations">5) Language guidance for support conversations<a class="headerlink" href="#5-language-guidance-for-support-conversations" title="Permanent link">&para;</a></h2>
+<p>When talking with users or internal teams, use provider-specific phrasing.</p>
+<p>Prefer:</p>
+<ul>
+<li>“The user needs to do KYC for GateHub.”</li>
+<li>“The user already completed KYC for Xago.”</li>
+<li>“This wallet is waiting on Chimoney KYC completion.”</li>
+</ul>
+<p>Avoid generic phrasing like “KYC is done everywhere” unless you are sure all relevant provider requirements are satisfied.</p>
+<p>Why this matters:</p>
+<ul>
+<li>KYC completion in one provider/legal path may not automatically satisfy another provider/legal path.</li>
+<li>During provider migrations, users in the same country may be split across providers.</li>
+</ul>
+<hr />
+<h2 id="6-high-level-system-flow">6) High-level system flow<a class="headerlink" href="#6-high-level-system-flow" title="Permanent link">&para;</a></h2>
+<p>A simplified flow when a user clicks <strong>Continue</strong> in “Activate wallet”:</p>
+<pre class="mermaid"><code>sequenceDiagram
+    participant U as User
+    participant FE as Frontend
+    participant BE as Wallet Backend (gRPC)
+    participant P as KYC Provider / Vendor
+    participant WH as Provider Webhook
+    participant K as KYC Status + Temporal
+
+    U-&gt;&gt;FE: Click "Continue" on Activate wallet
+    FE-&gt;&gt;BE: GetKYCProviderWidget
+    BE--&gt;&gt;FE: Provider-specific widget/session data
+    FE-&gt;&gt;P: User does KYC (docs/photos/biometrics)
+    P--&gt;&gt;WH: Send verification event/status
+    WH-&gt;&gt;K: Map provider status to wallet KYC status
+    K-&gt;&gt;K: Temporal workflow updates side effects (notifications, account setup)
+    K--&gt;&gt;FE: Wallet eventually appears KYC-approved</code></pre>
+<p>KYC usually includes:</p>
+<ul>
+<li>identity document uploads</li>
+<li>selfie/photo checks</li>
+<li>sometimes additional biometric checks</li>
+</ul>
+<hr />
+<h2 id="7-how-provider-routing-works-today-wallet-country-driven">7) How provider routing works today (wallet-country driven)<a class="headerlink" href="#7-how-provider-routing-works-today-wallet-country-driven" title="Permanent link">&para;</a></h2>
+<p>In backend KYC widget routing:</p>
+<ul>
+<li><strong>EU wallets</strong> → GateHub onboarding widget</li>
+<li><strong>CA wallets</strong> → Chimoney KYC widget</li>
+<li><strong>US wallets</strong> → PTI widget flow</li>
+<li><strong>Other wallets (notably ZA)</strong> → Persona inquiry flow (often for Xago-related onboarding)</li>
+</ul>
+<p>This is why support may see different KYC UI and timing for users with similar complaints.</p>
+<hr />
+<h2 id="8-provider-deep-dive">8) Provider deep dive<a class="headerlink" href="#8-provider-deep-dive" title="Permanent link">&para;</a></h2>
+<h2 id="81-gatehub-eu-heavy-path">8.1 GateHub (EU-heavy path)<a class="headerlink" href="#81-gatehub-eu-heavy-path" title="Permanent link">&para;</a></h2>
+<h3 id="how-it-works">How it works<a class="headerlink" href="#how-it-works" title="Permanent link">&para;</a></h3>
+<ul>
+<li>User is linked as a managed GateHub user and linked to a GateHub gateway.</li>
+<li>User performs KYC in GateHub onboarding flow.</li>
+<li>GateHub sends verification webhooks (for example accepted/rejected/action_required).</li>
+<li>Backend maps these into Interledger KYC statuses and triggers Temporal workflows.</li>
+</ul>
+<h3 id="support-implications">Support implications<a class="headerlink" href="#support-implications" title="Permanent link">&para;</a></h3>
+<ul>
+<li>A GateHub “accepted” signal generally transitions wallet KYC to approved levels.</li>
+<li>Action-required signals should be treated as “user must revisit provider KYC flow.”</li>
+<li>Card operations may have additional GateHub conditions beyond baseline KYC.</li>
+</ul>
+<h3 id="sequence-gatehub-acceptance">Sequence (GateHub acceptance)<a class="headerlink" href="#sequence-gatehub-acceptance" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>sequenceDiagram
+    participant U as User
+    participant FE as Frontend
+    participant BE as Backend
+    participant GH as GateHub
+    participant TW as Temporal
+
+    FE-&gt;&gt;BE: GetKYCProviderWidget (EU wallet)
+    BE--&gt;&gt;FE: GateHub widget URL
+    U-&gt;&gt;GH: Submit KYC evidence
+    GH--&gt;&gt;BE: id.verification.accepted webhook
+    BE-&gt;&gt;TW: Start backfill/set-KYC workflow
+    TW-&gt;&gt;BE: Set wallet KYC status (Level1/Approved)
+    BE--&gt;&gt;FE: User sees activated wallet features</code></pre>
+<hr />
+<h2 id="82-xago-and-persona-south-africa-path">8.2 Xago and Persona (South Africa path)<a class="headerlink" href="#82-xago-and-persona-south-africa-path" title="Permanent link">&para;</a></h2>
+<h3 id="how-it-works_1">How it works<a class="headerlink" href="#how-it-works_1" title="Permanent link">&para;</a></h3>
+<p>Xago flow is more complex because it can involve an external KYC vendor (Persona):</p>
+<ul>
+<li>Persona handles inquiry/session and verification evidence.</li>
+<li>Interledger App stores and tracks inquiry/account linkage + normalized status.</li>
+<li>Xago subaccount creation/update can depend on Persona artifacts (for example an approved inquiry URL and ID number).</li>
+</ul>
+<p>This means there are multiple systems in play:</p>
+<ol>
+<li>Interledger App</li>
+<li>Persona (KYC vendor)</li>
+<li>Xago (financial provider)</li>
+</ol>
+<h3 id="why-this-creates-migration-complexity">Why this creates migration complexity<a class="headerlink" href="#why-this-creates-migration-complexity" title="Permanent link">&para;</a></h3>
+<p>Because KYC can be anchored in an external vendor and legal entity context, moving users between providers or legal entities may require revalidation steps. We experienced major complexity during migration from the original Fynbos context to Interledger Foundation-managed operations.</p>
+<h3 id="sequence-xago-persona">Sequence (Xago + Persona)<a class="headerlink" href="#sequence-xago-persona" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>sequenceDiagram
+    participant U as User
+    participant BE as Backend
+    participant PE as Persona
+    participant XA as Xago
+    participant TW as Temporal
+
+    U-&gt;&gt;BE: Start KYC for Xago
+    BE-&gt;&gt;PE: Create/Resume Persona inquiry
+    U-&gt;&gt;PE: Complete documents + biometrics
+    PE--&gt;&gt;BE: Webhook updates inquiry/account tags
+    BE-&gt;&gt;TW: Set KYC status + persist identity details
+    TW-&gt;&gt;XA: Create/Update subaccount with Persona reference
+    XA--&gt;&gt;BE: Subaccount/balance account ready</code></pre>
+<h3 id="support-implications_1">Support implications<a class="headerlink" href="#support-implications_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Tickets may involve either Persona state, Xago state, or mapping between them.</li>
+<li>“KYC completed in Persona” does not always mean all downstream provider-side steps are finished.</li>
+<li>Investigate both inquiry status and provider account linkage.</li>
+</ul>
+<hr />
+<h2 id="83-pti-us-path">8.3 PTI (US path)<a class="headerlink" href="#83-pti-us-path" title="Permanent link">&para;</a></h2>
+<h3 id="how-it-works_2">How it works<a class="headerlink" href="#how-it-works_2" title="Permanent link">&para;</a></h3>
+<ul>
+<li>US users receive a PTI widget configuration from backend.</li>
+<li>Wallet KYC state enters pending and US-specific provisioning steps may run.</li>
+<li>On KYC progression, wallet/provider setup continues through workflow activities.</li>
+</ul>
+<h3 id="support-implications_2">Support implications<a class="headerlink" href="#support-implications_2" title="Permanent link">&para;</a></h3>
+<ul>
+<li>PTI onboarding is widget-driven but state transitions are asynchronous.</li>
+<li>Users can appear “stuck” if provider completion callback/state propagation is delayed.</li>
+<li>Verify both KYC status and PTI wallet/account setup status.</li>
+</ul>
+<hr />
+<h2 id="84-chimoney-canada-path">8.4 Chimoney (Canada path)<a class="headerlink" href="#84-chimoney-canada-path" title="Permanent link">&para;</a></h2>
+<h3 id="how-it-works_3">How it works<a class="headerlink" href="#how-it-works_3" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Backend provides a Chimoney KYC widget URL.</li>
+<li>Chimoney wallet/sub-account and linked account setup are workflow-driven.</li>
+<li>A watcher workflow polls for successful KYC outcome and then updates wallet KYC status.</li>
+</ul>
+<h3 id="support-implications_3">Support implications<a class="headerlink" href="#support-implications_3" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Completion can be delayed due to polling/asynchronous flow.</li>
+<li>Distinguish between: “widget started”, “provider verification complete”, and “wallet status updated”.</li>
+</ul>
+<hr />
+<h2 id="9-kyc-migration-and-future-licensing-key-support-answer-patterns">9) KYC migration and future licensing: key support answer patterns<a class="headerlink" href="#9-kyc-migration-and-future-licensing-key-support-answer-patterns" title="Permanent link">&para;</a></h2>
+<p>The organization’s long-term goal may include becoming a financial services license holder and reducing dependence on third-party providers.</p>
+<p>Common support question:</p>
+<ul>
+<li>“If we move users away from provider X, will they need to do KYC again?”</li>
+</ul>
+<p>Safe and accurate support answer:</p>
+<ul>
+<li>“It depends on jurisdiction, legal entity boundaries, and whether existing KYC evidence is legally portable. In many cases, users may need at least partial re-verification. We evaluate this per migration path.”</li>
+</ul>
+<p>Do <strong>not</strong> promise universal KYC portability.</p>
+<hr />
+<h2 id="10-mixed-provider-reality-within-one-country">10) Mixed-provider reality within one country<a class="headerlink" href="#10-mixed-provider-reality-within-one-country" title="Permanent link">&para;</a></h2>
+<p>During migrations or staged rollouts, it is valid for:</p>
+<ul>
+<li>some users in country C to be on provider A,</li>
+<li>while others in the same country are on provider B.</li>
+</ul>
+<p>When investigating KYC issues, always identify:</p>
+<ol>
+<li>user wallet country</li>
+<li>current provider assignment / linked accounts</li>
+<li>current KYC provider flow</li>
+</ol>
+<p>before giving procedural instructions.</p>
+<hr />
+<h2 id="11-practical-troubleshooting-checklist-for-support">11) Practical troubleshooting checklist for support<a class="headerlink" href="#11-practical-troubleshooting-checklist-for-support" title="Permanent link">&para;</a></h2>
+<p>When user says “my KYC is stuck,” gather this minimum context:</p>
+<ol>
+<li>Wallet ID and country</li>
+<li>Provider path (GateHub / Xago+Persona / PTI / Chimoney)</li>
+<li>Current KYC status in backend (int enum, string values via <code>kyc.Status.String()</code>): <code>Unknown</code> (0), <code>Pending</code> (1), <code>DocumentsRequired</code> (2), <code>Approved</code> (3), <code>Denied</code> (4), <code>InReview</code> (5), <code>Level1</code> (6), <code>Level2</code> (7)</li>
+<li>Most recent provider webhook signal (if any)</li>
+<li>Whether downstream provisioning finished (for example linked account/subaccount creation)</li>
+</ol>
+<p>Then classify:</p>
+<ul>
+<li><strong>No widget/session issue</strong> (cannot start KYC)</li>
+<li><strong>In-provider issue</strong> (user cannot complete docs/biometrics)</li>
+<li><strong>Webhook/state propagation issue</strong> (provider done, app not updated)</li>
+<li><strong>Post-KYC provisioning issue</strong> (KYC approved, but accounts/features not enabled)</li>
+</ul>
+<hr />
+<h2 id="12-suggested-support-phrasing-library">12) Suggested support phrasing library<a class="headerlink" href="#12-suggested-support-phrasing-library" title="Permanent link">&para;</a></h2>
+<ul>
+<li>“Your wallet activation depends on completing KYC with your assigned provider.”</li>
+<li>“For your account, this is a <strong>GateHub</strong> KYC flow.”</li>
+<li>“For your account, this is an <strong>Xago flow that uses Persona</strong> for identity verification.”</li>
+<li>“We can see your KYC evidence step is complete, and we’re now waiting for provider confirmation to propagate.”</li>
+<li>“KYC requirements can vary by country and may change over time due to regulation.”</li>
+</ul>
+<hr />
+<h2 id="13-temporal-debugging-guide-for-kyc">13) Temporal Debugging Guide for KYC<a class="headerlink" href="#13-temporal-debugging-guide-for-kyc" title="Permanent link">&para;</a></h2>
+<p>Temporal is the workflow orchestration engine that manages KYC processing. When users appear stuck in wallet activation or KYC status isn't updating, Temporal's Web UI provides visibility into what's happening behind the scenes.</p>
+<p><strong>Accessing Temporal Web UI:</strong>
+- URL: <code>http://localhost:8233</code> (or your Temporal server address)
+- No authentication required for local development
+- Production: Requires proper credentials</p>
+<h3 id="understanding-kyc-workflow-structure">Understanding KYC Workflow Structure<a class="headerlink" href="#understanding-kyc-workflow-structure" title="Permanent link">&para;</a></h3>
+<p>KYC workflows vary by provider, but they all follow a similar pattern of orchestrating provider integration, status updates, and downstream provisioning.</p>
+<pre class="mermaid"><code>graph TD
+    Start["User clicks 'Continue'&lt;br/&gt;on Activate Wallet"]
+
+    Widget["GetKYCProviderWidget&lt;br/&gt;(returns widget URL)"]
+
+    Provider["User completes KYC&lt;br/&gt;in provider UI"]
+
+    Webhook["Provider sends&lt;br/&gt;verification webhook"]
+
+    Workflow["KYC Workflow&lt;br/&gt;(SetKYC, Backfill, etc.)"]
+
+    Activities["Workflow Activities:&lt;br/&gt;- Update wallet KYC status&lt;br/&gt;- Create/update linked accounts&lt;br/&gt;- Provision provider accounts&lt;br/&gt;- Send notifications"]
+
+    Complete["Wallet shows&lt;br/&gt;as activated"]
+
+    Start --&gt; Widget
+    Widget --&gt; Provider
+    Provider --&gt; Webhook
+    Webhook --&gt; Workflow
+    Workflow --&gt; Activities
+    Activities --&gt; Complete
+
+    style Start fill:#e3f2fd,stroke:#1976d2
+    style Webhook fill:#e8f5e9,stroke:#388e3c
+    style Workflow fill:#fff9c4,stroke:#f57f17
+    style Complete fill:#f3e5f5,stroke:#7b1fa2</code></pre>
+<p><strong>Common KYC workflow types:</strong>
+- <strong>SetKYCWorkflow</strong> - Updates wallet KYC status based on provider webhooks
+- <strong>BackfillKYCWorkflow</strong> - Syncs existing provider KYC state to wallet
+- <strong>CreateLinkedAccountWorkflow</strong> - Provisions provider accounts after KYC approval
+- <strong>KYCWatcherWorkflow</strong> - Polls provider for KYC completion (Chimoney, some PTI flows)</p>
+<h3 id="finding-a-stuck-kyc-process-in-temporal">Finding a Stuck KYC Process in Temporal<a class="headerlink" href="#finding-a-stuck-kyc-process-in-temporal" title="Permanent link">&para;</a></h3>
+<p><strong>Step 1: Get the User/Wallet Identifier</strong></p>
+<p>From your database:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1">-- Find wallet by user email</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="k">SELECT</span><span class="w"> </span><span class="n">w</span><span class="p">.</span><span class="n">id</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">wallet_id</span><span class="p">,</span><span class="w"> </span><span class="n">w</span><span class="p">.</span><span class="n">country</span><span class="p">,</span><span class="w"> </span><span class="n">w</span><span class="p">.</span><span class="n">kyc_status</span><span class="p">,</span><span class="w"> </span><span class="n">u</span><span class="p">.</span><span class="n">id</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">user_id</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="k">FROM</span><span class="w"> </span><span class="n">wallets</span><span class="w"> </span><span class="n">w</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="k">JOIN</span><span class="w"> </span><span class="n">users</span><span class="w"> </span><span class="n">u</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">u</span><span class="p">.</span><span class="n">wallet_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">w</span><span class="p">.</span><span class="n">id</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="k">JOIN</span><span class="w"> </span><span class="n">identities</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">i</span><span class="p">.</span><span class="n">id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">u</span><span class="p">.</span><span class="n">identity_id</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="k">WHERE</span><span class="w"> </span><span class="n">i</span><span class="p">.</span><span class="n">email</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;user@example.com&#39;</span><span class="p">;</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="c1">-- Or directly by wallet ID</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="k">SELECT</span><span class="w"> </span><span class="n">id</span><span class="p">,</span><span class="w"> </span><span class="n">country</span><span class="p">,</span><span class="w"> </span><span class="n">kyc_status</span><span class="p">,</span><span class="w"> </span><span class="n">created_at</span><span class="p">,</span><span class="w"> </span><span class="n">updated_at</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="k">FROM</span><span class="w"> </span><span class="n">wallets</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="k">WHERE</span><span class="w"> </span><span class="n">id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;wallet_uuid&#39;</span><span class="p">;</span>
+</code></pre></div></p>
+<p>Copy the <code>wallet_id</code> or <code>user_id</code> to search for workflows.</p>
+<p><strong>Step 2: Search for KYC Workflows</strong></p>
+<ol>
+<li>Open Temporal Web UI: <code>http://localhost:8233</code></li>
+<li>Go to <strong>"Workflows"</strong> tab (left sidebar)</li>
+<li>Search for workflows using the wallet or user ID:</li>
+<li>Enter the UUID in the search box</li>
+<li>Or filter by workflow type: <code>SetKYCWorkflow</code>, <code>BackfillKYCWorkflow</code>, etc.</li>
+</ol>
+<p><strong>Step 3: Check Workflow Status</strong></p>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Meaning</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Running</strong></td>
+<td>Workflow is actively processing or waiting</td>
+<td>Check duration — KYC workflows vary by provider</td>
+</tr>
+<tr>
+<td><strong>Completed</strong></td>
+<td>Workflow finished successfully</td>
+<td>Verify wallet KYC status updated in database</td>
+</tr>
+<tr>
+<td><strong>Failed</strong></td>
+<td>Workflow encountered an error</td>
+<td>Check error message for root cause</td>
+</tr>
+<tr>
+<td><strong>Terminated</strong></td>
+<td>Manually stopped or system shutdown</td>
+<td>Investigate why and whether to retry</td>
+</tr>
+<tr>
+<td><strong>Timed Out</strong></td>
+<td>Exceeded maximum allowed time</td>
+<td>Rare for KYC workflows; check activity timeouts</td>
+</tr>
+</tbody>
+</table>
+<h3 id="investigating-a-running-kyc-workflow">Investigating a Running KYC Workflow<a class="headerlink" href="#investigating-a-running-kyc-workflow" title="Permanent link">&para;</a></h3>
+<p><strong>Provider-specific normal durations:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Provider</th>
+<th>Normal Duration</th>
+<th>What's Happening</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>GateHub</strong></td>
+<td>5-30 seconds</td>
+<td>Webhook-driven, completes quickly after verification</td>
+</tr>
+<tr>
+<td><strong>Xago + Persona</strong></td>
+<td>2-5 minutes</td>
+<td>Multi-step: Persona inquiry → webhook → Xago account creation</td>
+</tr>
+<tr>
+<td><strong>PTI</strong></td>
+<td>1-3 minutes</td>
+<td>Widget callback → account provisioning</td>
+</tr>
+<tr>
+<td><strong>Chimoney</strong></td>
+<td>5-20 minutes</td>
+<td>Polling-based, checks every few minutes for completion</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Step 1: Click on the Workflow ID</strong> to see details</p>
+<p><strong>Step 2: Check the "Summary" section</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>WorkflowId:      SetKYCWorkflow_&lt;wallet_uuid&gt;
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>Type:            SetKYCWorkflow
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>Status:          Running
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>Start Time:      8 minutes ago
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>Run Time:        8 minutes
+</code></pre></div></p>
+<p><strong>Questions to ask based on provider:</strong></p>
+<p><strong>GateHub (webhook-driven):</strong>
+- <strong>&lt; 2 minutes</strong> → Normal, waiting for webhook
+- <strong>2-10 minutes</strong> → Check webhook logs, provider may be slow
+- <strong>&gt; 10 minutes</strong> → Webhook likely lost, investigate provider status</p>
+<p><strong>Xago + Persona (multi-step):</strong>
+- <strong>&lt; 5 minutes</strong> → Normal, multi-step process
+- <strong>5-15 minutes</strong> → Monitor, could be Xago account creation delay
+- <strong>&gt; 15 minutes</strong> → Check both Persona inquiry state AND Xago account status</p>
+<p><strong>Chimoney (polling):</strong>
+- <strong>&lt; 20 minutes</strong> → Normal, polling every few minutes
+- <strong>20-40 minutes</strong> → Monitor, may need manual check of Chimoney status
+- <strong>&gt; 40 minutes</strong> → Likely provider issue or polling failure</p>
+<p><strong>PTI (callback):</strong>
+- <strong>&lt; 5 minutes</strong> → Normal, waiting for widget callback
+- <strong>5-15 minutes</strong> → Check callback logs
+- <strong>&gt; 15 minutes</strong> → Callback likely lost or failed</p>
+<p><strong>Step 3: View the "Pending Activities" section</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>Pending Activities:
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>  CreateXagoSubaccount (started 3 minutes ago)
+</code></pre></div>
+<p>This shows which activity is currently executing. Common activities:</p>
+<ul>
+<li><code>UpdateWalletKYCStatus</code> - Writing KYC status to database</li>
+<li><code>CreateLinkedAccount</code> - Creating provider account link</li>
+<li><code>CreateGatehubManagedUser</code> - Provisioning GateHub user</li>
+<li><code>CreateXagoSubaccount</code> - Provisioning Xago subaccount</li>
+<li><code>CreatePersonaInquiry</code> - Starting Persona verification</li>
+<li><code>GetChimoneyKYCStatus</code> - Polling Chimoney for completion</li>
+</ul>
+<p><strong>Step 4: Check the "History" tab</strong></p>
+<p>Look for key events in the workflow timeline:</p>
+<ol>
+<li>
+<p><strong>Workflow started:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>WorkflowExecutionStarted
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>Input: { &quot;walletId&quot;: &quot;...&quot;, &quot;provider&quot;: &quot;gatehub&quot;, &quot;event&quot;: &quot;id.verification.accepted&quot; }
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Activities executing:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>ActivityTaskScheduled: UpdateWalletKYCStatus
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>ActivityTaskStarted:   UpdateWalletKYCStatus
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>ActivityTaskCompleted: UpdateWalletKYCStatus
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>For webhook-driven flows, look for signal:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>WorkflowExecutionSignaled
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>Signal: kyc_verification_webhook
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>Input: { &quot;status&quot;: &quot;accepted&quot;, &quot;userId&quot;: &quot;...&quot; }
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Provider-specific activities:</strong></p>
+</li>
+</ol>
+<p><strong>GateHub:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>ActivityTaskCompleted: CreateGatehubManagedUser
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>ActivityTaskCompleted: LinkGatehubGateway
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>ActivityTaskCompleted: UpdateWalletKYCStatus (status: level1)
+</code></pre></div></p>
+<p><strong>Xago + Persona:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>ActivityTaskCompleted: CreatePersonaInquiry
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>[Wait for webhook signal]
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>WorkflowExecutionSignaled: persona_inquiry_completed
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>ActivityTaskScheduled: CreateXagoSubaccount
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>ActivityTaskCompleted: CreateXagoSubaccount
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>ActivityTaskCompleted: UpdateWalletKYCStatus (status: level1)
+</code></pre></div></p>
+<p><strong>Chimoney:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>ActivityTaskScheduled: GetChimoneyKYCStatus (attempt 1)
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>ActivityTaskCompleted: GetChimoneyKYCStatus (result: pending)
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>[Timer: wait 2 minutes]
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>ActivityTaskScheduled: GetChimoneyKYCStatus (attempt 2)
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>ActivityTaskCompleted: GetChimoneyKYCStatus (result: approved)
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>ActivityTaskCompleted: UpdateWalletKYCStatus
+</code></pre></div></p>
+<h3 id="common-kyc-temporal-scenarios">Common KYC Temporal Scenarios<a class="headerlink" href="#common-kyc-temporal-scenarios" title="Permanent link">&para;</a></h3>
+<h4 id="scenario-1-waiting-for-provider-webhook-gatehub-xago">Scenario 1: Waiting for Provider Webhook (GateHub, Xago)<a class="headerlink" href="#scenario-1-waiting-for-provider-webhook-gatehub-xago" title="Permanent link">&para;</a></h4>
+<p><strong>What you see:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>Type:      SetKYCWorkflow
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>Status:    Running
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>Run Time:  3 minutes
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>History:   - WorkflowExecutionStarted ✓
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>           - (waiting for signal)
+</code></pre></div></p>
+<p><strong>Meaning:</strong> Workflow was started (probably by a widget redirect or preemptive setup) and is now waiting for the provider to send verification results.</p>
+<p><strong>Action:</strong>
+- <strong>If &lt; 5 minutes:</strong> Normal, user may still be completing KYC in provider UI
+- <strong>If 5-15 minutes:</strong> Check if user completed provider KYC steps
+- <strong>If &gt; 15 minutes:</strong> 
+  - Verify user finished provider KYC
+  - Check webhook logs for missed events
+  - Check provider status directly</p>
+<p><strong>How to check provider status:</strong></p>
+<p><strong>GateHub:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># Query GateHub user status</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer &lt;token&gt;&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">  </span>https://mockgatehub.interledger.test/id/v1/users/&lt;gatehub_user_id&gt;
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="c1"># Look for kyc_status field</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="o">{</span>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="w">  </span><span class="s2">&quot;kyc_status&quot;</span>:<span class="w"> </span><span class="s2">&quot;accepted&quot;</span>,<span class="w">  </span>←<span class="w"> </span>KYC<span class="w"> </span>completed
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="w">  </span><span class="s2">&quot;updated_at&quot;</span>:<span class="w"> </span><span class="s2">&quot;...&quot;</span>
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="o">}</span>
+</code></pre></div></p>
+<p><strong>Persona (for Xago):</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1">-- Check inquiry status in database</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="k">SELECT</span><span class="w"> </span><span class="n">id</span><span class="p">,</span><span class="w"> </span><span class="n">status</span><span class="p">,</span><span class="w"> </span><span class="n">created_at</span><span class="p">,</span><span class="w"> </span><span class="n">updated_at</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="k">FROM</span><span class="w"> </span><span class="n">persona_inquiries</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="k">WHERE</span><span class="w"> </span><span class="n">wallet_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;wallet_uuid&#39;</span><span class="p">;</span>
+</code></pre></div></p>
+<h4 id="scenario-2-polling-for-completion-chimoney-some-pti">Scenario 2: Polling for Completion (Chimoney, some PTI)<a class="headerlink" href="#scenario-2-polling-for-completion-chimoney-some-pti" title="Permanent link">&para;</a></h4>
+<p><strong>What you see:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>Type:      KYCWatcherWorkflow
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>Status:    Running
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>Run Time:  12 minutes
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>History:   - GetChimoneyKYCStatus (attempt 1) → pending
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>           - Timer: 2 minutes
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>           - GetChimoneyKYCStatus (attempt 2) → pending
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>           - Timer: 2 minutes
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>           - GetChimoneyKYCStatus (attempt 3) → pending
+<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a>           - (current: waiting for next poll)
+</code></pre></div></p>
+<p><strong>Meaning:</strong> Workflow is periodically checking Chimoney API for KYC completion. This is normal behavior.</p>
+<p><strong>Action:</strong>
+- <strong>If &lt; 20 minutes:</strong> Normal, polls happen every 2-5 minutes
+- <strong>If 20-40 minutes:</strong> Monitor, but still within expected range
+- <strong>If &gt; 40 minutes and all polls return "pending":</strong>
+  - Check Chimoney dashboard directly
+  - Verify user completed KYC in Chimoney widget
+  - Check for Chimoney API issues</p>
+<h4 id="scenario-3-activity-stuck-or-failing">Scenario 3: Activity Stuck or Failing<a class="headerlink" href="#scenario-3-activity-stuck-or-failing" title="Permanent link">&para;</a></h4>
+<p><strong>What you see:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>Status:    Running
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>Run Time:  8 minutes
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>Pending Activities:
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>  - CreateXagoSubaccount (attempt 3, started 1 minute ago)
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>History:   - ActivityTaskScheduled: CreateXagoSubaccount
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>           - ActivityTaskStarted
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>           - ActivityTaskFailed (error: &quot;rate limit exceeded&quot;)
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>           - [Retry delay: 30 seconds]
+<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a>           - ActivityTaskStarted (attempt 2)
+<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a>           - ActivityTaskFailed (error: &quot;rate limit exceeded&quot;)
+<a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a>           - [Retry delay: 60 seconds]
+<a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a>           - ActivityTaskStarted (attempt 3)
+</code></pre></div></p>
+<p><strong>Meaning:</strong> An activity is failing and being retried. Common causes:</p>
+<ul>
+<li>Provider API rate limits</li>
+<li>Provider API downtime</li>
+<li>Network connectivity issues</li>
+<li>Database locks/timeouts</li>
+<li>Invalid provider credentials</li>
+</ul>
+<p><strong>Action:</strong>
+1. Click on the failed activity in History to see error details
+2. Common errors and fixes:</p>
+<table>
+<thead>
+<tr>
+<th>Error</th>
+<th>Cause</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>"rate limit exceeded"</code></td>
+<td>Too many API calls to provider</td>
+<td>Wait for retry, workflows auto-retry</td>
+</tr>
+<tr>
+<td><code>"account already exists"</code></td>
+<td>Duplicate account creation attempt</td>
+<td>Safe to ignore, workflow handles this</td>
+</tr>
+<tr>
+<td><code>"invalid credentials"</code></td>
+<td>Provider API keys incorrect</td>
+<td>Check environment configuration</td>
+</tr>
+<tr>
+<td><code>"network timeout"</code></td>
+<td>Provider API slow/down</td>
+<td>Check provider status, retry</td>
+</tr>
+<tr>
+<td><code>"database locked"</code></td>
+<td>Concurrent updates</td>
+<td>Auto-retries should resolve</td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li>Temporal has built-in retry logic (up to 10 attempts with backoff)</li>
+<li>If still failing after 10 attempts, workflow will fail and require manual intervention</li>
+</ol>
+<h4 id="scenario-4-workflow-completed-but-kyc-status-not-updated">Scenario 4: Workflow Completed but KYC Status Not Updated<a class="headerlink" href="#scenario-4-workflow-completed-but-kyc-status-not-updated" title="Permanent link">&para;</a></h4>
+<p><strong>What you see in Temporal:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>Status:     Completed
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>Run Time:   4.5 seconds
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>Completion: Success
+</code></pre></div></p>
+<p><strong>But in database:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="k">SELECT</span><span class="w"> </span><span class="n">kyc_status</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">wallets</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;wallet_uuid&#39;</span><span class="p">;</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="c1">-- Result: &quot;pending&quot; (expected: &quot;level1&quot; or &quot;approved&quot;)</span>
+</code></pre></div></p>
+<p><strong>Meaning:</strong> Workflow executed successfully, but either:
+1. The status update activity didn't run (check workflow history)
+2. Status was updated to a different value than expected
+3. Wrong wallet ID was used</p>
+<p><strong>Action:</strong>
+1. Check workflow history for <code>UpdateWalletKYCStatus</code> activity
+2. Look at activity input/output:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>ActivityTaskCompleted: UpdateWalletKYCStatus
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>Input:  { &quot;walletId&quot;: &quot;...&quot;, &quot;status&quot;: &quot;level1&quot; }
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>Output: { &quot;success&quot;: true }
+</code></pre></div>
+3. If activity ran successfully, verify database write:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="c1">-- Check wallet audit log or update timestamp</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="k">SELECT</span><span class="w"> </span><span class="n">id</span><span class="p">,</span><span class="w"> </span><span class="n">kyc_status</span><span class="p">,</span><span class="w"> </span><span class="n">updated_at</span>
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="k">FROM</span><span class="w"> </span><span class="n">wallets</span>
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="k">WHERE</span><span class="w"> </span><span class="n">id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;wallet_uuid&#39;</span><span class="p">;</span>
+</code></pre></div>
+4. If timestamps match but status is wrong, check business logic in activity code</p>
+<h3 id="provider-specific-debugging-tips">Provider-Specific Debugging Tips<a class="headerlink" href="#provider-specific-debugging-tips" title="Permanent link">&para;</a></h3>
+<h4 id="gatehub-kyc-troubleshooting">GateHub KYC Troubleshooting<a class="headerlink" href="#gatehub-kyc-troubleshooting" title="Permanent link">&para;</a></h4>
+<p><strong>Webhook events to look for:</strong>
+- <code>id.verification.action_required</code> - User needs to provide more info
+- <code>id.verification.accepted</code> - KYC approved
+- <code>id.verification.rejected</code> - KYC denied
+- <code>id.verification.in_review</code> - Manual review in progress</p>
+<p><strong>Common issues:</strong>
+- <strong>"Action required" loop</strong>: User completed widget but GateHub needs more documents
+  - Check GateHub dashboard for specific requirements
+  - User must re-enter widget to upload additional docs</p>
+<ul>
+<li><strong>Webhook arrives but workflow doesn't start:</strong></li>
+<li>Check webhook signature validation</li>
+<li>Verify webhook endpoint is accessible</li>
+<li>Check webhook logs for HTTP errors</li>
+</ul>
+<p><strong>Debug workflow:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>Workflow: SetKYCWorkflow
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>Search: wallet_uuid or gatehub_user_id
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>Expected activities:
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a>  1. ParseWebhookEvent
+<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a>  2. ValidateGatehubUser
+<a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a>  3. UpdateWalletKYCStatus
+<a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a>  4. (optional) CreateLinkedAccount
+<a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a>  5. SendUserNotification
+</code></pre></div></p>
+<h4 id="xago-persona-troubleshooting">Xago + Persona Troubleshooting<a class="headerlink" href="#xago-persona-troubleshooting" title="Permanent link">&para;</a></h4>
+<p><strong>This is a multi-stage flow:</strong></p>
+<p><strong>Stage 1: Persona Inquiry</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>Workflow: CreatePersonaInquiryWorkflow
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>Activities:
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>  - CreatePersonaInquiry (returns inquiry URL)
+<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a>  - StoreInquiryReference
+</code></pre></div></p>
+<p><strong>Stage 2: User Completes Persona</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>[User action: completes docs/photos in Persona UI]
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>Webhook: persona_inquiry_completed
+<a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>Signal to workflow: persona_verification_complete
+</code></pre></div></p>
+<p><strong>Stage 3: Xago Account Creation</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>Workflow: SetKYCWorkflow (continues after signal)
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>Activities:
+<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>  - CreateXagoSubaccount (uses Persona inquiry ID)
+<a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a>  - UpdateWalletKYCStatus
+<a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a>  - CreateLinkedAccount
+</code></pre></div></p>
+<p><strong>Common issues:</strong>
+- <strong>Persona inquiry created but user never received URL:</strong>
+  - Check inquiry creation response for URL
+  - Verify frontend received inquiry URL from backend
+  - Check network logs in browser</p>
+<ul>
+<li><strong>User completed Persona but no webhook received:</strong></li>
+<li>Check Persona webhook configuration</li>
+<li>Verify webhook endpoint is publicly accessible</li>
+<li>
+<p>Check Persona dashboard for webhook delivery status</p>
+</li>
+<li>
+<p><strong>Persona approved but Xago account creation fails:</strong></p>
+</li>
+<li>Verify Persona inquiry ID is stored correctly</li>
+<li>Check Xago API for duplicate account errors</li>
+<li>Verify ID number format matches Xago requirements</li>
+</ul>
+<p><strong>Debug workflow:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>Workflow: SetKYCWorkflow (Xago/Persona path)
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>Search: wallet_uuid or persona_inquiry_id
+<a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>Expected flow:
+<a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a>  1. CreatePersonaInquiry
+<a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a>  2. [Wait for signal: persona_verification_complete]
+<a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a>  3. CreateXagoSubaccount
+<a id="__codelineno-22-7" name="__codelineno-22-7" href="#__codelineno-22-7"></a>  4. UpdateWalletKYCStatus (status: level1)
+<a id="__codelineno-22-8" name="__codelineno-22-8" href="#__codelineno-22-8"></a>  5. CreateLinkedAccount (provider: xago)
+</code></pre></div></p>
+<h4 id="pti-kyc-troubleshooting">PTI KYC Troubleshooting<a class="headerlink" href="#pti-kyc-troubleshooting" title="Permanent link">&para;</a></h4>
+<p><strong>PTI flow is callback-based:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>1. User gets PTI widget URL
+<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>2. User completes KYC in PTI widget
+<a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a>3. PTI redirects to callback URL with token
+<a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a>4. Backend validates token and starts workflow
+<a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a>5. Workflow updates KYC status and provisions account
+</code></pre></div>
+<p><strong>Common issues:</strong>
+- <strong>Callback URL never called:</strong>
+  - Verify callback URL is accessible from PTI's servers
+  - Check firewall/network rules
+  - Check PTI logs for callback attempts</p>
+<ul>
+<li><strong>Callback received but token invalid:</strong></li>
+<li>Check token signature validation</li>
+<li>Verify PTI shared secret is correct</li>
+<li>
+<p>Check for token expiration</p>
+</li>
+<li>
+<p><strong>KYC approved but account not provisioned:</strong></p>
+</li>
+<li>Check workflow for account creation failures</li>
+<li>Verify PTI API credentials</li>
+<li>Check for duplicate account errors</li>
+</ul>
+<p><strong>Debug workflow:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>Workflow: SetKYCWorkflow (PTI path)
+<a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>Search: wallet_uuid or pti_user_id
+<a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a>Expected flow:
+<a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a>  1. ValidateCallbackToken
+<a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a>  2. UpdateWalletKYCStatus
+<a id="__codelineno-24-6" name="__codelineno-24-6" href="#__codelineno-24-6"></a>  3. CreatePTIWallet
+<a id="__codelineno-24-7" name="__codelineno-24-7" href="#__codelineno-24-7"></a>  4. CreateLinkedAccount (provider: pti)
+</code></pre></div></p>
+<h4 id="chimoney-kyc-troubleshooting">Chimoney KYC Troubleshooting<a class="headerlink" href="#chimoney-kyc-troubleshooting" title="Permanent link">&para;</a></h4>
+<p><strong>Chimoney uses polling (no webhooks):</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>Workflow: KYCWatcherWorkflow
+<a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a>Loop every 2-5 minutes:
+<a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a>  1. GetChimoneyKYCStatus
+<a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a>  2. If pending: wait, retry
+<a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a>  3. If approved: UpdateWalletKYCStatus, complete
+<a id="__codelineno-25-6" name="__codelineno-25-6" href="#__codelineno-25-6"></a>  4. If rejected: UpdateWalletKYCStatus, complete
+</code></pre></div>
+<p><strong>Common issues:</strong>
+- <strong>Polling workflow shows "pending" for too long:</strong>
+  - Check Chimoney dashboard directly
+  - Verify user completed Chimoney KYC widget
+  - Chimoney manual review can take 24-48 hours</p>
+<ul>
+<li><strong>Polling fails with API error:</strong></li>
+<li>Check Chimoney API credentials</li>
+<li>Verify Chimoney rate limits</li>
+<li>
+<p>Check network connectivity</p>
+</li>
+<li>
+<p><strong>User approved in Chimoney but workflow still polling:</strong></p>
+</li>
+<li>Check polling interval (may need to wait for next poll)</li>
+<li>Verify polling is checking the correct Chimoney user ID</li>
+<li>Check for API response parsing errors</li>
+</ul>
+<p><strong>Debug workflow:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>Workflow: KYCWatcherWorkflow
+<a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>Search: wallet_uuid or chimoney_user_id
+<a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a>Expected pattern:
+<a id="__codelineno-26-4" name="__codelineno-26-4" href="#__codelineno-26-4"></a>  Loop history (every 2-5 minutes):
+<a id="__codelineno-26-5" name="__codelineno-26-5" href="#__codelineno-26-5"></a>    - ActivityTaskScheduled: GetChimoneyKYCStatus
+<a id="__codelineno-26-6" name="__codelineno-26-6" href="#__codelineno-26-6"></a>    - ActivityTaskCompleted: GetChimoneyKYCStatus (result: pending/approved/rejected)
+<a id="__codelineno-26-7" name="__codelineno-26-7" href="#__codelineno-26-7"></a>    - TimerFired: wait_interval
+<a id="__codelineno-26-8" name="__codelineno-26-8" href="#__codelineno-26-8"></a>  Until status != pending:
+<a id="__codelineno-26-9" name="__codelineno-26-9" href="#__codelineno-26-9"></a>    - UpdateWalletKYCStatus
+<a id="__codelineno-26-10" name="__codelineno-26-10" href="#__codelineno-26-10"></a>    - WorkflowExecutionCompleted
+</code></pre></div></p>
+<h3 id="manual-intervention-signaling-kyc-workflows">Manual Intervention: Signaling KYC Workflows<a class="headerlink" href="#manual-intervention-signaling-kyc-workflows" title="Permanent link">&para;</a></h3>
+<p>⚠️ <strong>WARNING: Only use manual signals when you've confirmed the provider has approved KYC and the webhook/callback was lost.</strong></p>
+<p><strong>When to manually signal:</strong>
+1. Provider confirms KYC approved (check provider dashboard)
+2. No webhook/callback arrived (checked logs)
+3. Workflow is stuck waiting for signal (checked Temporal history)</p>
+<p><strong>How to manually signal:</strong></p>
+<p><strong>Using Temporal CLI:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="c1"># For webhook-based providers (GateHub, Xago)</span>
+<a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a>docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>temporal<span class="w"> </span>temporal<span class="w"> </span>workflow<span class="w"> </span>signal<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a><span class="w">  </span>--workflow-id<span class="w"> </span><span class="s2">&quot;SetKYCWorkflow_&lt;wallet_uuid&gt;&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-27-4" name="__codelineno-27-4" href="#__codelineno-27-4"></a><span class="w">  </span>--name<span class="w"> </span><span class="s2">&quot;kyc_verification_webhook&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-27-5" name="__codelineno-27-5" href="#__codelineno-27-5"></a><span class="w">  </span>--input<span class="w"> </span><span class="s1">&#39;{&quot;provider&quot;:&quot;gatehub&quot;,&quot;status&quot;:&quot;accepted&quot;,&quot;userId&quot;:&quot;&lt;gatehub_user_id&gt;&quot;}&#39;</span>
+<a id="__codelineno-27-6" name="__codelineno-27-6" href="#__codelineno-27-6"></a>
+<a id="__codelineno-27-7" name="__codelineno-27-7" href="#__codelineno-27-7"></a><span class="c1"># For Persona</span>
+<a id="__codelineno-27-8" name="__codelineno-27-8" href="#__codelineno-27-8"></a>docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>temporal<span class="w"> </span>temporal<span class="w"> </span>workflow<span class="w"> </span>signal<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-27-9" name="__codelineno-27-9" href="#__codelineno-27-9"></a><span class="w">  </span>--workflow-id<span class="w"> </span><span class="s2">&quot;SetKYCWorkflow_&lt;wallet_uuid&gt;&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-27-10" name="__codelineno-27-10" href="#__codelineno-27-10"></a><span class="w">  </span>--name<span class="w"> </span><span class="s2">&quot;persona_verification_complete&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-27-11" name="__codelineno-27-11" href="#__codelineno-27-11"></a><span class="w">  </span>--input<span class="w"> </span><span class="s1">&#39;{&quot;inquiryId&quot;:&quot;&lt;inquiry_id&gt;&quot;,&quot;status&quot;:&quot;approved&quot;}&#39;</span>
+</code></pre></div></p>
+<p><strong>Using Temporal Web UI:</strong>
+1. Open the stuck workflow
+2. Click <strong>"Signal"</strong> button (top right)
+3. Signal Name: <code>kyc_verification_webhook</code> or <code>persona_verification_complete</code>
+4. Signal Input (JSON):
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="p">{</span>
+<a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a><span class="w">  </span><span class="nt">&quot;provider&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;gatehub&quot;</span><span class="p">,</span>
+<a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a><span class="w">  </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;accepted&quot;</span><span class="p">,</span>
+<a id="__codelineno-28-4" name="__codelineno-28-4" href="#__codelineno-28-4"></a><span class="w">  </span><span class="nt">&quot;userId&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;gatehub_user_uuid&quot;</span>
+<a id="__codelineno-28-5" name="__codelineno-28-5" href="#__codelineno-28-5"></a><span class="p">}</span>
+</code></pre></div>
+5. Click <strong>"Send Signal"</strong></p>
+<p>The workflow should immediately resume and complete KYC processing.</p>
+<h3 id="kyc-workflow-best-practices-for-support">KYC Workflow Best Practices for Support<a class="headerlink" href="#kyc-workflow-best-practices-for-support" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Always check Temporal first for "stuck activation" tickets</strong></li>
+<li>Shows exact state of KYC processing</li>
+<li>Reveals which provider step is blocking</li>
+<li>
+<p>Faster than manual database/log digging</p>
+</li>
+<li>
+<p><strong>Know your provider patterns:</strong></p>
+</li>
+<li>GateHub/Xago: webhook-driven, should complete in &lt; 5 minutes</li>
+<li>Chimoney: polling-based, can take 20+ minutes</li>
+<li>
+<p>PTI: callback-based, usually &lt; 5 minutes</p>
+</li>
+<li>
+<p><strong>Look for signals to understand webhook delivery:</strong></p>
+</li>
+<li><code>WorkflowExecutionSignaled</code> = webhook arrived</li>
+<li>
+<p>Missing signal = webhook lost or delayed</p>
+</li>
+<li>
+<p><strong>Check provider status directly when workflows are stuck:</strong></p>
+</li>
+<li>Don't assume workflow state = provider state</li>
+<li>
+<p>Provider may have approved KYC but webhook failed</p>
+</li>
+<li>
+<p><strong>Document workflow IDs when escalating:</strong></p>
+</li>
+<li>Wallet ID → Workflow ID mapping</li>
+<li>Provider-specific identifiers (Persona inquiry ID, GateHub user ID, etc.)</li>
+<li>
+<p>Helps engineering investigate faster</p>
+</li>
+<li>
+<p><strong>Don't terminate workflows unless necessary:</strong></p>
+</li>
+<li>Workflows have retry logic</li>
+<li>Terminating can cause inconsistent state</li>
+<li>Only terminate for unrecoverable errors (wrong wallet ID, etc.)</li>
+</ol>
+<h3 id="kyc-workflow-lifecycle-summary">KYC Workflow Lifecycle Summary<a class="headerlink" href="#kyc-workflow-lifecycle-summary" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>stateDiagram-v2
+    [*] --&gt; WidgetRequested: User clicks Continue
+
+    WidgetRequested --&gt; UserInProvider: Widget URL returned
+    note right of UserInProvider: User completes docs/biometrics&lt;br/&gt;in provider UI
+
+    UserInProvider --&gt; WebhookWaiting: Submitted to provider
+    note right of WebhookWaiting: Workflow waiting for&lt;br/&gt;provider signal
+
+    WebhookWaiting --&gt; Processing: Webhook/callback arrives
+
+    Processing --&gt; Provisioning: KYC status updated
+    note right of Provisioning: Create linked accounts&lt;br/&gt;provision provider accounts
+
+    Provisioning --&gt; Completed: All activities successful
+
+    Processing --&gt; Failed: Activity error
+    UserInProvider --&gt; Failed: Provider rejection
+
+    Completed --&gt; [*]
+    Failed --&gt; [*]</code></pre>
+<p><strong>Key timing expectations by provider:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Provider</th>
+<th>Widget → Webhook</th>
+<th>Webhook → Complete</th>
+<th>Total Normal Time</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>GateHub</strong></td>
+<td>2-10 minutes</td>
+<td>10-30 seconds</td>
+<td>2-11 minutes</td>
+</tr>
+<tr>
+<td><strong>Xago + Persona</strong></td>
+<td>3-15 minutes</td>
+<td>1-3 minutes</td>
+<td>4-18 minutes</td>
+</tr>
+<tr>
+<td><strong>PTI</strong></td>
+<td>2-10 minutes</td>
+<td>30-90 seconds</td>
+<td>3-12 minutes</td>
+</tr>
+<tr>
+<td><strong>Chimoney (polling)</strong></td>
+<td>5-30 minutes</td>
+<td>30-60 seconds</td>
+<td>6-31 minutes</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Stuck if:</strong>
+- GateHub: &gt; 15 minutes with no signal
+- Xago: &gt; 20 minutes with no signal
+- PTI: &gt; 15 minutes with no callback
+- Chimoney: &gt; 45 minutes of polling "pending"</p>
+<hr />
+<h2 id="14-final-mental-model">14) Final mental model<a class="headerlink" href="#14-final-mental-model" title="Permanent link">&para;</a></h2>
+<p>Think of KYC in Interledger App as a <strong>policy + orchestration layer</strong>:</p>
+<ul>
+<li>Policy: compliance obligations tied to transactions</li>
+<li>Orchestration: provider-specific onboarding, webhooks, Temporal workflows</li>
+<li>Risk posture: keep sensitive identity data as minimized as possible on our side</li>
+</ul>
+<p>When in doubt, ask: <strong>“KYC for which provider, for which jurisdiction, under which legal entity?”</strong></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.top", "navigation.indexes", "search.highlight", "search.suggest", "content.code.copy", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
