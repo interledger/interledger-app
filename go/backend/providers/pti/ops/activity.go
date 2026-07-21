@@ -720,7 +720,7 @@ func (a *Activity) SettleTransaction(ctx context.Context, transactionID, walletI
 	return tx, nil
 }
 
-func (a *Activity) FinalizePTIDeposit(ctx context.Context, txID, walletID string, amount currency.Amount) error {
+func (a *Activity) FinalizePTIDeposit(ctx context.Context, id, walletID string, amount currency.Amount) error {
 	if amount.Currency != currency.USD {
 		return temporal.NewNonRetryableApplicationError("Invalid currency", "ErrInternal", fmt.Errorf("%w invalid currency", pti.ErrInternal))
 	}
@@ -745,8 +745,7 @@ func (a *Activity) FinalizePTIDeposit(ctx context.Context, txID, walletID string
 	ledger := pti.LedgerIDUSD
 	tx, err := a.b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
 		{
-			ID:              txID,
-			TransactionID:   txID,
+			ID:              id,
 			Amount:          amount.Value,
 			CreditAccountID: USDBalance.ID,
 			DebitAccountID:  opsAcc,
@@ -1059,7 +1058,6 @@ func (a *Activity) PostTransfer(ctx context.Context, transactionID, walletID str
 	tx, err := a.b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
 		{
 			ID:              returnTransaction.ID,
-			TransactionID:   returnTransaction.ID,
 			Amount:          returnTransaction.Amount.Value,
 			CreditAccountID: creditAccountID,
 			DebitAccountID:  debitAccountID,

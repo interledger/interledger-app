@@ -176,17 +176,6 @@ func createTransfer(ctx context.Context, b Backends, args pacioli.CreateTransfer
 		return pacioli.TransferExceedsDebits, nil
 	}
 
-	transactionID := args.TransactionID
-	if transactionID == "" {
-		// falls back to keep id == transaction_id
-		// fix the caller to set TransactionID, otherwise this will point at a transaction that does NOT exist
-		log.Warn("MISSING transaction_id on create transfer",
-			zap.String("id", args.ID),
-			zap.String("debit_account_id", args.DebitAccountID),
-			zap.String("credit_account_id", args.CreditAccountID))
-		transactionID = args.ID
-	}
-
 	// All validation passed, create entry and update account values
 	err = crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
 		state := pacioli.TransferStatePosted
@@ -200,8 +189,8 @@ func createTransfer(ctx context.Context, b Backends, args pacioli.CreateTransfer
 				Valid: true,
 			}
 		}
-		_, err := tx.ExecContext(ctx, "INSERT INTO ledger_transfers (id, transaction_id, ledger_id, code, debit_account_id, credit_account_id, amount, state, timeout_at) "+
-			"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)", args.ID, transactionID, args.Ledger, args.Code, args.DebitAccountID, args.CreditAccountID, args.Amount, state, timeoutAt)
+		_, err := tx.ExecContext(ctx, "INSERT INTO ledger_transfers (id, ledger_id, code, debit_account_id, credit_account_id, amount, state, timeout_at) "+
+			"VALUES ($1, $2, $3, $4, $5, $6, $7, $8)", args.ID, args.Ledger, args.Code, args.DebitAccountID, args.CreditAccountID, args.Amount, state, timeoutAt)
 		if err != nil {
 			return err
 		}
@@ -251,12 +240,11 @@ func createTransfer(ctx context.Context, b Backends, args pacioli.CreateTransfer
 
 type ledgerTransfer struct {
 	pacioli.Transfer
-	TransactionID sql.NullString        `db:"transaction_id"`
-	PendingID     sql.NullString        `db:"pending_id"`
-	State         pacioli.TransferState `db:"state"`
-	Timeout       sql.NullTime          `db:"timeout_at"`
-	CreatedAt     time.Time             `db:"created_at"`
-	UpdatedAt     time.Time             `db:"updated_at"`
+	PendingID sql.NullString        `db:"pending_id"`
+	State     pacioli.TransferState `db:"state"`
+	Timeout   sql.NullTime          `db:"timeout_at"`
+	CreatedAt time.Time             `db:"created_at"`
+	UpdatedAt time.Time             `db:"updated_at"`
 }
 
 func getTransfer(ctx context.Context, b Backends, id string) (*ledgerTransfer, error) {
@@ -272,10 +260,14 @@ func getTransfer(ctx context.Context, b Backends, id string) (*ledgerTransfer, e
 	return &tr, nil
 }
 
-func toTransfer(tr *ledgerTransfer) pacioli.Transfer {
-	return pacioli.Transfer{
+func GetTransfer(ctx context.Context, b Backends, id string) (*pacioli.Transfer, error) {
+	tr, err := getTransfer(ctx, b, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return &pacioli.Transfer{
 		ID:              tr.ID,
-		TransactionID:   tr.TransactionID.String,
 		LedgerID:        tr.LedgerID,
 		DebitAccountID:  tr.DebitAccountID,
 		CreditAccountID: tr.CreditAccountID,
@@ -283,17 +275,7 @@ func toTransfer(tr *ledgerTransfer) pacioli.Transfer {
 		State:           tr.State,
 		Code:            tr.Code,
 		Timeout:         uint64(tr.Timeout.Time.UnixNano()),
-	}
-}
-
-func GetTransfer(ctx context.Context, b Backends, id string) (*pacioli.Transfer, error) {
-	tr, err := getTransfer(ctx, b, id)
-	if err != nil {
-		return nil, err
-	}
-
-	t := toTransfer(tr)
-	return &t, nil
+	}, nil
 }
 
 func ListTransfers(ctx context.Context, b Backends, ids []string) ([]pacioli.Transfer, error) {
@@ -308,8 +290,17 @@ func ListTransfers(ctx context.Context, b Backends, ids []string) ([]pacioli.Tra
 	}
 
 	resp := make([]pacioli.Transfer, len(transfers))
-	for i := range transfers {
-		resp[i] = toTransfer(&transfers[i])
+	for i, tr := range transfers {
+		resp[i] = pacioli.Transfer{
+			ID:              tr.ID,
+			LedgerID:        tr.LedgerID,
+			DebitAccountID:  tr.DebitAccountID,
+			CreditAccountID: tr.CreditAccountID,
+			Amount:          tr.Amount,
+			State:           tr.State,
+			Code:            tr.Code,
+			Timeout:         uint64(tr.Timeout.Time.UnixNano()),
+		}
 	}
 
 	return resp, nil
@@ -398,7 +389,7 @@ func TryTimeoutTransfers(ctx context.Context, b Backends, ids []string) ([]strin
 }
 
 func transferExists(ctx context.Context, b Backends, args pacioli.CreateTransferArgs) (pacioli.TransferResultCode, error) {
-	ex, err := getTransfer(ctx, b, args.ID)
+	ex, err := GetTransfer(ctx, b, args.ID)
 	if err != nil {
 		return 0, err
 	}
@@ -412,7 +403,7 @@ func transferExists(ctx context.Context, b Backends, args pacioli.CreateTransfer
 	if args.Pending {
 		// Compare timeouts with a minute grace period.
 		newTimeout := time.Now().Add(time.Millisecond * time.Duration(args.Timeout))
-		existingTimeout := ex.Timeout.Time
+		existingTimeout := time.Unix(0, int64(ex.Timeout))
 		if newTimeout.Before(existingTimeout.Add(time.Minute)) &&
 			newTimeout.After(existingTimeout.Add(time.Minute*-1)) {
 			return pacioli.TransferExistsWithDifferentTimeout, nil

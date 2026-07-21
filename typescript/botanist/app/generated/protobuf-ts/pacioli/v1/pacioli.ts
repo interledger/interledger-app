@@ -216,10 +216,6 @@ export interface Transfer {
      * @generated from protobuf field: bool pending = 10;
      */
     pending: boolean;
-    /**
-     * @generated from protobuf field: string transactionId = 11;
-     */
-    transactionId: string;
 }
 /**
  * @generated from protobuf message pacioli.v1.CreateTransfersRequest
@@ -974,12 +970,11 @@ class Transfer$Type extends MessageType<Transfer> {
             { no: 7, name: "timeout", kind: "scalar", T: 4 /*ScalarType.UINT64*/ },
             { no: 8, name: "ledger", kind: "scalar", T: 13 /*ScalarType.UINT32*/ },
             { no: 9, name: "pendingId", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 10, name: "pending", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 11, name: "transactionId", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 10, name: "pending", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
         ]);
     }
     create(value?: PartialMessage<Transfer>): Transfer {
-        const message = { id: "", debitAccountId: "", creditAccountId: "", amount: "0", code: 0, timeout: "0", ledger: 0, pendingId: "", pending: false, transactionId: "" };
+        const message = { id: "", debitAccountId: "", creditAccountId: "", amount: "0", code: 0, timeout: "0", ledger: 0, pendingId: "", pending: false };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Transfer>(this, message, value);
@@ -1016,9 +1011,6 @@ class Transfer$Type extends MessageType<Transfer> {
                     break;
                 case /* bool pending */ 10:
                     message.pending = reader.bool();
-                    break;
-                case /* string transactionId */ 11:
-                    message.transactionId = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1059,9 +1051,6 @@ class Transfer$Type extends MessageType<Transfer> {
         /* bool pending = 10; */
         if (message.pending !== false)
             writer.tag(10, WireType.Varint).bool(message.pending);
-        /* string transactionId = 11; */
-        if (message.transactionId !== "")
-            writer.tag(11, WireType.LengthDelimited).string(message.transactionId);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
