@@ -90,7 +90,6 @@ backend:
     xago:
       api_base_url: "http://mock-services-mockxago.interledger:8080/v1"
       identity_base_url: "http://mock-services-mockxago.interledger:8080/v1"
-      exchange_base_url: "http://mock-services-mockxago.interledger:8080/v1"
       api_public_key: "test-public-key"
       api_secret: '{{ secret "wallet-backend" "xagoApiSecret" }}'
       policy_id: "5e2585a474b0e90012ce8ff1"

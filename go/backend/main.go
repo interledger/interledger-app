@@ -934,7 +934,6 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	b.xagoConfig = xago_external.Config{
 		APIBaseURL:      args.Xago.APIBaseURL,
 		IdentityBaseURL: args.Xago.IdentityBaseURL,
-		ExchangeBaseURL: args.Xago.ExchangeBaseURL,
 		PublicKey:       args.Xago.APIPublicKey,
 		Secret:          args.Xago.APISecret,
 		PolicyID:        args.Xago.PolicyID,

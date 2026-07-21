@@ -216,7 +216,6 @@ Required in **production** (validated when `environment.mode` is `prod`). See co
 |---|---|---|---|---|
 | `xago.api_base_url` | string | Yes | No | Business API base URL. |
 | `xago.identity_base_url` | string | Yes | No | Identity/login API base URL. |
-| `xago.exchange_base_url` | string | Yes | No | Exchange API base URL. |
 | `xago.api_public_key` | string | Yes | Yes | API public key credential. |
 | `xago.api_secret` | string | Yes | Yes | API secret key credential. |
 | `xago.policy_id` | string | Yes | No | Login policy ID. |
