@@ -134,7 +134,6 @@ func (c client) CreateTransfers(ctx context.Context, args []pacioli.CreateTransf
 	for i, a := range args {
 		ta[i] = &pb.Transfer{
 			Id:              a.ID,
-			TransactionId:   a.TransactionID,
 			DebitAccountId:  a.DebitAccountID,
 			CreditAccountId: a.CreditAccountID,
 			Amount:          uint64(a.Amount),
@@ -171,7 +170,6 @@ func (c client) GetTransfers(ctx context.Context, transferIDs []string) ([]pacio
 	for i, l := range tresp.Transfers {
 		res[i] = pacioli.Transfer{
 			ID:              l.Id,
-			TransactionID:   l.TransactionId,
 			LedgerID:        l.Ledger,
 			DebitAccountID:  l.DebitAccountId,
 			CreditAccountID: l.CreditAccountId,

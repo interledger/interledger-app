@@ -534,8 +534,7 @@ func TestCreateAndPostLedgerTransferForIncoming_Success(t *testing.T) {
 	pacioliMock.EXPECT().CreateTransfers(gomock.Any(), gomock.Any()).
 		DoAndReturn(func(_ context.Context, args []pacioli.CreateTransferArgs) ([]pacioli.TransferResult, error) {
 			require.Len(t, args, 1)
-			assert.Equal(t, ip.ID, args[0].TransactionID)
-			assert.Equal(t, ip.ID, args[0].ID, "transfer id is set to the transaction id for now")
+			assert.Equal(t, ip.ID, args[0].ID)
 			assert.Equal(t, int64(5000), args[0].Amount)
 			assert.Equal(t, laID, args[0].CreditAccountID)
 			assert.Equal(t, gatehub.EUROpsAccount, args[0].DebitAccountID)
@@ -607,8 +606,7 @@ func TestReserveBalanceForOutgoing_Success(t *testing.T) {
 	pacioliMock.EXPECT().CreateTransfers(gomock.Any(), gomock.Any()).
 		DoAndReturn(func(_ context.Context, args []pacioli.CreateTransferArgs) ([]pacioli.TransferResult, error) {
 			require.Len(t, args, 1)
-			assert.Equal(t, op.ID, args[0].TransactionID)
-			assert.Equal(t, op.ID, args[0].ID, "transfer id is set to the transaction id for now")
+			assert.Equal(t, op.ID, args[0].ID)
 			assert.True(t, args[0].Pending, "reserve transfer must be pending")
 			assert.Equal(t, laID, args[0].DebitAccountID)
 			assert.Equal(t, gatehub.EUROpsAccount, args[0].CreditAccountID)
