@@ -443,7 +443,9 @@ func (a *Activity) CreateAndPostLedgerTransferForIncoming(ctx context.Context, i
 
 	results, err := a.b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
 		{
+			// TODO(PR2): use transactions.id, not ip.ID (the Rafiki payment id == transactions.foreign_id).
 			ID:              ip.ID,
+			TransactionID:   ip.ID,
 			Amount:          receivedAmt,
 			CreditAccountID: la.ID,
 			DebitAccountID:  opsAcc,
@@ -567,7 +569,9 @@ func (a *Activity) ReserveBalanceForOutgoing(ctx context.Context, op outgoingPay
 
 	results, err := a.b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
 		{
+			// TODO(PR2): use transactions.id, not op.ID (the Rafiki payment id == transactions.foreign_id).
 			ID:              op.ID,
+			TransactionID:   op.ID,
 			Amount:          debitAmt,
 			DebitAccountID:  la.ID,
 			CreditAccountID: opsAcc,

@@ -332,7 +332,7 @@ func (a *Activity) FinalizeGatehubBalance(ctx context.Context, id, walletID stri
 	return FinaliseReserve(ctx, a.b, tx.ID)
 }
 
-func (a *Activity) FinalizeGatehubDeposit(ctx context.Context, id, walletID string, amount, providerFee currency.Amount) error {
+func (a *Activity) FinalizeGatehubDeposit(ctx context.Context, txID, walletID string, amount, providerFee currency.Amount) error {
 	if amount.Currency != currency.EUR {
 		return temporal.NewNonRetryableApplicationError("Invalid currency", "ErrInternal", fmt.Errorf("%w invalid currency", gatehub.ErrInternal))
 	}
@@ -357,7 +357,8 @@ func (a *Activity) FinalizeGatehubDeposit(ctx context.Context, id, walletID stri
 	ledger := gatehub.LedgerIDEUR
 	tx, err := a.b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
 		{
-			ID:              id,
+			ID:              txID,
+			TransactionID:   txID,
 			Amount:          amount.Value,
 			CreditAccountID: eurBalance.ID,
 			DebitAccountID:  opsAcc,
@@ -606,5 +607,10 @@ func (a *Activity) SendWithdrawalRejectedEmail(ctx context.Context, txID, wallet
 
 func (a *Activity) SendWithdrawalReroutedEmail(ctx context.Context, txID, walletID string) error {
 	a.b.Email().SendSCTRerouteEmail(ctx, txID, walletID)
+	return nil
+}
+
+func (a *Activity) SendWithdrawalSettledEmail(ctx context.Context, txID, walletID, amount, iban, name, timestamp string) error {
+	a.b.Email().SendGatehubWithdrawalSettledEmail(ctx, txID, walletID, amount, iban, name, timestamp)
 	return nil
 }

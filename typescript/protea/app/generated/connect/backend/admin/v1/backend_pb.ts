@@ -2557,6 +2557,128 @@ export class PaginationRequest extends Message<PaginationRequest> {
 }
 
 /**
+ * @generated from message backend.admin.v1.ListWalletsRequest
+ */
+export class ListWalletsRequest extends Message<ListWalletsRequest> {
+  /**
+   * @generated from field: int32 pageSize = 1;
+   */
+  pageSize = 0;
+
+  /**
+   * @generated from field: optional string pageToken = 2;
+   */
+  pageToken?: string;
+
+  /**
+   * @generated from field: optional string search = 3;
+   */
+  search?: string;
+
+  /**
+   * @generated from field: optional backend.admin.v1.WalletSearchFilter filter = 4;
+   */
+  filter?: WalletSearchFilter;
+
+  constructor(data?: PartialMessage<ListWalletsRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.ListWalletsRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "pageSize", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
+    { no: 2, name: "pageToken", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 3, name: "search", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 4, name: "filter", kind: "message", T: WalletSearchFilter, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListWalletsRequest {
+    return new ListWalletsRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListWalletsRequest {
+    return new ListWalletsRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListWalletsRequest {
+    return new ListWalletsRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ListWalletsRequest | PlainMessage<ListWalletsRequest> | undefined, b: ListWalletsRequest | PlainMessage<ListWalletsRequest> | undefined): boolean {
+    return proto3.util.equals(ListWalletsRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.admin.v1.WalletSearchFilter
+ */
+export class WalletSearchFilter extends Message<WalletSearchFilter> {
+  /**
+   * @generated from field: string firstName = 1;
+   */
+  firstName = "";
+
+  /**
+   * @generated from field: string lastName = 2;
+   */
+  lastName = "";
+
+  /**
+   * @generated from field: string walletAddress = 3;
+   */
+  walletAddress = "";
+
+  /**
+   * @generated from field: string email = 4;
+   */
+  email = "";
+
+  /**
+   * @generated from field: string phoneNumber = 5;
+   */
+  phoneNumber = "";
+
+  /**
+   * @generated from field: string providerId = 6;
+   */
+  providerId = "";
+
+  constructor(data?: PartialMessage<WalletSearchFilter>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.WalletSearchFilter";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "firstName", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "lastName", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "walletAddress", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "email", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "phoneNumber", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "providerId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): WalletSearchFilter {
+    return new WalletSearchFilter().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): WalletSearchFilter {
+    return new WalletSearchFilter().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): WalletSearchFilter {
+    return new WalletSearchFilter().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: WalletSearchFilter | PlainMessage<WalletSearchFilter> | undefined, b: WalletSearchFilter | PlainMessage<WalletSearchFilter> | undefined): boolean {
+    return proto3.util.equals(WalletSearchFilter, a, b);
+  }
+}
+
+/**
  * @generated from message backend.admin.v1.Wallet
  */
 export class Wallet extends Message<Wallet> {

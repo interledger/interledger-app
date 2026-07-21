@@ -47,11 +47,14 @@ func TestUpdateUserPhone_StatusMapping(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			var srv *httptest.Server
+			srv = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				if r.Method == http.MethodGet {
 					w.Header().Set("Content-Type", "application/json")
 					_ = json.NewEncoder(w).Encode(map[string]any{
-						"id": "user-id",
+						"id":         "user-id",
+						"schema_id":  "default",
+						"schema_url": srv.URL + "/schemas/default",
 						"traits": map[string]any{
 							"phone":         "+10000000000",
 							"phoneVerified": true,
@@ -110,7 +113,7 @@ func TestSearchTotpURL(t *testing.T) {
 			credentials: map[string]kratos.IdentityCredentials{
 				"totp": {
 					Identifiers: []string{"totp"},
-					Type:        ptr(kratos.IDENTITYCREDENTIALSTYPE_TOTP),
+					Type:        ptr(totpCredentialType),
 					Config: map[string]any{
 						"totp_url": "totp://totp",
 					},
@@ -130,7 +133,7 @@ func TestSearchTotpURL(t *testing.T) {
 			credentials: map[string]kratos.IdentityCredentials{
 				"totp": {
 					Identifiers: []string{"totp"},
-					Type:        ptr(kratos.IDENTITYCREDENTIALSTYPE_TOTP),
+					Type:        ptr(totpCredentialType),
 					Config: map[string]any{
 						"totp_url": []string{"totp://totp"},
 					},
@@ -158,7 +161,7 @@ func TestSearchTotpURL(t *testing.T) {
 			credentials: map[string]kratos.IdentityCredentials{
 				"password": {
 					Identifiers: []string{"user@example.com"},
-					Type:        ptr(kratos.IDENTITYCREDENTIALSTYPE_PASSWORD),
+					Type:        ptr("password"),
 					Config: map[string]any{
 						"totp_url": "totp://should-not-be-used",
 					},
@@ -172,7 +175,7 @@ func TestSearchTotpURL(t *testing.T) {
 			credentials: map[string]kratos.IdentityCredentials{
 				"totp": {
 					Identifiers: []string{"totp"},
-					Type:        ptr(kratos.IDENTITYCREDENTIALSTYPE_TOTP),
+					Type:        ptr(totpCredentialType),
 					Config:      map[string]any{
 						// no "totp_url"
 					},
@@ -186,7 +189,7 @@ func TestSearchTotpURL(t *testing.T) {
 			credentials: map[string]kratos.IdentityCredentials{
 				"totp": {
 					Identifiers: []string{"totp"},
-					Type:        ptr(kratos.IDENTITYCREDENTIALSTYPE_TOTP),
+					Type:        ptr(totpCredentialType),
 					Config:      nil,
 				},
 			},
@@ -198,14 +201,14 @@ func TestSearchTotpURL(t *testing.T) {
 			credentials: map[string]kratos.IdentityCredentials{
 				"password": {
 					Identifiers: []string{"user@example.com"},
-					Type:        ptr(kratos.IDENTITYCREDENTIALSTYPE_PASSWORD),
+					Type:        ptr("password"),
 					Config: map[string]any{
 						"some": "thing",
 					},
 				},
 				"totp": {
 					Identifiers: []string{"totp"},
-					Type:        ptr(kratos.IDENTITYCREDENTIALSTYPE_TOTP),
+					Type:        ptr(totpCredentialType),
 					Config: map[string]any{
 						"totp_url": "totp://totp",
 					},
@@ -219,7 +222,7 @@ func TestSearchTotpURL(t *testing.T) {
 			credentials: map[string]kratos.IdentityCredentials{
 				"totp": {
 					Identifiers: []string{"totp"},
-					Type:        ptr(kratos.IDENTITYCREDENTIALSTYPE_TOTP),
+					Type:        ptr(totpCredentialType),
 					Config: map[string]any{
 						"totp_url": "",
 					},
@@ -233,7 +236,7 @@ func TestSearchTotpURL(t *testing.T) {
 			credentials: map[string]kratos.IdentityCredentials{
 				"totp": {
 					Identifiers: []string{"totp"},
-					Type:        ptr(kratos.IDENTITYCREDENTIALSTYPE_TOTP),
+					Type:        ptr(totpCredentialType),
 					Config: map[string]any{
 						"totp_url": nil,
 					},
@@ -297,19 +300,78 @@ func TestFindWalletIDByEmail(t *testing.T) {
 	})
 }
 
+func TestFindWalletIDsByIdentifierPrefix(t *testing.T) {
+	if os.Getenv("DB_URL") == "" {
+		t.Setenv("DB_URL", "postgres://postgres:password@127.0.0.1:55432/%s?sslmode=disable")
+	}
+
+	ctx := context.Background()
+	dbc := db.MigrateTestDB(t, ctx, "")
+
+	walletID1 := uuid.NewString()
+	walletID2 := uuid.NewString()
+	identityID1 := uuid.NewString()
+	identityID2 := uuid.NewString()
+	orphanIdentityID := uuid.NewString()
+
+	_, err := dbc.ExecContext(ctx, `INSERT INTO wallets (id, name) VALUES ($1, $2), ($3, $4)`,
+		walletID1, "prefix-search-test-1", walletID2, "prefix-search-test-2")
+	require.NoError(t, err)
+	_, err = dbc.ExecContext(ctx, `INSERT INTO user_wallets (user_id, wallet_id) VALUES ($1, $2), ($3, $4)`,
+		identityID1, walletID1, identityID2, walletID2)
+	require.NoError(t, err)
+
+	t.Run("zero identities returns nil", func(t *testing.T) {
+		b := newEmailTestBackends(t, dbc, nil)
+		got, err := FindWalletIDsByIdentifierPrefix(ctx, b, "zzz")
+		require.NoError(t, err)
+		assert.Nil(t, got)
+	})
+
+	t.Run("one identity returns its wallet ID", func(t *testing.T) {
+		b := newEmailTestBackends(t, dbc, []string{identityID1})
+		got, err := FindWalletIDsByIdentifierPrefix(ctx, b, "jane")
+		require.NoError(t, err)
+		assert.Equal(t, []string{walletID1}, got)
+	})
+
+	t.Run("many identities return all their wallet IDs", func(t *testing.T) {
+		b := newEmailTestBackends(t, dbc, []string{identityID1, identityID2})
+		got, err := FindWalletIDsByIdentifierPrefix(ctx, b, "jane")
+		require.NoError(t, err)
+		assert.ElementsMatch(t, []string{walletID1, walletID2}, got)
+	})
+
+	t.Run("identity without a user_wallets row is skipped", func(t *testing.T) {
+		b := newEmailTestBackends(t, dbc, []string{identityID1, orphanIdentityID})
+		got, err := FindWalletIDsByIdentifierPrefix(ctx, b, "jane")
+		require.NoError(t, err)
+		assert.Equal(t, []string{walletID1}, got)
+	})
+}
+
 // newEmailTestBackends wires up a Backends whose Kratos() returns an httptest
 // server that responds to GET /admin/identities with a list of stubs — one
 // minimal Identity per supplied ID.
 func newEmailTestBackends(t *testing.T, dbc *sqlx.DB, identityIDs []string) Backends {
 	t.Helper()
 
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+	var srv *httptest.Server
+	srv = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		type identityStub struct {
-			ID string `json:"id"`
+			ID        string         `json:"id"`
+			SchemaID  string         `json:"schema_id"`
+			SchemaURL string         `json:"schema_url"`
+			Traits    map[string]any `json:"traits"`
 		}
 		stubs := make([]identityStub, len(identityIDs))
 		for i, id := range identityIDs {
-			stubs[i] = identityStub{ID: id}
+			stubs[i] = identityStub{
+				ID:        id,
+				SchemaID:  "default",
+				SchemaURL: srv.URL + "/schemas/default",
+				Traits:    map[string]any{},
+			}
 		}
 		w.Header().Set("Content-Type", "application/json")
 		if err := json.NewEncoder(w).Encode(stubs); err != nil {

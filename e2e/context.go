@@ -557,11 +557,26 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I navigate to the botanist wallets page$`, func() error {
 		return sc.iNavigateToTheBotanistWalletsPage()
 	})
-	ctx.Step(`^I filter the wallets list by "([^"]*)"$`, func(term string) error {
-		return sc.iFilterTheWalletsListBy(term)
+	ctx.Step(`^I filter the wallets list by my first name$`, func() error {
+		return sc.iFilterTheWalletsListByMyFirstName()
 	})
-	ctx.Step(`^I filter the wallets list by my wallet name$`, func() error {
-		return sc.iFilterTheWalletsListByMyWalletName()
+	ctx.Step(`^I filter the wallets list by my last name$`, func() error {
+		return sc.iFilterTheWalletsListByMyLastName()
+	})
+	ctx.Step(`^I filter the wallets list by my email$`, func() error {
+		return sc.iFilterTheWalletsListByMyEmail()
+	})
+	ctx.Step(`^I filter the wallets list by my phone number$`, func() error {
+		return sc.iFilterTheWalletsListByMyPhoneNumber()
+	})
+	ctx.Step(`^I filter the wallets list by my wallet address$`, func() error {
+		return sc.iFilterTheWalletsListByMyWalletAddress()
+	})
+	ctx.Step(`^I filter the wallets list by my provider ID$`, func() error {
+		return sc.iFilterTheWalletsListByMyProviderID()
+	})
+	ctx.Step(`^I filter the wallets list by all filters$`, func() error {
+		return sc.iFilterTheWalletsListByAllFilters()
 	})
 	ctx.Step(`^my wallet should appear in the wallets list$`, func() error {
 		return sc.myWalletShouldAppearInTheWalletsList()

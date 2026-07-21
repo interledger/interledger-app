@@ -9,6 +9,7 @@ import type {
   LinkedAccountReviews,
   ListAuditResponse,
   ListCountriesResponse,
+  ListWalletsRequest,
   ListWalletsResponse,
   PaginationRequest,
   User,
@@ -31,13 +32,39 @@ export const formatAmount = (amount: number, asset: string): string => {
   return `${asset} ${(amount / 100).toFixed(2)}`
 }
 
+export interface WalletSearchParams {
+  firstName?: string
+  lastName?: string
+  walletAddress?: string
+  email?: string
+  phoneNumber?: string
+  providerId?: string
+}
+
 export async function ListWallets(
   request: Request,
-  page: PaginationRequest
+  page: { pageSize: number; pageToken?: string },
+  search?: WalletSearchParams
 ): Promise<ListWalletsResponse> {
+  const filterFields = {
+    firstName: search?.firstName ?? '',
+    lastName: search?.lastName ?? '',
+    walletAddress: search?.walletAddress ?? '',
+    email: search?.email ?? '',
+    phoneNumber: search?.phoneNumber ?? '',
+    providerId: search?.providerId ?? ''
+  }
+  const hasFilter = Object.values(filterFields).some((v) => v !== '')
+
+  const req: ListWalletsRequest = {
+    pageSize: page.pageSize,
+    pageToken: page.pageToken,
+    filter: hasFilter ? filterFields : undefined
+  }
+
   const cookie = String(request.headers.get('cookie'))
-  let response = await grpcClient
-    .listWallets(page, {
+  const response = await grpcClient
+    .listWallets(req, {
       meta: {
         cookies: cookie || ''
       }
@@ -69,7 +96,7 @@ export async function GetWalletDetails(
   walletID: string
 ): Promise<Wallet> {
   const cookie = String(request.headers.get('cookie'))
-  let response = await grpcClient
+  const response = await grpcClient
     .getWalletDetails(
       { walletID },
       {
@@ -105,7 +132,7 @@ export async function GetWalletFeatures(
   walletID: string
 ): Promise<Features> {
   const cookie = String(request.headers.get('cookie'))
-  let response = await grpcClient
+  const response = await grpcClient
     .getWalletFeatures(
       { walletID },
       {
@@ -128,7 +155,7 @@ export async function SetWalletFeatures(
   features: Features
 ): Promise<Features> {
   const cookie = String(request.headers.get('cookie'))
-  let response = await grpcClient
+  const response = await grpcClient
     .setWalletFeatures(features, {
       meta: {
         cookies: cookie || ''
@@ -160,7 +187,7 @@ export async function GetWalletTransactions(
   walletID: string
 ): Promise<Transaction[]> {
   const cookie = String(request.headers.get('cookie'))
-  let response = await grpcClient
+  const response = await grpcClient
     .listTransactions(
       { walletID },
       {
@@ -198,7 +225,7 @@ export async function GetWalletTransactionDetails(
   transactionID: string
 ): Promise<GetTransactionDetailsResponse> {
   const cookie = String(request.headers.get('cookie'))
-  let response = await grpcClient
+  const response = await grpcClient
     .getTransactionDetails(
       { walletID, transactionID },
       {
@@ -238,7 +265,7 @@ export async function GetWalletIdentities(
   walletID: string
 ): Promise<WalletDetails> {
   const cookie = String(request.headers.get('cookie'))
-  let response = await grpcClient
+  const response = await grpcClient
     .getWalletDetails(
       { walletID },
       {
@@ -261,7 +288,7 @@ export async function GetWalletIdentityDetails(
   walletID: string
 ): Promise<WalletDetails> {
   const cookie = String(request.headers.get('cookie'))
-  let response = await grpcClient
+  const response = await grpcClient
     .getWalletDetails(
       { walletID },
       {
@@ -284,7 +311,7 @@ export async function GetWalletLinkedAccounts(
   walletID: string
 ): Promise<WalletDetails> {
   const cookie = String(request.headers.get('cookie'))
-  let response = await grpcClient
+  const response = await grpcClient
     .getWalletDetails(
       { walletID },
       {
@@ -307,7 +334,7 @@ export async function GetWalletLinkedAccountDetails(
   walletID: string
 ): Promise<WalletDetails> {
   const cookie = String(request.headers.get('cookie'))
-  let response = await grpcClient
+  const response = await grpcClient
     .getWalletDetails(
       { walletID },
       {
@@ -330,7 +357,7 @@ export async function GetWalletAudits(
   walletID: string
 ): Promise<ListAuditResponse> {
   const cookie = String(request.headers.get('cookie'))
-  let response = await grpcClient
+  const response = await grpcClient
     .listAudit(
       { walletID },
       {
@@ -353,7 +380,7 @@ export async function ListLinkedAccounts(
   walletID: string
 ): Promise<LinkedAccount[]> {
   const cookie = String(request.headers.get('cookie'))
-  let rpc = await grpcClient
+  const rpc = await grpcClient
     .listLinkedAccounts(
       {
         walletID
@@ -378,7 +405,7 @@ export async function ListLinkedAccountReviews(
   page: PaginationRequest
 ): Promise<LinkedAccountReviews> {
   const cookie = String(request.headers.get('cookie'))
-  let rpc = await grpcClient
+  const rpc = await grpcClient
     .listIncompleteLinkedAccountReviews(page, {
       meta: {
         cookies: cookie || ''
@@ -398,7 +425,7 @@ export async function GetLinkedAccount(
   linkedAccountID: string
 ): Promise<LinkedAccount> {
   const cookie = String(request.headers.get('cookie'))
-  let rpc = await grpcClient
+  const rpc = await grpcClient
     .getLinkedAccount(
       { id: linkedAccountID },
       {
@@ -421,7 +448,7 @@ export async function GetReview(
   reviewID: string
 ): Promise<LinkedAccountReview> {
   const cookie = String(request.headers.get('cookie'))
-  let rpc = await grpcClient
+  const rpc = await grpcClient
     .getLinkedAccountReview(
       { id: reviewID },
       {
@@ -446,7 +473,7 @@ export async function CompleteLinkedAccountReview(
   reason: string
 ) {
   const cookie = String(request.headers.get('cookie'))
-  let rpc = await grpcClient
+  const rpc = await grpcClient
     .completeLinkedAccountReview(
       {
         id: reviewID,
@@ -471,7 +498,7 @@ export async function ListExternalApiCalls(
   paymentId: string
 ) {
   const cookie = String(request.headers.get('cookie'))
-  let rpc = await grpcClient
+  const rpc = await grpcClient
     .listExternalApiCalls(
       { paymentId },
       {
@@ -491,7 +518,7 @@ export async function ListExternalApiCalls(
 }
 
 export async function GetPendingPayouts(request: Request) {
-  let rpc = await grpcClient
+  const rpc = await grpcClient
     .listPaymentsAwaitingSignal(
       {},
       { meta: { cookies: String(request.headers.get('cookie')) } }
@@ -507,7 +534,7 @@ export async function GetPendingPayouts(request: Request) {
 }
 
 export async function GetXagoWalletBalance(request: Request, walletId: string) {
-  let rpc = await grpcClient
+  const rpc = await grpcClient
     .getWalletXagoBalance(
       {
         walletId
@@ -531,7 +558,7 @@ export async function EnableXagoWalletBalance(
   request: Request,
   walletId: string
 ) {
-  let rpc = await grpcClient
+  const rpc = await grpcClient
     .setWalletXagoBalanceEnabled(
       {
         walletId
@@ -553,7 +580,7 @@ export async function setWalletCountry(
   walletId: string,
   country: string
 ) {
-  let rpc = await grpcClient
+  const rpc = await grpcClient
     .setWalletCountry(
       {
         id: walletId,
@@ -572,7 +599,7 @@ export async function setWalletCountry(
 }
 
 export async function GetPtiWalletBalance(request: Request, walletId: string) {
-  let rpc = await grpcClient
+  const rpc = await grpcClient
     .getPTIBalance(
       {
         walletId
@@ -596,7 +623,7 @@ export async function GetGatehubWalletBalance(
   request: Request,
   walletId: string
 ) {
-  let rpc = await grpcClient
+  const rpc = await grpcClient
     .getGatehubBalance(
       {
         walletID: walletId
@@ -617,7 +644,7 @@ export async function GetGatehubWalletBalance(
 }
 
 export async function EnablGatehubBalance(request: Request, walletId: string) {
-  let rpc = await grpcClient
+  const rpc = await grpcClient
     .createGatehubUser(
       {
         walletID: walletId
@@ -638,7 +665,7 @@ export async function EnablePtiWalletBalance(
   request: Request,
   walletId: string
 ) {
-  let rpc = await grpcClient
+  const rpc = await grpcClient
     .enablePTIBalance(
       {
         walletId
@@ -659,7 +686,7 @@ export async function ListCountries(
   request: Request
 ): Promise<ListCountriesResponse> {
   const cookie = String(request.headers.get('cookie'))
-  let response = await grpcClient
+  const response = await grpcClient
     .listCountries(
       {},
       {
@@ -682,7 +709,7 @@ export async function GetGatehubUser(
   walletID: string
 ): Promise<GatehubUser> {
   const cookie = String(request.headers.get('cookie'))
-  let response = await grpcClient
+  const response = await grpcClient
     .getGatehubUser(
       { walletID },
       {
@@ -731,7 +758,7 @@ export async function DeleteUserTotp(
   walletId: string
 ): Promise<any> {
   const cookie = String(request.headers.get('cookie'))
-  let response = await grpcClient
+  const response = await grpcClient
     .delete2FATotpEnrollment(
       { identityId, walletID: walletId },
       {

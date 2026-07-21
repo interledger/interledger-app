@@ -20,21 +20,63 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func (s *AdminRpcService) ListWallets(ctx context.Context, req *adminv1.PaginationRequest) (*adminv1.ListWalletsResponse, error) {
-	page := db.FromAdminPB(req)
+func (s *AdminRpcService) ListWallets(ctx context.Context, req *adminv1.ListWalletsRequest) (*adminv1.ListWalletsResponse, error) {
+	var page db.Pagination
 
-	// Email addresses are stored in Kratos, not in the wallets table. When the
-	// search term parses as a valid RFC 5322 address, resolve it to a wallet ID
-	// first so that the normal name/ID filter path can handle it.
-	if _, err := mail.ParseAddress(page.Search); err == nil {
-		walletID, err := s.b.Users().FindWalletIDByEmail(ctx, page.Search)
-		if err != nil {
-			return nil, status.Error(codes.Internal, err.Error())
+	filter := req.GetFilter()
+	// Keep backward compatibility with  generic 'search' filter
+	if filter == nil {
+		page = db.FromListWalletsPB(req)
+
+		// Email addresses are stored in Kratos, not in the wallets table. When the
+		// search term parses as a valid RFC 5322 address, resolve it to a wallet ID
+		// first so that the normal name/ID filter path can handle it.
+		if _, err := mail.ParseAddress(page.Search); err == nil {
+			walletID, err := s.b.Users().FindWalletIDByEmail(ctx, page.Search)
+			if err != nil {
+				return nil, status.Error(codes.Internal, err.Error())
+			}
+			if walletID == "" {
+				return &adminv1.ListWalletsResponse{}, nil
+			}
+			page.Search = walletID
 		}
-		if walletID == "" {
-			return &adminv1.ListWalletsResponse{}, nil
+	} else {
+		page = db.FromListWalletsPB(req)
+
+		var walletIDs []string
+		resolvedKratos := false
+
+		if email := filter.GetEmail(); email != "" {
+			ids, err := s.b.Users().FindWalletIDsByIdentifierPrefix(ctx, email)
+			if err != nil {
+				return nil, status.Error(codes.Internal, err.Error())
+			}
+			walletIDs = ids
+			resolvedKratos = true
 		}
-		page.Search = walletID
+
+		if phone := filter.GetPhoneNumber(); phone != "" {
+			ids, err := s.b.Users().FindWalletIDsByIdentifierPrefix(ctx, phone)
+			if err != nil {
+				return nil, status.Error(codes.Internal, err.Error())
+			}
+			if resolvedKratos {
+				walletIDs = intersectWalletIDs(walletIDs, ids)
+			} else {
+				walletIDs = ids
+			}
+			resolvedKratos = true
+		}
+
+		// Zero SQL fast path: if email/phone were requested and resolved to
+		// nothing, the AND result is empty regardless of the other filters.
+		if resolvedKratos {
+			if len(walletIDs) == 0 {
+				return &adminv1.ListWalletsResponse{}, nil
+			}
+			page.Filter.WalletIDs = walletIDs
+		}
 	}
 
 	wallets, err := s.b.Wallets().ListAll(ctx, page)
@@ -75,6 +117,23 @@ func (s *AdminRpcService) ListWallets(ctx context.Context, req *adminv1.Paginati
 		Wallets:       resp,
 		NextPageToken: nextPageToken,
 	}, nil
+}
+
+// intersectWalletIDs returns the wallet IDs present in both a and b, so an
+// email + phone filter (both resolved via Kratos) is ANDed together.
+func intersectWalletIDs(a, b []string) []string {
+	set := make(map[string]struct{}, len(a))
+	for _, id := range a {
+		set[id] = struct{}{}
+	}
+
+	result := []string{}
+	for _, id := range b {
+		if _, ok := set[id]; ok {
+			result = append(result, id)
+		}
+	}
+	return result
 }
 
 func convertUser(input user.User) *adminv1.User {
