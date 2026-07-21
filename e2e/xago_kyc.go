@@ -91,11 +91,11 @@ func (sc *E2EContext) iFillAndSubmitTheMockxagoiframe() error {
 		var fillErr error
 		switch name {
 		case "first_name":
-			fillErr = input.Fill("Thabo")
+			fillErr = input.Fill(sc.kycFirstName())
 		case "last_name":
-			fillErr = input.Fill("Mbeki")
+			fillErr = input.Fill(sc.kycLastName())
 		case "dob":
-			fillErr = input.Fill("1990-01-15")
+			fillErr = input.Fill(sc.dateOfBirth)
 		case "address":
 			fillErr = input.Fill("42 Nelson Mandela Drive")
 		case "city":

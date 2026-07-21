@@ -78,6 +78,9 @@ func (t *testUsersClient) GetUserIDForWallet(_ context.Context, _ string) (strin
 func (t *testUsersClient) FindWalletIDByEmail(_ context.Context, _ string) (string, error) {
 	return "", errors.New("not implemented")
 }
+func (t *testUsersClient) FindWalletIDsByIdentifierPrefix(_ context.Context, _ string) ([]string, error) {
+	return nil, errors.New("not implemented")
+}
 func (t *testUsersClient) SetPhoneVerified(_ context.Context, _ string) error {
 	return errors.New("not implemented")
 }

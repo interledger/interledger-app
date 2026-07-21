@@ -481,6 +481,7 @@ type WalletDetails struct {
 	ID            string
 	Name          string
 	WalletAddress string
+	ProviderID    string
 }
 
 func (sc *E2EContext) getWalletDetailsForUser(kratosUserID string) (*WalletDetails, error) {
@@ -488,14 +489,16 @@ func (sc *E2EContext) getWalletDetailsForUser(kratosUserID string) (*WalletDetai
 		return nil, fmt.Errorf("getWalletDetailsForUser: %w", err)
 	}
 
-	var walletID, walletName, walletAddress sql.NullString
+	var walletID, walletName, walletAddress, providerID sql.NullString
 	err := sc.db.QueryRow(`
-		SELECT w.id, w.name, (SELECT url FROM wallet_addresses WHERE wallet_id = w.id LIMIT 1)
+		SELECT w.id, w.name,
+			(SELECT url FROM wallet_addresses WHERE wallet_id = w.id LIMIT 1),
+			(SELECT provider_id FROM linked_accounts WHERE wallet_id = w.id LIMIT 1)
 		FROM wallets w
 		JOIN user_wallets uw ON w.id = uw.wallet_id
 		WHERE uw.user_id = $1
 		ORDER BY w.created_at DESC LIMIT 1
-	`, kratosUserID).Scan(&walletID, &walletName, &walletAddress)
+	`, kratosUserID).Scan(&walletID, &walletName, &walletAddress, &providerID)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -508,6 +511,7 @@ func (sc *E2EContext) getWalletDetailsForUser(kratosUserID string) (*WalletDetai
 		ID:            walletID.String,
 		Name:          walletName.String,
 		WalletAddress: walletAddress.String,
+		ProviderID:    providerID.String,
 	}, nil
 }
 
