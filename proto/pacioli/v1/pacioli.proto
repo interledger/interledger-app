@@ -77,7 +77,6 @@ message GetAccountsResponse {
 }
 
 message Transfer {
-  reserved 6; // previously used; do not reuse
   string id = 1;
   string debitAccountId = 2;
   string creditAccountId = 3;
@@ -87,7 +86,6 @@ message Transfer {
   uint32 ledger = 8;
   string pendingId = 9;
   bool pending = 10;
-  string transactionId = 11;
 }
 
 message CreateTransfersRequest {
