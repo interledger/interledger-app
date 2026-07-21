@@ -51,6 +51,7 @@ type StartConfig struct {
 	Segment    SegmentConfig    `yaml:"segment"`
 	Agreements AgreementsConfig `yaml:"agreements"`
 	OTEL       OTELConfig       `yaml:"otel"`
+	Plaid      PlaidConfig      `yaml:"plaid"`
 }
 
 // OTELConfig configures the OpenTelemetry trace exporter. Enabled is an explicit
@@ -138,6 +139,21 @@ type PTIConfig struct {
 	SDKURL       string `yaml:"sdk_url"`
 	FormsURL     string `yaml:"forms_url"`
 	PublicKeyJWK string `yaml:"public_key_jwk"`
+}
+
+// PlaidConfig configures the Plaid bank-linking integration. Gated by Enabled;
+// the remaining fields are required only when enabled. APIURL overrides the SDK
+// base URL (e.g. to point at mockplaid locally) — empty selects the real Plaid
+// environment matching Env.
+type PlaidConfig struct {
+	Enabled      bool     `yaml:"enabled"`
+	ClientID     string   `yaml:"client_id"`
+	Secret       string   `yaml:"secret"`
+	Env          string   `yaml:"env"`
+	Products     []string `yaml:"products"`
+	CountryCodes []string `yaml:"country_codes"`
+	Processor    string   `yaml:"processor"`
+	APIURL       string   `yaml:"api_url"`
 }
 
 type PersonaConfig struct {

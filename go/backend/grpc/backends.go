@@ -1,6 +1,8 @@
 package grpc
 
 import (
+	"context"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/interledger/interledger-app/go/backend/accountdeletion"
 	"github.com/interledger/interledger-app/go/backend/config"
@@ -37,6 +39,7 @@ import (
 type Backends interface {
 	Twitter() twitter.Client
 	DB() *sqlx.DB
+	WithTx(ctx context.Context, fn func(*sqlx.Tx) error) error
 	AdminAuth() auth.Service
 	Agreements() agreements.Client
 	LinkedAccounts() linkedaccounts.Client

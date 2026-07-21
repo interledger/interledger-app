@@ -40,7 +40,7 @@ import type { Route } from './+types/me_.$'
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const unsanitizedWalletAddressParam = params['*'] as string
-  let profilePicture: { person: Query['person'] } | { person: null } = {
+  const profilePicture: { person: Query['person'] } | { person: null } = {
     person: null
   }
 

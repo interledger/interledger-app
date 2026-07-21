@@ -16,6 +16,7 @@ const (
 	TypeCard       = "card"
 	TypeBank       = "bank_account"
 
+	// TODO: move scenario IDs to env config instead of hardcoding
 	ScenarioTransfer   = "ilf_transfer"
 	ScenarioDeposit    = "ilf_deposit"
 	ScenarioWithdrawal = "ilf_withdrawal"

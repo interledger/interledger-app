@@ -243,6 +243,21 @@ Provider is gated by `pti.enabled`; the remaining fields are required only when 
 | `persona.webhook_token` | string | Yes | Yes | Persona webhook verification token. |
 | `persona.sandbox_fake_za_id` | bool | No | No | Sandbox-only: generate a synthetic South African ID. Must be `false` when `environment.mode: prod` — enabling it in prod is rejected at chart render and on startup. |
 
+### Plaid
+
+Gated by `plaid.enabled`; the remaining fields are required only when enabled.
+
+| Key | Type | Required | Secret | Notes |
+|---|---|---|---|---|
+| `plaid.enabled` | bool | No | No | Enables the Plaid bank-linking integration. |
+| `plaid.client_id` | string | If enabled | Yes | Plaid client ID. |
+| `plaid.secret` | string | If enabled | Yes | Plaid secret. |
+| `plaid.env` | string | If enabled | No | One of `sandbox`, `production`. |
+| `plaid.products` | []string | If enabled | No | Plaid products to request (e.g. `auth`, `transactions`, `balance`, `identity`). |
+| `plaid.country_codes` | []string | If enabled | No | ISO country codes for Link (e.g. `US`). |
+| `plaid.processor` | string | No | No | Must be `fiant`. Defaults to `fiant` when `plaid.enabled` and unset. |
+| `plaid.api_url` | string | No | No | Overrides the Plaid SDK base URL (e.g. to point at mockplaid locally). Empty selects the real Plaid environment matching `plaid.env`. |
+
 ### Twilio
 
 Gated by `twilio.enabled`; credentials required only when enabled.
@@ -368,6 +383,7 @@ Some fields become required based on feature flags or environment mode:
 | `environment.mode: prod` | `persona.sandbox_fake_za_id: false` (enabling the sandbox fake ZA ID in prod is rejected) |
 | `email.enabled: true` | `email.sendgrid.api_key`, `email.sendgrid.from_name`, `email.sendgrid.from_email`, `email.sendgrid.one_template_id`, `email.sendgrid.support_email` |
 | `pti.enabled: true` | `pti.base_url`, `pti.jwk`, `pti.client_id`, `pti.sdk_url`, `pti.forms_url`, `pti.public_key_jwk` |
+| `plaid.enabled: true` | `plaid.client_id`, `plaid.secret`, `plaid.env` (one of `sandbox`/`production`), `plaid.products`, `plaid.country_codes` |
 | `environment.mode: prod` | All GateHub fields marked *Prod* above (plus a non-zero `gatehub.eur_ops_ledger_id`) |
 | `environment.mode: prod` **and** `rafiki.node_enabled: true` | `gatehub.intermediary_user_id`, `gatehub.intermediary_user_address` |
 

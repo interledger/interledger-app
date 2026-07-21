@@ -368,6 +368,7 @@ type (
 		BankRoutingNumber     string `json:"bankRoutingNumber,omitempty"`
 		BankRoutingCheckDigit string `json:"bankRoutingCheckDigit,omitempty"`
 		AccountBankName       string `json:"accountBankName,omitempty"`
+		PlaidProcessorToken   string `json:"plaidProcessorToken,omitempty"`
 	}
 
 	TokenPaymentInformation struct {

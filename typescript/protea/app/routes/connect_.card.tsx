@@ -87,7 +87,7 @@ export default function Page() {
     const handleMessage = (message: MessageEvent<FiantSdkMessage>) => {
       if (message.data.name === 'AddCreditCardCompleted') {
         setLoading(true)
-        let formData = new FormData()
+        const formData = new FormData()
         formData.append('tokenId', message.data.createdId)
         formData.append('csrfToken', csrfToken)
         submit(formData, {
@@ -124,7 +124,7 @@ export async function action({ request }: Route.ActionArgs) {
     number: 'CardNumber'
   }
 
-  let response = await grpc.createCard(
+  const response = await grpc.createCard(
     request,
     { tokenID: cardToken },
     {

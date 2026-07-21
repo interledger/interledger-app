@@ -27,6 +27,5 @@ func ParseStartArgs() (*StartArgs, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	return &StartArgs{cfg}, nil
 }

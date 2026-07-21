@@ -137,6 +137,9 @@ func (s *rpcService) GetLinkedAccountsForDeposit(ctx context.Context, req *pb.Ge
 
 	var las []*pb.LinkedAccountForPayment
 	for _, la := range lal {
+		if la.DeletedAt.Valid {
+			continue
+		}
 		if balance.Provider == pti.ProviderName && la.Provider == pti.ProviderName && la.Type == pti.TypeBank {
 			acc := &pb.LinkedAccountForPayment{
 				Details: transformLinkedAccount(la),
