@@ -193,6 +193,10 @@ func (mc *MockClient) FindWalletIDByEmail(_ context.Context, _ string) (string, 
 	return "", nil
 }
 
+func (mc *MockClient) FindWalletIDsByIdentifierPrefix(_ context.Context, _ string) ([]string, error) {
+	return nil, nil
+}
+
 func (mc *MockClient) Cleanup() {
 	mc.WalletUser = map[string]string{}
 	mc.UserTotpURL = map[string]string{}

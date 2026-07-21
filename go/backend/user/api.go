@@ -21,4 +21,8 @@ type Client interface {
 	// FindWalletIDByEmail resolves a Kratos credential identifier (email) to a
 	// wallet ID via the user_wallets table. Returns "" if no match is found.
 	FindWalletIDByEmail(ctx context.Context, email string) (string, error)
+	// FindWalletIDsByIdentifierPrefix resolves every Kratos identity whose
+	// credential identifier (email or phone) starts with term to its wallet
+	// ID(s). Returns nil for zero matches.
+	FindWalletIDsByIdentifierPrefix(ctx context.Context, term string) ([]string, error)
 }
