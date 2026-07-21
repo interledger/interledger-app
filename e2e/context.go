@@ -55,6 +55,9 @@ type E2EContext struct {
 	// MockGatehub API URL
 	mockgatehubBaseURL string
 
+	// MockPlaid API URL (Plaid REST + Link CDN stand-in)
+	mockplaidBaseURL string
+
 	// Test state
 	currentStep     int
 	signupID        string
@@ -124,6 +127,7 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^mockgatehub is running at "([^"]*)"$`, func(url string) error { return sc.theMockgatehubIsRunningAt(url) })
 	ctx.Step(`^mockxago is running at "([^"]*)"$`, func(url string) error { return sc.theMockxagoIsRunningAt(url) })
 	ctx.Step(`^mockpti is running at "([^"]*)"$`, func(url string) error { return sc.theMockptiIsRunningAt(url) })
+	ctx.Step(`^mockplaid is running at "([^"]*)"$`, func(url string) error { return sc.theMockplaidIsRunningAt(url) })
 	ctx.Step(`^Rafiki assets are seeded$`, func() error { return sc.rafikiAssetsExist() })
 
 	// User details and impersonation steps
@@ -205,6 +209,12 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 		return sc.iCompleteMinimalPTIKYCFlow(userName)
 	})
 	ctx.Step(`^I connect a US bank account$`, func() error { return sc.iConnectAUSBankAccount() })
+	ctx.Step(`^I connect "([^"]*)" "([^"]*)" via Plaid$`, func(bank, account string) error { return sc.iConnectViaPlaid(bank, account) })
+	ctx.Step(`^I cancel the Plaid overlay$`, func() error { return sc.iCancelThePlaidOverlay() })
+	ctx.Step(`^I should have "([^"]*)" Plaid bank accounts$`, func(n string) error { return sc.iShouldHaveNPlaidBankAccounts(n) })
+	ctx.Step(`^I remove the linked Plaid bank account "([^"]*)"$`, func(displayText string) error {
+		return sc.iRemoveTheLinkedPlaidBankAccount(displayText)
+	})
 	ctx.Step(`^I deposit "([^"]*)" "([^"]*)" via the PTI deposit form$`, func(amount, currency string) error {
 		return sc.iDepositViaPTIDepositForm(amount, currency)
 	})

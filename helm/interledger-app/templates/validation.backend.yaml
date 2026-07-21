@@ -100,6 +100,28 @@
   ) -}}
 {{- end -}}
 
+{{/* plaid.enabled — mirrors validateStart Plaid block in start.go */}}
+{{- if eq (toString .Values.backend.config.plaid.enabled) "true" -}}
+  {{- $requiredFields = concat $requiredFields (list
+    (dict "path" "backend.config.plaid.client_id" "value" .Values.backend.config.plaid.client_id)
+    (dict "path" "backend.config.plaid.secret"    "value" .Values.backend.config.plaid.secret)
+  ) -}}
+  {{- $plaidEnv := .Values.backend.config.plaid.env | default "" -}}
+  {{- if not (has $plaidEnv (list "sandbox" "production")) -}}
+    {{- fail (printf "backend.config.plaid.env must be one of [sandbox production], got: %q" $plaidEnv) -}}
+  {{- end -}}
+  {{- if eq (len .Values.backend.config.plaid.products) 0 -}}
+    {{- fail "backend.config.plaid.products is required when backend.config.plaid.enabled is true" -}}
+  {{- end -}}
+  {{- if eq (len .Values.backend.config.plaid.country_codes) 0 -}}
+    {{- fail "backend.config.plaid.country_codes is required when backend.config.plaid.enabled is true" -}}
+  {{- end -}}
+  {{- $plaidProcessor := .Values.backend.config.plaid.processor | default "fiant" -}}
+  {{- if ne $plaidProcessor "fiant" -}}
+    {{- fail (printf "backend.config.plaid.processor must be fiant, got: %q" $plaidProcessor) -}}
+  {{- end -}}
+{{- end -}}
+
 {{/*
   mode=prod requires twilio enabled — mirrors the guardrail in validateStart.
   When disabled the backend runs a no-op verification service that approves any

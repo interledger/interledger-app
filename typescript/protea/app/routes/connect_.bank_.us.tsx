@@ -17,6 +17,7 @@ import {
   Select,
   TextField
 } from '~/components'
+import { envBool } from '~/env.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
@@ -26,6 +27,9 @@ import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import type { Route } from './+types/connect_.bank_.us'
 
 export async function loader({ request }: Route.LoaderArgs) {
+  // When Plaid is the active bank-link path, the manual form is unreachable.
+  if (envBool('PLAID_ENABLED')) throw redirect(href('/connect/bank'))
+
   const balancesResponse = await grpc.getBalances(request, {})
   if (
     isConnectError(balancesResponse) ||
@@ -180,7 +184,7 @@ export async function action({ request }: Route.ActionArgs) {
     bankName: ''
   }
 
-  let response = await grpc.createPtiBankAccount(request, {
+  const response = await grpc.createPtiBankAccount(request, {
     accountNumber,
     accountType,
     routingNumber,

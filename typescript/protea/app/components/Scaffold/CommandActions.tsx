@@ -69,7 +69,7 @@ export function CommandActions() {
 
   const _onChangeInput = useCallback<ChangeEventHandler<HTMLInputElement>>(
     (event) => {
-      let term = event.target.value
+      const term = event.target.value
       setTerm(term)
       setLoading(true)
       search.load(`/pay?term=${term}`)

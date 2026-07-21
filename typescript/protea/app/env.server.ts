@@ -29,7 +29,8 @@ const knownEnvKeysOptional: string[] = [
   'PUSHER_APP_CLUSTER',
   'DEFAULT_RATE_LIMIT_REQUESTS',
   'DEFAULT_RATE_LIMIT_TIME',
-  'GOOGLE_MAPS_API_KEY'
+  'GOOGLE_MAPS_API_KEY',
+  'PLAID_ENABLED'
 ]
 
 const knownEnvKeysEnabled = {

@@ -43,6 +43,7 @@ Users get a single wallet tied to one payment provider (GateHub, PTI, Xago, or C
 | Document | Description |
 |----------|-------------|
 | [GateHub Cards](gatehub-cards-guide.md) | EUR debit card issuing: customer onboarding, card lifecycle, 3DS, webhooks |
+| [Plaid Bank Linking](plaid-integration-guide.md) | US bank linking via Plaid → PTI/Fiant: connect flow, soft-delete, concurrency, and dev issues |
 
 ### Operations
 

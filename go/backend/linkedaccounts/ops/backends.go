@@ -1,6 +1,8 @@
 package ops
 
 import (
+	"context"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/interledger/interledger-app/go/backend/config"
 	"github.com/interledger/interledger-app/go/backend/email"
@@ -15,6 +17,7 @@ type Backends interface {
 	Config() *config.StartConfig
 	Validator() *validator.Validate
 	DB() *sqlx.DB
+	WithTx(ctx context.Context, fn func(*sqlx.Tx) error) error
 	Wallets() wallets.Client
 	Notify() notify.Client
 	Email() email.Client

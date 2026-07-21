@@ -226,6 +226,16 @@ backend:
       # time and on startup.
       sandbox_fake_za_id: false
 
+    plaid:
+      enabled: false
+      client_id: ""
+      secret: ""
+      env: ""
+      products: []
+      country_codes: []
+      processor: ""
+      api_url: ""
+
     twilio:
       # When enabled=false the backend runs a no-op verification service that
       # "sends" codes without contacting Twilio and treats any submitted code as
