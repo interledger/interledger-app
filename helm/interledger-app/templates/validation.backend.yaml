@@ -23,7 +23,6 @@
   (dict "path" "backend.config.rafiki.signature_version"    "value" .Values.backend.config.rafiki.signature_version)
   (dict "path" "backend.config.xago.api_base_url"           "value" .Values.backend.config.xago.api_base_url)
   (dict "path" "backend.config.xago.identity_base_url"      "value" .Values.backend.config.xago.identity_base_url)
-  (dict "path" "backend.config.xago.exchange_base_url"      "value" .Values.backend.config.xago.exchange_base_url)
   (dict "path" "backend.config.xago.api_public_key"         "value" .Values.backend.config.xago.api_public_key)
   (dict "path" "backend.config.xago.api_secret"             "value" .Values.backend.config.xago.api_secret)
   (dict "path" "backend.config.xago.policy_id"              "value" .Values.backend.config.xago.policy_id)
