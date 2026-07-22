@@ -90,7 +90,7 @@ export default function Page() {
 }
 
 export async function action({ request }: Route.ActionArgs) {
-  let form = await request.formData()
+  const form = await request.formData()
   const cardProductCode = form.get('cardProductCode') as string
   const type = Number(form.get('type')) as CardType
   const deliveryAddressId = form.get('deliveryAddressId') as string

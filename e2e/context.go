@@ -55,6 +55,9 @@ type E2EContext struct {
 	// MockGatehub API URL
 	mockgatehubBaseURL string
 
+	// MockPlaid API URL (Plaid REST + Link CDN stand-in)
+	mockplaidBaseURL string
+
 	// Test state
 	currentStep     int
 	signupID        string
@@ -124,6 +127,7 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^mockgatehub is running at "([^"]*)"$`, func(url string) error { return sc.theMockgatehubIsRunningAt(url) })
 	ctx.Step(`^mockxago is running at "([^"]*)"$`, func(url string) error { return sc.theMockxagoIsRunningAt(url) })
 	ctx.Step(`^mockpti is running at "([^"]*)"$`, func(url string) error { return sc.theMockptiIsRunningAt(url) })
+	ctx.Step(`^mockplaid is running at "([^"]*)"$`, func(url string) error { return sc.theMockplaidIsRunningAt(url) })
 	ctx.Step(`^Rafiki assets are seeded$`, func() error { return sc.rafikiAssetsExist() })
 
 	// User details and impersonation steps
@@ -205,6 +209,12 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 		return sc.iCompleteMinimalPTIKYCFlow(userName)
 	})
 	ctx.Step(`^I connect a US bank account$`, func() error { return sc.iConnectAUSBankAccount() })
+	ctx.Step(`^I connect "([^"]*)" "([^"]*)" via Plaid$`, func(bank, account string) error { return sc.iConnectViaPlaid(bank, account) })
+	ctx.Step(`^I cancel the Plaid overlay$`, func() error { return sc.iCancelThePlaidOverlay() })
+	ctx.Step(`^I should have "([^"]*)" Plaid bank accounts$`, func(n string) error { return sc.iShouldHaveNPlaidBankAccounts(n) })
+	ctx.Step(`^I remove the linked Plaid bank account "([^"]*)"$`, func(displayText string) error {
+		return sc.iRemoveTheLinkedPlaidBankAccount(displayText)
+	})
 	ctx.Step(`^I deposit "([^"]*)" "([^"]*)" via the PTI deposit form$`, func(amount, currency string) error {
 		return sc.iDepositViaPTIDepositForm(amount, currency)
 	})
@@ -547,11 +557,26 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I navigate to the botanist wallets page$`, func() error {
 		return sc.iNavigateToTheBotanistWalletsPage()
 	})
-	ctx.Step(`^I filter the wallets list by "([^"]*)"$`, func(term string) error {
-		return sc.iFilterTheWalletsListBy(term)
+	ctx.Step(`^I filter the wallets list by my first name$`, func() error {
+		return sc.iFilterTheWalletsListByMyFirstName()
 	})
-	ctx.Step(`^I filter the wallets list by my wallet name$`, func() error {
-		return sc.iFilterTheWalletsListByMyWalletName()
+	ctx.Step(`^I filter the wallets list by my last name$`, func() error {
+		return sc.iFilterTheWalletsListByMyLastName()
+	})
+	ctx.Step(`^I filter the wallets list by my email$`, func() error {
+		return sc.iFilterTheWalletsListByMyEmail()
+	})
+	ctx.Step(`^I filter the wallets list by my phone number$`, func() error {
+		return sc.iFilterTheWalletsListByMyPhoneNumber()
+	})
+	ctx.Step(`^I filter the wallets list by my wallet address$`, func() error {
+		return sc.iFilterTheWalletsListByMyWalletAddress()
+	})
+	ctx.Step(`^I filter the wallets list by my provider ID$`, func() error {
+		return sc.iFilterTheWalletsListByMyProviderID()
+	})
+	ctx.Step(`^I filter the wallets list by all filters$`, func() error {
+		return sc.iFilterTheWalletsListByAllFilters()
 	})
 	ctx.Step(`^my wallet should appear in the wallets list$`, func() error {
 		return sc.myWalletShouldAppearInTheWalletsList()
@@ -602,9 +627,6 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	})
 
 	// Account deletion steps
-	ctx.Step(`^the delete-account feature is enabled for my wallet$`, func() error {
-		return sc.iEnableDeleteAccountFeatureForMyWallet()
-	})
 	ctx.Step(`^an account-deletion request exists for me with status "([^"]*)"$`, func(status string) error {
 		return sc.aPendingAccountDeletionRequestExistsForMeWithStatus(status)
 	})
@@ -637,17 +659,6 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	})
 	ctx.Step(`^the TOTP step-up popup should not appear$`, func() error {
 		return sc.theTOTPStepUpPopupShouldNotAppear()
-	})
-
-	// Botanist feature toggle steps
-	ctx.Step(`^the "([^"]*)" feature toggle should be (on|off)$`, func(key, state string) error {
-		return sc.theFeatureToggleShouldBe(key, state)
-	})
-	ctx.Step(`^I toggle the "([^"]*)" feature on$`, func(key string) error {
-		return sc.iToggleTheFeatureOn(key)
-	})
-	ctx.Step(`^the "([^"]*)" feature should be enabled in the database for my wallet$`, func(key string) error {
-		return sc.theFeatureShouldBeEnabledInTheDatabase(key)
 	})
 }
 
@@ -863,14 +874,21 @@ func (sc *E2EContext) getKratosUserIDByEmail(email string) string {
 		kratosAdminURL = "http://localhost:4434"
 	}
 
+	// Use Kratos' server-side credentials_identifier filter (exact, indexed
+	// lookup). Listing all identities and scanning client-side flakes once the
+	// local Kratos accumulates >250 identities (every run mints fresh users),
+	// because the default page holds only the first 250. This filter is
+	// independent of total identity count.
+	listURL := kratosAdminURL + "/admin/identities?credentials_identifier=" + url.QueryEscape(email)
+
 	client := &http.Client{Timeout: 30 * time.Second}
-	listReq, err := http.NewRequestWithContext(context.Background(), "GET", kratosAdminURL+"/admin/identities", nil)
+	listReq, err := http.NewRequestWithContext(context.Background(), "GET", listURL, nil)
 	if err != nil {
 		debugPrintf("⚠️  getKratosUserIDByEmail: failed to build request: %v\n", err)
 		return ""
 	}
 
-	debugPrintf("→ GET %s/admin/identities\n", kratosAdminURL)
+	debugPrintf("→ GET %s\n", listURL)
 	listResp, err := client.Do(listReq)
 	if err != nil {
 		debugPrintf("⚠️  getKratosUserIDByEmail: request error: %v\n", err)

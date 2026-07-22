@@ -84,7 +84,7 @@ export const jsonWithSnackbar: JsonWithSnackbarFunction = async (
   snackbar,
   init
 ) => {
-  let responseInit = typeof init === 'number' ? { status: init } : init
+  const responseInit = typeof init === 'number' ? { status: init } : init
 
   const cookie = await flashSnackbar(request, snackbar)
   const newHeaders = new Headers(responseInit?.headers)

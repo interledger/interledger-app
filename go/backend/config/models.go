@@ -19,15 +19,16 @@ func (e EnvironmentConfig) IsModeSandbox() bool { return e.Mode == "sandbox" }
 // Secrets may be embedded as {{ secret "k8s-secret-name" "key" }} template expressions,
 // which configa resolves against the Kubernetes Secrets API at startup.
 type StartConfig struct {
-	Environment         EnvironmentConfig `yaml:"environment"`
-	Port                string            `yaml:"port"`
-	ApplicationURL      string            `yaml:"application_url"       validate:"required"`
-	OpenPaymentsBaseURL string            `yaml:"open_payments_base_url" validate:"required"`
-	AuthBaseURL         string            `yaml:"auth_base_url"          validate:"required"`
-	LogLevel            string            `yaml:"log_level"`
-	LogOutputPath       string            `yaml:"log_output_path"`
-	AllowedWalletIDs    []string          `yaml:"allowed_wallet_ids"`
-	BlockedRegions      []string          `yaml:"blocked_regions"`
+	Environment          EnvironmentConfig `yaml:"environment"`
+	Port                 string            `yaml:"port"`
+	ApplicationURL       string            `yaml:"application_url"       validate:"required"`
+	OpenPaymentsBaseURL  string            `yaml:"open_payments_base_url" validate:"required"`
+	AuthBaseURL          string            `yaml:"auth_base_url"          validate:"required"`
+	LogLevel             string            `yaml:"log_level"`
+	LogOutputPath        string            `yaml:"log_output_path"`
+	AllowedWalletIDs     []string          `yaml:"allowed_wallet_ids"`
+	BlockedRegions       []string          `yaml:"blocked_regions"`
+	DeleteAccountEnabled bool              `yaml:"delete_account_enabled"`
 
 	DB         DBConfig         `yaml:"db"`
 	Kratos     KratosConfig     `yaml:"kratos"`
@@ -50,6 +51,7 @@ type StartConfig struct {
 	Segment    SegmentConfig    `yaml:"segment"`
 	Agreements AgreementsConfig `yaml:"agreements"`
 	OTEL       OTELConfig       `yaml:"otel"`
+	Plaid      PlaidConfig      `yaml:"plaid"`
 }
 
 // OTELConfig configures the OpenTelemetry trace exporter. Enabled is an explicit
@@ -140,6 +142,21 @@ type PTIConfig struct {
 	ScenarioTransfer   string `yaml:"scenario_transfer"`
 	ScenarioDeposit    string `yaml:"scenario_deposit"`
 	ScenarioWithdrawal string `yaml:"scenario_withdrawal"`
+}
+
+// PlaidConfig configures the Plaid bank-linking integration. Gated by Enabled;
+// the remaining fields are required only when enabled. APIURL overrides the SDK
+// base URL (e.g. to point at mockplaid locally) — empty selects the real Plaid
+// environment matching Env.
+type PlaidConfig struct {
+	Enabled      bool     `yaml:"enabled"`
+	ClientID     string   `yaml:"client_id"`
+	Secret       string   `yaml:"secret"`
+	Env          string   `yaml:"env"`
+	Products     []string `yaml:"products"`
+	CountryCodes []string `yaml:"country_codes"`
+	Processor    string   `yaml:"processor"`
+	APIURL       string   `yaml:"api_url"`
 }
 
 type PersonaConfig struct {

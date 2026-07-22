@@ -1,0 +1,17 @@
+services:
+  mockplaid:
+    build:
+      context: ../../../../
+      dockerfile: go/mock/mockplaid/Dockerfile
+    container_name: mockplaid-test
+    ports:
+      - "24026:8080"
+    environment:
+      - MOCKPLAID_PORT=8080
+      - LOG_LEVEL=debug
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 5s

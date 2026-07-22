@@ -57,7 +57,7 @@ export const error: JsonWithErrorFunction = async (
   init,
   isConnectError = false
 ) => {
-  let responseInit = typeof init === 'number' ? { status: init } : init
+  const responseInit = typeof init === 'number' ? { status: init } : init
   const newHeaders = new Headers(responseInit?.headers)
 
   if (!isConnectError) {
@@ -277,7 +277,7 @@ export class ConnectError {
     }
 
     return this.fieldViolations.reduce((accumulator, current) => {
-      let fieldName = fieldNames[current.field.toLowerCase()]
+      const fieldName = fieldNames[current.field.toLowerCase()]
       if (fieldName) {
         ;(accumulator as Record<string, string>)[fieldName] =
           current.description

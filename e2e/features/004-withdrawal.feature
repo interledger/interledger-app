@@ -96,3 +96,25 @@ Feature: Withdraw Funds
     When I navigate to the withdrawal page
     And I withdraw "50" "USD" via the PTI withdrawal form
     Then I should see my balance updated with "50" "USD"
+
+  @withdrawal @plaid @pti
+  Scenario: A Plaid-linked account receives a PTI withdrawal
+    Given mockplaid is running at "https://mockplaid.interledger.test"
+    And the details of 'plaid-withdrawal-user' are
+      | field       | value                        |
+      | emailSuffix | plaid-withdrawal@example.com |
+      | password    | InterlEdger2025!TestPassword |
+      | country     | United States                |
+      | firstName   | Alice                        |
+      | lastName    | Smith                        |
+      | dateOfBirth | 1984-06-27                   |
+    And mockpti is running at "https://mockpti.interledger.test"
+    And I complete the minimal PTI KYC flow `plaid-withdrawal-user`
+    And I connect "Tartan Bank" "checking" via Plaid
+    And I navigate to the deposit page
+    And I deposit "100" "USD" via the PTI deposit form
+    Then I should see my balance updated with "100" "USD"
+
+    When I navigate to the withdrawal page
+    And I withdraw "50" "USD" via the PTI withdrawal form
+    Then I should see my balance updated with "50" "USD"

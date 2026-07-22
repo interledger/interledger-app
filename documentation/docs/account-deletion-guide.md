@@ -84,10 +84,7 @@ The handler persists the row **before** sending email so duplicate clicks are de
 
 ## Feature Flag
 
-`Features.deleteAccountEnabled` is a per-wallet flag stored in `wallet_features.delete_account_enabled`. It defaults to **false** for every country branch in `features/ops.Features()`. Enabling the flow for a wallet is an explicit opt-in:
-
-- **Manual:** SQL upsert (testing/local dev).
-- **Admin UI:** botanist's wallet profile page renders the flag as a toggle. Toggling persists via `SetWalletFeatures` → `wallet_features` row.
+`Features.deleteAccountEnabled` is a global switch driven by the `delete_account_enabled` backend config value. `features/ops.Features()` resolves it from config for every eligible (KYC-approved, non-blocked) wallet, ignoring country and any per-wallet `wallet_features` row. Set `delete_account_enabled: true` in the environment's backend config to turn the flow on for everyone.
 
 The FE gates the route and the settings-list link on this flag:
 
@@ -100,7 +97,7 @@ When `RequestAccountDeletion` succeeds, the backend produces these outputs in or
 
 1. **`account_deletion_requests` row** with `user_id` = the Kratos identity ID and `status = 'pending'`. The `user_id` column has a unique index so a duplicate request returns `accountdeletion.ErrAlreadyRequested`.
 2. **Support-inbox email** with subject `[<env>] Account deletion requested — user <userID>`. A failure here returns from the handler and triggers a rollback (see below).
-3. **User confirmation email** with subject `We've received your account deletion request`. Best-effort — failures are logged with `userID` but do not fail the RPC.
+3. **User confirmation email** with subject `We have received your account deletion request`. Best-effort — failures are logged with `userID` but do not fail the RPC.
 4. **Slack notification** posted as `wallet-info-bot` to the `signup_kyc` channel (`slack.ChannelSignupKYC`), including the user ID and wallet IDs. The user's email is intentionally omitted to avoid leaking PII into Slack and application logs (support already receives the email at step 2). Best-effort — the wallet-list query that gates this notification can fail; on failure the post is skipped with a warning log.
 
 Rollback semantics:
@@ -138,24 +135,22 @@ The `settings.delete-account.tsx` loader treats any non-`UNSPECIFIED` status fro
 |---|---|---|
 | Proto (user) | `RequestAccountDeletion(RequestAccountDeletionRequest) returns (Empty)` | Submit a request. Request body is empty. |
 | Proto (user) | `GetAccountDeletionStatus(Empty) returns (AccountDeletionStatus)` | Read current status for the authenticated user. |
-| Proto (user) | `Features.deleteAccountEnabled` (slot 14) | Per-wallet feature flag. |
-| Proto (admin) | `Features.deleteAccountEnabled` (slot 14) | Same flag, surfaced for botanist. |
+| Proto (user) | `Features.deleteAccountEnabled` (slot 14) | Global feature flag, resolved from config. |
+| Config | `delete_account_enabled` (backend `StartConfig`) | Global on/off switch for the flow. |
 | Go | `accountdeletion.Client.Request / GetForUser / Delete` | Persistence ops. |
 | Go | `user.Client.CheckUserTotpEnabled` | Reads `credentials.totp` from the Kratos identity. |
 | DB | `account_deletion_requests` | One row per user (unique on `user_id`), columns include `status`, `created_at`, `updated_at`. |
-| DB | `wallet_features.delete_account_enabled` | Per-wallet flag, default `false`. |
 
 ## Testing & Monitoring
 
 - **Handler unit tests** in `go/backend/grpc/account_deletion_test.go` cover the happy path, the rollback-on-support-email-error regression, the wallet-lookup-failure-tolerated case (Slack post is skipped, request still succeeds), the TOTP-not-enrolled precondition, and the already-requested duplicate (both assert the structured AppError reason code).
-- **End-to-end scenarios** in `e2e/features/006-account-deletion.feature` cover FF-off (link hidden, route redirects), FF-on (link visible, full delete flow with TOTP step-up, pending indicator, duplicate-rejection).
-- **Admin scenario** in `e2e/features/101-botanist-wallets.feature` exercises the botanist toggle and verifies the DB row reflects the UI state.
+- **End-to-end scenarios** in `e2e/features/006-account-deletion.feature` run with the flag on (`delete_account_enabled: true`) and cover the link being visible, the full delete flow with TOTP step-up, the pending/in-progress indicators, the missing-TOTP precondition, and duplicate-rejection.
 - **Alerts:** Sentry captures rollback failures with the user ID and both underlying errors. User-confirmation email failures and wallet-list failures (which suppress the Slack post) are logged as warnings, not paged.
 
 ## Support Playbook
 
 - **Locate pending requests:** `SELECT user_id, created_at FROM account_deletion_requests WHERE status = 'pending' ORDER BY created_at`.
-- **Enable the feature for a single wallet:** botanist → wallet profile → toggle `deleteAccountEnabled`.
+- **Enable the feature:** set `delete_account_enabled: true` in the environment's backend config. It applies to every eligible wallet; there is no per-wallet toggle.
 - **Roll a request back to allow retry:** `DELETE FROM account_deletion_requests WHERE user_id = $1`. The user can then submit again from the app.
 - **Diagnose a stuck request:** check Sentry for the rollback-failure log lines (search for "account deletion: rollback failed"). The pending row may need manual cleanup.
-- **A user reports the page redirects them away unexpectedly:** confirm `wallet_features.delete_account_enabled` is `true` for their wallet, and confirm no prior request exists.
+- **A user reports the page redirects them away unexpectedly:** confirm `delete_account_enabled` is `true` in the backend config, and confirm no prior request exists.

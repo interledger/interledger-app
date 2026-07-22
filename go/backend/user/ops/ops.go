@@ -7,12 +7,14 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/interledger/interledger-app/go/backend/country"
 	"github.com/interledger/interledger-app/go/backend/wallets"
 	"github.com/interledger/interledger-app/go/log"
+	"github.com/lib/pq"
 	"go.uber.org/zap"
 
 	"github.com/interledger/interledger-app/go/backend/user"
@@ -20,9 +22,10 @@ import (
 )
 
 const (
-	kratosTimeout       = 1500 * time.Millisecond
-	kratosCookieName    = "ory_kratos_session"
-	aal2RequiredErrorID = "session_aal2_required"
+	kratosTimeout        = 1500 * time.Millisecond
+	kratosCookieName     = "ory_kratos_session"
+	aal2RequiredErrorID  = "session_aal2_required"
+	totpCredentialType = "totp"
 )
 
 type sessionRetrievalErrorResponse struct {
@@ -60,7 +63,7 @@ func UserForCookie(ctx context.Context, b Backends, cookie string) (*user.User, 
 	ctx, cancel := context.WithTimeout(ctx, kratosTimeout)
 	defer cancel()
 
-	session, resp, err := b.Kratos().FrontendApi.ToSession(ctx).Cookie(kratosCookieName + "=" + cookie).Execute()
+	session, resp, err := b.Kratos().FrontendAPI.ToSession(ctx).Cookie(kratosCookieName + "=" + cookie).Execute()
 	if err != nil {
 		return nil, getSessionRetrievalError(resp, err)
 	}
@@ -77,7 +80,7 @@ func UserForToken(ctx context.Context, b Backends, token string) (*user.User, er
 	ctx, cancel := context.WithTimeout(ctx, kratosTimeout)
 	defer cancel()
 
-	session, resp, err := b.Kratos().FrontendApi.ToSession(ctx).XSessionToken(token).Execute()
+	session, resp, err := b.Kratos().FrontendAPI.ToSession(ctx).XSessionToken(token).Execute()
 	if err != nil {
 		return nil, getSessionRetrievalError(resp, err)
 	}
@@ -87,7 +90,7 @@ func UserForToken(ctx context.Context, b Backends, token string) (*user.User, er
 }
 
 func GetUser(ctx context.Context, b Backends, userID string) (*user.User, error) {
-	id, _, err := b.Kratos().IdentityApi.GetIdentity(ctx, userID).Execute()
+	id, _, err := b.Kratos().IdentityAPI.GetIdentity(ctx, userID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", user.ErrInternal, err)
 	}
@@ -136,7 +139,7 @@ func UserForContext(ctx context.Context) (*user.User, error) {
 //
 //	// Use totpURL
 func GetTotpURL(ctx context.Context, b Backends, userID string) (string, error) {
-	identity, _, err := b.Kratos().IdentityApi.GetIdentity(ctx, userID).IncludeCredential([]string{"totp"}).Execute()
+	identity, _, err := b.Kratos().IdentityAPI.GetIdentity(ctx, userID).IncludeCredential([]string{"totp"}).Execute()
 	if err != nil {
 		return "", fmt.Errorf("%w %s", user.ErrInternal, err)
 	}
@@ -174,7 +177,7 @@ func FindWalletIDByEmail(ctx context.Context, b Backends, email string) (string,
 
 	// Kratos admin API is at server index 1.
 	kratosCtx := context.WithValue(ctx, client.ContextServerIndex, 1)
-	identities, _, err := b.Kratos().IdentityApi.ListIdentities(kratosCtx).CredentialsIdentifier(email).Execute()
+	identities, _, err := b.Kratos().IdentityAPI.ListIdentities(kratosCtx).CredentialsIdentifier(email).Execute()
 	if err != nil {
 		return "", fmt.Errorf("%w %s", user.ErrInternal, err)
 	}
@@ -200,6 +203,60 @@ func FindWalletIDByEmail(ctx context.Context, b Backends, email string) (string,
 		return "", fmt.Errorf("%w %s", user.ErrInternal, err)
 	}
 	return walletID, nil
+}
+
+// maxIdentifierPrefixWalletIDs defensively bounds the wallet-ID set resolved
+// from a Kratos identifier-prefix search (e.g. a broad 1-char email prefix).
+const maxIdentifierPrefixWalletIDs = 1000
+
+// FindWalletIDsByIdentifierPrefix resolves ALL Kratos identities whose
+// credential identifier (email or phone) starts with term to their wallet
+// IDs. Unlike FindWalletIDByEmail (which takes only the first match), every
+// matching identity's wallet is returned, deduplicated.
+func FindWalletIDsByIdentifierPrefix(ctx context.Context, b Backends, term string) ([]string, error) {
+	ctx, cancel := context.WithTimeout(ctx, kratosTimeout)
+	defer cancel()
+
+	//Kratos SDK generates client code from OpenAPI spec with multiple servers entries (public API, admin API — usually index 0 = public, index 1 = admin)
+	kratosCtx := context.WithValue(ctx, client.ContextServerIndex, 1)
+
+	// preview_credentials_identifier_similar is a preview-flagged Ory API with no
+	// documented contract; behavior below is observed, not guaranteed, and may
+	// change on server upgrades. Official openapi schema:
+	// https://github.com/ory/kratos-client-go/blob/v26.2.0/api/openapi.yaml
+	identities, _, err := b.Kratos().IdentityAPI.ListIdentities(kratosCtx).
+		PreviewCredentialsIdentifierSimilar(strings.ToLower(term)).
+		PerPage(int64(maxIdentifierPrefixWalletIDs)).
+		Execute()
+
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", user.ErrInternal, err)
+	}
+	if len(identities) == 0 {
+		return nil, nil
+	}
+
+	userIDs := make([]string, len(identities))
+	for i, id := range identities {
+		userIDs[i] = id.Id
+	}
+
+	var walletIDs []string
+	err = b.DB().SelectContext(ctx, &walletIDs,
+		`SELECT DISTINCT wallet_id FROM user_wallets WHERE user_id = ANY($1)`,
+		pq.Array(userIDs),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", user.ErrInternal, err)
+	}
+
+	if len(walletIDs) > maxIdentifierPrefixWalletIDs {
+		log.Warn("FindWalletIDsByIdentifierPrefix: resolved wallet-ID set exceeds cap, truncating",
+			zap.Int("resolved", len(walletIDs)), zap.Int("cap", maxIdentifierPrefixWalletIDs))
+		walletIDs = walletIDs[:maxIdentifierPrefixWalletIDs]
+	}
+
+	return walletIDs, nil
 }
 
 // TODO: Modify?
@@ -241,7 +298,7 @@ func ListUsers(ctx context.Context, b Backends, walletID string) ([]user.User, e
 			wg.Add(1)
 			go func(uID string) {
 				defer wg.Done()
-				id, _, err := b.Kratos().IdentityApi.GetIdentity(ctx, uID).Execute()
+				id, _, err := b.Kratos().IdentityAPI.GetIdentity(ctx, uID).Execute()
 				if err != nil {
 					anyErr = err
 					return
@@ -264,7 +321,7 @@ func ListUsers(ctx context.Context, b Backends, walletID string) ([]user.User, e
 }
 
 func CheckUserTotpEnabled(ctx context.Context, b Backends, identityID string) (bool, error) {
-	identity, _, err := b.Kratos().IdentityApi.GetIdentity(ctx, identityID).Execute()
+	identity, _, err := b.Kratos().IdentityAPI.GetIdentity(ctx, identityID).Execute()
 	if err != nil {
 		return false, fmt.Errorf("%w %s", user.ErrInternal, err)
 	}
@@ -280,13 +337,13 @@ func CheckUserTotpEnabled(ctx context.Context, b Backends, identityID string) (b
 }
 
 func Delete2FATotpEnrollment(ctx context.Context, b Backends, identityID string) error {
-	identity, _, err := b.Kratos().IdentityApi.GetIdentity(ctx, identityID).Execute()
+	identity, _, err := b.Kratos().IdentityAPI.GetIdentity(ctx, identityID).Execute()
 	if err != nil {
 		return fmt.Errorf("%w %s", user.ErrInternal, err)
 	}
 
-	req := b.Kratos().IdentityApi.DeleteIdentityCredentials(ctx, identity.Id, "totp")
-	_, _, err = req.Execute()
+	req := b.Kratos().IdentityAPI.DeleteIdentityCredentials(ctx, identity.Id, "totp")
+	_, err = req.Execute()
 	if err != nil {
 		return fmt.Errorf("%w %s", user.ErrInternal, err)
 	}
@@ -305,7 +362,7 @@ func searchTotpURL(credentials map[string]client.IdentityCredentials) (string, e
 			continue
 		}
 
-		if *cred.Type != client.IDENTITYCREDENTIALSTYPE_TOTP {
+		if *cred.Type != totpCredentialType {
 			continue
 		}
 
@@ -333,7 +390,7 @@ func SetPhoneVerified(ctx context.Context, b Backends, userID string) error {
 	// Required for kratos to use admin server
 	ctx = context.WithValue(ctx, client.ContextServerIndex, 1)
 
-	identity, _, err := b.Kratos().IdentityApi.GetIdentity(ctx, userID).Execute()
+	identity, _, err := b.Kratos().IdentityAPI.GetIdentity(ctx, userID).Execute()
 	if err != nil {
 		return fmt.Errorf("%w %s", user.ErrInternal, err)
 	}
@@ -345,7 +402,7 @@ func SetPhoneVerified(ctx context.Context, b Backends, userID string) error {
 	traits["phoneVerified"] = true
 
 	update := client.UpdateIdentityBody{Traits: traits}
-	_, _, err = b.Kratos().IdentityApi.UpdateIdentity(ctx, userID).UpdateIdentityBody(update).Execute()
+	_, _, err = b.Kratos().IdentityAPI.UpdateIdentity(ctx, userID).UpdateIdentityBody(update).Execute()
 	if err != nil {
 		return fmt.Errorf("%w %s", user.ErrInternal, err)
 	}
@@ -357,7 +414,7 @@ func UpdateUserPhone(ctx context.Context, b Backends, userID string, phone strin
 	// Required for kratos to use admin server
 	ctx = context.WithValue(ctx, client.ContextServerIndex, 1)
 
-	identity, _, err := b.Kratos().IdentityApi.GetIdentity(ctx, userID).Execute()
+	identity, _, err := b.Kratos().IdentityAPI.GetIdentity(ctx, userID).Execute()
 	if err != nil {
 		return fmt.Errorf("%w %s", user.ErrInternal, err)
 	}
@@ -370,7 +427,7 @@ func UpdateUserPhone(ctx context.Context, b Backends, userID string, phone strin
 	traits["phoneVerified"] = false
 
 	update := client.UpdateIdentityBody{Traits: traits}
-	_, response, err := b.Kratos().IdentityApi.UpdateIdentity(ctx, userID).UpdateIdentityBody(update).Execute()
+	_, response, err := b.Kratos().IdentityAPI.UpdateIdentity(ctx, userID).UpdateIdentityBody(update).Execute()
 	if err != nil {
 		if response != nil && response.StatusCode == 400 {
 			return fmt.Errorf("%w %s", user.ErrInvalidArgument, err)

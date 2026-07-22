@@ -13,6 +13,7 @@ log_level: info
 log_output_path: ""
 allowed_wallet_ids: []
 blocked_regions: []
+delete_account_enabled: true
 
 agreements:
   folder_name: local
@@ -83,6 +84,22 @@ pti:
     -----BEGIN PUBLIC KEY-----
     MCowBQYDK2VwAyEAlXgzWngvg4t6oIvQ5/uFiaHT3bdPDyXtN5dK7nBLzA8=
     -----END PUBLIC KEY-----
+
+# Plaid — enabled by default against mockplaid in local dev.
+plaid:
+  enabled: true
+  client_id: "mock-client-id"
+  secret: "mock-secret"
+  env: sandbox
+  products:
+    - auth
+  country_codes:
+    - US
+  processor: fiant
+  # Base-URL override → mockplaid (local default). For REAL Plaid: blank this
+  # out + remove the cdn.plaid.com line from /etc/hosts, then restart the
+  # backend. (You can use `make plaid-real`/`make plaid-mock` toggle)
+  api_url: "http://mockplaid:8080"
 
 # Persona — routes to mockxago in local dev.
 persona:

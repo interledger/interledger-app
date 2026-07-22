@@ -15,6 +15,7 @@ import (
 	users_mock "github.com/interledger/interledger-app/go/backend/user/client/mock"
 	"github.com/interledger/interledger-app/go/backend/wallets"
 	"github.com/interledger/interledger-app/go/backend/wallets/ops"
+	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -472,4 +473,193 @@ func TestListAllSearch(t *testing.T) {
 		// pageSize+1 fetched — exactly 1 returned (the extra one is stripped by the handler, but here we test the raw DB layer)
 		require.LessOrEqual(t, len(result), 2)
 	})
+}
+
+func insertKYC(ctx context.Context, t *testing.T, dbc *sqlx.DB, walletID string, revision int, firstName, lastName string) {
+	t.Helper()
+	_, err := dbc.ExecContext(ctx,
+		`INSERT INTO individual_kyc_details (wallet_id, revision, country_code, first_name, last_name, gender, ip_address)
+		 VALUES ($1, $2, 'US', $3, $4, 0, '127.0.0.1')`,
+		walletID, revision, firstName, lastName)
+	require.NoError(t, err)
+}
+
+func insertWalletAddress(ctx context.Context, t *testing.T, dbc *sqlx.DB, walletID, url string) {
+	t.Helper()
+	_, err := dbc.ExecContext(ctx,
+		`INSERT INTO wallet_addresses (wallet_id, url) VALUES ($1, $2)`,
+		walletID, url)
+	require.NoError(t, err)
+}
+
+func insertLinkedAccount(ctx context.Context, t *testing.T, dbc *sqlx.DB, walletID, providerID string) {
+	t.Helper()
+	_, err := dbc.ExecContext(ctx,
+		`INSERT INTO linked_accounts (wallet_id, name, mask, provider, provider_id, type)
+		 VALUES ($1, 'test', '0000', 'test', $2, 'test')`,
+		walletID, providerID)
+	require.NoError(t, err)
+}
+
+func TestListAllFilter(t *testing.T) {
+	ctx := context.Background()
+
+	ensureTestDBURL(t)
+	dbc := db.MigrateTestDB(t, ctx, "")
+
+	ctrl := gomock.NewController(t)
+	km := keys_mock.NewMockClient(ctrl)
+	km.EXPECT().ProvisionPrivateKey(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+	b := ops.NewTestBackends(t, dbc, km, users_mock.NewMock())
+
+	userID := uuid.NewString()
+
+	walletA, err := ops.Create(ctx, b, wallets.CreateArgs{UserID: userID, Name: "wallet-a"})
+	require.NoError(t, err)
+	insertKYC(ctx, t, dbc, walletA.ID, 1, "Jane", "Doe")
+	insertWalletAddress(ctx, t, dbc, walletA.ID, "https://ilp.example/jane")
+	insertLinkedAccount(ctx, t, dbc, walletA.ID, "prov-A")
+
+	walletB, err := ops.Create(ctx, b, wallets.CreateArgs{UserID: userID, Name: "wallet-b"})
+	require.NoError(t, err)
+	insertKYC(ctx, t, dbc, walletB.ID, 1, "John", "Smith")
+	insertWalletAddress(ctx, t, dbc, walletB.ID, "https://ilp.example/john")
+	insertLinkedAccount(ctx, t, dbc, walletB.ID, "prov-B")
+
+	// walletC has two KYC revisions with different first/last name combinations,
+	// to prove first+last name filters must match the SAME row, not any row.
+	walletC, err := ops.Create(ctx, b, wallets.CreateArgs{UserID: userID, Name: "wallet-c"})
+	require.NoError(t, err)
+	insertKYC(ctx, t, dbc, walletC.ID, 1, "Jane", "Smith")
+	insertKYC(ctx, t, dbc, walletC.ID, 2, "Alice", "Doe")
+
+	// walletD/E carry LIKE metacharacters in stored values to prove they are
+	// escaped and treated literally, not as SQL wildcards.
+	walletD, err := ops.Create(ctx, b, wallets.CreateArgs{UserID: userID, Name: "wallet-d"})
+	require.NoError(t, err)
+	insertKYC(ctx, t, dbc, walletD.ID, 1, "a%b", "Percent")
+
+	walletE, err := ops.Create(ctx, b, wallets.CreateArgs{UserID: userID, Name: "wallet-e"})
+	require.NoError(t, err)
+	insertKYC(ctx, t, dbc, walletE.ID, 1, "Under", "x_y")
+
+	t.Run("first name alone, prefix, case-insensitive", func(t *testing.T) {
+		result, err := ops.ListAll(ctx, b, db.Pagination{PageSize: 50, Filter: db.WalletFilter{FirstName: "JA"}})
+		require.NoError(t, err)
+		ids := walletIDs(result)
+		assert.ElementsMatch(t, []string{walletA.ID, walletC.ID}, ids)
+	})
+
+	t.Run("last name alone, prefix", func(t *testing.T) {
+		result, err := ops.ListAll(ctx, b, db.Pagination{PageSize: 50, Filter: db.WalletFilter{LastName: "do"}})
+		require.NoError(t, err)
+		ids := walletIDs(result)
+		assert.ElementsMatch(t, []string{walletA.ID, walletC.ID}, ids)
+	})
+
+	t.Run("prefix does not match mid-string", func(t *testing.T) {
+		result, err := ops.ListAll(ctx, b, db.Pagination{PageSize: 50, Filter: db.WalletFilter{FirstName: "ane"}})
+		require.NoError(t, err)
+		assert.Empty(t, result)
+	})
+
+	t.Run("first+last must match the same KYC row", func(t *testing.T) {
+		result, err := ops.ListAll(ctx, b, db.Pagination{PageSize: 50, Filter: db.WalletFilter{FirstName: "Jane", LastName: "Doe"}})
+		require.NoError(t, err)
+		require.Len(t, result, 1)
+		assert.Equal(t, walletA.ID, result[0].ID)
+	})
+
+	t.Run("wallet address contains, case-insensitive", func(t *testing.T) {
+		result, err := ops.ListAll(ctx, b, db.Pagination{PageSize: 50, Filter: db.WalletFilter{WalletAddress: "ILP.EXAMPLE/JANE"}})
+		require.NoError(t, err)
+		require.Len(t, result, 1)
+		assert.Equal(t, walletA.ID, result[0].ID)
+	})
+
+	t.Run("provider id exact", func(t *testing.T) {
+		result, err := ops.ListAll(ctx, b, db.Pagination{PageSize: 50, Filter: db.WalletFilter{ProviderID: "prov-A"}})
+		require.NoError(t, err)
+		require.Len(t, result, 1)
+		assert.Equal(t, walletA.ID, result[0].ID)
+	})
+
+	t.Run("wallet IDs ANY filter", func(t *testing.T) {
+		result, err := ops.ListAll(ctx, b, db.Pagination{PageSize: 50, Filter: db.WalletFilter{WalletIDs: []string{walletB.ID, walletC.ID}}})
+		require.NoError(t, err)
+		ids := walletIDs(result)
+		assert.ElementsMatch(t, []string{walletB.ID, walletC.ID}, ids)
+	})
+
+	t.Run("combined AND: two filters matching different wallets yields empty", func(t *testing.T) {
+		result, err := ops.ListAll(ctx, b, db.Pagination{PageSize: 50, Filter: db.WalletFilter{LastName: "smith", ProviderID: "prov-A"}})
+		require.NoError(t, err)
+		assert.Empty(t, result)
+	})
+
+	t.Run("combined AND: two filters matching the same wallet yields that wallet only", func(t *testing.T) {
+		result, err := ops.ListAll(ctx, b, db.Pagination{PageSize: 50, Filter: db.WalletFilter{LastName: "doe", ProviderID: "prov-A"}})
+		require.NoError(t, err)
+		require.Len(t, result, 1)
+		assert.Equal(t, walletA.ID, result[0].ID)
+	})
+
+	t.Run("LIKE metacharacter %% treated literally", func(t *testing.T) {
+		result, err := ops.ListAll(ctx, b, db.Pagination{PageSize: 50, Filter: db.WalletFilter{FirstName: "a%b"}})
+		require.NoError(t, err)
+		require.Len(t, result, 1)
+		assert.Equal(t, walletD.ID, result[0].ID)
+
+		// A bare '%' must not act as a wildcard matching everyone.
+		result, err = ops.ListAll(ctx, b, db.Pagination{PageSize: 50, Filter: db.WalletFilter{FirstName: "%"}})
+		require.NoError(t, err)
+		assert.Empty(t, result)
+	})
+
+	t.Run("LIKE metacharacter _ treated literally", func(t *testing.T) {
+		result, err := ops.ListAll(ctx, b, db.Pagination{PageSize: 50, Filter: db.WalletFilter{LastName: "x_y"}})
+		require.NoError(t, err)
+		require.Len(t, result, 1)
+		assert.Equal(t, walletE.ID, result[0].ID)
+
+		// 'x_y' with _ as a real wildcard would also match e.g. "xzy"; it must not.
+		result, err = ops.ListAll(ctx, b, db.Pagination{PageSize: 50, Filter: db.WalletFilter{LastName: "xzy"}})
+		require.NoError(t, err)
+		assert.Empty(t, result)
+	})
+
+	t.Run("no filter behaves like unfiltered pagination", func(t *testing.T) {
+		result, err := ops.ListAll(ctx, b, db.Pagination{PageSize: 50})
+		require.NoError(t, err)
+		require.GreaterOrEqual(t, len(result), 5)
+	})
+
+	t.Run("keyset page 2 respects the active filter", func(t *testing.T) {
+		// last name "doe" or "smith" spans walletA, walletB, walletC (3 wallets).
+		filter := db.WalletFilter{}
+		page1, err := ops.ListAll(ctx, b, db.Pagination{PageSize: 1, Filter: filter, Search: ""})
+		require.NoError(t, err)
+		require.NotEmpty(t, page1)
+
+		// Use the provider-id filter (unique to walletA) across two pages to
+		// prove the token carries the filter forward: page size 1 with a
+		// filter matching exactly one row must return that one row, and a
+		// second page (using its ID as token) must return nothing further.
+		first, err := ops.ListAll(ctx, b, db.Pagination{PageSize: 1, Filter: db.WalletFilter{ProviderID: "prov-A"}})
+		require.NoError(t, err)
+		require.Len(t, first, 1)
+		assert.Equal(t, walletA.ID, first[0].ID)
+
+		second, err := ops.ListAll(ctx, b, db.Pagination{PageSize: 1, PageToken: first[0].ID, Filter: db.WalletFilter{ProviderID: "prov-A"}})
+		require.NoError(t, err)
+		assert.Empty(t, second)
+	})
+}
+
+func walletIDs(wl []wallets.Wallet) []string {
+	ids := make([]string, len(wl))
+	for i, w := range wl {
+		ids[i] = w.ID
+	}
+	return ids
 }

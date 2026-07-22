@@ -147,6 +147,7 @@ backend:
     log_output_path: "stdout"
     allowed_wallet_ids: []
     blocked_regions: []
+    delete_account_enabled: false
 
     agreements:
       folder_name: ""
@@ -224,6 +225,16 @@ backend:
       # environment.mode=prod with sandbox_fake_za_id=true is rejected at render
       # time and on startup.
       sandbox_fake_za_id: false
+
+    plaid:
+      enabled: false
+      client_id: ""
+      secret: ""
+      env: ""
+      products: []
+      country_codes: []
+      processor: ""
+      api_url: ""
 
     twilio:
       # When enabled=false the backend runs a no-op verification service that

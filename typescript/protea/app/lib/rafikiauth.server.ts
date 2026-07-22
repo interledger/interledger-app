@@ -40,7 +40,7 @@ export async function getInteraction(
   interactionId: string,
   nonce: string
 ): Promise<Access[]> {
-  let rpc = await fetch(
+  const rpc = await fetch(
     `${RAFIKI_AUTH_ENDPOINT}/grant/${interactionId}/${nonce}`,
     {
       headers: { 'x-idp-secret': RAFIKI_AUTH_SECRET }
@@ -49,7 +49,7 @@ export async function getInteraction(
   if (rpc.status > 300) {
     throw data({}, rpc.status)
   }
-  let body = (await rpc.json()) as GrantDetails
+  const body = (await rpc.json()) as GrantDetails
 
   return body.access
 }
@@ -59,7 +59,7 @@ export async function consent(
   nonce: string,
   userDecision: 'accept' | 'reject'
 ): Promise<void> {
-  let rpc = await fetch(
+  const rpc = await fetch(
     `${RAFIKI_AUTH_ENDPOINT}/grant/${interactionId}/${nonce}/${userDecision}`,
     {
       body: JSON.stringify({}),

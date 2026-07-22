@@ -53,7 +53,7 @@ export function handleFlowError(
     return
   }
 
-  let redirectRoute = `/${redirectTo}`
+  const redirectRoute = `/${redirectTo}`
 
   switch (flowData.error.id) {
     case 'session_inactive':

@@ -74,6 +74,9 @@ import (
 	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
 	gatehub_client "github.com/interledger/interledger-app/go/backend/providers/gatehub/client"
 	gatehub_ops "github.com/interledger/interledger-app/go/backend/providers/gatehub/ops"
+	"github.com/interledger/interledger-app/go/backend/providers/plaid"
+	plaid_client "github.com/interledger/interledger-app/go/backend/providers/plaid/client"
+	plaid_ops "github.com/interledger/interledger-app/go/backend/providers/plaid/ops"
 	"github.com/interledger/interledger-app/go/backend/providers/pti"
 	pti_client "github.com/interledger/interledger-app/go/backend/providers/pti/client"
 	pti_ops "github.com/interledger/interledger-app/go/backend/providers/pti/ops"
@@ -252,6 +255,19 @@ func start(args *cli.StartArgs) {
 	router.Handle("/webhooks/gatehub", gatehub_ops.NewWebhook(b, b.gatehubConfig))
 	router.Handle("/webhooks/gatehub/v1/users/managed/{userId}/2fa", gatehub_ops.NewSCAHandler(b, b.gatehubConfig))
 	router.Handle("/{wallet_id}/identities/{identity_sig_hash}", wallet_handler.GetIdentityHandler(b))
+
+	if b.plaidClient != nil {
+		var linker plaid_ops.FiantLinker
+		if args.PTI.Enabled {
+			fl, err := pti_ops.NewFiantLinker(b, args.PTI.BaseURL, args.PTI.ClientID, args.PTI.JWK)
+			if err != nil {
+				log.Fatalln(err)
+			}
+			linker = fl
+		}
+		router.Mount("/api/plaid", plaid_ops.NewRouter(b.plaidClient, b.Users(), linker, args.Plaid.Processor))
+	}
+
 	router.NotFound(wallet_handler.WalletRedirectHandler(b))
 
 	// fiant sandbox actions (only when PTI is enabled)
@@ -544,6 +560,7 @@ func startWorker(args *cli.StartArgs) {
 type backends struct {
 	val            *validator.Validate
 	db             *sqlx.DB
+	txRunner       *db.TxRunner
 	twitter        twitter.Client
 	adminAuth      auth.Service
 	agreements     agreements.Client
@@ -577,6 +594,8 @@ type backends struct {
 	gatehub        gatehub.Client
 	gatehubConfig  gatehub.Config
 	chimoney       chimoney.Client
+	plaidConfig    plaid.Config
+	plaidClient    plaid.Client
 	aasaConfig     aasa_assetlinks.Config
 
 	accountDeletion accountdeletion.Client
@@ -659,6 +678,10 @@ func (b backends) DB() *sqlx.DB {
 	return b.db
 }
 
+func (b backends) WithTx(ctx context.Context, fn func(*sqlx.Tx) error) error {
+	return b.txRunner.WithTx(ctx, fn)
+}
+
 func (b backends) Validator() *validator.Validate {
 	return b.val
 }
@@ -727,11 +750,12 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	b := &backends{}
 	b.cfg = args.StartConfig
 
-	db, err := otelsqlx.Connect("postgres", args.DB.URL, otelsql.WithAttributes(semconv.DBSystemCockroachdb), otelsql.WithDBName("cockroachdb"))
+	dbConn, err := otelsqlx.Connect("postgres", args.DB.URL, otelsql.WithAttributes(semconv.DBSystemCockroachdb), otelsql.WithDBName("cockroachdb"))
 	if err != nil {
 		log.Fatalln(err)
 	}
-	b.db = db
+	b.db = dbConn
+	b.txRunner = db.NewTxRunner(dbConn)
 
 	// Initialises the logger we will use throughout
 	err = log.Initialize(args.LogLevel)
@@ -952,6 +976,34 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 
 	log.Debug("initialising Chimoney")
 	b.chimoney = chimoney_client.New(b, args.Chimoney.Token, args.Environment.IsModeProd())
+
+	if args.Plaid.Enabled {
+		log.Debug("initialising Plaid")
+		b.plaidConfig = plaid.Config{
+			Enabled:      args.Plaid.Enabled,
+			ClientID:     args.Plaid.ClientID,
+			Secret:       args.Plaid.Secret,
+			Env:          args.Plaid.Env,
+			Products:     args.Plaid.Products,
+			CountryCodes: args.Plaid.CountryCodes,
+			Processor:    args.Plaid.Processor,
+			APIURL:       args.Plaid.APIURL,
+		}
+		plaidC, err := plaid_client.New(b.plaidConfig)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		b.plaidClient = plaidC
+		log.Info("plaid client initialized",
+			zap.String("env", args.Plaid.Env),
+			zap.Strings("products", args.Plaid.Products),
+			zap.Strings("country_codes", args.Plaid.CountryCodes),
+			zap.String("processor", args.Plaid.Processor),
+			zap.String("api_url", args.Plaid.APIURL),
+		)
+	} else {
+		log.Debug("Plaid disabled (plaid.enabled=false)")
+	}
 
 	b.aasaConfig = aasa_assetlinks.Config{
 		AppleAppID:         args.Mobile.AppleAppID,

@@ -1,6 +1,9 @@
 import { create } from 'zustand'
 
-export type SnackbarAction = 'Contact support' | 'View cards'
+export type SnackbarAction =
+  | 'Contact support'
+  | 'View cards'
+  | 'Update mobile number'
 
 export type SnackbarType = {
   id: string
@@ -40,7 +43,7 @@ export const useScaffoldStore = create<ScaffoldState & ScaffoldActions>()(
     pushSnackbar: (snackbar) =>
       set((state) => {
         if (state.snackbars.findIndex((s) => s.id == snackbar.id) == -1) {
-          let newSnackbars = [...state.snackbars]
+          const newSnackbars = [...state.snackbars]
           snackbar.canShow = true
           newSnackbars.push(snackbar)
           return { snackbars: newSnackbars }
@@ -52,7 +55,7 @@ export const useScaffoldStore = create<ScaffoldState & ScaffoldActions>()(
         const visibleIndex = state.snackbars.findIndex((s) => s.canShow)
         if (visibleIndex != -1) {
           // We found the currently visible snackbar!
-          let newSnackbars = [...state.snackbars]
+          const newSnackbars = [...state.snackbars]
           if (state.snackbars[visibleIndex].fromServer) {
             // If it's from the server, we need to set canShow to false
             // Because the root loader doesn't revalidate on client side navigation

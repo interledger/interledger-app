@@ -107,7 +107,7 @@ export async function updatePaymentAction({
     }
   }
 
-  let response = await grpc.updatePayment(request, {
+  const response = await grpc.updatePayment(request, {
     id: params.paymentId,
     note,
     senderAccount: accountId,
