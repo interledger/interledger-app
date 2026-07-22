@@ -16,6 +16,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/interledger/interledger-app/go/backend/kyc"
+	"github.com/interledger/interledger-app/go/backend/slack"
 
 	pb "github.com/interledger/interledger-app/go/proto/backend/v1"
 	"google.golang.org/grpc/codes"
@@ -52,6 +53,20 @@ func (s *rpcService) GetKYCProviderWidget(ctx context.Context, req *pb.GetKYCPro
 	}
 
 	if _, isEU := country.EUCountries[wallet.Country]; isEU {
+		if kycStatus == kyc.StatusDocumentsRequired {
+			gatehubUser, err := s.b.Gatehub().GetUser(ctx, wallet.ID)
+			if err != nil {
+				return nil, toGRPCError(err)
+			}
+
+			if !gatehub.IsUserInKYCEditMode(gatehubUser) {
+				slack.SendToChannel(ctx, slack.ChannelSignupKYC, "wallet-info-bot",
+					fmt.Sprintf("User with status Documents_required is not in KYC edit mode on GateHub - walletID: %s", wallet.ID),
+				)
+				return nil, toGRPCError(kyc.ErrKYCWidgetNotAvailable)
+			}
+		}
+
 		onboardingWidget, err := s.b.Gatehub().GetOnboardingWidget(ctx, wallet.ID)
 		if err != nil {
 			return nil, toGRPCError(err)

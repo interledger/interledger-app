@@ -27,6 +27,7 @@ var errorStatus = map[error]struct {
 	wallets.ErrWalletConflict:      {http.StatusConflict, errcodes.ErrCodeWalletsWalletConflict},
 	linkedaccounts.ErrNotFound:     {http.StatusNotFound, errcodes.ErrCodeLinkedAccNotFound},
 	kyc.ErrKYCResubmissionRequired: {http.StatusForbidden, errcodes.ErrCodeKYCResubmissionRequired},
+	kyc.ErrKYCWidgetNotAvailable:   {http.StatusForbidden, errcodes.ErrCodeKYCWidgetNotAvailable},
 	gatehub.ErrNotFound:            {http.StatusNotFound, errcodes.ErrCodeNotFound},
 	gatehub.ErrInternal:            {http.StatusInternalServerError, errcodes.ErrCodeInternal},
 	gatehub.ErrTimedOut:            {http.StatusGatewayTimeout, errcodes.ErrCodeGatewayTimeout},

@@ -238,6 +238,15 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I should see the reactivate wallet prompt on the dashboard$`, func() error {
 		return sc.iShouldSeeTheReactivateWalletPromptOnTheDashboard()
 	})
+	ctx.Step(`^I set my MockGatehub user KYC state to "([^"]*)"$`, func(state string) error {
+		return sc.iSetMyMockGatehubUserKYCStateTo(state)
+	})
+	ctx.Step(`^I should see the GateHub KYC widget unavailable message$`, func() error {
+		return sc.iShouldSeeTheGatehubKYCWidgetUnavailableMessage()
+	})
+	ctx.Step(`^I should not see the GateHub KYC widget unavailable message$`, func() error {
+		return sc.iShouldNotSeeTheGatehubKYCWidgetUnavailableMessage()
+	})
 
 	// Deposit steps
 	ctx.Step(`^I navigate to the deposit page$`, func() error { return sc.iNavigateToTheDepositPage() })

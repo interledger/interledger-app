@@ -57,6 +57,7 @@ const (
 	KYCStateAccepted       = "accepted"
 	KYCStateRejected       = "rejected"
 	KYCStateActionRequired = "action_required"
+	KYCStateResubmission   = "resubmission"
 )
 
 // Risk levels

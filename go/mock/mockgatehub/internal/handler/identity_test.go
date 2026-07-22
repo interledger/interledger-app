@@ -405,6 +405,100 @@ func TestGetUser_KYCAccepted(t *testing.T) {
 	assert.Equal(t, 1, resp.Verifications[0].Status)
 }
 
+func TestGetUser_KYCResubmission(t *testing.T) {
+	h, store := idTestHandler(t)
+
+	user, _ := store.GetUser(consts.TestUser1ID)
+	user.KYCState = consts.KYCStateResubmission
+	store.UpdateUser(user)
+
+	req := httptest.NewRequest(http.MethodGet, "/id/v1/users/"+consts.TestUser1ID, nil)
+	req = idWithURLParams(req, map[string]string{"userID": consts.TestUser1ID})
+	w := httptest.NewRecorder()
+	h.GetUser(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	var resp models.GetUserResponse
+	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
+	assert.Equal(t, 10, resp.Verifications[0].Status)
+	assert.Equal(t, 0, resp.Verifications[0].State)
+}
+
+func TestSumsubVerificationStatusState(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		kycState   string
+		wantStatus int
+		wantState  int
+	}{
+		{consts.KYCStateAccepted, 1, 1},
+		{consts.KYCStateRejected, 2, 0},
+		{consts.KYCStateResubmission, 10, 0},
+		{consts.KYCStateActionRequired, 0, 0},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.kycState, func(t *testing.T) {
+			t.Parallel()
+			status, state := sumsubVerificationStatusState(&models.User{KYCState: tt.kycState})
+			assert.Equal(t, tt.wantStatus, status)
+			assert.Equal(t, tt.wantState, state)
+		})
+	}
+}
+
+func TestShouldSkipAcceptedWebhook(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		previous    string
+		event       string
+		wantSkipped bool
+	}{
+		{"accepted after resubmission is skipped", consts.KYCStateResubmission, consts.WebhookEventKYCAccepted, true},
+		{"accepted after action required is sent", consts.KYCStateActionRequired, consts.WebhookEventKYCAccepted, false},
+		{"accepted from fresh state is sent", consts.KYCStateAccepted, consts.WebhookEventKYCAccepted, false},
+		{"accepted with empty previous state is sent", "", consts.WebhookEventKYCAccepted, false},
+		{"rejected after resubmission is sent", consts.KYCStateResubmission, consts.WebhookEventKYCRejected, false},
+		{"action required after resubmission is sent", consts.KYCStateResubmission, consts.WebhookEventKYCActionRequired, false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.wantSkipped, shouldSkipAcceptedWebhook(tt.previous, tt.event))
+		})
+	}
+}
+
+func TestSetUserKYCStateQuiet_Success(t *testing.T) {
+	h, store := idTestHandler(t)
+
+	body := `{"kyc_state":"accepted"}`
+	req := httptest.NewRequest(http.MethodPut, "/admin/users/"+consts.TestUser1ID+"/kyc-state", strings.NewReader(body))
+	req = idWithURLParams(req, map[string]string{"userID": consts.TestUser1ID})
+	w := httptest.NewRecorder()
+	h.SetUserKYCStateQuiet(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	user, err := store.GetUser(consts.TestUser1ID)
+	require.NoError(t, err)
+	assert.Equal(t, consts.KYCStateAccepted, user.KYCState)
+}
+
+func TestSetUserKYCStateQuiet_MissingState(t *testing.T) {
+	h, _ := idTestHandler(t)
+
+	req := httptest.NewRequest(http.MethodPut, "/admin/users/"+consts.TestUser1ID+"/kyc-state", strings.NewReader(`{}`))
+	req = idWithURLParams(req, map[string]string{"userID": consts.TestUser1ID})
+	w := httptest.NewRecorder()
+	h.SetUserKYCStateQuiet(w, req)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
 func TestGetUser_NotFound(t *testing.T) {
 	h, _ := idTestHandler(t)
 
