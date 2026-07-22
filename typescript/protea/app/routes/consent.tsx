@@ -1,3 +1,4 @@
+import { AccessAction } from '@interledger/open-payments'
 import {
   Form,
   data,
@@ -25,7 +26,7 @@ import type { Route } from './+types/consent'
 
 // Outgoing-payment actions the consent screen implements:
 // Grants requesting any other action aren't supported yet and 404.
-const SUPPORTED_ACTIONS = ['create', 'read-all']
+const SUPPORTED_ACTIONS: Partial<AccessAction>[] = ['create', 'read', 'list']
 
 export async function loader({ request }: Route.LoaderArgs) {
   await getUserSession(request)
@@ -62,21 +63,32 @@ export default function Page() {
   const { access, subject, clientName, clientUri } =
     useLoaderData<typeof loader>()
   const [params] = useSearchParams()
-  const amounts = access
-    .map((entry) => entry.limits?.debitAmount ?? entry.limits?.receiveAmount)
-    .filter((amount): amount is Amount => Boolean(amount))
-    .map(formatAmount)
-  // limits take priority: a grant with a debit/receive amount
-  // is shown as a payment, even when a subject is present
+  const cards: { label: string; value?: string }[] = []
+
+  access.forEach((a) => {
+    const amount = a.limits?.debitAmount ?? a.limits?.receiveAmount
+    a.actions.forEach((action) => {
+      switch (action) {
+        case 'create':
+          cards.push(
+            amount
+              ? { label: 'Total amount to debit', value: formatAmount(amount) }
+              : { label: 'Make payments on your behalf' }
+          )
+          break
+        case 'read':
+          cards.push({ label: 'View your payment detail' })
+          break
+        case 'list':
+          cards.push({ label: 'View a list of your payments' })
+          break
+        default:
+      }
+    })
+  })
+
   const isIdentityRequest =
-    amounts.length === 0 && Boolean(subject?.sub_ids?.length)
-
-  const message = isIdentityRequest
-    ? 'wants to confirm your identity.'
-    : amounts.length > 0
-      ? 'is requesting access to the following:'
-      : 'wants to view your payments.'
-
+    cards.length === 0 && Boolean(subject?.sub_ids?.length)
   return (
     <>
       <Form
@@ -88,7 +100,10 @@ export default function Page() {
 
       <Card>
         <CardContent>
-          <span className='text-lg'>{clientName}</span> {message}
+          <span className='text-lg'>{clientName}</span>{' '}
+          {isIdentityRequest
+            ? 'wants to confirm your identity.'
+            : 'is requesting access to the following:'}
         </CardContent>
         <CardButton
           noHover
@@ -104,16 +119,21 @@ export default function Page() {
         </CardButton>
       </Card>
 
-      {amounts.map((amount, index) => (
-        <Card key={index}>
-          <CardContent>
-            <div className='flex w-full justify-between'>
-              <span className='text-medium'>Total amount to debit</span>
-              <span className='text-error'>{amount}</span>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+      {!isIdentityRequest &&
+        cards.map((card, index) => (
+          <Card key={index}>
+            <CardContent>
+              {
+                <div className='flex w-full justify-between'>
+                  <span className='text-medium'>{card.label}</span>
+                  {card.value && (
+                    <span className='text-error'>{card.value}</span>
+                  )}
+                </div>
+              }
+            </CardContent>
+          </Card>
+        ))}
 
       <CardContent className='mt-2 flex w-full justify-end space-x-6'>
         <TextButton form='consent' type='submit' name='action' value='deny'>
