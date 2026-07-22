@@ -453,7 +453,7 @@ func ptiPayIn(ctx workflow.Context, a *Activity, ptiA *pti_ops.Activity, payment
 		var applicationError *temporal.ApplicationError
 		// PTI lets us know they need more user info through 422 errors
 		if errors.As(err, &applicationError) && applicationError.Type() == "ErrUnprocessableEntity" {
-			innerErr := workflow.ExecuteActivity(ctx, ptiA.StartUserAssessment, walletID, pti.ScenarioWithdrawal).Get(ctx, nil)
+			innerErr := workflow.ExecuteActivity(ctx, ptiA.StartUserAssessment, walletID, pti.ScenarioWithdrawal()).Get(ctx, nil)
 			if innerErr != nil {
 				return "", false, innerErr
 			}
@@ -488,7 +488,7 @@ func ptiPayIn(ctx workflow.Context, a *Activity, ptiA *pti_ops.Activity, payment
 		var applicationError *temporal.ApplicationError
 		// PTI lets us know they need more user info through 422 errors
 		if errors.As(err, &applicationError) && applicationError.Type() == "ErrUnprocessableEntity" {
-			innerErr := workflow.ExecuteActivity(ctx, ptiA.StartUserAssessment, walletID, pti.ScenarioTransfer).Get(ctx, nil)
+			innerErr := workflow.ExecuteActivity(ctx, ptiA.StartUserAssessment, walletID, pti.ScenarioTransfer()).Get(ctx, nil)
 			if innerErr != nil {
 				return "", false, innerErr
 			}
