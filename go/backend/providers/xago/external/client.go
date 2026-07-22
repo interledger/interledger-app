@@ -36,6 +36,9 @@ type Client interface {
 	UpdateSubAccount(ctx context.Context, accountID string, reqStruct UpdateSubAccountRequest) error
 	BankAccounts(ctx context.Context) (*[]Currency, error)
 	GetDeposit(ctx context.Context, id string) (*Deposit, error)
+	EstimateConvertCurrency(ctx context.Context, currencyPair ConvertCurrencyPairEnum, amount float64) (*EstimateConvertCurrencyResponse, error)
+	ConvertCurrency(ctx context.Context, currencyPair ConvertCurrencyPairEnum, amount float64) (*ConvertCurrencyResponse, error)
+	GetConvertCurrencyDetails(ctx context.Context, convertID string) (*GetConvertCurrencyDetailsResponse, error)
 }
 
 // Config holds the configuration for the Xago external client.
@@ -154,7 +157,7 @@ func (c *client) refreshAccessToken(ctx context.Context) error {
 		if resp.StatusCode != http.StatusOK {
 			return fmt.Errorf("failed to get xargo access token code (%d - %s)", resp.StatusCode, resp.Status)
 		}
-		
+
 		respBody, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return err
@@ -907,10 +910,170 @@ func (c *client) UpdateSubAccount(ctx context.Context, accountID string, reqStru
 	if resp.StatusCode != http.StatusOK {
 		respBody, err := io.ReadAll(resp.Body)
 		if err != nil {
-				return fmt.Errorf("failed to read body on: update xago inquiry url for (%s) response code: %d", accountID, resp.StatusCode)
+			return fmt.Errorf("failed to read body on: update xago inquiry url for (%s) response code: %d", accountID, resp.StatusCode)
 		}
 		return fmt.Errorf("failed to update xago inquiry url for  (%s), response code: %d error: %v", accountID, resp.StatusCode, respBody)
 	}
 
 	return nil
+}
+
+func (c *client) EstimateConvertCurrency(ctx context.Context, currencyPair ConvertCurrencyPairEnum, amount float64) (*EstimateConvertCurrencyResponse, error) {
+	reqUrl, err := url.JoinPath(c.baseURL, "currencyconvert")
+	if err != nil {
+		return nil, err
+	}
+
+	reqStruct := ConvertCurrencyRequest{
+		ConvertCurrencyPair: currencyPair,
+		Amount:              amount,
+		EstimateCalculation: true,
+	}
+
+	respBody, err := c.doPostRequest(ctx, "EstimateConvertCurrency", reqUrl, reqStruct)
+	if err != nil {
+		return nil, err
+	}
+
+	var quote EstimateConvertCurrencyResponse
+	if err := json.Unmarshal(respBody, &quote); err != nil {
+		return nil, err
+	}
+
+	return &quote, nil
+}
+
+func (c *client) ConvertCurrency(ctx context.Context, currencyPair ConvertCurrencyPairEnum, amount float64) (*ConvertCurrencyResponse, error) {
+	reqUrl, err := url.JoinPath(c.baseURL, "currencyconvert")
+	if err != nil {
+		return nil, err
+	}
+
+	reqStruct := ConvertCurrencyRequest{
+		ConvertCurrencyPair: currencyPair,
+		Amount:              amount,
+		EstimateCalculation: false,
+	}
+
+	respBody, err := c.doPostRequest(ctx, "ConvertCurrency", reqUrl, reqStruct)
+	if err != nil {
+		return nil, err
+	}
+
+	var quote ConvertCurrencyResponse
+	if err := json.Unmarshal(respBody, &quote); err != nil {
+		return nil, err
+	}
+
+	return &quote, nil
+}
+
+func (c *client) GetConvertCurrencyDetails(ctx context.Context, convertID string) (*GetConvertCurrencyDetailsResponse, error) {
+	reqUrl, err := url.Parse(fmt.Sprintf("%s/currencyconvert", c.baseURL))
+	if err != nil {
+		return nil, err
+	}
+
+	q := reqUrl.Query()
+	q.Set("convertId", convertID)
+	reqUrl.RawQuery = q.Encode()
+
+	respBody, err := c.doGetRequest(ctx, "GetConvertCurrencyDetails", reqUrl.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var details GetConvertCurrencyDetailsResponse
+	if err := json.Unmarshal(respBody, &details); err != nil {
+		return nil, err
+	}
+
+	return &details, nil
+}
+
+func (c *client) doGetRequest(ctx context.Context, logHint string, reqUrl string, reqStruct any) ([]byte, error) {
+	return c.doRequest(ctx, logHint, "GET", reqUrl, reqStruct)
+}
+
+func (c *client) doPostRequest(ctx context.Context, logHint string, reqUrl string, reqStruct any) ([]byte, error) {
+	return c.doRequest(ctx, logHint, "POST", reqUrl, reqStruct)
+}
+
+func (c *client) doRequest(ctx context.Context, logHint string, method string, reqUrl string, reqStruct any) ([]byte, error) {
+	var reqBody []byte
+	if reqStruct != nil {
+		var err error
+		reqBody, err = json.Marshal(reqStruct)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	ctx = c.contextWithMeta(ctx, method)
+	resp, err := c.doRawRequest(ctx, method, reqUrl, reqBody, false)
+	if err != nil {
+		return nil, err
+	}
+
+	// Retry with a new token
+	if resp.StatusCode == http.StatusUnauthorized {
+		// Closing the current response body to avoid leaks
+		resp.Body.Close()
+
+		resp, err = c.doRawRequest(ctx, method, reqUrl, reqBody, true)
+		if err != nil {
+			return nil, err
+		}
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		log.Info("Unauthorized for " + logHint)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("status code not ok for %s (%d - %s)", logHint, resp.StatusCode, resp.Status)
+	}
+
+	return io.ReadAll(resp.Body)
+}
+
+func (c *client) doRawRequest(ctx context.Context, method string, reqUrl string, reqBody []byte, forceAccessTokenRefresh bool) (*http.Response, error) {
+	var bodyReader io.Reader
+	if reqBody != nil {
+		bodyReader = bytes.NewReader(reqBody)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, method, reqUrl, bodyReader)
+	if err != nil {
+		return nil, err
+	}
+	token, err := c.AccessToken(ctx, forceAccessTokenRefresh)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token.Token)
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (c *client) contextWithMeta(ctx context.Context, method string) context.Context {
+	if meta, ok := httplog.MetaForContext(ctx); ok {
+		m := *meta // creating a copy so that we don't mutate the shared struct
+		m.Method = method
+		m.Provider = "xago"
+		ctx = context.WithValue(ctx, httplog.ContextKey, &m)
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   method,
+			Provider: "xago",
+		})
+	}
+	return ctx
 }
