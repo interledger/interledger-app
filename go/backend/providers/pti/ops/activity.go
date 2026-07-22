@@ -860,11 +860,12 @@ type RampActionEmailArgs struct {
 	Action   string
 	Status   string
 	Amount   currency.Amount
+	BankAccountLinkedID string
 }
 
 // SendRampActionEmail is a best-effort notification: it never fails the calling workflow.
 func (a *Activity) SendRampActionEmail(ctx context.Context, args RampActionEmailArgs) error {
-	bankLA, err := getBankLinkedAccount(ctx, a.b, args.WalletID)
+	bankLA, err := getBankLinkedAccount(ctx, a.b, args.BankAccountLinkedID)
 	if err != nil {
 		log.Error("Failed to resolve bank account for ramp action email", zap.Error(err), zap.String("walletID", args.WalletID), zap.String("action", args.Action))
 		return nil
@@ -881,12 +882,12 @@ func (a *Activity) SendRampActionEmail(ctx context.Context, args RampActionEmail
 	return nil
 }
 
-func (a *Activity) UpdatePaymentState(ctx context.Context, paymentID string, state payments.State) error {
-	_, err := a.b.DB().ExecContext(ctx, "UPDATE payments SET state=$1, updated_at=now() where id=$2", payments.StateCompleted, paymentID)
+func (a *Activity) UpdatePaymentState(ctx context.Context, paymentID string, state payments.State) (*payments.Payment, error) {
+	_, err := a.b.DB().ExecContext(ctx, "UPDATE payments SET state=$1, updated_at=now() where id=$2", state, paymentID)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return a.b.Payments().Lookup(ctx, paymentID)
 }
 
 func (a *Activity) UpdateTransactionState(ctx context.Context, walletID, transactionID string, state transactions.State) error {

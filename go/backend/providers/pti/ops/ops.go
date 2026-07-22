@@ -18,8 +18,6 @@ import (
 	"github.com/interledger/interledger-app/go/backend/providers/pti/external"
 	"github.com/interledger/interledger-app/go/backend/transactions"
 	"github.com/interledger/interledger-app/go/backend/wallets"
-	"github.com/interledger/interledger-app/go/log"
-	"go.uber.org/zap"
 
 	"github.com/interledger/interledger-app/go/backend/slack"
 
@@ -695,19 +693,13 @@ func CreateBankAccount(ctx context.Context, b Backends, args pti.CreateBankAccou
 
 // getBankLinkedAccount resolves the wallet's ACH bank linked account, mirroring the lookup
 // already performed inline by ConfirmWithdrawal.
-func getBankLinkedAccount(ctx context.Context, b Backends, walletID string) (*linkedaccounts.LinkedAccount, error) {
-	las, err := b.LinkedAccounts().ListByWalletId(ctx, walletID)
+func getBankLinkedAccount(ctx context.Context, b Backends, bankAccountLinkedID string) (*linkedaccounts.LinkedAccount, error) {
+	la, err := b.LinkedAccounts().Get(ctx, bankAccountLinkedID)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", pti.ErrInternal, err)
 	}
 
-	for _, la := range las {
-		if la.Provider == pti.ProviderName && la.Type == pti.TypeBank {
-			return &la, nil
-		}
-	}
-
-	return nil, fmt.Errorf("%w bank account not found", pti.ErrNotFound)
+	return la, nil
 }
 
 func formatBankSource(la *linkedaccounts.LinkedAccount) string {
@@ -717,7 +709,7 @@ func formatBankSource(la *linkedaccounts.LinkedAccount) string {
 func CreateDeposit(ctx context.Context, b Backends, wallet *wallets.Wallet, payment *payments.Payment) error {
 
 	workflowOptions := client.StartWorkflowOptions{
-		ID:                       "pti_create_deposit_" + payment.Receiver.WalletID,
+		ID:                       "pti_create_deposit_" + payment.ID,
 		TaskQueue:                "backend",
 		WorkflowExecutionTimeout: time.Hour,
 	}
@@ -727,19 +719,6 @@ func CreateDeposit(ctx context.Context, b Backends, wallet *wallets.Wallet, paym
 		return err
 	}
 
-	bankLA, err := b.LinkedAccounts().Get(ctx, payment.SenderAccount)
-	if err != nil {
-		log.Error("Failed to resolve bank account for deposit initiated email", zap.Error(err), zap.String("walletID", wallet.ID))
-		return nil
-	}
-	b.Email().SendRampActionEmail(ctx, wallet.ID, email.RampActionEmailArgs{
-		Action:    "Deposit Initiated",
-		Status:    "Pending",
-		Amount:    payment.ReceiverAmount,
-		Source:    formatBankSource(bankLA),
-		Method:    "ACH",
-		Timestamp: time.Now(),
-	})
 
 	return nil
 }

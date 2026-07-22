@@ -195,8 +195,8 @@ func SettleDepositWorkflow(ctx workflow.Context, wh pti.TransactionStatusPayload
 	if err != nil {
 		return "", err
 	}
-
-	err = workflow.ExecuteActivity(ctx, a.UpdatePaymentState, wh.RequestID, payments.StateCompleted).Get(ctx, nil)
+	var payment *payments.Payment
+	err = workflow.ExecuteActivity(ctx, a.UpdatePaymentState, wh.RequestID, payments.StateCompleted).Get(ctx, &payment)
 	if err != nil {
 		return "", err
 	}
@@ -206,6 +206,7 @@ func SettleDepositWorkflow(ctx workflow.Context, wh pti.TransactionStatusPayload
 		Action:   "Deposit Completed",
 		Status:   "Completed",
 		Amount:   amt,
+		BankAccountLinkedID: payment.SenderAccount,
 	})
 
 	return txID, nil
@@ -256,6 +257,10 @@ func ReturnedWorkflow(ctx workflow.Context, wh pti.TransactionStatusPayload) (st
 		return "", err
 	}
 
+	// var payment *payments.Payment
+	// err = workflow.ExecuteActivity(ctx, a.GetPaymentByID, originalTx.ForeignID).Get(ctx, &payment)
+	//TODO (bradu) get Payment by original transaction foreign ID 
+
 	action := "Deposit Returned"
 	if originalTx.Type == transactions.TransactionTypeWithdrawal {
 		action = "Withdrawal Returned"
@@ -265,6 +270,7 @@ func ReturnedWorkflow(ctx workflow.Context, wh pti.TransactionStatusPayload) (st
 		Action:   action,
 		Status:   "Returned",
 		Amount:   amt,
+		BankAccountLinkedID: "To be replaced",
 	})
 
 	return returnTransactionID, nil
@@ -294,8 +300,8 @@ func MarkTransactionStateWorkflow(ctx workflow.Context, wh pti.TransactionStatus
 	if err != nil {
 		return err
 	}
-
-	err = workflow.ExecuteActivity(ctx, a.UpdatePaymentState, wh.RequestID, payments.StateFailed).Get(ctx, nil)
+	var payment *payments.Payment
+	err = workflow.ExecuteActivity(ctx, a.UpdatePaymentState, wh.RequestID, payments.StateFailed).Get(ctx, &payment)
 	if err != nil {
 		return err
 	}
@@ -305,6 +311,7 @@ func MarkTransactionStateWorkflow(ctx workflow.Context, wh pti.TransactionStatus
 		Action:   "Deposit Failed",
 		Status:   "Failed",
 		Amount:   tx.Amount,
+		BankAccountLinkedID: payment.SenderAccount,
 	})
 
 	return nil
@@ -339,6 +346,14 @@ func DepositWorkflow(ctx workflow.Context, payment *payments.Payment, wallet *wa
 	if err != nil {
 		return err
 	}
+
+	sendRampActionEmail(ctx, a, RampActionEmailArgs{
+		WalletID: wallet.ID,
+		Action:   "Deposit Initiated",
+		Status:   "Pending",
+		Amount:   payment.ReceiverAmount,
+		BankAccountLinkedID: payment.SenderAccount,
+	})
 
 	return nil
 }
@@ -408,14 +423,12 @@ func RevertWithdrawWorkflow(ctx workflow.Context, wh pti.TransactionStatusPayloa
 	if err != nil {
 		return err
 	}
-
-	sendRampActionEmail(ctx, a, RampActionEmailArgs{
+	_ = workflow.ExecuteActivity(ctx, a.SendRampActionEmail,  RampActionEmailArgs{
 		WalletID: walletID,
 		Action:   "Withdrawal Failed",
 		Status:   "Failed",
 		Amount:   amt,
-	})
-
+	}).Get(ctx, nil)
 	return nil
 }
 
@@ -472,8 +485,8 @@ func SettleWithdrawWorkflow(ctx workflow.Context, wh pti.TransactionStatusPayloa
 	if err != nil {
 		return "", err
 	}
-
-	err = workflow.ExecuteActivity(ctx, a.UpdatePaymentState, wh.RequestID, payments.StateCompleted).Get(ctx, nil)
+	var payment *payments.Payment
+	err = workflow.ExecuteActivity(ctx, a.UpdatePaymentState, wh.RequestID, payments.StateCompleted).Get(ctx, &payment)
 	if err != nil {
 		return "", err
 	}
@@ -483,6 +496,7 @@ func SettleWithdrawWorkflow(ctx workflow.Context, wh pti.TransactionStatusPayloa
 		Action:   "Withdrawal Completed",
 		Status:   "Completed",
 		Amount:   amt,
+		BankAccountLinkedID: payment.ReceiverAccount,
 	})
 
 	return txID, nil
