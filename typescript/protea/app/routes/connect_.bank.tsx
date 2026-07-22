@@ -78,9 +78,7 @@ export default function Page() {
       <Card>
         <CardContent>
           <div className='flex flex-col gap-4'>
-            <p>
-              Your account is still being set up. Please try again shortly.
-            </p>
+            <p>Your account is still being set up. Please try again shortly.</p>
             <Button type='button' onClick={() => navigate(href('/'))}>
               Back to home
             </Button>

@@ -26,10 +26,10 @@ import { usePendingConfirmations } from '~/lib/cards/usePendingConfirmations'
 import { computeCardSubtotalStyles } from '~/lib/cards/utils'
 import { KycStatus } from '~/lib/types'
 import { usePusher } from '~/lib/usePusher'
-import type { AppLoaderData, loader } from './route'
-import { ConnectBank } from './cta-cards/ConnectBank'
 import { Cards } from './cta-cards/Cards'
+import { ConnectBank } from './cta-cards/ConnectBank'
 import { Interac } from './cta-cards/Interac'
+import type { AppLoaderData, loader } from './route'
 
 export function AppPage() {
   const {
@@ -117,18 +117,18 @@ export function AppPage() {
         )}
         {(kycStatus == KycStatus.Pending ||
           kycStatus == KycStatus.InReview) && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Activation</CardTitle>
-                <Chip color={ChipColor.orange}>Pending</Chip>
-              </CardHeader>
-              <CardContent>
-                <p className='text-sm text-medium'>
-                  Just a moment, we are verifying your details.
-                </p>
-              </CardContent>
-            </Card>
-          )}
+          <Card>
+            <CardHeader>
+              <CardTitle>Activation</CardTitle>
+              <Chip color={ChipColor.orange}>Pending</Chip>
+            </CardHeader>
+            <CardContent>
+              <p className='text-sm text-medium'>
+                Just a moment, we are verifying your details.
+              </p>
+            </CardContent>
+          </Card>
+        )}
         {kycStatus == KycStatus.Denied && (
           <Card>
             <CardHeader>
@@ -262,7 +262,7 @@ export function AppPage() {
                         ) : transaction.state === 'Pending' ? (
                           <Icon>schedule</Icon>
                         ) : transaction.cardTransactionDetails
-                          ?.classification === 'Reversal' ? (
+                            ?.classification === 'Reversal' ? (
                           <Icon>undo</Icon>
                         ) : (
                           <Icon>credit_card</Icon>
@@ -281,19 +281,19 @@ export function AppPage() {
                             <>
                               {transaction.destinationIdentityType ==
                                 'wallet' && (
-                                  <>
-                                    {transaction.type != 'withdrawal' &&
-                                      transaction.type != 'deposit' && (
-                                        <InterledgerIcon />
-                                      )}
-                                    {transaction.type == 'withdrawal' && (
-                                      <Icon>south_west</Icon>
+                                <>
+                                  {transaction.type != 'withdrawal' &&
+                                    transaction.type != 'deposit' && (
+                                      <InterledgerIcon />
                                     )}
-                                    {transaction.type == 'deposit' && (
-                                      <Icon>north_east</Icon>
-                                    )}
-                                  </>
-                                )}
+                                  {transaction.type == 'withdrawal' && (
+                                    <Icon>south_west</Icon>
+                                  )}
+                                  {transaction.type == 'deposit' && (
+                                    <Icon>north_east</Icon>
+                                  )}
+                                </>
+                              )}
                               {transaction.destinationIdentityType ==
                                 'Twitter' && <TwitterIcon />}
                               {transaction.destinationIdentityType ==
@@ -326,12 +326,12 @@ export function AppPage() {
                         'font-medium',
                         transaction.type === 'card_transaction'
                           ? computeCardSubtotalStyles(
-                            transaction.cardTransactionDetails
-                          )
+                              transaction.cardTransactionDetails
+                            )
                           : transaction.type === 'sent' ||
-                            transaction.type ===
-                            'web_monetization_outgoing' ||
-                            transaction.type === 'withdrawal'
+                              transaction.type ===
+                                'web_monetization_outgoing' ||
+                              transaction.type === 'withdrawal'
                             ? 'text-error'
                             : 'text-medium'
                       )}
