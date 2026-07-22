@@ -208,6 +208,38 @@ func (l *FiantLinker) ListLinkedPlaidAccountIDs(ctx context.Context, userID stri
 	return ids, nil
 }
 
+// IsActivated reports whether the user's wallet holds a US balance — the PTI
+// balance linked account provisioned asynchronously by CreateWalletWorkflow
+// after KYC. Mirrors the GetBalances predicate (grpc/balances.go) so the backend
+// guard and the frontend gate agree on "activated". No wallet / no rows → false.
+func (l *FiantLinker) IsActivated(ctx context.Context, userID string) (bool, error) {
+	walletID, err := l.getWalletIdByUserId(ctx, userID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return false, nil
+		}
+		return false, err
+	}
+
+	las, err := linkedaccounts_ops.ListByWalletId(ctx, l.b, walletID)
+	if err != nil {
+		if errors.Is(err, linkedaccounts.ErrNotFound) {
+			return false, nil
+		}
+		return false, fmt.Errorf("plaid/fiant linker: list linked accounts: %w", err)
+	}
+
+	for _, la := range las {
+		if la.Provider == pti.ProviderName &&
+			la.Type == pti.AccTypeBalance &&
+			la.ReceiveCountry == country.US &&
+			la.DeletedAt.Time.IsZero() {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
 func (l *FiantLinker) getWalletIdByUserId(ctx context.Context, userID string) (string, error) {
 	var id string
 	err := l.b.DB().GetContext(ctx, &id, "SELECT wallet_id FROM user_wallets WHERE user_id = $1 LIMIT 1;", userID)

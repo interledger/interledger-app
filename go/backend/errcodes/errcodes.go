@@ -25,6 +25,8 @@ const (
 
 	ErrCodeLinkedAccNotFound AppErrorCode = "LINKEDACC_NOT_FOUND"
 
+	ErrCodeWalletNotActivated AppErrorCode = "WALLET_NOT_ACTIVATED"
+
 	ErrCodeSignupDuplicatePhone AppErrorCode = "SIGNUP_DUPLICATE_PHONE"
 
 	ErrCodeIdentitiesAlreadyExists AppErrorCode = "IDENTITIES_ALREADY_EXISTS"
