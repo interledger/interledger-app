@@ -59,7 +59,7 @@ export const jsonWithCSRF: JsonWithCSRFFunction = async (
   data,
   init
 ) => {
-  let responseInit = typeof init === 'number' ? { status: init } : init
+  const responseInit = typeof init === 'number' ? { status: init } : init
 
   const { csrfToken, newHeaders } = await getCSRFToken(
     request,
@@ -100,8 +100,8 @@ export async function validateCSRFToken(
 ): Promise<void> {
   const csrfToken = form.get('csrfToken') as string
 
-  let session = await getSession(request.headers.get('Cookie'))
-  let serverToken = session.get('csrf-token')
+  const session = await getSession(request.headers.get('Cookie'))
+  const serverToken = session.get('csrf-token')
 
   if (
     !form.has('csrfToken') ||

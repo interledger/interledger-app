@@ -169,25 +169,33 @@ func (sc *E2EContext) iNavigateToTheBotanistWalletsPage() error {
 	return nil
 }
 
-// iFilterTheWalletsListBy types searchTerm into the search input and submits
-// the form, triggering a server-side search and page reload.
-func (sc *E2EContext) iFilterTheWalletsListBy(searchTerm string) error {
-	debugPrintf("🔍 Searching wallets by: %q\n", searchTerm)
-
-	searchInput := sc.page.Locator("input[aria-label='Search wallets']")
-	if err := searchInput.WaitFor(playwright.LocatorWaitForOptions{
+// fillWalletsFilterField types value into the named filter field on the
+// wallets page. field must match one of wallets.tsx's FILTER_FIELDS names
+// (e.g. "email", "walletAddress"), which are rendered as inputs with
+// id="wallet-search-<field>".
+func (sc *E2EContext) fillWalletsFilterField(field, value string) error {
+	input := sc.page.Locator(fmt.Sprintf("#wallet-search-%s", field))
+	if err := input.WaitFor(playwright.LocatorWaitForOptions{
 		State:   playwright.WaitForSelectorStateVisible,
 		Timeout: playwright.Float(5000),
 	}); err != nil {
-		return fmt.Errorf("search input not found: %w", err)
+		return fmt.Errorf("filter field %q not found: %w", field, err)
 	}
 
-	if err := searchInput.Fill(searchTerm); err != nil {
-		return fmt.Errorf("failed to fill search input: %w", err)
+	if err := input.Fill(value); err != nil {
+		return fmt.Errorf("failed to fill filter field %q: %w", field, err)
 	}
 
-	if err := searchInput.Press("Enter"); err != nil {
-		return fmt.Errorf("failed to submit search: %w", err)
+	return nil
+}
+
+// submitWalletsFilterForm submits the wallets filter form (all fields filled
+// so far via fillWalletsFilterField) and waits for the server-side search to
+// reload the page.
+func (sc *E2EContext) submitWalletsFilterForm() error {
+	submit := sc.page.Locator("button:has-text('Search')")
+	if err := submit.Click(); err != nil {
+		return fmt.Errorf("failed to submit wallets filter form: %w", err)
 	}
 
 	if err := sc.page.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
@@ -197,30 +205,213 @@ func (sc *E2EContext) iFilterTheWalletsListBy(searchTerm string) error {
 		return fmt.Errorf("wallets page did not reload after search: %w", err)
 	}
 
-	debugPrintf("✓ Search applied: %q\n", searchTerm)
 	return nil
 }
 
-// iFilterTheWalletsListByMyWalletName filters the wallets list using the
-// current impersonated user's wallet name, which is searchable at the DB level.
-func (sc *E2EContext) iFilterTheWalletsListByMyWalletName() error {
+// iFilterTheWalletsListByMyEmail filters the wallets list by the current
+// impersonated user's email.
+func (sc *E2EContext) iFilterTheWalletsListByMyEmail() error {
 	email, err := sc.getCurrentUserEmail()
 	if err != nil {
 		return fmt.Errorf("cannot resolve current user email: %w", err)
 	}
 
+	debugPrintf("🔍 Filtering wallets by email %q\n", email)
+	if err := sc.fillWalletsFilterField("email", email); err != nil {
+		return err
+	}
+	if err := sc.submitWalletsFilterForm(); err != nil {
+		return err
+	}
+	debugPrintf("✓ Filter applied: email=%q\n", email)
+	return nil
+}
+
+// iFilterTheWalletsListByMyWalletAddress filters the wallets list by the
+// current impersonated user's wallet address.
+func (sc *E2EContext) iFilterTheWalletsListByMyWalletAddress() error {
+	details, err := sc.currentUserWalletDetails()
+	if err != nil {
+		return err
+	}
+
+	debugPrintf("🔍 Filtering wallets by wallet address %q\n", details.WalletAddress)
+	if err := sc.fillWalletsFilterField("walletAddress", details.WalletAddress); err != nil {
+		return err
+	}
+	if err := sc.submitWalletsFilterForm(); err != nil {
+		return err
+	}
+	debugPrintf("✓ Filter applied: walletAddress=%q\n", details.WalletAddress)
+	return nil
+}
+
+// iFilterTheWalletsListByMyFirstName filters the wallets list by the current
+// impersonated user's first name.
+func (sc *E2EContext) iFilterTheWalletsListByMyFirstName() error {
+	firstName := sc.kycFirstName()
+	if firstName == "" {
+		return fmt.Errorf("no first name set for current user")
+	}
+
+	debugPrintf("🔍 Filtering wallets by first name %q\n", firstName)
+	if err := sc.fillWalletsFilterField("firstName", firstName); err != nil {
+		return err
+	}
+	if err := sc.submitWalletsFilterForm(); err != nil {
+		return err
+	}
+	debugPrintf("✓ Filter applied: firstName=%q\n", firstName)
+	return nil
+}
+
+// kycFirstName and kycLastName return the current user's first/last name as
+// verified by the mock KYC provider — suffixed with the per-run test
+// identifier (see xago_kyc.go) so that repeat runs of this scenario never
+// collide on a shared static name (e.g. "Botanist"/"Tester" from the
+// scenario's Background).
+func (sc *E2EContext) kycFirstName() string {
+	if sc.firstName == "" {
+		return ""
+	}
+	return sc.firstName + sc.testIdentifier
+}
+
+func (sc *E2EContext) kycLastName() string {
+	if sc.lastName == "" {
+		return ""
+	}
+	return sc.lastName + sc.testIdentifier
+}
+
+// iFilterTheWalletsListByMyLastName filters the wallets list by the current
+// impersonated user's last name.
+func (sc *E2EContext) iFilterTheWalletsListByMyLastName() error {
+	lastName := sc.kycLastName()
+	if lastName == "" {
+		return fmt.Errorf("no last name set for current user")
+	}
+
+	debugPrintf("🔍 Filtering wallets by last name %q\n", lastName)
+	if err := sc.fillWalletsFilterField("lastName", lastName); err != nil {
+		return err
+	}
+	if err := sc.submitWalletsFilterForm(); err != nil {
+		return err
+	}
+	debugPrintf("✓ Filter applied: lastName=%q\n", lastName)
+	return nil
+}
+
+// iFilterTheWalletsListByMyPhoneNumber filters the wallets list by the current
+// impersonated user's phone number.
+func (sc *E2EContext) iFilterTheWalletsListByMyPhoneNumber() error {
+	phone, err := sc.getCurrentUserPhone()
+	if err != nil {
+		return fmt.Errorf("cannot resolve current user phone: %w", err)
+	}
+
+	debugPrintf("🔍 Filtering wallets by phone number %q\n", phone)
+	if err := sc.fillWalletsFilterField("phoneNumber", phone); err != nil {
+		return err
+	}
+	if err := sc.submitWalletsFilterForm(); err != nil {
+		return err
+	}
+	debugPrintf("✓ Filter applied: phoneNumber=%q\n", phone)
+	return nil
+}
+
+// iFilterTheWalletsListByMyProviderID filters the wallets list by the current
+// impersonated user's linked-account provider ID.
+func (sc *E2EContext) iFilterTheWalletsListByMyProviderID() error {
+	details, err := sc.currentUserWalletDetails()
+	if err != nil {
+		return err
+	}
+	if details.ProviderID == "" {
+		return fmt.Errorf("no provider ID found for current user's wallet")
+	}
+
+	debugPrintf("🔍 Filtering wallets by provider ID %q\n", details.ProviderID)
+	if err := sc.fillWalletsFilterField("providerId", details.ProviderID); err != nil {
+		return err
+	}
+	if err := sc.submitWalletsFilterForm(); err != nil {
+		return err
+	}
+	debugPrintf("✓ Filter applied: providerId=%q\n", details.ProviderID)
+	return nil
+}
+
+// iFilterTheWalletsListByAllFilters fills every filter field at once before
+// submitting, proving all six filters are ANDed together server-side rather
+// than applied independently.
+func (sc *E2EContext) iFilterTheWalletsListByAllFilters() error {
+	email, err := sc.getCurrentUserEmail()
+	if err != nil {
+		return fmt.Errorf("cannot resolve current user email: %w", err)
+	}
+	phone, err := sc.getCurrentUserPhone()
+	if err != nil {
+		return fmt.Errorf("cannot resolve current user phone: %w", err)
+	}
+	firstName := sc.kycFirstName()
+	lastName := sc.kycLastName()
+	if firstName == "" || lastName == "" {
+		return fmt.Errorf("no first/last name set for current user")
+	}
+	details, err := sc.currentUserWalletDetails()
+	if err != nil {
+		return err
+	}
+	if details.ProviderID == "" {
+		return fmt.Errorf("no provider ID found for current user's wallet")
+	}
+
+	debugPrintf("🔍 Filtering wallets by all filters: firstName=%q lastName=%q email=%q phoneNumber=%q walletAddress=%q providerId=%q\n",
+		firstName, lastName, email, phone, details.WalletAddress, details.ProviderID)
+
+	fields := map[string]string{
+		"firstName":     firstName,
+		"lastName":      lastName,
+		"email":         email,
+		"phoneNumber":   phone,
+		"walletAddress": details.WalletAddress,
+		"providerId":    details.ProviderID,
+	}
+	for _, field := range []string{"firstName", "lastName", "email", "phoneNumber", "walletAddress", "providerId"} {
+		if err := sc.fillWalletsFilterField(field, fields[field]); err != nil {
+			return err
+		}
+	}
+	if err := sc.submitWalletsFilterForm(); err != nil {
+		return err
+	}
+
+	debugPrintf("✓ All filters applied\n")
+	return nil
+}
+
+// currentUserWalletDetails resolves the current impersonated user's wallet
+// details (ID, name, wallet address) via Kratos + the backend DB.
+func (sc *E2EContext) currentUserWalletDetails() (*WalletDetails, error) {
+	email, err := sc.getCurrentUserEmail()
+	if err != nil {
+		return nil, fmt.Errorf("cannot resolve current user email: %w", err)
+	}
+
 	kratosID := sc.getKratosUserIDByEmail(email)
 	if kratosID == "" {
-		return fmt.Errorf("cannot resolve kratos ID for email %q", email)
+		return nil, fmt.Errorf("cannot resolve kratos ID for email %q", email)
 	}
 
 	details, err := sc.getWalletDetailsForUser(kratosID)
 	if err != nil {
-		return fmt.Errorf("cannot get wallet details for user %q: %w", email, err)
+		return nil, fmt.Errorf("cannot get wallet details for user %q: %w", email, err)
 	}
 
-	debugPrintf("🔍 Searching wallets by wallet name %q (user: %s)\n", details.Name, email)
-	return sc.iFilterTheWalletsListBy(details.Name)
+	return details, nil
 }
 
 // myWalletShouldAppearInTheWalletsList asserts that a table row containing the
@@ -248,12 +439,13 @@ func (sc *E2EContext) myWalletShouldAppearInTheWalletsList() error {
 }
 
 // theWalletsListShouldShowExactlyOneResult asserts that the search result counter
-// reads "1 result for …" (singular). This catches the regression where the filter
+// reads "1 result" (singular). This catches the regression where the filter
 // is silently ignored and all wallets are returned instead of only the match.
 func (sc *E2EContext) theWalletsListShouldShowExactlyOneResult() error {
-	// The wallets page renders '<n> result(s) for "<search>"' only when a search
-	// is active. After filtering to a single wallet the text must be singular.
-	counter := sc.page.Locator(`p:has-text(" for ")`).First()
+	// The wallets page renders '<n> result(s)' only when a filter is active
+	// (see wallets.tsx's hasFilter block). After filtering to a single wallet
+	// the text must read exactly "1 result".
+	counter := sc.page.Locator(`p:text-matches("^\\d+ results?$")`).First()
 	if err := counter.WaitFor(playwright.LocatorWaitForOptions{
 		State:   playwright.WaitForSelectorStateVisible,
 		Timeout: playwright.Float(5000),
@@ -268,7 +460,7 @@ func (sc *E2EContext) theWalletsListShouldShowExactlyOneResult() error {
 	}
 
 	trimmed := strings.TrimSpace(text)
-	if !strings.HasPrefix(trimmed, "1 result for") {
+	if trimmed != "1 result" {
 		_ = sc.iTakeAScreenshot("unexpected-result-count")
 		return fmt.Errorf("filter did not narrow to 1 result — counter says: %q", trimmed)
 	}

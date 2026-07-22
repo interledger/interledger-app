@@ -699,7 +699,10 @@ SELECT kyc_status FROM wallets WHERE id = 'wallet_uuid';
 #### GateHub KYC Troubleshooting
 
 **Webhook events to look for:**
-- `id.verification.action_required` - User needs to provide more info
+- `id.verification.action_required` - User needs to provide more info (sets `StatusDocumentsRequired`)
+- `id.verification.resubmission` - User must resubmit verification documents (sets `StatusDocumentsRequired`)
+- `id.document_notice.expired` - User documents expired (sets `StatusDocumentsRequired`)
+- `id.document_notice.warning` - User documents will expire soon (Phase 1: sets `StatusDocumentsRequired`)
 - `id.verification.accepted` - KYC approved
 - `id.verification.rejected` - KYC denied
 - `id.verification.in_review` - Manual review in progress

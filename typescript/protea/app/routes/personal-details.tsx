@@ -85,7 +85,7 @@ function PersonaPage() {
       ? '' // Don't load Persona SDK when using MockXago
       : personaSdkUrl
   )
-  let personaRef = useRef<any>(null)
+  const personaRef = useRef<any>(null)
 
   const [setLoading] = useScaffoldStore((state) => [state.setLoading])
 

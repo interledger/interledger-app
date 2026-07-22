@@ -97,7 +97,7 @@ When `RequestAccountDeletion` succeeds, the backend produces these outputs in or
 
 1. **`account_deletion_requests` row** with `user_id` = the Kratos identity ID and `status = 'pending'`. The `user_id` column has a unique index so a duplicate request returns `accountdeletion.ErrAlreadyRequested`.
 2. **Support-inbox email** with subject `[<env>] Account deletion requested — user <userID>`. A failure here returns from the handler and triggers a rollback (see below).
-3. **User confirmation email** with subject `We've received your account deletion request`. Best-effort — failures are logged with `userID` but do not fail the RPC.
+3. **User confirmation email** with subject `We have received your account deletion request`. Best-effort — failures are logged with `userID` but do not fail the RPC.
 4. **Slack notification** posted as `wallet-info-bot` to the `signup_kyc` channel (`slack.ChannelSignupKYC`), including the user ID and wallet IDs. The user's email is intentionally omitted to avoid leaking PII into Slack and application logs (support already receives the email at step 2). Best-effort — the wallet-list query that gates this notification can fail; on failure the post is skipped with a warning log.
 
 Rollback semantics:

@@ -4,7 +4,7 @@ import "time"
 
 // GetUserResponse represents the user state response from /id/v1/users/{userID}.
 type GetUserResponse struct {
-	ID            string             `json:"id"`
+	UUID          string             `json:"uuid"`
 	Email         string             `json:"email"`
 	Activated     bool               `json:"activated"`
 	Managed       bool               `json:"managed"`

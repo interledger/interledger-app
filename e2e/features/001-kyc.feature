@@ -39,6 +39,21 @@ Feature: User KYC and Account Activation
     And I should see my account balance with kyc approved
     And I take a screenshot "kyc-completed-dashboard"
 
+  @kyc @gatehub @resubmission
+  Scenario: User can resubmit KYC when documents are required
+    Given that my "country" is "germany"
+    And I complete the minimal KYC flow `kyc-user`
+    When I trigger GateHub KYC webhook "id.verification.resubmission" for myself
+    Then my KYC status should be documents required
+    And I should see the reactivate wallet prompt on the dashboard
+    When I navigate to the personal details page to activate wallet
+    And I should see the activate wallet button
+    And I click the "Continue" button
+    And I wait for the KYC iframe to load
+    And I fill and submit the mockgatehub KYC iframe
+    And I wait for the KYC completion
+    Then my KYC status should be pending
+
   @kyc @pti
   Scenario: Successfully activate USA account and complete KYC
     Given that my "country" is "United States"

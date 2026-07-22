@@ -29,7 +29,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   await requireNoUserSession(request)
 
-  let response = await grpc.getCountries(request, {})
+  const response = await grpc.getCountries(request, {})
 
   if (isConnectError(response)) throw response.errorResponse
 

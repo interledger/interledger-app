@@ -35,10 +35,10 @@ export async function loader({
     })
   }
 
-  let countries = await grpc.getCountries(request, {})
+  const countries = await grpc.getCountries(request, {})
   if (isConnectError(countries)) throw countries
 
-  let gender = {
+  const gender = {
     icon: '',
     title: ''
   }

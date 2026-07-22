@@ -55,7 +55,7 @@ func (a *Activity) EnableSendVerificationEmails(ctx context.Context, email strin
 	client := kratos.NewAPIClient(config)
 	noVerificationAddresses := []kratos.Identity{}
 
-	identities, _, err := client.IdentityApi.ListIdentities(ctx).PerPage(500).Execute()
+	identities, _, err := client.IdentityAPI.ListIdentities(ctx).PerPage(500).Execute()
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func (a *Activity) EnableSendVerificationEmails(ctx context.Context, email strin
 		}
 
 		update := kratos.UpdateIdentityBody{Traits: traits}
-		_, _, err = kratos.IdentityApi.UpdateIdentity(client.IdentityApi, ctx, id.Id).
+		_, _, err = kratos.IdentityAPI.UpdateIdentity(client.IdentityAPI, ctx, id.Id).
 			UpdateIdentityBody(update).
 			Execute()
 		if err != nil {
