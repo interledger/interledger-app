@@ -27,6 +27,9 @@ import { computeCardSubtotalStyles } from '~/lib/cards/utils'
 import { KycStatus } from '~/lib/types'
 import { usePusher } from '~/lib/usePusher'
 import type { AppLoaderData, loader } from './route'
+import { ConnectBank } from './cta-cards/ConnectBank'
+import { Cards } from './cta-cards/Cards'
+import { Interac } from './cta-cards/Interac'
 
 export function AppPage() {
   const {
@@ -114,18 +117,18 @@ export function AppPage() {
         )}
         {(kycStatus == KycStatus.Pending ||
           kycStatus == KycStatus.InReview) && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Activation</CardTitle>
-              <Chip color={ChipColor.orange}>Pending</Chip>
-            </CardHeader>
-            <CardContent>
-              <p className='text-sm text-medium'>
-                Just a moment, we are verifying your details.
-              </p>
-            </CardContent>
-          </Card>
-        )}
+            <Card>
+              <CardHeader>
+                <CardTitle>Activation</CardTitle>
+                <Chip color={ChipColor.orange}>Pending</Chip>
+              </CardHeader>
+              <CardContent>
+                <p className='text-sm text-medium'>
+                  Just a moment, we are verifying your details.
+                </p>
+              </CardContent>
+            </Card>
+          )}
         {kycStatus == KycStatus.Denied && (
           <Card>
             <CardHeader>
@@ -259,7 +262,7 @@ export function AppPage() {
                         ) : transaction.state === 'Pending' ? (
                           <Icon>schedule</Icon>
                         ) : transaction.cardTransactionDetails
-                            ?.classification === 'Reversal' ? (
+                          ?.classification === 'Reversal' ? (
                           <Icon>undo</Icon>
                         ) : (
                           <Icon>credit_card</Icon>
@@ -278,19 +281,19 @@ export function AppPage() {
                             <>
                               {transaction.destinationIdentityType ==
                                 'wallet' && (
-                                <>
-                                  {transaction.type != 'withdrawal' &&
-                                    transaction.type != 'deposit' && (
-                                      <InterledgerIcon />
+                                  <>
+                                    {transaction.type != 'withdrawal' &&
+                                      transaction.type != 'deposit' && (
+                                        <InterledgerIcon />
+                                      )}
+                                    {transaction.type == 'withdrawal' && (
+                                      <Icon>south_west</Icon>
                                     )}
-                                  {transaction.type == 'withdrawal' && (
-                                    <Icon>south_west</Icon>
-                                  )}
-                                  {transaction.type == 'deposit' && (
-                                    <Icon>north_east</Icon>
-                                  )}
-                                </>
-                              )}
+                                    {transaction.type == 'deposit' && (
+                                      <Icon>north_east</Icon>
+                                    )}
+                                  </>
+                                )}
                               {transaction.destinationIdentityType ==
                                 'Twitter' && <TwitterIcon />}
                               {transaction.destinationIdentityType ==
@@ -323,12 +326,12 @@ export function AppPage() {
                         'font-medium',
                         transaction.type === 'card_transaction'
                           ? computeCardSubtotalStyles(
-                              transaction.cardTransactionDetails
-                            )
+                            transaction.cardTransactionDetails
+                          )
                           : transaction.type === 'sent' ||
-                              transaction.type ===
-                                'web_monetization_outgoing' ||
-                              transaction.type === 'withdrawal'
+                            transaction.type ===
+                            'web_monetization_outgoing' ||
+                            transaction.type === 'withdrawal'
                             ? 'text-error'
                             : 'text-medium'
                       )}
@@ -351,89 +354,11 @@ export function AppPage() {
 }
 
 function CTACards() {
-  const { features, walletInfo, plaidEnabled } = useLoaderData<
-    typeof loader
-  >() as AppLoaderData
-
-  // Plaid is US-only. US: Plaid when enabled, else the manual US form. ZA always
-  // uses its manual form (Plaid never served ZA).
-  const bankHref =
-    walletInfo.country === 'US'
-      ? plaidEnabled
-        ? href('/connect/bank')
-        : href('/connect/bank/us')
-      : href('/connect/bank/za')
-
   return (
     <>
-      {features.cardsEnabled && !walletInfo.hasCard && (
-        <Card>
-          <CardContent>
-            <div className='flex items-start space-x-4'>
-              <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
-                <Icon>credit_card</Icon>
-              </div>
-              <div className='flex flex-col space-y-4'>
-                <p className='text-sm text-medium'>
-                  Connect cards to easily send and receive payments.
-                </p>
-                <Router
-                  className='text-sm font-medium text-primary'
-                  to={href('/connect/card')}
-                >
-                  Connect a card
-                </Router>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-      {features.banksEnabled && (
-        <Card>
-          <CardContent>
-            <div className='flex items-start space-x-4'>
-              <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
-                <Icon>account_balance</Icon>
-              </div>
-              <div className='flex flex-col space-y-4'>
-                <p className='text-sm text-medium'>
-                  Connect bank accounts to easily add or withdraw from your
-                  balance.
-                </p>
-                <Router
-                  className='text-sm font-medium text-primary'
-                  to={bankHref}
-                >
-                  Connect a bank
-                </Router>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-      {features.interacEnabled && (
-        <Card>
-          <CardContent>
-            <div className='flex items-start space-x-4'>
-              <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
-                <Icon>account_balance</Icon>
-              </div>
-              <div className='flex flex-col space-y-4'>
-                <p className='text-sm text-medium'>
-                  Connect an Interac account to easily withdraw from your
-                  balance.
-                </p>
-                <Router
-                  className='text-sm font-medium text-primary'
-                  to={href('/connect/interac')}
-                >
-                  Connect an Interac account
-                </Router>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      <Cards />
+      <ConnectBank />
+      <Interac />
     </>
   )
 }
