@@ -233,6 +233,9 @@ Provider is gated by `pti.enabled`; the remaining fields are required only when 
 | `pti.sdk_url` | string | If enabled | No | Fiant Web SDK bundle URL. |
 | `pti.forms_url` | string | If enabled | No | Fiant hosted forms URL. |
 | `pti.public_key_jwk` | string | If enabled | Yes | Public RSA JWK for webhook verification. |
+| `pti.scenario_transfer` | string | No | No | PTI scenario ID for P2P/transfer transactions. Defaults to `ilf_transfer`; override with PTI's dev scenario (e.g. `ilf_dev_transfer`) for non-prod testing. |
+| `pti.scenario_deposit` | string | No | No | PTI scenario ID for deposits. Defaults to `ilf_deposit`; override with PTI's dev scenario (e.g. `ilf_dev_deposit`) for non-prod testing. |
+| `pti.scenario_withdrawal` | string | No | No | PTI scenario ID for withdrawals. Defaults to `ilf_withdrawal`; override with PTI's dev scenario (e.g. `ilf_dev_withdrawal`) for non-prod testing. |
 
 ### Persona
 
