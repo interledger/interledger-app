@@ -1,0 +1,3328 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for the Interledger App Wallet — a reference implementation for Account Servicing Entities (ASEs) integrating with the Interledger network.">
+      
+      
+      
+      
+        <link rel="prev" href="../logging-reference/">
+      
+      
+        <link rel="next" href="../env-variables/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Backend Configuration Guide - Interledger App Wallet</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#backend-configuration-guide" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Interledger App Wallet" class="md-header__button md-logo" aria-label="Interledger App Wallet" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Interledger App Wallet
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Backend Configuration Guide
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Interledger App Wallet" class="md-nav__button md-logo" aria-label="Interledger App Wallet" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Interledger App Wallet
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../terminology/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Terminology
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../signup-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Signup Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../kyc-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    KYC & Identity Verification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../kyc-resubmission-flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    KYC Resubmission Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../account-deletion-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Account Deletion Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wallets-accounts-addresses-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wallets, Accounts & Addresses
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ledger-system-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dual-Ledger System
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../agreements-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agreements & Legal Consent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Payments
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Payments
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../payments-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Payments & Transactions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../transaction-types-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transaction Types Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../provider-payments-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Provider Comparison
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Integrations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Integrations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gatehub-cards-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GateHub Cards
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rafiki-full-node-upgrade-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rafiki Full Node Upgrade
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Operations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../payment-troubleshooting-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Payment Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developers
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Developers
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../error-handling-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Error Handling Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../logging-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Logging Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backend Configuration Guide
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backend Configuration Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-scheme" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration scheme
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration scheme">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#load-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Load flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#base-override-overlay" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Base + override overlay
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environment variables
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#local-development" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Local development
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#secrets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Secrets
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Secrets">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-secret-resolution-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How secret resolution works
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rules-for-handling-secrets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rules for handling secrets
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-reference-startconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration reference (StartConfig)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration reference (StartConfig)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#general" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        General
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#database" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Database
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kratos-temporal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Kratos &amp; Temporal
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rafiki" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rafiki
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gatehub" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GateHub
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#xago" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Xago
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pti-fiant" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PTI / Fiant
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#persona" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Persona
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#plaid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Plaid
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#twilio" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Twilio
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#email-sendgrid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Email (SendGrid)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#slack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Slack
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#chimoney" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Chimoney
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#admin-portal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Admin portal
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mobile-deep-links" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mobile deep-links
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#other-integrations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Other integrations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#agreements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Agreements
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Observability
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#conditional-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conditional requirements
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migration-configuration-migrationconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Migration configuration (MigrationConfig)
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../env-variables/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment Variables
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-scheme" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration scheme
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration scheme">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#load-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Load flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#base-override-overlay" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Base + override overlay
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environment variables
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#local-development" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Local development
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#secrets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Secrets
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Secrets">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-secret-resolution-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How secret resolution works
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rules-for-handling-secrets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rules for handling secrets
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-reference-startconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration reference (StartConfig)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration reference (StartConfig)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#general" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        General
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#database" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Database
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kratos-temporal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Kratos &amp; Temporal
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rafiki" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rafiki
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gatehub" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GateHub
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#xago" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Xago
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pti-fiant" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PTI / Fiant
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#persona" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Persona
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#plaid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Plaid
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#twilio" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Twilio
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#email-sendgrid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Email (SendGrid)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#slack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Slack
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#chimoney" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Chimoney
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#admin-portal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Admin portal
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mobile-deep-links" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mobile deep-links
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#other-integrations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Other integrations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#agreements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Agreements
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Observability
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#conditional-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conditional requirements
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migration-configuration-migrationconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Migration configuration (MigrationConfig)
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="backend-configuration-guide">Backend Configuration Guide<a class="headerlink" href="#backend-configuration-guide" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p><strong>Configuration reference.</strong> How the Go backend is configured: the YAML config scheme, how secrets are resolved, and a complete table of every available setting.</p>
+</blockquote>
+<p><strong>Related documents:</strong></p>
+<ul>
+<li><a href="../">Home</a> - Full documentation map and topic index</li>
+<li><a href="../env-variables/">Environment Variables</a> - Runtime environment variables for Protea and Botanist (the frontends)</li>
+<li><a href="../logging-reference/">Logging Reference</a> - Log levels and structured logging policy</li>
+</ul>
+<p><strong>Quick Navigation:</strong></p>
+<ul>
+<li><strong>How is the backend configured?</strong> -&gt; See <a href="#configuration-scheme">Configuration scheme</a></li>
+<li><strong>How do I set a value locally?</strong> -&gt; See <a href="#local-development">Local development</a></li>
+<li><strong>How are secrets handled?</strong> -&gt; See <a href="#secrets">Secrets</a></li>
+<li><strong>What settings exist?</strong> -&gt; See <a href="#configuration-reference-startconfig">Configuration reference</a> and <a href="#migration-configuration-migrationconfig">Migration configuration</a></li>
+</ul>
+<hr />
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>The Go backend (<code>go/backend</code>) is configured entirely from <strong>YAML files</strong>, not environment variables. At startup it reads the <code>CONFIG</code> environment variable — a comma-separated list of YAML file paths — merges those files, resolves any secret templates, validates the result against a typed struct, and then runs. The loader is the internal <a href="https://github.com/interledger/interledger-app/tree/main/go/configa"><code>configa</code></a> package.</p>
+<p>Only a small number of genuine environment variables remain (see <a href="#environment-variables">Environment variables</a> below); everything else lives in YAML.</p>
+<blockquote>
+<p>This applies to the backend <code>start</code>, <code>worker</code>, and <code>migrate</code> commands. The Pacioli ledger service and the mock provider services have their own, separate configuration and are not covered here.</p>
+</blockquote>
+<hr />
+<h2 id="configuration-scheme">Configuration scheme<a class="headerlink" href="#configuration-scheme" title="Permanent link">&para;</a></h2>
+<h3 id="load-flow">Load flow<a class="headerlink" href="#load-flow" title="Permanent link">&para;</a></h3>
+<p>At startup the backend performs the following (<code>go/backend/config</code>):</p>
+<ol>
+<li><strong>Read <code>CONFIG</code></strong> — a comma-separated list of YAML file paths. Required; startup fails if unset.</li>
+<li><strong>Parse &amp; merge</strong> — files are parsed in order and deep-merged, with <strong>later files overriding earlier ones</strong>. This is the base + override pattern (see below).</li>
+<li><strong>Resolve secrets</strong> — any <code>{{ secret "name" "key" }}</code> template expressions are substituted with values fetched from the Kubernetes Secret API. If no templates are present, no Kubernetes call is made.</li>
+<li><strong>Apply defaults</strong> — a few fields default when omitted (see the <a href="#configuration-reference-startconfig">reference table</a>).</li>
+<li><strong>Validate</strong> — the merged config is unmarshalled into the <code>StartConfig</code> struct and validated. Missing required fields, invalid enum values, and unmet conditional requirements cause an immediate, descriptive startup failure.</li>
+</ol>
+<p>Because validation runs at startup, a misconfigured backend fails fast rather than erroring later at runtime.</p>
+<h3 id="base-override-overlay">Base + override overlay<a class="headerlink" href="#base-override-overlay" title="Permanent link">&para;</a></h3>
+<p><code>CONFIG</code> typically lists two files, a base config and an override:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>CONFIG=/etc/backend/config.yaml,/etc/backend/config-override.yaml
+</code></pre></div>
+<p>Merge behavior:</p>
+<table>
+<thead>
+<tr>
+<th>Value kind</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Maps / nested objects</td>
+<td>Deep-merged recursively</td>
+</tr>
+<tr>
+<td>Scalars (strings, numbers, bools)</td>
+<td>Override replaces base</td>
+</tr>
+<tr>
+<td>Arrays</td>
+<td>Override replaces base (not concatenated)</td>
+</tr>
+</tbody>
+</table>
+<p>This lets a base file carry shared defaults while an override file supplies environment-specific or secret values. The override file may be empty.</p>
+<hr />
+<h2 id="environment-variables">Environment variables<a class="headerlink" href="#environment-variables" title="Permanent link">&para;</a></h2>
+<p>These are the <strong>only</strong> environment variables the backend itself reads. Everything else is YAML config.</p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Required</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CONFIG</code></td>
+<td><strong>Yes</strong></td>
+<td>Comma-separated list of YAML config file paths to merge (base first, overrides last).</td>
+</tr>
+<tr>
+<td><code>OTEL_EXPORTER_OTLP_ENDPOINT</code></td>
+<td>No</td>
+<td>OTLP/gRPC trace endpoint. Read by the OpenTelemetry SDK. <strong>Takes priority over</strong> the YAML <code>otel.endpoint</code> value (a warning is logged when it overrides config).</td>
+</tr>
+<tr>
+<td><code>OTEL_EXPORTER_OTLP_HEADERS</code></td>
+<td>No</td>
+<td>Auth headers for the OTLP endpoint (e.g. the Honeycomb ingest key). <strong>Takes priority over</strong> the YAML <code>otel.headers</code> value (a warning is logged when it overrides config).</td>
+</tr>
+<tr>
+<td><code>KUBERNETES_SERVICE_HOST</code> / <code>KUBERNETES_SERVICE_PORT</code></td>
+<td>Auto</td>
+<td>Injected by Kubernetes. Used by <code>configa</code> to reach the Kubernetes Secret API when resolving <code>{{ secret }}</code> templates. Not set manually.</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>The <code>OTEL_EXPORTER_OTLP_TRACES_ENDPOINT</code> and <code>OTEL_EXPORTER_OTLP_TRACES_HEADERS</code> traces-specific variants are also honored, matching the OpenTelemetry SDK convention.</p>
+</blockquote>
+<p>See <a href="#observability"><code>otel</code></a> in the reference for the YAML equivalents.</p>
+<hr />
+<h2 id="local-development">Local development<a class="headerlink" href="#local-development" title="Permanent link">&para;</a></h2>
+<p>Local config lives in <code>local/config/</code> and <code>local/config-override/</code>:</p>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>local/config/backend.yaml</code></td>
+<td>Base backend config for local development (checked in, plaintext test values).</td>
+</tr>
+<tr>
+<td><code>local/config-override/backend.yaml</code></td>
+<td>Local overrides. <strong>Git-ignored</strong> — put your personal or real local secret values here.</td>
+</tr>
+<tr>
+<td><code>local/config/backend.migration.yaml</code></td>
+<td>Base config for the <code>migrate</code> command.</td>
+</tr>
+<tr>
+<td><code>local/config-override/backend.migration.yaml</code></td>
+<td>Overrides for the <code>migrate</code> command (git-ignored).</td>
+</tr>
+</tbody>
+</table>
+<p>The local compose file mounts these into the container and sets <code>CONFIG</code> accordingly:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">environment</span><span class="p">:</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">CONFIG=/etc/backend/config.yaml,/etc/backend/config-override.yaml</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nt">volumes</span><span class="p">:</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./config/backend.yaml:/etc/backend/config.yaml:ro</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./config-override/backend.yaml:/etc/backend/config-override.yaml:ro</span>
+</code></pre></div>
+<p>To change a setting locally, edit <code>config-override/backend.yaml</code> (which wins over the base file) rather than the checked-in base. The override file is created empty by <code>make prep</code>.</p>
+<hr />
+<h2 id="secrets">Secrets<a class="headerlink" href="#secrets" title="Permanent link">&para;</a></h2>
+<h3 id="how-secret-resolution-works">How secret resolution works<a class="headerlink" href="#how-secret-resolution-works" title="Permanent link">&para;</a></h3>
+<p>Any string value in the YAML may contain a template expression:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">gatehub</span><span class="p">:</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">webhook_secret</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;{{</span><span class="nv"> </span><span class="s">secret</span><span class="nv"> </span><span class="s">&quot;wallet-backend&quot;</span><span class="nv"> </span><span class="s">&quot;gatehubWebhookSecret&quot;</span><span class="nv"> </span><span class="s">}}&#39;</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="nt">db</span><span class="p">:</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;postgres://user:{{</span><span class="nv"> </span><span class="s">secret</span><span class="nv"> </span><span class="s">&quot;wallet-backend&quot;</span><span class="nv"> </span><span class="s">&quot;dbPassword&quot;</span><span class="nv"> </span><span class="s">}}@db:5432/backend&#39;</span>
+</code></pre></div>
+<p>At startup <code>configa</code> scans the merged YAML for <code>{{ secret "&lt;name&gt;" "&lt;key&gt;" }}</code> expressions and replaces each with the value of key <code>&lt;key&gt;</code> in the Kubernetes Secret named <code>&lt;name&gt;</code> (in the pod's namespace). Templates may appear anywhere in a string, including embedded in a larger value like a connection URL.</p>
+<p>Key points:</p>
+<ul>
+<li>If <strong>no</strong> templates are present after merging, no Kubernetes call is made — plaintext-only configs work with no cluster access. This is how local development runs.</li>
+<li>If templates <strong>are</strong> present but the loader has no secret client configured, startup fails with <code>configa.ErrNoSecretClient</code>.</li>
+<li>A missing secret, a missing key within a secret, or insufficient RBAC permissions all cause a descriptive startup failure (<code>ErrSecretNotFound</code>, <code>ErrSecretForbidden</code>, <code>ErrSecretFetchFailed</code>).</li>
+</ul>
+<h3 id="rules-for-handling-secrets">Rules for handling secrets<a class="headerlink" href="#rules-for-handling-secrets" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Never commit real secret values.</strong> Real credentials must never appear in checked-in config files. Deployed configs reference them via <code>{{ secret ... }}</code> templates; the actual values live in the team secret manager and are synced into Kubernetes Secrets.</li>
+<li><strong>Local test values are fine to commit.</strong> The plaintext values in <code>local/config/backend.yaml</code> are throwaway test credentials for the mock services — they are not real secrets.</li>
+<li><strong>Put real local values in the override file.</strong> If you need a real credential locally (e.g. to hit a real provider sandbox), place it in the git-ignored <code>local/config-override/backend.yaml</code>, never in the base file.</li>
+<li><strong>Which fields are secret</strong> is marked in the <a href="#configuration-reference-startconfig">reference table</a> below. Any field marked <em>Secret: Yes</em> should be supplied via a <code>{{ secret }}</code> template in deployed environments.</li>
+</ul>
+<hr />
+<h2 id="configuration-reference-startconfig">Configuration reference (<code>StartConfig</code>)<a class="headerlink" href="#configuration-reference-startconfig" title="Permanent link">&para;</a></h2>
+<p>Loaded by the backend <code>start</code> and <code>worker</code> commands. <strong>Required</strong> means the field must be present (validation fails otherwise). <strong>Secret</strong> marks fields that should be injected via <code>{{ secret }}</code> templates in deployed environments.</p>
+<h3 id="general">General<a class="headerlink" href="#general" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Secret</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>environment.mode</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>No</td>
+<td>One of <code>prod</code>, <code>dev</code>, <code>local</code>, <code>test</code>. Drives behavioural switches.</td>
+</tr>
+<tr>
+<td><code>environment.label</code></td>
+<td>string</td>
+<td>No</td>
+<td>No</td>
+<td>Human-readable tag attached to telemetry (Sentry, OTEL).</td>
+</tr>
+<tr>
+<td><code>port</code></td>
+<td>string</td>
+<td>No</td>
+<td>No</td>
+<td>HTTP port. Default <code>8080</code>.</td>
+</tr>
+<tr>
+<td><code>application_url</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>No</td>
+<td>Base URL of the wallet application.</td>
+</tr>
+<tr>
+<td><code>open_payments_base_url</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>No</td>
+<td>Open Payments base URL.</td>
+</tr>
+<tr>
+<td><code>auth_base_url</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>No</td>
+<td>Open Payments auth server base URL.</td>
+</tr>
+<tr>
+<td><code>log_level</code></td>
+<td>string</td>
+<td>No</td>
+<td>No</td>
+<td><code>debug</code>/<code>info</code>/<code>warn</code>/<code>error</code>. Default <code>info</code>.</td>
+</tr>
+<tr>
+<td><code>log_output_path</code></td>
+<td>string</td>
+<td>No</td>
+<td>No</td>
+<td>Log destination. Default <code>stdout</code>.</td>
+</tr>
+<tr>
+<td><code>allowed_wallet_ids</code></td>
+<td>[]string</td>
+<td>No</td>
+<td>No</td>
+<td>Wallet IDs allowed through regional blocks.</td>
+</tr>
+<tr>
+<td><code>blocked_regions</code></td>
+<td>[]string</td>
+<td>No</td>
+<td>No</td>
+<td>ISO country codes to block. Prod: <code>US</code>.</td>
+</tr>
+<tr>
+<td><code>delete_account_enabled</code></td>
+<td>bool</td>
+<td>No</td>
+<td>No</td>
+<td>Global switch for the account-deletion flow. Applies to every eligible wallet.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="database">Database<a class="headerlink" href="#database" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Secret</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>db.url</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>Wallet backend PostgreSQL URL (contains credentials).</td>
+</tr>
+<tr>
+<td><code>db.pacioli_url</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>Pacioli ledger PostgreSQL URL.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="kratos-temporal">Kratos &amp; Temporal<a class="headerlink" href="#kratos-temporal" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Secret</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>kratos.url</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>No</td>
+<td>Kratos public API URL. Defaults to <code>http://localhost:4433</code> if omitted.</td>
+</tr>
+<tr>
+<td><code>kratos.admin_url</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>No</td>
+<td>Kratos admin API URL.</td>
+</tr>
+<tr>
+<td><code>temporal.url</code></td>
+<td>string</td>
+<td>No</td>
+<td>No</td>
+<td>Temporal frontend address. Default <code>temporal:7233</code>.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="rafiki">Rafiki<a class="headerlink" href="#rafiki" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Secret</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>rafiki.node_enabled</code></td>
+<td>bool</td>
+<td>No</td>
+<td>No</td>
+<td>Feature flag: enables Rafiki full-node event orchestration flows.</td>
+</tr>
+<tr>
+<td><code>rafiki.backend_graphql_url</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>No</td>
+<td>Rafiki backend GraphQL endpoint.</td>
+</tr>
+<tr>
+<td><code>rafiki.auth_graphql_url</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>No</td>
+<td>Rafiki auth GraphQL endpoint.</td>
+</tr>
+<tr>
+<td><code>rafiki.operator_tenant_id</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>No</td>
+<td>Operator tenant UUID.</td>
+</tr>
+<tr>
+<td><code>rafiki.admin_api_secret</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>Shared secret for the Rafiki admin API.</td>
+</tr>
+<tr>
+<td><code>rafiki.signature_version</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>No</td>
+<td>Request signature version.</td>
+</tr>
+<tr>
+<td><code>rafiki.db_url</code></td>
+<td>string</td>
+<td>No</td>
+<td>Yes</td>
+<td>Rafiki backend DB URL (used by worker jobs).</td>
+</tr>
+<tr>
+<td><code>rafiki.auth_db_url</code></td>
+<td>string</td>
+<td>No</td>
+<td>Yes</td>
+<td>Rafiki auth DB URL (used by worker jobs).</td>
+</tr>
+</tbody>
+</table>
+<h3 id="gatehub">GateHub<a class="headerlink" href="#gatehub" title="Permanent link">&para;</a></h3>
+<p>Required in <strong>production</strong> (validated when <code>environment.mode</code> is <code>prod</code>). See conditional requirements below.</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Secret</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>gatehub.app_id</code></td>
+<td>string</td>
+<td>Prod</td>
+<td>Yes</td>
+<td>API app ID header.</td>
+</tr>
+<tr>
+<td><code>gatehub.secret</code></td>
+<td>string</td>
+<td>Prod</td>
+<td>Yes</td>
+<td>API signing secret.</td>
+</tr>
+<tr>
+<td><code>gatehub.card_app_id</code></td>
+<td>string</td>
+<td>Prod</td>
+<td>Yes</td>
+<td>Card app ID header.</td>
+</tr>
+<tr>
+<td><code>gatehub.gateway_id</code></td>
+<td>string</td>
+<td>Prod</td>
+<td>Yes</td>
+<td>Gateway UUID.</td>
+</tr>
+<tr>
+<td><code>gatehub.card_account_product_code</code></td>
+<td>string</td>
+<td>Prod</td>
+<td>Yes</td>
+<td>Card product code.</td>
+</tr>
+<tr>
+<td><code>gatehub.paywiser_euro_vault_id</code></td>
+<td>string</td>
+<td>Prod</td>
+<td>Yes</td>
+<td>EUR vault UUID.</td>
+</tr>
+<tr>
+<td><code>gatehub.sending_user_id</code></td>
+<td>string</td>
+<td>Prod</td>
+<td>Yes</td>
+<td>Managed sending user UUID.</td>
+</tr>
+<tr>
+<td><code>gatehub.sending_user_address</code></td>
+<td>string</td>
+<td>Prod</td>
+<td>Yes</td>
+<td>Sending user XRPL address.</td>
+</tr>
+<tr>
+<td><code>gatehub.intermediary_user_id</code></td>
+<td>string</td>
+<td>Prod + node</td>
+<td>Yes</td>
+<td>Intermediary user UUID. Required in prod when <code>rafiki.node_enabled</code>.</td>
+</tr>
+<tr>
+<td><code>gatehub.intermediary_user_address</code></td>
+<td>string</td>
+<td>Prod + node</td>
+<td>Yes</td>
+<td>Intermediary user XRPL address. Required in prod when <code>rafiki.node_enabled</code>.</td>
+</tr>
+<tr>
+<td><code>gatehub.webhook_secret</code></td>
+<td>string</td>
+<td>No</td>
+<td>Yes</td>
+<td>Hex-encoded webhook signing secret.</td>
+</tr>
+<tr>
+<td><code>gatehub.fallback_webhook_url</code></td>
+<td>string</td>
+<td>No</td>
+<td>No</td>
+<td>Secondary webhook URL for unrecognised users.</td>
+</tr>
+<tr>
+<td><code>gatehub.on_off_ramp_client_id</code></td>
+<td>string</td>
+<td>Prod</td>
+<td>No</td>
+<td>OAuth client ID for on/off-ramp.</td>
+</tr>
+<tr>
+<td><code>gatehub.onboarding_client_id</code></td>
+<td>string</td>
+<td>Prod</td>
+<td>No</td>
+<td>OAuth client ID for onboarding.</td>
+</tr>
+<tr>
+<td><code>gatehub.exchange_client_id</code></td>
+<td>string</td>
+<td>Prod</td>
+<td>No</td>
+<td>OAuth client ID for exchange.</td>
+</tr>
+<tr>
+<td><code>gatehub.api_base_url</code></td>
+<td>string</td>
+<td>Prod</td>
+<td>No</td>
+<td>GateHub API base URL.</td>
+</tr>
+<tr>
+<td><code>gatehub.onboarding_base_url</code></td>
+<td>string</td>
+<td>Prod</td>
+<td>No</td>
+<td>Onboarding widget URL.</td>
+</tr>
+<tr>
+<td><code>gatehub.on_off_ramp_base_url</code></td>
+<td>string</td>
+<td>Prod</td>
+<td>No</td>
+<td>Deposit/withdrawal widget URL.</td>
+</tr>
+<tr>
+<td><code>gatehub.eur_ops_account</code></td>
+<td>string</td>
+<td>Prod</td>
+<td>No</td>
+<td>Internal EUR operations account ID.</td>
+</tr>
+<tr>
+<td><code>gatehub.eur_ops_ledger_id</code></td>
+<td>uint32</td>
+<td>Prod</td>
+<td>No</td>
+<td>Internal EUR ledger ID (must be non-zero in prod).</td>
+</tr>
+<tr>
+<td><code>gatehub.organization_id</code></td>
+<td>string</td>
+<td>Prod</td>
+<td>No</td>
+<td>GateHub organisation UUID.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="xago">Xago<a class="headerlink" href="#xago" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Secret</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>xago.api_base_url</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>No</td>
+<td>Business API base URL.</td>
+</tr>
+<tr>
+<td><code>xago.identity_base_url</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>No</td>
+<td>Identity/login API base URL.</td>
+</tr>
+<tr>
+<td><code>xago.api_public_key</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>API public key credential.</td>
+</tr>
+<tr>
+<td><code>xago.api_secret</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>API secret key credential.</td>
+</tr>
+<tr>
+<td><code>xago.policy_id</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>No</td>
+<td>Login policy ID.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="pti-fiant">PTI / Fiant<a class="headerlink" href="#pti-fiant" title="Permanent link">&para;</a></h3>
+<p>Provider is gated by <code>pti.enabled</code>; the remaining fields are required only when enabled.</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Secret</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pti.enabled</code></td>
+<td>bool</td>
+<td>No</td>
+<td>No</td>
+<td>Enables PTI integration and config validation.</td>
+</tr>
+<tr>
+<td><code>pti.base_url</code></td>
+<td>string</td>
+<td>If enabled</td>
+<td>Yes</td>
+<td>PTI REST API base URL.</td>
+</tr>
+<tr>
+<td><code>pti.jwk</code></td>
+<td>string</td>
+<td>If enabled</td>
+<td>Yes</td>
+<td>Private RSA JWK for request signing.</td>
+</tr>
+<tr>
+<td><code>pti.client_id</code></td>
+<td>string</td>
+<td>If enabled</td>
+<td>No</td>
+<td>Client UUID.</td>
+</tr>
+<tr>
+<td><code>pti.sdk_url</code></td>
+<td>string</td>
+<td>If enabled</td>
+<td>No</td>
+<td>Fiant Web SDK bundle URL.</td>
+</tr>
+<tr>
+<td><code>pti.forms_url</code></td>
+<td>string</td>
+<td>If enabled</td>
+<td>No</td>
+<td>Fiant hosted forms URL.</td>
+</tr>
+<tr>
+<td><code>pti.public_key_jwk</code></td>
+<td>string</td>
+<td>If enabled</td>
+<td>Yes</td>
+<td>Public RSA JWK for webhook verification.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="persona">Persona<a class="headerlink" href="#persona" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Secret</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>persona.base_url</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>No</td>
+<td>Persona API base URL.</td>
+</tr>
+<tr>
+<td><code>persona.token</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>Persona API token.</td>
+</tr>
+<tr>
+<td><code>persona.webhook_token</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>Persona webhook verification token.</td>
+</tr>
+<tr>
+<td><code>persona.sandbox_fake_za_id</code></td>
+<td>bool</td>
+<td>No</td>
+<td>No</td>
+<td>Sandbox-only: generate a synthetic South African ID. Must be <code>false</code> when <code>environment.mode: prod</code> — enabling it in prod is rejected at chart render and on startup.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="plaid">Plaid<a class="headerlink" href="#plaid" title="Permanent link">&para;</a></h3>
+<p>Gated by <code>plaid.enabled</code>; the remaining fields are required only when enabled.</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Secret</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>plaid.enabled</code></td>
+<td>bool</td>
+<td>No</td>
+<td>No</td>
+<td>Enables the Plaid bank-linking integration.</td>
+</tr>
+<tr>
+<td><code>plaid.client_id</code></td>
+<td>string</td>
+<td>If enabled</td>
+<td>Yes</td>
+<td>Plaid client ID.</td>
+</tr>
+<tr>
+<td><code>plaid.secret</code></td>
+<td>string</td>
+<td>If enabled</td>
+<td>Yes</td>
+<td>Plaid secret.</td>
+</tr>
+<tr>
+<td><code>plaid.env</code></td>
+<td>string</td>
+<td>If enabled</td>
+<td>No</td>
+<td>One of <code>sandbox</code>, <code>production</code>.</td>
+</tr>
+<tr>
+<td><code>plaid.products</code></td>
+<td>[]string</td>
+<td>If enabled</td>
+<td>No</td>
+<td>Plaid products to request (e.g. <code>auth</code>, <code>transactions</code>, <code>balance</code>, <code>identity</code>).</td>
+</tr>
+<tr>
+<td><code>plaid.country_codes</code></td>
+<td>[]string</td>
+<td>If enabled</td>
+<td>No</td>
+<td>ISO country codes for Link (e.g. <code>US</code>).</td>
+</tr>
+<tr>
+<td><code>plaid.processor</code></td>
+<td>string</td>
+<td>No</td>
+<td>No</td>
+<td>Must be <code>fiant</code>. Defaults to <code>fiant</code> when <code>plaid.enabled</code> and unset.</td>
+</tr>
+<tr>
+<td><code>plaid.api_url</code></td>
+<td>string</td>
+<td>No</td>
+<td>No</td>
+<td>Overrides the Plaid SDK base URL (e.g. to point at mockplaid locally). Empty selects the real Plaid environment matching <code>plaid.env</code>.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="twilio">Twilio<a class="headerlink" href="#twilio" title="Permanent link">&para;</a></h3>
+<p>Gated by <code>twilio.enabled</code>; credentials required only when enabled.</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Secret</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>twilio.enabled</code></td>
+<td>bool</td>
+<td>Yes when <code>environment.mode: prod</code></td>
+<td>No</td>
+<td>Enables live Twilio Verify calls. See behaviour below.</td>
+</tr>
+<tr>
+<td><code>twilio.account_sid</code></td>
+<td>string</td>
+<td>If enabled</td>
+<td>Yes</td>
+<td>Twilio account SID.</td>
+</tr>
+<tr>
+<td><code>twilio.account_token</code></td>
+<td>string</td>
+<td>If enabled</td>
+<td>Yes</td>
+<td>Twilio auth token.</td>
+</tr>
+<tr>
+<td><code>twilio.service_sid</code></td>
+<td>string</td>
+<td>If enabled</td>
+<td>Yes</td>
+<td>Twilio Verify service SID.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Enabled vs. disabled behaviour</strong></p>
+<ul>
+<li><strong><code>twilio.enabled: true</code></strong> — the backend initialises the real Twilio Verify
+  service. <code>account_sid</code>, <code>account_token</code>, and <code>service_sid</code> are required, and
+  the service SID is validated against Twilio at startup (startup fails fast on
+  bad credentials).</li>
+<li><strong><code>twilio.enabled: false</code></strong> — the backend initialises a <strong>no-op verification
+  service</strong> instead of Twilio. It never contacts Twilio: verification codes are
+  always reported as sent, and <strong>any submitted OTP is accepted</strong>. No credentials
+  are required. This is intended for local development and testing.</li>
+</ul>
+<p><strong>Production guardrail</strong></p>
+<p>Running the no-op service in production would let anyone bypass phone
+verification, so it is not allowed:</p>
+<ul>
+<li>When <code>environment.mode: prod</code>, <code>twilio.enabled</code> <strong>must</strong> be <code>true</code>. Setting it
+  to <code>false</code> (or leaving it unset) is rejected at two layers:</li>
+<li><strong>Chart render</strong> — <code>helm template</code>/<code>helm install</code> fails with
+    <code>backend.config.twilio.enabled must be true when environment.mode is prod</code>.</li>
+<li><strong>Backend startup</strong> — config validation returns
+    <code>twilio.enabled must be true when environment.mode is prod</code>.</li>
+<li>In every other mode (<code>sandbox</code>, <code>dev</code>, <code>local</code>, <code>test</code>) <code>twilio.enabled</code>
+  defaults to <code>false</code>. Override it to <code>true</code> to exercise the real Twilio
+  integration in a non-production environment.</li>
+</ul>
+<h3 id="email-sendgrid">Email (SendGrid)<a class="headerlink" href="#email-sendgrid" title="Permanent link">&para;</a></h3>
+<p>Gated by <code>email.enabled</code>; SendGrid fields required only when enabled.</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Secret</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>email.enabled</code></td>
+<td>bool</td>
+<td>No</td>
+<td>No</td>
+<td>Enables outgoing email.</td>
+</tr>
+<tr>
+<td><code>email.sendgrid.api_key</code></td>
+<td>string</td>
+<td>If enabled</td>
+<td>Yes</td>
+<td>SendGrid API key.</td>
+</tr>
+<tr>
+<td><code>email.sendgrid.from_name</code></td>
+<td>string</td>
+<td>If enabled</td>
+<td>No</td>
+<td>Sender display name.</td>
+</tr>
+<tr>
+<td><code>email.sendgrid.from_email</code></td>
+<td>string</td>
+<td>If enabled</td>
+<td>No</td>
+<td>Sender email address.</td>
+</tr>
+<tr>
+<td><code>email.sendgrid.one_template_id</code></td>
+<td>string</td>
+<td>If enabled</td>
+<td>No</td>
+<td>Dynamic template ID.</td>
+</tr>
+<tr>
+<td><code>email.sendgrid.support_email</code></td>
+<td>string</td>
+<td>If enabled</td>
+<td>No</td>
+<td>Support inbox address.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="slack">Slack<a class="headerlink" href="#slack" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Secret</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>slack.token</code></td>
+<td>string</td>
+<td>No</td>
+<td>Yes</td>
+<td>Bot token.</td>
+</tr>
+<tr>
+<td><code>slack.channel_signup_kyc</code></td>
+<td>string</td>
+<td>No</td>
+<td>No</td>
+<td>Channel ID for signup/KYC notifications. Empty disables.</td>
+</tr>
+<tr>
+<td><code>slack.channel_transaction</code></td>
+<td>string</td>
+<td>No</td>
+<td>No</td>
+<td>Channel ID for transaction notifications. Empty disables.</td>
+</tr>
+<tr>
+<td><code>slack.channel_error</code></td>
+<td>string</td>
+<td>No</td>
+<td>No</td>
+<td>Channel ID for error/ops alerts. Empty disables.</td>
+</tr>
+<tr>
+<td><code>slack.client_id</code></td>
+<td>string</td>
+<td>No</td>
+<td>Yes</td>
+<td>OAuth app client ID.</td>
+</tr>
+<tr>
+<td><code>slack.client_secret</code></td>
+<td>string</td>
+<td>No</td>
+<td>Yes</td>
+<td>OAuth app client secret.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="chimoney">Chimoney<a class="headerlink" href="#chimoney" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Secret</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>chimoney.token</code></td>
+<td>string</td>
+<td>No</td>
+<td>Yes</td>
+<td>Chimoney API token.</td>
+</tr>
+<tr>
+<td><code>chimoney.webhook_secret</code></td>
+<td>string</td>
+<td>No</td>
+<td>Yes</td>
+<td>Webhook signature secret.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="admin-portal">Admin portal<a class="headerlink" href="#admin-portal" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Secret</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>admin.policy_aud</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>No</td>
+<td>Cloudflare Access policy audience.</td>
+</tr>
+<tr>
+<td><code>admin.team_domain</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>No</td>
+<td>Cloudflare Access team domain.</td>
+</tr>
+<tr>
+<td><code>admin.base_url</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>No</td>
+<td>Base URL of the admin portal.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="mobile-deep-links">Mobile deep-links<a class="headerlink" href="#mobile-deep-links" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Secret</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>mobile.apple_app_id</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>No</td>
+<td>Apple App Site Association app ID.</td>
+</tr>
+<tr>
+<td><code>mobile.android_package_name</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>No</td>
+<td>Android App Links package name.</td>
+</tr>
+<tr>
+<td><code>mobile.android_sha256</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>No</td>
+<td>Android signing certificate SHA-256.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="other-integrations">Other integrations<a class="headerlink" href="#other-integrations" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Secret</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>vault.addr</code></td>
+<td>string</td>
+<td>No</td>
+<td>No</td>
+<td>HashiCorp Vault address (legacy encryption paths).</td>
+</tr>
+<tr>
+<td><code>vault.transit_engine_path</code></td>
+<td>string</td>
+<td>No</td>
+<td>No</td>
+<td>Vault transit engine path.</td>
+</tr>
+<tr>
+<td><code>vault.token</code></td>
+<td>string</td>
+<td>No</td>
+<td>Yes</td>
+<td>Vault token.</td>
+</tr>
+<tr>
+<td><code>sentry.dsn</code></td>
+<td>string</td>
+<td>No</td>
+<td>Yes</td>
+<td>Sentry DSN for server-side error reporting.</td>
+</tr>
+<tr>
+<td><code>smarty.auth_id</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>No</td>
+<td>Smarty address-validation auth ID.</td>
+</tr>
+<tr>
+<td><code>smarty.auth_token</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>Smarty address-validation auth token.</td>
+</tr>
+<tr>
+<td><code>pusher.addr</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>No</td>
+<td>Internal Pusher/Soketi service URL.</td>
+</tr>
+<tr>
+<td><code>segment.key</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>Segment server-side write key.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="agreements">Agreements<a class="headerlink" href="#agreements" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Secret</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>agreements.folder_name</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>No</td>
+<td>Agreements folder name.</td>
+</tr>
+<tr>
+<td><code>agreements.signup_agreement_ids</code></td>
+<td>[]string</td>
+<td>No</td>
+<td>No</td>
+<td>Agreement IDs required at signup.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="observability">Observability<a class="headerlink" href="#observability" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Secret</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>otel.enabled</code></td>
+<td>bool</td>
+<td>No</td>
+<td>No</td>
+<td>Explicit on/off switch for trace export. When <code>false</code>, a no-op exporter is used.</td>
+</tr>
+<tr>
+<td><code>otel.endpoint</code></td>
+<td>string</td>
+<td>No</td>
+<td>No</td>
+<td>OTLP/gRPC endpoint. Overridden by <code>OTEL_EXPORTER_OTLP_ENDPOINT</code> if set (warning logged).</td>
+</tr>
+<tr>
+<td><code>otel.headers</code></td>
+<td>map[string]string</td>
+<td>No</td>
+<td>Yes</td>
+<td>OTLP auth headers (e.g. Honeycomb ingest key). Overridden by <code>OTEL_EXPORTER_OTLP_HEADERS</code> if set (warning logged).</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>The service name reported in traces (<code>backend</code> / <code>backend-worker</code>) is set in code, not configuration.</p>
+</blockquote>
+<h3 id="conditional-requirements">Conditional requirements<a class="headerlink" href="#conditional-requirements" title="Permanent link">&para;</a></h3>
+<p>Some fields become required based on feature flags or environment mode:</p>
+<table>
+<thead>
+<tr>
+<th>Condition</th>
+<th>Additionally required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>twilio.enabled: true</code></td>
+<td><code>twilio.account_sid</code>, <code>twilio.account_token</code>, <code>twilio.service_sid</code></td>
+</tr>
+<tr>
+<td><code>environment.mode: prod</code></td>
+<td><code>twilio.enabled: true</code> (disabling Twilio in prod is rejected)</td>
+</tr>
+<tr>
+<td><code>environment.mode: prod</code></td>
+<td><code>persona.sandbox_fake_za_id: false</code> (enabling the sandbox fake ZA ID in prod is rejected)</td>
+</tr>
+<tr>
+<td><code>email.enabled: true</code></td>
+<td><code>email.sendgrid.api_key</code>, <code>email.sendgrid.from_name</code>, <code>email.sendgrid.from_email</code>, <code>email.sendgrid.one_template_id</code>, <code>email.sendgrid.support_email</code></td>
+</tr>
+<tr>
+<td><code>pti.enabled: true</code></td>
+<td><code>pti.base_url</code>, <code>pti.jwk</code>, <code>pti.client_id</code>, <code>pti.sdk_url</code>, <code>pti.forms_url</code>, <code>pti.public_key_jwk</code></td>
+</tr>
+<tr>
+<td><code>plaid.enabled: true</code></td>
+<td><code>plaid.client_id</code>, <code>plaid.secret</code>, <code>plaid.env</code> (one of <code>sandbox</code>/<code>production</code>), <code>plaid.products</code>, <code>plaid.country_codes</code></td>
+</tr>
+<tr>
+<td><code>environment.mode: prod</code></td>
+<td>All GateHub fields marked <em>Prod</em> above (plus a non-zero <code>gatehub.eur_ops_ledger_id</code>)</td>
+</tr>
+<tr>
+<td><code>environment.mode: prod</code> <strong>and</strong> <code>rafiki.node_enabled: true</code></td>
+<td><code>gatehub.intermediary_user_id</code>, <code>gatehub.intermediary_user_address</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="migration-configuration-migrationconfig">Migration configuration (<code>MigrationConfig</code>)<a class="headerlink" href="#migration-configuration-migrationconfig" title="Permanent link">&para;</a></h2>
+<p>The <code>migrate</code> command loads a smaller config (from its own <code>CONFIG</code> files, e.g. <code>backend.migration.yaml</code>). It uses the same <code>configa</code> loader, overlay, and secret-templating scheme.</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Required</th>
+<th>Secret</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>environment.mode</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>No</td>
+<td>One of <code>prod</code>, <code>sandbox</code>, <code>dev</code>, <code>local</code>, <code>test</code>.</td>
+</tr>
+<tr>
+<td><code>environment.label</code></td>
+<td>string</td>
+<td>No</td>
+<td>No</td>
+<td>Telemetry tag.</td>
+</tr>
+<tr>
+<td><code>db_url</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>Wallet backend PostgreSQL URL.</td>
+</tr>
+<tr>
+<td><code>pacioli_db_url</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>Pacioli ledger PostgreSQL URL.</td>
+</tr>
+<tr>
+<td><code>open_payments_base_url</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>No</td>
+<td>Open Payments base URL.</td>
+</tr>
+<tr>
+<td><code>kratos_url</code></td>
+<td>string</td>
+<td>No</td>
+<td>No</td>
+<td>Kratos public API URL.</td>
+</tr>
+<tr>
+<td><code>log_level</code></td>
+<td>string</td>
+<td>No</td>
+<td>No</td>
+<td>Log verbosity.</td>
+</tr>
+<tr>
+<td><code>log_output_path</code></td>
+<td>string</td>
+<td>No</td>
+<td>No</td>
+<td>Log destination.</td>
+</tr>
+<tr>
+<td><code>label</code></td>
+<td>string</td>
+<td>No</td>
+<td>No</td>
+<td>Telemetry tag attached to monitoring signals.</td>
+</tr>
+<tr>
+<td><code>agreements.folder_name</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>No</td>
+<td>Agreements folder name.</td>
+</tr>
+<tr>
+<td><code>agreements.signup_agreement_ids</code></td>
+<td>[]string</td>
+<td>No</td>
+<td>No</td>
+<td>Agreement IDs required at signup.</td>
+</tr>
+<tr>
+<td><code>sentry.dsn</code></td>
+<td>string</td>
+<td>No</td>
+<td>Yes</td>
+<td>Sentry DSN.</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.top", "navigation.indexes", "search.highlight", "search.suggest", "content.code.copy", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
