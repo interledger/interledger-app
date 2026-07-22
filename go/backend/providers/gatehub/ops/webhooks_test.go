@@ -101,6 +101,14 @@ func TestHandleActionRequiredWebhook_StatusDocumentsRequired(t *testing.T) {
 			name:      "document expired",
 			eventType: "id.document_notice.expired",
 		},
+		{
+			name:      "document warning",
+			eventType: "id.document_notice.warning",
+		},
+		{
+			name:      "resubmission",
+			eventType: "id.verification.resubmission",
+		},
 	}
 
 	for _, tt := range tests {
