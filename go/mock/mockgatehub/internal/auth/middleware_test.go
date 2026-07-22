@@ -150,6 +150,11 @@ func TestMatchesPublicPattern(t *testing.T) {
 			want: true,
 		},
 		{
+			name: "user-specific kyc-state endpoint",
+			path: "/admin/users/test-user-123/kyc-state",
+			want: true,
+		},
+		{
 			name: "non-public endpoint",
 			path: "/core/v1/transactions",
 			want: false,

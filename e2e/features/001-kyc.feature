@@ -62,6 +62,7 @@ Feature: User KYC and Account Activation
     When I trigger GateHub KYC webhook "id.verification.resubmission" for myself
     Then my KYC status should be documents required
     And I set my MockGatehub user KYC state to "accepted"
+    And I should see the reactivate wallet prompt on the dashboard
     When I navigate to the personal details page to activate wallet
     Then I should see the GateHub KYC widget unavailable message
 
