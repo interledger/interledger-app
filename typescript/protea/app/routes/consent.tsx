@@ -1,6 +1,7 @@
 import {
   Form,
   data,
+  href,
   redirect,
   useLoaderData,
   useSearchParams
@@ -22,6 +23,10 @@ import type { Amount } from '~/lib/rafikiauth.server'
 import { consent, getInteraction } from '~/lib/rafikiauth.server'
 import type { Route } from './+types/consent'
 
+// Outgoing-payment actions the consent screen implements:
+// Grants requesting any other action aren't supported yet and 404.
+const SUPPORTED_ACTIONS = ['create', 'read-all']
+
 export async function loader({ request }: Route.LoaderArgs) {
   await getUserSession(request)
 
@@ -30,15 +35,12 @@ export async function loader({ request }: Route.LoaderArgs) {
   const nonce = url.searchParams.get('nonce') || ''
   const clientName = url.searchParams.get('clientName') || ''
   const clientUri = url.searchParams.get('clientUri') || ''
-  const grants = await getInteraction(interactId, nonce)
 
-  // there should be a grant. Throw 404 for now.
-  if (grants.length < 1) {
-    throw data({}, 404)
-  }
+  const interaction = await requireOwnedInteraction(request, interactId, nonce)
 
   return data({
-    ...grants[0],
+    access: interaction.access,
+    subject: interaction.subject,
     clientName,
     clientUri,
     interactId,
@@ -57,8 +59,23 @@ export const meta = mergeMeta(() => [
 ])
 
 export default function Page() {
-  const { type } = useLoaderData()
+  const { access, subject, clientName, clientUri } =
+    useLoaderData<typeof loader>()
   const [params] = useSearchParams()
+  const amounts = access
+    .map((entry) => entry.limits?.debitAmount ?? entry.limits?.receiveAmount)
+    .filter((amount): amount is Amount => Boolean(amount))
+    .map(formatAmount)
+  // limits take priority: a grant with a debit/receive amount
+  // is shown as a payment, even when a subject is present
+  const isIdentityRequest =
+    amounts.length === 0 && Boolean(subject?.sub_ids?.length)
+
+  const message = isIdentityRequest
+    ? 'wants to confirm your identity.'
+    : amounts.length > 0
+      ? 'is requesting access to the following:'
+      : 'wants to view your payments.'
 
   return (
     <>
@@ -69,9 +86,34 @@ export default function Page() {
         className='hidden'
       />
 
-      {type == 'outgoing-payment' && <OutgoingPaymentGrant />}
-      {type == 'incoming-payment' && <IncomingPaymentGrant />}
-      {type == 'quote' && <QuoteGrant />}
+      <Card>
+        <CardContent>
+          <span className='text-lg'>{clientName}</span> {message}
+        </CardContent>
+        <CardButton
+          noHover
+          onClick={() => {
+            /* do nothing  */
+          }}
+        >
+          <div className='flex w-full items-center justify-between text-medium'>
+            <div className='flex space-x-2'>
+              <span>{clientUri}</span>
+            </div>
+          </div>
+        </CardButton>
+      </Card>
+
+      {amounts.map((amount, index) => (
+        <Card key={index}>
+          <CardContent>
+            <div className='flex w-full justify-between'>
+              <span className='text-medium'>Total amount to debit</span>
+              <span className='text-error'>{amount}</span>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
 
       <CardContent className='mt-2 flex w-full justify-end space-x-6'>
         <TextButton form='consent' type='submit' name='action' value='deny'>
@@ -85,90 +127,50 @@ export default function Page() {
   )
 }
 
-function QuoteGrant() {
-  const { clientName, clientUri } = useLoaderData()
-  return (
-    <>
-      <Card>
-        <CardContent>
-          {clientName} is requesting access to get quotes on your behalf.
-        </CardContent>
-        <CardButton
-          noHover
-          onClick={() => {
-            /* do nothing  */
-          }}
-        >
-          <div className='flex w-full items-center justify-between text-medium'>
-            <div className='flex space-x-2'>
-              <span>{clientUri}</span>
-            </div>
-          </div>
-        </CardButton>
-      </Card>
-    </>
+async function requireOwnedInteraction(
+  request: Request,
+  interactId: string,
+  nonce: string
+) {
+  const interaction = await getInteraction(interactId, nonce)
+  const hasSubject = Boolean(interaction.subject?.sub_ids?.length)
+  const isAccessSupported = interaction.access.some(
+    (access) =>
+      access.type === 'outgoing-payment' &&
+      access.actions.every((action) => SUPPORTED_ACTIONS.includes(action))
   )
-}
 
-function IncomingPaymentGrant() {
-  const { clientName, clientUri } = useLoaderData()
-  return (
-    <>
-      <Card>
-        <CardContent>
-          {clientName} is requesting access to create incoming payments on your
-          account.
-        </CardContent>
-        <CardButton
-          noHover
-          onClick={() => {
-            /* do nothing  */
-          }}
-        >
-          <div className='flex w-full items-center justify-between text-medium'>
-            <div className='flex space-x-2'>
-              <span>{clientUri}</span>
-            </div>
-          </div>
-        </CardButton>
-      </Card>
-    </>
-  )
-}
+  if (!hasSubject && !isAccessSupported) {
+    throw data({}, 404)
+  }
 
-function OutgoingPaymentGrant() {
-  const { clientName, limits, clientUri } = useLoaderData()
-  return (
-    <>
-      <Card>
-        <CardContent>
-          {clientName} is requesting access to make a payment on your behalf.
-        </CardContent>
-        <CardButton
-          noHover
-          onClick={() => {
-            /* do nothing  */
-          }}
-        >
-          <div className='flex w-full items-center justify-between text-medium'>
-            <div className='flex space-x-2'>
-              <span>{clientUri}</span>
-            </div>
-          </div>
-        </CardButton>
-      </Card>
-      <Card>
-        <CardContent>
-          <div className='flex w-full justify-between'>
-            <span className='text-medium'>Total amount to debit</span>
-            <span className='text-error'>
-              {limits && limits.debitAmount && formatAmount(limits.debitAmount)}
-            </span>
-          </div>
-        </CardContent>
-      </Card>
-    </>
+  const userWalletAddress = (await getWalletInfo(request)).url
+
+  const accessIdentifiers = interaction.access.map(
+    (access) => access.identifier
   )
+  const subjectIdentifiers =
+    interaction.subject?.sub_ids.map((subId) => subId.id) ?? []
+
+  const referencedWalletAddresses = [
+    ...accessIdentifiers,
+    ...subjectIdentifiers
+  ].filter((address): address is string => Boolean(address))
+
+  const userOwnsEveryReferencedWallet = referencedWalletAddresses.every(
+    (address) => address.includes(userWalletAddress)
+  )
+
+  if (!userOwnsEveryReferencedWallet) {
+    try {
+      await consent(interactId, nonce, 'reject')
+    } catch {
+      // the grant is denied regardless
+    }
+    throw redirect(href('/no-access'))
+  }
+
+  return interaction
 }
 
 function formatAmount(amount: Amount): string {
@@ -188,23 +190,7 @@ export async function action({ request }: Route.ActionArgs) {
   const interactId = url.searchParams.get('interactId') || ''
   const nonce = url.searchParams.get('nonce') || ''
 
-  const grants = await getInteraction(interactId, nonce)
-
-  // there should be a grant. Throw 404 for now.
-  if (grants.length < 1) {
-    throw data({}, 404)
-  }
-
-  const walletInfo = await getWalletInfo(request)
-  let ownsResource = false
-  grants.forEach((a) => {
-    if (a.identifier?.includes(walletInfo.url)) {
-      ownsResource = true
-    }
-  })
-  if (!ownsResource) {
-    throw data({}, 403)
-  }
+  await requireOwnedInteraction(request, interactId, nonce)
 
   const userDecision: 'accept' | 'reject' =
     action == 'approve' ? 'accept' : 'reject'
