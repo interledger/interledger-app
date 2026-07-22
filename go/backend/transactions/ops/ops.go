@@ -535,6 +535,16 @@ func SetTransactionDestination(ctx context.Context, b Backends, ID string, desti
 	return nil
 }
 
+func SetTransactionExchangeRate(ctx context.Context, b Backends, ID string, appliedRate, surcharge string) error {
+	_, err := b.DB().ExecContext(ctx, "UPDATE transactions SET exchange_rate_applied=$1, exchange_rate_surcharge=$2, updated_at=now() WHERE id=$3",
+		appliedRate, surcharge, ID)
+	if err != nil {
+		return fmt.Errorf("%w %s", transactions.ErrInternal, err)
+	}
+
+	return nil
+}
+
 func SetTransferForeignID(ctx context.Context, b Backends, ID string, foreignID string) error {
 	_, err := b.DB().ExecContext(ctx, "UPDATE transfers SET foreign_id=$1, updated_at=now() WHERE id=$2",
 		foreignID, ID)

@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -233,69 +232,72 @@ func (a *Activity) XagoConvertCurrencyActivity(ctx context.Context, paymentID st
 	return string(*resp), nil
 }
 
-// XagoConvertDetails holds the result of a completed Xago currency conversion.
-type XagoConvertDetails struct {
-	Complete        bool
-	ConvertID       string
-	Status          string
-	Rate            string
-	SendAmount      string
-	SendFee         string
-	ReceiveAmount   string
-	ReceiveCurrency string
-}
-
-// XagoCheckConvertComplete polls GetConvertCurrencyDetails for a convertID.
-// Returns complete=false when conversion is still in progress.
-func (a *Activity) XagoCheckConvertComplete(ctx context.Context, convertID string) (XagoConvertDetails, error) {
-	details, err := a.b.Xago().GetConvertCurrencyDetails(ctx, convertID)
+// XagoFinalizeConversion reports whether the Xago conversion has completed, persisting its results
+//   - returns false while the conversion is still pending
+//   - returns a non-retryable error if the conversion failed
+func (a *Activity) XagoFinalizeConversion(ctx context.Context, paymentID, convertID string) (bool, error) {
+	details, done, err := xagoCheckConvertComplete(ctx, a.b, convertID)
 	if err != nil {
-		return XagoConvertDetails{}, err
+		return false, err
+	}
+	if !done {
+		// Conversion still pending
+		return false, nil
 	}
 
-	status := strings.ToLower(details.Status)
-	switch status {
-	case "success":
-		return XagoConvertDetails{
-			Complete:        true,
-			ConvertID:       details.ConvertID,
-			Status:          details.Status,
-			Rate:            details.Rate.String(),
-			SendAmount:      details.SendAmount.String(),
-			SendFee:         details.SendFee.String(),
-			ReceiveAmount:   details.ReceiveAmount.String(),
-			ReceiveCurrency: details.ReceiveCurrencyCode,
-		}, nil
-	case "pending":
-		return XagoConvertDetails{Complete: false}, nil
-	default:
-		return XagoConvertDetails{}, temporal.NewNonRetryableApplicationError(
-			fmt.Sprintf("Xago conversion failed with status: %s", details.Status),
-			"XagoConversionFailed",
-			nil,
-		)
+	if err := storeActualFXRateAndAmount(ctx, a.b, paymentID, details); err != nil {
+		return false, err
 	}
+	if err := storeXagoConversion(ctx, a.b, paymentID, details); err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
-// StoreActualFXRateAndAmount updates the payment's FX rate and receiver amount with the post-conversion actuals.
-func (a *Activity) StoreActualFXRateAndAmount(ctx context.Context, paymentID string, details XagoConvertDetails) error {
-	p, err := Lookup(ctx, a.b, paymentID)
+// StoreXagoConversionEstimation snapshots the payment's FX draft into xago_currency_conversion_estimations
+// as the estimate committed at execution time. It returns early for payments that are not a GateHub <-> Xago
+// transfer (either direction), and is idempotent via the payment_id conflict on the estimations table.
+func (a *Activity) StoreXagoConversionEstimation(ctx context.Context, paymentID string) error {
+	payment, err := Lookup(ctx, a.b, paymentID)
 	if err != nil {
 		return err
 	}
 
-	// TODO this conversion will lose precision
-	receiveCurrency := currency.ParseCurrency(details.ReceiveCurrency)
-	receiverAmt, err := currency.FromString(details.ReceiveAmount, receiveCurrency)
+	if payment.SenderAccount == "" || payment.ReceiverAccount == "" {
+		return nil
+	}
+
+	senderAccount, err := a.b.LinkedAccounts().Get(ctx, payment.SenderAccount)
 	if err != nil {
-		return fmt.Errorf("parsing receiveAmount %q: %w", details.ReceiveAmount, err)
+		return err
+	}
+
+	receiverAccount, err := a.b.LinkedAccounts().Get(ctx, payment.ReceiverAccount)
+	if err != nil {
+		return err
+	}
+
+	// Both directions of the GateHub <-> Xago pair carry an FX estimate to snapshot.
+	if !isXagoGatehubPair(senderAccount.Provider, receiverAccount.Provider) {
+		return nil
 	}
 
 	_, err = a.b.DB().ExecContext(ctx,
-		"UPDATE payments SET fx_rate=$1, receiver_amount=$2, receiver_currency=$3 WHERE id=$4",
-		details.Rate, receiverAmt.Value, receiverAmt.Currency.String(), p.ID,
+		`INSERT INTO xago_currency_conversion_estimations (
+			payment_id, estimated_rate, send_amount, send_currency_code, receive_amount, receive_currency_code, raw_data
+		)
+		SELECT payment_id, estimated_rate, send_amount, send_currency_code, receive_amount, receive_currency_code, raw_data
+		FROM xago_currency_conversion_estimation_drafts
+		WHERE payment_id = $1`,
+		paymentID,
 	)
-	return err
+	if db.IsErrorCode(err, db.UniqueViolationError) {
+		return nil
+	}
+	if err != nil {
+		return fmt.Errorf("storing xago conversion estimation for payment %s: %w", paymentID, err)
+	}
+	return nil
 }
 
 // PostGatehubToXagoTransfers posts Gatehub (EUR) to Xago (ZAR) transfers:
@@ -484,4 +486,18 @@ func (a *Activity) AddXagoTravelRuleRecord(ctx context.Context, paymentID string
 		return nil
 	}
 	return err
+}
+
+// SetPayoutTransactionFX records the applied FX rate and surcharge on a cross-provider payment's payout
+// transaction. It is a no-op when the payment has no FX data.
+func (a *Activity) SetPayoutTransactionFX(ctx context.Context, paymentID, txID string) error {
+	fx, err := getXagoFX(ctx, a.b, paymentID)
+	if err != nil {
+		return err
+	}
+	if fx.Rate == "" {
+		return nil
+	}
+
+	return a.b.Transactions().SetTransactionExchangeRate(ctx, txID, fx.Rate, fx.Surcharge())
 }

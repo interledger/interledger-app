@@ -63,24 +63,19 @@ func crossProviderGatehubToXagoPayOut(ctx workflow.Context, a *Activity, payment
 		return "", false, err
 	}
 
-	// Poll until conversion completes.
-	// TODO extract and reuse
+	// Poll until conversion completes (the activity stores the actuals once complete).
 	for {
-		var details XagoConvertDetails
-		err = workflow.ExecuteActivity(ctx, a.XagoCheckConvertComplete, convertID).Get(ctx, &details)
+		var done bool
+		err = workflow.ExecuteActivity(ctx, a.XagoFinalizeConversion, paymentID, convertID).Get(ctx, &done)
 		if err != nil {
 			return "", false, err
 		}
-		if details.Complete {
-			// TODO check what we need to store. What about the fees?
-			err = workflow.ExecuteActivity(ctx, a.StoreActualFXRateAndAmount, paymentID, details).Get(ctx, nil)
-			if err != nil {
-				return "", false, err
-			}
+		if done {
 			break
 		}
-		// TODO review and refactor the polling for conversion complete
-		_ = workflow.Sleep(ctx, 10*time.Second)
+		if err = workflow.Sleep(ctx, 10*time.Second); err != nil {
+			return "", false, err
+		}
 	}
 
 	// Atomically post all Pacioli transfers.

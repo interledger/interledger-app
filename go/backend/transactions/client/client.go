@@ -48,6 +48,10 @@ func (c *client) SetTransactionDestination(ctx context.Context, id, destination 
 	return ops.SetTransactionDestination(ctx, c.b, id, destination)
 }
 
+func (c *client) SetTransactionExchangeRate(ctx context.Context, ID, appliedRate, surcharge string) error {
+	return ops.SetTransactionExchangeRate(ctx, c.b, ID, appliedRate, surcharge)
+}
+
 func (c *client) SetTransactionRefundState(ctx context.Context, id string, state transactions.RefundState) error {
 	return ops.SetTransactionRefundState(ctx, c.b, id, state)
 }

@@ -42,6 +42,12 @@ func PaymentWorkflow(ctx workflow.Context, id string) error {
 		return err
 	}
 
+	err = workflow.ExecuteActivity(ctx, a.StoreXagoConversionEstimation, id).Get(ctx, nil)
+	if err != nil {
+		logger.Error("Failed to promote xago conversion draft. paymentID=", id, "err", err)
+		return err
+	}
+
 	// launch payout and payin workflows in parallel
 	selector := workflow.NewSelector(ctx)
 
@@ -725,6 +731,14 @@ func PayoutWorkflow(ctx workflow.Context, paymentID string) error {
 	err = workflow.ExecuteActivity(ctx, a.CreatePayoutTransaction, paymentID, txID, externalTXID).Get(ctx, &txID)
 	if err != nil {
 		return err
+	}
+
+	// Record the applied FX rate on the payout transaction for cross-provider payments.
+	if cpType != CrossProviderNone {
+		err = workflow.ExecuteActivity(ctx, a.SetPayoutTransactionFX, paymentID, txID).Get(ctx, nil)
+		if err != nil {
+			return err
+		}
 	}
 
 	err = workflow.ExecuteActivity(ctx, a.SetReceiveTransactionID, paymentID, txID).Get(ctx, nil)

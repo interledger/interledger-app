@@ -6,9 +6,11 @@ import (
 	"database/sql"
 	"encoding/base32"
 	"encoding/binary"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -35,6 +37,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"go.temporal.io/api/enums/v1"
 	temporal_client "go.temporal.io/sdk/client"
+	"go.temporal.io/sdk/temporal"
 )
 
 const cols = `id, public_id, state, sender_id, sender_id_type, sender_amount, sender_currency, sender_account, receiver_id, receiver_id_type, receiver_amount, receiver_currency, receiver_account, send_transaction_id, receive_transaction_id, action_three_ds_required, action_three_ds_id, action_otp_required, action_otp, note, ip_address, type, fx_rate, fx_fee_percentage, revision, created_at, updated_at`
@@ -414,7 +417,7 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
 
-	p, fxRate, fxFeePerc, err := applyFXCreate(ctx, b, p)
+	p, fxRate, fxFeePerc, fxEstimate, err := applyFXCreate(ctx, b, p)
 	if err != nil {
 		return nil, err
 	}
@@ -478,6 +481,10 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 	err = b.DB().GetContext(ctx, &dbp, stmt, args...)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+
+	if err := storeXagoConversionEstimationDraft(ctx, b, dbp.ID, p.SenderAmount.FormatAmount(), p.SenderAmount.Currency.String(), p.ReceiverAmount.Currency.String(), fxEstimate); err != nil {
+		return nil, err
 	}
 
 	return transformPayment(ctx, b, dbp, senderWallet, receiverWallet)
@@ -616,19 +623,19 @@ func SellerRisk(sendTransactions int) float64 {
 	return A*math.Exp(-k*float64(sendTransactions)) + B
 }
 
-func applyFXCreate(ctx context.Context, b Backends, args payments.CreateArgs) (payments.CreateArgs, float64, float64, error) {
+func applyFXCreate(ctx context.Context, b Backends, args payments.CreateArgs) (payments.CreateArgs, float64, float64, *xago_external.EstimateConvertCurrencyResponse, error) {
 	if args.SenderAccount == "" || args.ReceiverAccount == "" || args.Type == payments.TypeWithdrawal {
-		return args, 0, 0, nil
+		return args, 0, 0, nil, nil
 	}
 
 	senderAcc, err := b.LinkedAccounts().Get(ctx, args.SenderAccount)
 	if err != nil {
-		return args, 0, 0, fmt.Errorf("%w %s", payments.ErrInternal, err)
+		return args, 0, 0, nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
 
 	receiverAcc, err := b.LinkedAccounts().Get(ctx, args.ReceiverAccount)
 	if err != nil {
-		return args, 0, 0, fmt.Errorf("%w %s", payments.ErrInternal, err)
+		return args, 0, 0, nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
 
 	if receiverAcc.ReceiveCurrency == senderAcc.SendCurrency {
@@ -640,30 +647,35 @@ func applyFXCreate(ctx context.Context, b Backends, args payments.CreateArgs) (p
 				args.SenderAmount = args.ReceiverAmount
 			}
 		}
-		return args, 0, 0, nil
+		return args, 0, 0, nil, nil
 	}
 
 	// Cross-provider GateHub <-> Xago FX
 	if isXagoGatehubPair(senderAcc.Provider, receiverAcc.Provider) {
 		if args.SenderAmount.Value == 0 {
 			args.ReceiverAmount = currency.FromFloat64(0, receiverAcc.ReceiveCurrency)
-			return args, 0, 0, nil
+			return args, 0, 0, nil, nil
 		}
 
-		receiverAmount, estimatedRate, err := estimateXagoGatehubFX(ctx, b, senderAcc.Provider, args.SenderAmount)
+		receiverAmount, estimate, err := estimateXagoGatehubFX(ctx, b, senderAcc.Provider, args.SenderAmount)
 		if err != nil {
-			return args, 0, 0, err
+			return args, 0, 0, nil, err
 		}
 		args.ReceiverAmount = receiverAmount
 
-		return args, estimatedRate, 0, nil
+		estimatedRate, err := estimate.EstimatedRate.Float64()
+		if err != nil {
+			return args, 0, 0, nil, fmt.Errorf("%w failed to parse FX estimated rate: %s", payments.ErrInternal, err)
+		}
+
+		return args, estimatedRate, 0, estimate, nil
 	}
 
 	if senderAcc.SendCurrency != currency.USD || receiverAcc.ReceiveCurrency == currency.USD {
-		return args, 0, 0, fmt.Errorf("%w currently only from USD to other currencies are supported", payments.ErrInternal)
+		return args, 0, 0, nil, fmt.Errorf("%w currently only from USD to other currencies are supported", payments.ErrInternal)
 	}
 
-	return args, 0, 0, fmt.Errorf("%w cross currency not supported", payments.ErrInternal)
+	return args, 0, 0, nil, fmt.Errorf("%w cross currency not supported", payments.ErrInternal)
 }
 
 func SetState(ctx context.Context, b Backends, id string, state payments.State) error {
@@ -1078,12 +1090,19 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 
 	// Something changed, update the FX calculations
 	if receiverAmtUpdated || senderAmtUpdated {
-		payment, err = applyFXUpdate(ctx, b, payment, receiverAmtUpdated)
+		var fxEstimate *xago_external.EstimateConvertCurrencyResponse
+		senderAmount := currency.FromUInt64(payment.SenderAmount, currency.ParseCurrency(payment.SenderCurrency))
+
+		payment, fxEstimate, err = applyFXUpdate(ctx, b, payment, receiverAmtUpdated)
 		if err != nil {
 			return nil, err
 		}
 
-		err = validateSendBalances(ctx, b, payment.SenderAccount.String, currency.FromUInt64(payment.SenderAmount, currency.ParseCurrency(payment.SenderCurrency)))
+		if err := storeXagoConversionEstimationDraft(ctx, b, payment.ID, senderAmount.FormatAmount(), payment.SenderCurrency, payment.ReceiverCurrency, fxEstimate); err != nil {
+			return nil, err
+		}
+
+		err = validateSendBalances(ctx, b, payment.SenderAccount.String, senderAmount)
 		if err != nil {
 			return nil, err
 		}
@@ -1137,19 +1156,19 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 	return transformPayment(ctx, b, ret, senderWallet, receiverWallet)
 }
 
-func applyFXUpdate(ctx context.Context, b Backends, existing *dbPayment, receiverAmtUpdated bool) (*dbPayment, error) {
+func applyFXUpdate(ctx context.Context, b Backends, existing *dbPayment, receiverAmtUpdated bool) (*dbPayment, *xago_external.EstimateConvertCurrencyResponse, error) {
 	if !existing.SenderAccount.Valid || !existing.ReceiverAccount.Valid || existing.Type == payments.TypeWithdrawal {
-		return existing, nil
+		return existing, nil, nil
 	}
 
 	senderAcc, err := b.LinkedAccounts().Get(ctx, existing.SenderAccount.String)
 	if err != nil {
-		return existing, fmt.Errorf("%w %s", payments.ErrInternal, err)
+		return existing, nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
 
 	receiverAcc, err := b.LinkedAccounts().Get(ctx, existing.ReceiverAccount.String)
 	if err != nil {
-		return existing, fmt.Errorf("%w %s", payments.ErrInternal, err)
+		return existing, nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
 
 	if receiverAcc.ReceiveCurrency == senderAcc.SendCurrency {
@@ -1157,12 +1176,12 @@ func applyFXUpdate(ctx context.Context, b Backends, existing *dbPayment, receive
 		if receiverAmtUpdated {
 			existing.SenderAmount = existing.ReceiverAmount
 			existing.SenderCurrency = senderAcc.ReceiveCurrency.String()
-			return existing, nil
+			return existing, nil, nil
 		}
 
 		existing.ReceiverAmount = existing.SenderAmount
 		existing.ReceiverCurrency = receiverAcc.ReceiveCurrency.String()
-		return existing, nil
+		return existing, nil, nil
 	}
 
 	// Cross-provider GateHub <-> Xago FX
@@ -1171,28 +1190,33 @@ func applyFXUpdate(ctx context.Context, b Backends, existing *dbPayment, receive
 			existing.ReceiverAmount = 0
 			existing.ReceiverCurrency = receiverAcc.ReceiveCurrency.String()
 			existing.FXRate = sql.NullFloat64{}
-			return existing, nil
+			return existing, nil, nil
 		}
 
 		senderAmount := currency.FromUInt64(existing.SenderAmount, currency.ParseCurrency(existing.SenderCurrency))
 
-		receiverAmt, estimatedRate, err := estimateXagoGatehubFX(ctx, b, senderAcc.Provider, senderAmount)
+		receiverAmt, estimate, err := estimateXagoGatehubFX(ctx, b, senderAcc.Provider, senderAmount)
 		if err != nil {
-			return existing, err
+			return existing, nil, err
+		}
+
+		estimatedRate, err := estimate.EstimatedRate.Float64()
+		if err != nil {
+			return existing, nil, fmt.Errorf("%w failed to parse FX estimated rate: %s", payments.ErrInternal, err)
 		}
 
 		existing.ReceiverAmount = receiverAmt.Value
 		existing.ReceiverCurrency = receiverAmt.Currency.String()
 		existing.FXRate = sql.NullFloat64{Float64: estimatedRate, Valid: true}
 
-		return existing, nil
+		return existing, estimate, nil
 	}
 
 	if senderAcc.SendCurrency != currency.USD {
-		return existing, fmt.Errorf("%w currently only from USD to other currencies are supported", payments.ErrInternal)
+		return existing, nil, fmt.Errorf("%w currently only from USD to other currencies are supported", payments.ErrInternal)
 	}
 
-	return existing, fmt.Errorf("%w cross currency currently not supported", payments.ErrInternal)
+	return existing, nil, fmt.Errorf("%w cross currency currently not supported", payments.ErrInternal)
 }
 
 func UpdateReceiver(ctx context.Context, b Backends, id string, identity payments.Identity) error {
@@ -1356,29 +1380,178 @@ func getXagoGatehubConvertCurrencyPair(senderProvider string) (xago_external.Con
 
 // estimateXagoGatehubFX estimates the receiver amount and FX rate for a cross-provider
 // GateHub <-> Xago conversion, based on which side the sender is on.
-func estimateXagoGatehubFX(ctx context.Context, b Backends, senderProvider string, senderAmt currency.Amount) (currency.Amount, float64, error) {
+func estimateXagoGatehubFX(ctx context.Context, b Backends, senderProvider string, senderAmt currency.Amount) (currency.Amount, *xago_external.EstimateConvertCurrencyResponse, error) {
 	pair, receiverCurrency, err := getXagoGatehubConvertCurrencyPair(senderProvider)
 	if err != nil {
-		return currency.Amount{}, 0, err
+		return currency.Amount{}, nil, err
 	}
 
 	senderAmountF64 := senderAmt.Float64()
 
 	estimate, err := b.Xago().EstimateConvertCurrency(ctx, pair, senderAmountF64)
 	if err != nil {
-		return currency.Amount{}, 0, fmt.Errorf("%w failed to estimate FX rate: %s", payments.ErrInternal, err)
+		return currency.Amount{}, nil, fmt.Errorf("%w failed to estimate FX rate: %s", payments.ErrInternal, err)
 	}
 
 	receivedAmount, err := estimate.ReceivedAmount.Float64()
 	if err != nil {
-		return currency.Amount{}, 0, fmt.Errorf("%w failed to parse FX received amount: %s", payments.ErrInternal, err)
-	}
-	estimatedRate, err := estimate.EstimatedRate.Float64()
-	if err != nil {
-		return currency.Amount{}, 0, fmt.Errorf("%w failed to parse FX estimated rate: %s", payments.ErrInternal, err)
+		return currency.Amount{}, nil, fmt.Errorf("%w failed to parse FX received amount: %s", payments.ErrInternal, err)
 	}
 
-	return currency.FromFloat64(receivedAmount, receiverCurrency), estimatedRate, nil
+	return currency.FromFloat64(receivedAmount, receiverCurrency), estimate, nil
+}
+
+// storeXagoConversionEstimationDraft upserts the current Xago FX estimate for a payment into
+// xago_currency_conversion_estimation_drafts. It is keyed by payment_id so each edit to the payment
+// overwrites the draft in place. A nil estimate means there is nothing to draft yet, so it is a no-op.
+func storeXagoConversionEstimationDraft(ctx context.Context, b Backends, paymentID, sendAmount, sendCurrency, receiveCurrency string, estimate *xago_external.EstimateConvertCurrencyResponse) error {
+	if estimate == nil {
+		return nil
+	}
+
+	raw, err := json.Marshal(estimate)
+	if err != nil {
+		return fmt.Errorf("marshalling xago estimate for payment %s: %w", paymentID, err)
+	}
+
+	_, err = b.DB().ExecContext(ctx,
+		`INSERT INTO xago_currency_conversion_estimation_drafts (
+			payment_id, estimated_rate, send_amount, send_currency_code, receive_amount, receive_currency_code, raw_data
+		) VALUES (
+			$1, $2, $3, $4, $5, $6, $7
+		) ON CONFLICT (payment_id) DO UPDATE SET
+			estimated_rate = excluded.estimated_rate,
+			send_amount = excluded.send_amount,
+			send_currency_code = excluded.send_currency_code,
+			receive_amount = excluded.receive_amount,
+			receive_currency_code = excluded.receive_currency_code,
+			raw_data = excluded.raw_data,
+			updated_at = now()::TIMESTAMP`,
+		paymentID, estimate.EstimatedRate.String(), sendAmount, sendCurrency, estimate.ReceivedAmount.String(), receiveCurrency, raw,
+	)
+	if err != nil {
+		return fmt.Errorf("storing xago conversion draft for payment %s: %w", paymentID, err)
+	}
+	return nil
+}
+
+// xagoCheckConvertComplete fetches the conversion details for a convertID.
+//   - done = false & error = nil means the conversion is still pending;
+//   - a failed conversion returns a non-retryable error.
+func xagoCheckConvertComplete(ctx context.Context, b Backends, convertID string) (*xago_external.GetConvertCurrencyDetailsResponse, bool, error) {
+	details, err := b.Xago().GetConvertCurrencyDetails(ctx, convertID)
+	if err != nil {
+		return nil, false, err
+	}
+
+	switch strings.ToLower(details.Status) {
+	case "success":
+		return details, true, nil
+	case "pending":
+		return nil, false, nil
+	default:
+		return nil, false, temporal.NewNonRetryableApplicationError(
+			fmt.Sprintf("Xago conversion failed with status: %s", details.Status),
+			"XagoConversionFailed",
+			nil,
+		)
+	}
+}
+
+// storeActualFXRateAndAmount updates the payment's FX rate and receiver amount with the post-conversion actuals.
+func storeActualFXRateAndAmount(ctx context.Context, b Backends, paymentID string, details *xago_external.GetConvertCurrencyDetailsResponse) error {
+	p, err := Lookup(ctx, b, paymentID)
+	if err != nil {
+		return err
+	}
+
+	// TODO this conversion will lose precision
+	receiveCurrency := currency.ParseCurrency(details.ReceiveCurrencyCode)
+	receiverAmt, err := currency.FromString(details.ReceiveAmount.String(), receiveCurrency)
+	if err != nil {
+		return fmt.Errorf("parsing receiveAmount %q: %w", details.ReceiveAmount.String(), err)
+	}
+
+	_, err = b.DB().ExecContext(ctx,
+		"UPDATE payments SET fx_rate=$1, receiver_amount=$2, receiver_currency=$3 WHERE id=$4",
+		details.Rate.String(), receiverAmt.Value, receiverAmt.Currency.String(), p.ID,
+	)
+	return err
+}
+
+// storeXagoConversion records the Xago conversion result in the 'xago_currency_conversions' table
+// so we can easily audit the exact, unchanged response that came back from Xago.
+func storeXagoConversion(ctx context.Context, b Backends, paymentID string, details *xago_external.GetConvertCurrencyDetailsResponse) error {
+	raw, err := json.Marshal(details)
+	if err != nil {
+		return fmt.Errorf("marshalling xago conversion for payment %s: %w", paymentID, err)
+	}
+
+	_, err = b.DB().ExecContext(ctx,
+		`INSERT INTO xago_currency_conversions (
+			payment_id, convert_id, rate, send_amount, send_fee, send_currency_code,
+			receive_amount, receive_currency_code, raw_data
+		) VALUES (
+			$1, $2, $3, $4, $5, $6,
+			$7, $8, $9
+		)`,
+		paymentID, details.ConvertID, details.Rate.String(), details.SendAmount.String(), details.SendFee.String(), details.SendCurrencyCode,
+		details.ReceiveAmount.String(), details.ReceiveCurrencyCode, raw,
+	)
+	if db.IsErrorCode(err, db.UniqueViolationError) {
+		return nil
+	}
+	if err != nil {
+		return fmt.Errorf("storing xago conversion for payment %s: %w", paymentID, err)
+	}
+	return nil
+}
+
+type xagoFX struct {
+	Rate       string `db:"rate"`
+	SendFee    string `db:"send_fee"`
+	SendAmount string `db:"send_amount"`
+}
+
+// Surcharge expresses the Xago send fee as a percentage of the send amount, or "" when it cannot be
+// computed (missing or non-positive send amount, e.g. an estimate that carries no fee).
+func (fx xagoFX) Surcharge() string {
+	amount, err := strconv.ParseFloat(fx.SendAmount, 64)
+	if err != nil || amount <= 0 {
+		return ""
+	}
+	fee, err := strconv.ParseFloat(fx.SendFee, 64)
+	if err != nil {
+		return ""
+	}
+	return strconv.FormatFloat(fee*100/amount, 'f', -1, 64)
+}
+
+// getXagoFX returns the FX to record on a payment's payout transaction: the actual Xago conversion (rate
+// plus fee) when one exists, otherwise the committed estimate (rate only, since estimates carry no fee).
+// The zero value (empty Rate) means the payment has no Xago FX data, e.g. a non cross-provider payment.
+func getXagoFX(ctx context.Context, b Backends, paymentID string) (xagoFX, error) {
+	var fx xagoFX
+	err := b.DB().GetContext(ctx, &fx,
+		`SELECT rate, send_fee, send_amount FROM xago_currency_conversions WHERE payment_id = $1`, paymentID)
+	if err == nil {
+		return fx, nil
+	}
+	if !errors.Is(err, sql.ErrNoRows) {
+		return xagoFX{}, err
+	}
+
+	// there is no fee on the estimation.
+	var rate string
+	err = b.DB().GetContext(ctx, &rate,
+		`SELECT estimated_rate FROM xago_currency_conversion_estimations WHERE payment_id = $1`, paymentID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return xagoFX{}, nil
+	}
+	if err != nil {
+		return xagoFX{}, err
+	}
+	return xagoFX{Rate: rate}, nil
 }
 
 func isCrossProviderPair(sendLA, recvLA *linkedaccounts.LinkedAccount) bool {

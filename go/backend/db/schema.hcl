@@ -2778,6 +2778,197 @@ table "xago_travel_rule_records" {
   }
 }
 
+table "xago_currency_conversions" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "payment_id" {
+    null = false
+    type = uuid
+  }
+  column "convert_id" {
+    null = false
+    type = text
+    default = ""
+  }
+  column "rate" {
+    null = false
+    type = text
+    default = ""
+  }
+  column "send_amount" {
+    null = false
+    type = text
+    default = ""
+  }
+  column "send_fee" {
+    null = false
+    type = text
+    default = ""
+  }
+  column "send_currency_code" {
+    null = false
+    type = text
+    default = ""
+  }
+  column "receive_amount" {
+    null = false
+    type = text
+    default = ""
+  }
+  column "receive_currency_code" {
+    null = false
+    type = text
+    default = ""
+  }
+  column "raw_data" {
+    null = false
+    type = jsonb
+  }
+  column "created_at" {
+    null = false
+    type = timestamp
+    default = sql("now()::TIMESTAMP")
+  }
+  column "updated_at" {
+    null = false
+    type = timestamp
+    default = sql("now()::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "xago_currency_conversions_payment_id_uniq_ind" {
+    unique = true
+    columns = [column.payment_id]
+  }
+  index "xago_currency_conversions_convert_id_uniq_ind" {
+    unique = true
+    columns = [column.convert_id]
+  }
+}
+
+table "xago_currency_conversion_estimations" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "payment_id" {
+    null = false
+    type = uuid
+  }
+  column "estimated_rate" {
+    null = false
+    type = text
+    default = ""
+  }
+  column "send_amount" {
+    null = false
+    type = text
+    default = ""
+  }
+  column "send_currency_code" {
+    null = false
+    type = text
+    default = ""
+  }
+  column "receive_amount" {
+    null = false
+    type = text
+    default = ""
+  }
+  column "receive_currency_code" {
+    null = false
+    type = text
+    default = ""
+  }
+  column "raw_data" {
+    null = false
+    type = jsonb
+  }
+  column "created_at" {
+    null = false
+    type = timestamp
+    default = sql("now()::TIMESTAMP")
+  }
+  column "updated_at" {
+    null = false
+    type = timestamp
+    default = sql("now()::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "xago_currency_conversion_estimations_payment_id_uniq_ind" {
+    unique = true
+    columns = [column.payment_id]
+  }
+}
+
+table "xago_currency_conversion_estimation_drafts" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "payment_id" {
+    null = false
+    type = uuid
+  }
+  column "estimated_rate" {
+    null = false
+    type = text
+    default = ""
+  }
+  column "send_amount" {
+    null = false
+    type = text
+    default = ""
+  }
+  column "send_currency_code" {
+    null = false
+    type = text
+    default = ""
+  }
+  column "receive_amount" {
+    null = false
+    type = text
+    default = ""
+  }
+  column "receive_currency_code" {
+    null = false
+    type = text
+    default = ""
+  }
+  column "raw_data" {
+    null = false
+    type = jsonb
+  }
+  column "created_at" {
+    null = false
+    type = timestamp
+    default = sql("now()::TIMESTAMP")
+  }
+  column "updated_at" {
+    null = false
+    type = timestamp
+    default = sql("now()::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "xago_currency_conversion_estimation_drafts_payment_id_uniq_ind" {
+    unique = true
+    columns = [column.payment_id]
+  }
+}
+
 table "pti_users" {
   schema = schema.public
   column "id" {
