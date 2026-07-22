@@ -135,7 +135,7 @@ backend:
   # configa resolves these against the K8s Secrets API at pod startup.
   config:
     environment:
-      # mode is the behavioural switch (consumed by env.SetFynbosEnv). Valid values:
+      # mode is the behavioural switch. Valid values:
       # prod, sandbox, dev, local, test.
       mode: dev
       # label is the human-readable tag attached to monitoring signals (Sentry, OTEL, etc.).
