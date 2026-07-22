@@ -156,7 +156,6 @@ func EventWebhook(b Backends) http.HandlerFunc {
 		tr, err := b.Pacioli().CreateTransfers(r.Context(), []pacioli.CreateTransferArgs{
 			{
 				ID:              hook.TransactionID,
-				TransactionID:   hook.TransactionID,
 				Amount:          amt.Value,
 				DebitAccountID:  opsAcc,
 				CreditAccountID: acc.ID,

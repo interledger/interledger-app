@@ -31,11 +31,14 @@ a { color: #0070f3; }
   <label for="gateway">Gateway</label>
   <input type="text" name="gateway" id="gateway" value="{{.Gateway}}" placeholder="paywiser-eu-sandbox" required>
 
-  <label for="status">KYC Result</label>
+  <label for="status">KYC Webhook Event</label>
   <select name="status" id="status">
     <option value="accepted" {{if eq .Status "accepted"}}selected{{end}}>Accepted</option>
     <option value="rejected" {{if eq .Status "rejected"}}selected{{end}}>Rejected</option>
-    <option value="pending"  {{if eq .Status "pending"}} selected{{end}}>Pending</option>
+    <option value="action_required" {{if eq .Status "action_required"}}selected{{end}}>Action Required</option>
+    <option value="resubmission" {{if eq .Status "resubmission"}}selected{{end}}>Resubmission</option>
+    <option value="document_expired" {{if eq .Status "document_expired"}}selected{{end}}>Document Expired</option>
+    <option value="document_warning" {{if eq .Status "document_warning"}}selected{{end}}>Document Warning</option>
   </select>
 
   <button type="submit">Send KYC Webhook</button>

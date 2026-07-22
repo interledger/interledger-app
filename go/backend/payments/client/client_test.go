@@ -491,11 +491,9 @@ func createTestWallet(t *testing.T, b *TestBackends) testWallet {
 	require.NoError(t, err)
 	require.Len(t, accs, 0)
 
-	xagoTransferID := uuid.NewString()
 	tr, err := b.pac.CreateTransfers(context.Background(), []pacioli.CreateTransferArgs{
 		{
-			ID:              xagoTransferID,
-			TransactionID:   xagoTransferID,
+			ID:              uuid.NewString(),
 			Amount:          100000,
 			DebitAccountID:  xago.ZAROpsAccount,
 			CreditAccountID: xBalance.ID,
@@ -585,11 +583,9 @@ func createTestWallet(t *testing.T, b *TestBackends) testWallet {
 	require.NoError(t, err)
 	require.Len(t, accs, 0)
 
-	ptiTransferID := uuid.NewString()
 	tr, err = b.pac.CreateTransfers(context.Background(), []pacioli.CreateTransferArgs{
 		{
-			ID:              ptiTransferID,
-			TransactionID:   ptiTransferID,
+			ID:              uuid.NewString(),
 			Amount:          100000,
 			DebitAccountID:  pti.USDOpsAccount,
 			CreditAccountID: ptiBal.ID,

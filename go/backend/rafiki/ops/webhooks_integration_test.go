@@ -534,8 +534,7 @@ func TestCreateAndPostLedgerTransferForIncoming_Success(t *testing.T) {
 	pacioliMock.EXPECT().CreateTransfers(gomock.Any(), gomock.Any()).
 		DoAndReturn(func(_ context.Context, args []pacioli.CreateTransferArgs) ([]pacioli.TransferResult, error) {
 			require.Len(t, args, 1)
-			assert.Equal(t, ip.ID, args[0].TransactionID)
-			assert.Equal(t, ip.ID, args[0].ID, "transfer id is set to the transaction id for now")
+			assert.Equal(t, ip.ID, args[0].ID)
 			assert.Equal(t, int64(5000), args[0].Amount)
 			assert.Equal(t, laID, args[0].CreditAccountID)
 			assert.Equal(t, gatehub.EUROpsAccount, args[0].DebitAccountID)
@@ -607,8 +606,7 @@ func TestReserveBalanceForOutgoing_Success(t *testing.T) {
 	pacioliMock.EXPECT().CreateTransfers(gomock.Any(), gomock.Any()).
 		DoAndReturn(func(_ context.Context, args []pacioli.CreateTransferArgs) ([]pacioli.TransferResult, error) {
 			require.Len(t, args, 1)
-			assert.Equal(t, op.ID, args[0].TransactionID)
-			assert.Equal(t, op.ID, args[0].ID, "transfer id is set to the transaction id for now")
+			assert.Equal(t, op.ID, args[0].ID)
 			assert.True(t, args[0].Pending, "reserve transfer must be pending")
 			assert.Equal(t, laID, args[0].DebitAccountID)
 			assert.Equal(t, gatehub.EUROpsAccount, args[0].CreditAccountID)
@@ -914,7 +912,7 @@ func TestCreateOutgoingPaymentTransaction(t *testing.T) {
 	walletsMock := wallets_mock.NewMockClient(ctrl)
 	walletsMock.EXPECT().Get(gomock.Any(), senderWalletID).Return(&wallets.Wallet{ID: senderWalletID}, nil)
 	walletsMock.EXPECT().Get(gomock.Any(), receiverWalletID).
-		Return(&wallets.Wallet{ID: receiverWalletID, Addresses: []wallets.Address{receiverAddr}}, nil)
+		Return(&wallets.Wallet{ID: receiverWalletID, Name: "bob", Addresses: []wallets.Address{receiverAddr}}, nil)
 	ab.SetWallets(walletsMock)
 
 	txMock := transactions_mock.NewMockClient(ctrl)
@@ -929,6 +927,8 @@ func TestCreateOutgoingPaymentTransaction(t *testing.T) {
 			assert.Equal(t, receiverAddr.String(), args.Destination)
 			assert.Equal(t, receiverAddr.String(), args.DestinationIdentity)
 			assert.Equal(t, payments.IdentityTypeWalletURL.String(), args.DestinationIdentityType)
+			// Title is the receiver's public name so the list shows who was paid.
+			assert.Equal(t, "bob", args.Title)
 			return "trx_out", nil
 		})
 	ab.SetTransactions(txMock)
@@ -1025,6 +1025,8 @@ func TestCreateOutgoingPaymentTransaction_WebMonetization(t *testing.T) {
 	txMock.EXPECT().CreateTransaction(gomock.Any(), gomock.Any()).
 		DoAndReturn(func(_ context.Context, args transactions.CreateTransactionArgs) (string, error) {
 			assert.Equal(t, transactions.TransactionTypeWebMonetizationOutgoing, args.ForeignType)
+			// Receiver has no public name here, so the title falls back to the address.
+			assert.Equal(t, receiverAddr.String(), args.Title)
 			return "trx_out", nil
 		})
 	ab.SetTransactions(txMock)
