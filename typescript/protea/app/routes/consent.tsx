@@ -87,6 +87,8 @@ export default function Page() {
     })
   })
 
+  // limits take priority: a grant with a debit/receive amount
+  // is shown as a payment, even when a subject is present
   const isIdentityRequest =
     cards.length === 0 && Boolean(subject?.sub_ids?.length)
   return (
@@ -182,12 +184,8 @@ async function requireOwnedInteraction(
   )
 
   if (!userOwnsEveryReferencedWallet) {
-    try {
-      await consent(interactId, nonce, 'reject')
-    } catch {
-      // the grant is denied regardless
-    }
-    throw redirect(href('/no-access'))
+    const { search } = new URL(request.url)
+    throw redirect(`${href('/no-access')}${search}`)
   }
 
   return interaction

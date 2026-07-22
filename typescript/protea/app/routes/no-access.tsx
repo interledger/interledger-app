@@ -1,4 +1,4 @@
-import { href } from 'react-router'
+import { href, useLoaderData } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   Card,
@@ -9,6 +9,19 @@ import {
   Layouts
 } from '~/components'
 import { mergeMeta } from '~/lib/meta'
+import type { Route } from './+types/no-access'
+
+export async function loader({ request }: Route.LoaderArgs) {
+  const url = new URL(request.url)
+  const interactId = url.searchParams.get('interactId')
+  const nonce = url.searchParams.get('nonce')
+  const logoutUrl = new URL(href('/logout'), url)
+  if (interactId && nonce) {
+    logoutUrl.searchParams.set('returnTo', `${href('/consent')}${url.search}`)
+  }
+
+  return { logoutUrl: logoutUrl.toString() }
+}
 
 export const handle: ApplicationProps = {
   layout: Layouts.Focus
@@ -21,6 +34,8 @@ export const meta = mergeMeta(() => [
 ])
 
 export default function Page() {
+  const { logoutUrl } = useLoaderData<typeof loader>()
+
   return (
     <>
       <Card className='flex !flex-row'>
@@ -33,10 +48,10 @@ export default function Page() {
         </CardContent>
       </Card>
       <Card>
-        <CardLink end preventScrollReset prefetch='intent' to={href('/logout')}>
+        <CardLink end preventScrollReset to={logoutUrl}>
           <div className='mr-auto flex space-x-3'>
-            <Icon>logout</Icon>
-            <span>Log out</span>
+            <Icon>switch_account</Icon>
+            <span>Use a different account</span>
           </div>
         </CardLink>
       </Card>
