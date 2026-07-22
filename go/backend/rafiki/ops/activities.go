@@ -21,6 +21,7 @@ import (
 	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
 	"github.com/interledger/interledger-app/go/backend/rafiki"
 	"github.com/interledger/interledger-app/go/backend/transactions"
+	"github.com/interledger/interledger-app/go/backend/wallets"
 	"github.com/interledger/interledger-app/go/pacioli"
 )
 
@@ -472,21 +473,21 @@ func (a *Activity) WithdrawIncomingPaymentLiquidity(ctx context.Context, incomin
 	return nil
 }
 
-func (a *Activity) resolveReceiverWalletAddress(ctx context.Context, receiverUrl string) (string, error) {
+func (a *Activity) resolveReceiverWallet(ctx context.Context, receiverUrl string) (*wallets.Wallet, error) {
 	ip, err := a.b.Rafiki().GetIncomingPayment(ctx, extractIncomingPaymentID(receiverUrl))
 	if err != nil {
-		return "", fmt.Errorf("%w failed to get receiver incoming payment: %s", rafiki.ErrInternal, err)
+		return nil, fmt.Errorf("%w failed to get receiver incoming payment: %s", rafiki.ErrInternal, err)
 	}
 	receiverWalletID, err := lookupWalletIDFromActivity(ctx, a.b, ip.WalletAddressID)
 	if err != nil {
-		return "", fmt.Errorf("%w failed to look up receiver wallet: %s", rafiki.ErrInternal, err)
+		return nil, fmt.Errorf("%w failed to look up receiver wallet: %s", rafiki.ErrInternal, err)
 	}
 	wallet, err := a.b.Wallets().Get(ctx, receiverWalletID)
 	if err != nil {
-		return "", fmt.Errorf("%w failed to get receiver wallet: %s", rafiki.ErrInternal, err)
+		return nil, fmt.Errorf("%w failed to get receiver wallet: %s", rafiki.ErrInternal, err)
 	}
 
-	return wallet.AddressString(), nil
+	return wallet, nil
 }
 
 func (a *Activity) CreateOutgoingPaymentTransaction(ctx context.Context, op outgoingPaymentData) error {
@@ -518,9 +519,15 @@ func (a *Activity) CreateOutgoingPaymentTransaction(ctx context.Context, op outg
 		txType = transactions.TransactionTypeWebMonetizationOutgoing
 	}
 
-	receiverAddress, err := a.resolveReceiverWalletAddress(ctx, op.Receiver)
+	receiverWallet, err := a.resolveReceiverWallet(ctx, op.Receiver)
 	if err != nil {
 		return err
+	}
+	receiverAddress := receiverWallet.AddressString()
+
+	title := receiverWallet.Name
+	if title == "" {
+		title = receiverAddress
 	}
 
 	_, err = a.b.Transactions().CreateTransaction(ctx, transactions.CreateTransactionArgs{
@@ -531,7 +538,7 @@ func (a *Activity) CreateOutgoingPaymentTransaction(ctx context.Context, op outg
 		State:                   transactions.StatePending,
 		Source:                  wallet.AddressString(),
 		Destination:             receiverAddress,
-		Title:                   "Outgoing Payment",
+		Title:                   title,
 		DestinationIdentity:     receiverAddress,
 		DestinationIdentityType: payments.IdentityTypeWalletURL.String(),
 		Amount:                  amt,
