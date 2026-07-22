@@ -1,0 +1,2035 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for the Interledger App Wallet — a reference implementation for Account Servicing Entities (ASEs) integrating with the Interledger network.">
+      
+      
+      
+      
+        <link rel="prev" href="../payment-troubleshooting-guide/">
+      
+      
+        <link rel="next" href="../logging-reference/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Error Handling Guide - Interledger App Wallet</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#error-handling-guide" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Interledger App Wallet" class="md-header__button md-logo" aria-label="Interledger App Wallet" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Interledger App Wallet
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Error Handling Guide
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Interledger App Wallet" class="md-nav__button md-logo" aria-label="Interledger App Wallet" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Interledger App Wallet
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../terminology/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Terminology
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../signup-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Signup Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../kyc-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    KYC & Identity Verification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../kyc-resubmission-flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    KYC Resubmission Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../account-deletion-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Account Deletion Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wallets-accounts-addresses-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wallets, Accounts & Addresses
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ledger-system-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dual-Ledger System
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../agreements-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agreements & Legal Consent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Payments
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Payments
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../payments-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Payments & Transactions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../transaction-types-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transaction Types Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../provider-payments-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Provider Comparison
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Integrations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Integrations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gatehub-cards-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GateHub Cards
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rafiki-full-node-upgrade-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rafiki Full Node Upgrade
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Operations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../payment-troubleshooting-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Payment Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developers
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Developers
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Error Handling Guide
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Error Handling Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Purpose
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#error-categories-and-builders" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error Categories And Builders
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-the-backend-produces-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How The Backend Produces Errors
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="How The Backend Produces Errors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-handler-and-service-code-returns-an-error" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Handler and service code returns an error
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-togrpcerror-maps-domain-errors-into-the-public-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. toGRPCError() maps domain errors into the public contract
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-withapperror-guarantees-an-apperror" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. withAppError() guarantees an AppError
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#canonical-grpc-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Canonical gRPC Contract
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Canonical gRPC Contract">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#validation-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation Errors
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#precondition-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Precondition Errors
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#not-found-conflict-unauthorized-internal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Not Found, Conflict, Unauthorized, Internal
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validation-errors_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation Errors
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Validation Errors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#field-naming-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Field naming rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#message-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Message rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adding-new-error-mappings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding New Error Mappings
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Adding New Error Mappings">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#preferred-patterns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Preferred patterns
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#frontend-expectations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Frontend Expectations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#request-ids-and-debugging" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Request IDs And Debugging
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#testing-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Testing Requirements
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scope-boundary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scope Boundary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#developer-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Developer Rules
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../logging-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Logging Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend-configuration-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backend Configuration Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../env-variables/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment Variables
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Purpose
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#error-categories-and-builders" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error Categories And Builders
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-the-backend-produces-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How The Backend Produces Errors
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="How The Backend Produces Errors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-handler-and-service-code-returns-an-error" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Handler and service code returns an error
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-togrpcerror-maps-domain-errors-into-the-public-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. toGRPCError() maps domain errors into the public contract
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-withapperror-guarantees-an-apperror" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. withAppError() guarantees an AppError
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#canonical-grpc-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Canonical gRPC Contract
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Canonical gRPC Contract">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#validation-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation Errors
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#precondition-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Precondition Errors
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#not-found-conflict-unauthorized-internal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Not Found, Conflict, Unauthorized, Internal
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validation-errors_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation Errors
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Validation Errors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#field-naming-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Field naming rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#message-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Message rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adding-new-error-mappings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding New Error Mappings
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Adding New Error Mappings">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#preferred-patterns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Preferred patterns
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#frontend-expectations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Frontend Expectations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#request-ids-and-debugging" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Request IDs And Debugging
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#testing-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Testing Requirements
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scope-boundary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scope Boundary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#developer-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Developer Rules
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="error-handling-guide">Error Handling Guide<a class="headerlink" href="#error-handling-guide" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p><strong>Developer reference for backend and frontend error handling.</strong> This page documents the standardized gRPC error contract introduced by commit <code>95d6a42ba6b09aef2aa290a3ce80bc2729563623</code> and the conventions all new work in this repository should follow.</p>
+</blockquote>
+<p><strong>Related documents:</strong></p>
+<ul>
+<li><a href="../logging-reference/">Logging Reference</a> — How errors should be logged</li>
+<li><a href="../payment-troubleshooting-guide/">Payment Troubleshooting</a> — Operational debugging workflow</li>
+<li><a href="../env-variables/">Environment Variables</a> — Runtime configuration and request tracing context</li>
+</ul>
+<p><strong>Quick Navigation:</strong></p>
+<ul>
+<li><strong>What is the standard error contract?</strong> → See <a href="#canonical-grpc-contract">Canonical gRPC Contract</a></li>
+<li><strong>How do I return a validation error?</strong> → See <a href="#validation-errors">Validation Errors</a></li>
+<li><strong>How do I add a new domain error?</strong> → See <a href="#adding-new-error-mappings">Adding New Error Mappings</a></li>
+<li><strong>What does the frontend consume?</strong> → See <a href="#frontend-expectations">Frontend Expectations</a></li>
+</ul>
+<hr />
+<h2 id="purpose">Purpose<a class="headerlink" href="#purpose" title="Permanent link">&para;</a></h2>
+<p>All new work in <code>go/backend/grpc</code> must return errors in a predictable, machine-readable format.</p>
+<p>The standard introduced by the reviewed commit has three goals:</p>
+<ol>
+<li>Every gRPC error must carry a structured <code>AppError</code> detail.</li>
+<li>Validation and precondition failures must expose actionable field or subject information.</li>
+<li>Request IDs must be attached to errors so support and developers can correlate frontend failures with backend logs.</li>
+</ol>
+<p>This guide applies to <code>go/backend/grpc</code> and to frontend consumers in Protea that read gRPC errors.</p>
+<p>This guide does <strong>not</strong> redefine the older <code>go/backend/api/apperrors</code> HTTP admin flow. That package now shares the same central <code>errcodes</code>, but the commit's main standardization target was <code>backend/grpc</code>.</p>
+<h2 id="error-categories-and-builders">Error Categories And Builders<a class="headerlink" href="#error-categories-and-builders" title="Permanent link">&para;</a></h2>
+<p>Every error returned by <code>go/backend/grpc</code> should end up as a gRPC status with:</p>
+<ul>
+<li>a gRPC status code such as <code>InvalidArgument</code>, <code>FailedPrecondition</code>, <code>NotFound</code>, or <code>Internal</code></li>
+<li>one <code>backend.v1.AppError</code> detail</li>
+<li>optional standard Google error details such as <code>google.rpc.BadRequest</code> or <code>google.rpc.PreconditionFailure</code></li>
+<li>a populated <code>reqId</code> on <code>AppError</code> when request ID context is available</li>
+</ul>
+<p>The protobuf contract is:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kd">message</span><span class="w"> </span><span class="nc">AppError</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="kt">string</span><span class="w"> </span><span class="na">errorCode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="kt">string</span><span class="w"> </span><span class="kd">message</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="k">repeated</span><span class="w"> </span><span class="n">AppErrorField</span><span class="w"> </span><span class="na">fields</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">;</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="kt">string</span><span class="w"> </span><span class="na">reqId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">4</span><span class="p">;</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="p">}</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="kd">message</span><span class="w"> </span><span class="nc">AppErrorField</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">  </span><span class="kt">string</span><span class="w"> </span><span class="na">field</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">  </span><span class="kt">string</span><span class="w"> </span><span class="na">error</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="p">}</span>
+</code></pre></div>
+<p>The authoritative app error codes live in <code>go/backend/errcodes/errcodes.go</code>.</p>
+<h2 id="how-the-backend-produces-errors">How The Backend Produces Errors<a class="headerlink" href="#how-the-backend-produces-errors" title="Permanent link">&para;</a></h2>
+<h3 id="1-handler-and-service-code-returns-an-error">1. Handler and service code returns an error<a class="headerlink" href="#1-handler-and-service-code-returns-an-error" title="Permanent link">&para;</a></h3>
+<p>Most RPC handlers should either:</p>
+<ul>
+<li>return <code>toGRPCError(err)</code> for domain/service errors</li>
+<li>return a helper such as <code>NewValidationError(...)</code> or <code>PaymentPreconditionError(...)</code> when the handler itself is deciding the user-facing contract</li>
+</ul>
+<p>The normal pattern is:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nx">result</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">someService</span><span class="p">.</span><span class="nx">DoThing</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">args</span><span class="p">)</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="kc">nil</span><span class="p">,</span><span class="w"> </span><span class="nx">toGRPCError</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="p">}</span>
+</code></pre></div>
+<h3 id="2-togrpcerror-maps-domain-errors-into-the-public-contract">2. <code>toGRPCError()</code> maps domain errors into the public contract<a class="headerlink" href="#2-togrpcerror-maps-domain-errors-into-the-public-contract" title="Permanent link">&para;</a></h3>
+<p><code>toGRPCError()</code> is the central translation layer.</p>
+<p>It does the following:</p>
+<ul>
+<li>logs the original error at <code>info</code> in non-test environments</li>
+<li>converts validator errors into structured validation responses</li>
+<li>maps known sentinel errors through the <code>errorStatus</code> map</li>
+<li>supports wrapped errors via <code>errors.Is(...)</code></li>
+<li>captures unexpected errors in Sentry and returns a generic internal error</li>
+</ul>
+<p>If you add a new domain error that should have a stable public contract, it should usually be mapped here.</p>
+<h3 id="3-withapperror-guarantees-an-apperror">3. <code>withAppError()</code> guarantees an <code>AppError</code><a class="headerlink" href="#3-withapperror-guarantees-an-apperror" title="Permanent link">&para;</a></h3>
+<p>The unary interceptor in <code>middleware_apperror.go</code> runs after the handler returns.</p>
+<p>Its job is to ensure that:</p>
+<ul>
+<li>every gRPC error contains exactly one <code>AppError</code></li>
+<li>the <code>reqId</code> on <code>AppError</code> is populated from request context</li>
+<li>existing <code>AppError</code> details are preserved rather than overwritten</li>
+<li>even raw, unwrapped errors become <code>codes.Internal</code> responses with an <code>AppError</code></li>
+</ul>
+<p>This means developers should still return properly structured errors themselves. The interceptor is a safety net, not the primary place where business semantics should be defined.</p>
+<h2 id="canonical-grpc-contract">Canonical gRPC Contract<a class="headerlink" href="#canonical-grpc-contract" title="Permanent link">&para;</a></h2>
+<h3 id="validation-errors">Validation Errors<a class="headerlink" href="#validation-errors" title="Permanent link">&para;</a></h3>
+<p>Use <code>codes.InvalidArgument</code> when the client can fix the request and retry.</p>
+<p>Validation responses should include:</p>
+<ul>
+<li><code>google.rpc.BadRequest</code> field violations</li>
+<li><code>AppError.errorCode = VALIDATION</code> unless a more specific app code is required</li>
+<li><code>AppError.fields[]</code> mirroring the field violations</li>
+</ul>
+<p>Use these helpers:</p>
+<ul>
+<li><code>NewValidationError(field, description)</code> for a single field violation</li>
+<li><code>ValidationError(err, descriptionFn)</code> when converting <code>validator.ValidationErrors</code></li>
+</ul>
+<p>Typical examples:</p>
+<ul>
+<li>malformed phone number</li>
+<li>invalid email</li>
+<li>missing required amount</li>
+<li>malformed UUID</li>
+</ul>
+<h3 id="precondition-errors">Precondition Errors<a class="headerlink" href="#precondition-errors" title="Permanent link">&para;</a></h3>
+<p>Use <code>codes.FailedPrecondition</code> when the request is structurally valid but the system is not in a state that allows the action.</p>
+<p>Examples:</p>
+<ul>
+<li>a card is blocked</li>
+<li>a payment requires OTP before confirmation</li>
+<li>KYC resubmission is required</li>
+</ul>
+<p>Use helpers like:</p>
+<ul>
+<li><code>CardPreconditionError(...)</code></li>
+<li><code>PaymentPreconditionError(...)</code></li>
+</ul>
+<p>These responses should include <code>google.rpc.PreconditionFailure</code> details.</p>
+<h3 id="not-found-conflict-unauthorized-internal">Not Found, Conflict, Unauthorized, Internal<a class="headerlink" href="#not-found-conflict-unauthorized-internal" title="Permanent link">&para;</a></h3>
+<p>Known domain sentinels are mapped in <code>errorStatus</code> using <code>newError(...)</code> and related builders.</p>
+<p>Examples already standardized include:</p>
+<ul>
+<li><code>USER_NO_USER_FOUND</code></li>
+<li><code>WALLETS_NO_WALLET_FOUND</code></li>
+<li><code>WALLETS_DUPLICATE_WALLET</code></li>
+<li><code>LINKEDACC_NOT_FOUND</code></li>
+<li><code>PAYMENTS_REQUIRED_ACTIONS</code></li>
+</ul>
+<p>Unexpected errors must fall back to:</p>
+<ul>
+<li><code>codes.Internal</code></li>
+<li><code>AppError.errorCode = INTERNAL</code></li>
+<li>a generic public message such as <code>Internal server error</code></li>
+</ul>
+<p>Do not leak provider payloads, SQL errors, or internal stack details to clients.</p>
+<h2 id="validation-errors_1">Validation Errors<a class="headerlink" href="#validation-errors_1" title="Permanent link">&para;</a></h2>
+<h3 id="field-naming-rules">Field naming rules<a class="headerlink" href="#field-naming-rules" title="Permanent link">&para;</a></h3>
+<p>Field names are part of the frontend contract.</p>
+<p>Use one canonical field name for one user input concept. Do not vary names by route, provider, or legacy implementation.</p>
+<p>Examples:</p>
+<ul>
+<li>use <code>otp</code> for OTP code input</li>
+<li>use <code>phone</code> for phone-number input</li>
+<li>use <code>amount</code> for amount input</li>
+</ul>
+<p>Avoid mixed or legacy variants for the same concept, such as <code>OTP</code>, <code>Code</code>, or <code>To</code>, unless you are explicitly documenting a compatibility bridge during migration.</p>
+<h3 id="message-rules">Message rules<a class="headerlink" href="#message-rules" title="Permanent link">&para;</a></h3>
+<p>Messages should be:</p>
+<ul>
+<li>user-actionable</li>
+<li>stable enough for tests</li>
+<li>free of internal implementation details</li>
+</ul>
+<p>Good:</p>
+<ul>
+<li><code>Phone number is invalid.</code></li>
+<li><code>Could not validate OTP</code></li>
+<li><code>Amount is required</code></li>
+</ul>
+<p>Bad:</p>
+<ul>
+<li>raw Twilio API text</li>
+<li>raw SQL constraint names</li>
+<li>internal service errors</li>
+</ul>
+<h2 id="adding-new-error-mappings">Adding New Error Mappings<a class="headerlink" href="#adding-new-error-mappings" title="Permanent link">&para;</a></h2>
+<p>When adding a new backend error path, use this checklist:</p>
+<ol>
+<li>Define or reuse a sentinel/domain error in the owning package.</li>
+<li>Decide the correct public gRPC status code.</li>
+<li>Add or reuse a stable <code>errcodes.AppErrorCode</code>.</li>
+<li>Map the error in <code>go/backend/grpc/errors.go</code> if it should be standardized across handlers.</li>
+<li>Attach standard details such as <code>BadRequest</code> or <code>PreconditionFailure</code> when relevant.</li>
+<li>Add tests that assert the exact status code and attached details.</li>
+</ol>
+<p>If the handler is constructing the error directly, prefer existing helpers over ad-hoc <code>status.New(...).WithDetails(...)</code> code.</p>
+<h3 id="preferred-patterns">Preferred patterns<a class="headerlink" href="#preferred-patterns" title="Permanent link">&para;</a></h3>
+<p>Preferred:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="kc">nil</span><span class="p">,</span><span class="w"> </span><span class="nx">toGRPCError</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="p">}</span>
+</code></pre></div>
+<p>Preferred:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">if</span><span class="w"> </span><span class="nx">invalidInput</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="kc">nil</span><span class="p">,</span><span class="w"> </span><span class="nx">NewValidationError</span><span class="p">(</span><span class="s">&quot;phone&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Phone number is invalid.&quot;</span><span class="p">)</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="p">}</span>
+</code></pre></div>
+<p>Avoid:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">return</span><span class="w"> </span><span class="kc">nil</span><span class="p">,</span><span class="w"> </span><span class="nx">status</span><span class="p">.</span><span class="nx">Error</span><span class="p">(</span><span class="nx">codes</span><span class="p">.</span><span class="nx">Internal</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="p">.</span><span class="nx">Error</span><span class="p">())</span>
+</code></pre></div>
+<p>Avoid:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1">// route-local custom shapes that bypass the central contract</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="k">return</span><span class="w"> </span><span class="kc">nil</span><span class="p">,</span><span class="w"> </span><span class="nx">someOneOffStatusWithDifferentFieldNames</span><span class="p">()</span>
+</code></pre></div>
+<h2 id="frontend-expectations">Frontend Expectations<a class="headerlink" href="#frontend-expectations" title="Permanent link">&para;</a></h2>
+<p>Protea reads structured gRPC errors from the custom Connect client in <code>typescript/protea/app/lib/grpc.server.ts</code> and <code>typescript/protea/app/lib/error.server.ts</code>.</p>
+<p>Frontend consumers should rely on:</p>
+<ul>
+<li>gRPC status code</li>
+<li><code>google.rpc.BadRequest</code> field violations</li>
+<li><code>AppError.errorCode</code></li>
+</ul>
+<p>Frontend code should <strong>not</strong> depend on:</p>
+<ul>
+<li>provider-specific raw messages</li>
+<li>inconsistent field names across routes</li>
+<li>undocumented detail ordering</li>
+</ul>
+<p>When the backend changes an error contract, the corresponding Protea error mappers must be updated in the same stream of work.</p>
+<h2 id="request-ids-and-debugging">Request IDs And Debugging<a class="headerlink" href="#request-ids-and-debugging" title="Permanent link">&para;</a></h2>
+<p>The request ID middleware and <code>withAppError()</code> work together so that backend errors include <code>AppError.reqId</code>.</p>
+<p>Use this flow when debugging:</p>
+<ol>
+<li>Capture the request ID from the frontend-visible error.</li>
+<li>Search backend logs for the same request ID.</li>
+<li>Inspect the original error logged by <code>toGRPCError()</code> or the handler.</li>
+<li>Verify the mapped status code and detail payload in tests when changing behavior.</li>
+</ol>
+<p>This is the intended bridge between support workflows, logs, and frontend-visible failures.</p>
+<h2 id="testing-requirements">Testing Requirements<a class="headerlink" href="#testing-requirements" title="Permanent link">&para;</a></h2>
+<p>Any new standardized error path should have focused tests.</p>
+<p>At minimum, assert:</p>
+<ul>
+<li>the gRPC status code</li>
+<li>the <code>AppError.errorCode</code></li>
+<li>the <code>AppError.fields</code> content when applicable</li>
+<li><code>BadRequest</code> or <code>PreconditionFailure</code> detail contents when applicable</li>
+<li>request ID propagation when testing interceptor behavior</li>
+</ul>
+<p>Useful existing test patterns:</p>
+<ul>
+<li><code>go/backend/grpc/errors_test.go</code></li>
+<li><code>go/backend/grpc/middleware_apperror_test.go</code></li>
+<li><code>go/backend/grpc/status_helpers_test.go</code></li>
+</ul>
+<h2 id="scope-boundary">Scope Boundary<a class="headerlink" href="#scope-boundary" title="Permanent link">&para;</a></h2>
+<p>This standard currently governs <code>go/backend/grpc</code>.</p>
+<p>The older HTTP/admin path in <code>go/backend/api/apperrors</code> now shares the central <code>errcodes</code> package, but it is still a separate response format and should not be conflated with the gRPC detail contract.</p>
+<p>If future work standardizes the admin surface as well, update this guide explicitly rather than assuming the contracts are already identical.</p>
+<h2 id="developer-rules">Developer Rules<a class="headerlink" href="#developer-rules" title="Permanent link">&para;</a></h2>
+<p>All developers working on this project should follow these rules for new backend error handling work:</p>
+<ol>
+<li>Do not return raw internal errors directly from gRPC handlers.</li>
+<li>Prefer <code>toGRPCError()</code> for service/domain failures.</li>
+<li>Use canonical field names consistently across all handlers.</li>
+<li>Use stable <code>errcodes.AppErrorCode</code> values for machine-readable behavior.</li>
+<li>Treat the <code>withAppError()</code> interceptor as a guarantee layer, not the place where business semantics are defined.</li>
+<li>Add focused tests for every new standardized error path.</li>
+<li>Update Protea consumers when backend contracts change.</li>
+</ol>
+<p>If a change does not satisfy these rules, it is not aligned with the repository's current error-handling standard.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.top", "navigation.indexes", "search.highlight", "search.suggest", "content.code.copy", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
