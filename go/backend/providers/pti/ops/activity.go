@@ -282,7 +282,7 @@ func (a *Activity) CreateWalletTransfer(ctx context.Context, paymentID, requestI
 
 	trxResp, err := a.external.CreateTransfer(ctx, external.TransferArgs{
 		RequestID:  requestID,
-		ScenarioID: pti.ScenarioTransfer,
+		ScenarioID: pti.ScenarioTransfer(),
 		SessionID:  p.ID,
 		Amount:     p.SenderAmount.Float64(),
 		USDValue:   p.SenderAmount.Float64(),
