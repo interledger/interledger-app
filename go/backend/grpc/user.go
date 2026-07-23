@@ -23,11 +23,8 @@ func (s *rpcService) CreateUserDefaultWallet(ctx context.Context, req *pb.Create
 	_, err = s.b.Wallets().Create(ctx, wallets.CreateArgs{
 		UserID: req.UserID,
 	})
-	if err != nil && !errors.Is(err, wallets.ErrDuplicateWallet) {
-		return nil, toGRPCError(err)
-	}
 
-	return &pb.Empty{}, nil
+	return &pb.Empty{}, toGRPCError(err)
 }
 
 func (s *rpcService) UpdateUserPhone(ctx context.Context, req *pb.UpdateUserPhoneRequest) (*pb.Empty, error) {
