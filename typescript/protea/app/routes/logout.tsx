@@ -12,9 +12,7 @@ import type { Route } from './+types/logout'
 export async function loader({ request }: Route.LoaderArgs) {
   const cookie = getCookie(request)
   const url = new URL(request.url)
-  const returnTo = safeReturnTo(
-    url.searchParams.get('returnTo')
-  )
+  const returnTo = safeReturnTo(url.searchParams.get('returnTo'))
 
   try {
     const logoutFlow = await kratosPublic.createBrowserLogoutFlow({ cookie })
