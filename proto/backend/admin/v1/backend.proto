@@ -402,6 +402,8 @@ message User {
   string id = 1;
   string email = 2;
   string phoneNumber = 3;
+  string firstName = 4;
+  string lastName = 5;
 }
 
 message AllowWaitlistSignupRequest {

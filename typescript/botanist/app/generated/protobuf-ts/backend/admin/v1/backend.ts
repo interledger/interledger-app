@@ -1084,6 +1084,14 @@ export interface User {
      * @generated from protobuf field: string phoneNumber = 3;
      */
     phoneNumber: string;
+    /**
+     * @generated from protobuf field: string firstName = 4;
+     */
+    firstName: string;
+    /**
+     * @generated from protobuf field: string lastName = 5;
+     */
+    lastName: string;
 }
 /**
  * @generated from protobuf message backend.admin.v1.AllowWaitlistSignupRequest
@@ -4587,11 +4595,13 @@ class User$Type extends MessageType<User> {
         super("backend.admin.v1.User", [
             { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "email", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "phoneNumber", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 3, name: "phoneNumber", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "firstName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "lastName", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<User>): User {
-        const message = { id: "", email: "", phoneNumber: "" };
+        const message = { id: "", email: "", phoneNumber: "", firstName: "", lastName: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<User>(this, message, value);
@@ -4610,6 +4620,12 @@ class User$Type extends MessageType<User> {
                     break;
                 case /* string phoneNumber */ 3:
                     message.phoneNumber = reader.string();
+                    break;
+                case /* string firstName */ 4:
+                    message.firstName = reader.string();
+                    break;
+                case /* string lastName */ 5:
+                    message.lastName = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -4632,6 +4648,12 @@ class User$Type extends MessageType<User> {
         /* string phoneNumber = 3; */
         if (message.phoneNumber !== "")
             writer.tag(3, WireType.LengthDelimited).string(message.phoneNumber);
+        /* string firstName = 4; */
+        if (message.firstName !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.firstName);
+        /* string lastName = 5; */
+        if (message.lastName !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.lastName);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
