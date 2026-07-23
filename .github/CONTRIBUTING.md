@@ -30,7 +30,7 @@ Thank you for contributing to the Interledger Wallet :tada: Your contributions a
 
 ### :beetle: Issues
 
-We use GitHub issues to track bugs and work. If you've found something that needs fixing, search open issues first to see if someone else has already reported it. If it's something new, open an issue with:
+We use GitHub issues to track public reported bugs and features these will be triaged and picked up by our team. If you've found something that needs fixing, search open issues first to see if someone else has already reported it. If it's something new, open an issue with:
 
 - A clear and descriptive title.
 - A detailed description of the problem, including steps to reproduce if applicable.
@@ -147,12 +147,12 @@ PR titles must follow [Conventional Commits](https://www.conventionalcommits.org
 
 The type of your PR title determines whether — and how — a release is cut when it's merged (see [Releases](#releases)), so pick it deliberately:
 
-| Type | Effect |
-|---|---|
-| `feat` | minor version bump |
-| `fix`, `perf` | patch version bump |
-| `feat!`, `fix!`, or a `BREAKING CHANGE:` footer | major version bump |
-| `refactor`, `chore`, `docs`, `test`, `ci`, `build`, `style`, `local` | no release |
+| Type                                                                 | Effect             |
+| -------------------------------------------------------------------- | ------------------ |
+| `feat`                                                               | minor version bump |
+| `fix`, `perf`                                                        | patch version bump |
+| `feat!`, `fix!`, or a `BREAKING CHANGE:` footer                      | major version bump |
+| `refactor`, `chore`, `docs`, `test`, `ci`, `build`, `style`, `local` | no release         |
 
 #### CI
 
@@ -169,7 +169,7 @@ Documentation-only changes (`documentation/**`) skip tests, builds, and linting.
 
 ### Labels
 
-PRs are auto-labeled by [`.github/workflows/labeler.yml`](workflows/labeler.yml) based on the paths changed (config: [`.github/labeler.yml`](labeler.yml)) — e.g. `backend`, `pacioli`, `geo`, `protea`, `botanist`, provider-specific labels like `gatehub`/`xago`/`chimoney`/`fiant/pti`, `e2e`, `local`, `helm`, `documentation`. Labels are only added, never removed, so feel free to add more manually if useful.
+PRs are auto-labeled by [`.github/workflows/labeler.yml`](workflows/labeler.yml) based on the paths changed (config: [`.github/labeler.yml`](labeler.yml)) — e.g. `backend`, `pacioli`, `geo`, `protea`, `botanist`, provider-specific labels like `gatehub`/`xago`/`fiant/pti`, `e2e`, `local`, `helm`, `documentation`. Labels are only added, never removed, so feel free to add more manually if useful.
 
 ## Submitting pull requests
 
