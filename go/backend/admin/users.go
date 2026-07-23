@@ -141,6 +141,8 @@ func convertUser(input user.User) *adminv1.User {
 		Id:          input.ID,
 		Email:       input.Email,
 		PhoneNumber: input.PhoneNumber,
+		FirstName:   input.FirstName,
+		LastName:    input.LastName,
 	}
 }
 
