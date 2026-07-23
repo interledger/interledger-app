@@ -18,15 +18,13 @@ import {
 } from '~/components'
 import { getWalletInfo } from '~/data/wallet.server'
 import { envValue } from '~/env.server'
+import { buildConsentCards } from '~/lib/consent-cards'
 import { getUserSession } from '~/lib/kratos/session.server'
 import { mergeMeta } from '~/lib/meta'
-import type { Amount } from '~/lib/rafikiauth.server'
 import { consent, getInteraction } from '~/lib/rafikiauth.server'
 import type { Route } from './+types/consent'
 
-// Outgoing-payment actions the consent screen implements:
-// Grants requesting any other action aren't supported yet and 404.
-const SUPPORTED_ACTIONS: Partial<AccessAction>[] = ['create', 'read', 'list']
+const FORBIDDEN_ACTIONS: Partial<AccessAction>[] = ['list-all']
 
 export async function loader({ request }: Route.LoaderArgs) {
   await getUserSession(request)
@@ -42,6 +40,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   return data({
     access: interaction.access,
     subject: interaction.subject,
+    state: interaction.state,
     clientName,
     clientUri,
     interactId,
@@ -60,37 +59,41 @@ export const meta = mergeMeta(() => [
 ])
 
 export default function Page() {
-  const { access, subject, clientName, clientUri } =
+  const { access, subject, state, clientName, clientUri } =
     useLoaderData<typeof loader>()
   const [params] = useSearchParams()
-  const cards: { label: string; value?: string }[] = []
+  const isPendingGrant = state === 'PENDING'
 
-  access.forEach((a) => {
-    const amount = a.limits?.debitAmount ?? a.limits?.receiveAmount
-    a.actions.forEach((action) => {
-      switch (action) {
-        case 'create':
-          cards.push(
-            amount
-              ? { label: 'Total amount to debit', value: formatAmount(amount) }
-              : { label: 'Make payments on your behalf' }
-          )
-          break
-        case 'read':
-          cards.push({ label: 'View your payment detail' })
-          break
-        case 'list':
-          cards.push({ label: 'View a list of your payments' })
-          break
-        default:
-      }
-    })
-  })
+  if (!isPendingGrant) {
+    return (
+      <Card>
+        <CardContent>
+          <span className='text-lg'>{clientName}</span> previously sent this
+          request.
+        </CardContent>
+        <CardButton
+          noHover
+          onClick={() => {
+            /* do nothing  */
+          }}
+        >
+          <div className='flex w-full items-center justify-between text-medium'>
+            <div className='flex space-x-2'>
+              <span>{clientUri}</span>
+            </div>
+          </div>
+        </CardButton>
+      </Card>
+    )
+  }
 
+  const opAccess = access.find((a) => a.type === 'outgoing-payment')
+  const cards = buildConsentCards(opAccess)
   // limits take priority: a grant with a debit/receive amount
   // is shown as a payment, even when a subject is present
   const isIdentityRequest =
     cards.length === 0 && Boolean(subject?.sub_ids?.length)
+
   return (
     <>
       <Form
@@ -99,7 +102,6 @@ export default function Page() {
         method='post'
         className='hidden'
       />
-
       <Card>
         <CardContent>
           <span className='text-lg'>{clientName}</span>{' '}
@@ -125,14 +127,13 @@ export default function Page() {
         cards.map((card, index) => (
           <Card key={index}>
             <CardContent>
-              {
-                <div className='flex w-full justify-between'>
-                  <span className='text-medium'>{card.label}</span>
-                  {card.value && (
-                    <span className='text-error'>{card.value}</span>
-                  )}
-                </div>
-              }
+              <div className='flex w-full justify-between'>
+                <span className='text-medium'>{card.label}</span>
+                {card.value && <span className='text-error'>{card.value}</span>}
+              </div>
+              {card.description && (
+                <p className='mt-0.5 text-sm text-weak'>{card.description}</p>
+              )}
             </CardContent>
           </Card>
         ))}
@@ -156,13 +157,16 @@ async function requireOwnedInteraction(
 ) {
   const interaction = await getInteraction(interactId, nonce)
   const hasSubject = Boolean(interaction.subject?.sub_ids?.length)
-  const isAccessSupported = interaction.access.some(
-    (access) =>
-      access.type === 'outgoing-payment' &&
-      access.actions.every((action) => SUPPORTED_ACTIONS.includes(action))
-  )
+  const opAccess = interaction.access.find((a) => a.type === 'outgoing-payment')
+  const hasActions = Boolean(opAccess?.actions.length)
+  if (!hasSubject && !hasActions) {
+    throw data({}, 403)
+  }
 
-  if (!hasSubject && !isAccessSupported) {
+  const isAccessForbidden = opAccess?.actions.some((action) =>
+    FORBIDDEN_ACTIONS.includes(action)
+  )
+  if (isAccessForbidden) {
     throw data({}, 404)
   }
 
@@ -189,16 +193,6 @@ async function requireOwnedInteraction(
   }
 
   return interaction
-}
-
-function formatAmount(amount: Amount): string {
-  let currency = '$'
-  if (amount.assetCode != 'USD') {
-    currency = amount.assetCode
-  }
-
-  const amt = parseInt(amount.value) * Math.pow(10, -amount.assetScale)
-  return `${currency} ${amt.toFixed(2)}`
 }
 
 export async function action({ request }: Route.ActionArgs) {
