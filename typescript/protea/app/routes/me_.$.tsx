@@ -25,8 +25,7 @@ import {
   Chip,
   ChipColor,
   InterledgerIcon,
-  Layouts,
-  Router
+  Layouts
 } from '~/components'
 import { Label } from '~/components/Label'
 import { getPublicWalletDetails } from '~/data/wallet.server'
@@ -180,26 +179,21 @@ export default function Page() {
       {!isUser && (
         <Card>
           <CardHeader>
-            <CardTitle>Join the waitlist</CardTitle>
+            <CardTitle>Join Interledger Wallet</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className='flex items-start space-x-4'>
+            <div className='mb-4 flex items-start space-x-4'>
               <CardIcon>
                 <InterledgerIcon />
               </CardIcon>
               <div className='flex flex-col space-y-4'>
                 <p className='text-sm text-medium'>
-                  For a secure, programmable digital wallet that connects all
-                  your accounts, join the waitlist now.
+                  For a secure digital wallet built for the world of Open
+                  Payments, join the waitlist now.
                 </p>
-                <Router
-                  className='text-sm font-medium text-primary'
-                  to={href('/waitlist')}
-                >
-                  Join the waitlist
-                </Router>
               </div>
             </div>
+            <ButtonRouter to={href('/signup')}>Sign up</ButtonRouter>
           </CardContent>
         </Card>
       )}
