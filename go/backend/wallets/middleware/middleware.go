@@ -37,17 +37,26 @@ func MakeUnaryInterceptor(uc user.Client, wc wallets.Client) grpc.ServerOption {
 			return handler(ctx, req)
 		}
 
-		// resolves the user's wallet into context for downstream handlers.
-		// the wallet is created once at signup (CompleteSignup)
 		walletList, err := wc.List(ctx, u.ID)
 		if err != nil {
 			// Do nothing for now.
 			return handler(ctx, req)
 		}
 
+		// Create a default wallet for the user if they don't already have one
 		if len(walletList) == 0 {
-			// Do nothing for now.
-			return handler(ctx, req)
+			_, err = wc.Create(ctx, wallets.CreateArgs{
+				UserID:  u.ID,
+				Country: u.Country,
+			})
+			if err != nil && !errors.Is(err, wallets.ErrDuplicateWallet) {
+				log.Warn("failed to create default wallet for user", zap.Error(err), zap.String("user_id", u.ID))
+			}
+			walletList, err = wc.List(ctx, u.ID)
+			if err != nil || len(walletList) <= 0 {
+				// Do nothing for now. We tried and the next request will try again
+				return handler(ctx, req)
+			}
 		}
 
 		if len(walletList) > 1 {
