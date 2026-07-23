@@ -53,7 +53,7 @@ export default function Page() {
       <div
         className='whitespace-nowrap p-4 text-sm text-gray-500'
         onClick={() => {
-          let formData = new FormData()
+          const formData = new FormData()
           formData.append('reviewID', review.id)
           formData.append('newState', LinkedAccountReviewState.Verified)
           formData.append('reason', 'Manually verified.')
@@ -71,7 +71,7 @@ export default function Page() {
       <div
         className='whitespace-nowrap p-4 text-sm text-gray-500'
         onClick={() => {
-          let formData = new FormData()
+          const formData = new FormData()
           formData.append('reviewID', review.id)
           formData.append('newState', LinkedAccountReviewState.Rejected)
           formData.append('reason', 'Manually rejected.')

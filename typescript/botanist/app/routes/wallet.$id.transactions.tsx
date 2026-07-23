@@ -82,7 +82,7 @@ const ListItem: FC<Transaction> = ({
 
 export default function Page() {
   const { transactions } = useLoaderData<typeof loader>()
-  let location = useLocation()
+  const location = useLocation()
   return (
     <>
       <div

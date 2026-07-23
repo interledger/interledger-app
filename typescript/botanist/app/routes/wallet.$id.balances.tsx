@@ -109,8 +109,8 @@ export default function Page() {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  let form = await request.formData()
-  let currency = form.get('currency')
+  const form = await request.formData()
+  const currency = form.get('currency')
 
   if (currency == 'ZAR') {
     await EnableXagoWalletBalance(request, params.id as string)

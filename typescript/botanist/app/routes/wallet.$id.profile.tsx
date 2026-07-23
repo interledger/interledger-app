@@ -115,7 +115,7 @@ export default function Page() {
   }, [query, countries])
 
   useEffect(() => {
-    let walletCountry = countries.find((ctry) => ctry.id == wallet.countryCode)
+    const walletCountry = countries.find((ctry) => ctry.id == wallet.countryCode)
     setCountry(walletCountry)
   }, [countries, wallet.countryCode])
 
