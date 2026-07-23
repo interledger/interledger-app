@@ -36,4 +36,11 @@ type FiantLinker interface {
 	// ListLinkedPlaidAccountIDs returns the Plaid account_ids that the user
 	// has already registered with Fiant via this flow
 	ListLinkedPlaidAccountIDs(ctx context.Context, userID string) ([]string, error)
+
+	// IsActivated reports whether the user's wallet is provisioned enough to
+	// link a bank: it holds a US balance (the PTI balance linked account that is
+	// created asynchronously after KYC). Used to reject link attempts upfront —
+	// before any Plaid exchange / processor-token mint — for a not-yet-activated
+	// user. Mirrors the "has US balance" signal the frontend gate uses.
+	IsActivated(ctx context.Context, userID string) (bool, error)
 }
