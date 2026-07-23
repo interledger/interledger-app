@@ -1,0 +1,3521 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for the Interledger App Wallet — a reference implementation for Account Servicing Entities (ASEs) integrating with the Interledger network.">
+      
+      
+      
+      
+        <link rel="prev" href="../transaction-types-reference/">
+      
+      
+        <link rel="next" href="../gatehub-cards-guide/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Provider Comparison - Interledger App Wallet</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#provider-payments-guide-differences-special-cases" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Interledger App Wallet" class="md-header__button md-logo" aria-label="Interledger App Wallet" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Interledger App Wallet
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Provider Comparison
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Interledger App Wallet" class="md-nav__button md-logo" aria-label="Interledger App Wallet" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Interledger App Wallet
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../terminology/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Terminology
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../signup-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Signup Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../kyc-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    KYC & Identity Verification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../kyc-resubmission-flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    KYC Resubmission Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../account-deletion-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Account Deletion Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wallets-accounts-addresses-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wallets, Accounts & Addresses
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ledger-system-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dual-Ledger System
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../agreements-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agreements & Legal Consent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Payments
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Payments
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../payments-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Payments & Transactions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../transaction-types-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transaction Types Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Provider Comparison
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Provider Comparison
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#quick-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#provider-comparison-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Provider Comparison Matrix
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gatehub-the-multi-currency-custodian" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GateHub: The Multi-Currency Custodian
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="GateHub: The Multi-Currency Custodian">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#account-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Account Structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#p2p-payment-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        P2P Payment Flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#webhook-implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Webhook Implementation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fees" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fees
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#status-codes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Status Codes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#limitations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Limitations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pti-the-bank-network-provider" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PTI: The Bank Network Provider
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="PTI: The Bank Network Provider">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#account-structure_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Account Structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#p2p-payment-flow_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        P2P Payment Flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#withdrawal-to-real-bank-account" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Withdrawal to Real Bank Account
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#status-codes_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Status Codes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#webhook-implementation_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Webhook Implementation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fees_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fees
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#special-cases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Special Cases
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#limitations_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Limitations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#xago-regional-payments-specialist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Xago: Regional Payments Specialist
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Xago: Regional Payments Specialist">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#account-structure_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Account Structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#p2p-payment-flow_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        P2P Payment Flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#withdrawal-to-zar-bank-account" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Withdrawal to ZAR Bank Account
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#status-codes_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Status Codes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#webhook-implementation_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Webhook Implementation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fees_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fees
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#internal-transfers-deep-dive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Internal Transfers Deep Dive
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#special-feature-eft-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Special Feature: EFT Integration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#limitations_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Limitations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#chimoney-international-remittance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Chimoney: International Remittance
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Chimoney: International Remittance">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#account-structure_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Account Structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#p2p-payment-flow_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        P2P Payment Flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#withdrawal-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Withdrawal Methods
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#status-codes_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Status Codes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#webhook-implementation_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Webhook Implementation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fees_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fees
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interac-integration-canada-specific" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Interac Integration (Canada Specific)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#limitations_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Limitations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fee-comparison-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fee Comparison Summary
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Fee Comparison Summary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#p2p-transfers-same-currency-same-provider" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        P2P Transfers (Same Currency, Same Provider)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deposits-from-bank-account" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deposits from Bank Account
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#withdrawals-to-bank-account" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Withdrawals to Bank Account
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#special-cases-workarounds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Special Cases &amp; Workarounds
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Special Cases &amp; Workarounds">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cross-provider-payments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cross-Provider Payments
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hosted-transfers-limited" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hosted Transfers (Limited)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#card-payments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Card Payments
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#choosing-the-right-provider" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Choosing the Right Provider
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Choosing the Right Provider">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#user-is-in-europe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        User is in Europe?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#user-is-in-the-us" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        User is in the US?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#user-is-in-south-africa" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        User is in South Africa?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#user-is-in-africaasia-sending-remittances" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        User is in Africa/Asia sending remittances?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#user-wants-card-payments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        User wants card payments?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#user-wants-to-pay-someone-at-a-different-provider" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        User wants to pay someone at a different provider?
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See Also
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Integrations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Integrations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gatehub-cards-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GateHub Cards
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rafiki-full-node-upgrade-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rafiki Full Node Upgrade
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Operations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../payment-troubleshooting-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Payment Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developers
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Developers
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../error-handling-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Error Handling Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../logging-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Logging Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend-configuration-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backend Configuration Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../env-variables/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment Variables
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#quick-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#provider-comparison-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Provider Comparison Matrix
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gatehub-the-multi-currency-custodian" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GateHub: The Multi-Currency Custodian
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="GateHub: The Multi-Currency Custodian">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#account-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Account Structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#p2p-payment-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        P2P Payment Flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#webhook-implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Webhook Implementation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fees" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fees
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#status-codes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Status Codes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#limitations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Limitations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pti-the-bank-network-provider" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PTI: The Bank Network Provider
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="PTI: The Bank Network Provider">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#account-structure_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Account Structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#p2p-payment-flow_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        P2P Payment Flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#withdrawal-to-real-bank-account" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Withdrawal to Real Bank Account
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#status-codes_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Status Codes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#webhook-implementation_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Webhook Implementation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fees_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fees
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#special-cases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Special Cases
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#limitations_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Limitations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#xago-regional-payments-specialist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Xago: Regional Payments Specialist
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Xago: Regional Payments Specialist">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#account-structure_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Account Structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#p2p-payment-flow_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        P2P Payment Flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#withdrawal-to-zar-bank-account" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Withdrawal to ZAR Bank Account
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#status-codes_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Status Codes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#webhook-implementation_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Webhook Implementation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fees_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fees
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#internal-transfers-deep-dive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Internal Transfers Deep Dive
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#special-feature-eft-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Special Feature: EFT Integration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#limitations_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Limitations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#chimoney-international-remittance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Chimoney: International Remittance
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Chimoney: International Remittance">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#account-structure_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Account Structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#p2p-payment-flow_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        P2P Payment Flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#withdrawal-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Withdrawal Methods
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#status-codes_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Status Codes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#webhook-implementation_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Webhook Implementation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fees_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fees
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interac-integration-canada-specific" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Interac Integration (Canada Specific)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#limitations_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Limitations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fee-comparison-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fee Comparison Summary
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Fee Comparison Summary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#p2p-transfers-same-currency-same-provider" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        P2P Transfers (Same Currency, Same Provider)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deposits-from-bank-account" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deposits from Bank Account
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#withdrawals-to-bank-account" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Withdrawals to Bank Account
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#special-cases-workarounds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Special Cases &amp; Workarounds
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Special Cases &amp; Workarounds">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cross-provider-payments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cross-Provider Payments
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hosted-transfers-limited" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hosted Transfers (Limited)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#card-payments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Card Payments
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#choosing-the-right-provider" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Choosing the Right Provider
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Choosing the Right Provider">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#user-is-in-europe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        User is in Europe?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#user-is-in-the-us" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        User is in the US?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#user-is-in-south-africa" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        User is in South Africa?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#user-is-in-africaasia-sending-remittances" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        User is in Africa/Asia sending remittances?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#user-wants-card-payments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        User wants card payments?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#user-wants-to-pay-someone-at-a-different-provider" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        User wants to pay someone at a different provider?
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See Also
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="provider-payments-guide-differences-special-cases">Provider Payments Guide: Differences &amp; Special Cases<a class="headerlink" href="#provider-payments-guide-differences-special-cases" title="Permanent link">&para;</a></h1>
+<p><strong>Audience:</strong> Operations managers, integrators, support technical leads<br />
+<strong>Time to read:</strong> 20-25 minutes</p>
+<blockquote>
+<p><strong>Provider comparison reference.</strong> GateHub vs PTI vs Xago vs Chimoney — speeds, fees, capabilities, and special cases.</p>
+</blockquote>
+<p><strong>Related documents:</strong></p>
+<ul>
+<li><a href="../payments-guide/">Payments Guide</a> — Overview and navigation hub</li>
+<li><a href="../wallets-accounts-addresses-guide/">Wallets vs Accounts vs Addresses</a> — Provider account shapes and routing model</li>
+<li><a href="../transaction-types-reference/">Transaction Types Reference</a> — Transaction status codes per provider</li>
+<li><a href="../ledger-system-guide/">Ledger System Architecture</a> — Settlement models per provider</li>
+<li><a href="../payment-troubleshooting-guide/">Payment Troubleshooting</a> — Provider-specific debugging</li>
+<li><a href="../kyc-guide/">KYC Explainer</a> — Provider onboarding and verification differences</li>
+<li><a href="../terminology/">Concepts</a> — Provider terminology translation</li>
+<li><a href="../env-variables/">Environment Variables</a> — Provider API endpoints, credentials, and environment-specific toggles</li>
+</ul>
+<p><strong>Quick Navigation:</strong></p>
+<ul>
+<li><strong>Which provider is fastest?</strong> → See <a href="#provider-comparison-matrix">Provider Comparison Matrix</a></li>
+<li><strong>Fee breakdown?</strong> → See <a href="#fee-comparison-summary">Fee Comparison</a></li>
+<li><strong>GateHub details?</strong> → See <a href="#gatehub-the-multi-currency-custodian">GateHub Deep Dive</a></li>
+<li><strong>PTI details?</strong> → See <a href="#pti-the-bank-network-provider">PTI Deep Dive</a></li>
+<li><strong>Xago details?</strong> → See <a href="#xago-regional-payments-specialist">Xago Deep Dive</a></li>
+<li><strong>Chimoney details?</strong> → See <a href="#chimoney-international-remittance">Chimoney Deep Dive</a></li>
+<li><strong>Cross-provider payments?</strong> → See <a href="#special-cases">Special Cases</a></li>
+</ul>
+<hr />
+<h2 id="quick-overview">Quick Overview<a class="headerlink" href="#quick-overview" title="Permanent link">&para;</a></h2>
+<p>Each payment provider has different APIs, speeds, fee structures, and capabilities. Understanding these differences is critical for troubleshooting and operations.</p>
+<pre class="mermaid"><code>graph TD
+    IP["Interledger Payment Providers"]
+
+    IP --&gt;|Multi-currency custodian| GH["GateHub"]
+    IP --&gt;|Bank network provider| PTI["PTI"]
+    IP --&gt;|Regional payments| XG["Xago"]
+    IP --&gt;|International remittance| CH["Chimoney"]
+
+    GH --&gt;|Strength| STR1["Reliable webhooks, fast settlements&lt;br/&gt;Multi-currency in-house"]
+    PTI --&gt;|Strength| STR2["Real bank integration&lt;br/&gt;Trusted for regulated transfers"]
+    XG --&gt;|Strength| STR3["South Africa expertise&lt;br/&gt;Local banking system knowledge"]
+    CH --&gt;|Strength| STR4["Multiple withdrawal methods&lt;br/&gt;International reach"]
+
+    style IP fill:#e3f2fd,stroke:#1976d2,color:#000
+    style GH fill:#fff9c4,stroke:#f57f17,color:#000
+    style PTI fill:#f3e5f5,stroke:#7b1fa2,color:#000
+    style XG fill:#e8f5e9,stroke:#388e3c,color:#000
+    style CH fill:#fce4ec,stroke:#c2185b,color:#000</code></pre>
+<hr />
+<h2 id="provider-comparison-matrix">Provider Comparison Matrix<a class="headerlink" href="#provider-comparison-matrix" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>GateHub</th>
+<th>PTI</th>
+<th>Xago</th>
+<th>Chimoney</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Primary Use</strong></td>
+<td>Multi-currency custodian</td>
+<td>Bank on/off-ramps</td>
+<td>South African payments</td>
+<td>International remittance</td>
+</tr>
+<tr>
+<td><strong>Default Geography</strong></td>
+<td>Europe (EUR, multi-currency focus)</td>
+<td>US (ACH, bank network focus)</td>
+<td>South Africa (ZAR focus)</td>
+<td>Africa, Asia (remittance routes)</td>
+</tr>
+<tr>
+<td><strong>Account Model</strong></td>
+<td>User account with currency vaults</td>
+<td>Persistent user account with USD wallet/balance + linked bank accounts</td>
+<td>SubAccount per user</td>
+<td>External ID per protocol</td>
+</tr>
+<tr>
+<td><strong>P2P Speed</strong></td>
+<td>1-5 seconds</td>
+<td>1-3 business days</td>
+<td>Minutes to hours</td>
+<td>2-48 hours</td>
+</tr>
+<tr>
+<td><strong>Deposit Speed</strong></td>
+<td>Seconds (if balance account)</td>
+<td>Hours to days</td>
+<td>ZAR: Hours</td>
+<td>1-7 days</td>
+</tr>
+<tr>
+<td><strong>Withdrawal Speed</strong></td>
+<td>Seconds (internal)</td>
+<td>Hours to days (ACH)</td>
+<td>Minutes to hours</td>
+<td>1-7 days (wire/local transfer)</td>
+</tr>
+<tr>
+<td><strong>Status Codes</strong></td>
+<td>Numeric (0=pending, 1=processing, 100=completed, 101=failed)</td>
+<td>String (PENDING, SETTLED, FAILED)</td>
+<td>String (pending, completed, failed)</td>
+<td>Varies by service</td>
+</tr>
+<tr>
+<td><strong>Webhook Reliability</strong></td>
+<td>Excellent</td>
+<td>Good</td>
+<td>Moderate</td>
+<td>Variable</td>
+</tr>
+<tr>
+<td><strong>Max Transaction</strong></td>
+<td>Per-vault limit (typically $500k)</td>
+<td>Per-transfer limit</td>
+<td>Per-subaccount limit</td>
+<td>Per-method limit</td>
+</tr>
+<tr>
+<td><strong>Fees</strong></td>
+<td>Per-transaction (0.5%-2%)</td>
+<td>Per-transfer ($1-$20)</td>
+<td>Per-transfer (fixed)</td>
+<td>Per-service (0.5%-5%)</td>
+</tr>
+<tr>
+<td><strong>Supported Currencies</strong></td>
+<td>20+ (XRP, USD, EUR, GBP, JPY, SGD, etc.)</td>
+<td>USD (ACH-based)</td>
+<td>Primary: ZAR</td>
+<td>50+ (via local methods)</td>
+</tr>
+<tr>
+<td><strong>KYC Provider</strong></td>
+<td>Internal (GateHub)</td>
+<td>Integrated in PTI</td>
+<td>External (Persona)</td>
+<td>External/Internal</td>
+</tr>
+<tr>
+<td><strong>Internal Transfers</strong></td>
+<td>No (always ask GateHub)</td>
+<td>No (always initiate transfer)</td>
+<td><strong>Yes</strong> (fast, no fee)</td>
+<td>No</td>
+</tr>
+<tr>
+<td><strong>Card Issuing</strong></td>
+<td>Yes (EUR debit cards)</td>
+<td>Yes</td>
+<td>No</td>
+<td>No</td>
+</tr>
+<tr>
+<td><strong>Settlement Model</strong></td>
+<td>Continuous</td>
+<td>Batch (daily)</td>
+<td>Daily</td>
+<td>Per-transfer or weekly</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="gatehub-the-multi-currency-custodian">GateHub: The Multi-Currency Custodian<a class="headerlink" href="#gatehub-the-multi-currency-custodian" title="Permanent link">&para;</a></h2>
+<h3 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h3>
+<p><strong>What it does:</strong> Holds user money in multiple currency vaults — acts like an online bank.</p>
+<p><strong>Best for:</strong> Users who want to hold multiple currencies, fast P2P, card payments.</p>
+<p><strong>Geographic focus:</strong> Europe (EU, multi-currency).</p>
+<h3 id="account-structure">Account Structure<a class="headerlink" href="#account-structure" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>One GateHub account (per user) contains:
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├─ USD vault (example: $5,000)
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>├─ EUR vault (example: €3,000)
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>├─ GBP vault (example: £2,000)
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>├─ JPY vault (example: ¥500,000)
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>└─ ... and other currencies
+</code></pre></div>
+<p>Each vault is independent. Moving money between vaults requires an FX conversion (not currently supported in Interledger Wallet).</p>
+<h3 id="p2p-payment-flow">P2P Payment Flow<a class="headerlink" href="#p2p-payment-flow" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Alice (has GBP) sends Bob (has GBP) £100:
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>Alice&#39;s perspective:
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>├─ Step 1: Click &quot;Send Bob £100&quot;
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>├─ Step 2: System checks: &quot;Alice has £100 in GBP vault? ✓&quot;
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>├─ Step 3: GateHub transfers £100 from Alice vault to Bob vault
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>├─ Step 4: Webhook: &quot;Transfer completed&quot; within 1-5 seconds
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>└─ Step 5: Both see balance updates
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>Bob&#39;s perspective:
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>├─ Notification arrives within 1-5 seconds
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>└─ Balance shows £100 addition
+</code></pre></div>
+<h3 id="webhook-implementation">Webhook Implementation<a class="headerlink" href="#webhook-implementation" title="Permanent link">&para;</a></h3>
+<p>GateHub webhooks are <strong>highly reliable</strong>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>When transaction completes at GateHub:
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>├─ GateHub generates webhook payload
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>├─ Sends to our registered webhook URL
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>├─ Waits for 200 OK response
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>├─ Retries 5 times (exponential backoff) if no response
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>└─ Usually arrives within 1-2 seconds
+</code></pre></div>
+<h3 id="fees">Fees<a class="headerlink" href="#fees" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>GateHub fee structure:
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>├─ Deposits: 0.5% - 2% (varies by payment method)
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>├─ Withdrawals: Fixed fee (e.g., $1-$5) + FX margin
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>├─ P2P Transfers: 2% (configurable by Interledger)
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>├─ Card Payments: Interchange + network fees (absorbed by Interledger currently)
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>└─ Monthly account: $0 (free to manage)
+</code></pre></div>
+<p>Fee is returned in GateHub response:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="p">{</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;txn_abc123&quot;</span><span class="p">,</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="nt">&quot;amount&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;100.00&quot;</span><span class="p">,</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span><span class="nt">&quot;fee&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2.00&quot;</span><span class="p">,</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span><span class="nt">&quot;total_amount&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;100.00&quot;</span><span class="p">,</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">  </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="w">  </span><span class="c1">// 1 = processing (not pending — see Status Codes below)</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="p">}</span>
+</code></pre></div>
+<h3 id="status-codes">Status Codes<a class="headerlink" href="#status-codes" title="Permanent link">&para;</a></h3>
+<p>GateHub uses numeric codes (unusual among modern APIs):</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Meaning</th>
+<th>Finality</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>0</code></td>
+<td>Pending</td>
+<td>Not final — may change</td>
+</tr>
+<tr>
+<td><code>1</code></td>
+<td>Processing</td>
+<td>Not final — in progress</td>
+</tr>
+<tr>
+<td><code>3</code></td>
+<td>Unmatched</td>
+<td>Not final — needs attention</td>
+</tr>
+<tr>
+<td><code>5</code></td>
+<td>Returning</td>
+<td>Not final</td>
+</tr>
+<tr>
+<td><code>10</code></td>
+<td>Manual Review</td>
+<td>Not final — needs manual review</td>
+</tr>
+<tr>
+<td><code>100</code></td>
+<td>Completed</td>
+<td><strong>Final</strong> — money moved</td>
+</tr>
+<tr>
+<td><code>101</code></td>
+<td>Failed</td>
+<td><strong>Final</strong> — rejection</td>
+</tr>
+<tr>
+<td><code>102</code></td>
+<td>User Cancelled</td>
+<td><strong>Final</strong></td>
+</tr>
+<tr>
+<td><code>103</code></td>
+<td>Admin Cancelled</td>
+<td><strong>Final</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Note:</strong> These are GateHub-specific transaction status codes (not HTTP status codes). Status <code>1</code> means "Processing" (not "Pending" — pending is <code>0</code>). Status <code>101</code> is "Failed" (not <code>3</code> — that's "Unmatched").</p>
+<h3 id="limitations">Limitations<a class="headerlink" href="#limitations" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>No Internal Transfers:</strong> All transactions must go through GateHub's system</li>
+<li>Slower than Xago's internal model</li>
+<li>
+<p>Costs money (fee charged each time)</p>
+</li>
+<li>
+<p><strong>Currency Vault Model</strong></p>
+</li>
+<li>Currencies are separate buckets, not merged</li>
+<li>Can't directly pay someone in a currency you don't have</li>
+<li>
+<p>Requires FX conversion (not supported yet in Wallet)</p>
+</li>
+<li>
+<p><strong>Card Issuing Constraints</strong></p>
+</li>
+<li>Cards only EUR-denominated</li>
+<li>Limited to 20 cards per customer</li>
+<li>Requires additional KYC documentation</li>
+</ol>
+<hr />
+<h2 id="pti-the-bank-network-provider">PTI: The Bank Network Provider<a class="headerlink" href="#pti-the-bank-network-provider" title="Permanent link">&para;</a></h2>
+<h3 id="overview_1">Overview<a class="headerlink" href="#overview_1" title="Permanent link">&para;</a></h3>
+<p><strong>What it does:</strong> Connects directly to US bank networks (ACH, wire transfers).</p>
+<p><strong>Best for:</strong> Users who want real bank-account on/off-ramps, regulated transfers, US payments.</p>
+<p><strong>Geographic focus:</strong> US (ACH, bank network).</p>
+<h3 id="account-structure_1">Account Structure<a class="headerlink" href="#account-structure_1" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>PTI user account (persistent):
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>├─ One or more linked bank accounts
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>├─ USD balance
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>├─ Card if issued (optional)
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>└─ Transaction history
+</code></pre></div>
+<p>Unlike GateHub, PTI keeps a persistent user account. No separate currency vaults — just a USD balance.</p>
+<h3 id="p2p-payment-flow_1">P2P Payment Flow<a class="headerlink" href="#p2p-payment-flow_1" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>Alice (PTI, USD) sends Bob (PTI, USD) $50:
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>Timeline:
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>├─ T+0: Alice initiates transfer
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>├─ T+0.5s: PTI receives request
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>├─ T+2s: PTI creates transaction (status: PENDING)
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>├─ T+3s: PTI sends webhook: status = PENDING
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>├─ T+10s-2m: Bank network processes (ACH)
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>├─ T+2m-24h: Funds settle (depends on rail)
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>├─ T+settlement: PTI webhook: status = SETTLED
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>└─ Final: Bob sees balance increase
+</code></pre></div>
+<h3 id="withdrawal-to-real-bank-account">Withdrawal to Real Bank Account<a class="headerlink" href="#withdrawal-to-real-bank-account" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>Charlie (PTI) withdraws $100 to his bank account:
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>├─ T+0: Charlie clicks &quot;Withdraw&quot;
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>├─ T+0.5s: PTI initiates ACH transfer
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>├─ T+2s: Webhook: status = PENDING
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>├─ T+1h-3d: Bank processes (depends on method)
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>└─ T+final: Charlie&#39;s bank shows $100
+</code></pre></div>
+<p><strong>Key difference:</strong> The money actually leaves the Interledger system and goes to Charlie's real bank. No middleman.</p>
+<h3 id="status-codes_1">Status Codes<a class="headerlink" href="#status-codes_1" title="Permanent link">&para;</a></h3>
+<p>PTI uses human-readable strings (more standard):</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Meaning</th>
+<th>Finality</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>PENDING</code></td>
+<td>Submitted to bank network</td>
+<td>Not final</td>
+</tr>
+<tr>
+<td><code>SETTLED</code></td>
+<td>Bank confirmed completion</td>
+<td><strong>Final</strong></td>
+</tr>
+<tr>
+<td><code>FAILED</code></td>
+<td>Bank rejected transfer</td>
+<td><strong>Final</strong></td>
+</tr>
+</tbody>
+</table>
+<h3 id="webhook-implementation_1">Webhook Implementation<a class="headerlink" href="#webhook-implementation_1" title="Permanent link">&para;</a></h3>
+<p>PTI webhooks are reliable but sometimes delayed:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>Normal case:
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>├─ T+0: Transfer confirmed
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>├─ T+2-5s: Webhook arrives
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>Slow case:
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>├─ T+0: Transfer confirmed
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>├─ T+30s: Still waiting for webhook...
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>├─ T+20m: Manual poll by Interledger system
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>└─ Manual update from polling result
+</code></pre></div>
+<h3 id="fees_1">Fees<a class="headerlink" href="#fees_1" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>PTI fee structure:
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>├─ ACH transfer: $0.25 - $1.00
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>├─ Wire transfer: $10 - $30
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>└─ Monthly account: $5 - $10
+</code></pre></div>
+<p>Fees are sent in response:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="p">{</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">  </span><span class="nt">&quot;transfer_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ptr_xyz789&quot;</span><span class="p">,</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">  </span><span class="nt">&quot;amount&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;100.00&quot;</span><span class="p">,</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">  </span><span class="nt">&quot;fee&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1.00&quot;</span><span class="p">,</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="w">  </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;PENDING&quot;</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="p">}</span>
+</code></pre></div>
+<h3 id="special-cases">Special Cases<a class="headerlink" href="#special-cases" title="Permanent link">&para;</a></h3>
+<p><strong>Bank Account Verification</strong></p>
+<p>When a user links a new bank account, PTI requires verification:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>Day 1: User provides bank account info
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>  └─ Status: UNVERIFIED
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>Day 2: PTI sends micro-deposits ($0.01, $0.02)
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>  └─ Status: PENDING_VERIFICATION
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>Day 5: User confirms amounts received
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>  └─ Status: VERIFIED
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>
+<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a>Day 6: User can now withdraw
+</code></pre></div>
+<p><strong>VAT/Tax Compliance</strong></p>
+<p>PTI requires VAT ID for certain accounts:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>Company transferring &gt; €10,000/month:
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>  ├─ Must provide VAT ID
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>  ├─ PTI validates with tax authority
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>  └─ Then transfers allowed (slower verification)
+</code></pre></div>
+<h3 id="limitations_1">Limitations<a class="headerlink" href="#limitations_1" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Slow Settlements:</strong> Bank timings mean 1-3 business days for on/off-ramps</li>
+<li><strong>Complex Verification:</strong> Harder KYC, bank account verification required</li>
+<li><strong>No Same-Day P2P:</strong> Even PTI-to-PTI transfers take hours</li>
+</ol>
+<hr />
+<h2 id="xago-regional-payments-specialist">Xago: Regional Payments Specialist<a class="headerlink" href="#xago-regional-payments-specialist" title="Permanent link">&para;</a></h2>
+<h3 id="overview_2">Overview<a class="headerlink" href="#overview_2" title="Permanent link">&para;</a></h3>
+<p><strong>What it does:</strong> Dominates South African payments, connects ZAR to SA banking system.</p>
+<p><strong>Best for:</strong> Users in South Africa, ZAR transactions, fast regional transfers.</p>
+<p><strong>Geographic focus:</strong> South Africa (ZAR primary), partial support for other currencies.</p>
+<h3 id="account-structure_2">Account Structure<a class="headerlink" href="#account-structure_2" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>One Xago SubAccount per user, containing:
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>├─ ZAR balance (primary currency)
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>├─ One or more linked bank accounts
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>├─ Transaction history
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>└─ KYC status
+</code></pre></div>
+<p>Simpler than GateHub (no multiple vaults), more integrated than PTI (banks linked directly).</p>
+<h3 id="p2p-payment-flow_2">P2P Payment Flow<a class="headerlink" href="#p2p-payment-flow_2" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>Alice (Xago, ZAR) sends Bob (Xago, ZAR) R1,000:
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>OPTION A: External transfer (tell Xago)
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>├─ T+0: Alice initiates
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>├─ T+1s: Xago API called
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>├─ T+5s: Xago processes transfer
+<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>├─ T+10s: Webhook arrives
+<a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>├─ T+15s: Both see balances update
+<a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a>└─ Total: 15 seconds
+<a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a>
+<a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a>OPTION B: Internal transfer (Interledger magic)
+<a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a>├─ T+0: Alice initiates
+<a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a>├─ T+0.2s: Our Pacioli ledger updates
+<a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a>│         (Alice -R1,000, Bob +R1,000)
+<a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a>├─ T+0.3s: User sees &quot;money sent&quot;
+<a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a>├─ T+5m: Async - we notify Xago (optional)
+<a id="__codelineno-14-17" name="__codelineno-14-17" href="#__codelineno-14-17"></a>└─ Total: 0.3 seconds (Xago doesn&#39;t know)
+<a id="__codelineno-14-18" name="__codelineno-14-18" href="#__codelineno-14-18"></a>
+<a id="__codelineno-14-19" name="__codelineno-14-19" href="#__codelineno-14-19"></a>Interledger uses OPTION B when possible!
+</code></pre></div>
+<p><strong>Internal transfers are a unique Xago feature.</strong> See <a href="../ledger-system-guide/#scenario-3-internal-transfers-xagosame-provider-case">Ledger System Architecture</a> for details.</p>
+<h3 id="withdrawal-to-zar-bank-account">Withdrawal to ZAR Bank Account<a class="headerlink" href="#withdrawal-to-zar-bank-account" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>Charlie (Xago) withdraws R500 to his bank:
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>├─ T+0: Charlie clicks &quot;Withdraw&quot;
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>├─ T+5s: Xago initiates ZAR transfer
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>├─ T+10s: Webhook: status = pending
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a>├─ T+30min: Bank receives (South African banking is fast)
+<a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a>├─ T+40min: Webhook: status = completed
+<a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a>└─ Final: Charlie&#39;s bank shows R500
+</code></pre></div>
+<p>Xago withdrawals are faster than PTI/international because they're within SA banking system.</p>
+<h3 id="status-codes_2">Status Codes<a class="headerlink" href="#status-codes_2" title="Permanent link">&para;</a></h3>
+<p>Xago uses string codes aligned with banking standards:</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Meaning</th>
+<th>Finality</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pending</code></td>
+<td>Submitted to ZAR system</td>
+<td>Not final</td>
+</tr>
+<tr>
+<td><code>completed</code></td>
+<td>ZAR banking confirmed</td>
+<td><strong>Final</strong></td>
+</tr>
+<tr>
+<td><code>failed</code></td>
+<td>ZAR system rejected</td>
+<td><strong>Final</strong></td>
+</tr>
+<tr>
+<td><code>cancelled</code></td>
+<td>User or system cancelled</td>
+<td><strong>Final</strong></td>
+</tr>
+</tbody>
+</table>
+<h3 id="webhook-implementation_2">Webhook Implementation<a class="headerlink" href="#webhook-implementation_2" title="Permanent link">&para;</a></h3>
+<p>Xago webhooks are less reliable than GateHub but more reliable than Chimoney:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>Expected:
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>├─ T+5-10s: Webhook arrives
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>└─ Interledger updates transaction
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>Slow path:
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>├─ T+30s: No webhook
+<a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>├─ T+35s: Manual poll
+<a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>├─ T+40s: Get status from Xago API
+<a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a>└─ Update transaction based on polling result
+</code></pre></div>
+<h3 id="fees_2">Fees<a class="headerlink" href="#fees_2" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>Xago fee structure:
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>├─ P2P Xago-to-Xago: R0 (free, internal transfer)
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>├─ ZAR bank deposit: R5-R10
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a>├─ ZAR bank withdrawal: R10-R20
+<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a>├─ Cross-border outbound: 1-2%
+<a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a>└─ Monthly account: Free
+</code></pre></div>
+<p>Fees usually not in transaction response — calculated separately.</p>
+<h3 id="internal-transfers-deep-dive">Internal Transfers Deep Dive<a class="headerlink" href="#internal-transfers-deep-dive" title="Permanent link">&para;</a></h3>
+<p>When both users use Xago, we can skip asking Xago and just update our ledger:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>Why do this?
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>├─ Speed: Instant vs seconds
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>├─ Cost: R0 vs R5-R10 fee
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a>├─ Reliability: Doesn&#39;t depend on Xago API
+<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a>└─ User experience: Immediate feedback
+<a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a>
+<a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a>How we track it:
+<a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a>├─ Pacioli ledger: Shows transfer immediately
+<a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a>├─ Xago&#39;s ledger: Doesn&#39;t know about it
+<a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a>├─ Discrepancy: Expected and managed
+<a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a>
+<a id="__codelineno-18-12" name="__codelineno-18-12" href="#__codelineno-18-12"></a>When we reconcile:
+<a id="__codelineno-18-13" name="__codelineno-18-13" href="#__codelineno-18-13"></a>├─ Pull Xago balance: R10,000 (no internal transfers recorded)
+<a id="__codelineno-18-14" name="__codelineno-18-14" href="#__codelineno-18-14"></a>├─ Calculate our balance: R9,000 (includes internal transfer)
+<a id="__codelineno-18-15" name="__codelineno-18-15" href="#__codelineno-18-15"></a>├─ Difference: R1,000 (our internal transfer)
+<a id="__codelineno-18-16" name="__codelineno-18-16" href="#__codelineno-18-16"></a>├─ Assessment: &quot;Expected, internal transfers in flight&quot;
+<a id="__codelineno-18-17" name="__codelineno-18-17" href="#__codelineno-18-17"></a>└─ Action: None, continue operating
+</code></pre></div>
+<h3 id="special-feature-eft-integration">Special Feature: EFT Integration<a class="headerlink" href="#special-feature-eft-integration" title="Permanent link">&para;</a></h3>
+<p>Xago connects directly to South African EFT (Electronic Fund Transfer) system:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>Alice sends Bob via Xago:
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>├─ If Bob&#39;s bank is EFT-enabled: Instant
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>├─ If Bob&#39;s bank is legacy: 24 hours
+<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a>├─ Xago handles routing automatically
+<a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a>└─ Alice doesn&#39;t need to know which bank Bob uses
+</code></pre></div>
+<h3 id="limitations_2">Limitations<a class="headerlink" href="#limitations_2" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>ZAR-Centric:</strong> Other currencies have limited support</li>
+<li><strong>South Africa Only:</strong> Integration is ZAR-focused, limited elsewhere</li>
+<li><strong>Less Reliable Webhooks:</strong> Sometimes need polling</li>
+<li><strong>KYC Complexity:</strong> South Africa has strict requirements (Persona involvement)</li>
+</ol>
+<hr />
+<h2 id="chimoney-international-remittance">Chimoney: International Remittance<a class="headerlink" href="#chimoney-international-remittance" title="Permanent link">&para;</a></h2>
+<h3 id="overview_3">Overview<a class="headerlink" href="#overview_3" title="Permanent link">&para;</a></h3>
+<p><strong>What it does:</strong> Connects to various international payment methods for remittances and transfers.</p>
+<p><strong>Best for:</strong> Users sending/receiving money internationally, workers sending remittances, international transfers.</p>
+<p><strong>Geographic focus:</strong> Broad (Africa, Asia, Latin America remittance routes).</p>
+<h3 id="account-structure_3">Account Structure<a class="headerlink" href="#account-structure_3" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>Chimoney user account contains:
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>├─ Balance for each payment method (wallet, mobile money, bank)
+<a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>├─ Multiple linked beneficiary accounts (bank, mobile, etc.)
+<a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a>└─ Transaction history per method
+</code></pre></div>
+<p>More complex than others — each payment method is semi-independent.</p>
+<h3 id="p2p-payment-flow_3">P2P Payment Flow<a class="headerlink" href="#p2p-payment-flow_3" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>Alice (Chimoney, user in UK) sends Bob (Chimoney, user in Ghana):
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>
+<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>Selection:
+<a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a>├─ Alice chooses payment method: &quot;Interac&quot; (if Canadian) or
+<a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a>│  &quot;Bank Transfer&quot; or &quot;Mobile Money&quot;
+<a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a>└─ Bob specifies receipt method: &quot;GHS bank&quot; or &quot;MTN mobile&quot;
+<a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a>
+<a id="__codelineno-21-8" name="__codelineno-21-8" href="#__codelineno-21-8"></a>Transfer:
+<a id="__codelineno-21-9" name="__codelineno-21-9" href="#__codelineno-21-9"></a>├─ T+0: Request sent to Chimoney
+<a id="__codelineno-21-10" name="__codelineno-21-10" href="#__codelineno-21-10"></a>├─ T+1-5s: Chimoney confirms (status: pending)
+<a id="__codelineno-21-11" name="__codelineno-21-11" href="#__codelineno-21-11"></a>├─ T+1h-24h: Route through payment method
+<a id="__codelineno-21-12" name="__codelineno-21-12" href="#__codelineno-21-12"></a>├─ T+final: Bob receives in chosen method
+<a id="__codelineno-21-13" name="__codelineno-21-13" href="#__codelineno-21-13"></a>└─ Webhooks: Usually delayed 2-5 hours
+</code></pre></div>
+<h3 id="withdrawal-methods">Withdrawal Methods<a class="headerlink" href="#withdrawal-methods" title="Permanent link">&para;</a></h3>
+<p>Chimoney supports multiple withdrawal routes:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>A user can withdraw to:
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>├─ Local bank account (varies by country)
+<a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>├─ Mobile money (MTN, Airtel, Vodafone, etc.)
+<a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a>├─ Cash pickup (Western Union partner locations)
+<a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a>├─ PayPal account
+<a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a>├─ Bitcoin wallet
+<a id="__codelineno-22-7" name="__codelineno-22-7" href="#__codelineno-22-7"></a>└─ Interac e-Transfer (Canada)
+</code></pre></div>
+<p>Each has different timelines and fees:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Speed</th>
+<th>Fee</th>
+<th>Availability</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Local Bank</td>
+<td>1-3 days</td>
+<td>1-2%</td>
+<td>Most countries</td>
+</tr>
+<tr>
+<td>Mobile Money</td>
+<td>30 min</td>
+<td>$1-$3</td>
+<td>Africa-focused</td>
+</tr>
+<tr>
+<td>Cash Pickup</td>
+<td>Immediate</td>
+<td>2-5%</td>
+<td>Major cities only</td>
+</tr>
+<tr>
+<td>PayPal</td>
+<td>1 day</td>
+<td>2%</td>
+<td>Global</td>
+</tr>
+<tr>
+<td>Bitcoin</td>
+<td>10-60 min</td>
+<td>1%</td>
+<td>Global</td>
+</tr>
+<tr>
+<td>Interac</td>
+<td>1 hour</td>
+<td>2%</td>
+<td>Canada only</td>
+</tr>
+</tbody>
+</table>
+<h3 id="status-codes_3">Status Codes<a class="headerlink" href="#status-codes_3" title="Permanent link">&para;</a></h3>
+<p>Chimoney varies status codes by protocol:</p>
+<table>
+<thead>
+<tr>
+<th>Service</th>
+<th>Pending</th>
+<th>Complete</th>
+<th>Failed</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bank Transfer</td>
+<td><code>PENDING</code></td>
+<td><code>COMPLETED</code></td>
+<td><code>FAILED</code></td>
+</tr>
+<tr>
+<td>Mobile Money</td>
+<td><code>IN_TRANSIT</code></td>
+<td><code>DELIVERED</code></td>
+<td><code>REJECTED</code></td>
+</tr>
+<tr>
+<td>Cash Pickup</td>
+<td><code>READY_FOR_PICKUP</code></td>
+<td><code>PICKED_UP</code></td>
+<td><code>EXPIRED</code></td>
+</tr>
+</tbody>
+</table>
+<p>We normalize all to: <code>pending</code>, <code>completed</code>, <code>failed</code></p>
+<h3 id="webhook-implementation_3">Webhook Implementation<a class="headerlink" href="#webhook-implementation_3" title="Permanent link">&para;</a></h3>
+<p>Chimoney webhooks are <strong>delayed and less reliable</strong>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>Expected:
+<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>├─ T+0: Transfer initiated
+<a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a>├─ T+2-5h: Webhook arrives (delayed!)
+<a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a>└─ Interledger updates
+<a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a>
+<a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a>Slow path:
+<a id="__codelineno-23-7" name="__codelineno-23-7" href="#__codelineno-23-7"></a>├─ T+0: Transfer initiated
+<a id="__codelineno-23-8" name="__codelineno-23-8" href="#__codelineno-23-8"></a>├─ T+5h: No webhook
+<a id="__codelineno-23-9" name="__codelineno-23-9" href="#__codelineno-23-9"></a>├─ T+6h: Manual poll
+<a id="__codelineno-23-10" name="__codelineno-23-10" href="#__codelineno-23-10"></a>├─ T+6.5h: Get status from Chimoney
+<a id="__codelineno-23-11" name="__codelineno-23-11" href="#__codelineno-23-11"></a>└─ Update transaction
+<a id="__codelineno-23-12" name="__codelineno-23-12" href="#__codelineno-23-12"></a>
+<a id="__codelineno-23-13" name="__codelineno-23-13" href="#__codelineno-23-13"></a>Very slow path:
+<a id="__codelineno-23-14" name="__codelineno-23-14" href="#__codelineno-23-14"></a>├─ T+24h+: Webhook still not arrived
+<a id="__codelineno-23-15" name="__codelineno-23-15" href="#__codelineno-23-15"></a>├─ T+24.5h: Manual poll
+<a id="__codelineno-23-16" name="__codelineno-23-16" href="#__codelineno-23-16"></a>├─ T+25h: Chimoney says &quot;still in transit&quot;
+<a id="__codelineno-23-17" name="__codelineno-23-17" href="#__codelineno-23-17"></a>└─ Check again tomorrow
+</code></pre></div>
+<h3 id="fees_3">Fees<a class="headerlink" href="#fees_3" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>Chimoney fee structure:
+<a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>├─ Per-transfer: 0.5% - 2%
+<a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a>├─ Method-specific: +1-2% (mobile premium, cash pickup, etc.)
+<a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a>├─ Monthly account: Free
+<a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a>└─ Example: Send £100 → Fee: £2 (2%) + method fee
+</code></pre></div>
+<h3 id="interac-integration-canada-specific">Interac Integration (Canada Specific)<a class="headerlink" href="#interac-integration-canada-specific" title="Permanent link">&para;</a></h3>
+<p>Chimoney has special support for Interac e-Transfers to Canada:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>User in Canada receives money:
+<a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a>├─ Alice sends via Chimoney
+<a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a>├─ Alice chooses: &quot;Interac e-Transfer&quot;
+<a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a>├─ Chimoney initiates e-Transfer to Bob&#39;s email
+<a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a>├─ Bob receives email with claim code
+<a id="__codelineno-25-6" name="__codelineno-25-6" href="#__codelineno-25-6"></a>├─ Bob clicks, claims money, money hits his bank in 1 hour
+<a id="__codelineno-25-7" name="__codelineno-25-7" href="#__codelineno-25-7"></a>└─ Total time: 2-5 hours
+</code></pre></div>
+<h3 id="limitations_3">Limitations<a class="headerlink" href="#limitations_3" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Slow Webhooks:</strong> 2-5 hour delay is norm, not exception</li>
+<li><strong>Variable Timing:</strong> Depends heavily on payment method</li>
+<li><strong>Geographic Variance:</strong> Services vary by country</li>
+<li><strong>Complex Fee Structure:</strong> Multiple layers of fees depending on method</li>
+<li><strong>Less Popular for P2P:</strong> Better for remittances than casual transfers</li>
+</ol>
+<hr />
+<h2 id="fee-comparison-summary">Fee Comparison Summary<a class="headerlink" href="#fee-comparison-summary" title="Permanent link">&para;</a></h2>
+<h3 id="p2p-transfers-same-currency-same-provider">P2P Transfers (Same Currency, Same Provider)<a class="headerlink" href="#p2p-transfers-same-currency-same-provider" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Provider</th>
+<th>Fee</th>
+<th>Speed</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GateHub</td>
+<td>2%</td>
+<td>1-5 sec</td>
+</tr>
+<tr>
+<td>PTI</td>
+<td>€0.50-€1.50</td>
+<td>1-3 days</td>
+</tr>
+<tr>
+<td>Xago</td>
+<td>R0 (internal)</td>
+<td>0.3 sec</td>
+</tr>
+<tr>
+<td>Chimoney</td>
+<td>1-2%+ method</td>
+<td>2-24 hours</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Winner for P2P:</strong> Xago (internal transfers) or GateHub (speed)</p>
+<h3 id="deposits-from-bank-account">Deposits from Bank Account<a class="headerlink" href="#deposits-from-bank-account" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Provider</th>
+<th>Fee</th>
+<th>Speed</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GateHub</td>
+<td>0.5-2%</td>
+<td>Seconds</td>
+</tr>
+<tr>
+<td>PTI</td>
+<td>€0.50-€1.00</td>
+<td>1-3 days</td>
+</tr>
+<tr>
+<td>Xago</td>
+<td>R5-R10</td>
+<td>30 min - 2 hours</td>
+</tr>
+<tr>
+<td>Chimoney</td>
+<td>0.5-2%+ method</td>
+<td>1-7 days</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Winner for Deposits:</strong> GateHub (if account funded), Xago (if in SA)</p>
+<h3 id="withdrawals-to-bank-account">Withdrawals to Bank Account<a class="headerlink" href="#withdrawals-to-bank-account" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Provider</th>
+<th>Fee</th>
+<th>Speed</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GateHub</td>
+<td>$1-$5 + FX margin</td>
+<td>Seconds</td>
+</tr>
+<tr>
+<td>PTI</td>
+<td>€1-€50 (wire)</td>
+<td>1-3 days</td>
+</tr>
+<tr>
+<td>Xago</td>
+<td>R10-R20</td>
+<td>30 min</td>
+</tr>
+<tr>
+<td>Chimoney</td>
+<td>1-2%+ method</td>
+<td>1-7 days</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Winner for Withdrawals:</strong> Xago (if in SA), GateHub (if fast needed)</p>
+<hr />
+<h2 id="special-cases-workarounds">Special Cases &amp; Workarounds<a class="headerlink" href="#special-cases-workarounds" title="Permanent link">&para;</a></h2>
+<h3 id="cross-provider-payments">Cross-Provider Payments<a class="headerlink" href="#cross-provider-payments" title="Permanent link">&para;</a></h3>
+<p>When Alice (GateHub) sends money to Bob (Xago):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>Alice (GateHub) --→ Interledger Network --→ Bob (Xago)
+<a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>
+<a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a>Process:
+<a id="__codelineno-26-4" name="__codelineno-26-4" href="#__codelineno-26-4"></a>├─ Alice initiates P2P to Bob
+<a id="__codelineno-26-5" name="__codelineno-26-5" href="#__codelineno-26-5"></a>├─ System detects different providers
+<a id="__codelineno-26-6" name="__codelineno-26-6" href="#__codelineno-26-6"></a>├─ Routes through Interledger Protocol / Open Payments
+<a id="__codelineno-26-7" name="__codelineno-26-7" href="#__codelineno-26-7"></a>├─ GateHub deducts from Alice
+<a id="__codelineno-26-8" name="__codelineno-26-8" href="#__codelineno-26-8"></a>├─ Xago credits Bob
+<a id="__codelineno-26-9" name="__codelineno-26-9" href="#__codelineno-26-9"></a>└─ Both providers settle with Interledger
+<a id="__codelineno-26-10" name="__codelineno-26-10" href="#__codelineno-26-10"></a>
+<a id="__codelineno-26-11" name="__codelineno-26-11" href="#__codelineno-26-11"></a>Timing:
+<a id="__codelineno-26-12" name="__codelineno-26-12" href="#__codelineno-26-12"></a>├─ Alice sees: 1-5 sec (GateHub speed)
+<a id="__codelineno-26-13" name="__codelineno-26-13" href="#__codelineno-26-13"></a>├─ Bob sees: 5-10 sec (routing + Xago speed)
+</code></pre></div>
+<h3 id="hosted-transfers-limited">Hosted Transfers (Limited)<a class="headerlink" href="#hosted-transfers-limited" title="Permanent link">&para;</a></h3>
+<p>Some providers support "hosted payout pages" — redirect user to provider's payment form:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a>Alice wants to send to external account (not Interledger user):
+<a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a>├─ System recognizes recipient is external
+<a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a>├─ Generates &quot;hosted transfer&quot; link
+<a id="__codelineno-27-4" name="__codelineno-27-4" href="#__codelineno-27-4"></a>├─ Alice redirected to GateHub payment form
+<a id="__codelineno-27-5" name="__codelineno-27-5" href="#__codelineno-27-5"></a>├─ Alice enters amount, confirms
+<a id="__codelineno-27-6" name="__codelineno-27-6" href="#__codelineno-27-6"></a>├─ GateHub handles everything (fee, status)
+<a id="__codelineno-27-7" name="__codelineno-27-7" href="#__codelineno-27-7"></a>└─ Interledger tracks outcome via webhook
+</code></pre></div>
+<p><strong>Current support:</strong> Mainly GateHub and PTI. Xago/Chimoney: limited.</p>
+<h3 id="card-payments">Card Payments<a class="headerlink" href="#card-payments" title="Permanent link">&para;</a></h3>
+<p>Only GateHub and PTI issue cards (Interledger Wallet has Debit Cards via GateHub):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a>Card Payment Flow:
+<a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a>├─ User swipes/taps card at merchant
+<a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a>├─ Merchant&#39;s payment processor contacts GateHub
+<a id="__codelineno-28-4" name="__codelineno-28-4" href="#__codelineno-28-4"></a>├─ GateHub checks card limits, fraud, etc.
+<a id="__codelineno-28-5" name="__codelineno-28-5" href="#__codelineno-28-5"></a>├─ GateHub deducts from user&#39;s balance
+<a id="__codelineno-28-6" name="__codelineno-28-6" href="#__codelineno-28-6"></a>├─ GateHub pays merchant via payment network (Visa/Mastercard)
+<a id="__codelineno-28-7" name="__codelineno-28-7" href="#__codelineno-28-7"></a>└─ Webhook: Card transaction posted
+</code></pre></div>
+<p>See <a href="../gatehub-cards-guide/">GateHub Cards Explainer</a> for full details.</p>
+<hr />
+<h2 id="choosing-the-right-provider">Choosing the Right Provider<a class="headerlink" href="#choosing-the-right-provider" title="Permanent link">&para;</a></h2>
+<h3 id="user-is-in-europe">User is in Europe?<a class="headerlink" href="#user-is-in-europe" title="Permanent link">&para;</a></h3>
+<p>→ <strong>GateHub</strong> (fast, multi-currency, card support)</p>
+<h3 id="user-is-in-the-us">User is in the US?<a class="headerlink" href="#user-is-in-the-us" title="Permanent link">&para;</a></h3>
+<p>→ <strong>PTI</strong> (real bank integration)</p>
+<h3 id="user-is-in-south-africa">User is in South Africa?<a class="headerlink" href="#user-is-in-south-africa" title="Permanent link">&para;</a></h3>
+<p>→ <strong>Xago</strong> (ZAR specialist, fastest local transfers)</p>
+<h3 id="user-is-in-africaasia-sending-remittances">User is in Africa/Asia sending remittances?<a class="headerlink" href="#user-is-in-africaasia-sending-remittances" title="Permanent link">&para;</a></h3>
+<p>→ <strong>Chimoney</strong> (broad international reach, many withdrawal methods)</p>
+<h3 id="user-wants-card-payments">User wants card payments?<a class="headerlink" href="#user-wants-card-payments" title="Permanent link">&para;</a></h3>
+<p>→ <strong>GateHub</strong> (only provider with card issuing)</p>
+<h3 id="user-wants-to-pay-someone-at-a-different-provider">User wants to pay someone at a different provider?<a class="headerlink" href="#user-wants-to-pay-someone-at-a-different-provider" title="Permanent link">&para;</a></h3>
+<p>→ Supported via Interledger Protocol routing — each user stays with their own provider</p>
+<hr />
+<h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../payments-guide/">Payments &amp; Transactions Guide</a> — Overview and navigation hub</li>
+<li><a href="../ledger-system-guide/">Ledger System Architecture</a> — How transactions are recorded and reconciled</li>
+<li><a href="../transaction-types-reference/">Transaction Types Reference</a> — Transaction fields and statuses</li>
+<li><a href="../payment-troubleshooting-guide/">Payment Troubleshooting Guide</a> — Debugging provider-specific issues</li>
+<li><a href="../gatehub-cards-guide/">GateHub Cards Explainer</a> — Detailed card issuing documentation</li>
+<li><a href="../terminology/">Concepts Reference</a> — Provider terminology mapping</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.top", "navigation.indexes", "search.highlight", "search.suggest", "content.code.copy", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
