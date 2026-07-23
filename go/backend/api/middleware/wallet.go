@@ -29,6 +29,8 @@ func MakeWalletMiddleware(uc user.Client, wc wallets.Client) func(http.Handler) 
 				return
 			}
 
+			// resolves the user's wallet into context for downstream handlers.
+			// the wallet is created once at signup (CompleteSignup)
 			walletList, err := wc.List(ctx, u.ID)
 			if err != nil {
 				// Do nothing for now.
@@ -36,21 +38,10 @@ func MakeWalletMiddleware(uc user.Client, wc wallets.Client) func(http.Handler) 
 				return
 			}
 
-			// Create a default wallet for the user if they don't already have one
 			if len(walletList) == 0 {
-				_, err = wc.Create(ctx, wallets.CreateArgs{
-					UserID:  u.ID,
-					Country: u.Country,
-				})
-				if err != nil && !errors.Is(err, wallets.ErrDuplicateWallet) {
-					log.Warn("failed to create default wallet for user", zap.Error(err), zap.String("user_id", u.ID))
-				}
-				walletList, err = wc.List(ctx, u.ID)
-				if err != nil || len(walletList) <= 0 {
-					// Do nothing for now. We tried and the next request will try again
-					next.ServeHTTP(w, r)
-					return
-				}
+				next.ServeHTTP(w, r)
+				// Do nothing for now.
+				return
 			}
 
 			if len(walletList) > 1 {
