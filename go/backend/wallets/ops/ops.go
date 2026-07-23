@@ -10,6 +10,8 @@ import (
 	"github.com/interledger/interledger-app/go/backend/country"
 	"github.com/interledger/interledger-app/go/backend/db"
 
+	"github.com/interledger/interledger-app/go/backend/user"
+
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -18,9 +20,6 @@ import (
 	"github.com/interledger/interledger-app/go/backend/wallets"
 )
 
-// A user may have many wallets but only one default
-// (partial unique index on user_wallets(user_id) WHERE is_default),
-// so ON CONFLICT targets that partial index.
 func Create(ctx context.Context, b Backends, args wallets.CreateArgs) (*wallets.Wallet, error) {
 	err := b.Validator().StructCtx(ctx, args)
 	if err != nil {
@@ -43,25 +42,58 @@ func Create(ctx context.Context, b Backends, args wallets.CreateArgs) (*wallets.
 		ctry = country.US
 	}
 
+	var walletCreated bool
+
 	err = crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
-		_, err := tx.ExecContext(ctx, "INSERT INTO wallets (id, name, country) VALUES ($1, $2, $3)", walletID, name, ctry)
+		// Use advisory lock to prevent concurrent wallet creation for the same user.
+		// NOTE: This relies on Postgres advisory locks; CockroachDB support is being removed soon.
+		// This locks on the user ID itself, not on rows (which don't exist yet for new users)
+		// pg_advisory_xact_lock uses a transaction-level lock that auto-releases on commit/rollback
+		_, err := tx.ExecContext(ctx, "SELECT pg_advisory_xact_lock(hashtext($1))", userID)
 		if err != nil {
 			return fmt.Errorf("%w %s", wallets.ErrInternal, err)
 		}
 
-		// claim the user's default-wallet slot
-		res, err := tx.ExecContext(ctx, "INSERT INTO user_wallets (user_id, wallet_id, is_default) VALUES ($1, $2, true) ON CONFLICT (user_id) WHERE is_default DO NOTHING", userID, walletID)
+		// Now check wallet count while holding the advisory lock
+		var existingWalletIDs []string
+		err = tx.SelectContext(ctx, &existingWalletIDs, "SELECT wallet_id FROM user_wallets WHERE user_id = $1", userID)
 		if err != nil {
 			return fmt.Errorf("%w %s", wallets.ErrInternal, err)
 		}
-		rows, err := res.RowsAffected()
+
+		existingCount := len(existingWalletIDs)
+
+		// If user already has wallets (from concurrent request), potentially skip creation.
+		// This makes Create() idempotent for the middleware use case, but we must ensure
+		// that the existing wallet is compatible with the requested parameters.
+		if existingCount > 0 && name == "default" {
+			// Validate existing wallet has compatible parameters before treating this as
+			// an idempotent no-op.
+			var existingWallet wallets.Wallet
+			err = tx.GetContext(ctx, &existingWallet, "SELECT country FROM wallets WHERE id = $1", existingWalletIDs[0])
+			if err != nil {
+				return fmt.Errorf("%w %s", wallets.ErrInternal, err)
+			}
+			if existingWallet.Country != ctry {
+				return fmt.Errorf("%w existing wallet country (%s) does not match requested country (%s)", wallets.ErrWalletConflict, existingWallet.Country, ctry)
+			}
+			if len(args.Addresses) > 0 {
+				return fmt.Errorf("%w addresses provided for existing wallet", wallets.ErrWalletConflict)
+			}
+			walletCreated = false
+			return nil
+		}
+
+		walletCreated = true
+
+		_, err = tx.ExecContext(ctx, "INSERT INTO wallets (id, name, country) VALUES ($1, $2, $3)", walletID, name, ctry)
 		if err != nil {
 			return fmt.Errorf("%w %s", wallets.ErrInternal, err)
 		}
-		if rows == 0 {
-			// if 0 rows are affected the user already has a default wallet,
-			// so we roll back (no orphan wallets row) and return ErrDuplicateWallet for the caller to handle
-			return wallets.ErrDuplicateWallet
+
+		_, err = tx.ExecContext(ctx, "INSERT INTO user_wallets (user_id, wallet_id) VALUES ($1, $2)", userID, walletID)
+		if err != nil {
+			return fmt.Errorf("%w %s", wallets.ErrInternal, err)
 		}
 
 		for _, wa := range args.Addresses {
@@ -71,16 +103,50 @@ func Create(ctx context.Context, b Backends, args wallets.CreateArgs) (*wallets.
 			}
 		}
 
+		// Check that only 1 wallet exists for the user with that name.
+		var exists wallets.Wallet
+		err = tx.GetContext(ctx, &exists, "SELECT w.id, w.name FROM wallets w INNER JOIN user_wallets uw ON w.id = uw.wallet_id WHERE user_id=$1 and w.name=$2 AND w.id <> $3", userID, name, walletID)
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			return fmt.Errorf("%w %s", user.ErrInternal, err)
+		}
+		if !errors.Is(err, sql.ErrNoRows) {
+			return fmt.Errorf("%w duplicate wallet name (%s) for user (%s)", wallets.ErrDuplicateWallet, name, userID)
+		}
+
 		return nil
 	})
+
 	if err != nil {
 		return nil, err
+	}
+
+	// If wallet wasn't created (concurrent creation), return the existing one
+	if !walletCreated {
+		existingWallets, err := List(ctx, b, userID)
+		if err != nil || len(existingWallets) == 0 {
+			return nil, fmt.Errorf("%w: wallet not created and none found", wallets.ErrInternal)
+		}
+
+		if len(args.Addresses) > 0 {
+			return nil, fmt.Errorf("%w: addresses provided for existing wallet", wallets.ErrWalletConflict)
+		}
+
+		if existingWallets[0].Country != ctry {
+			return nil, fmt.Errorf("%w existing wallet country (%s) does not match requested country (%s)", wallets.ErrWalletConflict, existingWallets[0].Country, ctry)
+		}
+		return &existingWallets[0], nil
 	}
 
 	b.Analytics().TrackWalletCreated(walletID, userID)
 	for range args.Addresses {
 		b.Analytics().TrackWalletPaymentPointerCreated(walletID)
 	}
+	// Do not provision custodial private key
+	// err = b.Keys().ProvisionPrivateKey(ctx, walletID)
+	// if err != nil {
+	// 	log.Error("could not provision private key", zap.Error(err))
+	// 	return nil, err
+	// }
 
 	return Get(ctx, b, walletID)
 }
