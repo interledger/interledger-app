@@ -1,7 +1,7 @@
 package config
 
 // EnvironmentConfig describes how the running instance behaves and how it labels
-// telemetry. Mode is the behavioural switch consumed by env.SetFynbosEnv;
+// telemetry. Mode is the behavioural switch (prod, sandbox, dev, local, test);
 // Label is the human-readable tag attached to monitoring signals (Sentry, OTEL, etc.).
 type EnvironmentConfig struct {
 	Mode  string `yaml:"mode"  validate:"required,oneof=prod sandbox dev local test"`

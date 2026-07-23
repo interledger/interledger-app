@@ -2958,7 +2958,6 @@ export type PersonModelFilter = {
   _unpublishingScheduledAt?: InputMaybe<PublishedAtFilter>;
   _updatedAt?: InputMaybe<UpdatedAtFilter>;
   avatar?: InputMaybe<FileFilter>;
-  fynbosUrl?: InputMaybe<StringFilter>;
   id?: InputMaybe<ItemIdFilter>;
   linkedinUrl?: InputMaybe<StringFilter>;
   name?: InputMaybe<StringFilter>;
@@ -2984,8 +2983,6 @@ export enum PersonModelOrderBy {
   UnpublishingScheduledAtDesc = '_unpublishingScheduledAt_DESC',
   UpdatedAtAsc = '_updatedAt_ASC',
   UpdatedAtDesc = '_updatedAt_DESC',
-  FynbosUrlAsc = 'fynbosUrl_ASC',
-  FynbosUrlDesc = 'fynbosUrl_DESC',
   IdAsc = 'id_ASC',
   IdDesc = 'id_DESC',
   LinkedinUrlAsc = 'linkedinUrl_ASC',
@@ -3017,7 +3014,6 @@ export type PersonRecord = RecordInterface & {
   _unpublishingScheduledAt?: Maybe<Scalars['DateTime']>;
   _updatedAt: Scalars['DateTime'];
   avatar?: Maybe<FileField>;
-  fynbosUrl?: Maybe<Scalars['String']>;
   id: Scalars['ItemId'];
   linkedinUrl?: Maybe<Scalars['String']>;
   name?: Maybe<Scalars['String']>;
