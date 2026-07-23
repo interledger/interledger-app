@@ -49,17 +49,17 @@ func TestWalletMiddleware(t *testing.T) {
 			wantWalletInCtx: false,
 		},
 		{
-			name:      "user with no wallets creates one and attaches it",
+			// a user can be authenticated (Kratos session exists) before CompleteSignup has created their wallet
+			// the middleware must tolerate that: pass through with no wallet in context and never create one
+			name:      "user with no wallet yet passes through without creating one",
 			userInCtx: alice,
 			setupWC: func(ctrl *gomock.Controller) *wc_mock.MockClient {
 				wc := wc_mock.NewMockClient(ctrl)
 				wc.EXPECT().List(gomock.Any(), alice.ID).Return([]wallets.Wallet{}, nil)
-				wc.EXPECT().Create(gomock.Any(), wallets.CreateArgs{UserID: alice.ID, Country: alice.Country}).Return(&wallet, nil)
-				wc.EXPECT().List(gomock.Any(), alice.ID).Return([]wallets.Wallet{wallet}, nil)
 				return wc
 			},
 			wantStatus:      http.StatusOK,
-			wantWalletInCtx: true,
+			wantWalletInCtx: false,
 		},
 		{
 			name:      "wallet list error passes through without wallet",
