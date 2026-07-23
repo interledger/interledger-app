@@ -243,7 +243,7 @@ func TestUIKYCAction_PendingMapsToActionRequired(t *testing.T) {
 	store := storage.NewMemoryStorage()
 	require.NoError(t, storage.SeedTestUsers(store))
 	h := newUIHandler(store)
-	body := "userID=" + consts.TestUser1ID + "&gateway=paywiser&status=pending"
+	body := "userID=" + consts.TestUser1ID + "&gateway=paywiser&status=action_required"
 	req := httptest.NewRequest(http.MethodPost, "/ui/actions/kyc", strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	rr := httptest.NewRecorder()

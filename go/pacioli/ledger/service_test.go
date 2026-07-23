@@ -220,11 +220,9 @@ func TestPacioli(s *testing.T) {
 		assert.Len(t, confAccountErrs, 0)
 
 		transfer1ID := uuid.NewString()
-		transfer2ID := uuid.NewString()
 		createTransfers := []pacioli.CreateTransferArgs{
 			{
 				ID:              transfer1ID,
-				TransactionID:   transfer1ID,
 				Amount:          10,
 				DebitAccountID:  accountA.ID,
 				CreditAccountID: accountB.ID,
@@ -233,7 +231,6 @@ func TestPacioli(s *testing.T) {
 			},
 			{ // this will fail as ID already exists
 				ID:              transfer1ID,
-				TransactionID:   transfer1ID,
 				Amount:          11,
 				DebitAccountID:  accountA.ID,
 				CreditAccountID: accountB.ID,
@@ -241,8 +238,7 @@ func TestPacioli(s *testing.T) {
 				Code:            1,
 			},
 			{
-				ID:              transfer2ID,
-				TransactionID:   transfer2ID,
+				ID:              uuid.NewString(),
 				Amount:          13,
 				DebitAccountID:  accountA.ID,
 				CreditAccountID: accountB.ID,
@@ -321,7 +317,6 @@ func TestPacioli(s *testing.T) {
 		createTransfers := []pacioli.CreateTransferArgs{
 			{
 				ID:              transfer1ID,
-				TransactionID:   transfer1ID,
 				Amount:          13,
 				DebitAccountID:  accountA.ID,
 				CreditAccountID: accountB.ID,
@@ -431,7 +426,6 @@ func TestPacioli(s *testing.T) {
 		createTransfers := []pacioli.CreateTransferArgs{
 			{
 				ID:              transfer1ID,
-				TransactionID:   transfer1ID,
 				Amount:          13,
 				DebitAccountID:  accountA.ID,
 				CreditAccountID: accountB.ID,

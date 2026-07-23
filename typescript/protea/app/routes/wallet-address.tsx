@@ -21,7 +21,7 @@ import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import type { Route } from './+types/wallet-address'
 
 export async function loader({ request }: Route.LoaderArgs) {
-  let response = await grpc.getWalletInfo(request, {})
+  const response = await grpc.getWalletInfo(request, {})
   if (isConnectError(response)) {
     throw response.errorResponse
   } else if (response.hasWalletAddress) {
@@ -34,10 +34,10 @@ export async function loader({ request }: Route.LoaderArgs) {
   let usernameIsValid = false
   let attempts = 0
   let username = firstName
-  let publicName = firstName + ' ' + lastName
+  const publicName = firstName + ' ' + lastName
 
   while (!usernameIsValid && attempts < 5) {
-    let response = await grpc.walletAddressValid(request, {
+    const response = await grpc.walletAddressValid(request, {
       url: `https://${PAYMENT_POINTER_BASE}/${username}`
     })
 
@@ -179,7 +179,7 @@ export async function action({ request }: Route.ActionArgs) {
 
   const publicName = username
 
-  let response = await grpc.walletAddressValid(request, {
+  const response = await grpc.walletAddressValid(request, {
     url: `https://${PAYMENT_POINTER_BASE}/${username}`
   })
   if (isConnectError(response)) {
@@ -196,7 +196,7 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   if (canSubmit) {
-    let response = await grpc.createWalletAddress(request, {
+    const response = await grpc.createWalletAddress(request, {
       url: `https://${PAYMENT_POINTER_BASE}/${username}`,
       asset: 'USD',
       assetScale: 2,

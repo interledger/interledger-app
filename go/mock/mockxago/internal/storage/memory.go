@@ -23,6 +23,7 @@ type MemoryStorage struct {
 	deposits               map[string]*models.Deposit
 	depositsByReference    map[string]*models.Deposit
 	jobs                   map[string]*models.Job
+	currencyConversions    map[string]*models.CurrencyConversion
 }
 
 type balanceEntry struct {
@@ -45,6 +46,7 @@ func NewMemoryStorage() Storage {
 		deposits:               make(map[string]*models.Deposit),
 		depositsByReference:    make(map[string]*models.Deposit),
 		jobs:                   make(map[string]*models.Job),
+		currencyConversions:    make(map[string]*models.CurrencyConversion),
 	}
 }
 
@@ -591,6 +593,26 @@ func (m *MemoryStorage) ClearJobs(ctx context.Context) error {
 }
 
 // Reset clears all data in storage (used for test state reset between scenarios)
+func (m *MemoryStorage) SaveCurrencyConversion(ctx context.Context, conv *models.CurrencyConversion) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	m.currencyConversions[conv.ConvertID] = conv
+	return nil
+}
+
+func (m *MemoryStorage) GetCurrencyConversion(ctx context.Context, convertID string) (*models.CurrencyConversion, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	conv, ok := m.currencyConversions[convertID]
+	if !ok {
+		return nil, ErrCurrencyConversionNotFound
+	}
+
+	return conv, nil
+}
+
 func (m *MemoryStorage) Reset(ctx context.Context) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -607,6 +629,7 @@ func (m *MemoryStorage) Reset(ctx context.Context) error {
 	m.deposits = make(map[string]*models.Deposit)
 	m.depositsByReference = make(map[string]*models.Deposit)
 	m.jobs = make(map[string]*models.Job)
+	m.currencyConversions = make(map[string]*models.CurrencyConversion)
 
 	return nil
 }

@@ -26,6 +26,9 @@ import { usePendingConfirmations } from '~/lib/cards/usePendingConfirmations'
 import { computeCardSubtotalStyles } from '~/lib/cards/utils'
 import { KycStatus } from '~/lib/types'
 import { usePusher } from '~/lib/usePusher'
+import { Cards } from './cta-cards/Cards'
+import { ConnectBank } from './cta-cards/ConnectBank'
+import { Interac } from './cta-cards/Interac'
 import type { AppLoaderData, loader } from './route'
 
 export function AppPage() {
@@ -351,114 +354,11 @@ export function AppPage() {
 }
 
 function CTACards() {
-  const { features, walletInfo } = useLoaderData<
-    typeof loader
-  >() as AppLoaderData
-
   return (
     <>
-      {features.banksEnabled &&
-        features.cardsEnabled &&
-        !walletInfo.hasCard &&
-        !walletInfo.hasBank && (
-          <Card>
-            <CardContent>
-              <div className='flex items-start space-x-4'>
-                <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
-                  <Icon>account_balance</Icon>
-                </div>
-                <div className='flex flex-col space-y-4'>
-                  <p className='text-sm text-medium'>
-                    Connect bank accounts and cards to easily send and receive
-                    payments.
-                  </p>
-                  <Router
-                    className='text-sm font-medium text-primary'
-                    to={href('/accounts')}
-                  >
-                    Connect a bank or card
-                  </Router>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-      {features.cardsEnabled &&
-        !walletInfo.hasCard &&
-        (walletInfo.hasBank || !features.banksEnabled) && (
-          <Card>
-            <CardContent>
-              <div className='flex items-start space-x-4'>
-                <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
-                  <Icon>credit_card</Icon>
-                </div>
-                <div className='flex flex-col space-y-4'>
-                  <p className='text-sm text-medium'>
-                    Connect cards to easily send and receive payments.
-                  </p>
-                  <Router
-                    className='text-sm font-medium text-primary'
-                    to={href('/connect/card')}
-                  >
-                    Connect a card
-                  </Router>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-      {features.banksEnabled &&
-        !walletInfo.hasBank &&
-        (walletInfo.hasCard || !features.cardsEnabled) && (
-          <Card>
-            <CardContent>
-              <div className='flex items-start space-x-4'>
-                <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
-                  <Icon>account_balance</Icon>
-                </div>
-                <div className='flex flex-col space-y-4'>
-                  <p className='text-sm text-medium'>
-                    Connect bank accounts to easily add or withdraw from your
-                    balance.
-                  </p>
-                  <Router
-                    className='text-sm font-medium text-primary'
-                    to={href(
-                      walletInfo.country === 'US'
-                        ? '/connect/bank/us'
-                        : '/connect/bank/za'
-                    )}
-                  >
-                    Connect a bank account
-                  </Router>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-      {features.interacEnabled && (
-        <Card>
-          <CardContent>
-            <div className='flex items-start space-x-4'>
-              <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
-                <Icon>account_balance</Icon>
-              </div>
-              <div className='flex flex-col space-y-4'>
-                <p className='text-sm text-medium'>
-                  Connect an Interac account to easily withdraw from your
-                  balance.
-                </p>
-                <Router
-                  className='text-sm font-medium text-primary'
-                  to={href('/connect/interac')}
-                >
-                  Connect an Interac account
-                </Router>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      <Cards />
+      <ConnectBank />
+      <Interac />
     </>
   )
 }

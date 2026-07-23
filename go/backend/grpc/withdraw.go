@@ -113,6 +113,10 @@ func (s *rpcService) GetLinkedAccountsForWithdraw(ctx context.Context, req *pb.G
 
 	var las []*pb.LinkedAccountForPayment
 	for _, la := range lal {
+		// ListByWalletId returns all rows incl. soft-deleted; skip unlinked accounts.
+		if la.DeletedAt.Valid {
+			continue
+		}
 		if balance.Provider == xago.ProviderName && la.Provider == xago.ProviderName && la.Type == xago.AccTypeBank {
 			acc := &pb.LinkedAccountForPayment{
 				Details: transformLinkedAccount(la),

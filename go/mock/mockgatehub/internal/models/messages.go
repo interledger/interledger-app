@@ -4,17 +4,18 @@ import "time"
 
 // GetUserResponse represents the user state response from /id/v1/users/{userID}.
 type GetUserResponse struct {
-	UUID          string             `json:"uuid"`
-	Email         string             `json:"email"`
-	Activated     bool               `json:"activated"`
-	Managed       bool               `json:"managed"`
-	Role          string             `json:"role"`
-	Features      []string           `json:"features"`
-	KYCState      string             `json:"kyc_state"`
-	RiskLevel     string             `json:"risk_level"`
-	CreatedAt     time.Time          `json:"created_at"`
-	Profile       UserProfile        `json:"profile"`
-	Verifications []UserVerification `json:"verifications"`
+	UUID                      string             `json:"uuid"`
+	Email                     string             `json:"email"`
+	Activated                 bool               `json:"activated"`
+	Managed                   bool               `json:"managed"`
+	Role                      string             `json:"role"`
+	Features                  []string           `json:"features"`
+	KYCState                  string             `json:"kyc_state"`
+	RiskLevel                 string             `json:"risk_level"`
+	CreatedAt                 time.Time          `json:"created_at"`
+	IsProfileCreationDisabled bool               `json:"is_profile_creation_disabled"`
+	Profile                   UserProfile        `json:"profile"`
+	Verifications             []UserVerification `json:"verifications"`
 }
 
 // UserProfile represents the profile payload returned by GateHub user state.
@@ -45,6 +46,7 @@ type UserVerification struct {
 	UUID         string `json:"uuid"`
 	Status       int    `json:"status"`
 	State        int    `json:"state"`
+	Provider     string `json:"provider"`
 	ProviderType string `json:"provider_type"`
 }
 

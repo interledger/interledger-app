@@ -25,8 +25,7 @@ import {
   Chip,
   ChipColor,
   InterledgerIcon,
-  Layouts,
-  Router
+  Layouts
 } from '~/components'
 import { Label } from '~/components/Label'
 import { getPublicWalletDetails } from '~/data/wallet.server'
@@ -39,8 +38,10 @@ import { mergeMeta } from '~/lib/meta'
 import type { Route } from './+types/me_.$'
 
 export async function loader({ request, params }: Route.LoaderArgs) {
+  const url = new URL(request.url)
+  const page = url.pathname + url.search
   const unsanitizedWalletAddressParam = params['*'] as string
-  let profilePicture: { person: Query['person'] } | { person: null } = {
+  const profilePicture: { person: Query['person'] } | { person: null } = {
     person: null
   }
 
@@ -76,6 +77,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   }
 
   return data({
+    page,
     profilePicture,
     isUser,
     canSendToAddress,
@@ -103,6 +105,7 @@ export const meta = mergeMeta(({ data, location }) => [
 
 export default function Page() {
   const {
+    page,
     profilePicture,
     isUser,
     wallet,
@@ -177,29 +180,31 @@ export default function Page() {
           Payments are currently in beta and are only enabled for certain users.
         </p>
       )}
+
+      {!isUser && (
+        <ButtonRouter to={`/login?returnTo=${encodeURIComponent(page)}`}>
+          Log in
+        </ButtonRouter>
+      )}
+
       {!isUser && (
         <Card>
           <CardHeader>
-            <CardTitle>Join the waitlist</CardTitle>
+            <CardTitle>Join Interledger Wallet</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className='flex items-start space-x-4'>
+            <div className='mb-4 flex items-start space-x-4'>
               <CardIcon>
                 <InterledgerIcon />
               </CardIcon>
               <div className='flex flex-col space-y-4'>
                 <p className='text-sm text-medium'>
-                  For a secure, programmable digital wallet that connects all
-                  your accounts, join the waitlist now.
+                  For a secure digital wallet built for the world of Open
+                  Payments, join the waitlist now.
                 </p>
-                <Router
-                  className='text-sm font-medium text-primary'
-                  to={href('/waitlist')}
-                >
-                  Join the waitlist
-                </Router>
               </div>
             </div>
+            <ButtonRouter to={href('/signup')}>Sign up</ButtonRouter>
           </CardContent>
         </Card>
       )}

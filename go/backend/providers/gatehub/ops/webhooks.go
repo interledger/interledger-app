@@ -298,7 +298,7 @@ func NewWebhook(b Backends, cfg gatehub.Config) http.HandlerFunc {
 			HandleUserDeposit(r.Context(), b, body, w)
 		case "core.withdrawal.completed":
 			HandleWithdrawalCompleted(r.Context(), b, body, w)
-		case "id.document_notice.expired", "id.document_notice.warning", "id.verification.action_required":
+		case "id.document_notice.expired", "id.document_notice.warning", "id.verification.action_required", "id.verification.resubmission":
 			HandleActionRequiredWebhook(r.Context(), b, body, w)
 		case "cards.card.created":
 			HandleCardCreatedWebhook(r.Context(), b, body, w)

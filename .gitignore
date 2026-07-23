@@ -22,6 +22,7 @@ typescript/**/node_modules
 # test migrations
 testmigrations
 documentation/site
+documentation/poc
 coverage.out
 
 # go test -c artifacts
@@ -39,4 +40,6 @@ openspec
 .claude
 .agent
 CLAUDE.md
+
 graphify-out/
+

@@ -52,6 +52,7 @@ var errorStatus = map[error]error{
 	payments.ErrRequiredActions:         newError(codes.FailedPrecondition, errcodes.ErrCodePaymentsRequiredActions, "Required details missing for payment", nil),
 	payments.ErrInsufficientFunds:       PaymentInsufficientFundsError(),
 	kyc.ErrKYCResubmissionRequired:      newError(codes.FailedPrecondition, errcodes.ErrCodeKYCResubmissionRequired, "KYC resubmission required: please update your verification documents", nil),
+	kyc.ErrKYCWidgetNotAvailable:        newError(codes.FailedPrecondition, errcodes.ErrCodeKYCWidgetNotAvailable, "Document resubmission is not available right now. Support has been notified and will follow up with you.", nil),
 	user.ErrInvalidTotpCode:             newValidationErrorSingleField(errcodes.ErrCodeUserInvalidTotpCode, "totp_code", "Invalid verification code."),
 	user.ErrTotpNotConfigured:           newError(codes.FailedPrecondition, errcodes.ErrCodeUserTotpNotConfigured, "Two-factor authentication is not configured on this account.", nil),
 	user.ErrInvalidTotpConfig:           newError(codes.FailedPrecondition, errcodes.ErrCodeUserInvalidTotpConfig, "Two-factor authentication configuration is invalid.", nil),

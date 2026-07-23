@@ -25,4 +25,5 @@ type Client interface {
 	CreateJWT(ctx context.Context, args TokenArgs) (*TokenResponse, error)
 	GetUsersPaymentInformation(ctx context.Context, userID, id string) (json.RawMessage, error)
 	CreateBankAccount(ctx context.Context, userID string, args BankAccountPaymentInformation) (*BankAccountPaymentInformation, error)
+	CreateBankAccountFromPlaid(ctx context.Context, userID, processorToken string) (*BankAccountPaymentInformation, error)
 }

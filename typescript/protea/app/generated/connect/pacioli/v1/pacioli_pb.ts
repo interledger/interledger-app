@@ -583,11 +583,6 @@ export class Transfer extends Message<Transfer> {
    */
   pending = false;
 
-  /**
-   * @generated from field: string transactionId = 11;
-   */
-  transactionId = "";
-
   constructor(data?: PartialMessage<Transfer>) {
     super();
     proto3.util.initPartial(data, this);
@@ -605,7 +600,6 @@ export class Transfer extends Message<Transfer> {
     { no: 8, name: "ledger", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
     { no: 9, name: "pendingId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 10, name: "pending", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-    { no: 11, name: "transactionId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Transfer {

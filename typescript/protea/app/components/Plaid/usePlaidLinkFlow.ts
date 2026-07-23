@@ -1,0 +1,176 @@
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { usePlaidLink } from 'react-plaid-link'
+import { useFetcher } from 'react-router'
+import { v4 } from 'uuid'
+
+import { useScaffoldStore } from '~/lib/useScaffoldStore'
+
+import type { ActionData } from '~/routes/plaid'
+
+type SerializedActionData = Exclude<ActionData, Promise<Response>>
+
+const PLAID_ACTION_PATH = '/plaid'
+
+interface PlaidLinkFlowOptions {
+  csrfToken: string
+  onCancel?: () => void
+  onError?: (message: string) => void
+}
+
+/**
+ * Hook that orchestrates the Plaid round-trip:
+ *   1. user clicks Connect → POST {intent: create_link_token} to /plaid action
+ *   2. action returns a link_token; the hook stashes it in local state
+ *   3. usePlaidLink picks up the token and (once the iframe is ready) opens
+ *      the Plaid Link modal
+ *   4. user finishes Link → react-plaid-link fires onSuccess(public_token, metadata)
+ *   5. hook POSTs {intent: exchange, public_token, account_id} to /plaid action
+ *   6. action exchanges + persists; React Router auto-revalidates the loader.
+ */
+export function usePlaidLinkFlow(opts: PlaidLinkFlowOptions) {
+  const { csrfToken, onCancel, onError } = opts
+  const linkFetcher = useFetcher<SerializedActionData>()
+  const exchangeFetcher = useFetcher<SerializedActionData>()
+
+  const [linkToken, setLinkToken] = useState<string | null>(null)
+  const [isLinking, setIsLinking] = useState(false)
+  const pushSnackbar = useScaffoldStore((s) => s.pushSnackbar)
+
+  // Tracks the user's intent to open Link after the token round-trips. We
+  // can't open() synchronously inside the click handler because the token is
+  // minted on the server first.
+  const pendingOpenRef = useRef(false)
+
+  // True only after the Plaid iframe for the *current* token has fired onLoad.
+  // Resets to false on every connect() and onExit so a stale factory can never
+  // satisfy the trigger effect (fixes second-click no-op: see bug analysis).
+  const [plaidInstanceReady, setPlaidInstanceReady] = useState(false)
+
+  // (1) create_link_token result → store the token (or surface the error).
+  useEffect(() => {
+    const data = linkFetcher.data
+    if (!data) return
+    if (data.success && data.data.intent === 'create_link_token') {
+      setLinkToken(data.data.linkToken)
+      return
+    }
+    if (!data.success) {
+      setIsLinking(false)
+      pendingOpenRef.current = false
+      pushSnackbar({ id: v4(), message: data.error.message })
+    }
+  }, [linkFetcher.data, pushSnackbar])
+
+  const {
+    open,
+    ready,
+    error: scriptError
+  } = usePlaidLink({
+    token: linkToken,
+    onLoad: () => setPlaidInstanceReady(true),
+    onSuccess: (publicToken, metadata) => {
+      const account = metadata.accounts[0]
+      const fd = new FormData()
+      fd.append('intent', 'exchange_and_link')
+      fd.append('public_token', publicToken)
+      fd.append('account_id', account?.id ?? '')
+      fd.append('account_name', account?.name ?? '')
+      fd.append('account_mask', account?.mask ?? '')
+      fd.append('csrfToken', csrfToken)
+      exchangeFetcher.submit(fd, { method: 'POST', action: PLAID_ACTION_PATH })
+    },
+    onExit: (err) => {
+      setPlaidInstanceReady(false)
+      setIsLinking(false)
+      pendingOpenRef.current = false
+      // User cancelled (err === null) — clear the staged token so the next
+      // click mints a fresh one (link_tokens are single-flow).
+      setLinkToken(null)
+      if (err) {
+        const msg =
+          err.display_message ||
+          err.error_message ||
+          'Plaid Link exited with error'
+        pushSnackbar({ id: v4(), message: msg })
+        onError?.(msg)
+      } else {
+        onCancel?.()
+      }
+    }
+  })
+
+  // (3) When we have a token AND this factory's iframe has loaded AND the user
+  //     has opted to open (click), launch the modal exactly once per pending flag.
+  //     Uses plaidInstanceReady (set via onLoad) rather than usePlaidLink's `ready`
+  //     because `ready` never resets between sessions — onLoad fires per-factory
+  //     and only after setPlaid(next) is committed, so `open` is always the live
+  //     factory's function by the time this effect can proceed.
+  useEffect(() => {
+    if (!pendingOpenRef.current) return
+    if (!linkToken) return
+    if (!plaidInstanceReady) return
+    pendingOpenRef.current = false
+    open()
+  }, [linkToken, plaidInstanceReady, open])
+
+  // (5) exchange_and_link result.
+  //   - New link → action returns redirect → fetcher navigates to /accounts;
+  //     data is never set, this effect doesn't fire. Flash snackbar shown there.
+  //   - Already linked → action returns JSON → push inline snackbar, clean up.
+  //   - Error → push inline snackbar, clean up.
+  useEffect(() => {
+    const data = exchangeFetcher.data
+    if (!data) return
+    if (
+      data.success &&
+      data.data.intent === 'exchange_and_link' &&
+      data.data.alreadyLinked
+    ) {
+      setLinkToken(null)
+      setIsLinking(false)
+      pushSnackbar({
+        id: v4(),
+        message: 'Account already linked',
+        icon: 'check'
+      })
+      return
+    }
+    if (!data.success) {
+      setIsLinking(false)
+      pushSnackbar({ id: v4(), message: data.error.message })
+    }
+  }, [exchangeFetcher.data, pushSnackbar])
+
+  // Surface SDK-level load failures (CDN unreachable, blocked by extension, etc)
+  useEffect(() => {
+    if (scriptError) {
+      const msg = `Plaid SDK failed to load: ${scriptError.message ?? 'unknown error'}`
+      setIsLinking(false)
+      pendingOpenRef.current = false
+      pushSnackbar({ id: v4(), message: msg })
+    }
+  }, [scriptError, pushSnackbar])
+
+  const connect = useCallback(() => {
+    setPlaidInstanceReady(false)
+    setIsLinking(true)
+    pendingOpenRef.current = true
+    const fd = new FormData()
+    fd.append('intent', 'create_link_token')
+    fd.append('csrfToken', csrfToken)
+    linkFetcher.submit(fd, { method: 'POST', action: PLAID_ACTION_PATH })
+  }, [linkFetcher, csrfToken])
+
+  const submitting =
+    linkFetcher.state !== 'idle' || exchangeFetcher.state !== 'idle'
+
+  return {
+    connect,
+    /** True while either action is in flight OR the modal is open. */
+    busy: isLinking || submitting,
+    /** Plaid SDK is loaded and ready to .open(). */
+    ready,
+    /** SDK-load error, if any. */
+    scriptError
+  }
+}

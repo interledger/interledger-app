@@ -132,7 +132,7 @@ export function Scaffold() {
   )
 
   // TODO should use second last match for scaffold if current match is nested (Only on desktop)
-  let currentMatch = matches[matches.length - 1] as UIMatch<
+  const currentMatch = matches[matches.length - 1] as UIMatch<
     any,
     ApplicationProps
   >

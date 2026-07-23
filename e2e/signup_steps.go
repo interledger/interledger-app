@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"regexp"
 	"strings"
@@ -303,8 +304,16 @@ func (sc *E2EContext) getTOTPSecretForEmail(email string) (string, error) {
 		kratosAdminURL = "http://localhost:4434"
 	}
 
+	// Use Kratos' server-side credentials_identifier filter (exact, indexed
+	// lookup). Listing all identities and scanning client-side flakes once the
+	// local Kratos accumulates >250 identities (every run mints fresh users),
+	// because the default page holds only the first 250. This filter is
+	// independent of total identity count. Mirrors getKratosUserIDByEmail
+	// include_credential=totp still returns the secret.
+	listURL := kratosAdminURL + "/admin/identities?include_credential=totp&credentials_identifier=" + url.QueryEscape(email)
+
 	client := &http.Client{Timeout: 30 * time.Second}
-	listReq, err := http.NewRequestWithContext(context.Background(), "GET", kratosAdminURL+"/admin/identities?include_credential=totp", nil)
+	listReq, err := http.NewRequestWithContext(context.Background(), "GET", listURL, nil)
 	if err != nil {
 		return "", fmt.Errorf("failed to build request: %w", err)
 	}

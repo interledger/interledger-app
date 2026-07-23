@@ -1,8 +1,10 @@
 package ops
 
 import (
+	"context"
 	"testing"
 
+	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	payments_mock "github.com/interledger/interledger-app/go/backend/payments/client/mock"
 
 	"github.com/interledger/interledger-app/go/backend/config"
@@ -29,6 +31,7 @@ import (
 type Backends interface {
 	Validator() *validator.Validate
 	DB() *sqlx.DB
+	WithTx(ctx context.Context, fn func(*sqlx.Tx) error) error
 	Users() user.Client
 	Wallets() wallets.Client
 	Notify() notify.Client
@@ -69,6 +72,10 @@ func (t testBackends) Validator() *validator.Validate {
 
 func (t testBackends) DB() *sqlx.DB {
 	return t.db
+}
+
+func (t testBackends) WithTx(ctx context.Context, fn func(*sqlx.Tx) error) error {
+	return crdbsqlx.ExecuteTx(ctx, t.db, nil, fn)
 }
 
 func (t testBackends) Notify() notify.Client {
