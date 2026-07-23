@@ -101,6 +101,27 @@ func (h *Handlers) LinkToFiant(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Reject upfront if the wallet isn't activated yet (no US balance). Runs
+	// before any Plaid exchange / processor-token mint so a not-yet-activated
+	// user never triggers wasted external calls or a misleading Fiant failure.
+	activated, err := h.linker.IsActivated(r.Context(), u.ID)
+	if err != nil {
+		log.Error("plaid: IsActivated check failed in link-to-fiant",
+			zap.String("user_id", u.ID),
+			zap.Error(err),
+		)
+		apperrors.WriteAppError(w, r, http.StatusInternalServerError, errcodes.ErrCodeInternal, "failed to verify wallet activation")
+		return
+	}
+	if !activated {
+		log.Info("plaid: link-to-fiant rejected; wallet not activated",
+			zap.String("user_id", u.ID),
+			zap.String("plaid_account_id", body.AccountID),
+		)
+		apperrors.WriteAppError(w, r, http.StatusConflict, errcodes.ErrCodeWalletNotActivated, "wallet not activated; complete KYC first")
+		return
+	}
+
 	var (
 		result        *LinkedIDs
 		alreadyLinked bool

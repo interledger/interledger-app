@@ -43,8 +43,13 @@ type fakeLinker struct {
 	existingErr   error
 	registerErr   error
 	registerCalls int
+	notActivated  bool  // zero value = activated, so existing tests pass unchanged
+	activatedErr  error
 }
 
+func (l *fakeLinker) IsActivated(context.Context, string) (bool, error) {
+	return !l.notActivated, l.activatedErr
+}
 func (l *fakeLinker) WithAccountLock(ctx context.Context, _, _ string, fn func(context.Context) error) error {
 	return fn(ctx)
 }
@@ -139,6 +144,31 @@ func TestLinkToFiant_FreshRegister(t *testing.T) {
 	}
 	if linker.registerCalls != 1 {
 		t.Fatalf("expected exactly one Register, got %d", linker.registerCalls)
+	}
+}
+
+func TestLinkToFiant_NotActivated(t *testing.T) {
+	client := &fakeClient{}
+	linker := &fakeLinker{notActivated: true}
+	h := ops.New(client, linker, "fiant")
+
+	rec := httptest.NewRecorder()
+	req := withUser(httptest.NewRequest(http.MethodPost, "/link-to-fiant",
+		strings.NewReader(`{"public_token":"pub-tok","account_id":"acc-1"}`)), "u1")
+	h.LinkToFiant(rec, req)
+
+	if rec.Code != http.StatusConflict {
+		t.Fatalf("expected 409 when wallet not activated, got %d (%s)", rec.Code, rec.Body.String())
+	}
+	// The guard must run BEFORE any Plaid work — no exchange, mint, or register.
+	if client.exchangeCalls != 0 {
+		t.Fatalf("expected no ExchangePublicToken when not activated, got %d", client.exchangeCalls)
+	}
+	if client.processorCalls != 0 {
+		t.Fatalf("expected no processor-token mint when not activated, got %d", client.processorCalls)
+	}
+	if linker.registerCalls != 0 {
+		t.Fatalf("expected no Register when not activated, got %d", linker.registerCalls)
 	}
 }
 

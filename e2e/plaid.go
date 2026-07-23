@@ -180,25 +180,33 @@ func (sc *E2EContext) iRemoveTheLinkedPlaidBankAccount(displayText string) error
 
 // openPlaidOverlay navigates to /connect/bank and waits for the Link overlay to
 // appear, returning a FrameLocator scoped to the iframe. It RETRIES navigation:
-// right after KYC the wallet may not be activated yet (no US balance), so the
-// /connect/bank loader redirects to Home and the overlay never launches. We
-// re-navigate until activation settles and the loader renders the auto-launching
-// page, or until the deadline.
+// right after KYC the wallet may not be activated yet (no US balance).
+//
+// Since WAL-535 the /connect/bank loader no longer redirects Home when the US
+// balance is missing — it renders a "still being set up" card instead. We detect
+// that card and keep retrying (fast) rather than burning the iframe-wait timeout
+// on a page that can't auto-launch yet. We re-navigate until activation settles
+// and the loader renders the auto-launching page, or until the deadline.
 func (sc *E2EContext) openPlaidOverlay(timeout time.Duration) (playwright.FrameLocator, error) {
 	deadline := time.Now().Add(timeout)
 	iframe := sc.page.Locator(plaidIframeSelector)
+	settingUp := sc.page.Locator("text=still being set up")
 	for {
 		if err := sc.gotoConnectBank(); err == nil && strings.Contains(sc.page.URL(), "/connect/bank") {
-			// On /connect/bank — give the auto-launch a window to open the overlay.
-			if werr := iframe.WaitFor(playwright.LocatorWaitForOptions{
-				State:   playwright.WaitForSelectorStateVisible,
-				Timeout: playwright.Float(15000),
-			}); werr == nil {
-				return sc.page.FrameLocator(plaidIframeSelector), nil
+			// If the "still being set up" card is showing, the wallet isn't
+			// activated yet — skip the iframe wait and retry after a short sleep.
+			if visible, _ := settingUp.IsVisible(); !visible {
+				// Activated (or still hydrating) — give the auto-launch a window.
+				if werr := iframe.WaitFor(playwright.LocatorWaitForOptions{
+					State:   playwright.WaitForSelectorStateVisible,
+					Timeout: playwright.Float(15000),
+				}); werr == nil {
+					return sc.page.FrameLocator(plaidIframeSelector), nil
+				}
 			}
 		}
-		// Either redirected away (activation pending → Home) or the overlay never
-		// opened. Wait for activation to progress, then retry.
+		// Redirected away, still-setting-up, or the overlay never opened. Wait
+		// for activation to progress, then retry.
 		if time.Now().After(deadline) {
 			_ = sc.iTakeAScreenshot("plaid-overlay-missing")
 			return nil, fmt.Errorf(
