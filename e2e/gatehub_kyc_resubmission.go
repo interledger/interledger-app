@@ -95,8 +95,8 @@ func (sc *E2EContext) iTriggerGateHubKYCWebhookForMyself(eventType string) error
 		return fmt.Errorf("trigger KYC webhook: %w", err)
 	}
 
-	// Only fire the webhook here; the resulting KYC status is asserted by the
-	// explicit "my KYC status should be ..." step, which polls with a timeout.
+	// Only fire the webhook; the resulting status is asserted by the separate
+	// "my KYC status should be ..." step, which polls with a timeout.
 	return sc.triggerGatehubKYCWebhook(gatehubUserID, eventType, "")
 }
 
@@ -189,4 +189,93 @@ func (sc *E2EContext) iShouldSeeTheReactivateWalletPromptOnTheDashboard() error 
 	}
 
 	return fmt.Errorf("reactivate wallet prompt not found on dashboard")
+}
+
+func (sc *E2EContext) setMockGatehubUserKYCState(gatehubUserID, kycState string) error {
+	baseURL := "https://mockgatehub.interledger.test"
+	if sc.mockgatehubBaseURL != "" {
+		baseURL = sc.mockgatehubBaseURL
+	}
+
+	body := fmt.Sprintf(`{"kyc_state":%q}`, kycState)
+	reqURL := fmt.Sprintf("%s/admin/users/%s/kyc-state", baseURL, url.PathEscape(gatehubUserID))
+	req, err := http.NewRequest(http.MethodPut, reqURL, strings.NewReader(body))
+	if err != nil {
+		return fmt.Errorf("setMockGatehubUserKYCState: build request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := mockgatehubHTTPClient().Do(req)
+	if err != nil {
+		return fmt.Errorf("setMockGatehubUserKYCState: request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		respBody, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("setMockGatehubUserKYCState: unexpected status %d: %s", resp.StatusCode, string(respBody))
+	}
+
+	debugPrintf("   ✓ Set MockGatehub user %s kyc_state to %s\n", gatehubUserID, kycState)
+	return nil
+}
+
+func (sc *E2EContext) iSetMyMockGatehubUserKYCStateTo(state string) error {
+	email, err := sc.getCurrentUserEmail()
+	if err != nil {
+		return err
+	}
+
+	gatehubUserID, err := sc.getGatehubUserIDByEmail(email)
+	if err != nil {
+		return err
+	}
+
+	return sc.setMockGatehubUserKYCState(gatehubUserID, state)
+}
+
+func (sc *E2EContext) iShouldSeeTheGatehubKYCWidgetUnavailableMessage() error {
+	debugPrintln("\n👁️  Checking for GateHub KYC widget unavailable message...")
+
+	deadline := time.Now().Add(kycWebhookPollTimeout)
+	for time.Now().Before(deadline) {
+		unavailable := sc.page.Locator("text=Document resubmission is not available right now")
+		count, _ := unavailable.Count()
+		if count > 0 {
+			debugPrintln("   ✓ Found widget unavailable message")
+			return nil
+		}
+
+		iframeCount, _ := sc.page.Locator("iframe").Count()
+		if iframeCount > 0 {
+			return fmt.Errorf("expected no GateHub KYC iframe when widget is unavailable")
+		}
+
+		time.Sleep(kycWebhookPollInterval)
+	}
+
+	return fmt.Errorf("GateHub KYC widget unavailable message not found")
+}
+
+func (sc *E2EContext) iShouldNotSeeTheGatehubKYCWidgetUnavailableMessage() error {
+	debugPrintln("\n👁️  Verifying GateHub KYC widget unavailable message is absent...")
+
+	// Wait for the page to render (the "Continue" button) before asserting absence,
+	// so the check can't pass trivially against a not-yet-rendered page.
+	activateButton := sc.page.Locator("button:has-text('Continue'), button:has-text('Activate')")
+	if err := activateButton.First().WaitFor(playwright.LocatorWaitForOptions{
+		State:   playwright.WaitForSelectorStateVisible,
+		Timeout: playwright.Float(10000),
+	}); err != nil {
+		return fmt.Errorf("activation page did not render: %w", err)
+	}
+
+	unavailable := sc.page.Locator("text=Document resubmission is not available right now")
+	count, _ := unavailable.Count()
+	if count > 0 {
+		return fmt.Errorf("did not expect GateHub KYC widget unavailable message")
+	}
+
+	debugPrintln("   ✓ Widget unavailable message not shown")
+	return nil
 }

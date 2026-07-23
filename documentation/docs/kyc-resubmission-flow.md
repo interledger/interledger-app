@@ -35,6 +35,12 @@ When any of the above webhooks are received:
 2. The user receives an email: "Action Required – Please Resubmit Your Verification Documents".
 3. A Slack notification is sent to the `signup_kyc` channel (`wallet-info-bot`).
 
+When an EU user opens `/personal-details` with `StatusDocumentsRequired`, the backend also checks whether GateHub reports the user is in KYC edit mode (Sumsub verification `status` 0 or 10 with `state` 0). If not:
+
+- the GateHub widget is not returned to the frontend
+- a Slack alert is sent: `User with status Documents_required is not in KYC edit mode on GateHub - walletID: <walletID>`
+- the user sees a message that document resubmission is not available and that support has been notified
+
 ## Email Notification
 
 - When status becomes `StatusDocumentsRequired`, user receives an email: "Action Required – Please Resubmit Your Verification Documents".
@@ -43,7 +49,8 @@ When any of the above webhooks are received:
 ## User Experience
 
 - **Dashboard Banner**: Users with `StatusDocumentsRequired` see a prominent message and a "Reactivate wallet" link to `/personal-details`.
-- **KYC Page**: Users can access the KYC widget to upload new documents. After resubmission, status moves to `StatusPending`.
+- **KYC Page**: If GateHub reports edit/resubmission mode, users can access the KYC widget to upload new documents. If not, resubmission is unavailable, support is notified via Slack, and the user sees a message explaining both.
+- After resubmission, status moves to `StatusPending`.
 
 ## API & Backend Changes
 
@@ -60,12 +67,12 @@ When any of the above webhooks are received:
 ## Testing & Monitoring
 
 - Unit tests cover webhook handling for all documents-required event types, status transitions, and transaction blocking.
-- E2E tests cover the resubmission flow via MockGateHub webhook triggers.
+- E2E tests cover the resubmission flow via MockGateHub webhook triggers, including edit-mode gating on `/personal-details`.
 - Alerts: webhook/email failures.
 
 ## Support Playbook
 
-- If user cannot resubmit: check KYC status, webhook processing workflow
+- If user cannot resubmit: check KYC status, webhook processing workflow, and GateHub Sumsub verification status/state via `GET /id/v1/users/:userUuid`
 - If documents still show as expired after resubmission: check for webhook, workflow status, provider status.
 
 ---

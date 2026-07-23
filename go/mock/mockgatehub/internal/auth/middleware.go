@@ -29,6 +29,7 @@ var PublicEndpoints = map[string]bool{
 // PublicEndpointPatterns are path patterns (with placeholders) that don't require authentication
 var PublicEndpointPatterns = []string{
 	"/admin/users/*/fees",                // User-specific fee configuration (test support)
+	"/admin/users/*/kyc-state",           // User KYC state override (test support)
 	"/admin/users/*/withdrawals",         // List withdrawals by user (test support)
 	"/admin/withdrawals/*/trigger-event", // Trigger withdrawal event (test support)
 }

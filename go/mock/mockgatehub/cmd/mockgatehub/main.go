@@ -209,6 +209,7 @@ func setupRoutes(r chi.Router, h *handler.Handler) {
 	r.Get("/admin/users/{userID}/fees", h.GetUserFees)
 	r.Put("/admin/users/{userID}/fees", h.SetUserFees)
 	r.Delete("/admin/users/{userID}/fees", h.ClearUserFees)
+	r.Put("/admin/users/{userID}/kyc-state", h.SetUserKYCStateQuiet)
 	r.Get("/admin/users/{userID}/withdrawals", h.ListWithdrawals)
 	r.Post("/admin/withdrawals/{txID}/trigger-event", h.TriggerWithdrawalEvent)
 	r.Route("/core/v1", func(r chi.Router) {

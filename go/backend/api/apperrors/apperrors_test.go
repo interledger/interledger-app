@@ -97,6 +97,7 @@ func TestToHTTPError(t *testing.T) {
 		{"wallet conflict", wallets.ErrWalletConflict, http.StatusConflict, errcodes.ErrCodeWalletsWalletConflict},
 		{"linked account not found", linkedaccounts.ErrNotFound, http.StatusNotFound, errcodes.ErrCodeLinkedAccNotFound},
 		{"kyc resubmission required", kyc.ErrKYCResubmissionRequired, http.StatusForbidden, errcodes.ErrCodeKYCResubmissionRequired},
+		{"kyc widget not available", kyc.ErrKYCWidgetNotAvailable, http.StatusForbidden, errcodes.ErrCodeKYCWidgetNotAvailable},
 		{"gatehub not found", gatehub.ErrNotFound, http.StatusNotFound, errcodes.ErrCodeNotFound},
 		{"gatehub internal", gatehub.ErrInternal, http.StatusInternalServerError, errcodes.ErrCodeInternal},
 		{"gatehub timed out", gatehub.ErrTimedOut, http.StatusGatewayTimeout, errcodes.ErrCodeGatewayTimeout},
