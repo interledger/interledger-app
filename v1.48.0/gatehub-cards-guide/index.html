@@ -1,0 +1,3304 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for the Interledger App Wallet — a reference implementation for Account Servicing Entities (ASEs) integrating with the Interledger network.">
+      
+      
+      
+      
+        <link rel="prev" href="../provider-payments-reference/">
+      
+      
+        <link rel="next" href="../rafiki-full-node-upgrade-guide/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>GateHub Cards - Interledger App Wallet</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#gatehub-cards-how-it-works" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Interledger App Wallet" class="md-header__button md-logo" aria-label="Interledger App Wallet" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Interledger App Wallet
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              GateHub Cards
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Interledger App Wallet" class="md-nav__button md-logo" aria-label="Interledger App Wallet" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Interledger App Wallet
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../terminology/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Terminology
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../signup-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Signup Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../kyc-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    KYC & Identity Verification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../kyc-resubmission-flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    KYC Resubmission Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../account-deletion-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Account Deletion Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wallets-accounts-addresses-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wallets, Accounts & Addresses
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ledger-system-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dual-Ledger System
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../agreements-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agreements & Legal Consent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Payments
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Payments
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../payments-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Payments & Transactions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../transaction-types-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transaction Types Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../provider-payments-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Provider Comparison
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Integrations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Integrations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GateHub Cards
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GateHub Cards
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table of Contents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-system-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. System Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-authentication" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Authentication
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-entity-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Entity Model
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-customer-onboarding-and-first-card" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Customer Onboarding and First Card
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Customer Onboarding and First Card">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#currency-prefixes-pw_-deb_-etc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Currency Prefixes (PW_, DEB_, etc.)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-card-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Card Management
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Card Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#listing-cards" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Listing Cards
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getting-card-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Getting Card Details
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#locking-a-card-temporary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Locking a Card (Temporary)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#unlocking-a-card" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Unlocking a Card
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#permanently-blocking-a-card" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Permanently Blocking a Card
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#closing-a-card" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Closing a Card
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#card-limits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Card Limits
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ordering-additional-cards" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ordering Additional Cards
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-card-status-lifecycle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Card Status Lifecycle
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-delivery-addresses" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Delivery Addresses
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-physical-card-plastic-ordering" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Physical Card (Plastic) Ordering
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-card-tokens-and-sensitive-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Card Tokens and Sensitive Data
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-card-transactions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Card Transactions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. Card Transactions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-transactions-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Transactions Flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#retrieving-transactions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Retrieving Transactions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#transaction-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Transaction Fields
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-3d-secure-3ds-authentication" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. 3D Secure (3DS) Authentication
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11. 3D Secure (3DS) Authentication">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-3ds-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The 3DS Flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#listing-pending-challenges" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Listing Pending Challenges
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#confirming-or-declining" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Confirming or Declining
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#challenge-lifecycle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Challenge Lifecycle
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-webhook-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Webhook Events
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="12. Webhook Events">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#webhook-envelope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Webhook Envelope
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delivery-and-retries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Delivery and Retries
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#card-related-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Card-Related Events
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Card-Related Events">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cardscardcreated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        cards.card.created
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cardstransactionevent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        cards.transaction.event
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cards3dsauth_3ds_confirmation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        cards.3ds.auth_3ds_confirmation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-card-products" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. Card Products
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-api-endpoint-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. API Endpoint Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="14. API Endpoint Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#customer-onboarding" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Customer &amp; Onboarding
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#card-lifecycle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Card Lifecycle
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#card-limits_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Card Limits
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delivery-addresses" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Delivery Addresses
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#plastic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Plastic
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tokens-sensitive-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tokens &amp; Sensitive Data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#transactions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Transactions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3d-secure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3D Secure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#card-products" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Card Products
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rafiki-full-node-upgrade-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rafiki Full Node Upgrade
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Operations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../payment-troubleshooting-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Payment Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developers
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Developers
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../error-handling-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Error Handling Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../logging-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Logging Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend-configuration-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backend Configuration Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../env-variables/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment Variables
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table of Contents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-system-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. System Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-authentication" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Authentication
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-entity-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Entity Model
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-customer-onboarding-and-first-card" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Customer Onboarding and First Card
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Customer Onboarding and First Card">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#currency-prefixes-pw_-deb_-etc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Currency Prefixes (PW_, DEB_, etc.)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-card-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Card Management
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Card Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#listing-cards" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Listing Cards
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getting-card-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Getting Card Details
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#locking-a-card-temporary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Locking a Card (Temporary)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#unlocking-a-card" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Unlocking a Card
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#permanently-blocking-a-card" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Permanently Blocking a Card
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#closing-a-card" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Closing a Card
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#card-limits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Card Limits
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ordering-additional-cards" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ordering Additional Cards
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-card-status-lifecycle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Card Status Lifecycle
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-delivery-addresses" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Delivery Addresses
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-physical-card-plastic-ordering" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Physical Card (Plastic) Ordering
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-card-tokens-and-sensitive-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Card Tokens and Sensitive Data
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-card-transactions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Card Transactions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. Card Transactions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-transactions-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Transactions Flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#retrieving-transactions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Retrieving Transactions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#transaction-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Transaction Fields
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-3d-secure-3ds-authentication" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. 3D Secure (3DS) Authentication
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11. 3D Secure (3DS) Authentication">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-3ds-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The 3DS Flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#listing-pending-challenges" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Listing Pending Challenges
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#confirming-or-declining" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Confirming or Declining
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#challenge-lifecycle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Challenge Lifecycle
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-webhook-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Webhook Events
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="12. Webhook Events">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#webhook-envelope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Webhook Envelope
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delivery-and-retries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Delivery and Retries
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#card-related-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Card-Related Events
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Card-Related Events">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cardscardcreated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        cards.card.created
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cardstransactionevent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        cards.transaction.event
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cards3dsauth_3ds_confirmation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        cards.3ds.auth_3ds_confirmation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-card-products" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. Card Products
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-api-endpoint-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. API Endpoint Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="14. API Endpoint Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#customer-onboarding" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Customer &amp; Onboarding
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#card-lifecycle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Card Lifecycle
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#card-limits_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Card Limits
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delivery-addresses" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Delivery Addresses
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#plastic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Plastic
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tokens-sensitive-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tokens &amp; Sensitive Data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#transactions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Transactions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3d-secure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3D Secure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#card-products" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Card Products
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="gatehub-cards-how-it-works">GateHub Cards — How It Works<a class="headerlink" href="#gatehub-cards-how-it-works" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p><strong>Card issuing integration reference.</strong> Technical details on GateHub's EUR debit card service.</p>
+</blockquote>
+<p><strong>Related documents:</strong></p>
+<ul>
+<li><a href="../terminology/">Concepts</a> — Core terminology ("Account" → Linked Account mapping)</li>
+<li><a href="../payments-guide/">Payments Guide</a> — End-to-end payment model and orchestration context</li>
+<li><a href="../transaction-types-reference/">Transaction Types Reference</a> — Card transaction field specifications</li>
+<li><a href="../provider-payments-reference/">Provider Payments Guide</a> — GateHub-specific payment behavior</li>
+<li><a href="../payment-troubleshooting-guide/">Payment Troubleshooting</a> — Debugging card transaction issues</li>
+<li><a href="../kyc-guide/">KYC Explainer</a> — GateHub KYC requirements for card issuance</li>
+<li><a href="../env-variables/">Environment Variables</a> — GateHub card API credentials, webhook secrets, and base URLs</li>
+</ul>
+<p><strong>Quick Navigation:</strong></p>
+<ul>
+<li><strong>New to cards?</strong> → Start with <a href="#1-system-overview">System Overview</a></li>
+<li><strong>Customer onboarding flow?</strong> → See <a href="#4-customer-onboarding-and-first-card">Customer Onboarding</a></li>
+<li><strong>Card status meanings?</strong> → See <a href="#6-card-status-lifecycle">Card Status Lifecycle</a></li>
+<li><strong>3DS authentication?</strong> → See <a href="#11-3d-secure-3ds-authentication">3D Secure</a></li>
+<li><strong>Webhook integration?</strong> → See <a href="#12-webhook-events">Webhook Events</a></li>
+<li><strong>API endpoints?</strong> → See <a href="#14-api-endpoint-reference">API Reference</a></li>
+</ul>
+<p>This document explains how GateHub's card issuing service integrates with the Interledger App Wallet to give users EUR-denominated debit cards that draw from their wallet balances.</p>
+<blockquote>
+<p><strong>Context:</strong> The Interledger App Wallet is a multi-provider payment platform built on the Interledger network, offering cross-provider payment capabilities including traditional card networks.</p>
+<p><strong>Terminology Note:</strong> GateHub's "Account" (a EUR card account) is represented as a <code>card</code> type <a href="../terminology/#linked-account-types">Linked Account</a> in the Interledger App. All card-specific transactions are a subset of the broader <a href="../terminology/#core-terms">transaction types</a>. See <a href="../terminology/">Concepts</a> for the core Interledger App terminology and provider translation table.</p>
+</blockquote>
+<hr />
+<h2 id="table-of-contents">Table of Contents<a class="headerlink" href="#table-of-contents" title="Permanent link">&para;</a></h2>
+<ol>
+<li><a href="#1-system-overview">System Overview</a></li>
+<li><a href="#2-authentication">Authentication</a></li>
+<li><a href="#3-entity-model">Entity Model</a></li>
+<li><a href="#4-customer-onboarding-and-first-card">Customer Onboarding and First Card</a></li>
+<li><a href="#5-card-management">Card Management</a></li>
+<li><a href="#6-card-status-lifecycle">Card Status Lifecycle</a></li>
+<li><a href="#7-delivery-addresses">Delivery Addresses</a></li>
+<li><a href="#8-physical-card-plastic-ordering">Physical Card (Plastic) Ordering</a></li>
+<li><a href="#9-card-tokens-and-sensitive-data">Card Tokens and Sensitive Data</a></li>
+<li><a href="#10-card-transactions">Card Transactions</a></li>
+<li><a href="#11-3d-secure-3ds-authentication">3D Secure (3DS) Authentication</a></li>
+<li><a href="#12-webhook-events">Webhook Events</a></li>
+<li><a href="#13-card-products">Card Products</a></li>
+<li><a href="#14-api-endpoint-reference">API Endpoint Reference</a></li>
+</ol>
+<hr />
+<h2 id="1-system-overview">1. System Overview<a class="headerlink" href="#1-system-overview" title="Permanent link">&para;</a></h2>
+<p>Three components participate in the card lifecycle:</p>
+<pre class="mermaid"><code>graph LR
+    User([User / Mobile App])
+    Backend[Wallet Backend&lt;br/&gt;interledger-app]
+    GH[GateHub Cards API&lt;br/&gt;or MockGateHub]
+
+    User -- REST / gRPC --&gt; Backend
+    Backend -- HMAC-signed HTTP --&gt; GH
+    GH -. webhooks .-&gt; Backend
+    Backend -. push / email .-&gt; User</code></pre>
+<p><strong>Wallet Backend</strong> is the only component that talks to GateHub directly. It translates user-facing operations into GateHub API calls and processes asynchronous webhook events. All card state is ultimately owned by GateHub; the wallet backend maintains a local copy for fast reads.</p>
+<p><strong>GateHub Cards API</strong> (or its local mock, MockGateHub) handles customer creation, card issuing, transaction authorisation, and PIN/card-data tokenisation. It communicates results back through synchronous HTTP responses <em>and</em> asynchronous webhooks.</p>
+<p><strong>EUR-only constraint:</strong> All card accounts are denominated in EUR. This is enforced at customer creation time.</p>
+<hr />
+<h2 id="2-authentication">2. Authentication<a class="headerlink" href="#2-authentication" title="Permanent link">&para;</a></h2>
+<p>Every request from the wallet backend to GateHub carries three headers:</p>
+<table>
+<thead>
+<tr>
+<th>Header</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>x-gatehub-app-id</code></td>
+<td>Identifies the calling application</td>
+</tr>
+<tr>
+<td><code>x-gatehub-timestamp</code></td>
+<td>Unix timestamp of the request</td>
+</tr>
+<tr>
+<td><code>x-gatehub-signature</code></td>
+<td>HMAC-SHA256 signature for integrity</td>
+</tr>
+</tbody>
+</table>
+<p>The signature is computed as:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>HMAC-SHA256(timestamp | method | full_url | body, app_secret)
+</code></pre></div>
+<p>Empty segments (e.g. no body on a GET) are stripped before signing.</p>
+<p>Card-specific endpoints additionally require:</p>
+<table>
+<thead>
+<tr>
+<th>Header</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>x-gatehub-card-app-id</code></td>
+<td>Card application identifier</td>
+</tr>
+<tr>
+<td><code>x-gatehub-managed-user-uuid</code></td>
+<td>Links the request to a specific wallet user</td>
+</tr>
+</tbody>
+</table>
+<p>The managed user must exist in GateHub and have completed KYC (<code>kycStatus = "accepted"</code>) before any card operations are permitted.</p>
+<hr />
+<h2 id="3-entity-model">3. Entity Model<a class="headerlink" href="#3-entity-model" title="Permanent link">&para;</a></h2>
+<p>GateHub's card domain has a strict hierarchy:</p>
+<pre class="mermaid"><code>erDiagram
+    MANAGED_USER ||--o| CUSTOMER : "1:1 (created on first card order)"
+    CUSTOMER ||--|{ ACCOUNT : "has"
+    ACCOUNT ||--|{ CARD : "has"
+    CUSTOMER ||--o{ DELIVERY_ADDRESS : "has"
+    CARD ||--o{ CARD_TRANSACTION : "generates"
+    CARD ||--o{ THREE_DS_CHALLENGE : "may trigger"</code></pre>
+<p><strong>Managed User</strong> — The wallet user's identity within GateHub. In Interledger App terminology, this is the <a href="../terminology/#core-terms">User</a> (Kratos identity) registered with GateHub. Created during KYC onboarding. Referenced by UUID in every card request header.</p>
+<p><strong>Customer</strong> — A card-programme customer. Created atomically with the first card order. Holds KYC status, delivery addresses, and one or more accounts. Has both an internal <code>id</code> (GateHub-generated) and a <code>sourceId</code> (the wallet user UUID).</p>
+<p><strong>Account</strong> — A EUR card account (a <code>card</code> type <a href="../terminology/#linked-account-types">Linked Account</a> in Interledger App terminology). Each account has a product code that determines card properties, limits, and pricing. Accounts hold one or more cards.</p>
+<p><strong>Card</strong> — A virtual or physical debit card. Identified by a card ID (prefixed <code>crd.</code> in production). Key attributes:
+- <code>maskedPan</code> — BIN + last 4 digits (e.g. <code>512345******2346</code>)
+- <code>nameOnCard</code> — Embossed name (max 26 characters)
+- <code>status</code> — Active, TemporaryBlocked, Blocked, SoftDelete, InCreation, Pending
+- <code>relationType</code> — PRIMARY (first card) or SECONDARY/Supplementary
+- <code>isFirstTimeLock</code> / <code>plasticCreated</code> — Tracking flags</p>
+<p><strong>Delivery Address</strong> — A physical address for plastic card delivery. Types include PermanentResidence, Work, Other, TemporaryResidence.</p>
+<p><strong>Card Transaction</strong> — A purchase, ATM withdrawal, refund, or other card-initiated financial event.</p>
+<p><strong>3DS Challenge</strong> — A pending Strong Customer Authentication prompt requiring user approval before a transaction can proceed.</p>
+<hr />
+<h2 id="4-customer-onboarding-and-first-card">4. Customer Onboarding and First Card<a class="headerlink" href="#4-customer-onboarding-and-first-card" title="Permanent link">&para;</a></h2>
+<p>The first card order is special: it atomically creates a Customer, an Account, and the initial Card in a single API call.</p>
+<pre class="mermaid"><code>sequenceDiagram
+    participant User
+    participant Backend as Wallet Backend
+    participant GH as GateHub
+
+    User-&gt;&gt;Backend: "Order my first card"
+    Backend-&gt;&gt;Backend: Verify KYC status = accepted
+    Backend-&gt;&gt;GH: POST /cards/v1/customers
+    Note right of Backend: Headers: x-gatehub-managed-user-uuid,&lt;br/&gt;x-gatehub-card-app-id
+
+    GH-&gt;&gt;GH: Validate nameOnCard (≤26 chars)
+    GH-&gt;&gt;GH: Validate currency = EUR
+    GH-&gt;&gt;GH: Create Customer + Account + Card
+
+    GH--&gt;&gt;Backend: 201 — CustomerResponse&lt;br/&gt;(customer, account[], cards[])
+    Backend--&gt;&gt;User: Card created
+
+    GH-)Backend: Webhook: cards.card.created
+    Backend-&gt;&gt;Backend: Store card in local DB
+    Backend-)User: Push notification</code></pre>
+<p><strong>Request body</strong> includes:
+- <code>walletAddress</code> — The user's wallet address
+- <code>nameOnCard</code> — Cardholder name (required, max 26 chars)
+- <code>account.productCode</code> — Determines card product (e.g. <code>PWSR_DEBP_2404</code>)
+- <code>account.currency</code> — Must use EUR base currency. Accepts both <code>"EUR"</code> and prefixed variants like <code>"PW_EUR"</code> (where PW = Prepaid Wallet, a GateHub account type)
+- <code>account.card.productCode</code> — Card product code
+- <code>delivery</code> (optional) — Address for physical card delivery</p>
+<h3 id="currency-prefixes-pw_-deb_-etc">Currency Prefixes (PW_, DEB_, etc.)<a class="headerlink" href="#currency-prefixes-pw_-deb_-etc" title="Permanent link">&para;</a></h3>
+<p>GateHub uses prefixed currency codes to indicate the account type:</p>
+<table>
+<thead>
+<tr>
+<th>Prefix</th>
+<th>Meaning</th>
+<th>Use Case</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>PW_</code></td>
+<td>Prepaid Wallet</td>
+<td>Virtual card accounts with balance drawn from prepaid wallet</td>
+</tr>
+<tr>
+<td><code>DEB_</code></td>
+<td>Debit</td>
+<td>Accounts linked to bank accounts</td>
+</tr>
+<tr>
+<td>(none)</td>
+<td>Base currency</td>
+<td>Plain <code>EUR</code> without type prefix</td>
+</tr>
+</tbody>
+</table>
+<p>The Interledger backend typically sends <code>"PW_EUR"</code> to indicate prepaid wallet accounts. MockGateHub accepts all EUR-base variants (<code>EUR</code>, <code>PW_EUR</code>, <code>DEB_EUR</code>, etc.) and validates only that the base currency is EUR.</p>
+<p><strong>Response</strong> returns the full Customer object with nested accounts and cards, allowing the backend to extract all created entity IDs from a single response.</p>
+<p>After responding, GateHub fires a <code>cards.card.created</code> webhook asynchronously. The backend processes this via a Temporal workflow to ensure reliable storage and user notification.</p>
+<hr />
+<h2 id="5-card-management">5. Card Management<a class="headerlink" href="#5-card-management" title="Permanent link">&para;</a></h2>
+<h3 id="listing-cards">Listing Cards<a class="headerlink" href="#listing-cards" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>GET /cards/v1/cards/{customerID}?pageSize=100
+</code></pre></div>
+<p>Returns all cards for a customer in a paginated response. Cards with status <code>SoftDelete</code> are excluded from the listing but remain in GateHub's system for audit.</p>
+<h3 id="getting-card-details">Getting Card Details<a class="headerlink" href="#getting-card-details" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>GET /cards/v1/cards/{cardID}/card
+</code></pre></div>
+<p>Returns full details for a single card including status, masked PAN, expiry, lock level, etc.</p>
+<h3 id="locking-a-card-temporary">Locking a Card (Temporary)<a class="headerlink" href="#locking-a-card-temporary" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>PUT /cards/v1/cards/{cardID}/lock?reasonCode=ClientRequestedLock
+</code></pre></div>
+<p>Temporarily blocks the card. The card cannot be used for transactions while locked but the action is reversible.</p>
+<p><strong>Reason codes:</strong> <code>ClientRequestedLock</code>, <code>LostCard</code>, <code>StolenCard</code>, <code>IssuerRequestGeneral</code>, <code>IssuerRequestFraud</code>, <code>IssuerRequestLegal</code></p>
+<p>An optional <code>note</code> field in the request body allows recording the reason.</p>
+<p>The response returns the updated card with <code>status: "TemporaryBlocked"</code> and <code>lockLevel</code> set to the reason code.</p>
+<h3 id="unlocking-a-card">Unlocking a Card<a class="headerlink" href="#unlocking-a-card" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>PUT /cards/v1/cards/{cardID}/unlock
+</code></pre></div>
+<p>Reverses a temporary lock. Only valid when the card is in <code>TemporaryBlocked</code> status. Returns the card with <code>status: "Active"</code>.</p>
+<h3 id="permanently-blocking-a-card">Permanently Blocking a Card<a class="headerlink" href="#permanently-blocking-a-card" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>PUT /cards/v1/cards/{cardID}/block?reasonCode=LostCard
+</code></pre></div>
+<p>Permanently blocks a card. This action <strong>cannot be undone</strong>. The card remains visible in listings but can never be reactivated.</p>
+<p><strong>Reason codes:</strong> <code>LostCard</code>, <code>StolenCard</code>, <code>IssuerRequestGeneral</code>, <code>IssuerRequestFraud</code>, <code>IssuerRequestLegal</code>, <code>IssuerRequestIncorrectOpening</code>, <code>CardDamagedOrNotWorking</code>, <code>UserRequest</code>, <code>IssuerRequestCustomerDeceased</code>, <code>ProductDoesNotRenew</code></p>
+<h3 id="closing-a-card">Closing a Card<a class="headerlink" href="#closing-a-card" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>DELETE /cards/v1/cards/{cardID}/card?reasonCode=UserRequest
+</code></pre></div>
+<p>Soft-deletes a card. The card becomes invisible in listings and cannot be used, but remains in GateHub's storage for audit. The wallet backend typically requires password confirmation before calling this.</p>
+<p><strong>Reason codes:</strong> <code>UserRequest</code>, <code>LostCard</code>, <code>StolenCard</code></p>
+<h3 id="card-limits">Card Limits<a class="headerlink" href="#card-limits" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>GET  /cards/v1/cards/{cardID}/limits
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>POST /cards/v1/cards/{cardID}/limits
+</code></pre></div>
+<p>Cards have configurable spending limits. Limits are defined per type and currency:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="p">[</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;dailyOverall&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;limit&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">500</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;currency&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;EUR&quot;</span><span class="p">},</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;dailyAtm&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;limit&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">200</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;currency&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;EUR&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;isActive&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">},</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">  </span><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;monthlyOverall&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;limit&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">5000</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;currency&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;EUR&quot;</span><span class="p">}</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="p">]</span>
+</code></pre></div>
+<p>The POST endpoint creates or overrides limits. Maximum limits are enforced based on the card's product code. If no limits are set, GateHub applies the maximum allowed defaults.</p>
+<h3 id="ordering-additional-cards">Ordering Additional Cards<a class="headerlink" href="#ordering-additional-cards" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>POST /cards/v1/cards/{accountID}/card
+</code></pre></div>
+<p>Orders a new card on an existing account. The new card shares the same EUR account but has its own card number, status, and limits.</p>
+<hr />
+<h2 id="6-card-status-lifecycle">6. Card Status Lifecycle<a class="headerlink" href="#6-card-status-lifecycle" title="Permanent link">&para;</a></h2>
+<p>Cards move through well-defined states. Some transitions are reversible; others are terminal.</p>
+<pre class="mermaid"><code>stateDiagram-v2
+    [*] --&gt; InCreation: Customer/Card created
+    InCreation --&gt; Active: Card provisioned
+
+    Active --&gt; TemporaryBlocked: PUT /lock
+    TemporaryBlocked --&gt; Active: PUT /unlock
+    TemporaryBlocked --&gt; Blocked: PUT /block
+
+    Active --&gt; Blocked: PUT /block
+    Active --&gt; SoftDelete: DELETE /card
+
+    Blocked --&gt; [*]: Terminal
+    SoftDelete --&gt; [*]: Terminal</code></pre>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th style="text-align: center;">Transactions?</th>
+<th style="text-align: center;">Reversible?</th>
+<th style="text-align: center;">Visible in listings?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>InCreation</code></td>
+<td style="text-align: center;">No</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: center;">Yes</td>
+</tr>
+<tr>
+<td><code>Pending</code></td>
+<td style="text-align: center;">No</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: center;">Yes</td>
+</tr>
+<tr>
+<td><code>Active</code></td>
+<td style="text-align: center;">Yes</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: center;">Yes</td>
+</tr>
+<tr>
+<td><code>TemporaryBlocked</code></td>
+<td style="text-align: center;">No</td>
+<td style="text-align: center;">Yes (unlock)</td>
+<td style="text-align: center;">Yes</td>
+</tr>
+<tr>
+<td><code>Blocked</code></td>
+<td style="text-align: center;">No</td>
+<td style="text-align: center;">No</td>
+<td style="text-align: center;">Yes</td>
+</tr>
+<tr>
+<td><code>SoftDelete</code></td>
+<td style="text-align: center;">No</td>
+<td style="text-align: center;">No</td>
+<td style="text-align: center;">No</td>
+</tr>
+<tr>
+<td><code>AccountBlocked</code></td>
+<td style="text-align: center;">No</td>
+<td style="text-align: center;">No</td>
+<td style="text-align: center;">Yes</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Validation rules:</strong>
+- A card cannot be locked if it is already <code>TemporaryBlocked</code>, <code>Blocked</code>, or <code>SoftDelete</code>
+- A card can only be unlocked from <code>TemporaryBlocked</code> status
+- Blocking is rejected if the card is already <code>Blocked</code> or <code>SoftDelete</code>
+- Closing is rejected if the card is already <code>SoftDelete</code></p>
+<hr />
+<h2 id="7-delivery-addresses">7. Delivery Addresses<a class="headerlink" href="#7-delivery-addresses" title="Permanent link">&para;</a></h2>
+<p>Physical cards need a delivery address. GateHub maintains addresses per customer.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>POST /cards/v1/customers/{customerID}/addresses
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>GET  /cards/v1/customers/{customerID}/addresses
+</code></pre></div>
+<p><strong>Creating an address</strong> requires: <code>type</code> (Work, Other), <code>countryCode</code> (ISO 3166-1 alpha-3), <code>line1</code>, <code>city</code>, <code>zipCode</code>, and a <code>reason</code> explaining why a new address is needed.</p>
+<p><strong>Listing addresses</strong> returns all addresses, but only after the first card has been ordered. For the first card, the address provided during KYC (or in the creation request) is used as the primary.</p>
+<p>Each address has a <code>status</code> (Active/Inactive), a <code>managedAddress</code> flag, and an optional <code>deliveryAddressUuid</code> that can be referenced in subsequent card orders.</p>
+<hr />
+<h2 id="8-physical-card-plastic-ordering">8. Physical Card (Plastic) Ordering<a class="headerlink" href="#8-physical-card-plastic-ordering" title="Permanent link">&para;</a></h2>
+<p>After a virtual card exists, a physical plastic card can be ordered:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>POST /cards/v1/cards/{cardID}/plastic
+</code></pre></div>
+<p>This triggers production and shipping of a physical card. The endpoint returns <code>204 No Content</code> on success. The card ID remains the same — the plastic is linked to the existing virtual card.</p>
+<hr />
+<h2 id="9-card-tokens-and-sensitive-data">9. Card Tokens and Sensitive Data<a class="headerlink" href="#9-card-tokens-and-sensitive-data" title="Permanent link">&para;</a></h2>
+<p>Sensitive card data (full PAN, CVV, PIN) is never returned directly. Instead, a two-step token flow is used:</p>
+<pre class="mermaid"><code>sequenceDiagram
+    participant Backend as Wallet Backend
+    participant GH as GateHub
+
+    Backend-&gt;&gt;GH: POST /cards/v1/token/{tokenType}&lt;br/&gt;{cardId, publicKey?}
+    GH--&gt;&gt;Backend: {token, links[{href, rel, method}]}
+
+    Note over Backend: Token is short-lived.&lt;br/&gt;Client uses link to fetch&lt;br/&gt;encrypted data directly.</code></pre>
+<p><strong>Step 1 — Get a token:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>POST /cards/v1/token/{tokenType}
+</code></pre></div>
+<p>Request body:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="p">{</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">  </span><span class="nt">&quot;cardId&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;card_...&quot;</span><span class="p">,</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="w">  </span><span class="nt">&quot;publicKey&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;base64-encoded RSA PKCS#1 public key (optional, required for pin/card-data)&quot;</span>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="p">}</span>
+</code></pre></div></p>
+<p>Response:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="p">{</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="w">  </span><span class="nt">&quot;token&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;jwt-or-opaque-token&quot;</span><span class="p">,</span>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="w">  </span><span class="nt">&quot;links&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="w">    </span><span class="p">{</span><span class="nt">&quot;href&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/cards/v1/proxy/clientDevice/cardData&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;rel&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;data&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;method&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;GET&quot;</span><span class="p">}</span>
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="w">  </span><span class="p">]</span>
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="p">}</span>
+</code></pre></div></p>
+<p><strong>Token types used by the wallet backend:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Token Type</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>card-data</code></td>
+<td>Retrieve full PAN, CVV, expiry</td>
+</tr>
+<tr>
+<td><code>pin</code></td>
+<td>Retrieve encrypted PIN for display</td>
+</tr>
+<tr>
+<td><code>pin-change</code></td>
+<td>Obtain a token for changing the card PIN</td>
+</tr>
+<tr>
+<td><code>apple-provisioning</code></td>
+<td>Apple Pay wallet provisioning</td>
+</tr>
+<tr>
+<td><code>google-provisioning</code></td>
+<td>Google Pay wallet provisioning</td>
+</tr>
+<tr>
+<td><code>pai</code></td>
+<td>Digitalization PAI</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Step 2 — Fetch encrypted data</strong> (client-side, not used by the wallet backend):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>GET /cards/v1/proxy/clientDevice/cardData   (Authorization: {token})
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>GET /cards/v1/proxy/clientDevice/pin         (Authorization: {token})
+</code></pre></div>
+<p>These proxy endpoints return data encrypted with the RSA public key provided in step 1. The wallet backend does not call these directly — it passes the token and link to the mobile app, which fetches the data client-side.</p>
+<hr />
+<h2 id="10-card-transactions">10. Card Transactions<a class="headerlink" href="#10-card-transactions" title="Permanent link">&para;</a></h2>
+<h3 id="how-transactions-flow">How Transactions Flow<a class="headerlink" href="#how-transactions-flow" title="Permanent link">&para;</a></h3>
+<p>When a user makes a purchase with their card, the flow traverses the card network back to GateHub:</p>
+<pre class="mermaid"><code>sequenceDiagram
+    participant Merchant
+    participant Network as Card Network
+    participant GH as GateHub
+    participant Backend as Wallet Backend
+    participant User
+
+    Merchant-&gt;&gt;Network: Charge EUR 50.00
+    Network-&gt;&gt;GH: Authorisation request
+    GH-&gt;&gt;GH: Validate card is Active
+    GH-&gt;&gt;GH: Check sufficient EUR balance
+    GH-&gt;&gt;GH: Deduct balance, create transaction
+    GH--&gt;&gt;Network: Approved (response code 00)
+    Network--&gt;&gt;Merchant: Payment approved
+
+    GH-)Backend: Webhook: cards.transaction.event
+    Backend-&gt;&gt;Backend: Start Temporal workflow
+    Backend-&gt;&gt;GH: GET /cards/v1/transactions/{txID}
+    GH--&gt;&gt;Backend: Full transaction details
+    Backend-&gt;&gt;Backend: Store in local DB
+    Backend-)User: Push notification: "EUR 50.00 at Merchant"</code></pre>
+<p>The wallet backend does <strong>not</strong> initiate transactions — it only learns about them through webhooks and then fetches the full details.</p>
+<h3 id="retrieving-transactions">Retrieving Transactions<a class="headerlink" href="#retrieving-transactions" title="Permanent link">&para;</a></h3>
+<p><strong>Single transaction:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>GET /cards/v1/transactions/{transactionId}
+</code></pre></div></p>
+<p><strong>All transactions for a card</strong> (paginated):
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>GET /cards/v1/cards/{cardId}/transactions?pageSize=20&amp;pageNumber=1
+</code></pre></div></p>
+<h3 id="transaction-fields">Transaction Fields<a class="headerlink" href="#transaction-fields" title="Permanent link">&para;</a></h3>
+<p>Key fields in a transaction response:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>transactionId</code></td>
+<td>Unique transaction identifier</td>
+</tr>
+<tr>
+<td><code>transactionAmount</code> / <code>transactionCurrency</code></td>
+<td>Amount in the transaction's original currency</td>
+</tr>
+<tr>
+<td><code>billingAmount</code> / <code>billingCurrency</code></td>
+<td>Amount in the card's billing currency (EUR)</td>
+</tr>
+<tr>
+<td><code>isTrxAmountConverted</code></td>
+<td>Whether currency conversion occurred</td>
+</tr>
+<tr>
+<td><code>type</code></td>
+<td>Transaction type (see table below)</td>
+</tr>
+<tr>
+<td><code>txStatus</code></td>
+<td>INITIAL, PROCESSING, ACQUIRED, COMPLETED, FAILED</td>
+</tr>
+<tr>
+<td><code>ghResponseCode</code></td>
+<td>ISO 8583 response code (<code>00</code> = approved, <code>51</code> = insufficient funds)</td>
+</tr>
+<tr>
+<td><code>merchantName</code>, <code>merchantCity</code>, <code>merchantCountry</code></td>
+<td>Merchant identification</td>
+</tr>
+<tr>
+<td><code>mcc</code></td>
+<td>Merchant Category Code</td>
+</tr>
+<tr>
+<td><code>entryMode</code></td>
+<td>How the card was presented (chip, contactless, online, etc.)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Transaction types:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>Purchase (POS or online)</td>
+</tr>
+<tr>
+<td>1</td>
+<td>ATM Withdrawal</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Card Verification Inquiry</td>
+</tr>
+<tr>
+<td>17</td>
+<td>Cash Advance</td>
+</tr>
+<tr>
+<td>20</td>
+<td>Refund / Credit Payment</td>
+</tr>
+<tr>
+<td>30</td>
+<td>Balance Inquiry on ATM</td>
+</tr>
+<tr>
+<td>92</td>
+<td>PIN Change</td>
+</tr>
+<tr>
+<td>101</td>
+<td>Pre-authorisation</td>
+</tr>
+<tr>
+<td>103</td>
+<td>Pre-authorisation Completion</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="11-3d-secure-3ds-authentication">11. 3D Secure (3DS) Authentication<a class="headerlink" href="#11-3d-secure-3ds-authentication" title="Permanent link">&para;</a></h2>
+<p>3D Secure adds a second factor of authentication for card-not-present transactions (typically e-commerce). When a transaction requires 3DS, GateHub creates a challenge that the user must approve or decline within a timeout window.</p>
+<h3 id="the-3ds-flow">The 3DS Flow<a class="headerlink" href="#the-3ds-flow" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>sequenceDiagram
+    participant User
+    participant App as Mobile App
+    participant Backend as Wallet Backend
+    participant GH as GateHub
+
+    Note over GH: High-value online purchase triggers 3DS
+    GH-&gt;&gt;GH: Create 3DS challenge (status: pending, timeout: ~5 min)
+    GH-)Backend: Webhook: cards.3ds.auth_3ds_confirmation
+
+    Backend-&gt;&gt;Backend: Look up wallet user from webhook
+    Backend-)App: Push notification: "Confirm EUR 500 at Online Shop"
+    Backend-)User: Email alert
+
+    App-&gt;&gt;User: Show 3DS challenge dialog
+    User-&gt;&gt;App: Approve (biometric / PIN)
+
+    App-&gt;&gt;Backend: Confirm 3DS
+    Backend-&gt;&gt;GH: POST /cards/v1/transaction/{transactionId}&lt;br/&gt;{confirmed: true, authMethod: "07"}
+    GH-&gt;&gt;GH: Mark challenge approved, authorise transaction
+    GH--&gt;&gt;Backend: 200 OK {transactionId, confirmed: true}
+    Backend--&gt;&gt;App: Transaction approved
+
+    Note over GH: If timeout expires or user declines,&lt;br/&gt;the transaction is automatically declined</code></pre>
+<h3 id="listing-pending-challenges">Listing Pending Challenges<a class="headerlink" href="#listing-pending-challenges" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>GET /cards/v1/transaction/pending-confirmations
+</code></pre></div>
+<p>Returns all 3DS challenges for the user that are:
+- Not yet confirmed or rejected
+- Not expired</p>
+<p>Response:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="p">{</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="w">  </span><span class="nt">&quot;pendingConfirmations&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="w">      </span><span class="nt">&quot;transactionId&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;62469058-d962-4f7c-a9c0-8c2a1b6efaa3&quot;</span><span class="p">,</span>
+<a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a><span class="w">      </span><span class="nt">&quot;merchantName&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Shop One Two&quot;</span><span class="p">,</span>
+<a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a><span class="w">      </span><span class="nt">&quot;purchaseAmount&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;99.98&quot;</span><span class="p">,</span>
+<a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a><span class="w">      </span><span class="nt">&quot;purchaseCurrency&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;EUR&quot;</span><span class="p">,</span>
+<a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a><span class="w">      </span><span class="nt">&quot;purchaseDate&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+<a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a><span class="w">      </span><span class="nt">&quot;timeout&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;300&quot;</span>
+<a id="__codelineno-19-10" name="__codelineno-19-10" href="#__codelineno-19-10"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-19-11" name="__codelineno-19-11" href="#__codelineno-19-11"></a><span class="w">  </span><span class="p">]</span>
+<a id="__codelineno-19-12" name="__codelineno-19-12" href="#__codelineno-19-12"></a><span class="p">}</span>
+</code></pre></div></p>
+<p>The <code>timeout</code> field is the remaining time in seconds (as a string).</p>
+<h3 id="confirming-or-declining">Confirming or Declining<a class="headerlink" href="#confirming-or-declining" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>POST /cards/v1/transaction/{transactionId}
+</code></pre></div>
+<p>Request:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="p">{</span>
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a><span class="w">  </span><span class="nt">&quot;confirmed&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a><span class="w">  </span><span class="nt">&quot;authMethod&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;07&quot;</span>
+<a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a><span class="p">}</span>
+</code></pre></div></p>
+<p>The <code>authMethod</code> field uses GateHub's enum values:
+- <code>"07"</code> — FIDO / biometric authentication
+- <code>"08"</code> — FIDO with transaction signing</p>
+<p>Response:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="p">{</span>
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a><span class="w">  </span><span class="nt">&quot;transactionId&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;62469058-d962-4f7c-a9c0-8c2a1b6efaa3&quot;</span><span class="p">,</span>
+<a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a><span class="w">  </span><span class="nt">&quot;confirmed&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
+<a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a><span class="p">}</span>
+</code></pre></div></p>
+<p>Setting <code>confirmed: false</code> declines the transaction.</p>
+<h3 id="challenge-lifecycle">Challenge Lifecycle<a class="headerlink" href="#challenge-lifecycle" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pending</code></td>
+<td>Awaiting user action</td>
+</tr>
+<tr>
+<td><code>approved</code></td>
+<td>User confirmed — transaction proceeds</td>
+</tr>
+<tr>
+<td><code>declined</code></td>
+<td>User rejected — transaction declined</td>
+</tr>
+<tr>
+<td><code>expired</code></td>
+<td>Timeout reached — transaction auto-declined</td>
+</tr>
+</tbody>
+</table>
+<p>Challenges that are approved, declined, or expired no longer appear in the <code>pending-confirmations</code> response.</p>
+<hr />
+<h2 id="12-webhook-events">12. Webhook Events<a class="headerlink" href="#12-webhook-events" title="Permanent link">&para;</a></h2>
+<p>GateHub uses webhooks for asynchronous event notification. The wallet backend receives webhooks at a configured callback URL and processes them — typically via Temporal workflows for reliability.</p>
+<h3 id="webhook-envelope">Webhook Envelope<a class="headerlink" href="#webhook-envelope" title="Permanent link">&para;</a></h3>
+<p>Every webhook has the same outer structure:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="p">{</span>
+<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="w">  </span><span class="nt">&quot;uuid&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="p">,</span>
+<a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="w">  </span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1768920404045&quot;</span><span class="p">,</span>
+<a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a><span class="w">  </span><span class="nt">&quot;event_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;cards.card.created&quot;</span><span class="p">,</span>
+<a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a><span class="w">  </span><span class="nt">&quot;user_uuid&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="p">,</span>
+<a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a><span class="w">  </span><span class="nt">&quot;environment&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;sandbox&quot;</span><span class="p">,</span>
+<a id="__codelineno-23-7" name="__codelineno-23-7" href="#__codelineno-23-7"></a><span class="w">  </span><span class="nt">&quot;data&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="err">...</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-23-8" name="__codelineno-23-8" href="#__codelineno-23-8"></a><span class="p">}</span>
+</code></pre></div>
+<p>Webhooks are signed with <code>HMAC-SHA256(json_body, hex_decoded_secret)</code> and delivered with an <code>x-gatehub-signature</code> header. The wallet backend validates this signature before processing.</p>
+<h3 id="delivery-and-retries">Delivery and Retries<a class="headerlink" href="#delivery-and-retries" title="Permanent link">&para;</a></h3>
+<p>Webhooks are delivered asynchronously with retry logic:
+- Up to 10 delivery attempts
+- 30-second fixed backoff between retries
+- A configurable minimum delay before the first delivery attempt</p>
+<h3 id="card-related-events">Card-Related Events<a class="headerlink" href="#card-related-events" title="Permanent link">&para;</a></h3>
+<h4 id="cardscardcreated"><code>cards.card.created</code><a class="headerlink" href="#cardscardcreated" title="Permanent link">&para;</a></h4>
+<p>Fired after a card is successfully created (either via customer creation or additional card order).</p>
+<p><strong>Data payload:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="p">{</span>
+<a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a><span class="w">  </span><span class="nt">&quot;cardId&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;card_...&quot;</span><span class="p">,</span>
+<a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a><span class="w">  </span><span class="nt">&quot;cardSourceId&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;card_...&quot;</span><span class="p">,</span>
+<a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a><span class="w">  </span><span class="nt">&quot;nameOnCard&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Alice Smith&quot;</span><span class="p">,</span>
+<a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a><span class="w">  </span><span class="nt">&quot;productCode&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;PWSR_DEBP_2404&quot;</span><span class="p">,</span>
+<a id="__codelineno-24-6" name="__codelineno-24-6" href="#__codelineno-24-6"></a><span class="w">  </span><span class="nt">&quot;maskedPan&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;512345******2346&quot;</span><span class="p">,</span>
+<a id="__codelineno-24-7" name="__codelineno-24-7" href="#__codelineno-24-7"></a><span class="w">  </span><span class="nt">&quot;accountId&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;acc_...&quot;</span><span class="p">,</span>
+<a id="__codelineno-24-8" name="__codelineno-24-8" href="#__codelineno-24-8"></a><span class="w">  </span><span class="nt">&quot;accountSourceId&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;acc_...&quot;</span><span class="p">,</span>
+<a id="__codelineno-24-9" name="__codelineno-24-9" href="#__codelineno-24-9"></a><span class="w">  </span><span class="nt">&quot;lockLevel&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<a id="__codelineno-24-10" name="__codelineno-24-10" href="#__codelineno-24-10"></a><span class="w">  </span><span class="nt">&quot;customerId&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;cust_...&quot;</span><span class="p">,</span>
+<a id="__codelineno-24-11" name="__codelineno-24-11" href="#__codelineno-24-11"></a><span class="w">  </span><span class="nt">&quot;customerSourceId&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;user_...&quot;</span>
+<a id="__codelineno-24-12" name="__codelineno-24-12" href="#__codelineno-24-12"></a><span class="p">}</span>
+</code></pre></div></p>
+<p><strong>Backend processing:</strong> Starts a <code>ProcessCardCreationWorkflow</code> Temporal workflow that stores the card in the wallet database and sends a push notification. Workflow ID includes the webhook UUID for idempotent deduplication.</p>
+<h4 id="cardstransactionevent"><code>cards.transaction.event</code><a class="headerlink" href="#cardstransactionevent" title="Permanent link">&para;</a></h4>
+<p>Fired when a card transaction occurs (purchase, ATM withdrawal, refund, etc.).</p>
+<p><strong>Data payload:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="p">{</span>
+<a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a><span class="w">  </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Card Purchase&quot;</span><span class="p">,</span>
+<a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a><span class="w">  </span><span class="nt">&quot;body&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;EUR 50.00 at Coffee Shop&quot;</span><span class="p">,</span>
+<a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a><span class="w">  </span><span class="nt">&quot;transactionId&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;tx_abc123&quot;</span><span class="p">,</span>
+<a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a><span class="w">  </span><span class="nt">&quot;cardId&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;card_...&quot;</span>
+<a id="__codelineno-25-6" name="__codelineno-25-6" href="#__codelineno-25-6"></a><span class="p">}</span>
+</code></pre></div></p>
+<p><strong>Backend processing:</strong> Starts a <code>CreateCardTransaction</code> Temporal workflow. The workflow fetches the full transaction details via <code>GET /cards/v1/transactions/{txID}</code>, stores them, and sends a push notification using the <code>title</code> and <code>body</code> fields.</p>
+<h4 id="cards3dsauth_3ds_confirmation"><code>cards.3ds.auth_3ds_confirmation</code><a class="headerlink" href="#cards3dsauth_3ds_confirmation" title="Permanent link">&para;</a></h4>
+<p>Fired when a transaction requires 3D Secure user confirmation.</p>
+<p><strong>Data payload:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="p">{</span>
+<a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a><span class="w">  </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;3ds_challenge&quot;</span><span class="p">,</span>
+<a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a><span class="w">  </span><span class="nt">&quot;payload&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-26-4" name="__codelineno-26-4" href="#__codelineno-26-4"></a><span class="w">    </span><span class="nt">&quot;transactionId&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;tx_3ds_001&quot;</span><span class="p">,</span>
+<a id="__codelineno-26-5" name="__codelineno-26-5" href="#__codelineno-26-5"></a><span class="w">    </span><span class="nt">&quot;merchantName&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Online Retailer&quot;</span><span class="p">,</span>
+<a id="__codelineno-26-6" name="__codelineno-26-6" href="#__codelineno-26-6"></a><span class="w">    </span><span class="nt">&quot;purchaseAmount&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;150.00&quot;</span><span class="p">,</span>
+<a id="__codelineno-26-7" name="__codelineno-26-7" href="#__codelineno-26-7"></a><span class="w">    </span><span class="nt">&quot;purchaseCurrency&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;EUR&quot;</span><span class="p">,</span>
+<a id="__codelineno-26-8" name="__codelineno-26-8" href="#__codelineno-26-8"></a><span class="w">    </span><span class="nt">&quot;purchaseDate&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2026-01-28T10:30:00Z&quot;</span><span class="p">,</span>
+<a id="__codelineno-26-9" name="__codelineno-26-9" href="#__codelineno-26-9"></a><span class="w">    </span><span class="nt">&quot;timeout&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;300&quot;</span>
+<a id="__codelineno-26-10" name="__codelineno-26-10" href="#__codelineno-26-10"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-26-11" name="__codelineno-26-11" href="#__codelineno-26-11"></a><span class="p">}</span>
+</code></pre></div></p>
+<p><strong>Backend processing:</strong> Processed synchronously (no Temporal workflow). Sends a push notification and email to the user prompting them to confirm or decline the transaction before the timeout.</p>
+<hr />
+<h2 id="13-card-products">13. Card Products<a class="headerlink" href="#13-card-products" title="Permanent link">&para;</a></h2>
+<p>Before creating a card, the wallet backend queries available card products:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a>GET /cards/v1/card-applications/{appID}/card-products
+</code></pre></div>
+<p>Response includes product details such as:
+- <code>code</code> — Product code (e.g. <code>PWSR_DEBP_2404</code>)
+- <code>name</code> — Human-readable name (e.g. "Virtual Debit Card")
+- <code>cost</code> — Card issuance cost
+- <code>cardProductLimits</code> — Default and maximum spending limits per product</p>
+<p>The product code is then referenced in customer creation and card ordering requests.</p>
+<hr />
+<h2 id="14-api-endpoint-reference">14. API Endpoint Reference<a class="headerlink" href="#14-api-endpoint-reference" title="Permanent link">&para;</a></h2>
+<p>All card endpoints are under the <code>/cards/v1/</code> prefix.</p>
+<h3 id="customer-onboarding">Customer &amp; Onboarding<a class="headerlink" href="#customer-onboarding" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Path</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>POST</td>
+<td><code>/customers</code></td>
+<td>Create customer + account + initial card</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/customers/managed</code></td>
+<td>Create managed customer (alternative flow)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="card-lifecycle">Card Lifecycle<a class="headerlink" href="#card-lifecycle" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Path</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET</td>
+<td><code>/cards/{customerID}</code></td>
+<td>List all cards for a customer</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/cards/{cardID}/card</code></td>
+<td>Get single card details</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/cards/{accountID}/card</code></td>
+<td>Order additional card on existing account</td>
+</tr>
+<tr>
+<td>PUT</td>
+<td><code>/cards/{cardID}/lock?reasonCode=...</code></td>
+<td>Temporarily lock card</td>
+</tr>
+<tr>
+<td>PUT</td>
+<td><code>/cards/{cardID}/unlock</code></td>
+<td>Unlock card</td>
+</tr>
+<tr>
+<td>PUT</td>
+<td><code>/cards/{cardID}/block?reasonCode=...</code></td>
+<td>Permanently block card</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td><code>/cards/{cardID}/card?reasonCode=...</code></td>
+<td>Close (soft-delete) card</td>
+</tr>
+</tbody>
+</table>
+<h3 id="card-limits_1">Card Limits<a class="headerlink" href="#card-limits_1" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Path</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET</td>
+<td><code>/cards/{cardID}/limits</code></td>
+<td>Get current spending limits</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/cards/{cardID}/limits</code></td>
+<td>Create or override limits</td>
+</tr>
+</tbody>
+</table>
+<h3 id="delivery-addresses">Delivery Addresses<a class="headerlink" href="#delivery-addresses" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Path</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>POST</td>
+<td><code>/customers/{customerID}/addresses</code></td>
+<td>Create new delivery address</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/customers/{customerID}/addresses</code></td>
+<td>List delivery addresses</td>
+</tr>
+</tbody>
+</table>
+<h3 id="plastic">Plastic<a class="headerlink" href="#plastic" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Path</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>POST</td>
+<td><code>/cards/{cardID}/plastic</code></td>
+<td>Order physical card</td>
+</tr>
+</tbody>
+</table>
+<h3 id="tokens-sensitive-data">Tokens &amp; Sensitive Data<a class="headerlink" href="#tokens-sensitive-data" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Path</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>POST</td>
+<td><code>/token/{tokenType}</code></td>
+<td>Get token for card-data, pin, pin-change, provisioning</td>
+</tr>
+</tbody>
+</table>
+<h3 id="transactions">Transactions<a class="headerlink" href="#transactions" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Path</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET</td>
+<td><code>/transactions/{transactionId}</code></td>
+<td>Get single transaction</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/cards/{cardId}/transactions</code></td>
+<td>List transactions for a card (paginated)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="3d-secure">3D Secure<a class="headerlink" href="#3d-secure" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Path</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET</td>
+<td><code>/transaction/pending-confirmations</code></td>
+<td>List pending 3DS challenges</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/transaction/{transactionId}</code></td>
+<td>Confirm or decline 3DS challenge</td>
+</tr>
+</tbody>
+</table>
+<h3 id="card-products">Card Products<a class="headerlink" href="#card-products" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Path</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET</td>
+<td><code>/card-applications/{appID}/card-products</code></td>
+<td>List available card products</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.top", "navigation.indexes", "search.highlight", "search.suggest", "content.code.copy", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
