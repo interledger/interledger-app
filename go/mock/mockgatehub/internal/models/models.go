@@ -4,15 +4,16 @@ import "time"
 
 // User represents a Gatehub user
 type User struct {
-	ID        string    `json:"id"`
-	Email     string    `json:"email"`
-	Activated bool      `json:"activated"`
-	Managed   bool      `json:"managed"`
-	Role      string    `json:"role"`
-	Features  []string  `json:"features"`
-	KYCState  string    `json:"kyc_state"`  // accepted/rejected/action_required
-	RiskLevel string    `json:"risk_level"` // low/medium/high
-	CreatedAt time.Time `json:"created_at"`
+	ID                        string    `json:"id"`
+	Email                     string    `json:"email"`
+	Activated                 bool      `json:"activated"`
+	Managed                   bool      `json:"managed"`
+	Role                      string    `json:"role"`
+	Features                  []string  `json:"features"`
+	KYCState                  string    `json:"kyc_state"`  // accepted/rejected/action_required/resubmission
+	RiskLevel                 string    `json:"risk_level"` // low/medium/high
+	IsProfileCreationDisabled bool      `json:"is_profile_creation_disabled"`
+	CreatedAt                 time.Time `json:"created_at"`
 	// Profile fields
 	FirstName          string `json:"first_name"`
 	MiddleName         string `json:"middle_name"`

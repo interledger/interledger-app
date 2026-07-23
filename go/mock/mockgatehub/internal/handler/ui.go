@@ -254,7 +254,7 @@ func (h *Handler) UIKYCAction(w http.ResponseWriter, r *http.Request) {
 		kycState = consts.KYCStateRejected
 		eventType = consts.WebhookEventKYCRejected
 	case "resubmission":
-		kycState = consts.KYCStateActionRequired
+		kycState = consts.KYCStateResubmission
 		eventType = consts.WebhookEventKYCResubmission
 	case "document_expired":
 		kycState = consts.KYCStateActionRequired

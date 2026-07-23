@@ -7,5 +7,6 @@ var (
 	ErrInternal                = errors.New("kyc: internal error")
 	ErrKYCCompleted            = errors.New("kyc: already completed")
 	ErrKYCResubmissionRequired = errors.New("kyc resubmission required: please update your verification documents")
+	ErrKYCWidgetNotAvailable   = errors.New("kyc widget is not available yet")
 	ErrKYCNotApproved          = errors.New("kyc not approved")
 )

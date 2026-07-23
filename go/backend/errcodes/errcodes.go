@@ -35,6 +35,7 @@ const (
 	ErrCodePaymentsInsufficientFunds AppErrorCode = "PAYMENTS_INSUFFICIENT_FUNDS"
 
 	ErrCodeKYCResubmissionRequired AppErrorCode = "KYC_RESUBMISSION_REQUIRED"
+	ErrCodeKYCWidgetNotAvailable   AppErrorCode = "KYC_WIDGET_NOT_AVAILABLE"
 
 	ErrCodeUserInvalidTotpCode   AppErrorCode = "USER_INVALID_TOTP_CODE"
 	ErrCodeUserTotpNotConfigured AppErrorCode = "USER_TOTP_NOT_CONFIGURED"
