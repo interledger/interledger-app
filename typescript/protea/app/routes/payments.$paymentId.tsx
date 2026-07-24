@@ -3,7 +3,7 @@ import type { PlainMessage } from '@bufbuild/protobuf'
 import clsx from 'clsx'
 import { useState } from 'react'
 import type { UIMatch } from 'react-router'
-import { Link, data, href, redirect, useLoaderData } from 'react-router'
+import { Link, data, href, useLoaderData } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   Alert,
@@ -38,6 +38,7 @@ import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
 import { getPusherArgs } from '~/lib/pusher.server'
+import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { usePusher } from '~/lib/usePusher'
 import type { Route } from './+types/payments.$paymentId'
 
@@ -48,7 +49,11 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     id: params.paymentId as string
   })
   if (isConnectError(transaction)) {
-    if (transaction.code === Code.Internal) throw redirect(href('/'))
+    if (transaction.code === Code.NotFound)
+      return redirectWithSnackbar(request, href('/'), {
+        message: 'Payment not available. Returning to your wallet.',
+        icon: 'close'
+      })
     throw transaction.errorResponse
   }
 
