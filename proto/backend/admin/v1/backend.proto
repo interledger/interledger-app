@@ -391,6 +391,8 @@ message Wallet {
   string walletID = 1;
   string walletName = 2;
   repeated User users = 3;
+  string kycFirstName = 4;
+  string kycLastName = 5;
 }
 
 message ListWalletsResponse {

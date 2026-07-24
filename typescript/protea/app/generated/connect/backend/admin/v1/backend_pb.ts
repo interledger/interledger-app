@@ -2697,6 +2697,16 @@ export class Wallet extends Message<Wallet> {
    */
   users: User[] = [];
 
+  /**
+   * @generated from field: string kycFirstName = 4;
+   */
+  kycFirstName = "";
+
+  /**
+   * @generated from field: string kycLastName = 5;
+   */
+  kycLastName = "";
+
   constructor(data?: PartialMessage<Wallet>) {
     super();
     proto3.util.initPartial(data, this);
@@ -2708,6 +2718,8 @@ export class Wallet extends Message<Wallet> {
     { no: 1, name: "walletID", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "walletName", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "users", kind: "message", T: User, repeated: true },
+    { no: 4, name: "kycFirstName", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "kycLastName", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Wallet {

@@ -5,8 +5,8 @@ import { data, href, Form, useLoaderData, useNavigation } from 'react-router'
 import { ListWallets } from '~/lib/wallet.server'
 
 const FILTER_FIELDS = [
-  { name: 'firstName', label: 'First name' },
-  { name: 'lastName', label: 'Last name' },
+  { name: 'firstName', label: 'First name (KYC)' },
+  { name: 'lastName', label: 'Last name (KYC)' },
   { name: 'walletAddress', label: 'Wallet account' },
   { name: 'email', label: 'Email' },
   { name: 'phoneNumber', label: 'Phone number' },
@@ -133,13 +133,13 @@ export default function Page() {
                         scope='col'
                         className='px-4 py-3.5 text-left text-sm font-medium text-strong'
                       >
-                        First name
+                        First name (KYC)
                       </th>
                       <th
                         scope='col'
                         className='px-4 py-3.5 text-left text-sm font-medium text-strong'
                       >
-                        Last name
+                        Last name (KYC)
                       </th>
                       <th
                         scope='col'
@@ -181,10 +181,10 @@ export default function Page() {
                           {orDash(wallet.walletID)}
                         </td>
                         <td className='whitespace-nowrap p-4 text-sm text-gray-500'>
-                          {orDash(wallet.users[0]?.firstName)}
+                          {orDash(wallet.kycFirstName)}
                         </td>
                         <td className='whitespace-nowrap p-4 text-sm text-gray-500'>
-                          {orDash(wallet.users[0]?.lastName)}
+                          {orDash(wallet.kycLastName)}
                         </td>
                         <td className='p-4 text-sm font-medium text-gray-900'>
                           {orDash(wallet.walletName)}

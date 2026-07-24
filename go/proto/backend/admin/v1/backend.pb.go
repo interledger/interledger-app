@@ -3327,6 +3327,8 @@ type Wallet struct {
 	WalletID      string                 `protobuf:"bytes,1,opt,name=walletID,proto3" json:"walletID,omitempty"`
 	WalletName    string                 `protobuf:"bytes,2,opt,name=walletName,proto3" json:"walletName,omitempty"`
 	Users         []*User                `protobuf:"bytes,3,rep,name=users,proto3" json:"users,omitempty"`
+	KycFirstName  string                 `protobuf:"bytes,4,opt,name=kycFirstName,proto3" json:"kycFirstName,omitempty"`
+	KycLastName   string                 `protobuf:"bytes,5,opt,name=kycLastName,proto3" json:"kycLastName,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3380,6 +3382,20 @@ func (x *Wallet) GetUsers() []*User {
 		return x.Users
 	}
 	return nil
+}
+
+func (x *Wallet) GetKycFirstName() string {
+	if x != nil {
+		return x.KycFirstName
+	}
+	return ""
+}
+
+func (x *Wallet) GetKycLastName() string {
+	if x != nil {
+		return x.KycLastName
+	}
+	return ""
 }
 
 type ListWalletsResponse struct {
@@ -4188,13 +4204,15 @@ const file_backend_admin_v1_backend_proto_rawDesc = "" +
 	"\vphoneNumber\x18\x05 \x01(\tR\vphoneNumber\x12\x1e\n" +
 	"\n" +
 	"providerId\x18\x06 \x01(\tR\n" +
-	"providerId\"r\n" +
+	"providerId\"\xb8\x01\n" +
 	"\x06Wallet\x12\x1a\n" +
 	"\bwalletID\x18\x01 \x01(\tR\bwalletID\x12\x1e\n" +
 	"\n" +
 	"walletName\x18\x02 \x01(\tR\n" +
 	"walletName\x12,\n" +
-	"\x05users\x18\x03 \x03(\v2\x16.backend.admin.v1.UserR\x05users\"o\n" +
+	"\x05users\x18\x03 \x03(\v2\x16.backend.admin.v1.UserR\x05users\x12\"\n" +
+	"\fkycFirstName\x18\x04 \x01(\tR\fkycFirstName\x12 \n" +
+	"\vkycLastName\x18\x05 \x01(\tR\vkycLastName\"o\n" +
 	"\x13ListWalletsResponse\x122\n" +
 	"\awallets\x18\x01 \x03(\v2\x18.backend.admin.v1.WalletR\awallets\x12$\n" +
 	"\rnextPageToken\x18\x02 \x01(\tR\rnextPageToken\"\x88\x01\n" +

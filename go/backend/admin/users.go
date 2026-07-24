@@ -102,9 +102,11 @@ func (s *AdminRpcService) ListWallets(ctx context.Context, req *adminv1.ListWall
 		}
 
 		resp[i] = &adminv1.Wallet{
-			WalletID:   w.ID,
-			WalletName: w.Name,
-			Users:      usersPB,
+			WalletID:     w.ID,
+			WalletName:   w.Name,
+			Users:        usersPB,
+			KycFirstName: derefStr(w.KYCFirstName),
+			KycLastName:  derefStr(w.KYCLastName),
 		}
 	}
 
@@ -134,6 +136,13 @@ func intersectWalletIDs(a, b []string) []string {
 		}
 	}
 	return result
+}
+
+func derefStr(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
 }
 
 func convertUser(input user.User) *adminv1.User {
