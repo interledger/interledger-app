@@ -64,11 +64,11 @@ export default function Page() {
           />
 
           <Button
-            aria-label="Go to next step"
-            form="ilpay-form"
-            type="submit"
-            name="intent"
-            className="max-w-xs mt-12 mx-auto"
+            aria-label='Go to next step'
+            form='ilpay-form'
+            type='submit'
+            name='intent'
+            className='mx-auto mt-12 max-w-xs'
           >
             Pay now
           </Button>
