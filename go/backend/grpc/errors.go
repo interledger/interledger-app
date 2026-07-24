@@ -22,6 +22,7 @@ import (
 	"github.com/interledger/interledger-app/go/backend/signup"
 
 	"github.com/interledger/interledger-app/go/backend/twilio"
+	"github.com/interledger/interledger-app/go/backend/transactions"
 	"github.com/interledger/interledger-app/go/backend/user"
 	"github.com/interledger/interledger-app/go/log"
 	pb "github.com/interledger/interledger-app/go/proto/backend/v1"
@@ -49,6 +50,7 @@ var errorStatus = map[error]error{
 	wallets.ErrNoWalletFound:            newError(codes.NotFound, errcodes.ErrCodeWalletsNoWalletFound, "Not found: wallet address not found", nil),
 	payments.ErrRequiredActions:         newError(codes.FailedPrecondition, errcodes.ErrCodePaymentsRequiredActions, "Required details missing for payment", nil),
 	payments.ErrInsufficientFunds:       PaymentInsufficientFundsError(),
+	transactions.ErrNotFound:            newError(codes.NotFound, errcodes.ErrCodeNotFound, "Not found: transaction not found", nil),
 	kyc.ErrKYCResubmissionRequired:      newError(codes.FailedPrecondition, errcodes.ErrCodeKYCResubmissionRequired, "KYC resubmission required: please update your verification documents", nil),
 	user.ErrInvalidTotpCode:             newValidationErrorSingleField(errcodes.ErrCodeUserInvalidTotpCode, "totp_code", "Invalid verification code."),
 	user.ErrTotpNotConfigured:           newError(codes.FailedPrecondition, errcodes.ErrCodeUserTotpNotConfigured, "Two-factor authentication is not configured on this account.", nil),
