@@ -64,7 +64,7 @@ export const handle: ApplicationProps = {
 
 export const meta: MetaFunction = mergeMeta(() => [
   {
-    title: 'Interledger Pay'
+    title: 'Interledger Pay - Final step: Confirmation'
   }
 ])
 

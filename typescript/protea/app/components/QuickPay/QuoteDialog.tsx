@@ -24,7 +24,13 @@ export function QuoteDialog({
       <div className='flex h-full flex-col justify-center gap-10 p-2'>
         <div className='mx-auto w-full max-w-sm'>
           <CardHeader className='mb-2'>
-            <h1 className='text-xl font-medium'>Confirm payment</h1>
+            <h1
+              aria-label='Confirm payment'
+              aria-live='assertive'
+              className='text-xl font-medium'
+            >
+              Confirm payment
+            </h1>
           </CardHeader>
           <Form method='POST'>
             <TextField label='You send:' defaultValue={debitAmount} readOnly />
@@ -36,7 +42,7 @@ export function QuoteDialog({
             />
             <div className='mt-5 flex items-center justify-center gap-3'>
               <Button
-                aria-label='confirm-pay'
+                aria-label='Confirm payment'
                 type='submit'
                 value='confirm'
                 name='intent'
@@ -44,7 +50,7 @@ export function QuoteDialog({
                 Confirm
               </Button>
               <Button
-                aria-label='cancel-pay'
+                aria-label='Cancel payment'
                 type='submit'
                 value='cancel'
                 name='intent'

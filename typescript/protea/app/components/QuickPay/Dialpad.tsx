@@ -164,6 +164,7 @@ const DialPadKey = ({ label, id, activeKey }: DialPadKeyProps) => {
     <li>
       <span
         role='button'
+        aria-label={label == 'Backspace' ? 'Remove last digit' : label}
         className={clsx(
           'flex h-16 w-16 cursor-pointer select-none items-center justify-center rounded-lg text-base font-medium transition-all duration-100 ease-out',
           isActive
@@ -198,7 +199,12 @@ export const AmountDisplay = (args: AmountDisplayProps) => {
     : `${getCurrencySymbol(assetCode)} ${amountValue}`
 
   return (
-    <div className='amount-display text-green-1 flex w-full items-center justify-center whitespace-nowrap text-5xl'>
+    <div
+      aria-label={value}
+      aria-live='polite'
+      aria-atomic='true'
+      className='amount-display text-green-1 flex w-full items-center justify-center whitespace-nowrap text-5xl'
+    >
       {value}
     </div>
   )

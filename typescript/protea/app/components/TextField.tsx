@@ -109,10 +109,22 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
               className='min-h-[1.75rem] pl-2 pt-2'
             >
               {errorMessage && (
-                <p className='text-sm text-error'>{errorMessage}</p>
+                 <p
+                  aria-label={errorMessage}
+                  aria-live='assertive'
+                  className='text-sm text-error'
+                >
+                  {errorMessage}
+                </p>
               )}
               {successMessage && !errorMessage && (
-                <p className='text-sm text-success'>{successMessage}</p>
+                <p
+                  aria-label={successMessage}
+                  aria-live='polite'
+                  className='text-sm text-success'
+                >
+                  {successMessage}
+                </p>
               )}
             </motion.div>
           )}

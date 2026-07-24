@@ -42,7 +42,7 @@ export const handle: ApplicationProps = {
 
 export const meta: MetaFunction = mergeMeta(() => [
   {
-    title: 'Interledger Pay'
+    title: 'Interledger Pay - Step 2: Choose amount'
   }
 ])
 
@@ -78,11 +78,15 @@ export default function Page() {
   return (
     <WalletGrid>
       <GridColumn className='col-span-full mx-auto mt-20'>
-        <BackButton title='Back' to='/quick-pay' />
+        <BackButton
+          title='Back'
+          to='/quick-pay'
+          aria-label='Go back to previous step'
+        />
         <DialPad />
         <div className='mt-12 flex w-64 justify-center gap-2'>
           <Button
-            aria-label='request'
+            aria-label='Continue to request'
             onClick={(e) => handleNavigation(e, `/quick-pay/request`)}
             disabled={Number(amountValue) === 0}
           >
@@ -90,7 +94,7 @@ export default function Page() {
           </Button>
 
           <Button
-            aria-label='pay'
+            aria-label='Continue to payment'
             onClick={(e) => handleNavigation(e, `/quick-pay/pay`)}
             disabled={Number(amountValue) === 0}
           >

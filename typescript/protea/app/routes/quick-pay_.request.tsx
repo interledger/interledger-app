@@ -194,7 +194,9 @@ export default function Page() {
                 appendIcon={
                   <>
                     <Button
-                      aria-label='copy payment link'
+                      aria-label={
+                        copied ? 'Payment link was copied' : 'Copy payment link'
+                      }
                       className='h-7 w-7 bg-transparent'
                       onClick={(e) =>
                         copyToClipboard(e, incomingPaymentData.url)
@@ -204,7 +206,7 @@ export default function Page() {
                       {copied ? <Icon>check</Icon> : <Icon>content_copy</Icon>}
                     </Button>
                     <Button
-                      aria-label='share payment link'
+                      aria-label='Share payment link'
                       className='h-7 w-7 bg-transparent'
                       type='button'
                       onClick={(e) => {
@@ -251,7 +253,7 @@ export default function Page() {
                 />
                 <div className='flex justify-center'>
                   <Button
-                    aria-label='Create Request'
+                    aria-label='Create request link'
                     type='submit'
                     name='intent'
                     value='request'
