@@ -89,6 +89,8 @@ export default function Page() {
 
   const opAccess = access.find((a) => a.type === 'outgoing-payment')
   const cards = buildConsentCards(opAccess)
+  const isReadOnly =
+    opAccess?.actions.length === 1 && opAccess.actions[0] === 'read'
   // limits take priority: a grant with a debit/receive amount
   // is shown as a payment, even when a subject is present
   const isIdentityRequest =
@@ -105,7 +107,7 @@ export default function Page() {
       <Card>
         <CardContent>
           <span className='text-lg'>{clientName}</span>{' '}
-          {isIdentityRequest
+          {isIdentityRequest || isReadOnly
             ? 'wants to confirm your identity.'
             : 'is requesting access to the following:'}
         </CardContent>
@@ -131,9 +133,6 @@ export default function Page() {
                 <span className='text-medium'>{card.label}</span>
                 {card.value && <span className='text-error'>{card.value}</span>}
               </div>
-              {card.description && (
-                <p className='mt-0.5 text-sm text-weak'>{card.description}</p>
-              )}
             </CardContent>
           </Card>
         ))}

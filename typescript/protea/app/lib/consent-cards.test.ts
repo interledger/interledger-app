@@ -27,34 +27,16 @@ describe('buildConsentCards', () => {
     ])
   })
 
-  it('folds narrow view onto a muted line (create + list)', () => {
+  it('does not surface own-payment view when create is present', () => {
     expect(buildConsentCards(op(['create', 'list']))).toEqual([
-      {
-        label: 'Make payments on your behalf',
-        description: 'Can also view your payments'
-      }
+      { label: 'Make payments on your behalf' }
     ])
-  })
-
-  it('keeps the amount pinned to the debit when view folds in (create + read + limits)', () => {
+    expect(buildConsentCards(op(['create', 'read', 'list']))).toEqual([
+      { label: 'Make payments on your behalf' }
+    ])
     expect(
       buildConsentCards(op(['create', 'read'], { debitAmount: USD_10 }))
-    ).toEqual([
-      {
-        label: 'Total amount to debit',
-        value: '$ 10.00',
-        description: 'Can also view your payments'
-      }
-    ])
-  })
-
-  it('folds only once for create + read + list', () => {
-    expect(buildConsentCards(op(['create', 'read', 'list']))).toEqual([
-      {
-        label: 'Make payments on your behalf',
-        description: 'Can also view your payments'
-      }
-    ])
+    ).toEqual([{ label: 'Total amount to debit', value: '$ 10.00' }])
   })
 
   it('gives read-all its own card', () => {
@@ -63,13 +45,20 @@ describe('buildConsentCards', () => {
     ])
   })
 
-  it('does not duplicate the view card for list + read-all', () => {
+  it('does not surface list-all yet (rejected w/ 404 upstream)', () => {
+    expect(buildConsentCards(op(['list-all']))).toEqual([])
+    expect(buildConsentCards(op(['read-all', 'list-all']))).toEqual([
+      { label: 'View all payments on your account' }
+    ])
+  })
+
+  it('lets a cross-account view absorb the own-payment view (list + read-all)', () => {
     expect(buildConsentCards(op(['list', 'read-all']))).toEqual([
       { label: 'View all payments on your account' }
     ])
   })
 
-  it('does not fold narrow view when broad view is present', () => {
+  it('shows spend and cross-account view together, without own-view (create + list + read-all)', () => {
     expect(buildConsentCards(op(['create', 'list', 'read-all']))).toEqual([
       { label: 'Make payments on your behalf' },
       { label: 'View all payments on your account' }
@@ -82,16 +71,14 @@ describe('buildConsentCards', () => {
     ])
   })
 
-  it('shows a solitary read card', () => {
-    expect(buildConsentCards(op(['read']))).toEqual([
-      { label: 'View your payment detail' }
-    ])
-  })
-
   it('merges a solitary read + list into one card', () => {
     expect(buildConsentCards(op(['read', 'list']))).toEqual([
       { label: 'View your payments' }
     ])
+  })
+
+  it('shows no card for a lone read (handled as an identity request)', () => {
+    expect(buildConsentCards(op(['read']))).toEqual([])
   })
 
   it('ignores complete and unsupported actions', () => {
