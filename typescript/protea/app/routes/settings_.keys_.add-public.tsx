@@ -123,7 +123,7 @@ export async function action({ request }: Route.ActionArgs) {
     if (response.code == Code.InvalidArgument) {
       return response.error({ errors })
     } else if (response.code == Code.AlreadyExists) {
-      errors.form = 'This public key is already connected to your Wallet!'
+      errors.form = 'This public key is already linked to your wallet.'
       return response.error({ errors })
     } else return response.error({ errors }, {}, { action: 'Contact support' })
   }
