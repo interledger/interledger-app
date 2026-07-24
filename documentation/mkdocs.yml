@@ -46,6 +46,8 @@ nav:
   - Developers:
       - Error Handling Guide: error-handling-guide.md
       - Logging Reference: logging-reference.md
+      - Configuration Strategy Guide: configuration-strategy-guide.md
+      - Environment Mode Guide: environment-mode-guide.md
       - Backend Configuration Guide: backend-configuration-guide.md
       - Environment Variables: env-variables.md
 

@@ -5,6 +5,8 @@
 **Related documents:**
 
 - [Home](index.md) - Full documentation map and topic index
+- [Configuration Strategy Guide](configuration-strategy-guide.md) - How to add configuration safely: ship features inert, safe defaults, and fail-fast validation
+- [Environment Mode Guide](environment-mode-guide.md) - How and when to branch behaviour on `environment.mode`
 - [Environment Variables](env-variables.md) - Runtime environment variables for Protea and Botanist (the frontends)
 - [Logging Reference](logging-reference.md) - Log levels and structured logging policy
 
