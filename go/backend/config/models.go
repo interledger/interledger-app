@@ -1,7 +1,7 @@
 package config
 
 // EnvironmentConfig describes how the running instance behaves and how it labels
-// telemetry. Mode is the behavioural switch consumed by env.SetFynbosEnv;
+// telemetry. Mode is the behavioural switch (prod, sandbox, dev, local, test);
 // Label is the human-readable tag attached to monitoring signals (Sentry, OTEL, etc.).
 type EnvironmentConfig struct {
 	Mode  string `yaml:"mode"  validate:"required,oneof=prod sandbox dev local test"`
@@ -51,6 +51,7 @@ type StartConfig struct {
 	Segment    SegmentConfig    `yaml:"segment"`
 	Agreements AgreementsConfig `yaml:"agreements"`
 	OTEL       OTELConfig       `yaml:"otel"`
+	Plaid      PlaidConfig      `yaml:"plaid"`
 }
 
 // OTELConfig configures the OpenTelemetry trace exporter. Enabled is an explicit
@@ -131,13 +132,31 @@ type XagoConfig struct {
 }
 
 type PTIConfig struct {
-	Enabled      bool   `yaml:"enabled"`
-	BaseURL      string `yaml:"base_url"`
-	JWK          string `yaml:"jwk"`
-	ClientID     string `yaml:"client_id"`
-	SDKURL       string `yaml:"sdk_url"`
-	FormsURL     string `yaml:"forms_url"`
-	PublicKeyJWK string `yaml:"public_key_jwk"`
+	Enabled            bool   `yaml:"enabled"`
+	BaseURL            string `yaml:"base_url"`
+	JWK                string `yaml:"jwk"`
+	ClientID           string `yaml:"client_id"`
+	SDKURL             string `yaml:"sdk_url"`
+	FormsURL           string `yaml:"forms_url"`
+	PublicKeyJWK       string `yaml:"public_key_jwk"`
+	ScenarioTransfer   string `yaml:"scenario_transfer"`
+	ScenarioDeposit    string `yaml:"scenario_deposit"`
+	ScenarioWithdrawal string `yaml:"scenario_withdrawal"`
+}
+
+// PlaidConfig configures the Plaid bank-linking integration. Gated by Enabled;
+// the remaining fields are required only when enabled. APIURL overrides the SDK
+// base URL (e.g. to point at mockplaid locally) — empty selects the real Plaid
+// environment matching Env.
+type PlaidConfig struct {
+	Enabled      bool     `yaml:"enabled"`
+	ClientID     string   `yaml:"client_id"`
+	Secret       string   `yaml:"secret"`
+	Env          string   `yaml:"env"`
+	Products     []string `yaml:"products"`
+	CountryCodes []string `yaml:"country_codes"`
+	Processor    string   `yaml:"processor"`
+	APIURL       string   `yaml:"api_url"`
 }
 
 type PersonaConfig struct {

@@ -94,6 +94,7 @@ Available tags in feature files:
 - `@p2p` – Peer-to-peer payments
 - `@wip` or `@skip` – Work in progress (skipped by default)
 - `@phone-debug` – Phone number validation debugging
+- `@plaid` – Plaid integration
 
 ### Running with Debug Output
 

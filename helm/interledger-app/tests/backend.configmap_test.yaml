@@ -46,6 +46,24 @@ tests:
           path: data["config.yaml"]
           pattern: "base_url: https://pti-base-url.com"
 
+  - it: 'Should serialise plaid config into config.yaml'
+    set:
+      backend:
+        config:
+          plaid:
+            enabled: true
+            client_id: "plaid-client-id"
+            env: "sandbox"
+            products:
+              - auth
+              - transactions
+            country_codes:
+              - US
+    asserts:
+      - matchRegex:
+          path: data["config.yaml"]
+          pattern: "client_id: plaid-client-id"
+
   - it: 'Should serialise email config into config.yaml'
     set:
       backend:

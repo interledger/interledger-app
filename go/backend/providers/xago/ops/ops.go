@@ -253,7 +253,6 @@ func ReserveBalance(ctx context.Context, b Backends, linkedAccountID, txID strin
 	tx, err := b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
 		{
 			ID:              txID,
-			TransactionID:   txID,
 			Amount:          amt.Value,
 			DebitAccountID:  la.ID,
 			CreditAccountID: opsAcc,
@@ -358,7 +357,6 @@ func AssignBalance(ctx context.Context, b Backends, linkedAccountID, txID string
 	tx, err := b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
 		{
 			ID:              txID,
-			TransactionID:   txID,
 			Amount:          amt.Value,
 			CreditAccountID: la.ID,
 			DebitAccountID:  opsAcc,
@@ -420,6 +418,30 @@ func GetBankAccount(ctx context.Context, b Backends) (*xago.DepositDetails, erro
 		BranchCode:    found.DepositFields.BranchCode,
 		CurrencyCode:  currency.ZAR,
 	}, nil
+}
+
+func EstimateConvertCurrency(ctx context.Context, b Backends, pair external.ConvertCurrencyPairEnum, amount float64) (*external.EstimateConvertCurrencyResponse, error) {
+	resp, err := b.External().EstimateConvertCurrency(ctx, pair, amount)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", xago.ErrInternal, err)
+	}
+	return resp, nil
+}
+
+func ConvertCurrency(ctx context.Context, b Backends, pair external.ConvertCurrencyPairEnum, amount float64) (*external.ConvertCurrencyResponse, error) {
+	resp, err := b.External().ConvertCurrency(ctx, pair, amount)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", xago.ErrInternal, err)
+	}
+	return resp, nil
+}
+
+func GetConvertCurrencyDetails(ctx context.Context, b Backends, convertID string) (*external.GetConvertCurrencyDetailsResponse, error) {
+	resp, err := b.External().GetConvertCurrencyDetails(ctx, convertID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", xago.ErrInternal, err)
+	}
+	return resp, nil
 }
 
 // TestDeposit is only going to make the POST request. The deposit is going to

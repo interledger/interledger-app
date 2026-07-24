@@ -34,7 +34,7 @@ FROM base AS builder
 
 ARG APP_VERSION=dev
 ENV GOCACHE=/root/.cache/go-build
-RUN --mount=type=cache,target="/root/.cache/go-build" go build -ldflags "-X main.Version=${APP_VERSION}" -o main ./backend/main.go
+RUN --mount=type=cache,target="/root/.cache/go-build" go build -ldflags "-X main.Version=${APP_VERSION}" -o main ./backend
 ENTRYPOINT ["/build/main"]
 
 FROM gcr.io/distroless/cc:nonroot

@@ -1,6 +1,7 @@
 import { Code } from '@bufbuild/connect'
 import type { ConnectError } from '../error.server'
 import logger from '../logger.server'
+import { PlaidError } from '../plaid.server'
 import { redirectWithSnackbar } from '../snackbar.server'
 import type { FailedServerResponse } from './types'
 
@@ -20,7 +21,7 @@ export type UserFacingErrorType = ReturnType<typeof UserFacingError>
  * Maps errors from different clients to UserFacingError to be then treated in a unified way by the handler,
  * regardless of the client they're coming from
  */
-type Client = 'grpc'
+type Client = 'grpc' | 'plaid'
 type ErrorMappingFn = {
   toUserFacingError: (data: any) => UserFacingErrorType
 }
@@ -53,6 +54,24 @@ export const ErrorMapper: Record<Client, ErrorMappingFn> = {
       }
 
       return UserFacingError('An error occured, please try again.', 500)
+    }
+  },
+  plaid: {
+    toUserFacingError: (data: PlaidError) => {
+      logger.error(
+        {
+          plaidError: {
+            status: data.status,
+            errorCode: data.errorCode,
+            message: data.message
+          }
+        },
+        'Error from Plaid client.'
+      )
+      return UserFacingError(
+        data.message || 'Plaid error occurred',
+        data.status
+      )
     }
   }
 }

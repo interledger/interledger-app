@@ -83,11 +83,6 @@ table "ledger_transfers" {
     type    = uuid
     default = sql("gen_random_uuid()")
   }
-  # TODO(PR3): make transaction_id NOT NULL after backfill has run in all environments.
-  column "transaction_id" {
-    null = true
-    type = uuid
-  }
   column "ledger_id" {
     null = false
     type = bigint
@@ -128,9 +123,6 @@ table "ledger_transfers" {
   }
   primary_key {
     columns = [column.id]
-  }
-  index "idx_ledger_transfers_transaction_id" {
-    columns = [column.transaction_id]
   }
   foreign_key "fk_transfers_accounts_credits" {
     columns     = [column.credit_account_id]

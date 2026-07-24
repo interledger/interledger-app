@@ -121,7 +121,7 @@ export async function action({ request }: Route.ActionArgs) {
     email: ''
   }
 
-  let response = await grpc.setChimoneyInterlocEmail(request, { email })
+  const response = await grpc.setChimoneyInterlocEmail(request, { email })
   if (isConnectError(response)) {
     if (response.code == Code.InvalidArgument) {
       return response.error({ errors })

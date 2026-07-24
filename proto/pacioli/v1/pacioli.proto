@@ -87,7 +87,6 @@ message Transfer {
   uint32 ledger = 8;
   string pendingId = 9;
   bool pending = 10;
-  string transactionId = 11;
 }
 
 message CreateTransfersRequest {

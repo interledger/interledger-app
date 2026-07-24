@@ -111,3 +111,7 @@ func (c *client) UpdateUserPhone(ctx context.Context, userID string, phone strin
 func (c *client) FindWalletIDByEmail(ctx context.Context, email string) (string, error) {
 	return ops.FindWalletIDByEmail(ctx, c.b, email)
 }
+
+func (c *client) FindWalletIDsByIdentifierPrefix(ctx context.Context, term string) ([]string, error) {
+	return ops.FindWalletIDsByIdentifierPrefix(ctx, c.b, term)
+}

@@ -199,3 +199,61 @@ type DepositFields struct {
 	AccountAddress string `json:"accountAddress"`
 	BranchCode     string `json:"branchCode"`
 }
+
+type ConvertCurrencyPairEnum string
+
+func (cc ConvertCurrencyPairEnum) String() string {
+	return string(cc)
+}
+
+const (
+	ZARtoEUR ConvertCurrencyPairEnum = "ZAR/EUR"
+	EURtoZAR ConvertCurrencyPairEnum = "EUR/ZAR"
+)
+
+// ConvertCurrencyRequest is the actual payload that is sent to Xago, used by both EstimateConvertCurrency and ConvertCurrency
+type ConvertCurrencyRequest struct {
+	ConvertCurrencyPair ConvertCurrencyPairEnum `json:"convertCurrencyPair"`
+
+	Amount              float64 `json:"amount"`
+	EstimateCalculation bool    `json:"estimateCalculation"`
+}
+
+type EstimateConvertCurrencyResponse struct {
+	BuyAveragePrice json.Number `json:"buyAveragePrice"`
+	BuyOrders       json.Number `json:"buyOrders"`
+	EstimatedRate   json.Number `json:"estimatedRate"`
+	FinalBuyAmount  json.Number `json:"finalBuyAmount"`
+	FinalSellAmount json.Number `json:"finalSellAmount"`
+	QuoteAmount     json.Number `json:"quoteAmount"`
+	ReceivedAmount  json.Number `json:"receivedAmount"`
+	SellOrders      json.Number `json:"sellOrders"`
+}
+
+type ConvertCurrencyResponse string
+
+type GetConvertCurrencyDetailsResponse struct {
+	ID                  string      `json:"_id"`
+	UUID                string      `json:"uuid"`
+	Timestamp           int64       `json:"timestamp"`
+	SendCurrencyCode    string      `json:"sendCurrencyCode"`
+	ReceiveCurrencyCode string      `json:"receiveCurrencyCode"`
+	ConvertID           string      `json:"convertId"`
+	BuyOrderID          string      `json:"buyOrderId"`
+	Status              string      `json:"status"`
+	SendAmount          json.Number `json:"sendAmount"`
+	Type                string      `json:"type"`
+	BuyStatus           string      `json:"buyStatus"`
+	CreatedAt           time.Time   `json:"createdAt"`
+	UpdatedAt           time.Time   `json:"updatedAt"`
+	V                   int         `json:"__v"`
+	BridgeAmount        json.Number `json:"bridgeAmount"`
+	BridgeCurrency      string      `json:"bridgeCurrency"`
+	BuyPrice            json.Number `json:"buyPrice"`
+	SendFee             json.Number `json:"sendFee"`
+	SellOrderID         string      `json:"sellOrderId"`
+	SellStatus          string      `json:"sellStatus"`
+	Rate                json.Number `json:"rate"`
+	ReceiveAmount       json.Number `json:"receiveAmount"`
+	SellPrice           json.Number `json:"sellPrice"`
+}

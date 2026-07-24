@@ -300,6 +300,56 @@ func TestFindWalletIDByEmail(t *testing.T) {
 	})
 }
 
+func TestFindWalletIDsByIdentifierPrefix(t *testing.T) {
+	if os.Getenv("DB_URL") == "" {
+		t.Setenv("DB_URL", "postgres://postgres:password@127.0.0.1:55432/%s?sslmode=disable")
+	}
+
+	ctx := context.Background()
+	dbc := db.MigrateTestDB(t, ctx, "")
+
+	walletID1 := uuid.NewString()
+	walletID2 := uuid.NewString()
+	identityID1 := uuid.NewString()
+	identityID2 := uuid.NewString()
+	orphanIdentityID := uuid.NewString()
+
+	_, err := dbc.ExecContext(ctx, `INSERT INTO wallets (id, name) VALUES ($1, $2), ($3, $4)`,
+		walletID1, "prefix-search-test-1", walletID2, "prefix-search-test-2")
+	require.NoError(t, err)
+	_, err = dbc.ExecContext(ctx, `INSERT INTO user_wallets (user_id, wallet_id) VALUES ($1, $2), ($3, $4)`,
+		identityID1, walletID1, identityID2, walletID2)
+	require.NoError(t, err)
+
+	t.Run("zero identities returns nil", func(t *testing.T) {
+		b := newEmailTestBackends(t, dbc, nil)
+		got, err := FindWalletIDsByIdentifierPrefix(ctx, b, "zzz")
+		require.NoError(t, err)
+		assert.Nil(t, got)
+	})
+
+	t.Run("one identity returns its wallet ID", func(t *testing.T) {
+		b := newEmailTestBackends(t, dbc, []string{identityID1})
+		got, err := FindWalletIDsByIdentifierPrefix(ctx, b, "jane")
+		require.NoError(t, err)
+		assert.Equal(t, []string{walletID1}, got)
+	})
+
+	t.Run("many identities return all their wallet IDs", func(t *testing.T) {
+		b := newEmailTestBackends(t, dbc, []string{identityID1, identityID2})
+		got, err := FindWalletIDsByIdentifierPrefix(ctx, b, "jane")
+		require.NoError(t, err)
+		assert.ElementsMatch(t, []string{walletID1, walletID2}, got)
+	})
+
+	t.Run("identity without a user_wallets row is skipped", func(t *testing.T) {
+		b := newEmailTestBackends(t, dbc, []string{identityID1, orphanIdentityID})
+		got, err := FindWalletIDsByIdentifierPrefix(ctx, b, "jane")
+		require.NoError(t, err)
+		assert.Equal(t, []string{walletID1}, got)
+	})
+}
+
 // newEmailTestBackends wires up a Backends whose Kratos() returns an httptest
 // server that responds to GET /admin/identities with a list of stubs — one
 // minimal Identity per supplied ID.

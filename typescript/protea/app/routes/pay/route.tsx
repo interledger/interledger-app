@@ -106,7 +106,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   const clientIpAddress = getClientIP(request)
 
-  let payment = await grpc.createPayment(request, {
+  const payment = await grpc.createPayment(request, {
     receiverIdentity: walletUrl,
     receiverIdentityType: PaymentIdentityType.WalletURL,
     ipAddress: clientIpAddress

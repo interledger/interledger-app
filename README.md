@@ -69,8 +69,6 @@ If the fix cannot be cleanly cherry-picked (e.g. the affected code has changed s
 
 ## Testing
 
-### GoLang unittests
-
 Unit tests require Postgres. Each test creates its own temporary database, so tests run in
 parallel without interfering with each other or the main development database.
 

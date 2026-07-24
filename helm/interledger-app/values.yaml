@@ -135,7 +135,7 @@ backend:
   # configa resolves these against the K8s Secrets API at pod startup.
   config:
     environment:
-      # mode is the behavioural switch (consumed by env.SetFynbosEnv). Valid values:
+      # mode is the behavioural switch. Valid values:
       # prod, sandbox, dev, local, test.
       mode: dev
       # label is the human-readable tag attached to monitoring signals (Sentry, OTEL, etc.).
@@ -225,6 +225,16 @@ backend:
       # environment.mode=prod with sandbox_fake_za_id=true is rejected at render
       # time and on startup.
       sandbox_fake_za_id: false
+
+    plaid:
+      enabled: false
+      client_id: ""
+      secret: ""
+      env: ""
+      products: []
+      country_codes: []
+      processor: ""
+      api_url: ""
 
     twilio:
       # When enabled=false the backend runs a no-op verification service that

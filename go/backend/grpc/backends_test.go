@@ -1,6 +1,7 @@
 package grpc
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"testing"
@@ -8,6 +9,7 @@ import (
 	"github.com/interledger/interledger-app/go/backend/providers/chimoney"
 
 	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
+	gatehub_mock "github.com/interledger/interledger-app/go/backend/providers/gatehub/client/mock"
 
 	pti "github.com/interledger/interledger-app/go/backend/providers/pti"
 	"github.com/interledger/interledger-app/go/backend/providers/xago"
@@ -48,6 +50,7 @@ import (
 	"github.com/interledger/interledger-app/go/backend/admin/auth"
 	"github.com/interledger/interledger-app/go/backend/agreements"
 	agreements_mock "github.com/interledger/interledger-app/go/backend/agreements/client/mock"
+	"github.com/interledger/interledger-app/go/backend/config"
 	email_mock "github.com/interledger/interledger-app/go/backend/email/client/mock"
 	"github.com/interledger/interledger-app/go/backend/healthcheck"
 	kyc_mock "github.com/interledger/interledger-app/go/backend/kyc/client/mock"
@@ -61,7 +64,6 @@ import (
 	twitter_mock "github.com/interledger/interledger-app/go/backend/twitter/client/mock"
 	_user "github.com/interledger/interledger-app/go/backend/user"
 	user_mock "github.com/interledger/interledger-app/go/backend/user/client/mock"
-	"github.com/interledger/interledger-app/go/backend/config"
 	test_utils "github.com/interledger/interledger-app/go/backend/utils"
 	"github.com/interledger/interledger-app/go/backend/waitlist"
 	waitlist_mock "github.com/interledger/interledger-app/go/backend/waitlist/client/mock"
@@ -93,6 +95,7 @@ type TestContainer struct {
 	walletImpl            *wallets_mock.MockClient
 	rafiki                *rafiki_mock.MockClient
 	AccountDeletionClient *accountdeletion_mock.MockClient
+	GatehubClient         *gatehub_mock.MockClient
 }
 
 func (t TestContainer) Xago() xago.Client {
@@ -140,6 +143,10 @@ func (t TestContainer) KYC() kyc.Client {
 }
 
 func (t TestContainer) DB() *sqlx.DB {
+	return nil
+}
+
+func (t TestContainer) WithTx(ctx context.Context, fn func(*sqlx.Tx) error) error {
 	return nil
 }
 
@@ -204,7 +211,7 @@ func (t TestContainer) PTI() pti.Client {
 }
 
 func (t TestContainer) Gatehub() gatehub.Client {
-	return nil
+	return t.GatehubClient
 }
 
 func (t TestContainer) Chimoney() chimoney.Client {
@@ -251,6 +258,7 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 		walletImpl:            wallets_mock.NewMockClient(ctrl),
 		rafiki:                rafiki_mock.NewMockClient(ctrl),
 		AccountDeletionClient: accountdeletion_mock.NewMockClient(ctrl),
+		GatehubClient:         gatehub_mock.NewMockClient(ctrl),
 	}
 
 	for _, opt := range opts {

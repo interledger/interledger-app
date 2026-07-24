@@ -1,6 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { data, href, useLoaderData, useSubmit } from 'react-router'
-import { Button, Card, CardContent, Dialog, Layouts, Shape } from '~/components'
+import {
+  Button,
+  Card,
+  CardContent,
+  Dialog,
+  Layouts,
+  Router,
+  Shape
+} from '~/components'
 import { envValue } from '~/env.server'
 import { isConnectError } from '~/lib/error.server'
 import type { FiantSdkMessage } from '~/lib/fiant'
@@ -28,7 +36,26 @@ export async function loader({ request }: Route.LoaderArgs) {
     idempotencyKey: flow.data?.idempotencyKey as string
   })
 
-  if (isConnectError(response)) throw response.errorResponse
+  if (isConnectError(response)) {
+    if (response.hasAppErrorCode('KYC_WIDGET_NOT_AVAILABLE')) {
+      logger.warn(
+        { flow: 'kyc' },
+        '[KYC] GateHub widget unavailable - user not in edit mode'
+      )
+
+      return data({
+        provider: 'gatehub',
+        widgetUnavailable: true,
+        gatehubWidget: undefined,
+        personaWidget: undefined,
+        ptiWidget: undefined,
+        personaSdkUrl: envValue('PERSONA_SDK_URL'),
+        mockxagoEndpoint: envValue('MOCKXAGO_ENDPOINT')
+      })
+    }
+
+    throw response.errorResponse
+  }
 
   logger.info(
     {
@@ -53,6 +80,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     gatehubWidget: response.gatehubWidget,
     personaWidget: response.personaInquiry,
     ptiWidget: response.ptiWidget,
+    widgetUnavailable: false,
     personaSdkUrl: envValue('PERSONA_SDK_URL'),
     mockxagoEndpoint: envValue('MOCKXAGO_ENDPOINT')
   })
@@ -85,7 +113,7 @@ function PersonaPage() {
       ? '' // Don't load Persona SDK when using MockXago
       : personaSdkUrl
   )
-  let personaRef = useRef<any>(null)
+  const personaRef = useRef<any>(null)
 
   const [setLoading] = useScaffoldStore((state) => [state.setLoading])
 
@@ -195,10 +223,29 @@ function PersonaPage() {
   return <KycIntro onClick={() => personaRef.current.open()} ready={ready} />
 }
 
-function GatehubPage() {
-  const { gatehubWidget } = useLoaderData()
+function GatehubWidgetUnavailable() {
+  return (
+    <Card>
+      <CardContent>
+        <div className='flex flex-col space-y-4'>
+          <p className='text-sm text-medium'>
+            Document resubmission is not available right now. Support has been
+            notified and will follow up with you.
+          </p>
+          <Router className='text-sm font-medium text-primary' to={href('/')}>
+            Back to dashboard
+          </Router>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+function GatehubActivePage() {
+  const { gatehubWidget } = useLoaderData<typeof loader>()
   const [dialogOpen, setDialogOpen] = useState(false)
   const submit = useSubmit()
+
   useEffect(() => {
     const onKYCComplete = (e: MessageEvent) => {
       console.log('[KYC] Received message from iframe:', {
@@ -389,13 +436,17 @@ function KycIntro({ onClick, ready }: KycIntroProps) {
 }
 
 export default function Page() {
-  const { provider } = useLoaderData()
+  const { provider, widgetUnavailable } = useLoaderData<typeof loader>()
 
   if (provider == 'persona') {
     return <PersonaPage />
   } else if (provider == 'pti') {
     return <PtiPage />
-  } else return <GatehubPage />
+  } else if (widgetUnavailable) {
+    return <GatehubWidgetUnavailable />
+  }
+
+  return <GatehubActivePage />
 }
 
 export async function action({ request }: Route.ActionArgs) {

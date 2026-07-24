@@ -7,12 +7,14 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/interledger/interledger-app/go/backend/country"
 	"github.com/interledger/interledger-app/go/backend/wallets"
 	"github.com/interledger/interledger-app/go/log"
+	"github.com/lib/pq"
 	"go.uber.org/zap"
 
 	"github.com/interledger/interledger-app/go/backend/user"
@@ -201,6 +203,60 @@ func FindWalletIDByEmail(ctx context.Context, b Backends, email string) (string,
 		return "", fmt.Errorf("%w %s", user.ErrInternal, err)
 	}
 	return walletID, nil
+}
+
+// maxIdentifierPrefixWalletIDs defensively bounds the wallet-ID set resolved
+// from a Kratos identifier-prefix search (e.g. a broad 1-char email prefix).
+const maxIdentifierPrefixWalletIDs = 1000
+
+// FindWalletIDsByIdentifierPrefix resolves ALL Kratos identities whose
+// credential identifier (email or phone) starts with term to their wallet
+// IDs. Unlike FindWalletIDByEmail (which takes only the first match), every
+// matching identity's wallet is returned, deduplicated.
+func FindWalletIDsByIdentifierPrefix(ctx context.Context, b Backends, term string) ([]string, error) {
+	ctx, cancel := context.WithTimeout(ctx, kratosTimeout)
+	defer cancel()
+
+	//Kratos SDK generates client code from OpenAPI spec with multiple servers entries (public API, admin API — usually index 0 = public, index 1 = admin)
+	kratosCtx := context.WithValue(ctx, client.ContextServerIndex, 1)
+
+	// preview_credentials_identifier_similar is a preview-flagged Ory API with no
+	// documented contract; behavior below is observed, not guaranteed, and may
+	// change on server upgrades. Official openapi schema:
+	// https://github.com/ory/kratos-client-go/blob/v26.2.0/api/openapi.yaml
+	identities, _, err := b.Kratos().IdentityAPI.ListIdentities(kratosCtx).
+		PreviewCredentialsIdentifierSimilar(strings.ToLower(term)).
+		PerPage(int64(maxIdentifierPrefixWalletIDs)).
+		Execute()
+
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", user.ErrInternal, err)
+	}
+	if len(identities) == 0 {
+		return nil, nil
+	}
+
+	userIDs := make([]string, len(identities))
+	for i, id := range identities {
+		userIDs[i] = id.Id
+	}
+
+	var walletIDs []string
+	err = b.DB().SelectContext(ctx, &walletIDs,
+		`SELECT DISTINCT wallet_id FROM user_wallets WHERE user_id = ANY($1)`,
+		pq.Array(userIDs),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", user.ErrInternal, err)
+	}
+
+	if len(walletIDs) > maxIdentifierPrefixWalletIDs {
+		log.Warn("FindWalletIDsByIdentifierPrefix: resolved wallet-ID set exceeds cap, truncating",
+			zap.Int("resolved", len(walletIDs)), zap.Int("cap", maxIdentifierPrefixWalletIDs))
+		walletIDs = walletIDs[:maxIdentifierPrefixWalletIDs]
+	}
+
+	return walletIDs, nil
 }
 
 // TODO: Modify?

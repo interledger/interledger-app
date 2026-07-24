@@ -85,8 +85,8 @@ Feature: Account Deletion
     And I complete the minimal KYC flow `delete-no-totp-user`
     And my TOTP enrollment is removed
     When I navigate to "/settings/delete-account"
-    And I click the destructive "Delete account" button
-    Then the TOTP step-up popup should not appear
+    Then I should see text "Two-factor authentication must be configured before deleting your account" on the page
+    And the destructive "Delete account" button should be disabled
     And no account-deletion request should exist for me
 
   @account-deletion @gatehub

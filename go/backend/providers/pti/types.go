@@ -16,19 +16,31 @@ const (
 	TypeCard       = "card"
 	TypeBank       = "bank_account"
 
-	ScenarioTransfer   = "ilf_transfer"
-	ScenarioDeposit    = "ilf_deposit"
-	ScenarioWithdrawal = "ilf_withdrawal"
-
-	// development scenarios provided by PTI
-	// this may be used for local testing for returns
-	// ScenarioTransfer   = "ilf_dev_transfer"
-	// ScenarioDeposit    = "ilf_dev_deposit"
-	// ScenarioWithdrawal = "ilf_dev_withdrawal"
-
 	LedgerIDUSD   uint32 = 784873 // Spells ptiusd on a Nokia 3320 keyboard
 	USDOpsAccount        = "fb4713ba-94c5-4a56-a5bf-82b551e9bd40"
 )
+
+var (
+	scenarioTransfer   = "ilf_transfer"
+	scenarioDeposit    = "ilf_deposit"
+	scenarioWithdrawal = "ilf_withdrawal"
+)
+
+func ConfigureScenarios(transfer, deposit, withdrawal string) {
+	if transfer != "" {
+		scenarioTransfer = transfer
+	}
+	if deposit != "" {
+		scenarioDeposit = deposit
+	}
+	if withdrawal != "" {
+		scenarioWithdrawal = withdrawal
+	}
+}
+
+func ScenarioTransfer() string   { return scenarioTransfer }
+func ScenarioDeposit() string    { return scenarioDeposit }
+func ScenarioWithdrawal() string { return scenarioWithdrawal }
 
 type TransactionFeedback string
 

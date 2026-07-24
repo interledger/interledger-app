@@ -232,6 +232,7 @@ type (
 		UUID         string `json:"uuid,omitempty"`
 		State        int    `json:"state,omitempty"`
 		Status       int    `json:"status,omitempty"`
+		Provider     string `json:"provider,omitempty"`
 		ProviderType string `json:"provider_type,omitempty"`
 	}
 
@@ -296,22 +297,23 @@ type (
 	}
 
 	User struct {
-		UUID                  string         `json:"uuid,omitempty"`
-		CreatedAt             time.Time      `json:"created_at,omitempty"`
-		Photo                 interface{}    `json:"photo,omitempty"`
-		PhoneNumber           interface{}    `json:"phone_number,omitempty"`
-		UnverifiedPhoneNumber interface{}    `json:"unverified_phone_number,omitempty"`
-		Email                 string         `json:"email,omitempty"`
-		Deleted               int            `json:"deleted,omitempty"`
-		UserType              int            `json:"user_type,omitempty"`
-		MailSubs              bool           `json:"mail_subs,omitempty"`
-		Hubs                  []Hub          `json:"hubs,omitempty"`
-		Verifications         []Verification `json:"verifications,omitempty"`
-		VerificationLevel     int            `json:"verification_level,omitempty"`
-		Profile               Profile        `json:"profile,omitempty"`
-		CompanyProfile        interface{}    `json:"companyProfile,omitempty"`
-		Documents             []Document     `json:"documents,omitempty"`
-		Href                  string         `json:"href,omitempty"`
+		UUID                      string         `json:"uuid,omitempty"`
+		CreatedAt                 time.Time      `json:"created_at,omitempty"`
+		Photo                     interface{}    `json:"photo,omitempty"`
+		PhoneNumber               interface{}    `json:"phone_number,omitempty"`
+		UnverifiedPhoneNumber     interface{}    `json:"unverified_phone_number,omitempty"`
+		Email                     string         `json:"email,omitempty"`
+		Deleted                   int            `json:"deleted,omitempty"`
+		UserType                  int            `json:"user_type,omitempty"`
+		MailSubs                  bool           `json:"mail_subs,omitempty"`
+		IsProfileCreationDisabled bool           `json:"is_profile_creation_disabled,omitempty"`
+		Hubs                      []Hub          `json:"hubs,omitempty"`
+		Verifications             []Verification `json:"verifications,omitempty"`
+		VerificationLevel         int            `json:"verification_level,omitempty"`
+		Profile                   Profile        `json:"profile,omitempty"`
+		CompanyProfile            interface{}    `json:"companyProfile,omitempty"`
+		Documents                 []Document     `json:"documents,omitempty"`
+		Href                      string         `json:"href,omitempty"`
 	}
 
 	Pagination struct {

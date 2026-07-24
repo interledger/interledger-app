@@ -17,7 +17,7 @@ export const renderLinkNodeRule = renderNodeRule(
   isLink,
   ({ node, children }) => {
     const target = node.meta?.find((meta) => meta.id === 'target')?.value
-    let { toUrl, internal } = sanitizeCMSLinks(node.url as string)
+    const { toUrl, internal } = sanitizeCMSLinks(node.url as string)
 
     if (internal) {
       return (

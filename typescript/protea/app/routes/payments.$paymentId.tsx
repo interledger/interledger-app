@@ -676,8 +676,7 @@ function Sent({ openDialog }: { openDialog: () => void }) {
           <AlertContent>
             <AlertTitle>Web monetization</AlertTitle>
             <AlertBody>
-              This is an automatic Web Monetization payment supporting a site
-              you visited.
+              You supported a site you visited via a Web Monetization payment.
             </AlertBody>
           </AlertContent>
         </Alert>
@@ -849,8 +848,8 @@ function Received({ openDialog }: { openDialog: () => void }) {
           <AlertContent>
             <AlertTitle>Web monetization</AlertTitle>
             <AlertBody>
-              This is an automatic Web Monetization payment from someone
-              supporting your content.
+              This is a Web Monetization payment from someone supporting your
+              content.
             </AlertBody>
           </AlertContent>
         </Alert>

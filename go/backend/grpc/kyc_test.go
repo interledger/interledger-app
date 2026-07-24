@@ -7,7 +7,10 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
+	"github.com/interledger/interledger-app/go/backend/errcodes"
 	"github.com/interledger/interledger-app/go/backend/kyc"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub/external"
 	"github.com/interledger/interledger-app/go/backend/user"
 	user_mock "github.com/interledger/interledger-app/go/backend/user/client/mock"
 	"github.com/interledger/interledger-app/go/backend/wallets"
@@ -315,4 +318,95 @@ func TestGetKYCProviderWidget_AllowsDocumentsRequired(t *testing.T) {
 	require.NotNil(t, resp)
 	require.NotNil(t, resp.PersonaInquiry)
 	require.Equal(t, "inq-1", resp.PersonaInquiry.Id)
+}
+
+func TestGetKYCProviderWidget_EU_DocumentsRequired_InEditMode_ReturnsWidget(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	c := NewTestContainer(t, ctrl)
+	_, _, client := startTestServer(t, c)
+
+	u := &user.User{ID: uuid.NewString()}
+	wallet := wallets.Wallet{ID: uuid.NewString(), Name: "testing", Country: "DE"}
+
+	c.walletImpl.EXPECT().List(gomock.Any(), u.ID).Return([]wallets.Wallet{wallet}, nil).AnyTimes()
+	c.walletImpl.EXPECT().ForContext(gomock.Any()).Return(&wallet, nil).AnyTimes()
+	c.KYCClient.EXPECT().GetKYCStatus(gomock.Any(), wallet.ID).Return(kyc.StatusDocumentsRequired, nil)
+	c.GatehubClient.EXPECT().GetUser(gomock.Any(), wallet.ID).Return(&gatehub.User{
+		Verifications: []external.Verification{{
+			Provider: "Sumsub",
+			Status:   0,
+			State:    0,
+		}},
+	}, nil)
+	c.GatehubClient.EXPECT().GetOnboardingWidget(gomock.Any(), wallet.ID).Return("https://gatehub.example/kyc", nil)
+
+	resp, err := client.GetKYCProviderWidget(user_mock.ActingAsContext(t, context.Background(), u), &pb.GetKYCProviderWidgetRequest{})
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	require.Equal(t, gatehub.ProviderName, resp.Provider)
+	require.Equal(t, "https://gatehub.example/kyc", resp.GatehubWidget.WidgetUrl)
+}
+
+func TestGetKYCProviderWidget_EU_DocumentsRequired_ResubmissionStatus_ReturnsWidget(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	c := NewTestContainer(t, ctrl)
+	_, _, client := startTestServer(t, c)
+
+	u := &user.User{ID: uuid.NewString()}
+	wallet := wallets.Wallet{ID: uuid.NewString(), Name: "testing", Country: "DE"}
+
+	c.walletImpl.EXPECT().List(gomock.Any(), u.ID).Return([]wallets.Wallet{wallet}, nil).AnyTimes()
+	c.walletImpl.EXPECT().ForContext(gomock.Any()).Return(&wallet, nil).AnyTimes()
+	c.KYCClient.EXPECT().GetKYCStatus(gomock.Any(), wallet.ID).Return(kyc.StatusDocumentsRequired, nil)
+	c.GatehubClient.EXPECT().GetUser(gomock.Any(), wallet.ID).Return(&gatehub.User{
+		Verifications: []external.Verification{{
+			Provider: "Sumsub",
+			Status:   10,
+			State:    0,
+		}},
+	}, nil)
+	c.GatehubClient.EXPECT().GetOnboardingWidget(gomock.Any(), wallet.ID).Return("https://gatehub.example/kyc-resubmit", nil)
+
+	resp, err := client.GetKYCProviderWidget(user_mock.ActingAsContext(t, context.Background(), u), &pb.GetKYCProviderWidgetRequest{})
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	require.Equal(t, gatehub.ProviderName, resp.Provider)
+	require.Equal(t, "https://gatehub.example/kyc-resubmit", resp.GatehubWidget.WidgetUrl)
+}
+
+func TestGetKYCProviderWidget_EU_DocumentsRequired_NotInEditMode_ReturnsError(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	c := NewTestContainer(t, ctrl)
+	_, _, client := startTestServer(t, c)
+
+	u := &user.User{ID: uuid.NewString()}
+	wallet := wallets.Wallet{ID: uuid.NewString(), Name: "testing", Country: "DE"}
+
+	c.walletImpl.EXPECT().List(gomock.Any(), u.ID).Return([]wallets.Wallet{wallet}, nil).AnyTimes()
+	c.walletImpl.EXPECT().ForContext(gomock.Any()).Return(&wallet, nil).AnyTimes()
+	c.KYCClient.EXPECT().GetKYCStatus(gomock.Any(), wallet.ID).Return(kyc.StatusDocumentsRequired, nil)
+	c.GatehubClient.EXPECT().GetUser(gomock.Any(), wallet.ID).Return(&gatehub.User{
+		Verifications: []external.Verification{{
+			Provider: "Sumsub",
+			Status:   1,
+			State:    1,
+		}},
+	}, nil)
+
+	_, err := client.GetKYCProviderWidget(user_mock.ActingAsContext(t, context.Background(), u), &pb.GetKYCProviderWidgetRequest{})
+	require.Error(t, err)
+
+	st, ok := status.FromError(err)
+	require.True(t, ok)
+	require.Equal(t, codes.FailedPrecondition, st.Code())
+
+	appErr := statusFindDetail[*pb.AppError](st)
+	require.NotNil(t, appErr)
+	require.Equal(t, errcodes.ErrCodeKYCWidgetNotAvailable, appErr.ErrorCode)
 }
