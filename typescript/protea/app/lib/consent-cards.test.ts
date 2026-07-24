@@ -45,7 +45,6 @@ describe('buildConsentCards', () => {
     ])
   })
 
-
   it('does not surface list-all (rejected w/ 403 upstream)', () => {
     expect(buildConsentCards(op(['list-all']))).toEqual([])
   })
