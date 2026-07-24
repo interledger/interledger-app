@@ -62,6 +62,15 @@ describe('buildConsentCards', () => {
     ])
   })
 
+  it('pairs the amount card with a cross-account view (create + limit + read-all)', () => {
+    expect(
+      buildConsentCards(op(['create', 'read-all'], { debitAmount: USD_10 }))
+    ).toEqual([
+      { label: 'Total amount to debit', value: '$ 10.00' },
+      { label: 'View all payments on your account' }
+    ])
+  })
+
   it('shows a solitary list card', () => {
     expect(buildConsentCards(op(['list']))).toEqual([
       { label: 'View a list of your payments' }
