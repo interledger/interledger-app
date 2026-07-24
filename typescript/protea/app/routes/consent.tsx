@@ -159,14 +159,14 @@ async function requireOwnedInteraction(
   const opAccess = interaction.access.find((a) => a.type === 'outgoing-payment')
   const hasActions = Boolean(opAccess?.actions.length)
   if (!hasSubject && !hasActions) {
-    throw data({}, 403)
+    throw data({}, 404)
   }
 
   const isAccessForbidden = opAccess?.actions.some((action) =>
     FORBIDDEN_ACTIONS.includes(action)
   )
   if (isAccessForbidden) {
-    throw data({}, 404)
+    throw data({}, 403)
   }
 
   const userWalletAddress = (await getWalletInfo(request)).url

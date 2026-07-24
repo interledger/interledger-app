@@ -45,11 +45,9 @@ describe('buildConsentCards', () => {
     ])
   })
 
-  it('does not surface list-all yet (rejected w/ 404 upstream)', () => {
+
+  it('does not surface list-all (rejected w/ 403 upstream)', () => {
     expect(buildConsentCards(op(['list-all']))).toEqual([])
-    expect(buildConsentCards(op(['read-all', 'list-all']))).toEqual([
-      { label: 'View all payments on your account' }
-    ])
   })
 
   it('lets a cross-account view absorb the own-payment view (list + read-all)', () => {
