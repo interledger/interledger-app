@@ -71,7 +71,10 @@ export async function action({ request }: Route.ActionArgs) {
   const cookie = getCookie(request)
   const form = await request.formData()
   const token = form.get('logoutToken')
-  const returnTo = safeReturnTo(String(form.get('returnTo')))
+  const returnToField = form.get('returnTo')
+  const returnTo = safeReturnTo(
+    typeof returnToField === 'string' ? returnToField : '/'
+  )
 
   if (typeof token !== 'string') {
     return data(
