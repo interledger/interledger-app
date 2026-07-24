@@ -20,7 +20,7 @@ type Client interface {
 	SetTransactionForeignID(ctx context.Context, ID string, foreignID string) error
 	SetTransferForeignID(ctx context.Context, ID string, foreignID string) error
 	SetTransactionDestination(ctx context.Context, id, destination string) error
-	SetTransactionExchangeRate(ctx context.Context, ID, appliedRate, surcharge string) error
+	SetTransactionFX(ctx context.Context, ID, appliedRate, surcharge string, target currency.Amount) error
 	SetTransactionRefundState(ctx context.Context, ID string, state RefundState) error
 
 	SetTransactionState(ctx context.Context, ID string, state State) error

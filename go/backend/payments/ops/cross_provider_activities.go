@@ -488,16 +488,27 @@ func (a *Activity) AddXagoTravelRuleRecord(ctx context.Context, paymentID string
 	return err
 }
 
-// SetPayoutTransactionFX records the applied FX rate and surcharge on a cross-provider payment's payout
-// transaction. It is a no-op when the payment has no FX data.
-func (a *Activity) SetPayoutTransactionFX(ctx context.Context, paymentID, txID string) error {
-	fx, err := getXagoFX(ctx, a.b, paymentID)
+// SetPayoutTransactionXagoFX records the applied FX rate, surcharge and target amount on a payout
+// transaction. It is a no-op when the payment has no Xago FX data.
+func (a *Activity) SetPayoutTransactionXagoFX(ctx context.Context, paymentID, txID string) error {
+	p, err := Lookup(ctx, a.b, paymentID)
 	if err != nil {
 		return err
 	}
-	if fx.Rate == "" {
+
+	return setTransactionXagoFX(ctx, a.b, paymentID, txID, p.SenderAmount)
+}
+
+// SetPayInTransactionXagoFX records the applied FX rate, surcharge and target amount on a payin
+// transaction. It is a no-op when the payment has no Xago FX data.
+func (a *Activity) SetPayInTransactionXagoFX(ctx context.Context, paymentID string) error {
+	p, err := Lookup(ctx, a.b, paymentID)
+	if err != nil {
+		return err
+	}
+	if p.SendTransactionID == "" {
 		return nil
 	}
 
-	return a.b.Transactions().SetTransactionExchangeRate(ctx, txID, fx.Rate, fx.Surcharge())
+	return setTransactionXagoFX(ctx, a.b, paymentID, p.SendTransactionID, p.ReceiverAmount)
 }

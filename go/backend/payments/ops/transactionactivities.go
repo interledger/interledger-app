@@ -255,7 +255,6 @@ func (a *Activity) CreatePayoutTransaction(ctx context.Context, paymentID, txID,
 		DestinationIdentity:     p.Receiver.Identifier,
 		DestinationIdentityType: p.Receiver.Type.String(),
 		Reference:               p.Note,
-		TargetAmount:            &p.SenderAmount,
 		Transfers: []transactions.TransferArgs{
 			{
 				LinkedAccountID: la.ID,

@@ -1554,6 +1554,19 @@ func getXagoFX(ctx context.Context, b Backends, paymentID string) (xagoFX, error
 	return xagoFX{Rate: rate}, nil
 }
 
+// setTransactionXagoFX records the Xago FX (applied rate, surcharge and target amount) on the given
+// transaction. It is a no-op when the payment has no Xago FX data.
+func setTransactionXagoFX(ctx context.Context, b Backends, paymentID, txID string, target currency.Amount) error {
+	fx, err := getXagoFX(ctx, b, paymentID)
+	if err != nil {
+		return err
+	}
+	if fx.Rate == "" {
+		return nil
+	}
+	return b.Transactions().SetTransactionFX(ctx, txID, fx.Rate, fx.Surcharge(), target)
+}
+
 func isCrossProviderPair(sendLA, recvLA *linkedaccounts.LinkedAccount) bool {
 	return sendLA.Provider != recvLA.Provider
 }

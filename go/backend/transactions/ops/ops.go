@@ -535,9 +535,12 @@ func SetTransactionDestination(ctx context.Context, b Backends, ID string, desti
 	return nil
 }
 
-func SetTransactionExchangeRate(ctx context.Context, b Backends, ID string, appliedRate, surcharge string) error {
-	_, err := b.DB().ExecContext(ctx, "UPDATE transactions SET exchange_rate_applied=$1, exchange_rate_surcharge=$2, updated_at=now() WHERE id=$3",
-		appliedRate, surcharge, ID)
+// SetTransactionFX records a transaction's FX data in a single update: the applied rate, the surcharge,
+// and the target amount.
+func SetTransactionFX(ctx context.Context, b Backends, ID string, appliedRate, surcharge string, target currency.Amount) error {
+	_, err := b.DB().ExecContext(ctx,
+		"UPDATE transactions SET exchange_rate_applied=$1, exchange_rate_surcharge=$2, target_amount=$3, target_asset=$4, target_scale=$5, updated_at=now() WHERE id=$6",
+		appliedRate, surcharge, target.Value, target.Currency, target.Scale, ID)
 	if err != nil {
 		return fmt.Errorf("%w %s", transactions.ErrInternal, err)
 	}

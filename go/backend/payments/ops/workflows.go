@@ -143,8 +143,14 @@ func PayinWorkflow(ctx workflow.Context, paymentID string) error {
 
 	logger := workflow.GetLogger(ctx)
 
+	var cpType CrossProviderType
+	err := workflow.ExecuteActivity(accountsCtx, a.CheckCrossProviderType, paymentID).Get(ctx, &cpType)
+	if err != nil {
+		return err
+	}
+
 	var shouldPull bool
-	err := workflow.ExecuteActivity(accountsCtx, a.ShouldPullFromAccount, paymentID).Get(ctx, &shouldPull)
+	err = workflow.ExecuteActivity(accountsCtx, a.ShouldPullFromAccount, paymentID).Get(ctx, &shouldPull)
 	if err != nil {
 		return err
 	}
@@ -152,12 +158,6 @@ func PayinWorkflow(ctx workflow.Context, paymentID string) error {
 	if shouldPull {
 		var la linkedaccounts.LinkedAccount
 		err = workflow.ExecuteActivity(accountsCtx, a.LookupPayInAccount, paymentID).Get(ctx, &la)
-		if err != nil {
-			return err
-		}
-
-		var cpType CrossProviderType
-		err = workflow.ExecuteActivity(accountsCtx, a.CheckCrossProviderType, paymentID).Get(ctx, &cpType)
 		if err != nil {
 			return err
 		}
@@ -257,6 +257,13 @@ func PayinWorkflow(ctx workflow.Context, paymentID string) error {
 		break
 	}
 	if signal.PayOutSuccess {
+		if cpType != CrossProviderNone {
+			err = workflow.ExecuteActivity(ctx, a.SetPayInTransactionXagoFX, paymentID).Get(ctx, nil)
+			if err != nil {
+				return err
+			}
+		}
+
 		err = workflow.ExecuteActivity(ctx, a.AddWithdrawalTransfer, paymentID).Get(ctx, nil)
 		if err != nil {
 			return err
@@ -735,7 +742,7 @@ func PayoutWorkflow(ctx workflow.Context, paymentID string) error {
 
 	// Record the applied FX rate on the payout transaction for cross-provider payments.
 	if cpType != CrossProviderNone {
-		err = workflow.ExecuteActivity(ctx, a.SetPayoutTransactionFX, paymentID, txID).Get(ctx, nil)
+		err = workflow.ExecuteActivity(ctx, a.SetPayoutTransactionXagoFX, paymentID, txID).Get(ctx, nil)
 		if err != nil {
 			return err
 		}

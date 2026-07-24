@@ -289,18 +289,18 @@ func (mr *MockClientMockRecorder) SetTransactionDestination(ctx, id, destination
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetTransactionDestination", reflect.TypeOf((*MockClient)(nil).SetTransactionDestination), ctx, id, destination)
 }
 
-// SetTransactionExchangeRate mocks base method.
-func (m *MockClient) SetTransactionExchangeRate(ctx context.Context, ID, appliedRate, surcharge string) error {
+// SetTransactionFX mocks base method.
+func (m *MockClient) SetTransactionFX(ctx context.Context, ID, appliedRate, surcharge string, target currency.Amount) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SetTransactionExchangeRate", ctx, ID, appliedRate, surcharge)
+	ret := m.ctrl.Call(m, "SetTransactionFX", ctx, ID, appliedRate, surcharge, target)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// SetTransactionExchangeRate indicates an expected call of SetTransactionExchangeRate.
-func (mr *MockClientMockRecorder) SetTransactionExchangeRate(ctx, ID, appliedRate, surcharge interface{}) *gomock.Call {
+// SetTransactionFX indicates an expected call of SetTransactionFX.
+func (mr *MockClientMockRecorder) SetTransactionFX(ctx, ID, appliedRate, surcharge, target interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetTransactionExchangeRate", reflect.TypeOf((*MockClient)(nil).SetTransactionExchangeRate), ctx, ID, appliedRate, surcharge)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetTransactionFX", reflect.TypeOf((*MockClient)(nil).SetTransactionFX), ctx, ID, appliedRate, surcharge, target)
 }
 
 // SetTransactionFeeAndStateCompleted mocks base method.
