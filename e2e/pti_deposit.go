@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/playwright-community/playwright-go"
+	"github.com/mxschmitt/playwright-go"
 )
 
 // iConnectAUSBankAccount links a US bank for the deposit/withdrawal setup flows.

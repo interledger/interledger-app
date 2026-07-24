@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/playwright-community/playwright-go"
+	"github.com/mxschmitt/playwright-go"
 )
 
 // iCompleteSignupWorkflowFor runs signup + account verification + TOTP + wallet address
