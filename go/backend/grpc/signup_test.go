@@ -8,8 +8,10 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/interledger/interledger-app/go/backend/agreements"
+	"github.com/interledger/interledger-app/go/backend/country"
 	"github.com/interledger/interledger-app/go/backend/errcodes"
 	"github.com/interledger/interledger-app/go/backend/signup"
+	"github.com/interledger/interledger-app/go/backend/wallets"
 	pb "github.com/interledger/interledger-app/go/proto/backend/v1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -151,6 +153,8 @@ func TestCompleteSignup_NoAgreementSigning(t *testing.T) {
 	t.Cleanup(func() { InitAgreementIDs(nil) })
 
 	c.SignupService.EXPECT().Complete(gomock.Any(), sID, userID).Return(nil).Times(1)
+	c.SignupService.EXPECT().Get(gomock.Any(), sID).Return(&signup.Signup{CountryCode: "US"}, nil).Times(1)
+	c.walletImpl.EXPECT().Create(gomock.Any(), wallets.CreateArgs{UserID: userID, Country: country.US}).Return(nil, nil).Times(1)
 	// Agreements().Sign must not be called when SIGNUP_AGREEMENT_IDS is unset
 
 	_, err := client.CompleteSignup(context.Background(), &pb.CompleteSignupRequest{
@@ -171,6 +175,8 @@ func TestCompleteSignup_WithAgreementSigning(t *testing.T) {
 	t.Cleanup(func() { InitAgreementIDs(nil) })
 
 	c.SignupService.EXPECT().Complete(gomock.Any(), sID, userID).Return(nil).Times(1)
+	c.SignupService.EXPECT().Get(gomock.Any(), sID).Return(&signup.Signup{CountryCode: "US"}, nil).Times(1)
+	c.walletImpl.EXPECT().Create(gomock.Any(), wallets.CreateArgs{UserID: userID, Country: country.US}).Return(nil, nil).Times(1)
 	c.AgreementsService.EXPECT().Sign(gomock.Any(), &agreements.SignArgs{
 		AgreementIDs: []string{"privacy_policy-0.0.0", "terms_of_service-0.0.0"},
 		UserID:       userID,
@@ -194,6 +200,8 @@ func TestCompleteSignup_SignFailsStillSucceeds(t *testing.T) {
 	t.Cleanup(func() { InitAgreementIDs(nil) })
 
 	c.SignupService.EXPECT().Complete(gomock.Any(), sID, userID).Return(nil).Times(1)
+	c.SignupService.EXPECT().Get(gomock.Any(), sID).Return(&signup.Signup{CountryCode: "US"}, nil).Times(1)
+	c.walletImpl.EXPECT().Create(gomock.Any(), wallets.CreateArgs{UserID: userID, Country: country.US}).Return(nil, nil).Times(1)
 	c.AgreementsService.EXPECT().Sign(gomock.Any(), gomock.Any()).Return(agreements.ErrNotFound).Times(1)
 
 	_, err := client.CompleteSignup(context.Background(), &pb.CompleteSignupRequest{

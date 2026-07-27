@@ -36,6 +36,24 @@ The signup process creates a complete user account with authentication, wallet i
 5. **TOTP Registration** — Time-based one-time password setup for 2FA
 6. **Wallet Address Creation** — Unique payment address (e.g., `https://ilp.link/alice`)
 
+**Where the wallet is created:** the user's default wallet is created once, in
+`CompleteSignup` (right after the password step) — not at the wallet-address screen,
+which only _names_ the already-existing wallet.
+
+```mermaid
+flowchart TD
+    A["1 · Profile details<br/>(name, email, country, phone)"] --> B["2 · Password<br/>Kratos creates the identity"]
+    B --> C["CompleteSignup (gRPC)"]
+    C --> W(["🟢 DEFAULT WALLET CREATED HERE<br/>wallets + user_wallets · name = default"])
+    C --> D["3 · Email verification"]
+    D --> E["4 · Phone OTP"]
+    E --> F["5 · TOTP / 2FA"]
+    F --> G["6 · Wallet address<br/>user picks a name → wallet renamed"]
+    G --> H["Dashboard"]
+
+    style W fill:#0E7C5A,stroke:#0E7C5A,color:#fff
+```
+
 ### Step 1 — Profile Details
 
 ```mermaid
@@ -73,6 +91,7 @@ sequenceDiagram
     K-->>FE: Registration complete
     FE->>BE: CompleteSignup gRPC
     BE->>DB: UPDATE signups SET user_id
+    BE->>DB: INSERT wallets + user_wallets (default wallet)
     BE->>DB: INSERT agreement_signatures (when SIGNUP_AGREEMENT_IDS set)
     BE-->>FE: success
     end
@@ -188,6 +207,7 @@ The first step captures basic identity information required for regulatory compl
 Route: `/signup` (`typescript/protea/app/routes/signup/route.tsx`)
 
 The user fills in:
+
 - **First Name** — Legal first name
 - **Last Name** — Legal last name
 - **Email** — Primary contact email
@@ -213,11 +233,13 @@ type UserDataArgs struct {
 ```
 
 **Validation:**
+
 - Email format validation (`validate:"required,email"`)
 - Country code validation (`validate:"required,iso3166_1_alpha2"`)
 - Name trimming removes extra whitespace
 
 **Database:**
+
 - Table: `signups`
 - Action: `INSERT` (new) or `UPDATE` (existing)
 - Returns: `signup_id` (UUID)
@@ -241,6 +263,7 @@ Route: `/signup` — About step (`typescript/protea/app/routes/signup/About.tsx`
 5. On success, the signup advances directly to the password step
 
 **Implementation notes:**
+
 - `PhoneTextField` remounts on country change via `key={country.id}`, keeping the dial code in sync
 - The phone value persists across back-navigation because it is read from the Zustand store on mount
 - The phone field is gated: it only renders once a country is selected (`{country && <PhoneTextField … />}`)
@@ -262,6 +285,7 @@ type MobileNumberArgs struct {
 ```
 
 **Validation:**
+
 - Phone format: `validate:"required,e164"`
 - OTP format: `validate:"required,numeric,len=6"`
 
@@ -278,6 +302,7 @@ After the user provides their phone number in the About form:
 **Security consideration:** The duplicate phone check happens **after** OTP validation to prevent data leakage through timing attacks.
 
 **Common errors:**
+
 - `ErrInvalidOTP` — Wrong code or expired
 - `ErrDuplicatePhone` — Phone already registered to another user
 
@@ -319,22 +344,23 @@ func Complete(ctx context.Context, b Backends, id, userID string) error {
     if current.UserID != "" && current.UserID != userID {
         return fmt.Errorf("tried to complete an already complete signup")
     }
-    
+
     // Link Kratos identity to signup record
-    _, err = b.DB().ExecContext(ctx, 
+    _, err = b.DB().ExecContext(ctx,
         "UPDATE signups SET user_id=$1, updated_at=now() WHERE id=$2 AND user_id IS NULL",
         userID, id)
-    
+
     // Send Slack notification
-    slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "wallet-info-bot", 
-        fmt.Sprintf(":baby: New Sign Up\nID: %s\nUser ID: %s\nFull name: %s\nCountry: %s", 
+    slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "wallet-info-bot",
+        fmt.Sprintf(":baby: New Sign Up\nID: %s\nUser ID: %s\nFull name: %s\nCountry: %s",
         current.ID, userID, current.FirstName+" "+current.LastName, current.CountryCode))
-    
+
     return nil
 }
 ```
 
 **Database changes:**
+
 - Table: `signups`
 - Action: `UPDATE signups SET user_id = {kratos_identity_id}`
 - Also creates: Kratos identity in `identities` table
@@ -357,6 +383,7 @@ After password creation, Kratos sends a verification email. The user must click 
 **No backend code required** — Kratos handles this entirely.
 
 **Verification status** is stored in Kratos `identity_verifiable_addresses` table:
+
 - `verified` = `false` → user must verify
 - `verified` = `true` → user can proceed
 
@@ -369,6 +396,7 @@ After email verification, users must set up TOTP for enhanced security. This is 
 ### What is TOTP?
 
 **TOTP (Time-based One-Time Password)** generates a 6-digit code that changes every 30 seconds, based on:
+
 - A shared **secret key** (stored in Kratos and user's authenticator app)
 - The current **timestamp** (synchronized between server and client)
 
@@ -400,18 +428,17 @@ Route: `/totp/two-factor-authentication` (`typescript/protea/app/routes/totp_.tw
 ```typescript
 // Frontend extracts TOTP data from Kratos flow
 const totpSchema: TotpForm = nodes.reduce((acc, node) => {
-    if (node.group !== 'totp') return acc
-    
-    // QR code image (data URI)
-    if ('src' in node.attributes) 
-        acc.qrNode = node.attributes.src
-    
-    // Secret key (text format for manual entry)
-    if ('text' in node.attributes && node.attributes.id === 'totp_secret_key')
-        acc.secretKey = node.attributes.text.text
-    
-    return acc
-}, {})
+  if (node.group !== "totp") return acc;
+
+  // QR code image (data URI)
+  if ("src" in node.attributes) acc.qrNode = node.attributes.src;
+
+  // Secret key (text format for manual entry)
+  if ("text" in node.attributes && node.attributes.id === "totp_secret_key")
+    acc.secretKey = node.attributes.text.text;
+
+  return acc;
+}, {});
 ```
 
 **TOTP secret format:** Base32-encoded string (e.g., `JBSWY3DPEHPK3PXP`)
@@ -427,6 +454,7 @@ When user submits the code:
 5. If valid: **Kratos saves** TOTP credential to `identity_credentials` table
 
 **Database storage:**
+
 - Table: `identity_credentials`
 - Type: `totp`
 - Identifiers: TOTP secret key (encrypted)
@@ -434,6 +462,7 @@ When user submits the code:
 ### Admin Operations
 
 **Check TOTP status:**
+
 ```go
 // Backend: user/ops/ops.go::CheckUserTotpEnabled
 func CheckUserTotpEnabled(ctx context.Context, b Backends, identityID string) (bool, error) {
@@ -444,6 +473,7 @@ func CheckUserTotpEnabled(ctx context.Context, b Backends, identityID string) (b
 ```
 
 **Reset TOTP enrollment:**
+
 ```go
 // Backend: user/ops/ops.go::Delete2FATotpEnrollment
 func Delete2FATotpEnrollment(ctx context.Context, b Backends, identityID string) error {
@@ -452,6 +482,7 @@ func Delete2FATotpEnrollment(ctx context.Context, b Backends, identityID string)
 ```
 
 **gRPC admin endpoints:**
+
 - `CheckUserTotpEnabled` — Returns whether user has TOTP configured
 - `Delete2FATotpEnrollment` — Removes TOTP credential (user must re-enroll)
 
@@ -467,6 +498,7 @@ A **wallet address** is a URL that identifies a user on the Interledger network,
 
 **Format:** `https://ilp.link/{username}`  
 **Examples:**
+
 - `https://ilp.link/alice`
 - `https://ilp.link/bob_123`
 - `https://ilp.link/carol.doe`
@@ -488,29 +520,29 @@ Route: `/wallet-address` (`typescript/protea/app/routes/wallet-address.tsx`)
 ### Username Generation Logic
 
 ```typescript
-let usernameIsValid = false
-let attempts = 0
-let username = session.identity.traits.firstName
+let usernameIsValid = false;
+let attempts = 0;
+let username = session.identity.traits.firstName;
 
 while (!usernameIsValid && attempts < 5) {
-    let response = await grpc.walletAddressValid(request, {
-        url: `https://${PAYMENT_POINTER_BASE}/${username}`
-    })
-    
-    if (response.exists) {
-        attempts++
-        username = session.identity.traits.firstName
-        if (username.length < 4) 
-            username += session.identity.traits.lastName
-        if (attempts > 1)
-            username += String(Math.floor(Math.random() * 10000)).padStart(4, '0')
-    } else {
-        usernameIsValid = true
-    }
+  let response = await grpc.walletAddressValid(request, {
+    url: `https://${PAYMENT_POINTER_BASE}/${username}`,
+  });
+
+  if (response.exists) {
+    attempts++;
+    username = session.identity.traits.firstName;
+    if (username.length < 4) username += session.identity.traits.lastName;
+    if (attempts > 1)
+      username += String(Math.floor(Math.random() * 10000)).padStart(4, "0");
+  } else {
+    usernameIsValid = true;
+  }
 }
 ```
 
 **Fallback strategy:**
+
 1. Try `firstName` (e.g., `alice`)
 2. Try `firstName + lastName` (e.g., `alicejones`)
 3. Try `firstName + random4Digits` (e.g., `alice1234`)
@@ -521,6 +553,7 @@ while (!usernameIsValid && attempts < 5) {
 **gRPC:** `CreateWalletAddress`  
 **Handler:** `grpc/address.go`  
 **Operations:**
+
 1. Parse and validate wallet address format
 2. Add address to wallet (`wallets/ops/ops.go::AddAddress`)
 3. Set wallet public name (`wallets/ops/ops.go::SetWalletName`)
@@ -530,30 +563,31 @@ while (!usernameIsValid && attempts < 5) {
 ```go
 func (g *rpcService) CreateWalletAddress(ctx context.Context, req *pb.CreateWalletAddressRequest) (*pb.Empty, error) {
     wallet, err := g.b.Wallets().ForContext(ctx)
-    
+
     // Parse address (validates URL format)
     wa, err := wallets.ParseAddress(req.Url)
-    
+
     // Save address to wallet
     _, err = g.b.Wallets().AddAddress(ctx, wallet.ID, wa.String())
-    
+
     // Update wallet name
     wallet, err = g.b.Wallets().SetWalletName(ctx, wallet.ID, req.GetAlias())
-    
+
     // Create payment pointer in Rafiki
     rafikiID, err := g.b.Rafiki().CreatePaymentPointer(ctx, *wallet)
-    
+
     // Activate payment pointer
     err = g.b.Rafiki().UpdateWalletAddressStatus(ctx, rafiki.UpdateAddressStatus{
         ID:   rafikiID,
         Name: wallet.Name,
     }, false)
-    
+
     return &pb.Empty{}, nil
 }
 ```
 
 **Database changes:**
+
 - Table: `wallet_addresses`
 - Action: `INSERT INTO wallet_addresses (wallet_id, url, alias)`
 - Also creates: Payment pointer in Rafiki (ILP connector)
@@ -564,35 +598,45 @@ func (g *rpcService) CreateWalletAddress(ctx context.Context, req *pb.CreateWall
 
 ## 7) Wallet Initialization
 
-After signup completes, a default wallet is created for the user.
+Every user gets a default wallet, created as part of signup completion.
 
 ### When is the Wallet Created?
 
-**Timing:** During Kratos registration flow, after password creation.
+**Timing:** Inside `CompleteSignup`, immediately after the Kratos identity is linked to the signup record — the single, deterministic point where the wallet is created.
 
-**Trigger:** Frontend calls `CreateUserDefaultWallet` gRPC immediately after Kratos registration succeeds.
+**Trigger:** The `CompleteSignup` gRPC the frontend already calls after Kratos registration.
 
 ### Backend Processing
 
-**gRPC:** `CreateUserDefaultWallet`  
-**Handler:** `grpc/user.go`  
+**gRPC:** `CompleteSignup`  
+**Handler:** `grpc/signup.go`  
 **Operation:** `wallets/ops/ops.go::Create`
 
 ```go
-func (s *rpcService) CreateUserDefaultWallet(ctx context.Context, req *pb.CreateUserDefaultWalletRequest) (*pb.Empty, error) {
-    _, err := s.b.Wallets().Create(ctx, wallets.CreateArgs{
-        UserID: req.UserID,
-    })
-    return &pb.Empty{}, toGRPCError(err)
+// inside CompleteSignup, after Signup().Complete(...)
+su, err := s.b.Signup().Get(ctx, req.Id)
+if err != nil {
+    return nil, toGRPCError(err)
+}
+_, err = s.b.Wallets().Create(ctx, wallets.CreateArgs{
+    UserID:  req.UserId,
+    Country: country.ParseCountry(su.CountryCode),
+})
+if err != nil {
+    return nil, toGRPCError(err)
 }
 ```
 
 **Wallet creation:**
-- Determines user's country from Kratos identity traits
-- Creates wallet record in `wallets` table
-- Associates wallet with user's Kratos identity
 
-**Note:** At this stage, the wallet has no linked accounts yet. Provider account linking happens during KYC activation.
+- Takes the user's country from the signup record (`country_code`)
+- Inserts the `wallets` row (named `default`) and links it to the user in `user_wallets`
+- **Idempotent / retry-safe:** `Create` runs inside a transaction that takes a per-user Postgres advisory lock (`pg_advisory_xact_lock`) and re-checks for an existing wallet under that lock. Concurrent or retried `CompleteSignup` calls therefore serialize — the first creates the wallet, the rest reuse it — so a user never ends up with two.
+
+**Note:** At this stage the wallet is named `default` and has no linked accounts or address yet. It is renamed when the user picks a name at the wallet-address step (Section 6); provider account linking happens during KYC activation.
+
+> The advisory lock guards the create path but is not a database-level uniqueness guarantee.
+> A durable constraint TODO should be a planned follow-up, paired with a one-time cleanup of pre-existing duplicate rows.
 
 ---
 
@@ -605,6 +649,7 @@ Signup triggers several **Temporal workflows** for asynchronous, durable process
 **Temporal** is a workflow orchestration engine that ensures long-running, multi-step processes complete reliably even if services restart.
 
 **Key features:**
+
 - **Durable execution** — Workflows resume after crashes
 - **Automatic retries** — Failed activities retry with backoff
 - **Versioning** — Workflow code can evolve without breaking in-flight workflows
@@ -618,6 +663,7 @@ While the core signup flow is synchronous, several background workflows prepare 
 After wallet creation, provider-specific workflows provision external accounts:
 
 **GateHub:** `CreateGatehubUserWorkflow`
+
 - **Workflow ID:** `gatehub_create_user_{walletID}`
 - **Activities:**
   1. `GetGatehubUser` — Check if user exists in GateHub
@@ -627,6 +673,7 @@ After wallet creation, provider-specific workflows provision external accounts:
   5. `CreateGatehubBalanceAccount` — Initialize balance tracking account
 
 **Xago:** `CreateBalanceAccountWorkflow`
+
 - **Workflow ID:** `xago_create_balance_{walletID}`
 - **Activities:**
   1. `CreateSubAccount` — Create Xago sub-account
@@ -634,6 +681,7 @@ After wallet creation, provider-specific workflows provision external accounts:
   3. `CreateBalanceAccount` — Initialize balance tracking
 
 **PTI:** `CreateUserWorkflow`
+
 - **Workflow ID:** `pti_create_user_{walletID}`
 - **Activities:**
   1. `GetPtiUser` — Check if PTI user exists
@@ -641,6 +689,7 @@ After wallet creation, provider-specific workflows provision external accounts:
   3. `SavePtiUser` — Save external user ID
 
 **Chimoney:** `CreateChimoneyUserWorkflow`
+
 - **Workflow ID:** Similar pattern
 
 **Why Temporal?** Provider API calls can be slow or fail. Temporal ensures these operations complete even if the backend server restarts.
@@ -648,6 +697,7 @@ After wallet creation, provider-specific workflows provision external accounts:
 #### 2. Payment Pointer Provisioning
 
 **Workflow:** `CreateRafikiPaymentPointersJob`
+
 - **Purpose:** Backfill payment pointers for wallets created before Rafiki integration
 - **Trigger:** Manual admin job (not part of normal signup)
 - **Activities:**
@@ -659,11 +709,13 @@ After wallet creation, provider-specific workflows provision external accounts:
 After signup, users must complete KYC to activate their wallet. These workflows are triggered during KYC:
 
 **LinkGatehubUserToGatewayWorkflow**
+
 - **Workflow ID:** `gatehub_link_user_to_gateway_{walletID}`
 - **Purpose:** Connect managed user to Paywiser gateway
 - **Trigger:** After `CreateGatehubUserWorkflow` completes
 
 **BackfillAccountWorkflow**
+
 - **Trigger:** `id.verification.accepted` webhook from provider
 - **Purpose:** Sync provider balance to wallet database after KYC approval
 - **Activities:**
@@ -697,19 +749,20 @@ The Temporal worker runs separately from the HTTP server:
 ```go
 func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config) (worker.Worker, error) {
     w := worker.New(b.Temporal(), "backend", worker.Options{})
-    
+
     // Register all workflows
     w.RegisterWorkflow(gatehub_workflows.CreateGatehubUserWorkflow)
     w.RegisterWorkflow(gatehub_workflows.LinkGatehubUserToGatewayWorkflow)
     w.RegisterWorkflow(xago_workflows.CreateBalanceAccountWorkflow)
     w.RegisterWorkflow(pti_workflows.CreateUserWorkflow)
     // ... many more
-    
+
     return w, nil
 }
 ```
 
 **Workflow execution options:**
+
 - **Timeout:** 10 seconds per activity (for user creation workflows)
 - **Retry policy:** 3 maximum attempts
 - **Task queue:** `backend`
@@ -736,17 +789,18 @@ CREATE TABLE signups (
 
 **State transitions:**
 
-| Field | Initial | After Profile (About) | After Password |
-|-------|---------|----------------------|----------------|
-| `id` | UUID | UUID | UUID |
-| `first_name` | NULL | "Alice" | "Alice" |
-| `last_name` | NULL | "Jones" | "Jones" |
-| `email` | NULL | "alice@..." | "alice@..." |
-| `country_code` | NULL | "US" | "US" |
-| `mobile_number` | NULL | "+14155551234" | "+14155551234" |
-| `user_id` | NULL | NULL | "{kratos_id}" |
+| Field           | Initial | After Profile (About) | After Password |
+| --------------- | ------- | --------------------- | -------------- |
+| `id`            | UUID    | UUID                  | UUID           |
+| `first_name`    | NULL    | "Alice"               | "Alice"        |
+| `last_name`     | NULL    | "Jones"               | "Jones"        |
+| `email`         | NULL    | "alice@..."           | "alice@..."    |
+| `country_code`  | NULL    | "US"                  | "US"           |
+| `mobile_number` | NULL    | "+14155551234"        | "+14155551234" |
+| `user_id`       | NULL    | NULL                  | "{kratos_id}"  |
 
 **Completion check:**
+
 ```go
 func (s *Signup) IsCompleted() bool {
     return s.UserID != ""
@@ -773,13 +827,14 @@ if !v.IsValid() {
 
 // 2. Check duplicate (only if OTP valid)
 var existsId string
-err = b.DB().GetContext(ctx, &existsId, 
+err = b.DB().GetContext(ctx, &existsId,
     "SELECT id FROM signups WHERE mobile_number=$1 AND user_id IS NOT NULL", ...)
 ```
 
 ### Password Security (Kratos)
 
 Passwords are **never** stored in plaintext or logged. Kratos handles:
+
 - Password hashing (Argon2id)
 - Breach detection (Have I Been Pwned integration)
 - Password policy enforcement
@@ -801,11 +856,13 @@ TOTP secrets are stored **encrypted** in Kratos `identity_credentials` table. On
 **Symptom:** User enters OTP but gets `ErrInvalidOTP`
 
 **Causes:**
+
 1. Code expired (10-minute timeout)
 2. User entered wrong code
 3. Twilio service outage
 
 **Resolution:**
+
 - Resend OTP (user can request new code)
 - Check Twilio dashboard for delivery status
 - Verify phone number is in E.164 format
@@ -815,11 +872,13 @@ TOTP secrets are stored **encrypted** in Kratos `identity_credentials` table. On
 **Symptom:** User scans QR code but submitted code fails validation
 
 **Causes:**
+
 1. Time drift between server and user's device
 2. User's authenticator app not synchronized
 3. User scanned wrong QR code
 
 **Resolution:**
+
 - Check server time synchronization (NTP)
 - User should use time-based sync in authenticator app
 - Regenerate TOTP secret (via Kratos settings flow)
@@ -829,10 +888,12 @@ TOTP secrets are stored **encrypted** in Kratos `identity_credentials` table. On
 **Symptom:** User's desired username is unavailable
 
 **Causes:**
+
 1. Another user already claimed that username
 2. Frontend suggested username was taken between validation and submission
 
 **Resolution:**
+
 - User chooses different username
 - Frontend suggests alternatives with random suffix
 
@@ -841,11 +902,13 @@ TOTP secrets are stored **encrypted** in Kratos `identity_credentials` table. On
 **Symptom:** Signup record exists but `user_id` is NULL
 
 **Causes:**
+
 1. User abandoned flow before password creation
 2. Kratos registration failed but signup record persists
 3. `CompleteSignup` gRPC call failed
 
 **Resolution:**
+
 - User can resume signup using same email
 - Backend updates existing signup record instead of creating new
 - Check backend logs for `CompleteSignup` errors
@@ -859,6 +922,7 @@ TOTP secrets are stored **encrypted** in Kratos `identity_credentials` table. On
 **Feature file:** `e2e/features/000-signup.feature`
 
 **Scenarios:**
+
 - Successfully sign up as a German user
 - Successfully sign up as a South African user
 - Signup with phone verification
@@ -868,6 +932,7 @@ TOTP secrets are stored **encrypted** in Kratos `identity_credentials` table. On
 **Test implementation:** `e2e/gatehub_signup_clean.go`
 
 **Workflow steps:**
+
 ```gherkin
 Given a random test identifier is generated
 And I impersonate 'signup-user'
@@ -883,6 +948,7 @@ Then I should be navigated to the application dashboard
 **Signup operations:** `signup/ops/service_test.go`
 
 **Test cases:**
+
 - `SetUserData` creates new signup
 - `SetMobileNumber` validates OTP
 - `Complete` links Kratos identity
@@ -901,4 +967,3 @@ After completing signup, users proceed to:
 4. **Payments** — Send and receive payments (see [Payments Guide](payments-guide.md))
 
 **Critical:** Users cannot send or receive payments until KYC is complete and wallet is activated.
-
