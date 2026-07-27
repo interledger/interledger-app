@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/playwright-community/playwright-go"
+	"github.com/mxschmitt/playwright-go"
 )
 
 func (sc *E2EContext) theAdminPortalIsRunningAt(urlStr string) error {

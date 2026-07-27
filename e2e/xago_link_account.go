@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/playwright-community/playwright-go"
+	"github.com/mxschmitt/playwright-go"
 )
 
 // iNavigateToTheDashboardPage navigates to a named dashboard page.

@@ -44,4 +44,6 @@ const (
 	ErrCodeEmailSupportInboxNotConfigured AppErrorCode = "EMAIL_SUPPORT_INBOX_NOT_CONFIGURED"
 
 	ErrCodeAccountDeletionAlreadyRequested AppErrorCode = "ACCOUNT_DELETION_ALREADY_REQUESTED"
+
+	ErrCodeKeysDuplicateKey AppErrorCode = "KEYS_DUPLICATE_KEY"
 )

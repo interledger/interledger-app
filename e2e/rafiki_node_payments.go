@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/playwright-community/playwright-go"
+	"github.com/mxschmitt/playwright-go"
 )
 
 // iGetMyOwnWalletAddress retrieves the current user's own wallet address from the

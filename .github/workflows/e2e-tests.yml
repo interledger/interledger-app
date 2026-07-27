@@ -73,7 +73,7 @@ jobs:
         working-directory: e2e
         run: |
           go mod download
-          go run github.com/playwright-community/playwright-go/cmd/playwright install chromium
+          go run github.com/mxschmitt/playwright-go/cmd/playwright install chromium
 
       - name: Cleanup from previous runs
         working-directory: local
