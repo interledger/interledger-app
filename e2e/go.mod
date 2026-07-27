@@ -6,7 +6,7 @@ require (
 	github.com/cucumber/godog v0.15.1
 	github.com/google/uuid v1.6.0
 	github.com/lib/pq v1.10.9
-	github.com/playwright-community/playwright-go v0.5200.1
+	github.com/mxschmitt/playwright-go v0.6100.0
 	go.temporal.io/api v1.46.0
 	go.temporal.io/sdk v1.34.0
 )
@@ -15,9 +15,9 @@ require (
 	github.com/cucumber/gherkin/go/v26 v26.2.0 // indirect
 	github.com/cucumber/messages/go/v21 v21.0.1 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
-	github.com/deckarep/golang-set/v2 v2.7.0 // indirect
+	github.com/deckarep/golang-set/v2 v2.8.0 // indirect
 	github.com/facebookgo/clock v0.0.0-20150410010913-600d898af40a // indirect
-	github.com/go-jose/go-jose/v3 v3.0.4 // indirect
+	github.com/go-jose/go-jose/v3 v3.0.5 // indirect
 	github.com/go-stack/stack v1.8.1 // indirect
 	github.com/gofrs/uuid v4.3.1+incompatible // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect

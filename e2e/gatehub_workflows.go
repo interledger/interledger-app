@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/playwright-community/playwright-go"
+	"github.com/mxschmitt/playwright-go"
 )
 
 // thatMyFieldIs dynamically sets a field value for the current user
