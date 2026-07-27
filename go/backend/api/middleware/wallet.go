@@ -29,8 +29,6 @@ func MakeWalletMiddleware(uc user.Client, wc wallets.Client) func(http.Handler) 
 				return
 			}
 
-			// resolves the user's wallet into context for downstream handlers.
-			// the wallet is created once at signup (CompleteSignup)
 			walletList, err := wc.List(ctx, u.ID)
 			if err != nil {
 				// Do nothing for now.

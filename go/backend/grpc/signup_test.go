@@ -235,8 +235,6 @@ func TestCompleteSignup_WalletCreateErrorAborts(t *testing.T) {
 			InitAgreementIDs([]string{"privacy_policy-0.0.0"})
 			t.Cleanup(func() { InitAgreementIDs(nil) })
 
-			// Get succeeds, Create fails. We set no Complete/Sign expectations, so
-			// gomock fails if either is called — proving CompleteSignup stops early.
 			c.SignupService.EXPECT().Get(gomock.Any(), sID).Return(&signup.Signup{CountryCode: "US"}, nil).Times(1)
 			c.walletImpl.EXPECT().Create(gomock.Any(), wallets.CreateArgs{UserID: userID, Country: country.US}).Return(nil, tc.createErr).Times(1)
 
