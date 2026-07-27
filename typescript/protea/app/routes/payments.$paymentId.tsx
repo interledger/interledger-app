@@ -59,7 +59,9 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     }
 
     const errorHandler = await ErrorHandler(request, userFacingError)
-    throw errorHandler instanceof Response ? errorHandler : transaction.errorResponse
+    throw errorHandler instanceof Response
+      ? errorHandler
+      : transaction.errorResponse
   }
 
   if (transaction.type == 'withdrawal' || transaction.type == 'deposit') {
