@@ -152,9 +152,10 @@ func TestCompleteSignup_NoAgreementSigning(t *testing.T) {
 	InitAgreementIDs(nil)
 	t.Cleanup(func() { InitAgreementIDs(nil) })
 
-	c.SignupService.EXPECT().Complete(gomock.Any(), sID, userID).Return(nil).Times(1)
-	c.SignupService.EXPECT().Get(gomock.Any(), sID).Return(&signup.Signup{CountryCode: "US"}, nil).Times(1)
-	c.walletImpl.EXPECT().Create(gomock.Any(), wallets.CreateArgs{UserID: userID, Country: country.US}).Return(nil, nil).Times(1)
+	getCall := c.SignupService.EXPECT().Get(gomock.Any(), sID).Return(&signup.Signup{CountryCode: "US"}, nil).Times(1)
+	createCall := c.walletImpl.EXPECT().Create(gomock.Any(), wallets.CreateArgs{UserID: userID, Country: country.US}).Return(nil, nil).Times(1)
+	completeCall := c.SignupService.EXPECT().Complete(gomock.Any(), sID, userID).Return(nil).Times(1)
+	gomock.InOrder(getCall, createCall, completeCall)
 	// Agreements().Sign must not be called when SIGNUP_AGREEMENT_IDS is unset
 
 	_, err := client.CompleteSignup(context.Background(), &pb.CompleteSignupRequest{
@@ -209,4 +210,44 @@ func TestCompleteSignup_SignFailsStillSucceeds(t *testing.T) {
 		UserId: userID,
 	})
 	require.NoError(t, err)
+}
+
+// wallet creation fails, CompleteSignup returns the error and stops there:
+// the signup is not marked complete and no notification is sent, so a retry is safe.
+func TestCompleteSignup_WalletCreateErrorAborts(t *testing.T) {
+	cases := []struct {
+		name      string
+		createErr error
+		wantCode  codes.Code
+	}{
+		{"internal error", wallets.ErrInternal, codes.Internal},
+		{"wallet conflict", wallets.ErrWalletConflict, codes.FailedPrecondition},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			c := NewTestContainer(t, ctrl)
+			_, _, client := startTestServer(t, c)
+
+			sID := uuid.NewString()
+			userID := uuid.NewString()
+			InitAgreementIDs([]string{"privacy_policy-0.0.0"})
+			t.Cleanup(func() { InitAgreementIDs(nil) })
+
+			// Get succeeds, Create fails. We set no Complete/Sign expectations, so
+			// gomock fails if either is called — proving CompleteSignup stops early.
+			c.SignupService.EXPECT().Get(gomock.Any(), sID).Return(&signup.Signup{CountryCode: "US"}, nil).Times(1)
+			c.walletImpl.EXPECT().Create(gomock.Any(), wallets.CreateArgs{UserID: userID, Country: country.US}).Return(nil, tc.createErr).Times(1)
+
+			_, err := client.CompleteSignup(context.Background(), &pb.CompleteSignupRequest{
+				Id:     sID,
+				UserId: userID,
+			})
+			require.Error(t, err)
+			st, ok := status.FromError(err)
+			require.True(t, ok)
+			assert.Equal(t, tc.wantCode, st.Code())
+		})
+	}
 }
