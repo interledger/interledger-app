@@ -19,7 +19,7 @@ import (
 
 	"github.com/cucumber/godog"
 	_ "github.com/lib/pq"
-	"github.com/playwright-community/playwright-go"
+	"github.com/mxschmitt/playwright-go"
 )
 
 var scenarioIdentifierSeq uint64

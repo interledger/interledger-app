@@ -7,7 +7,7 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/playwright-community/playwright-go"
+	"github.com/mxschmitt/playwright-go"
 )
 
 // iShouldBeOnTheWalletAddressCreationPage verifies we're on the wallet address form

@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/playwright-community/playwright-go"
+	"github.com/mxschmitt/playwright-go"
 )
 
 // iCompleteSignupFlow runs the full signup flow with provided user details.

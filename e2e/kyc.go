@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/playwright-community/playwright-go"
+	"github.com/mxschmitt/playwright-go"
 )
 
 // initializeBrowser sets up the Playwright browser if not already initialized
