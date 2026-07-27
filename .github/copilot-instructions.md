@@ -148,7 +148,7 @@ sudo apt-get install -y libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 \
 
 cd e2e
 go mod download
-go run github.com/playwright-community/playwright-go/cmd/playwright install chromium
+go run github.com/mxschmitt/playwright-go/cmd/playwright install chromium
 ```
 
 **Running tests**:
