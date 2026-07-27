@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/playwright-community/playwright-go"
+	"github.com/mxschmitt/playwright-go"
 )
 
 // Selectors for the mock Plaid Link overlay. The mockplaid window.Plaid shim

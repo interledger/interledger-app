@@ -13,6 +13,7 @@ import (
 	"github.com/interledger/interledger-app/go/backend/payments"
 
 	"github.com/interledger/interledger-app/go/backend/config"
+	"github.com/interledger/interledger-app/go/backend/keys"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/interledger/interledger-app/go/backend/identities"
@@ -36,6 +37,7 @@ import (
 const VALIDATION_ERR_MSG = "Some fields are incorrect."
 
 var errorStatus = map[error]error{
+	keys.ErrDuplicate:                   newError(codes.AlreadyExists, errcodes.ErrCodeKeysDuplicateKey, "Key already connected to this wallet", nil),
 	user.ErrNoUserFound:                 newError(codes.Unauthenticated, errcodes.ErrCodeUserNoUserFound, "Unauthenticated", nil),
 	user.ErrInvalidArgument:             NewValidationError("phone", "Phone number is invalid."),
 	user.ErrDuplicatePhone:              newError(codes.AlreadyExists, errcodes.ErrCodeSignupDuplicatePhone, "Phone number already exists with a user.", nil),
