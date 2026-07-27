@@ -1,4 +1,3 @@
-import { Code } from '@bufbuild/connect'
 import type { PlainMessage } from '@bufbuild/protobuf'
 import clsx from 'clsx'
 import { useState } from 'react'
@@ -34,6 +33,7 @@ import {
   computeCardPaymentLabel,
   computeCardSubtotalStyles
 } from '~/lib/cards/utils'
+import { ErrorHandler, ErrorMapper } from '~/lib/error-handling/bff-error'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
@@ -49,12 +49,17 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     id: params.paymentId as string
   })
   if (isConnectError(transaction)) {
-    if (transaction.code === Code.NotFound)
+    const userFacingError = ErrorMapper.grpc.toUserFacingError(transaction)
+
+    if (userFacingError.status === 404) {
       return redirectWithSnackbar(request, href('/'), {
         message: 'Payment not available. Returning to your wallet.',
         icon: 'close'
       })
-    throw transaction.errorResponse
+    }
+
+    const errorHandler = await ErrorHandler(request, userFacingError)
+    throw errorHandler instanceof Response ? errorHandler : transaction.errorResponse
   }
 
   if (transaction.type == 'withdrawal' || transaction.type == 'deposit') {
