@@ -1,5 +1,5 @@
 Feature: Web Monetization - Public key management
-    As a wallet user wanting to set up Web Monetizaton through the plugin
+    As a wallet user wanting to set up Web Monetization through the plugin
     I want to be able to manage mutiple public keys linked to my wallet
     So that I can control which browsers or other clients have access to my wallet through the frontend
 
