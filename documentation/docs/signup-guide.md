@@ -90,8 +90,8 @@ sequenceDiagram
     K-->>U: Send verification email
     K-->>FE: Registration complete
     FE->>BE: CompleteSignup gRPC
-    BE->>DB: UPDATE signups SET user_id
     BE->>DB: INSERT wallets + user_wallets (default wallet)
+    BE->>DB: UPDATE signups SET user_id
     BE->>DB: INSERT agreement_signatures (when SIGNUP_AGREEMENT_IDS set)
     BE-->>FE: success
     end
@@ -602,7 +602,7 @@ Every user gets a default wallet, created as part of signup completion.
 
 ### When is the Wallet Created?
 
-**Timing:** Inside `CompleteSignup`, immediately after the Kratos identity is linked to the signup record — the single, deterministic point where the wallet is created.
+**Timing:** Inside `CompleteSignup`, **before** the signup is marked complete. The handler reads the signup, creates the wallet, and only then calls `Signup().Complete` — so all the fallible work happens before the signup is finalized (and before its "new signup" notification fires). This is the single, deterministic point where the wallet is created.
 
 **Trigger:** The `CompleteSignup` gRPC the frontend already calls after Kratos registration.
 
@@ -613,19 +613,34 @@ Every user gets a default wallet, created as part of signup completion.
 **Operation:** `wallets/ops/ops.go::Create`
 
 ```go
-// inside CompleteSignup, after Signup().Complete(...)
-su, err := s.b.Signup().Get(ctx, req.Id)
-if err != nil {
-    return nil, toGRPCError(err)
-}
-_, err = s.b.Wallets().Create(ctx, wallets.CreateArgs{
-    UserID:  req.UserId,
-    Country: country.ParseCountry(su.CountryCode),
-})
-if err != nil {
-    return nil, toGRPCError(err)
+func (s *rpcService) CompleteSignup(ctx context.Context, req *pb.CompleteSignupRequest) (*pb.Empty, error) {
+    // 1. read the signup (no mutation yet)
+    su, err := s.b.Signup().Get(ctx, req.Id)
+    if err != nil {
+        return nil, toGRPCError(err)
+    }
+
+    // 2. reject if the signup is already linked to a different user
+    if su.UserID != "" && su.UserID != req.UserId {
+        return nil, ForbiddenError("signup already completed by another user")
+    }
+
+    // 3. create the default wallet (idempotent)
+    if _, err := s.b.Wallets().Create(ctx, wallets.CreateArgs{
+        UserID:  req.UserId,
+        Country: country.ParseCountry(su.CountryCode),
+    }); err != nil {
+        return nil, toGRPCError(err)
+    }
+
+    // 4. mark the signup complete (+ "new signup" notification) last
+    if err := s.b.Signup().Complete(ctx, req.Id, req.UserId); err != nil {
+        return nil, toGRPCError(err)
+    }
 }
 ```
+
+**Order matters:** the read, ownership check, and wallet creation all run **before** `Complete`. `Complete` marks the signup done and fires the "new signup" notification, so it's last — a failure earlier can't leave a completed-but-wallet-less user or re-notify on retry.
 
 **Wallet creation:**
 
