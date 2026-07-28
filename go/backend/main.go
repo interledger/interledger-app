@@ -40,6 +40,7 @@ import (
 	"github.com/interledger/interledger-app/go/backend/jobs"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/riandyrn/otelchi"
 	"github.com/uptrace/opentelemetry-go-extra/otelsql"
 	"github.com/uptrace/opentelemetry-go-extra/otelsqlx"
@@ -229,6 +230,10 @@ func start(args *cli.StartArgs) {
 	router.Handle("/healthz", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
 	}))
+	// Prometheus scrape endpoint. Serves Go runtime + process metrics from the
+	// default registry; no application metrics are registered yet. Exposed on
+	// the internal HTTP port only (not routed through Traefik).
+	router.Handle("/metrics", promhttp.Handler())
 	router.Mount("/api", api.NewRouter(b.Users(), b.Wallets(), b.Gatehub()))
 	router.Handle("/kratos/signup", analytics_webhook.NewHandleSignup(b))
 	router.Handle("/kratos/login", analytics_webhook.NewHandleLogin(b))
@@ -527,6 +532,8 @@ func startWorker(args *cli.StartArgs) {
 	router.Handle("/healthz", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
 	}))
+	// Prometheus scrape endpoint for the worker process (see start() for notes).
+	router.Handle("/metrics", promhttp.Handler())
 
 	var wg sync.WaitGroup
 

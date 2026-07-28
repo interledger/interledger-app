@@ -221,6 +221,37 @@ PROTEA_SENTRY_DSN=https://...@sentry.io/...
 PROTEA_SENTRY_ENV_LABEL=local
 ```
 
+### Metrics (Prometheus + Grafana)
+
+Prometheus and Grafana are **not started by default**. They live in
+`monitoring.yaml`, which is deliberately excluded from the main compose
+`include:` list, so `make all` never brings them up. Start them explicitly:
+
+```sh
+make monitoring      # or: make mon
+make monitoring-down # stop them (make down / make reset also clean them up)
+```
+
+Each service exposes a Prometheus scrape endpoint at `GET /metrics`:
+
+| Service  | Endpoint (in-cluster) |
+|----------|-----------------------|
+| backend  | `backend:8080/metrics`  |
+| protea   | `protea:3000/metrics`   |
+| botanist | `botanist:3000/metrics` |
+
+> These endpoints currently serve **runtime/process metrics only** (Go
+> collector / Node `collectDefaultMetrics`) — application metrics are not wired
+> up yet. Prometheus scrapes them over the shared compose network, so run the
+> app services (e.g. `make all`) for targets to report **UP**.
+
+UIs (host ports):
+
+| URL                     | Description                    |
+|-------------------------|--------------------------------|
+| http://localhost:9090   | Prometheus (targets & queries) |
+| http://localhost:3005   | Grafana (Prometheus datasource pre-provisioned; anonymous admin) |
+
 ---
 
 ## Debugging the backend with Delve

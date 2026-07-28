@@ -1,0 +1,49 @@
+# Local Prometheus + Grafana for scraping wallet service metrics.
+#
+# Opt-in only. This file is deliberately NOT referenced by docker-compose.yaml's
+# `include:` list, so `make all` / `--profile "*"` can never start it. Bring it
+# up with `make monitoring` (which loads this file explicitly). `make down` and
+# `make reset` also load it so the containers and volumes tear down cleanly.
+#
+# Prometheus scrapes backend/protea/botanist over the shared Compose network
+# (see config/prometheus/prometheus.yml), so start the app services as well
+# (e.g. `make all`) for those targets to report UP.
+services:
+  prometheus:
+    image: prom/prometheus:v3.1.0
+    profiles:
+      - monitoring
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.enable-lifecycle
+    volumes:
+      - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090" # Prometheus UI -> http://localhost:9090
+
+  grafana:
+    image: grafana/grafana:11.4.0
+    profiles:
+      - monitoring
+    restart: unless-stopped
+    environment:
+      # Local-only convenience: anonymous access with admin rights so the
+      # dashboards open without a login prompt. admin/admin still works too.
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+    volumes:
+      - ./config/grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3005:3000" # Grafana UI -> http://localhost:3005
+    depends_on:
+      - prometheus
+
+volumes:
+  prometheus-data:
+  grafana-data:

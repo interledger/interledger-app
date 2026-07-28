@@ -1,0 +1,30 @@
+# Prometheus scrape configuration for the local development environment.
+#
+# Wiring only for now: each target exposes a /metrics endpoint that currently
+# serves runtime/process metrics (Go collector / Node collectDefaultMetrics) —
+# no application metrics yet. Targets are resolved over the shared Compose
+# network by service name, so scrapes only succeed while the corresponding app
+# services are running (e.g. `make all`); otherwise the target shows as DOWN.
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: backend
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['backend:8080']
+
+  - job_name: protea
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['protea:3000']
+
+  - job_name: botanist
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['botanist:3000']

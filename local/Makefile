@@ -1,5 +1,11 @@
 COMPOSE := docker compose
 
+# Monitoring (Prometheus + Grafana) is opt-in: monitoring.yaml is intentionally
+# left out of docker-compose.yaml's `include:` graph so `make all` /
+# --profile "*" can never start it. It is loaded explicitly (via -f) only by the
+# `monitoring` targets and by `down`/`delete-volumes`, so teardown stays complete.
+MONITORING := $(COMPOSE) -f docker-compose.yaml -f monitoring.yaml
+
 help:
 	@echo "make <command>"
 	@echo "e.g. make infrastructure"
@@ -15,6 +21,8 @@ help:
 	@echo "backend|back            Just backends services"
 	@echo "frontend|front          Just frontends services"
 	@echo "all                     All services (infra, svc, app)"
+	@echo "monitoring|mon          Prometheus + Grafana (opt-in; scrapes running services)"
+	@echo "monitoring-down         Stop Prometheus + Grafana"
 	@echo "unit-test-db-up         Start isolated Postgres for Go unit tests (localhost:55432)"
 	@echo "unit-test-db-down       Stop isolated Postgres for Go unit tests"
 	@echo ""
@@ -54,6 +62,7 @@ help:
 	backend back \
 	frontend front \
 	all \
+	monitoring mon monitoring-down \
 	unit-test-db-up \
 	unit-test-db-down \
 	build \
@@ -112,6 +121,16 @@ all-nowatch: prep
 all-ci: prep
 	$(COMPOSE) -f docker-compose.yaml -f protea.runner.mounts.yaml --profile infrastructure --profile services --profile application --profile backend --profile frontend up -d
 
+# Prometheus + Grafana. Start the app services separately (e.g. `make all`) so
+# Prometheus has targets to scrape. Runs in the foreground like `make infra`.
+monitoring:
+	$(MONITORING) --profile monitoring up
+
+mon: monitoring
+
+monitoring-down:
+	$(MONITORING) --profile monitoring down
+
 unit-test-db-up:
 	$(COMPOSE) --profile unit-tests up -d postgres-unit-tests
 
@@ -126,10 +145,10 @@ pull:
 	$(COMPOSE) --profile "*" pull
 
 down:
-	$(COMPOSE) --profile "*" down
+	$(MONITORING) --profile "*" down
 
 delete-volumes:
-	$(COMPOSE) --profile "*" down -v
+	$(MONITORING) --profile "*" down -v
 
 reset: delete-volumes
 
