@@ -1,0 +1,1698 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for the Interledger App Wallet — a reference implementation for Account Servicing Entities (ASEs) integrating with the Interledger network.">
+      
+      
+      
+      
+        <link rel="prev" href="../logging-reference/">
+      
+      
+        <link rel="next" href="../environment-mode-guide/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Configuration Strategy Guide - Interledger App Wallet</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#configuration-strategy-guide" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Interledger App Wallet" class="md-header__button md-logo" aria-label="Interledger App Wallet" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Interledger App Wallet
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Configuration Strategy Guide
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Interledger App Wallet" class="md-nav__button md-logo" aria-label="Interledger App Wallet" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Interledger App Wallet
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../terminology/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Terminology
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../signup-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Signup Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../kyc-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    KYC & Identity Verification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../kyc-resubmission-flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    KYC Resubmission Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../account-deletion-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Account Deletion Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wallets-accounts-addresses-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wallets, Accounts & Addresses
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ledger-system-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dual-Ledger System
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../agreements-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agreements & Legal Consent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Payments
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Payments
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../payments-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Payments & Transactions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../transaction-types-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transaction Types Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../provider-payments-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Provider Comparison
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Integrations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Integrations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gatehub-cards-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GateHub Cards
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rafiki-full-node-upgrade-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rafiki Full Node Upgrade
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Operations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../payment-troubleshooting-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Payment Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developers
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Developers
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../error-handling-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Error Handling Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../logging-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Logging Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration Strategy Guide
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration Strategy Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-design-goal-a-safe-release-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The design goal: a safe release flow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-core-rule-ship-features-inert" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The core rule: ship features inert
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#exceptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exceptions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adding-configuration-to-live-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding configuration to live features
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#good-defaults-vs-bad-defaults" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Good defaults vs bad defaults
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#failing-fast-on-bad-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Failing fast on bad configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Failing fast on bad configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#before-deployment-helm-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before deployment: Helm validation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#at-application-startup-sanitise-and-refuse-to-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        At application startup: sanitise and refuse to start
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#keep-the-two-layers-in-agreement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Keep the two layers in agreement
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../environment-mode-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment Mode Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend-configuration-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backend Configuration Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../env-variables/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment Variables
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-design-goal-a-safe-release-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The design goal: a safe release flow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-core-rule-ship-features-inert" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The core rule: ship features inert
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#exceptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exceptions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adding-configuration-to-live-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding configuration to live features
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#good-defaults-vs-bad-defaults" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Good defaults vs bad defaults
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#failing-fast-on-bad-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Failing fast on bad configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Failing fast on bad configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#before-deployment-helm-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before deployment: Helm validation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#at-application-startup-sanitise-and-refuse-to-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        At application startup: sanitise and refuse to start
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#keep-the-two-layers-in-agreement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Keep the two layers in agreement
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="configuration-strategy-guide">Configuration Strategy Guide<a class="headerlink" href="#configuration-strategy-guide" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p><strong>How we add configuration safely.</strong> This page describes the strategy every developer should follow when introducing new configuration to the wallet. New features ship <em>inert</em> and are switched on through configuration, sensible defaults never break an existing environment, and bad configuration fails fast, either before it can reach a cluster or, at the latest, when the application starts.</p>
+</blockquote>
+<p><strong>Related documents:</strong></p>
+<ul>
+<li><a href="../backend-configuration-guide/">Backend Configuration Guide</a> - The concrete YAML scheme, secret handling, and a full reference of every backend setting</li>
+<li><a href="../environment-mode-guide/">Environment Mode Guide</a> - How and when to branch behaviour on <code>environment.mode</code>, and how to keep non-production shortcuts out of production</li>
+<li><a href="../env-variables/">Environment Variables</a> - Runtime configuration for the Protea and Botanist frontends</li>
+<li><a href="../error-handling-guide/">Error Handling Guide</a> - How the application surfaces failures at runtime</li>
+</ul>
+<p><strong>Quick Navigation:</strong></p>
+<ul>
+<li><strong>Why does this matter?</strong> → See <a href="#the-design-goal-a-safe-release-flow">The design goal</a></li>
+<li><strong>What is the core rule?</strong> → See <a href="#the-core-rule-ship-features-inert">Ship features inert</a></li>
+<li><strong>What if my feature is an exception?</strong> → See <a href="#exceptions">Exceptions</a></li>
+<li><strong>I'm adding config to something already live.</strong> → See <a href="#adding-configuration-to-live-features">Adding configuration to live features</a></li>
+<li><strong>What is a "good" default?</strong> → See <a href="#good-defaults-vs-bad-defaults">Good defaults vs bad defaults</a></li>
+<li><strong>Where should bad config be caught?</strong> → See <a href="#failing-fast-on-bad-configuration">Failing fast on bad configuration</a></li>
+</ul>
+<hr />
+<h2 id="the-design-goal-a-safe-release-flow">The design goal: a safe release flow<a class="headerlink" href="#the-design-goal-a-safe-release-flow" title="Permanent link">&para;</a></h2>
+<p>The purpose of this strategy is to maximise the flow of our release process by making it safe.</p>
+<p>We want to upgrade production to the exact version that has been running on sandbox without worrying that some new behaviour will suddenly take effect. We also want to spin up test environments that have only a <em>selected</em> set of features enabled, in isolation, so we can safely run whichever experiment we choose.</p>
+<p>This ties directly to how releases move through the project. Every merge to <code>main</code> produces a versioned build and chart. <code>dev1</code> is bumped automatically, while <code>sandbox</code> and <code>production</code> are promoted from a version that has already proven itself elsewhere (see the Release Process in <a href="https://github.com/interledger/interledger-app/blob/main/.github/copilot-instructions.md"><code>.github/copilot-instructions.md</code></a>). That promotion is only trustworthy if a new version does not change behaviour until we ask it to.</p>
+<p><strong>As a general rule, any version merged into <code>main</code> should be considered safe to deploy to any environment.</strong> New features stay dormant until they are explicitly activated through configuration.</p>
+<hr />
+<h2 id="the-core-rule-ship-features-inert">The core rule: ship features inert<a class="headerlink" href="#the-core-rule-ship-features-inert" title="Permanent link">&para;</a></h2>
+<p>Write new code so that a new feature must be activated through configuration. Until it is activated the feature stays inert. The new code path is present in the binary but is never exercised, so deploying the new version changes nothing observable.</p>
+<p>This is already the dominant pattern in the backend. Integrations and behavioural switches are gated behind an <code>enabled</code>-style flag and stay off unless a config file turns them on:</p>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>What it gates</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pti.enabled</code></td>
+<td>The PTI/Fiant provider integration</td>
+</tr>
+<tr>
+<td><code>plaid.enabled</code></td>
+<td>Plaid bank linking</td>
+</tr>
+<tr>
+<td><code>twilio.enabled</code></td>
+<td>Live Twilio Verify (when off, a no-op verifier is used)</td>
+</tr>
+<tr>
+<td><code>email.enabled</code></td>
+<td>Outgoing SendGrid email</td>
+</tr>
+<tr>
+<td><code>gatehub.enabled</code></td>
+<td>The GateHub integration</td>
+</tr>
+<tr>
+<td><code>rafiki.node_enabled</code></td>
+<td>Rafiki full-node event orchestration</td>
+</tr>
+<tr>
+<td><code>delete_account_enabled</code></td>
+<td>The account-deletion flow</td>
+</tr>
+</tbody>
+</table>
+<p>See the <a href="../backend-configuration-guide/#configuration-reference-startconfig">Backend Configuration Guide</a> for the full set. When you add a feature, follow the same shape: default it <strong>off</strong>, and let each environment opt in through its own config overlay.</p>
+<p>The payoff is threefold:</p>
+<ul>
+<li><strong>Deploying is decoupled from releasing.</strong> The code can ship to every environment long before anyone decides to turn it on.</li>
+<li><strong>Rollout is per-environment.</strong> A feature can be exercised on <code>dev1</code>, then <code>sandbox</code>, then <code>production</code>, one config change at a time, with no code change and no redeploy.</li>
+<li><strong>Experiments are cheap and isolated.</strong> A throwaway environment can enable exactly one feature and nothing else.</li>
+</ul>
+<hr />
+<h2 id="exceptions">Exceptions<a class="headerlink" href="#exceptions" title="Permanent link">&para;</a></h2>
+<p>Some changes genuinely cannot ship inert. A change to behaviour that is already live everywhere, or a migration that must happen in lockstep with a deploy, are the usual examples.</p>
+<p>Exceptions are allowed, but they are <strong>not a solo decision</strong>. When a change cannot follow the ship-inert rule:</p>
+<ul>
+<li><strong>Involve the whole team</strong> in deciding how to handle the situation.</li>
+<li><strong>Plan a version-specific deployment strategy</strong> for that release before it is merged. Agree the order of environments, any coordinated migration or config change, and the rollback path.</li>
+</ul>
+<p>If you find yourself reaching for an exception, first double-check that the change really cannot be hidden behind a flag. Most can.</p>
+<hr />
+<h2 id="adding-configuration-to-live-features">Adding configuration to live features<a class="headerlink" href="#adding-configuration-to-live-features" title="Permanent link">&para;</a></h2>
+<p>Sometimes you are not adding a new feature, but a new <em>option</em> to a feature or behaviour that is already live in most environments. A new field appears in the config struct, and every existing environment's config file predates it.</p>
+<p>Before you merge, ask one question:</p>
+<blockquote>
+<p><strong>Is there a sensible default for this option that will not break any existing environment?</strong></p>
+</blockquote>
+<p>If the answer is yes, give the field that default so the already-running environments keep working untouched. If the answer is no, and the option is mission-critical with no safe value, then treat it like required configuration and validate it so that no environment can deploy without setting it (see <a href="#failing-fast-on-bad-configuration">Failing fast</a>).</p>
+<hr />
+<h2 id="good-defaults-vs-bad-defaults">Good defaults vs bad defaults<a class="headerlink" href="#good-defaults-vs-bad-defaults" title="Permanent link">&para;</a></h2>
+<p>A <strong>good default</strong> is a value that is correct, or at worst harmless, in <em>every</em> environment, including production. It lets old config files keep working when a new field is introduced.</p>
+<p>A <strong>bad default</strong> is a value that happens to be right for one environment (usually the developer's) but is wrong, or actively dangerous, in another. If the code becomes active in an environment that relied on the default, it will silently do the wrong thing: talk to the wrong provider, connect to a host that does not exist, or bypass a control.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Good defaults: safe everywhere</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nt">signature_version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nt">max_retries</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="nt">log_level</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">info</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;8080&quot;</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c1"># Bad defaults: right in one place, wrong (or dangerous) elsewhere</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="nt">provider_base_url</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;https://staging.someprovider.com&quot;</span><span class="w">   </span><span class="c1"># points prod at staging</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="nt">redis_url</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;redis://localhost:3322&quot;</span><span class="w">                     </span><span class="c1"># only exists on a laptop</span>
+</code></pre></div>
+<p>The danger with the bad examples is exactly what happens when the code becomes active in an environment that did not override the default. A service that defaults its provider URL to staging will, in production, quietly send real traffic to a staging system. One that defaults Redis to <code>localhost</code> will fail to connect the moment it runs anywhere but a developer's machine.</p>
+<p>The rule of thumb: if you cannot pick a value that is safe in production, there is no good default. Make the field required and validate it rather than shipping a value that only works somewhere.</p>
+<p>Some fields are dangerous in the <em>opposite</em> direction, where a default that is convenient for local development would be a security hole in production. The backend guards these explicitly rather than trusting a default:</p>
+<ul>
+<li><code>twilio.enabled</code> <strong>must</strong> be <code>true</code> in <code>prod</code>. The disabled path runs a no-op verifier that accepts any OTP.</li>
+<li><code>persona.sandbox_fake_za_id</code> <strong>must</strong> be <code>false</code> in <code>prod</code>. It fabricates identity documents.</li>
+</ul>
+<p>These guardrails are enforced at both layers described below. They are also an example of a broader pattern: whenever behaviour is relaxed outside production, production must be guarded so the relaxation cannot take effect there. The <a href="../environment-mode-guide/">Environment Mode Guide</a> covers that pattern in full.</p>
+<hr />
+<h2 id="failing-fast-on-bad-configuration">Failing fast on bad configuration<a class="headerlink" href="#failing-fast-on-bad-configuration" title="Permanent link">&para;</a></h2>
+<p>When configuration <em>is</em> wrong, we want to find out as early as possible: ideally before it ever reaches a cluster, and at the very latest the instant the application tries to start. A badly configured service should never be allowed to serve traffic.</p>
+<p>We catch bad configuration at two layers.</p>
+<h3 id="before-deployment-helm-validation">Before deployment: Helm validation<a class="headerlink" href="#before-deployment-helm-validation" title="Permanent link">&para;</a></h3>
+<p>We use Helm to render our deployment instructions into Kubernetes manifests. Helm can also <strong>validate configuration while it renders</strong>, so a broken configuration is rejected long before it reaches any cluster, because the release simply never templates.</p>
+<p>This project already does this in <a href="https://github.com/interledger/interledger-app/blob/main/helm/interledger-app/templates/validation.backend.yaml"><code>helm/interledger-app/templates/validation.backend.yaml</code></a>, which calls Helm's <code>fail</code> on invalid or missing values, and is exercised by <code>helm unittest</code> in the <code>helm-tests.yml</code> workflow. For example, it rejects an unknown <code>environment.mode</code>, an enabled integration with missing credentials, and the production guardrails above.</p>
+<p><strong>When should I add Helm-level validation?</strong></p>
+<ul>
+<li><strong>When changing or moving an existing configuration option.</strong> Use Helm validation to refuse a deployment that still carries the outdated shape, so an environment cannot deploy against config the new code no longer understands.</li>
+<li><strong>When adding mission-critical configuration that has no safe default.</strong> Validate in Helm that the value is set, so <em>every</em> environment is forced to supply it before a deployment is even attempted.</li>
+</ul>
+<p>Validation that lives in Helm is enforced in CI and at render time, so you can rely on it being caught well before any environment is touched.</p>
+<h3 id="at-application-startup-sanitise-and-refuse-to-start">At application startup: sanitise and refuse to start<a class="headerlink" href="#at-application-startup-sanitise-and-refuse-to-start" title="Permanent link">&para;</a></h3>
+<p>Helm validation only covers what Helm can see. The application must still <strong>sanitise its own inputs</strong>, with very few exceptions, and when the configuration it is given is invalid it must <strong>refuse to start</strong>.</p>
+<p>The backend does this in <a href="https://github.com/interledger/interledger-app/blob/main/go/backend/config/start.go"><code>go/backend/config/start.go</code></a>. <code>configa</code> validates the parsed config against the struct's <code>validate</code> tags, and <code>validateStart</code> enforces the conditional rules such as feature-flag dependencies and the production guardrails. A fatal configuration error stops the process rather than letting it run half-configured.</p>
+<p>Refusing to start is deliberate. If a service starts anyway and only fails when the misconfigured path is first hit, you invite the classic failure where it crashes in the middle of the night because of a typo an operator made that afternoon. Failing fast at startup means the orchestration system (Kubernetes) never routes traffic to the bad pod. The rollout stalls on a pod that will not become ready, the previous healthy version keeps serving, and the problem surfaces immediately, at deploy time, to the person making the change.</p>
+<h3 id="keep-the-two-layers-in-agreement">Keep the two layers in agreement<a class="headerlink" href="#keep-the-two-layers-in-agreement" title="Permanent link">&para;</a></h3>
+<p>The Helm checks and the application checks are intentionally mirrors of each other, and the validation template comments even point back to the specific rules in <code>start.go</code>. Helm gives fast, pre-cluster feedback. The application is the authoritative backstop that guarantees a running process was configured correctly no matter how it was launched. When you add or change a rule in one layer, add or change it in the other, and cover both in their respective tests (<code>helm/interledger-app/tests/backend.validation_test.yaml</code> and the Go config tests).</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.top", "navigation.indexes", "search.highlight", "search.suggest", "content.code.copy", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
