@@ -2,7 +2,7 @@ import type { PlainMessage } from '@bufbuild/protobuf'
 import clsx from 'clsx'
 import { useState } from 'react'
 import type { UIMatch } from 'react-router'
-import { data, href, Link, useLoaderData } from 'react-router'
+import { Link, data, href, useLoaderData } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   Alert,
@@ -33,21 +33,36 @@ import {
   computeCardPaymentLabel,
   computeCardSubtotalStyles
 } from '~/lib/cards/utils'
+import { ErrorHandler, ErrorMapper } from '~/lib/error-handling/bff-error'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
 import { getPusherArgs } from '~/lib/pusher.server'
+import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { usePusher } from '~/lib/usePusher'
 import type { Route } from './+types/payments.$paymentId'
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   let statement = false
   let senderAccountTitle, receiverAccountTitle
-
   const transaction = await grpc.lookupTransaction(request, {
     id: params.paymentId as string
   })
-  if (isConnectError(transaction)) throw transaction.errorResponse
+  if (isConnectError(transaction)) {
+    const userFacingError = ErrorMapper.grpc.toUserFacingError(transaction)
+
+    if (userFacingError.status === 404) {
+      return redirectWithSnackbar(request, href('/'), {
+        message: 'Payment not available. Returning to your wallet.',
+        icon: 'close'
+      })
+    }
+
+    const errorHandler = await ErrorHandler(request, userFacingError)
+    throw errorHandler instanceof Response
+      ? errorHandler
+      : transaction.errorResponse
+  }
 
   if (transaction.type == 'withdrawal' || transaction.type == 'deposit') {
     const linkedAccountsResponse = await grpc.getLinkedAccounts(request, {})
