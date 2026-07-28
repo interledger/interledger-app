@@ -1,6 +1,8 @@
+import { AccessAction } from '@interledger/open-payments'
 import {
   Form,
   data,
+  href,
   redirect,
   useLoaderData,
   useSearchParams
@@ -16,11 +18,13 @@ import {
 } from '~/components'
 import { getWalletInfo } from '~/data/wallet.server'
 import { envValue } from '~/env.server'
+import { buildConsentCards } from '~/lib/consent-cards'
 import { getUserSession } from '~/lib/kratos/session.server'
 import { mergeMeta } from '~/lib/meta'
-import type { Amount } from '~/lib/rafikiauth.server'
 import { consent, getInteraction } from '~/lib/rafikiauth.server'
 import type { Route } from './+types/consent'
+
+const FORBIDDEN_ACTIONS: Partial<AccessAction>[] = ['list-all']
 
 export async function loader({ request }: Route.LoaderArgs) {
   await getUserSession(request)
@@ -30,15 +34,13 @@ export async function loader({ request }: Route.LoaderArgs) {
   const nonce = url.searchParams.get('nonce') || ''
   const clientName = url.searchParams.get('clientName') || ''
   const clientUri = url.searchParams.get('clientUri') || ''
-  const grants = await getInteraction(interactId, nonce)
 
-  // there should be a grant. Throw 404 for now.
-  if (grants.length < 1) {
-    throw data({}, 404)
-  }
+  const interaction = await requireOwnedInteraction(request, interactId, nonce)
 
   return data({
-    ...grants[0],
+    access: interaction.access,
+    subject: interaction.subject,
+    state: interaction.state,
     clientName,
     clientUri,
     interactId,
@@ -57,8 +59,42 @@ export const meta = mergeMeta(() => [
 ])
 
 export default function Page() {
-  const { type } = useLoaderData()
+  const { access, subject, state, clientName, clientUri } =
+    useLoaderData<typeof loader>()
   const [params] = useSearchParams()
+  const isPendingGrant = state === 'PENDING'
+
+  if (!isPendingGrant) {
+    return (
+      <Card>
+        <CardContent>
+          <span className='text-lg'>{clientName}</span> previously sent this
+          request.
+        </CardContent>
+        <CardButton
+          noHover
+          onClick={() => {
+            /* do nothing  */
+          }}
+        >
+          <div className='flex w-full items-center justify-between text-medium'>
+            <div className='flex space-x-2'>
+              <span>{clientUri}</span>
+            </div>
+          </div>
+        </CardButton>
+      </Card>
+    )
+  }
+
+  const opAccess = access.find((a) => a.type === 'outgoing-payment')
+  const cards = buildConsentCards(opAccess)
+  const isReadOnly =
+    opAccess?.actions.length === 1 && opAccess.actions[0] === 'read'
+  // limits take priority: a grant with a debit/receive amount
+  // is shown as a payment, even when a subject is present
+  const isIdentityRequest =
+    cards.length === 0 && Boolean(subject?.sub_ids?.length)
 
   return (
     <>
@@ -68,10 +104,38 @@ export default function Page() {
         method='post'
         className='hidden'
       />
+      <Card>
+        <CardContent>
+          <span className='text-lg'>{clientName}</span>{' '}
+          {isIdentityRequest || isReadOnly
+            ? 'wants to confirm your identity.'
+            : 'is requesting access to the following:'}
+        </CardContent>
+        <CardButton
+          noHover
+          onClick={() => {
+            /* do nothing  */
+          }}
+        >
+          <div className='flex w-full items-center justify-between text-medium'>
+            <div className='flex space-x-2'>
+              <span>{clientUri}</span>
+            </div>
+          </div>
+        </CardButton>
+      </Card>
 
-      {type == 'outgoing-payment' && <OutgoingPaymentGrant />}
-      {type == 'incoming-payment' && <IncomingPaymentGrant />}
-      {type == 'quote' && <QuoteGrant />}
+      {!isIdentityRequest &&
+        cards.map((card, index) => (
+          <Card key={index}>
+            <CardContent>
+              <div className='flex w-full justify-between'>
+                <span className='text-medium'>{card.label}</span>
+                {card.value && <span className='text-error'>{card.value}</span>}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
 
       <CardContent className='mt-2 flex w-full justify-end space-x-6'>
         <TextButton form='consent' type='submit' name='action' value='deny'>
@@ -85,100 +149,49 @@ export default function Page() {
   )
 }
 
-function QuoteGrant() {
-  const { clientName, clientUri } = useLoaderData()
-  return (
-    <>
-      <Card>
-        <CardContent>
-          {clientName} is requesting access to get quotes on your behalf.
-        </CardContent>
-        <CardButton
-          noHover
-          onClick={() => {
-            /* do nothing  */
-          }}
-        >
-          <div className='flex w-full items-center justify-between text-medium'>
-            <div className='flex space-x-2'>
-              <span>{clientUri}</span>
-            </div>
-          </div>
-        </CardButton>
-      </Card>
-    </>
-  )
-}
-
-function IncomingPaymentGrant() {
-  const { clientName, clientUri } = useLoaderData()
-  return (
-    <>
-      <Card>
-        <CardContent>
-          {clientName} is requesting access to create incoming payments on your
-          account.
-        </CardContent>
-        <CardButton
-          noHover
-          onClick={() => {
-            /* do nothing  */
-          }}
-        >
-          <div className='flex w-full items-center justify-between text-medium'>
-            <div className='flex space-x-2'>
-              <span>{clientUri}</span>
-            </div>
-          </div>
-        </CardButton>
-      </Card>
-    </>
-  )
-}
-
-function OutgoingPaymentGrant() {
-  const { clientName, limits, clientUri } = useLoaderData()
-  return (
-    <>
-      <Card>
-        <CardContent>
-          {clientName} is requesting access to make a payment on your behalf.
-        </CardContent>
-        <CardButton
-          noHover
-          onClick={() => {
-            /* do nothing  */
-          }}
-        >
-          <div className='flex w-full items-center justify-between text-medium'>
-            <div className='flex space-x-2'>
-              <span>{clientUri}</span>
-            </div>
-          </div>
-        </CardButton>
-      </Card>
-      <Card>
-        <CardContent>
-          <div className='flex w-full justify-between'>
-            <span className='text-medium'>Total amount to debit</span>
-            <span className='text-error'>
-              {limits && limits.debitAmount && formatAmount(limits.debitAmount)}
-            </span>
-          </div>
-        </CardContent>
-      </Card>
-    </>
-  )
-}
-
-function formatAmount(amount: Amount): string {
-  let currency = '$'
-  if (amount.assetCode != 'USD') {
-    currency = amount.assetCode
+async function requireOwnedInteraction(
+  request: Request,
+  interactId: string,
+  nonce: string
+) {
+  const interaction = await getInteraction(interactId, nonce)
+  const hasSubject = Boolean(interaction.subject?.sub_ids?.length)
+  const opAccess = interaction.access.find((a) => a.type === 'outgoing-payment')
+  const hasActions = Boolean(opAccess?.actions.length)
+  if (!hasSubject && !hasActions) {
+    throw data({}, 404)
   }
 
-  const amt = parseInt(amount.value) * Math.pow(10, -amount.assetScale)
-  return `${currency} ${amt.toFixed(2)}`
+  const isAccessForbidden = opAccess?.actions.some((action) =>
+    FORBIDDEN_ACTIONS.includes(action)
+  )
+  if (isAccessForbidden) {
+    throw data({}, 403)
+  }
+
+  const userWalletAddress = (await getWalletInfo(request)).url
+
+  const accessIdentifiers = interaction.access.map(
+    (access) => access.identifier
+  )
+  const subjectIdentifiers =
+    interaction.subject?.sub_ids.map((subId) => subId.id) ?? []
+
+  const referencedWalletAddresses = [
+    ...accessIdentifiers,
+    ...subjectIdentifiers
+  ].filter((address): address is string => Boolean(address))
+
+  const userOwnsEveryReferencedWallet = referencedWalletAddresses.every(
+    (address) => address.includes(userWalletAddress)
+  )
+
+  if (!userOwnsEveryReferencedWallet) {
+    const { search } = new URL(request.url)
+    throw redirect(`${href('/no-access')}${search}`)
+  }
+
+  return interaction
 }
 
 export async function action({ request }: Route.ActionArgs) {
@@ -188,23 +201,7 @@ export async function action({ request }: Route.ActionArgs) {
   const interactId = url.searchParams.get('interactId') || ''
   const nonce = url.searchParams.get('nonce') || ''
 
-  const grants = await getInteraction(interactId, nonce)
-
-  // there should be a grant. Throw 404 for now.
-  if (grants.length < 1) {
-    throw data({}, 404)
-  }
-
-  const walletInfo = await getWalletInfo(request)
-  let ownsResource = false
-  grants.forEach((a) => {
-    if (a.identifier?.includes(walletInfo.url)) {
-      ownsResource = true
-    }
-  })
-  if (!ownsResource) {
-    throw data({}, 403)
-  }
+  await requireOwnedInteraction(request, interactId, nonce)
 
   const userDecision: 'accept' | 'reject' =
     action == 'approve' ? 'accept' : 'reject'
