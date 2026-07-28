@@ -1,0 +1,38 @@
+# Minimal single-binary Grafana Tempo configuration for local development.
+#
+# Receives OTLP traces (gRPC 4317 / HTTP 4318) and stores them on the container's
+# local disk — no object storage, no clustering. Suitable for local measurement
+# only; not a production topology.
+server:
+  http_listen_port: 3200
+
+distributor:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+        http:
+          endpoint: 0.0.0.0:4318
+
+ingester:
+  # Cut blocks quickly so freshly-sent traces become queryable without a long
+  # wait — convenient when eyeballing traces during local development.
+  max_block_duration: 5m
+
+compactor:
+  compaction:
+    # Local traces are throwaway; keep a day's worth and let Tempo reclaim disk.
+    block_retention: 24h
+
+storage:
+  trace:
+    backend: local
+    wal:
+      path: /var/tempo/wal
+    local:
+      path: /var/tempo/blocks
+
+# Local dev: don't send anonymous usage statistics.
+usage_report:
+  reporting_enabled: false

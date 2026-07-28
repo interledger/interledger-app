@@ -1,12 +1,22 @@
-# Auto-provisioned Grafana datasource pointing at the local Prometheus.
-# Grafana loads everything under /etc/grafana/provisioning on startup, so the
-# datasource is available immediately with no manual setup.
+# Auto-provisioned Grafana datasources. Grafana loads everything under
+# /etc/grafana/provisioning on startup, so both datasources are available
+# immediately with no manual setup.
 apiVersion: 1
 
 datasources:
   - name: Prometheus
     type: prometheus
+    uid: prometheus
     access: proxy
     url: http://prometheus:9090
     isDefault: true
+    editable: true
+
+  # Traces. Query under Explore -> Tempo (search or trace ID). The backend only
+  # sends spans when its OTLP exporter is enabled — see the README.
+  - name: Tempo
+    type: tempo
+    uid: tempo
+    access: proxy
+    url: http://tempo:3200
     editable: true

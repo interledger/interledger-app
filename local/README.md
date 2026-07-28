@@ -221,16 +221,22 @@ PROTEA_SENTRY_DSN=https://...@sentry.io/...
 PROTEA_SENTRY_ENV_LABEL=local
 ```
 
-### Metrics (Prometheus + Grafana)
+### Metrics and traces (Prometheus, Tempo, Grafana)
 
-Prometheus and Grafana are **not started by default**. They live in
-`monitoring.yaml`, which is deliberately excluded from the main compose
-`include:` list, so `make all` never brings them up. Start them explicitly:
+The observability stack — **Prometheus** (metrics), **Tempo** (traces) and
+**Grafana** — is **not started by default**. It lives in `monitoring.yaml`,
+which is deliberately excluded from the main compose `include:` list, so
+`make all` never brings it up. Start it explicitly:
 
 ```sh
 make monitoring      # or: make mon
 make monitoring-down # stop them (make down / make reset also clean them up)
 ```
+
+Grafana comes with both datasources pre-provisioned, so open
+http://localhost:3005 and go straight to **Explore**.
+
+#### Metrics
 
 Each service exposes a Prometheus scrape endpoint at `GET /metrics`:
 
@@ -245,12 +251,36 @@ Each service exposes a Prometheus scrape endpoint at `GET /metrics`:
 > up yet. Prometheus scrapes them over the shared compose network, so run the
 > app services (e.g. `make all`) for targets to report **UP**.
 
-UIs (host ports):
+#### Traces
 
-| URL                     | Description                    |
-|-------------------------|--------------------------------|
-| http://localhost:9090   | Prometheus (targets & queries) |
-| http://localhost:3005   | Grafana (Prometheus datasource pre-provisioned; anonymous admin) |
+Tempo receives OTLP traces from the backend at `tempo:4317`. The backend's OTLP
+exporter is **off by default** (so it never errors when the monitoring stack is
+down). To capture traces:
+
+1. `make monitoring` (starts Tempo), and `make all` for the app.
+2. Enable the exporter — config is deep-merged, so just add this to the
+   git-ignored `config-override/backend.yaml` and restart the backend
+   (`docker compose up -d backend`):
+
+   ```yaml
+   otel:
+     enabled: true
+   ```
+
+   The endpoint (`http://tempo:4317`) is already preset in `config/backend.yaml`.
+
+Then exercise the app and view spans in Grafana → Explore → **Tempo**.
+
+> Only the Go **backend** (and worker) emit OTEL traces. The frontends use
+> Sentry for tracing, so they do not appear in Tempo.
+
+#### UIs (host ports)
+
+| URL                     | Description                                          |
+|-------------------------|------------------------------------------------------|
+| http://localhost:9090   | Prometheus (targets & queries)                       |
+| http://localhost:3200   | Tempo API                                            |
+| http://localhost:3005   | Grafana (Prometheus + Tempo datasources; anonymous admin) |
 
 ---
 

@@ -163,8 +163,19 @@ pusher:
 segment:
   key: "test-segment-key"
 
-# OpenTelemetry tracing. Disabled for local development by default.
-# Set enabled: true and configure endpoint/headers to export spans, e.g.:
+# OpenTelemetry tracing. Disabled by default so the backend never tries to
+# export spans when the (opt-in) monitoring stack is not running.
+#
+# `endpoint` is preset to the local Tempo container. To capture traces, start
+# the monitoring stack (`make monitoring`, which runs Tempo) and enable the
+# exporter. Config files are deep-merged, so you only need to flip `enabled` in
+# config-override/backend.yaml (git-ignored):
+#   otel:
+#     enabled: true
+#
+# Scheme rule (see go/tracing/tracing.go): an http:// endpoint uses plaintext
+# gRPC — correct for local Tempo. Any other scheme (e.g. grpc://) uses TLS,
+# which is what a hosted backend such as Honeycomb needs:
 #   otel:
 #     enabled: true
 #     endpoint: grpc://api.honeycomb.io:443
@@ -174,3 +185,4 @@ segment:
 # when set (a warning is logged when they do).
 otel:
   enabled: false
+  endpoint: http://tempo:4317

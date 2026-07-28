@@ -1,13 +1,17 @@
-# Local Prometheus + Grafana for scraping wallet service metrics.
+# Local observability stack: Prometheus (metrics), Tempo (traces) and Grafana.
 #
 # Opt-in only. This file is deliberately NOT referenced by docker-compose.yaml's
 # `include:` list, so `make all` / `--profile "*"` can never start it. Bring it
 # up with `make monitoring` (which loads this file explicitly). `make down` and
 # `make reset` also load it so the containers and volumes tear down cleanly.
 #
-# Prometheus scrapes backend/protea/botanist over the shared Compose network
-# (see config/prometheus/prometheus.yml), so start the app services as well
-# (e.g. `make all`) for those targets to report UP.
+# Metrics: Prometheus scrapes backend/protea/botanist over the shared Compose
+# network (see config/prometheus/prometheus.yml), so start the app services as
+# well (e.g. `make all`) for those targets to report UP.
+#
+# Traces: Tempo receives OTLP from the backend at tempo:4317. The backend only
+# pushes when its OTLP exporter is enabled (otel.enabled=true) — it defaults off,
+# see config/backend.yaml and the "Traces (Tempo)" section of the README.
 services:
   prometheus:
     image: prom/prometheus:v3.1.0
@@ -23,6 +27,22 @@ services:
       - prometheus-data:/prometheus
     ports:
       - "9090:9090" # Prometheus UI -> http://localhost:9090
+
+  # Grafana Tempo — trace backend. Receives OTLP from the wallet backend (and
+  # worker) at tempo:4317 (gRPC) / tempo:4318 (HTTP), reached over the shared
+  # Compose network, so those ports are not mapped to the host. Stores traces on
+  # local disk (no object storage) — see config/tempo/tempo.yaml.
+  tempo:
+    image: grafana/tempo:2.7.0
+    profiles:
+      - monitoring
+    restart: unless-stopped
+    command: ["-config.file=/etc/tempo/tempo.yaml"]
+    volumes:
+      - ./config/tempo/tempo.yaml:/etc/tempo/tempo.yaml:ro
+      - tempo-data:/var/tempo
+    ports:
+      - "3200:3200" # Tempo API -> http://localhost:3200
 
   grafana:
     image: grafana/grafana:11.4.0
@@ -43,7 +63,9 @@ services:
       - "3005:3000" # Grafana UI -> http://localhost:3005
     depends_on:
       - prometheus
+      - tempo
 
 volumes:
   prometheus-data:
   grafana-data:
+  tempo-data:
