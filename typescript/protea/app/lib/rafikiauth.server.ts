@@ -5,7 +5,19 @@ const RAFIKI_AUTH_ENDPOINT = envValue('RAFIKI_AUTH_ENDPOINT')
 const RAFIKI_AUTH_SECRET = envValue('RAFIKI_AUTH_SECRET')
 
 export type GrantDetails = {
+  grantId?: string
   access: Access[]
+  subject?: Subject
+  state?: string
+}
+
+export type Subject = {
+  sub_ids: SubId[]
+}
+
+export type SubId = {
+  id: string
+  format: string
 }
 
 export type Access = {
@@ -39,7 +51,7 @@ type AccessAction =
 export async function getInteraction(
   interactionId: string,
   nonce: string
-): Promise<Access[]> {
+): Promise<GrantDetails> {
   const rpc = await fetch(
     `${RAFIKI_AUTH_ENDPOINT}/grant/${interactionId}/${nonce}`,
     {
@@ -49,9 +61,8 @@ export async function getInteraction(
   if (rpc.status > 300) {
     throw data({}, rpc.status)
   }
-  const body = (await rpc.json()) as GrantDetails
 
-  return body.access
+  return (await rpc.json()) as GrantDetails
 }
 
 export async function consent(
