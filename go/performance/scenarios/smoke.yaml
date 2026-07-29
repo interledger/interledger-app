@@ -1,0 +1,39 @@
+# A tiny fixed-count run, for checking the harness itself works.
+#
+# Two payments from each sender at one per second. Use this after changing a
+# scenario or the harness — it exercises create, confirm and settlement tracking
+# end to end in a few seconds, without draining any wallet.
+#
+#   perf run -config scenarios/smoke.yaml -config wallets.local.yaml
+
+target:
+  grpc_address: "localhost:8443"
+  kratos_url: "http://localhost:4433"
+  tls: false
+  connections: 1
+  dial_timeout: 15s
+  request_timeout: 30s
+
+run:
+  stop: count
+  count_per_sender: 2
+  duration: 5m
+  amount: 1
+  arrival_rate: 1
+  max_in_flight: 8
+  pairing: round_robin
+  note: "perf smoke"
+
+settlement:
+  track: true
+  poll_interval: 500ms
+  timeout: 2m
+  workers: 4
+
+metrics:
+  console: true
+  # No Prometheus endpoint: a smoke run is too short to scrape.
+  listen: ""
+
+senders: []
+receivers: []

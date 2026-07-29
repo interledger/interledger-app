@@ -1,0 +1,45 @@
+# Many senders → one receiver.
+#
+# Every source wallet pays the same destination, which concentrates all the
+# contention on one receiving wallet and its linked account. Compare the results
+# against many-to-many.yaml: if throughput collapses here but not there, the limit
+# is per-wallet serialisation rather than overall system capacity.
+#
+# Only receivers[0] is used, so the receiver list can be a single entry.
+#
+#   perf run -config scenarios/fan-in.yaml -config wallets.local.yaml
+
+target:
+  grpc_address: "localhost:8443"
+  kratos_url: "http://localhost:4433"
+  tls: false
+  connections: 8
+  dial_timeout: 15s
+  request_timeout: 30s
+
+run:
+  stop: drain
+  duration: 30m
+  amount: 1
+  arrival_rate: 0
+  max_in_flight: 256
+  pairing: fan_in
+  note: "perf fan-in"
+  warmup: 5s
+
+settlement:
+  track: true
+  poll_interval: 500ms
+  # Contention on one receiver makes individual payments slower, so allow more
+  # time before calling a payment stuck.
+  timeout: 5m
+  workers: 32
+
+metrics:
+  console: true
+  listen: ":9464"
+  job_label: "perf-fan-in"
+  linger_after_run: 15s
+
+senders: []
+receivers: []

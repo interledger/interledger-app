@@ -1,0 +1,72 @@
+# Many senders → many receivers, paired one-to-one.
+#
+# The default shape: N source wallets each draining into their own destination
+# wallet. Because each pair is independent, this measures the system's aggregate
+# capacity without any single wallet becoming the bottleneck — which makes it the
+# right baseline to compare fan-in.yaml against.
+#
+# Wallet credentials live in an overlay, not here:
+#   perf run -config scenarios/many-to-many.yaml -config wallets.local.yaml
+#
+# Generate that overlay with:
+#   perf provision -count 200 -senders 100 -fund -out wallets.local.yaml
+
+target:
+  # Local Compose maps the backend's gRPC port to 8443 (see local/wallet.yaml).
+  # For a deployed environment, port-forward the backend and point this at the
+  # local end of the tunnel — nothing else in this file changes.
+  grpc_address: "localhost:8443"
+  kratos_url: "http://localhost:4433"
+  tls: false
+  # A single HTTP/2 connection caps concurrent streams, so spread the load.
+  connections: 8
+  dial_timeout: 15s
+  request_timeout: 30s
+
+run:
+  # Send until each source wallet is empty.
+  stop: drain
+  # Safety ceiling: a drain run should end on its own, but a backend that has
+  # stopped settling would otherwise poll until interrupted.
+  duration: 30m
+  # 1 unit of currency per payment, in minor units.
+  amount: 1
+  # Unthrottled: find the ceiling. Set a value here to hold a fixed rate instead,
+  # which is what you want when comparing latency between two builds.
+  arrival_rate: 0
+  # Backpressure. Without this the harness would queue unbounded work into
+  # Temporal and report enqueue rate as though it were throughput.
+  max_in_flight: 256
+  pairing: index
+  # Off by default: protea creates a payment and then amends it before
+  # confirming, but that extra write buys no extra transaction. Turn it on to
+  # measure the path the UI actually takes.
+  include_update_step: false
+  note: "perf run"
+  # Discard the first few seconds so connection setup stays out of the
+  # percentiles.
+  warmup: 5s
+
+settlement:
+  # The important switch. CreatePayment only starts a Temporal workflow, so with
+  # this off the reported latency is RPC round-trip time and says nothing about
+  # how long a transaction takes to settle.
+  track: true
+  poll_interval: 500ms
+  timeout: 2m
+  workers: 32
+
+metrics:
+  console: true
+  # Scraped by the local Prometheus; view alongside backend metrics and Tempo
+  # traces in Grafana at http://localhost:3005 (`cd local && make monitoring`).
+  # Add a static target for host.docker.internal:9464 in
+  # local/config/prometheus/prometheus.yml to collect it.
+  listen: ":9464"
+  job_label: "perf-many-to-many"
+  linger_after_run: 15s
+
+# Populate these from an overlay file. Listed here so the scenario documents its
+# own shape and `perf validate` gives a useful error when the overlay is missing.
+senders: []
+receivers: []
