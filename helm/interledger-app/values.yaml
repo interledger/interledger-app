@@ -227,6 +227,7 @@ backend:
       sandbox_fake_za_id: false
 
     plaid:
+      # This is also consumed by the frontend
       enabled: false
       client_id: ""
       secret: ""
@@ -740,6 +741,8 @@ frontend:
           valueRef: frontend.config.mockxago_endpoint
         - key: SENTRY_ENV_LABEL
           valueRef: frontend.config.sentry_env_label
+        - key: PLAID_ENABLED
+          valueRef: backend.config.plaid.enabled
 
 # --- Open Payments Interledger Pay (quick-pay) ---
 # Config lives at frontend.config.op_intpay above (values ~1006-1021).
