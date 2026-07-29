@@ -176,15 +176,15 @@ func createTransfer(ctx context.Context, b Backends, args pacioli.CreateTransfer
 		return pacioli.TransferExceedsDebits, nil
 	}
 
-	transactionID := args.ReferenceID
-	if transactionID == "" {
+	referenceID := args.ReferenceID
+	if referenceID == "" {
 		// falls back to keep id == reference_id
 		// fix the caller to set ReferenceID, otherwise this will point at a transaction that does NOT exist
 		log.Warn("MISSING reference_id on create transfer",
 			zap.String("id", args.ID),
 			zap.String("debit_account_id", args.DebitAccountID),
 			zap.String("credit_account_id", args.CreditAccountID))
-		transactionID = args.ID
+		referenceID = args.ID
 	}
 
 	// All validation passed, create entry and update account values
@@ -201,7 +201,7 @@ func createTransfer(ctx context.Context, b Backends, args pacioli.CreateTransfer
 			}
 		}
 		_, err := tx.ExecContext(ctx, "INSERT INTO ledger_transfers (id, reference_id, ledger_id, code, debit_account_id, credit_account_id, amount, state, timeout_at) "+
-			"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)", args.ID, transactionID, args.Ledger, args.Code, args.DebitAccountID, args.CreditAccountID, args.Amount, state, timeoutAt)
+			"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)", args.ID, referenceID, args.Ledger, args.Code, args.DebitAccountID, args.CreditAccountID, args.Amount, state, timeoutAt)
 		if err != nil {
 			return err
 		}
