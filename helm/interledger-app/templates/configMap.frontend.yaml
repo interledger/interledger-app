@@ -1,3 +1,4 @@
 {{- if .Values.frontend.enabled }}
 {{- include "interledger-app.frontend.configMap" . }}
+  PLAID_ENABLED: {{ .Values.backend.config.plaid.enabled | toString | quote }}
 {{- end }}
