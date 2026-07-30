@@ -28,6 +28,7 @@ import (
 	"time"
 
 	"github.com/interledger/interledger-app/go/backend/errcodes"
+	perfauth "github.com/interledger/interledger-app/go/performance/auth"
 	"github.com/interledger/interledger-app/go/performance/client"
 	pb "github.com/interledger/interledger-app/go/proto/backend/v1"
 
@@ -104,6 +105,7 @@ func Run(ctx context.Context, opts Options, out io.Writer) ([]Wallet, error) {
 	defer pool.Close()
 
 	kratosClient := newKratosClient(opts.KratosURL)
+	authClient := perfauth.New(opts.KratosURL, 15*time.Second)
 
 	var db *sql.DB
 	if opts.BackendDSN != "" {
@@ -130,7 +132,7 @@ func Run(ctx context.Context, opts Options, out io.Writer) ([]Wallet, error) {
 	for _, countrySpec := range countries {
 		for i := 1; i <= opts.PerCountry; i++ {
 			globalIndex++
-			w, err := provisionOne(ctx, opts, pool, kratosClient, db, countrySpec, i, globalIndex)
+			w, err := provisionOne(ctx, opts, pool, authClient, kratosClient, db, countrySpec, i, globalIndex)
 			if err != nil {
 				fmt.Fprintf(out, "  %s: FAILED: %v\n", walletLabel(opts.Prefix, countrySpec.code, i), err)
 				return wallets, fmt.Errorf("provision %s: %w", walletLabel(opts.Prefix, countrySpec.code, i), err)
@@ -178,6 +180,7 @@ func provisionOne(
 	ctx context.Context,
 	opts Options,
 	pool *client.Pool,
+	authClient *perfauth.Client,
 	kratosClient *kratos.APIClient,
 	db *sql.DB,
 	spec countrySpec,
@@ -203,7 +206,7 @@ func provisionOne(
 
 	// 2. Create the Kratos identity. The registration flow's session hook returns
 	// a session token, so no separate login is needed.
-	userID, token, err := register(ctx, kratosClient, w.Email, opts.Password, phone, lbl, spec.country)
+	userID, token, err := registerOrLogin(ctx, authClient, kratosClient, w.Email, opts.Password, phone, lbl, spec.country)
 	if err != nil {
 		return w, err
 	}
@@ -260,6 +263,31 @@ func setSignupUserData(ctx context.Context, anon *client.Wallet, spec countrySpe
 	return resp.GetId(), nil
 }
 
+func registerOrLogin(
+	ctx context.Context,
+	authClient *perfauth.Client,
+	kratosClient *kratos.APIClient,
+	email, password, phone, lbl, countryCode string,
+) (userID, token string, err error) {
+	userID, token, err = register(ctx, kratosClient, email, password, phone, lbl, countryCode)
+	if err == nil {
+		return userID, token, nil
+	}
+	if !isAlreadyExistsError(err) {
+		return "", "", err
+	}
+
+	token, err = authClient.Login(ctx, email, password)
+	if err != nil {
+		return "", "", fmt.Errorf("login existing identity: %w", err)
+	}
+	userID, err = authClient.WhoAmI(ctx, token)
+	if err != nil {
+		return "", "", fmt.Errorf("resolve existing identity: %w", err)
+	}
+	return userID, token, nil
+}
+
 func register(
 	ctx context.Context,
 	kratosClient *kratos.APIClient,
@@ -267,7 +295,7 @@ func register(
 ) (userID, token string, err error) {
 	flow, _, err := kratosClient.FrontendAPI.CreateNativeRegistrationFlow(ctx).Execute()
 	if err != nil {
-		return "", "", fmt.Errorf("create registration flow: %w", err)
+		return "", "", fmt.Errorf("create registration flow: %w", perfauth.FormatError(nil, err))
 	}
 
 	traits := map[string]any{
@@ -290,7 +318,7 @@ func register(
 		UpdateRegistrationFlowBody(body).
 		Execute()
 	if err != nil {
-		return "", "", fmt.Errorf("submit registration: %w", err)
+		return "", "", fmt.Errorf("submit registration: %w", perfauth.FormatError(nil, err))
 	}
 
 	token = reg.GetSessionToken()
@@ -336,9 +364,25 @@ func createAddress(ctx context.Context, w *client.Wallet, spec countrySpec, addr
 		Alias:      alias,
 	})
 	if err != nil {
+		if isAlreadyExistsError(err) {
+			return nil
+		}
 		return fmt.Errorf("CreateWalletAddress %s: %w", address, client.Classify("signup", err))
 	}
 	return nil
+}
+
+func isAlreadyExistsError(err error) bool {
+	if err == nil {
+		return false
+	}
+	s := strings.ToLower(err.Error())
+	return strings.Contains(s, "already exists") ||
+		strings.Contains(s, "already in use") ||
+		strings.Contains(s, "already registered") ||
+		strings.Contains(s, "already used") ||
+		strings.Contains(s, "same identifier") ||
+		strings.Contains(s, "duplicate")
 }
 
 // approveKYC marks the user's wallet KYC approved.

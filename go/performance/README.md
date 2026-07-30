@@ -38,9 +38,9 @@ stateless read endpoint. It is not the right choice for this.
 cd local && make all          # backend, Kratos, Postgres, Temporal, provider mocks
 cd ../go/performance
 
-make provision COUNT=20 SENDERS=10    # creates wallets, writes wallets.local.yaml
-make smoke                            # 2 payments per sender — checks the harness
-make run                              # full drain run, many-to-many
+make provision COUNTRIES=za,de,us PER_COUNTRY=20    # creates wallets, writes wallets.local.yaml
+make smoke                                          # 2 payments per sender — checks the harness
+make run                                            # full drain run, many-to-many
 ```
 
 `make provision` only makes sense against local development — see
@@ -193,30 +193,41 @@ backend's insufficient-funds error, which the harness treats as a clean finish.
 
 ## Provisioning
 
-`perf provision` creates local development wallets and writes a ready-to-use
+`perf provision` creates local-development wallets and writes a ready-to-use
 overlay. It runs the signup flow the way protea does — `SetSignupUserData`, a
-native Kratos registration, `CompleteSignup`, `CreateUserDefaultWallet`,
-`CreateWalletAddress` — and then does two things the product deliberately does not
-expose:
+native Kratos registration or login for reruns, `CompleteSignup`,
+`CreateUserDefaultWallet`, `CreateWalletAddress` — and then ensures each wallet is
+usable for perf runs.
 
-- **KYC approval**, written directly into `wallet_kyc_status`. There is no RPC for
-  this because approval belongs to the KYC provider, and locally that means
-  driving a provider mock through the UI. The same direct-write shortcut already
-  exists for email verification in [local/scripts](../../local/scripts). Skipped
-  when `-dsn` is empty, which leaves the wallets unable to transact.
-- **Funding**, via `AddXagoBalanceAccount` plus the `DepositTestXago` RPC — which
-  the backend itself refuses to serve when the environment mode is prod. ZA
-  wallets only.
+The current provisioner is intentionally simple:
+
+- It accepts a comma-separated `-countries` list. Supported values are `za`, `de`,
+and `us`.
+- It creates `-per-country` wallets per country, defaulting to `100`.
+- Each wallet is funded to a target balance of `-target` major units, defaulting
+to `5000`.
+- Funding is provider-specific: ZAR via Xago, EUR via GateHub, USD via PTI.
+- It is idempotent: reruns reuse an existing identity when possible, skip already
+  completed setup, and top up only the shortfall to reach the target balance.
+
+The provisioner writes a flat `wallets:` overlay. The runner later expands those
+wallet entries into sender/receiver shape for the scenario.
 
 ```bash
-./bin/perf provision -count 200 -senders 100 -fund -deposits 5 -out wallets.local.yaml
+./bin/perf provision -countries za,de,us -per-country 100 -target 5000 -out wallets.local.yaml
 ```
 
-Wallets with a balance are listed as senders first, since an unfunded sender has
-nothing to drain. Anything that could not be completed is reported per wallet as a
-note rather than silently skipped.
+Additional knobs:
 
-## Layout
+- `-prefix` seeds generated labels, emails, phone numbers and wallet addresses.
+- `-password` overrides the default local test password.
+- `-address-host` controls the wallet address host; the default is
+  `https://local.ilp.link`.
+- `-dsn` enables KYC approval by writing directly to the backend database.
+  Without it, wallets are created but left unapproved and cannot transact.
+
+Anything that could not be completed is reported per wallet as a note rather than
+silently skipped.
 
 | Path | Contents |
 |---|---|

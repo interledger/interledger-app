@@ -30,12 +30,23 @@ func fund(ctx context.Context, w *client.Wallet, spec countrySpec, targetMajor i
 }
 
 func fundXago(ctx context.Context, w *client.Wallet, spec countrySpec, targetMajor int64) (int64, []string, error) {
-	if _, err := w.AddXagoBalanceAccount(ctx, &pb.AddXagoBalanceAccountRequest{
-		CurrencyCode: spec.currencyCode,
-		Nickname:     spec.asset + " Balance",
-		Title:        spec.asset + " Balance",
-	}); err != nil {
-		return 0, nil, fmt.Errorf("AddXagoBalanceAccount: %w", client.Classify("signup", err))
+	targetMinor := targetMinorAmount(targetMajor, spec.scale)
+	balances, err := w.GetBalances(ctx)
+	if err != nil {
+		return 0, nil, fmt.Errorf("GetBalances: %w", err)
+	}
+	if balance, ok := balanceForAsset(balances, spec.asset); ok {
+		if balance >= targetMinor {
+			return balance, []string{"xago balance already funded"}, nil
+		}
+	} else {
+		if _, err := w.AddXagoBalanceAccount(ctx, &pb.AddXagoBalanceAccountRequest{
+			CurrencyCode: spec.currencyCode,
+			Nickname:     spec.asset + " Balance",
+			Title:        spec.asset + " Balance",
+		}); err != nil {
+			return 0, nil, fmt.Errorf("AddXagoBalanceAccount: %w", client.Classify("signup", err))
+		}
 	}
 
 	var notes []string
@@ -47,18 +58,18 @@ func fundXago(ctx context.Context, w *client.Wallet, spec countrySpec, targetMaj
 		if err != nil {
 			return 0, nil, err
 		}
-		if balance >= targetMajor {
+		if balance >= targetMinor {
 			return balance, notes, nil
 		}
-		notes = append(notes, fmt.Sprintf("xago balance %d/%d", balance, targetMajor))
+		notes = append(notes, fmt.Sprintf("xago balance %d/%d", balance, targetMinor))
 		time.Sleep(500 * time.Millisecond)
 	}
 
-	balance, err := w.GetBalances(ctx)
+	balances, err = w.GetBalances(ctx)
 	if err != nil {
 		return 0, nil, fmt.Errorf("GetBalances: %w", err)
 	}
-	for _, b := range balance {
+	for _, b := range balances {
 		if b.GetBalance() != nil && b.GetBalance().GetAsset() == spec.asset {
 			return b.GetBalance().GetAmount(), notes, nil
 		}
@@ -67,7 +78,16 @@ func fundXago(ctx context.Context, w *client.Wallet, spec countrySpec, targetMaj
 }
 
 func fundGatehub(ctx context.Context, w *client.Wallet, spec countrySpec, targetMajor int64) (int64, []string, error) {
-	if _, err := w.GetGatehubOnboardingWidget(ctx, &pb.Empty{}); err != nil {
+	targetMinor := targetMinorAmount(targetMajor, spec.scale)
+	balances, err := w.GetBalances(ctx)
+	if err != nil {
+		return 0, nil, fmt.Errorf("GetBalances: %w", err)
+	}
+	if balance, ok := balanceForAsset(balances, spec.asset); ok {
+		if balance >= targetMinor {
+			return balance, []string{"gatehub balance already funded"}, nil
+		}
+	} else if _, err := w.GetGatehubOnboardingWidget(ctx, &pb.Empty{}); err != nil {
 		return 0, nil, fmt.Errorf("GetGatehubOnboardingWidget: %w", client.Classify("signup", err))
 	}
 
@@ -80,19 +100,30 @@ func fundGatehub(ctx context.Context, w *client.Wallet, spec countrySpec, target
 		}
 		for _, b := range balances {
 			if b.GetBalance() != nil && strings.EqualFold(b.GetBalance().GetAsset(), spec.asset) {
-				if b.GetBalance().GetAmount() >= targetMajor {
+				if b.GetBalance().GetAmount() >= targetMinor {
 					return b.GetBalance().GetAmount(), notes, nil
 				}
 				break
 			}
 		}
-		notes = append(notes, fmt.Sprintf("gatehub balance pending (%d/%d)", targetMajor, targetMajor))
+		notes = append(notes, fmt.Sprintf("gatehub balance pending (%d/%d)", targetMinor, targetMinor))
 		time.Sleep(1 * time.Second)
 	}
 	return 0, notes, fmt.Errorf("gatehub balance never reached target")
 }
 
 func fundPTI(ctx context.Context, w *client.Wallet, spec countrySpec, targetMajor int64) (int64, []string, error) {
+	targetMinor := targetMinorAmount(targetMajor, spec.scale)
+	resp, err := w.GetPtiBalances(ctx)
+	if err != nil {
+		return 0, nil, fmt.Errorf("GetPtiBalances: %w", err)
+	}
+	if balance, ok := ptiBalanceForAsset(resp); ok {
+		if balance >= targetMinor {
+			return balance, []string{"pti balance already funded"}, nil
+		}
+	}
+
 	widget, err := w.GetKYCProviderWidget(ctx, &pb.GetKYCProviderWidgetRequest{IdempotencyKey: uuid.NewString()})
 	if err != nil {
 		return 0, nil, fmt.Errorf("GetKYCProviderWidget: %w", client.Classify("signup", err))
@@ -139,7 +170,7 @@ func fundPTI(ctx context.Context, w *client.Wallet, spec countrySpec, targetMajo
 	if err != nil {
 		return 0, nil, fmt.Errorf("CreatePtiBankAccount: %w", client.Classify("signup", err))
 	}
-	amount := &pb.Amount{Amount: targetMajor * 100, Asset: spec.asset, AssetScale: 2, Country: spec.country}
+	amount := &pb.Amount{Amount: targetMinor, Asset: spec.asset, AssetScale: 2, Country: spec.country}
 	payment, err := w.DepositBalance(ctx, &pb.TransferBalanceRequest{
 		FromLinkedAccount: bankLA.GetId(),
 		ToLinkedAccount:   balanceLA,
@@ -160,7 +191,7 @@ func fundPTI(ctx context.Context, w *client.Wallet, spec countrySpec, targetMajo
 			return 0, nil, fmt.Errorf("GetPtiBalances: %w", err)
 		}
 		for _, b := range resp.GetBalances() {
-			if b.GetBalance() != nil && b.GetBalance().GetAmount() >= targetMajor*100 {
+			if b.GetBalance() != nil && b.GetBalance().GetAmount() >= targetMinor {
 				return b.GetBalance().GetAmount(), nil, nil
 			}
 		}
@@ -193,6 +224,26 @@ func mockPTIAssessment(externalUserID string) error {
 		return fmt.Errorf("unexpected status %d", resp.StatusCode)
 	}
 	return nil
+}
+
+func balanceForAsset(balances []*pb.Balance, asset string) (int64, bool) {
+	for _, b := range balances {
+		if b.GetBalance() == nil || !strings.EqualFold(b.GetBalance().GetAsset(), asset) {
+			continue
+		}
+		return b.GetBalance().GetAmount(), true
+	}
+	return 0, false
+}
+
+func ptiBalanceForAsset(resp *pb.GetPtiBalancesResponse) (int64, bool) {
+	for _, b := range resp.GetBalances() {
+		if b.GetBalance() == nil {
+			continue
+		}
+		return b.GetBalance().GetAmount(), true
+	}
+	return 0, false
 }
 
 func generateGatehubSignature(ts, method, url, body, secret string) string {

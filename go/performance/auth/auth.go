@@ -48,7 +48,7 @@ func New(kratosURL string, timeout time.Duration) *Client {
 func (c *Client) Login(ctx context.Context, email, password string) (string, error) {
 	flow, resp, err := c.api.FrontendAPI.CreateNativeLoginFlow(ctx).Execute()
 	if err != nil {
-		return "", fmt.Errorf("create native login flow: %w", kratosError(resp, err))
+		return "", fmt.Errorf("create native login flow: %w", FormatError(resp, err))
 	}
 
 	body := kratos.UpdateLoginFlowWithPasswordMethodAsUpdateLoginFlowBody(
@@ -60,7 +60,7 @@ func (c *Client) Login(ctx context.Context, email, password string) (string, err
 		UpdateLoginFlowBody(body).
 		Execute()
 	if err != nil {
-		return "", fmt.Errorf("submit login for %s: %w", email, kratosError(resp, err))
+		return "", fmt.Errorf("submit login for %s: %w", email, FormatError(resp, err))
 	}
 
 	token := login.GetSessionToken()
@@ -80,14 +80,30 @@ func (c *Client) Login(ctx context.Context, email, password string) (string, err
 // every RPC for that wallet would fail with an AAL2 error. Perf wallets must not
 // have TOTP enrolled.
 func (c *Client) Verify(ctx context.Context, token string) error {
+	_, err := c.WhoAmI(ctx, token)
+	return err
+}
+
+// FormatError turns a Kratos SDK error into something readable, preserving the
+// human-facing reason from the flow body when present.
+func FormatError(resp *http.Response, err error) error {
+	return kratosError(resp, err)
+}
+
+// WhoAmI resolves the active session and returns the identity ID.
+func (c *Client) WhoAmI(ctx context.Context, token string) (string, error) {
 	session, resp, err := c.api.FrontendAPI.ToSession(ctx).XSessionToken(token).Execute()
 	if err != nil {
-		return fmt.Errorf("resolve session: %w", kratosError(resp, err))
+		return "", fmt.Errorf("resolve session: %w", kratosError(resp, err))
 	}
 	if !session.GetActive() {
-		return errors.New("session is not active")
+		return "", errors.New("session is not active")
 	}
-	return nil
+	identity := session.GetIdentity()
+	if identity.GetId() == "" {
+		return "", errors.New("session did not include an identity id")
+	}
+	return identity.GetId(), nil
 }
 
 // kratosFlow is the subset of a Kratos flow response that carries the reason a

@@ -58,6 +58,10 @@ func walletAddress(host, label string) string {
 }
 
 func minorAmount(targetMajor int64, scale int32) int64 {
+	return targetMinorAmount(targetMajor, scale)
+}
+
+func targetMinorAmount(targetMajor int64, scale int32) int64 {
 	if scale <= 0 {
 		return targetMajor
 	}

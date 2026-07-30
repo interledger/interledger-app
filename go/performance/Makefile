@@ -22,11 +22,11 @@ run: build
 	$(BIN) run -config $(CONFIG) -config $(OVERLAY)
 
 # Create local development wallets and write the overlay the targets above expect.
-# COUNT wallets are split into SENDERS senders and the rest receivers.
-COUNT ?= 20
-SENDERS ?= 10
+COUNTRIES ?= za,de,us
+PER_COUNTRY ?= 20
+TARGET ?= 5000
 provision: build
-	$(BIN) provision -count $(COUNT) -senders $(SENDERS) -fund -out $(OVERLAY)
+	$(BIN) provision -countries $(COUNTRIES) -per-country $(PER_COUNTRY) -target $(TARGET) -out $(OVERLAY)
 
 test:
 	go test ./...
