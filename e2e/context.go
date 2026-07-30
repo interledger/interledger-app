@@ -147,6 +147,9 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step("^I complete the minimal KYC flow `([^`]*)`$", func(userName string) error {
 		return sc.iCompleteMinimalKYCFlow(userName)
 	})
+	ctx.Step(`^I enable cross-provider payments for "([^"]*)"$`, func(userName string) error {
+		return sc.enableCrossProviderPaymentsFor(userName)
+	})
 
 	// Form filling steps
 	ctx.Step(`^I try to fill in "([^"]*)" with "([^"]*)"$`, func(fieldName, value string) error { return sc.iTryToFillInWith(fieldName, value) })

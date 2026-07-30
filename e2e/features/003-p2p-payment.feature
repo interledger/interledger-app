@@ -188,3 +188,137 @@ Feature: Peer-to-Peer Payments
     And I wait "3" seconds for the page to load
     Then I should see my balance updated with "400.00" "ZAR"
     And I take a screenshot "za-receiver-balance"
+
+  @p2p-payment @cross-provider @xago @gatehub
+  Scenario: Successfully send a cross-provider payment from a South African user to a Germany based user
+    # Set up ZAR/Xago sender with KYC
+    Given the details of 'cp-za-de-sender' are
+      | field           | value                          |
+      | emailSuffix     | cp-za-de-sender@example.com    |
+      | password        | InterlEdger2025!TestPassword   |
+      | country         | South Africa                   |
+      | firstName       | ZASender                       |
+      | lastName        | CP                             |
+      | dateOfBirth     | 1986-03-11                     |
+    And I complete the minimal KYC flow `cp-za-de-sender`
+    And I enable cross-provider payments for "cp-za-de-sender"
+
+    # Clear browser state and set up EUR/Gatehub receiver
+    When I clear the browser session
+    And I navigate to https://interledger.test
+    And I wait "2" seconds for the page to load
+
+    Given the details of 'cp-za-de-receiver' are
+      | field           | value                           |
+      | emailSuffix     | cp-za-de-receiver@example.com   |
+      | password        | InterlEdger2025!TestPassword    |
+      | country         | Germany                         |
+      | firstName       | DEReceiver                      |
+      | lastName        | CP                              |
+      | dateOfBirth     | 1991-09-23                      |
+    And I complete the minimal KYC flow `cp-za-de-receiver`
+    And I enable cross-provider payments for "cp-za-de-receiver"
+
+    # Log back in as the ZAR/Xago sender
+    When I clear the browser session
+    And I navigate to https://interledger.test
+    And I wait "2" seconds for the page to load
+    And I impersonate 'cp-za-de-sender'
+    And I log in as myself
+    And I wait "3" seconds for the page to load
+
+    When I initiate a deposit for my Xago linked account
+    Then my Xago specific deposit instructions should be displayed to me
+    When I simulate a "5500.00" "ZAR" EFT payment to Xago
+    And I wait "5" seconds for the webhook to be processed
+    Then I should see my balance updated with "5500.00" "ZAR"
+
+    # Sender pays the EUR/Gatehub receiver from their ZAR balance
+    When I navigate to the send payment page
+    And I get the receiver wallet address for "cp-za-de-receiver"
+    And I fill in the receiver wallet address
+    And I fill in the payment amount "5000.00"
+    And I select the payment currency "ZAR"
+    And I take a screenshot "cross-provider-za-to-de-payment-ready"
+    And I submit the payment
+    And I wait for the payment to complete
+    Then I should see a payment confirmation
+    And I should see my balance updated with "500.00" "ZAR"
+
+    # Verify the Gatehub receiver sees the converted EUR funds
+    # ZAR -> EUR mock rate is 0.051218, so 5000.00 ZAR converts to 256.09 EUR
+    When I clear the browser session
+    And I navigate to https://interledger.test
+    And I wait "2" seconds for the page to load
+    And I impersonate 'cp-za-de-receiver'
+    And I log in as myself
+    And I wait "3" seconds for the page to load
+    Then I should see my balance updated with "256.09" "EUR"
+    And I take a screenshot "cross-provider-za-to-de-receiver-balance"
+
+  @p2p-payment @cross-provider @gatehub @xago
+  Scenario: Successfully send a cross-provider payment from a Germany based user to a South African user
+    # Set up EUR/Gatehub sender with KYC
+    Given the details of 'cp-de-za-sender' are
+      | field           | value                        |
+      | emailSuffix     | cp-de-za-sender@example.com  |
+      | password        | InterlEdger2025!TestPassword |
+      | country         | Germany                      |
+      | firstName       | DESender                     |
+      | lastName        | CP                           |
+      | dateOfBirth     | 1983-12-02                   |
+    And I complete the minimal KYC flow `cp-de-za-sender`
+    And I enable cross-provider payments for "cp-de-za-sender"
+
+    # Clear browser state and set up ZAR/Xago receiver
+    When I clear the browser session
+    And I navigate to https://interledger.test
+    And I wait "2" seconds for the page to load
+
+    Given the details of 'cp-de-za-receiver' are
+      | field           | value                           |
+      | emailSuffix     | cp-de-za-receiver@example.com   |
+      | password        | InterlEdger2025!TestPassword    |
+      | country         | South Africa                    |
+      | firstName       | ZAReceiver                      |
+      | lastName        | CP                              |
+      | dateOfBirth     | 1989-07-19                      |
+    And I complete the minimal KYC flow `cp-de-za-receiver`
+    And I enable cross-provider payments for "cp-de-za-receiver"
+
+    # Log back in as the EUR/Gatehub sender
+    When I clear the browser session
+    And I navigate to https://interledger.test
+    And I wait "2" seconds for the page to load
+    And I impersonate 'cp-de-za-sender'
+    And I log in as myself
+    And I wait "3" seconds for the page to load
+
+    And I navigate to the deposit page
+    And I deposit "1000" "EUR" via the deposit iframe
+    And I wait "3" seconds for the deposit to process
+    And I navigate to the dashboard
+    And I should see my account balance with "1000" "EUR"
+
+    # Sender pays the ZAR/Xago receiver from their EUR balance
+    And I navigate to the send payment page
+    And I get the receiver wallet address for "cp-de-za-receiver"
+    And I fill in the receiver wallet address
+    And I fill in the payment amount "200.00"
+    And I select the payment currency "EUR"
+    And I take a screenshot "cross-provider-de-to-za-payment-ready"
+    And I submit the payment
+    And I wait for the payment to complete
+    Then I should see a payment confirmation
+    And I should see my balance updated with "800.00" "EUR"
+
+    # Verify the Xago receiver sees the converted ZAR funds
+    # EUR -> ZAR mock rate is 19.524, so 200.00 EUR converts to 3904.80 ZAR
+    When I clear the browser session
+    And I navigate to https://interledger.test
+    And I wait "2" seconds for the page to load
+    And I impersonate 'cp-de-za-receiver'
+    And I log in as myself
+    And I wait "3" seconds for the page to load
+    Then I should see my balance updated with "3904.80" "ZAR"
+    And I take a screenshot "cross-provider-de-to-za-receiver-balance"

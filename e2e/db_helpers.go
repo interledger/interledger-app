@@ -880,3 +880,79 @@ func (sc *E2EContext) waitForAgreementSignature(email, agreementID string, timeo
 		time.Sleep(500 * time.Millisecond)
 	}
 }
+
+// walletFeatures mirrors the boolean columns of the wallet_features table.
+type walletFeatures struct {
+	sendEnabled                bool
+	receiveEnabled             bool
+	linkedAccountsEnabled      bool
+	identitiesEnabled          bool
+	twitterEnabled             bool
+	accountsTabEnabled         bool
+	xagoGatehubPaymentsEnabled bool
+}
+
+// setWalletFeatures upserts a wallet_features row for walletID with the given flags.
+func (sc *E2EContext) setWalletFeatures(walletID string, features walletFeatures) error {
+	_, err := sc.db.Exec(`
+		INSERT INTO wallet_features (
+			wallet_id, send_enabled, receive_enabled, linked_accounts_enabled,
+			identities_enabled, twitter_enabled, accounts_tab_enabled, xago_gatehub_payments_enabled
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+		ON CONFLICT (wallet_id) DO UPDATE SET
+			send_enabled = $2,
+			receive_enabled = $3,
+			linked_accounts_enabled = $4,
+			identities_enabled = $5,
+			twitter_enabled = $6,
+			accounts_tab_enabled = $7,
+			xago_gatehub_payments_enabled = $8,
+			updated_at = now()`,
+		walletID, features.sendEnabled, features.receiveEnabled, features.linkedAccountsEnabled,
+		features.identitiesEnabled, features.twitterEnabled, features.accountsTabEnabled,
+		features.xagoGatehubPaymentsEnabled)
+	if err != nil {
+		return fmt.Errorf("setWalletFeatures: failed to upsert feature flags for wallet %s: %w", walletID, err)
+	}
+	return nil
+}
+
+// enableCrossProviderPaymentsFor turns on the xago_gatehub_payments_enabled wallet feature
+// flag for the named user.
+//
+// Note: this also enables other wallet flags. Can be made more granular if needed.
+func (sc *E2EContext) enableCrossProviderPaymentsFor(userName string) error {
+	if err := sc.ensureDB(); err != nil {
+		return fmt.Errorf("enableCrossProviderPaymentsFor: %w", err)
+	}
+
+	email, err := sc.getEmailForUser(userName)
+	if err != nil {
+		return fmt.Errorf("enableCrossProviderPaymentsFor: %w", err)
+	}
+
+	kratosID := sc.getKratosUserIDByEmail(email)
+	if kratosID == "" {
+		return fmt.Errorf("enableCrossProviderPaymentsFor: could not resolve kratos user id for %s", email)
+	}
+
+	walletID, err := sc.getWalletIDForUser(kratosID)
+	if err != nil {
+		return fmt.Errorf("enableCrossProviderPaymentsFor: %w", err)
+	}
+
+	if err := sc.setWalletFeatures(walletID, walletFeatures{
+		sendEnabled:                true,
+		receiveEnabled:             true,
+		linkedAccountsEnabled:      true,
+		identitiesEnabled:          true,
+		twitterEnabled:             true,
+		accountsTabEnabled:         true,
+		xagoGatehubPaymentsEnabled: true,
+	}); err != nil {
+		return fmt.Errorf("enableCrossProviderPaymentsFor: %w", err)
+	}
+
+	debugPrintf("   ✓ Enabled cross-provider (Xago<->GateHub) payments for '%s' (wallet %s)\n", userName, walletID)
+	return nil
+}

@@ -2,7 +2,7 @@
 
 This document provides a quick lookup for all available test steps organized by functionality.
 
-## Current Step List (Feb 2026)
+## Current Step List (Jul 2026)
 
 ### Background and Setup
 ```gherkin
@@ -90,6 +90,11 @@ When I select the existing delivery address
 Then I should be on the card order confirmation step
 When I confirm the card order
 Then I should see the snackbar "Your card in the making! We'll notify you as soon as it's ready to go."
+```
+
+### P2P Payments — Cross-Provider
+```gherkin
+And I enable cross-provider payments for "cp-de-za-receiver"
 ```
 
 ### Botanist Admin — Wallet Filtering
