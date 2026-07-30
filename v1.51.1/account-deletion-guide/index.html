@@ -1,0 +1,1800 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for the Interledger App Wallet — a reference implementation for Account Servicing Entities (ASEs) integrating with the Interledger network.">
+      
+      
+      
+      
+        <link rel="prev" href="../kyc-resubmission-flow/">
+      
+      
+        <link rel="next" href="../wallets-accounts-addresses-guide/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Account Deletion Flow - Interledger App Wallet</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#account-deletion-flow" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Interledger App Wallet" class="md-header__button md-logo" aria-label="Interledger App Wallet" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Interledger App Wallet
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Account Deletion Flow
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Interledger App Wallet" class="md-nav__button md-logo" aria-label="Interledger App Wallet" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Interledger App Wallet
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../terminology/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Terminology
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../signup-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Signup Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../kyc-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    KYC & Identity Verification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../kyc-resubmission-flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    KYC Resubmission Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Account Deletion Flow
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Account Deletion Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#status-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Status Flow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#authentication-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Authentication Contract
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#request-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Request Flow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#feature-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Feature Flag
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#side-effects" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Side Effects
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Errors
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#user-experience" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        User Experience
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#api-backend-changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API &amp; Backend Changes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#testing-monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Testing &amp; Monitoring
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#support-playbook" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Support Playbook
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wallets-accounts-addresses-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wallets, Accounts & Addresses
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ledger-system-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dual-Ledger System
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../agreements-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agreements & Legal Consent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Payments
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Payments
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../payments-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Payments & Transactions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../transaction-types-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transaction Types Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../provider-payments-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Provider Comparison
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Integrations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Integrations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gatehub-cards-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GateHub Cards
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rafiki-full-node-upgrade-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rafiki Full Node Upgrade
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Operations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../payment-troubleshooting-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Payment Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developers
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Developers
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../error-handling-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Error Handling Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../logging-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Logging Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuration-strategy-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration Strategy Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../environment-mode-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment Mode Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend-configuration-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backend Configuration Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../env-variables/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment Variables
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#status-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Status Flow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#authentication-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Authentication Contract
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#request-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Request Flow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#feature-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Feature Flag
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#side-effects" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Side Effects
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Errors
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#user-experience" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        User Experience
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#api-backend-changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API &amp; Backend Changes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#testing-monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Testing &amp; Monitoring
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#support-playbook" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Support Playbook
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="account-deletion-flow">Account Deletion Flow<a class="headerlink" href="#account-deletion-flow" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p><strong>Account closure guide.</strong> Self-service deletion request that gates on Kratos AAL2 + TOTP enrolment, persists a pending row for manual processing, and notifies the user and support.</p>
+</blockquote>
+<p><strong>Related documents:</strong></p>
+<ul>
+<li><a href="../signup-guide/">Signup Explainer</a> — Account creation, TOTP enrolment, and AAL levels</li>
+<li><a href="../kyc-guide/">KYC Explainer</a> — Wallet activation lifecycle that precedes deletion</li>
+<li><a href="../env-variables/">Environment Variables</a> — Kratos session configuration that backs AAL enforcement</li>
+</ul>
+<p><strong>Quick Navigation:</strong></p>
+<ul>
+<li><strong>What states does a request go through?</strong> → See <a href="#status-flow">Status Flow</a></li>
+<li><strong>Why does TOTP enrolment matter?</strong> → See <a href="#authentication-contract">Authentication Contract</a></li>
+<li><strong>How is the feature rolled out?</strong> → See <a href="#feature-flag">Feature Flag</a></li>
+<li><strong>What does support do with the row?</strong> → See <a href="#support-playbook">Support Playbook</a></li>
+</ul>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>A logged-in user can request that their account be deleted from the Settings page. The wallet backend records a pending request and emails the user; actual data deletion is performed manually by support after the row appears. The same RPC is also used by the FE to render a pending-state indicator after the request is submitted.</p>
+<p>The flow is <strong>destructive and irreversible</strong>, so the backend gates it on two layers:</p>
+<ol>
+<li>Session authentication is enforced by the global gRPC user middleware, which calls Kratos <code>ToSession</code>. With Kratos configured for <code>session.whoami.required_aal: highest_available</code>, any user who has TOTP enrolled must present an AAL2 session — Kratos returns <code>session_aal2_required</code> and the middleware rejects the request (<code>ErrAAL2Required</code>) before it reaches the handler. This is a global gate, not specific to this RPC; users with no second factor enrolled still pass on AAL1.</li>
+<li>The handler itself explicitly checks that the user has TOTP enrolled in Kratos (<code>CheckUserTotpEnabled</code>). This closes the <code>highest_available</code> gap above: a user who has not enrolled TOTP is rejected with a structured error (<code>ErrTotpNotConfigured</code>) so the FE can show a precise message instead of routing through the AAL2 step-up flow.</li>
+</ol>
+<h2 id="status-flow">Status Flow<a class="headerlink" href="#status-flow" title="Permanent link">&para;</a></h2>
+<pre class="mermaid"><code>flowchart TD
+    unspecified["UNSPECIFIED&lt;br/&gt;(no request)"] --&gt;|user requests deletion| pending["PENDING&lt;br/&gt;(awaiting support)"]
+    pending --&gt;|support starts processing| inProgress["IN_PROGRESS&lt;br/&gt;(deletion underway)"]
+    inProgress --&gt;|support completes| completed["COMPLETED&lt;br/&gt;(account gone)"]</code></pre>
+<ul>
+<li><code>COMPLETED</code> is <strong>not surfaced in the UI</strong>: once an account is deleted the user can no longer log in to observe it.</li>
+<li>Status transitions after <code>PENDING</code> are driven by support tooling, not the user-facing app.</li>
+</ul>
+<h2 id="authentication-contract">Authentication Contract<a class="headerlink" href="#authentication-contract" title="Permanent link">&para;</a></h2>
+<p>Kratos is configured with <code>session.whoami.required_aal: highest_available</code> (see <a href="../env-variables/">Environment Variables</a>). The gRPC user middleware translates a <code>session_aal2_required</code> response from Kratos into <code>codes.Unauthenticated</code> with <code>ErrorInfo{reason:"aal2_required"}</code>. The frontend <code>ConnectError</code> constructor redirects to the TOTP challenge page on that signal.</p>
+<p>In practice the FE pre-empts the redirect by wrapping the destructive submit in <code>withTotpChallenge(...)</code>, which opens a popup, drives a Kratos step-up flow, and re-submits the action after the session is elevated to AAL2.</p>
+<p>The handler additionally calls <code>Users().CheckUserTotpEnabled(ctx, userID)</code> and returns <code>user.ErrTotpNotConfigured</code> (mapped to <code>FailedPrecondition</code> + <code>ErrCodeUserTotpNotConfigured</code>) when the helper reports the identity has no TOTP credential. Kratos' <code>highest_available</code> AAL otherwise lets non-enrolled users through on AAL1, so the explicit gate is required for a destructive action.</p>
+<h2 id="request-flow">Request Flow<a class="headerlink" href="#request-flow" title="Permanent link">&para;</a></h2>
+<pre class="mermaid"><code>sequenceDiagram
+    participant U as 👤 User
+    participant FE as Frontend
+    participant K as Ory Kratos
+    participant BE as Backend (gRPC)
+    participant DB as PostgreSQL
+    participant EM as Email
+    participant SL as Slack
+
+    rect rgb(59, 130, 246)
+    U-&gt;&gt;FE: Click "Delete account"
+    FE-&gt;&gt;K: createBrowserLoginFlow{aal:'aal2', refresh:true}
+    K--&gt;&gt;FE: AAL2 challenge
+    U-&gt;&gt;FE: TOTP code
+    FE-&gt;&gt;K: submit code
+    K--&gt;&gt;FE: session elevated to AAL2
+    end
+
+    rect rgb(16, 185, 129)
+    FE-&gt;&gt;BE: RequestAccountDeletion (empty body)
+    BE-&gt;&gt;K: whoami (via middleware)
+    K--&gt;&gt;BE: AAL2 session OK
+    BE-&gt;&gt;K: CheckUserTotpEnabled
+    K--&gt;&gt;BE: hasTotp = true
+    BE-&gt;&gt;DB: INSERT INTO account_deletion_requests
+    DB--&gt;&gt;BE: OK
+    BE-&gt;&gt;EM: SendAccountDeletionRequested
+    BE-&gt;&gt;SL: post wallet-info-bot notice
+    BE--&gt;&gt;FE: Empty
+    FE--&gt;&gt;U: snackbar + redirect to /settings
+    end</code></pre>
+<p>The handler persists the row <strong>before</strong> sending email so duplicate clicks are deduplicated before support is paged. If the email send fails, the inserted row is rolled back so a retry isn't blocked by <code>ErrAlreadyRequested</code>.</p>
+<h2 id="feature-flag">Feature Flag<a class="headerlink" href="#feature-flag" title="Permanent link">&para;</a></h2>
+<p><code>Features.deleteAccountEnabled</code> is a global switch driven by the <code>delete_account_enabled</code> backend config value. <code>features/ops.Features()</code> resolves it from config for every eligible (KYC-approved, non-blocked) wallet, ignoring country and any per-wallet <code>wallet_features</code> row. Set <code>delete_account_enabled: true</code> in the environment's backend config to turn the flow on for everyone.</p>
+<p>The FE gates the route and the settings-list link on this flag:</p>
+<ul>
+<li><code>loader</code> in <code>settings.delete-account.tsx</code> redirects to <code>/settings</code> when the flag is off.</li>
+<li><code>loader</code> in <code>settings.tsx</code> skips the <code>getAccountDeletionStatus</code> RPC entirely when the flag is off and the <code>&lt;AccountDeletionRow&gt;</code> is not rendered.</li>
+</ul>
+<h2 id="side-effects">Side Effects<a class="headerlink" href="#side-effects" title="Permanent link">&para;</a></h2>
+<p>When <code>RequestAccountDeletion</code> succeeds, the backend produces these outputs in order:</p>
+<ol>
+<li><strong><code>account_deletion_requests</code> row</strong> with <code>user_id</code> = the Kratos identity ID and <code>status = 'pending'</code>. The <code>user_id</code> column has a unique index so a duplicate request returns <code>accountdeletion.ErrAlreadyRequested</code>.</li>
+<li><strong>Support-inbox email</strong> with subject <code>[&lt;env&gt;] Account deletion requested — user &lt;userID&gt;</code>. A failure here returns from the handler and triggers a rollback (see below).</li>
+<li><strong>User confirmation email</strong> with subject <code>We have received your account deletion request</code>. Best-effort — failures are logged with <code>userID</code> but do not fail the RPC.</li>
+<li><strong>Slack notification</strong> posted as <code>wallet-info-bot</code> to the <code>signup_kyc</code> channel (<code>slack.ChannelSignupKYC</code>), including the user ID and wallet IDs. The user's email is intentionally omitted to avoid leaking PII into Slack and application logs (support already receives the email at step 2). Best-effort — the wallet-list query that gates this notification can fail; on failure the post is skipped with a warning log.</li>
+</ol>
+<p>Rollback semantics:</p>
+<ul>
+<li>DB insert succeeded but <strong>support-inbox email</strong> failed → the row is deleted so a retry isn't blocked by <code>ErrAlreadyRequested</code>. If the rollback itself fails, the row is left for manual cleanup and a Sentry event is captured.</li>
+<li>DB insert succeeded, support email succeeded, user confirmation or Slack failed → no rollback. The request stands and operators are paged.</li>
+</ul>
+<h2 id="errors">Errors<a class="headerlink" href="#errors" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>gRPC code</th>
+<th>AppError code</th>
+<th>Trigger</th>
+<th>FE behaviour</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Unauthenticated</code></td>
+<td>(kratos ErrorInfo)</td>
+<td>Session below AAL2</td>
+<td>FE auto-redirects to <code>/totp/challenge</code>; <code>withTotpChallenge</code> pre-empts this with an in-page popup</td>
+</tr>
+<tr>
+<td><code>FailedPrecondition</code></td>
+<td><code>ErrCodeUserTotpNotConfigured</code></td>
+<td>User has no TOTP credential</td>
+<td>FE renders "Two-factor authentication must be configured before deleting your account."</td>
+</tr>
+<tr>
+<td><code>AlreadyExists</code></td>
+<td><code>ErrCodeAccountDeletionAlreadyRequested</code></td>
+<td>A pending/in-progress row already exists</td>
+<td>Action handler renders the error inline. Rarely reached because the loader redirects to <code>/settings</code> before the action runs.</td>
+</tr>
+<tr>
+<td><code>Internal</code></td>
+<td>(generic)</td>
+<td>DB or email failure</td>
+<td>FE renders a generic error message; the user can retry from the page.</td>
+</tr>
+</tbody>
+</table>
+<p>The <code>settings.delete-account.tsx</code> loader treats any non-<code>UNSPECIFIED</code> status from <code>GetAccountDeletionStatus</code> as a redirect signal back to <code>/settings</code>, so the <code>AlreadyExists</code> action-side branch only fires for race conditions where the row appears between loader and submit. The <code>settings.tsx</code> index loader does <strong>not</strong> redirect — it renders an in-flight indicator row instead.</p>
+<h2 id="user-experience">User Experience<a class="headerlink" href="#user-experience" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Settings index</strong> (<code>/settings</code>)</li>
+<li><strong>Flag off:</strong> no row.</li>
+<li><strong>Flag on, no pending request:</strong> red "Delete account" link in the Account card.</li>
+<li><strong>Flag on, pending request:</strong> non-clickable "Account deletion pending" row with a clock icon.</li>
+<li><strong>Flag on, in-progress:</strong> non-clickable "Account deletion in progress" row with a refresh icon.</li>
+<li><strong>Flag on, status RPC error:</strong> non-clickable warning row instructing the user to try later.</li>
+<li><strong>Delete-account page</strong> (<code>/settings/delete-account</code>)</li>
+<li>Warning card explaining irreversibility and the need to withdraw funds within 2–3 days.</li>
+<li>Cancel and "Delete account" buttons.</li>
+<li>Loader checks Kratos TOTP enrolment (<code>isTotpEnrolled</code>). If missing, the Delete button is disabled and an inline alert explains that two-factor authentication must be configured, with a link to set it up.</li>
+<li>When TOTP is enrolled, clicking "Delete account" opens the global TOTP step-up popup. After verify, the action submits with an empty body; on success the user is redirected to <code>/settings</code> with a confirmation snackbar.</li>
+</ul>
+<h2 id="api-backend-changes">API &amp; Backend Changes<a class="headerlink" href="#api-backend-changes" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Surface</th>
+<th>Symbol</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Proto (user)</td>
+<td><code>RequestAccountDeletion(RequestAccountDeletionRequest) returns (Empty)</code></td>
+<td>Submit a request. Request body is empty.</td>
+</tr>
+<tr>
+<td>Proto (user)</td>
+<td><code>GetAccountDeletionStatus(Empty) returns (AccountDeletionStatus)</code></td>
+<td>Read current status for the authenticated user.</td>
+</tr>
+<tr>
+<td>Proto (user)</td>
+<td><code>Features.deleteAccountEnabled</code> (slot 14)</td>
+<td>Global feature flag, resolved from config.</td>
+</tr>
+<tr>
+<td>Config</td>
+<td><code>delete_account_enabled</code> (backend <code>StartConfig</code>)</td>
+<td>Global on/off switch for the flow.</td>
+</tr>
+<tr>
+<td>Go</td>
+<td><code>accountdeletion.Client.Request / GetForUser / Delete</code></td>
+<td>Persistence ops.</td>
+</tr>
+<tr>
+<td>Go</td>
+<td><code>user.Client.CheckUserTotpEnabled</code></td>
+<td>Reads <code>credentials.totp</code> from the Kratos identity.</td>
+</tr>
+<tr>
+<td>DB</td>
+<td><code>account_deletion_requests</code></td>
+<td>One row per user (unique on <code>user_id</code>), columns include <code>status</code>, <code>created_at</code>, <code>updated_at</code>.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="testing-monitoring">Testing &amp; Monitoring<a class="headerlink" href="#testing-monitoring" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Handler unit tests</strong> in <code>go/backend/grpc/account_deletion_test.go</code> cover the happy path, the rollback-on-support-email-error regression, the wallet-lookup-failure-tolerated case (Slack post is skipped, request still succeeds), the TOTP-not-enrolled precondition, and the already-requested duplicate (both assert the structured AppError reason code).</li>
+<li><strong>End-to-end scenarios</strong> in <code>e2e/features/006-account-deletion.feature</code> run with the flag on (<code>delete_account_enabled: true</code>) and cover the link being visible, the full delete flow with TOTP step-up, the pending/in-progress indicators, the missing-TOTP precondition (message + disabled Delete button), and duplicate-rejection.</li>
+<li><strong>Alerts:</strong> Sentry captures rollback failures with the user ID and both underlying errors. User-confirmation email failures and wallet-list failures (which suppress the Slack post) are logged as warnings, not paged.</li>
+</ul>
+<h2 id="support-playbook">Support Playbook<a class="headerlink" href="#support-playbook" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Locate pending requests:</strong> <code>SELECT user_id, created_at FROM account_deletion_requests WHERE status = 'pending' ORDER BY created_at</code>.</li>
+<li><strong>Enable the feature:</strong> set <code>delete_account_enabled: true</code> in the environment's backend config. It applies to every eligible wallet; there is no per-wallet toggle.</li>
+<li><strong>Roll a request back to allow retry:</strong> <code>DELETE FROM account_deletion_requests WHERE user_id = $1</code>. The user can then submit again from the app.</li>
+<li><strong>Diagnose a stuck request:</strong> check Sentry for the rollback-failure log lines (search for "account deletion: rollback failed"). The pending row may need manual cleanup.</li>
+<li><strong>A user reports the page redirects them away unexpectedly:</strong> confirm <code>delete_account_enabled</code> is <code>true</code> in the backend config, and confirm no prior request exists.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.top", "navigation.indexes", "search.highlight", "search.suggest", "content.code.copy", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

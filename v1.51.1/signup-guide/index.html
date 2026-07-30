@@ -1,0 +1,3461 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for the Interledger App Wallet — a reference implementation for Account Servicing Entities (ASEs) integrating with the Interledger network.">
+      
+      
+      
+      
+        <link rel="prev" href="../terminology/">
+      
+      
+        <link rel="next" href="../kyc-guide/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Signup Flow - Interledger App Wallet</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#signup-explainer" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Interledger App Wallet" class="md-header__button md-logo" aria-label="Interledger App Wallet" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Interledger App Wallet
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Signup Flow
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Interledger App Wallet" class="md-nav__button md-logo" aria-label="Interledger App Wallet" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Interledger App Wallet
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../terminology/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Terminology
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Signup Flow
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Signup Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-big-picture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Big Picture
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The Big Picture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-profile-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1 — Profile Details
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-password-account-creation-kratos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2 — Password &amp; Account Creation (Kratos)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-email-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3 — Email Verification
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-phone-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4 — Phone Verification
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-totp-registration-2fa" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5 — TOTP Registration (2FA)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-wallet-address-creation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6 — Wallet Address Creation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-profile-details-collection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1) Profile Details Collection
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1) Profile Details Collection">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#frontend-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Frontend Flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backend-processing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backend Processing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-phone-number-collection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2) Phone Number Collection
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2) Phone Number Collection">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#frontend-flow_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Frontend Flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backend-processing_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backend Processing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#otp-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OTP Verification
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-password-creation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3) Password Creation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3) Password Creation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kratos-registration-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Kratos Registration Flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frontend-flow_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Frontend Flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backend-processing_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backend Processing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-account-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4) Account Verification
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4) Account Verification">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#email-verification-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Email Verification Flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-two-factor-authentication-totp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5) Two-Factor Authentication (TOTP)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5) Two-Factor Authentication (TOTP)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-is-totp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What is TOTP?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frontend-flow_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Frontend Flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kratos-totp-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Kratos TOTP Setup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#totp-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TOTP Verification
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#admin-operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Admin Operations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-wallet-address-creation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6) Wallet Address Creation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6) Wallet Address Creation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-is-a-wallet-address" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What is a Wallet Address?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frontend-flow_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Frontend Flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#username-generation-logic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Username Generation Logic
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backend-processing_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backend Processing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-wallet-initialization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7) Wallet Initialization
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7) Wallet Initialization">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#when-is-the-wallet-created" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When is the Wallet Created?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backend-processing_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backend Processing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-temporal-workflows-backend-orchestration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8) Temporal Workflows (Backend Orchestration)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8) Temporal Workflows (Backend Orchestration)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-is-temporal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What is Temporal?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signup-related-workflows" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signup-Related Workflows
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Signup-Related Workflows">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-provider-user-creation-workflows" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Provider User Creation Workflows
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-payment-pointer-provisioning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Payment Pointer Provisioning
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-kyc-workflows-post-signup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. KYC Workflows (Post-Signup)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#workflow-worker" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Workflow Worker
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-signup-state-machine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9) Signup State Machine
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-security-considerations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10) Security Considerations
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10) Security Considerations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#otp-timing-attack-prevention" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OTP Timing Attack Prevention
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#password-security-kratos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Password Security (Kratos)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#totp-secret-storage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TOTP Secret Storage
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-common-issues-and-troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11) Common Issues and Troubleshooting
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11) Common Issues and Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#phone-verification-fails" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phone Verification Fails
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#totp-setup-fails" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TOTP Setup Fails
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wallet-address-already-taken" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Wallet Address Already Taken
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signup-stuck-in-partial-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signup Stuck in Partial State
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-testing-signup-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12) Testing Signup Flow
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="12) Testing Signup Flow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#e2e-test-coverage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E2E Test Coverage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#unit-test-coverage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Unit Test Coverage
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-next-steps-after-signup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13) Next Steps After Signup
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../kyc-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    KYC & Identity Verification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../kyc-resubmission-flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    KYC Resubmission Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../account-deletion-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Account Deletion Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wallets-accounts-addresses-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wallets, Accounts & Addresses
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ledger-system-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dual-Ledger System
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../agreements-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agreements & Legal Consent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Payments
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Payments
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../payments-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Payments & Transactions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../transaction-types-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transaction Types Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../provider-payments-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Provider Comparison
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Integrations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Integrations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gatehub-cards-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GateHub Cards
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rafiki-full-node-upgrade-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rafiki Full Node Upgrade
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Operations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../payment-troubleshooting-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Payment Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developers
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Developers
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../error-handling-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Error Handling Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../logging-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Logging Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuration-strategy-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration Strategy Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../environment-mode-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment Mode Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend-configuration-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backend Configuration Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../env-variables/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment Variables
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-big-picture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Big Picture
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The Big Picture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-profile-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1 — Profile Details
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-password-account-creation-kratos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2 — Password &amp; Account Creation (Kratos)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-email-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3 — Email Verification
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-phone-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4 — Phone Verification
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-totp-registration-2fa" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5 — TOTP Registration (2FA)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-wallet-address-creation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6 — Wallet Address Creation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-profile-details-collection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1) Profile Details Collection
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1) Profile Details Collection">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#frontend-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Frontend Flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backend-processing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backend Processing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-phone-number-collection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2) Phone Number Collection
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2) Phone Number Collection">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#frontend-flow_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Frontend Flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backend-processing_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backend Processing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#otp-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OTP Verification
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-password-creation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3) Password Creation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3) Password Creation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kratos-registration-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Kratos Registration Flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frontend-flow_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Frontend Flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backend-processing_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backend Processing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-account-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4) Account Verification
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4) Account Verification">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#email-verification-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Email Verification Flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-two-factor-authentication-totp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5) Two-Factor Authentication (TOTP)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5) Two-Factor Authentication (TOTP)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-is-totp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What is TOTP?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frontend-flow_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Frontend Flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kratos-totp-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Kratos TOTP Setup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#totp-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TOTP Verification
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#admin-operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Admin Operations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-wallet-address-creation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6) Wallet Address Creation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6) Wallet Address Creation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-is-a-wallet-address" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What is a Wallet Address?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frontend-flow_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Frontend Flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#username-generation-logic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Username Generation Logic
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backend-processing_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backend Processing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-wallet-initialization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7) Wallet Initialization
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7) Wallet Initialization">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#when-is-the-wallet-created" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When is the Wallet Created?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backend-processing_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backend Processing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-temporal-workflows-backend-orchestration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8) Temporal Workflows (Backend Orchestration)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8) Temporal Workflows (Backend Orchestration)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-is-temporal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What is Temporal?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signup-related-workflows" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signup-Related Workflows
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Signup-Related Workflows">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-provider-user-creation-workflows" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Provider User Creation Workflows
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-payment-pointer-provisioning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Payment Pointer Provisioning
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-kyc-workflows-post-signup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. KYC Workflows (Post-Signup)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#workflow-worker" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Workflow Worker
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-signup-state-machine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9) Signup State Machine
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-security-considerations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10) Security Considerations
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10) Security Considerations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#otp-timing-attack-prevention" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OTP Timing Attack Prevention
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#password-security-kratos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Password Security (Kratos)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#totp-secret-storage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TOTP Secret Storage
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-common-issues-and-troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11) Common Issues and Troubleshooting
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11) Common Issues and Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#phone-verification-fails" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phone Verification Fails
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#totp-setup-fails" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TOTP Setup Fails
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wallet-address-already-taken" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Wallet Address Already Taken
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signup-stuck-in-partial-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signup Stuck in Partial State
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-testing-signup-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12) Testing Signup Flow
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="12) Testing Signup Flow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#e2e-test-coverage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E2E Test Coverage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#unit-test-coverage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Unit Test Coverage
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-next-steps-after-signup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13) Next Steps After Signup
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="signup-explainer">Signup Explainer<a class="headerlink" href="#signup-explainer" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p><strong>User registration guide.</strong> Understand the complete signup process, phone verification (OTP), two-factor authentication (TOTP), and wallet initialization workflows.</p>
+</blockquote>
+<p><strong>Related documents:</strong></p>
+<ul>
+<li><a href="../terminology/">Concepts</a> — Wallet and linked-account terminology</li>
+<li><a href="../kyc-guide/">KYC Explainer</a> — Identity verification flows per provider</li>
+<li><a href="../wallets-accounts-addresses-guide/">Wallets vs Accounts</a> — Wallet activation architecture</li>
+<li><a href="../payments-guide/">Payments Guide</a> — How KYC and wallet setup enable transactions</li>
+<li><a href="../account-deletion-guide/">Account Deletion Flow</a> — Self-service account closure (offboarding counterpart)</li>
+<li><a href="../logging-reference/">Logging Policy</a> — What information can be safely logged during signup</li>
+<li><a href="../env-variables/">Environment Variables</a> — Signup/auth runtime configuration (Kratos, Twilio, and related settings)</li>
+</ul>
+<p><strong>Quick Navigation:</strong></p>
+<ul>
+<li><strong>Need signup overview?</strong> → Jump to <a href="#the-big-picture">The Big Picture</a></li>
+<li><strong>TOTP setup problems?</strong> → See <a href="#5-two-factor-authentication-totp">Two-Factor Authentication (TOTP)</a></li>
+<li><strong>Wallet address creation?</strong> → See <a href="#6-wallet-address-creation">Wallet Address Creation</a></li>
+<li><strong>Backend workflow details?</strong> → See <a href="#8-temporal-workflows-backend-orchestration">Temporal Workflows</a></li>
+</ul>
+<p><strong>Scope:</strong> What happens when a user signs up, how authentication is configured, and what backend workflows orchestrate the process.</p>
+<hr />
+<h2 id="the-big-picture">The Big Picture<a class="headerlink" href="#the-big-picture" title="Permanent link">&para;</a></h2>
+<p>The signup process creates a complete user account with authentication, wallet infrastructure, and a unique payment address. This enables the user to receive payments, send money, and interact with the Interledger network.</p>
+<p><strong>The signup journey:</strong></p>
+<ol>
+<li><strong>Profile Details</strong> — User provides legal name, email, country of residence, and phone number</li>
+<li><strong>Password Creation</strong> — User sets a secure password via Ory Kratos</li>
+<li><strong>Account Verification</strong> — Email confirmation triggers account activation</li>
+<li><strong>Phone Verification</strong> — SMS OTP confirms phone number ownership</li>
+<li><strong>TOTP Registration</strong> — Time-based one-time password setup for 2FA</li>
+<li><strong>Wallet Address Creation</strong> — Unique payment address (e.g., <code>https://ilp.link/alice</code>)</li>
+</ol>
+<h3 id="step-1-profile-details">Step 1 — Profile Details<a class="headerlink" href="#step-1-profile-details" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>sequenceDiagram
+    participant U as 👤 User
+    participant FE as Frontend
+    participant BE as Backend
+    participant DB as PostgreSQL
+
+    rect rgb(59, 130, 246)
+    U-&gt;&gt;FE: Enter name, email, country, phone
+    FE-&gt;&gt;BE: SetSignupUserData gRPC
+    BE-&gt;&gt;DB: INSERT INTO signups
+    DB--&gt;&gt;BE: OK
+    BE--&gt;&gt;FE: signup_id
+    FE--&gt;&gt;U: Show password step
+    end</code></pre>
+<h3 id="step-2-password-account-creation-kratos">Step 2 — Password &amp; Account Creation (Kratos)<a class="headerlink" href="#step-2-password-account-creation-kratos" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>sequenceDiagram
+    participant U as 👤 User
+    participant FE as Frontend
+    participant K as Ory Kratos
+    participant BE as Backend
+    participant DB as PostgreSQL
+
+    rect rgb(16, 185, 129)
+    U-&gt;&gt;FE: Enter password
+    FE-&gt;&gt;K: Submit registration flow
+    K-&gt;&gt;DB: Create identity
+    K--&gt;&gt;U: Send verification email
+    K--&gt;&gt;FE: Registration complete
+    FE-&gt;&gt;BE: CompleteSignup gRPC
+    BE-&gt;&gt;DB: UPDATE signups SET user_id
+    BE-&gt;&gt;DB: INSERT agreement_signatures (when SIGNUP_AGREEMENT_IDS set)
+    BE--&gt;&gt;FE: success
+    end</code></pre>
+<h3 id="step-3-email-verification">Step 3 — Email Verification<a class="headerlink" href="#step-3-email-verification" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>sequenceDiagram
+    participant U as 👤 User
+    participant K as Ory Kratos
+
+    rect rgb(139, 92, 246)
+    U-&gt;&gt;U: Open verification email
+    U-&gt;&gt;K: Click verification link
+    K-&gt;&gt;K: Mark identity verified
+    K--&gt;&gt;U: Redirect to login
+    end</code></pre>
+<h3 id="step-4-phone-verification">Step 4 — Phone Verification<a class="headerlink" href="#step-4-phone-verification" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>sequenceDiagram
+    participant U as 👤 User
+    participant FE as Frontend
+    participant BE as Backend
+    participant TW as Twilio
+    participant DB as PostgreSQL
+
+    rect rgb(245, 158, 11)
+    FE-&gt;&gt;BE: SendPhoneVerification gRPC
+    BE-&gt;&gt;TW: SendVerificationCode
+    TW--&gt;&gt;U: SMS with 6-digit code
+    U-&gt;&gt;FE: Enter OTP code
+    FE-&gt;&gt;BE: SetSignupMobileNumber gRPC
+    BE-&gt;&gt;TW: CheckVerificationCode
+    end
+
+    alt ✅ OTP Valid
+        TW--&gt;&gt;BE: valid = true
+        BE-&gt;&gt;DB: UPDATE signups SET mobile_number
+        BE--&gt;&gt;FE: success
+        FE--&gt;&gt;U: Proceed to wallet address
+    else ❌ OTP Invalid or Expired
+        TW--&gt;&gt;BE: valid = false
+        BE--&gt;&gt;FE: ErrInvalidOTP
+        FE--&gt;&gt;U: Show error, allow retry
+    end</code></pre>
+<h3 id="step-5-totp-registration-2fa">Step 5 — TOTP Registration (2FA)<a class="headerlink" href="#step-5-totp-registration-2fa" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>sequenceDiagram
+    participant U as 👤 User
+    participant FE as Frontend
+    participant K as Ory Kratos
+    participant DB as PostgreSQL
+
+    rect rgb(236, 72, 153)
+    U-&gt;&gt;FE: Login with password
+    FE-&gt;&gt;K: Submit login flow
+    K--&gt;&gt;FE: Redirect to TOTP setup
+    FE-&gt;&gt;K: Request settings flow
+    K--&gt;&gt;FE: QR code + secret key
+    end
+
+    rect rgb(219, 39, 119)
+    U-&gt;&gt;U: Scan QR in authenticator app
+    U-&gt;&gt;FE: Enter 6-digit TOTP code
+    FE-&gt;&gt;K: Submit TOTP code
+    K-&gt;&gt;DB: Store TOTP credential
+    K--&gt;&gt;FE: TOTP enabled ✓
+    end</code></pre>
+<h3 id="step-6-wallet-address-creation">Step 6 — Wallet Address Creation<a class="headerlink" href="#step-6-wallet-address-creation" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>sequenceDiagram
+    participant U as 👤 User
+    participant FE as Frontend
+    participant BE as Backend
+    participant R as Rafiki (ILP)
+    participant DB as PostgreSQL
+
+    rect rgb(6, 182, 212)
+    U-&gt;&gt;FE: Enter desired username
+    FE-&gt;&gt;BE: WalletAddressValid gRPC
+    BE--&gt;&gt;FE: available = true
+    U-&gt;&gt;FE: Submit
+    end
+
+    rect rgb(8, 145, 178)
+    FE-&gt;&gt;BE: CreateWalletAddress gRPC
+    BE-&gt;&gt;R: Create payment pointer
+    R--&gt;&gt;BE: pointer ID
+    BE-&gt;&gt;DB: INSERT wallet address
+    BE--&gt;&gt;FE: success
+    FE--&gt;&gt;U: Redirect to dashboard 🎉
+    end</code></pre>
+<hr />
+<h2 id="1-profile-details-collection">1) Profile Details Collection<a class="headerlink" href="#1-profile-details-collection" title="Permanent link">&para;</a></h2>
+<p>The first step captures basic identity information required for regulatory compliance and wallet provisioning.</p>
+<h3 id="frontend-flow">Frontend Flow<a class="headerlink" href="#frontend-flow" title="Permanent link">&para;</a></h3>
+<p>Route: <code>/signup</code> (<code>typescript/protea/app/routes/signup/route.tsx</code>)</p>
+<p>The user fills in:
+- <strong>First Name</strong> — Legal first name
+- <strong>Last Name</strong> — Legal last name
+- <strong>Email</strong> — Primary contact email
+- <strong>Country</strong> — Country of residence (ISO 3166-1 alpha-2 code)
+- <strong>Phone</strong> — Mobile phone number in E.164 format (field appears after country is selected, pre-populated with the country dial code)</p>
+<p><strong>Country restrictions:</strong> Only users from supported countries can proceed: all EU member states, US, CA, and ZA. Users from unsupported countries are redirected to the waitlist (see <code>isEUCountry()</code> in <code>typescript/protea/app/routes/signup/About.tsx</code> and the country check in <code>route.tsx</code>).</p>
+<h3 id="backend-processing">Backend Processing<a class="headerlink" href="#backend-processing" title="Permanent link">&para;</a></h3>
+<p><strong>gRPC:</strong> <code>SetSignupUserData</code><br />
+<strong>Handler:</strong> <code>grpc/signup.go</code><br />
+<strong>Operation:</strong> <code>signup/ops/service.go::SetUserData</code></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kd">type</span><span class="w"> </span><span class="nx">UserDataArgs</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="nx">ID</span><span class="w">          </span><span class="kt">string</span><span class="w"> </span><span class="c1">// Optional: existing signup_id for updates</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nx">FirstName</span><span class="w">   </span><span class="kt">string</span><span class="w"> </span><span class="c1">// Required, trimmed</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="nx">LastName</span><span class="w">    </span><span class="kt">string</span><span class="w"> </span><span class="c1">// Required, trimmed</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="nx">Email</span><span class="w">       </span><span class="kt">string</span><span class="w"> </span><span class="c1">// Required, must be valid email</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="nx">CountryCode</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="c1">// Required, ISO 3166-1 alpha-2</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="p">}</span>
+</code></pre></div>
+<p><strong>Validation:</strong>
+- Email format validation (<code>validate:"required,email"</code>)
+- Country code validation (<code>validate:"required,iso3166_1_alpha2"</code>)
+- Name trimming removes extra whitespace</p>
+<p><strong>Database:</strong>
+- Table: <code>signups</code>
+- Action: <code>INSERT</code> (new) or <code>UPDATE</code> (existing)
+- Returns: <code>signup_id</code> (UUID)</p>
+<p><strong>Implementation note:</strong> Extra spaces in names are normalized: <code>"John   Doe"</code> → <code>"John Doe"</code>.</p>
+<hr />
+<h2 id="2-phone-number-collection">2) Phone Number Collection<a class="headerlink" href="#2-phone-number-collection" title="Permanent link">&para;</a></h2>
+<p>Phone number is collected as part of the <strong>About form</strong> (Step 1), alongside name, email, and country. There is no separate phone step in the signup flow.</p>
+<h3 id="frontend-flow_1">Frontend Flow<a class="headerlink" href="#frontend-flow_1" title="Permanent link">&para;</a></h3>
+<p>Route: <code>/signup</code> — About step (<code>typescript/protea/app/routes/signup/About.tsx</code>)</p>
+<ol>
+<li>User selects their country from the dropdown</li>
+<li>Phone field appears, pre-populated with the country dial code (e.g., <code>+49</code> for Germany)</li>
+<li>User completes the phone number</li>
+<li>Form is submitted; <code>detailsAction</code> validates the phone and stores it in the signup Zustand store</li>
+<li>On success, the signup advances directly to the password step</li>
+</ol>
+<p><strong>Implementation notes:</strong>
+- <code>PhoneTextField</code> remounts on country change via <code>key={country.id}</code>, keeping the dial code in sync
+- The phone value persists across back-navigation because it is read from the Zustand store on mount
+- The phone field is gated: it only renders once a country is selected (<code>{country &amp;&amp; &lt;PhoneTextField … /&gt;}</code>)</p>
+<h3 id="backend-processing_1">Backend Processing<a class="headerlink" href="#backend-processing_1" title="Permanent link">&para;</a></h3>
+<p>Phone is stored via <code>SetSignupMobileNumber</code> gRPC as part of the signup completion flow.</p>
+<p><strong>gRPC:</strong> <code>SetSignupMobileNumber</code><br />
+<strong>Handler:</strong> <code>grpc/signup.go</code><br />
+<strong>Operation:</strong> <code>signup/ops/service.go::SetMobileNumber</code></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kd">type</span><span class="w"> </span><span class="nx">MobileNumberArgs</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span><span class="nx">ID</span><span class="w">           </span><span class="kt">string</span><span class="w"> </span><span class="c1">// signup_id</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="nx">MobileNumber</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="c1">// E.164 format, e.g., &quot;+14155552671&quot;</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="nx">OTP</span><span class="w">          </span><span class="kt">string</span><span class="w"> </span><span class="c1">// 6-digit numeric code</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="p">}</span>
+</code></pre></div>
+<p><strong>Validation:</strong>
+- Phone format: <code>validate:"required,e164"</code>
+- OTP format: <code>validate:"required,numeric,len=6"</code></p>
+<h3 id="otp-verification">OTP Verification<a class="headerlink" href="#otp-verification" title="Permanent link">&para;</a></h3>
+<p>After the user provides their phone number in the About form:</p>
+<ol>
+<li>After the user submits their phone number, the frontend calls <code>SendPhoneVerification</code> gRPC</li>
+<li>Backend triggers a Twilio Verify SMS to the user's phone</li>
+<li>User enters the 6-digit code in an OTP challenge dialog</li>
+<li>Frontend submits phone + OTP to backend via <code>SetSignupMobileNumber</code> gRPC</li>
+<li>Backend calls Twilio <code>CheckVerificationCode</code> and rejects invalid or expired codes</li>
+</ol>
+<p><strong>Security consideration:</strong> The duplicate phone check happens <strong>after</strong> OTP validation to prevent data leakage through timing attacks.</p>
+<p><strong>Common errors:</strong>
+- <code>ErrInvalidOTP</code> — Wrong code or expired
+- <code>ErrDuplicatePhone</code> — Phone already registered to another user</p>
+<hr />
+<h2 id="3-password-creation">3) Password Creation<a class="headerlink" href="#3-password-creation" title="Permanent link">&para;</a></h2>
+<p>Password registration is handled entirely by <strong>Ory Kratos</strong> using the self-service registration flow.</p>
+<h3 id="kratos-registration-flow">Kratos Registration Flow<a class="headerlink" href="#kratos-registration-flow" title="Permanent link">&para;</a></h3>
+<p><strong>Kratos endpoint:</strong> <code>/self-service/registration/browser</code><br />
+<strong>Session:</strong> Managed via cookies (set by Kratos)</p>
+<p><strong>Note on phone numbers:</strong> Kratos is not involved in phone/OTP verification. The phone number is passed to Kratos only as a passive <code>traits.phone</code> field during the registration step — Kratos stores it but does not verify it.</p>
+<h3 id="frontend-flow_2">Frontend Flow<a class="headerlink" href="#frontend-flow_2" title="Permanent link">&para;</a></h3>
+<p>Route: <code>/signup</code> (<code>typescript/protea/app/routes/signup/route.tsx</code>) (Password step)</p>
+<ol>
+<li>Frontend initializes Kratos registration flow</li>
+<li>Extracts <code>flowId</code> and <code>csrfToken</code> from Kratos response</li>
+<li>User enters password (must meet Kratos password policy)</li>
+<li>Frontend submits registration form to Kratos</li>
+<li>Kratos creates identity and sends verification email</li>
+<li>Frontend receives registration success response</li>
+<li>Frontend calls <code>CompleteSignup</code> gRPC to link Kratos identity to signup record</li>
+</ol>
+<h3 id="backend-processing_2">Backend Processing<a class="headerlink" href="#backend-processing_2" title="Permanent link">&para;</a></h3>
+<p><strong>gRPC:</strong> <code>CompleteSignup</code><br />
+<strong>Handler:</strong> <code>grpc/signup.go</code><br />
+<strong>Operation:</strong> <code>signup/ops/service.go::Complete</code></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kd">func</span><span class="w"> </span><span class="nx">Complete</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">b</span><span class="w"> </span><span class="nx">Backends</span><span class="p">,</span><span class="w"> </span><span class="nx">id</span><span class="p">,</span><span class="w"> </span><span class="nx">userID</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">    </span><span class="c1">// Validate that signup exists and is not already completed</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="nx">current</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">Get</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">b</span><span class="p">,</span><span class="w"> </span><span class="nx">id</span><span class="p">)</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">current</span><span class="p">.</span><span class="nx">UserID</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nx">current</span><span class="p">.</span><span class="nx">UserID</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nx">userID</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Errorf</span><span class="p">(</span><span class="s">&quot;tried to complete an already complete signup&quot;</span><span class="p">)</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">    </span><span class="c1">// Link Kratos identity to signup record</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">    </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">b</span><span class="p">.</span><span class="nx">DB</span><span class="p">().</span><span class="nx">ExecContext</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">        </span><span class="s">&quot;UPDATE signups SET user_id=$1, updated_at=now() WHERE id=$2 AND user_id IS NULL&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">        </span><span class="nx">userID</span><span class="p">,</span><span class="w"> </span><span class="nx">id</span><span class="p">)</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="w">    </span><span class="c1">// Send Slack notification</span>
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="w">    </span><span class="nx">slack</span><span class="p">.</span><span class="nx">SendToChannel</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">slack</span><span class="p">.</span><span class="nx">ChannelNotifyEvents</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;wallet-info-bot&quot;</span><span class="p">,</span><span class="w"> </span>
+<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="w">        </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Sprintf</span><span class="p">(</span><span class="s">&quot;:baby: New Sign Up\nID: %s\nUser ID: %s\nFull name: %s\nCountry: %s&quot;</span><span class="p">,</span><span class="w"> </span>
+<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="w">        </span><span class="nx">current</span><span class="p">.</span><span class="nx">ID</span><span class="p">,</span><span class="w"> </span><span class="nx">userID</span><span class="p">,</span><span class="w"> </span><span class="nx">current</span><span class="p">.</span><span class="nx">FirstName</span><span class="o">+</span><span class="s">&quot; &quot;</span><span class="o">+</span><span class="nx">current</span><span class="p">.</span><span class="nx">LastName</span><span class="p">,</span><span class="w"> </span><span class="nx">current</span><span class="p">.</span><span class="nx">CountryCode</span><span class="p">))</span>
+<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>
+<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="kc">nil</span>
+<a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="p">}</span>
+</code></pre></div>
+<p><strong>Database changes:</strong>
+- Table: <code>signups</code>
+- Action: <code>UPDATE signups SET user_id = {kratos_identity_id}</code>
+- Also creates: Kratos identity in <code>identities</code> table</p>
+<p><strong>Idempotency:</strong> If signup is already completed with the same user_id, operation succeeds. If different user_id, operation fails.</p>
+<hr />
+<h2 id="4-account-verification">4) Account Verification<a class="headerlink" href="#4-account-verification" title="Permanent link">&para;</a></h2>
+<p>After password creation, Kratos sends a verification email. The user must click the link to verify their email address.</p>
+<h3 id="email-verification-flow">Email Verification Flow<a class="headerlink" href="#email-verification-flow" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Kratos sends email</strong> with verification link</li>
+<li><strong>User clicks link</strong> (format: <code>{KRATOS_URL}/self-service/verification?flow={flowId}&amp;code={verificationCode}</code>)</li>
+<li><strong>Kratos marks identity verified</strong> in database</li>
+<li><strong>User redirected to login</strong> page</li>
+</ol>
+<p><strong>No backend code required</strong> — Kratos handles this entirely.</p>
+<p><strong>Verification status</strong> is stored in Kratos <code>identity_verifiable_addresses</code> table:
+- <code>verified</code> = <code>false</code> → user must verify
+- <code>verified</code> = <code>true</code> → user can proceed</p>
+<hr />
+<h2 id="5-two-factor-authentication-totp">5) Two-Factor Authentication (TOTP)<a class="headerlink" href="#5-two-factor-authentication-totp" title="Permanent link">&para;</a></h2>
+<p>After email verification, users must set up TOTP for enhanced security. This is <strong>mandatory</strong> before accessing the application.</p>
+<h3 id="what-is-totp">What is TOTP?<a class="headerlink" href="#what-is-totp" title="Permanent link">&para;</a></h3>
+<p><strong>TOTP (Time-based One-Time Password)</strong> generates a 6-digit code that changes every 30 seconds, based on:
+- A shared <strong>secret key</strong> (stored in Kratos and user's authenticator app)
+- The current <strong>timestamp</strong> (synchronized between server and client)</p>
+<p><strong>Algorithm:</strong> RFC 6238 TOTP (built on HMAC-SHA1)</p>
+<h3 id="frontend-flow_3">Frontend Flow<a class="headerlink" href="#frontend-flow_3" title="Permanent link">&para;</a></h3>
+<p>Route: <code>/totp/two-factor-authentication</code> (<code>typescript/protea/app/routes/totp_.two-factor-authentication.tsx</code>)</p>
+<ol>
+<li><strong>User logs in</strong> with email + password</li>
+<li><strong>Kratos detects</strong> TOTP not configured</li>
+<li><strong>Kratos redirects</strong> to TOTP setup page</li>
+<li><strong>Frontend fetches</strong> Kratos settings flow</li>
+<li><strong>Kratos generates</strong> TOTP secret key</li>
+<li><strong>Frontend displays</strong>:</li>
+<li>QR code (for scanning)</li>
+<li>Secret key (for manual entry)</li>
+<li><strong>User scans QR</strong> with authenticator app (Google Authenticator, Authy, 1Password, etc.)</li>
+<li><strong>User enters</strong> generated 6-digit code</li>
+<li><strong>Frontend submits</strong> TOTP code to Kratos</li>
+<li><strong>Kratos validates</strong> code and saves TOTP credential</li>
+<li><strong>User redirected</strong> to dashboard</li>
+</ol>
+<h3 id="kratos-totp-setup">Kratos TOTP Setup<a class="headerlink" href="#kratos-totp-setup" title="Permanent link">&para;</a></h3>
+<p><strong>Kratos settings endpoint:</strong> <code>/self-service/settings/browser</code><br />
+<strong>TOTP method:</strong> <code>totp</code></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1">// Frontend extracts TOTP data from Kratos flow</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="kd">const</span><span class="w"> </span><span class="nx">totpSchema</span><span class="o">:</span><span class="w"> </span><span class="kt">TotpForm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">nodes</span><span class="p">.</span><span class="nx">reduce</span><span class="p">((</span><span class="nx">acc</span><span class="p">,</span><span class="w"> </span><span class="nx">node</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">node</span><span class="p">.</span><span class="nx">group</span><span class="w"> </span><span class="o">!==</span><span class="w"> </span><span class="s1">&#39;totp&#39;</span><span class="p">)</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="nx">acc</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span><span class="c1">// QR code image (data URI)</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="s1">&#39;src&#39;</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="nx">node</span><span class="p">.</span><span class="nx">attributes</span><span class="p">)</span><span class="w"> </span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">        </span><span class="nx">acc</span><span class="p">.</span><span class="nx">qrNode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">node</span><span class="p">.</span><span class="nx">attributes</span><span class="p">.</span><span class="nx">src</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">    </span><span class="c1">// Secret key (text format for manual entry)</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="s1">&#39;text&#39;</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="nx">node</span><span class="p">.</span><span class="nx">attributes</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nx">node</span><span class="p">.</span><span class="nx">attributes</span><span class="p">.</span><span class="nx">id</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s1">&#39;totp_secret_key&#39;</span><span class="p">)</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">        </span><span class="nx">acc</span><span class="p">.</span><span class="nx">secretKey</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">node</span><span class="p">.</span><span class="nx">attributes</span><span class="p">.</span><span class="nx">text</span><span class="p">.</span><span class="nx">text</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">acc</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="p">},</span><span class="w"> </span><span class="p">{})</span>
+</code></pre></div>
+<p><strong>TOTP secret format:</strong> Base32-encoded string (e.g., <code>JBSWY3DPEHPK3PXP</code>)</p>
+<h3 id="totp-verification">TOTP Verification<a class="headerlink" href="#totp-verification" title="Permanent link">&para;</a></h3>
+<p>When user submits the code:</p>
+<ol>
+<li><strong>Kratos receives</strong> <code>totp_code</code> field</li>
+<li><strong>Kratos generates</strong> expected code from secret key + current time</li>
+<li><strong>Kratos compares</strong> submitted code with expected code</li>
+<li><strong>Kratos allows</strong> time drift of ±1 period (30 seconds)</li>
+<li>If valid: <strong>Kratos saves</strong> TOTP credential to <code>identity_credentials</code> table</li>
+</ol>
+<p><strong>Database storage:</strong>
+- Table: <code>identity_credentials</code>
+- Type: <code>totp</code>
+- Identifiers: TOTP secret key (encrypted)</p>
+<h3 id="admin-operations">Admin Operations<a class="headerlink" href="#admin-operations" title="Permanent link">&para;</a></h3>
+<p><strong>Check TOTP status:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1">// Backend: user/ops/ops.go::CheckUserTotpEnabled</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="kd">func</span><span class="w"> </span><span class="nx">CheckUserTotpEnabled</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">b</span><span class="w"> </span><span class="nx">Backends</span><span class="p">,</span><span class="w"> </span><span class="nx">identityID</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="kt">bool</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="nx">creds</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">b</span><span class="p">.</span><span class="nx">Kratos</span><span class="p">().</span><span class="nx">ListIdentityCredentials</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">identityID</span><span class="p">)</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span><span class="nx">totp</span><span class="p">,</span><span class="w"> </span><span class="nx">ok</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">creds</span><span class="p">[</span><span class="s">&quot;totp&quot;</span><span class="p">]</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nb">len</span><span class="p">(</span><span class="nx">totp</span><span class="p">.</span><span class="nx">Identifiers</span><span class="p">)</span><span class="w"> </span><span class="p">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="kc">nil</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="p">}</span>
+</code></pre></div></p>
+<p><strong>Reset TOTP enrollment:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1">// Backend: user/ops/ops.go::Delete2FATotpEnrollment</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="kd">func</span><span class="w"> </span><span class="nx">Delete2FATotpEnrollment</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">b</span><span class="w"> </span><span class="nx">Backends</span><span class="p">,</span><span class="w"> </span><span class="nx">identityID</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">b</span><span class="p">.</span><span class="nx">Kratos</span><span class="p">().</span><span class="nx">DeleteIdentityCredentials</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">identityID</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;totp&quot;</span><span class="p">)</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="p">}</span>
+</code></pre></div></p>
+<p><strong>gRPC admin endpoints:</strong>
+- <code>CheckUserTotpEnabled</code> — Returns whether user has TOTP configured
+- <code>Delete2FATotpEnrollment</code> — Removes TOTP credential (user must re-enroll)</p>
+<hr />
+<h2 id="6-wallet-address-creation">6) Wallet Address Creation<a class="headerlink" href="#6-wallet-address-creation" title="Permanent link">&para;</a></h2>
+<p>After TOTP setup, users create a unique payment address (also called wallet address or payment pointer).</p>
+<h3 id="what-is-a-wallet-address">What is a Wallet Address?<a class="headerlink" href="#what-is-a-wallet-address" title="Permanent link">&para;</a></h3>
+<p>A <strong>wallet address</strong> is a URL that identifies a user on the Interledger network, enabling them to receive payments.</p>
+<p><strong>Format:</strong> <code>https://ilp.link/{username}</code><br />
+<strong>Examples:</strong>
+- <code>https://ilp.link/alice</code>
+- <code>https://ilp.link/bob_123</code>
+- <code>https://ilp.link/carol.doe</code></p>
+<p><strong>Purpose:</strong> Acts as a stable identifier for the user's wallet, similar to an email address for payments.</p>
+<h3 id="frontend-flow_4">Frontend Flow<a class="headerlink" href="#frontend-flow_4" title="Permanent link">&para;</a></h3>
+<p>Route: <code>/wallet-address</code> (<code>typescript/protea/app/routes/wallet-address.tsx</code>)</p>
+<ol>
+<li><strong>Frontend suggests</strong> username (based on user's first name)</li>
+<li><strong>Frontend validates</strong> username availability (via <code>WalletAddressValid</code> gRPC)</li>
+<li><strong>User customizes</strong> username if desired</li>
+<li><strong>User submits</strong> form</li>
+<li><strong>Backend creates</strong> payment pointer in Rafiki</li>
+<li><strong>Backend saves</strong> wallet address to database</li>
+<li><strong>User redirected</strong> to dashboard</li>
+</ol>
+<h3 id="username-generation-logic">Username Generation Logic<a class="headerlink" href="#username-generation-logic" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kd">let</span><span class="w"> </span><span class="nx">usernameIsValid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="kd">let</span><span class="w"> </span><span class="nx">attempts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="kd">let</span><span class="w"> </span><span class="nx">username</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">session</span><span class="p">.</span><span class="nx">identity</span><span class="p">.</span><span class="nx">traits</span><span class="p">.</span><span class="nx">firstName</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="nx">usernameIsValid</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nx">attempts</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mf">5</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">    </span><span class="kd">let</span><span class="w"> </span><span class="nx">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">grpc</span><span class="p">.</span><span class="nx">walletAddressValid</span><span class="p">(</span><span class="nx">request</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">        </span><span class="nx">url</span><span class="o">:</span><span class="w"> </span><span class="sb">`https://</span><span class="si">${</span><span class="nx">PAYMENT_POINTER_BASE</span><span class="si">}</span><span class="sb">/</span><span class="si">${</span><span class="nx">username</span><span class="si">}</span><span class="sb">`</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">    </span><span class="p">})</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">response</span><span class="p">.</span><span class="nx">exists</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="w">        </span><span class="nx">attempts</span><span class="o">++</span>
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="w">        </span><span class="nx">username</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">session</span><span class="p">.</span><span class="nx">identity</span><span class="p">.</span><span class="nx">traits</span><span class="p">.</span><span class="nx">firstName</span>
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">username</span><span class="p">.</span><span class="nx">length</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mf">4</span><span class="p">)</span><span class="w"> </span>
+<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="w">            </span><span class="nx">username</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="nx">session</span><span class="p">.</span><span class="nx">identity</span><span class="p">.</span><span class="nx">traits</span><span class="p">.</span><span class="nx">lastName</span>
+<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">attempts</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mf">1</span><span class="p">)</span>
+<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a><span class="w">            </span><span class="nx">username</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="nb">String</span><span class="p">(</span><span class="nb">Math</span><span class="p">.</span><span class="nx">floor</span><span class="p">(</span><span class="nb">Math</span><span class="p">.</span><span class="nx">random</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">10000</span><span class="p">)).</span><span class="nx">padStart</span><span class="p">(</span><span class="mf">4</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;0&#39;</span><span class="p">)</span>
+<a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a><span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a><span class="w">        </span><span class="nx">usernameIsValid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a><span class="p">}</span>
+</code></pre></div>
+<p><strong>Fallback strategy:</strong>
+1. Try <code>firstName</code> (e.g., <code>alice</code>)
+2. Try <code>firstName + lastName</code> (e.g., <code>alicejones</code>)
+3. Try <code>firstName + random4Digits</code> (e.g., <code>alice1234</code>)
+4. After 5 attempts, leave blank (user must choose manually)</p>
+<h3 id="backend-processing_3">Backend Processing<a class="headerlink" href="#backend-processing_3" title="Permanent link">&para;</a></h3>
+<p><strong>gRPC:</strong> <code>CreateWalletAddress</code><br />
+<strong>Handler:</strong> <code>grpc/address.go</code><br />
+<strong>Operations:</strong>
+1. Parse and validate wallet address format
+2. Add address to wallet (<code>wallets/ops/ops.go::AddAddress</code>)
+3. Set wallet public name (<code>wallets/ops/ops.go::SetWalletName</code>)
+4. Create Rafiki payment pointer (<code>rafiki/ops/ops.go::CreatePaymentPointer</code>)
+5. Update payment pointer status in Rafiki</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">g</span><span class="w"> </span><span class="o">*</span><span class="nx">rpcService</span><span class="p">)</span><span class="w"> </span><span class="nx">CreateWalletAddress</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">req</span><span class="w"> </span><span class="o">*</span><span class="nx">pb</span><span class="p">.</span><span class="nx">CreateWalletAddressRequest</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="nx">pb</span><span class="p">.</span><span class="nx">Empty</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">    </span><span class="nx">wallet</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">g</span><span class="p">.</span><span class="nx">b</span><span class="p">.</span><span class="nx">Wallets</span><span class="p">().</span><span class="nx">ForContext</span><span class="p">(</span><span class="nx">ctx</span><span class="p">)</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">    </span><span class="c1">// Parse address (validates URL format)</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">    </span><span class="nx">wa</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">wallets</span><span class="p">.</span><span class="nx">ParseAddress</span><span class="p">(</span><span class="nx">req</span><span class="p">.</span><span class="nx">Url</span><span class="p">)</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">    </span><span class="c1">// Save address to wallet</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">    </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">g</span><span class="p">.</span><span class="nx">b</span><span class="p">.</span><span class="nx">Wallets</span><span class="p">().</span><span class="nx">AddAddress</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">wallet</span><span class="p">.</span><span class="nx">ID</span><span class="p">,</span><span class="w"> </span><span class="nx">wa</span><span class="p">.</span><span class="nx">String</span><span class="p">())</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="w">    </span><span class="c1">// Update wallet name</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">    </span><span class="nx">wallet</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">g</span><span class="p">.</span><span class="nx">b</span><span class="p">.</span><span class="nx">Wallets</span><span class="p">().</span><span class="nx">SetWalletName</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">wallet</span><span class="p">.</span><span class="nx">ID</span><span class="p">,</span><span class="w"> </span><span class="nx">req</span><span class="p">.</span><span class="nx">GetAlias</span><span class="p">())</span>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="w">    </span><span class="c1">// Create payment pointer in Rafiki</span>
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="w">    </span><span class="nx">rafikiID</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">g</span><span class="p">.</span><span class="nx">b</span><span class="p">.</span><span class="nx">Rafiki</span><span class="p">().</span><span class="nx">CreatePaymentPointer</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="nx">wallet</span><span class="p">)</span>
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a>
+<a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="w">    </span><span class="c1">// Activate payment pointer</span>
+<a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="w">    </span><span class="nx">err</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">g</span><span class="p">.</span><span class="nx">b</span><span class="p">.</span><span class="nx">Rafiki</span><span class="p">().</span><span class="nx">UpdateWalletAddressStatus</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">rafiki</span><span class="p">.</span><span class="nx">UpdateAddressStatus</span><span class="p">{</span>
+<a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a><span class="w">        </span><span class="nx">ID</span><span class="p">:</span><span class="w">   </span><span class="nx">rafikiID</span><span class="p">,</span>
+<a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a><span class="w">        </span><span class="nx">Name</span><span class="p">:</span><span class="w"> </span><span class="nx">wallet</span><span class="p">.</span><span class="nx">Name</span><span class="p">,</span>
+<a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a><span class="w">    </span><span class="p">},</span><span class="w"> </span><span class="kc">false</span><span class="p">)</span>
+<a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a>
+<a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">pb</span><span class="p">.</span><span class="nx">Empty</span><span class="p">{},</span><span class="w"> </span><span class="kc">nil</span>
+<a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a><span class="p">}</span>
+</code></pre></div>
+<p><strong>Database changes:</strong>
+- Table: <code>wallet_addresses</code>
+- Action: <code>INSERT INTO wallet_addresses (wallet_id, url, alias)</code>
+- Also creates: Payment pointer in Rafiki (ILP connector)</p>
+<p><strong>Analytics tracking:</strong> <code>TrackWalletPaymentPointerCreated</code> event sent to analytics service.</p>
+<hr />
+<h2 id="7-wallet-initialization">7) Wallet Initialization<a class="headerlink" href="#7-wallet-initialization" title="Permanent link">&para;</a></h2>
+<p>After signup completes, a default wallet is created for the user.</p>
+<h3 id="when-is-the-wallet-created">When is the Wallet Created?<a class="headerlink" href="#when-is-the-wallet-created" title="Permanent link">&para;</a></h3>
+<p><strong>Timing:</strong> During Kratos registration flow, after password creation.</p>
+<p><strong>Trigger:</strong> Frontend calls <code>CreateUserDefaultWallet</code> gRPC immediately after Kratos registration succeeds.</p>
+<h3 id="backend-processing_4">Backend Processing<a class="headerlink" href="#backend-processing_4" title="Permanent link">&para;</a></h3>
+<p><strong>gRPC:</strong> <code>CreateUserDefaultWallet</code><br />
+<strong>Handler:</strong> <code>grpc/user.go</code><br />
+<strong>Operation:</strong> <code>wallets/ops/ops.go::Create</code></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><span class="nx">rpcService</span><span class="p">)</span><span class="w"> </span><span class="nx">CreateUserDefaultWallet</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">req</span><span class="w"> </span><span class="o">*</span><span class="nx">pb</span><span class="p">.</span><span class="nx">CreateUserDefaultWalletRequest</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="nx">pb</span><span class="p">.</span><span class="nx">Empty</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">    </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">s</span><span class="p">.</span><span class="nx">b</span><span class="p">.</span><span class="nx">Wallets</span><span class="p">().</span><span class="nx">Create</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">wallets</span><span class="p">.</span><span class="nx">CreateArgs</span><span class="p">{</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">        </span><span class="nx">UserID</span><span class="p">:</span><span class="w"> </span><span class="nx">req</span><span class="p">.</span><span class="nx">UserID</span><span class="p">,</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">    </span><span class="p">})</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">pb</span><span class="p">.</span><span class="nx">Empty</span><span class="p">{},</span><span class="w"> </span><span class="nx">toGRPCError</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="p">}</span>
+</code></pre></div>
+<p><strong>Wallet creation:</strong>
+- Determines user's country from Kratos identity traits
+- Creates wallet record in <code>wallets</code> table
+- Associates wallet with user's Kratos identity</p>
+<p><strong>Note:</strong> At this stage, the wallet has no linked accounts yet. Provider account linking happens during KYC activation.</p>
+<hr />
+<h2 id="8-temporal-workflows-backend-orchestration">8) Temporal Workflows (Backend Orchestration)<a class="headerlink" href="#8-temporal-workflows-backend-orchestration" title="Permanent link">&para;</a></h2>
+<p>Signup triggers several <strong>Temporal workflows</strong> for asynchronous, durable processing.</p>
+<h3 id="what-is-temporal">What is Temporal?<a class="headerlink" href="#what-is-temporal" title="Permanent link">&para;</a></h3>
+<p><strong>Temporal</strong> is a workflow orchestration engine that ensures long-running, multi-step processes complete reliably even if services restart.</p>
+<p><strong>Key features:</strong>
+- <strong>Durable execution</strong> — Workflows resume after crashes
+- <strong>Automatic retries</strong> — Failed activities retry with backoff
+- <strong>Versioning</strong> — Workflow code can evolve without breaking in-flight workflows</p>
+<h3 id="signup-related-workflows">Signup-Related Workflows<a class="headerlink" href="#signup-related-workflows" title="Permanent link">&para;</a></h3>
+<p>While the core signup flow is synchronous, several background workflows prepare the account for use:</p>
+<h4 id="1-provider-user-creation-workflows">1. Provider User Creation Workflows<a class="headerlink" href="#1-provider-user-creation-workflows" title="Permanent link">&para;</a></h4>
+<p>After wallet creation, provider-specific workflows provision external accounts:</p>
+<p><strong>GateHub:</strong> <code>CreateGatehubUserWorkflow</code>
+- <strong>Workflow ID:</strong> <code>gatehub_create_user_{walletID}</code>
+- <strong>Activities:</strong>
+  1. <code>GetGatehubUser</code> — Check if user exists in GateHub
+  2. <code>CreateGatehubUser</code> — Create managed user (if not exists)
+  3. <code>SaveGatehubUser</code> — Save <code>external_user_id</code> to database
+  4. <code>CreateGatehubWalletLinkedAccount</code> — Create linked account record
+  5. <code>CreateGatehubBalanceAccount</code> — Initialize balance tracking account</p>
+<p><strong>Xago:</strong> <code>CreateBalanceAccountWorkflow</code>
+- <strong>Workflow ID:</strong> <code>xago_create_balance_{walletID}</code>
+- <strong>Activities:</strong>
+  1. <code>CreateSubAccount</code> — Create Xago sub-account
+  2. <code>CreateLinkedAccount</code> — Store linked account
+  3. <code>CreateBalanceAccount</code> — Initialize balance tracking</p>
+<p><strong>PTI:</strong> <code>CreateUserWorkflow</code>
+- <strong>Workflow ID:</strong> <code>pti_create_user_{walletID}</code>
+- <strong>Activities:</strong>
+  1. <code>GetPtiUser</code> — Check if PTI user exists
+  2. <code>CreatePtiUser</code> — Create PTI user (if not exists)
+  3. <code>SavePtiUser</code> — Save external user ID</p>
+<p><strong>Chimoney:</strong> <code>CreateChimoneyUserWorkflow</code>
+- <strong>Workflow ID:</strong> Similar pattern</p>
+<p><strong>Why Temporal?</strong> Provider API calls can be slow or fail. Temporal ensures these operations complete even if the backend server restarts.</p>
+<h4 id="2-payment-pointer-provisioning">2. Payment Pointer Provisioning<a class="headerlink" href="#2-payment-pointer-provisioning" title="Permanent link">&para;</a></h4>
+<p><strong>Workflow:</strong> <code>CreateRafikiPaymentPointersJob</code>
+- <strong>Purpose:</strong> Backfill payment pointers for wallets created before Rafiki integration
+- <strong>Trigger:</strong> Manual admin job (not part of normal signup)
+- <strong>Activities:</strong>
+  1. <code>ListAllWallets</code> — Find wallets without payment pointers
+  2. <code>AddWalletToRafiki</code> — Create payment pointer for each wallet</p>
+<h4 id="3-kyc-workflows-post-signup">3. KYC Workflows (Post-Signup)<a class="headerlink" href="#3-kyc-workflows-post-signup" title="Permanent link">&para;</a></h4>
+<p>After signup, users must complete KYC to activate their wallet. These workflows are triggered during KYC:</p>
+<p><strong>LinkGatehubUserToGatewayWorkflow</strong>
+- <strong>Workflow ID:</strong> <code>gatehub_link_user_to_gateway_{walletID}</code>
+- <strong>Purpose:</strong> Connect managed user to Paywiser gateway
+- <strong>Trigger:</strong> After <code>CreateGatehubUserWorkflow</code> completes</p>
+<p><strong>BackfillAccountWorkflow</strong>
+- <strong>Trigger:</strong> <code>id.verification.accepted</code> webhook from provider
+- <strong>Purpose:</strong> Sync provider balance to wallet database after KYC approval
+- <strong>Activities:</strong>
+  1. <code>CheckIfBackfillWasDone</code> — Prevent duplicate backfills
+  2. <code>GetLinkedAccount</code> — Fetch linked account details
+  3. <code>BackfillPaywiserBalanceAfterKYC</code> — Get current balance from provider
+  4. <code>MarkBackfillUser</code> — Update account balance in database
+  5. <code>SetKYCStatus</code> — Update <code>wallet_kyc_status</code> to <code>level1</code></p>
+<p><strong>See <a href="../kyc-guide/">KYC Explainer</a> for detailed KYC workflow documentation.</strong></p>
+<h3 id="workflow-worker">Workflow Worker<a class="headerlink" href="#workflow-worker" title="Permanent link">&para;</a></h3>
+<p><strong>Worker service:</strong> <code>go/backend/main.go</code> with <code>worker</code> subcommand</p>
+<p>The Temporal worker runs separately from the HTTP server:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># Start HTTP server only</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>./backend<span class="w"> </span>start
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="c1"># Start Temporal worker only</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>./backend<span class="w"> </span>worker
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="c1"># Start both (for development)</span>
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>./backend<span class="w"> </span>dev
+</code></pre></div>
+<p><strong>Worker registration:</strong> <code>temporal/worker.go</code></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kd">func</span><span class="w"> </span><span class="nx">NewTemporalWorker</span><span class="p">(</span><span class="nx">b</span><span class="w"> </span><span class="nx">Backends</span><span class="p">,</span><span class="w"> </span><span class="nx">gatehubConfig</span><span class="w"> </span><span class="nx">gatehub</span><span class="p">.</span><span class="nx">Config</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">worker</span><span class="p">.</span><span class="nx">Worker</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">    </span><span class="nx">w</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">worker</span><span class="p">.</span><span class="nx">New</span><span class="p">(</span><span class="nx">b</span><span class="p">.</span><span class="nx">Temporal</span><span class="p">(),</span><span class="w"> </span><span class="s">&quot;backend&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">worker</span><span class="p">.</span><span class="nx">Options</span><span class="p">{})</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">    </span><span class="c1">// Register all workflows</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="w">    </span><span class="nx">w</span><span class="p">.</span><span class="nx">RegisterWorkflow</span><span class="p">(</span><span class="nx">gatehub_workflows</span><span class="p">.</span><span class="nx">CreateGatehubUserWorkflow</span><span class="p">)</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="w">    </span><span class="nx">w</span><span class="p">.</span><span class="nx">RegisterWorkflow</span><span class="p">(</span><span class="nx">gatehub_workflows</span><span class="p">.</span><span class="nx">LinkGatehubUserToGatewayWorkflow</span><span class="p">)</span>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="w">    </span><span class="nx">w</span><span class="p">.</span><span class="nx">RegisterWorkflow</span><span class="p">(</span><span class="nx">xago_workflows</span><span class="p">.</span><span class="nx">CreateBalanceAccountWorkflow</span><span class="p">)</span>
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="w">    </span><span class="nx">w</span><span class="p">.</span><span class="nx">RegisterWorkflow</span><span class="p">(</span><span class="nx">pti_workflows</span><span class="p">.</span><span class="nx">CreateUserWorkflow</span><span class="p">)</span>
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="w">    </span><span class="c1">// ... many more</span>
+<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a>
+<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">w</span><span class="p">,</span><span class="w"> </span><span class="kc">nil</span>
+<a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="p">}</span>
+</code></pre></div>
+<p><strong>Workflow execution options:</strong>
+- <strong>Timeout:</strong> 10 seconds per activity (for user creation workflows)
+- <strong>Retry policy:</strong> 3 maximum attempts
+- <strong>Task queue:</strong> <code>backend</code></p>
+<hr />
+<h2 id="9-signup-state-machine">9) Signup State Machine<a class="headerlink" href="#9-signup-state-machine" title="Permanent link">&para;</a></h2>
+<p>The signup process tracks state in the <code>signups</code> table:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">signups</span><span class="w"> </span><span class="p">(</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">    </span><span class="n">id</span><span class="w"> </span><span class="n">UUID</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="p">,</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">    </span><span class="n">user_id</span><span class="w"> </span><span class="n">UUID</span><span class="w"> </span><span class="k">REFERENCES</span><span class="w"> </span><span class="n">identities</span><span class="p">(</span><span class="n">id</span><span class="p">),</span><span class="w">  </span><span class="c1">-- NULL until password creation</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">    </span><span class="n">first_name</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">    </span><span class="n">last_name</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="w">    </span><span class="n">country_code</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="w">    </span><span class="n">email</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="w">    </span><span class="n">mobile_number</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span><span class="w">  </span><span class="c1">-- NULL until phone verification</span>
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="w">    </span><span class="n">created_at</span><span class="w"> </span><span class="n">TIMESTAMPTZ</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="n">NOW</span><span class="p">(),</span>
+<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="w">    </span><span class="n">updated_at</span><span class="w"> </span><span class="n">TIMESTAMPTZ</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="n">NOW</span><span class="p">()</span>
+<a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a><span class="p">);</span>
+</code></pre></div>
+<p><strong>State transitions:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Initial</th>
+<th>After Profile (About)</th>
+<th>After Password</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>UUID</td>
+<td>UUID</td>
+<td>UUID</td>
+</tr>
+<tr>
+<td><code>first_name</code></td>
+<td>NULL</td>
+<td>"Alice"</td>
+<td>"Alice"</td>
+</tr>
+<tr>
+<td><code>last_name</code></td>
+<td>NULL</td>
+<td>"Jones"</td>
+<td>"Jones"</td>
+</tr>
+<tr>
+<td><code>email</code></td>
+<td>NULL</td>
+<td>"alice@..."</td>
+<td>"alice@..."</td>
+</tr>
+<tr>
+<td><code>country_code</code></td>
+<td>NULL</td>
+<td>"US"</td>
+<td>"US"</td>
+</tr>
+<tr>
+<td><code>mobile_number</code></td>
+<td>NULL</td>
+<td>"+14155551234"</td>
+<td>"+14155551234"</td>
+</tr>
+<tr>
+<td><code>user_id</code></td>
+<td>NULL</td>
+<td>NULL</td>
+<td>"{kratos_id}"</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Completion check:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><span class="nx">Signup</span><span class="p">)</span><span class="w"> </span><span class="nx">IsCompleted</span><span class="p">()</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">s</span><span class="p">.</span><span class="nx">UserID</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="s">&quot;&quot;</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="p">}</span>
+</code></pre></div></p>
+<hr />
+<h2 id="10-security-considerations">10) Security Considerations<a class="headerlink" href="#10-security-considerations" title="Permanent link">&para;</a></h2>
+<h3 id="otp-timing-attack-prevention">OTP Timing Attack Prevention<a class="headerlink" href="#otp-timing-attack-prevention" title="Permanent link">&para;</a></h3>
+<p><strong>Problem:</strong> If duplicate phone check happens before OTP validation, attackers can enumerate registered phone numbers by measuring response time.</p>
+<p><strong>Solution:</strong> Validate OTP <strong>first</strong>, then check for duplicates.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1">// CORRECT ORDER:</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="c1">// 1. Verify OTP (prevents enumeration)</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="nx">v</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">b</span><span class="p">.</span><span class="nx">Twilio</span><span class="p">().</span><span class="nx">CheckVerificationCode</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="o">...</span><span class="p">)</span>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="k">if</span><span class="w"> </span><span class="p">!</span><span class="nx">v</span><span class="p">.</span><span class="nx">IsValid</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">signup</span><span class="p">.</span><span class="nx">ErrInvalidOTP</span>
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="p">}</span>
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="c1">// 2. Check duplicate (only if OTP valid)</span>
+<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="kd">var</span><span class="w"> </span><span class="nx">existsId</span><span class="w"> </span><span class="kt">string</span>
+<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a><span class="nx">err</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">b</span><span class="p">.</span><span class="nx">DB</span><span class="p">().</span><span class="nx">GetContext</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">existsId</span><span class="p">,</span><span class="w"> </span>
+<a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a><span class="w">    </span><span class="s">&quot;SELECT id FROM signups WHERE mobile_number=$1 AND user_id IS NOT NULL&quot;</span><span class="p">,</span><span class="w"> </span><span class="o">...</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="password-security-kratos">Password Security (Kratos)<a class="headerlink" href="#password-security-kratos" title="Permanent link">&para;</a></h3>
+<p>Passwords are <strong>never</strong> stored in plaintext or logged. Kratos handles:
+- Password hashing (Argon2id)
+- Breach detection (Have I Been Pwned integration)
+- Password policy enforcement</p>
+<p><strong>Logging policy:</strong> See <a href="../logging-reference/">logging-reference.md</a> — Never log passwords, tokens, or secrets.</p>
+<h3 id="totp-secret-storage">TOTP Secret Storage<a class="headerlink" href="#totp-secret-storage" title="Permanent link">&para;</a></h3>
+<p>TOTP secrets are stored <strong>encrypted</strong> in Kratos <code>identity_credentials</code> table. Only Kratos can decrypt them.</p>
+<p><strong>Secret rotation:</strong> If user resets TOTP, old secret is deleted and new secret generated.</p>
+<hr />
+<h2 id="11-common-issues-and-troubleshooting">11) Common Issues and Troubleshooting<a class="headerlink" href="#11-common-issues-and-troubleshooting" title="Permanent link">&para;</a></h2>
+<h3 id="phone-verification-fails">Phone Verification Fails<a class="headerlink" href="#phone-verification-fails" title="Permanent link">&para;</a></h3>
+<p><strong>Symptom:</strong> User enters OTP but gets <code>ErrInvalidOTP</code></p>
+<p><strong>Causes:</strong>
+1. Code expired (10-minute timeout)
+2. User entered wrong code
+3. Twilio service outage</p>
+<p><strong>Resolution:</strong>
+- Resend OTP (user can request new code)
+- Check Twilio dashboard for delivery status
+- Verify phone number is in E.164 format</p>
+<h3 id="totp-setup-fails">TOTP Setup Fails<a class="headerlink" href="#totp-setup-fails" title="Permanent link">&para;</a></h3>
+<p><strong>Symptom:</strong> User scans QR code but submitted code fails validation</p>
+<p><strong>Causes:</strong>
+1. Time drift between server and user's device
+2. User's authenticator app not synchronized
+3. User scanned wrong QR code</p>
+<p><strong>Resolution:</strong>
+- Check server time synchronization (NTP)
+- User should use time-based sync in authenticator app
+- Regenerate TOTP secret (via Kratos settings flow)</p>
+<h3 id="wallet-address-already-taken">Wallet Address Already Taken<a class="headerlink" href="#wallet-address-already-taken" title="Permanent link">&para;</a></h3>
+<p><strong>Symptom:</strong> User's desired username is unavailable</p>
+<p><strong>Causes:</strong>
+1. Another user already claimed that username
+2. Frontend suggested username was taken between validation and submission</p>
+<p><strong>Resolution:</strong>
+- User chooses different username
+- Frontend suggests alternatives with random suffix</p>
+<h3 id="signup-stuck-in-partial-state">Signup Stuck in Partial State<a class="headerlink" href="#signup-stuck-in-partial-state" title="Permanent link">&para;</a></h3>
+<p><strong>Symptom:</strong> Signup record exists but <code>user_id</code> is NULL</p>
+<p><strong>Causes:</strong>
+1. User abandoned flow before password creation
+2. Kratos registration failed but signup record persists
+3. <code>CompleteSignup</code> gRPC call failed</p>
+<p><strong>Resolution:</strong>
+- User can resume signup using same email
+- Backend updates existing signup record instead of creating new
+- Check backend logs for <code>CompleteSignup</code> errors</p>
+<hr />
+<h2 id="12-testing-signup-flow">12) Testing Signup Flow<a class="headerlink" href="#12-testing-signup-flow" title="Permanent link">&para;</a></h2>
+<h3 id="e2e-test-coverage">E2E Test Coverage<a class="headerlink" href="#e2e-test-coverage" title="Permanent link">&para;</a></h3>
+<p><strong>Feature file:</strong> <code>e2e/features/000-signup.feature</code></p>
+<p><strong>Scenarios:</strong>
+- Successfully sign up as a German user
+- Successfully sign up as a South African user
+- Signup with phone verification
+- TOTP registration after signup
+- Wallet address creation</p>
+<p><strong>Test implementation:</strong> <code>e2e/gatehub_signup_clean.go</code></p>
+<p><strong>Workflow steps:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="k">Given </span><span class="nf">a random test identifier is generated</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="k">And </span><span class="nf">I impersonate &#39;signup-user&#39;</span>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="k">And </span><span class="nf">I completed the signup workflow          # Profile + phone + password</span>
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="k">And </span><span class="nf">I completed the account verification workflow  # Email verification</span>
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="k">And </span><span class="nf">I finished the TOTP registration workflow     # </span><span class="s">2</span><span class="nf">FA setup</span>
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="k">And </span><span class="nf">I finished the wallet address creation workflow # Payment address</span>
+<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="k">Then </span><span class="nf">I should be navigated to the application dashboard</span>
+</code></pre></div></p>
+<h3 id="unit-test-coverage">Unit Test Coverage<a class="headerlink" href="#unit-test-coverage" title="Permanent link">&para;</a></h3>
+<p><strong>Signup operations:</strong> <code>signup/ops/service_test.go</code></p>
+<p><strong>Test cases:</strong>
+- <code>SetUserData</code> creates new signup
+- <code>SetMobileNumber</code> validates OTP
+- <code>Complete</code> links Kratos identity
+- Duplicate phone number rejection
+- Invalid OTP rejection</p>
+<hr />
+<h2 id="13-next-steps-after-signup">13) Next Steps After Signup<a class="headerlink" href="#13-next-steps-after-signup" title="Permanent link">&para;</a></h2>
+<p>After completing signup, users proceed to:</p>
+<ol>
+<li><strong>Wallet Activation</strong> — Complete KYC verification (see <a href="../kyc-guide/">KYC Explainer</a>)</li>
+<li><strong>Provider Linking</strong> — Connect to payment providers (GateHub, Xago, etc.)</li>
+<li><strong>Balance Management</strong> — Deposit funds to wallet</li>
+<li><strong>Payments</strong> — Send and receive payments (see <a href="../payments-guide/">Payments Guide</a>)</li>
+</ol>
+<p><strong>Critical:</strong> Users cannot send or receive payments until KYC is complete and wallet is activated.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.top", "navigation.indexes", "search.highlight", "search.suggest", "content.code.copy", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
