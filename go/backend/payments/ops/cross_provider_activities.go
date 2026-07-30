@@ -11,6 +11,7 @@ import (
 	"github.com/interledger/interledger-app/go/backend/currency"
 	"github.com/interledger/interledger-app/go/backend/db"
 	"github.com/interledger/interledger-app/go/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/payments/cppairs"
 	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
 	"github.com/interledger/interledger-app/go/backend/providers/xago"
 	xago_external "github.com/interledger/interledger-app/go/backend/providers/xago/external"
@@ -278,7 +279,7 @@ func (a *Activity) StoreXagoConversionEstimation(ctx context.Context, paymentID 
 	}
 
 	// Both directions of the GateHub <-> Xago pair carry an FX estimate to snapshot.
-	if !isXagoGatehubPair(senderAccount.Provider, receiverAccount.Provider) {
+	if !cppairs.IsSpecificCrossProviderPair(senderAccount, receiverAccount, xago.ProviderName, gatehub.ProviderName) {
 		return nil
 	}
 

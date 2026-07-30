@@ -9,6 +9,7 @@ import (
 
 	"github.com/interledger/interledger-app/go/backend/limits"
 	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	"github.com/interledger/interledger-app/go/backend/payments/cppairs"
 
 	"github.com/interledger/interledger-app/go/backend/currency"
 	"github.com/interledger/interledger-app/go/backend/payments"
@@ -476,7 +477,7 @@ func (s *rpcService) GetLinkedAccountsForPayment(ctx context.Context, req *pb.Ge
 			Enabled: recvAccounts == nil, // could be paying to non-signed up user
 		}
 		for _, recvAcc := range recvAccounts {
-			if sendAcc.CanPay(recvAcc) {
+			if canPay(&sendAcc, &recvAcc) {
 				acc.Enabled = true
 				break
 			}
@@ -488,4 +489,13 @@ func (s *rpcService) GetLinkedAccountsForPayment(ctx context.Context, req *pb.Ge
 	return &pb.GetLinkedAccountsForPaymentResponse{
 		LinkedAccounts: las,
 	}, nil
+}
+
+func canPay(sendLA, recvLA *linkedaccounts.LinkedAccount) bool {
+	if cppairs.IsCrossProviderPair(sendLA, recvLA) {
+		err := cppairs.ValidateAccountCompatibility(sendLA, recvLA)
+		return err == nil
+	}
+
+	return sendLA.CanPay(*recvLA)
 }

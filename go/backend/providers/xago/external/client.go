@@ -1000,6 +1000,8 @@ func (c *client) doPostRequest(ctx context.Context, logHint string, reqUrl strin
 }
 
 func (c *client) doRequest(ctx context.Context, logHint string, method string, reqUrl string, reqStruct any) ([]byte, error) {
+	fmt.Printf("doRequest [%s] %s %+v\n", method, reqUrl, reqStruct)
+
 	var reqBody []byte
 	if reqStruct != nil {
 		var err error

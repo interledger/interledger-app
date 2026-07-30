@@ -3,6 +3,7 @@ package ops
 import (
 	"testing"
 
+	"github.com/interledger/interledger-app/go/backend/features"
 	"github.com/interledger/interledger-app/go/backend/providers/chimoney"
 
 	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
@@ -12,14 +13,17 @@ import (
 	"github.com/interledger/interledger-app/go/backend/limits"
 
 	"github.com/interledger/interledger-app/go/backend/providers/xago"
+	xago_mock "github.com/interledger/interledger-app/go/backend/providers/xago/client/mock"
 
 	"github.com/interledger/interledger-app/go/backend/rafiki"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/interledger/interledger-app/go/backend/email"
 	email_mock "github.com/interledger/interledger-app/go/backend/email/client/mock"
+	features_mock "github.com/interledger/interledger-app/go/backend/features/client/mock"
 	"github.com/interledger/interledger-app/go/backend/identities"
 	id_mock "github.com/interledger/interledger-app/go/backend/identities/client/mock"
+	"github.com/interledger/interledger-app/go/backend/kyc"
 	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
 	linkedaccounts_mock "github.com/interledger/interledger-app/go/backend/linkedaccounts/client/mock"
 	"github.com/interledger/interledger-app/go/backend/notify"
@@ -28,10 +32,8 @@ import (
 	transactions_mock "github.com/interledger/interledger-app/go/backend/transactions/client/mock"
 	"github.com/interledger/interledger-app/go/backend/user"
 	"github.com/interledger/interledger-app/go/backend/wallets"
-	"github.com/interledger/interledger-app/go/pacioli"
-    "github.com/interledger/interledger-app/go/backend/features"
-    "github.com/interledger/interledger-app/go/backend/kyc"
 	wallets_mock "github.com/interledger/interledger-app/go/backend/wallets/client/mock"
+	"github.com/interledger/interledger-app/go/pacioli"
 	"github.com/jmoiron/sqlx"
 	temporal "go.temporal.io/sdk/client"
 )
@@ -58,17 +60,19 @@ type Backends interface {
 }
 
 type TestBackends struct {
-	DBC *sqlx.DB
-	val *validator.Validate
-	Tp  *temporal_mock.MockClient
-	uc  user.Client
-	nc  notify.Client
-	Em  *email_mock.MockClient
-	Wc  *wallets_mock.MockClient
-	Ic  *id_mock.MockClient
-	Lac *linkedaccounts_mock.MockClient
-	Txc *transactions_mock.MockClient
-	Pti *pti_mock.MockClient
+	DBC        *sqlx.DB
+	val        *validator.Validate
+	Tp         *temporal_mock.MockClient
+	uc         user.Client
+	nc         notify.Client
+	Em         *email_mock.MockClient
+	Wc         *wallets_mock.MockClient
+	Ic         *id_mock.MockClient
+	Lac        *linkedaccounts_mock.MockClient
+	Txc        *transactions_mock.MockClient
+	Pti        *pti_mock.MockClient
+	Fc         *features_mock.MockClient
+	XagoClient *xago_mock.MockClient
 }
 
 func (t TestBackends) Chimoney() chimoney.Client {
@@ -92,7 +96,7 @@ func (t TestBackends) Limits() limits.Client {
 }
 
 func (t TestBackends) Xago() xago.Client {
-	return nil
+	return t.XagoClient
 }
 
 func (t TestBackends) Rafiki() rafiki.Client {
@@ -147,7 +151,7 @@ func (t TestBackends) Pacioli() pacioli.Client {
 }
 
 func (t TestBackends) Features() features.Client {
-	return nil
+	return t.Fc
 }
 
 func NewTestBackends(_ *testing.T, opts ...func(*TestBackends)) Backends {
