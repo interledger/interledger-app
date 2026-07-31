@@ -80,6 +80,25 @@ func (mc *MockClient) ListUsers(ctx context.Context, walletID string) ([]user.Us
 	}, nil
 }
 
+func (mc *MockClient) ListUsersByWalletIDs(ctx context.Context, walletIDs []string) (map[string][]user.User, error) {
+	result := make(map[string][]user.User, len(walletIDs))
+	for _, walletID := range walletIDs {
+		uid, ok := mc.WalletUser[walletID]
+		if !ok {
+			continue
+		}
+		result[walletID] = []user.User{
+			{
+				ID:          uid,
+				Email:       "info@interledger.test",
+				PhoneNumber: "+15555550100",
+			},
+		}
+	}
+
+	return result, nil
+}
+
 func (mc MockClient) UserForCookie(ctx context.Context, cookie string) (*user.User, error) {
 	usr := user.User{}
 	unescapedCookie, err := url.QueryUnescape(cookie)

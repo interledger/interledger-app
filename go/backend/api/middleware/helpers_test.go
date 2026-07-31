@@ -33,6 +33,9 @@ func (s *stubUserClient) GetUser(_ context.Context, _ string) (*user.User, error
 func (s *stubUserClient) ListUsers(_ context.Context, _ string) ([]user.User, error) {
 	panic("unexpected")
 }
+func (s *stubUserClient) ListUsersByWalletIDs(_ context.Context, _ []string) (map[string][]user.User, error) {
+	panic("unexpected")
+}
 func (s *stubUserClient) CheckUserTotpEnabled(_ context.Context, _ string) (bool, error) {
 	panic("unexpected")
 }

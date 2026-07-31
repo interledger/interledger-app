@@ -80,6 +80,10 @@ func (c *client) ListUsers(ctx context.Context, walletID string) ([]user.User, e
 	return ops.ListUsers(ctx, c.b, walletID)
 }
 
+func (c *client) ListUsersByWalletIDs(ctx context.Context, walletIDs []string) (map[string][]user.User, error) {
+	return ops.ListUsersByWalletIDs(ctx, c.b, walletIDs)
+}
+
 func (c *client) CheckUserTotpEnabled(ctx context.Context, identityID string) (bool, error) {
 	return ops.CheckUserTotpEnabled(ctx, c.b, identityID)
 }

@@ -60,6 +60,9 @@ func (t *testUsersClient) GetUser(ctx context.Context, userID string) (*user.Use
 func (t *testUsersClient) ListUsers(_ context.Context, _ string) ([]user.User, error) {
 	return nil, errors.New("not implemented")
 }
+func (t *testUsersClient) ListUsersByWalletIDs(_ context.Context, _ []string) (map[string][]user.User, error) {
+	return nil, errors.New("not implemented")
+}
 func (t *testUsersClient) CheckUserTotpEnabled(_ context.Context, _ string) (bool, error) {
 	return false, errors.New("not implemented")
 }

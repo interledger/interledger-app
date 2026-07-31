@@ -2,6 +2,7 @@ package admin
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -22,6 +23,9 @@ type fakeUsersClient struct {
 	user.Client
 	findByEmailFn  func(ctx context.Context, email string) (string, error)
 	findByPrefixFn func(ctx context.Context, term string) ([]string, error)
+	// listByWalletIDsFn lets a test supply the batched wallet -> users map that
+	// ListWallets now resolves in one call.
+	listByWalletIDsFn func() (map[string][]user.User, error)
 }
 
 func (f *fakeUsersClient) FindWalletIDByEmail(ctx context.Context, email string) (string, error) {
@@ -39,6 +43,13 @@ func (f *fakeUsersClient) FindWalletIDsByIdentifierPrefix(ctx context.Context, t
 }
 
 func (f *fakeUsersClient) ListUsers(_ context.Context, _ string) ([]user.User, error) {
+	return nil, nil
+}
+
+func (f *fakeUsersClient) ListUsersByWalletIDs(_ context.Context, _ []string) (map[string][]user.User, error) {
+	if f.listByWalletIDsFn != nil {
+		return f.listByWalletIDsFn()
+	}
 	return nil, nil
 }
 
@@ -190,4 +201,71 @@ func TestConvertUser(t *testing.T) {
 		assert.Empty(t, got.LastName)
 		assert.Empty(t, got.PhoneNumber)
 	})
+}
+
+// TestListWallets_BatchedUsersMapOntoCorrectWallets pins the behaviour of the
+// batched user fetch: ListWallets resolves the whole page with one
+// ListUsersByWalletIDs call and must attach each wallet's users by wallet ID,
+// not by position. Wallets absent from the returned map render with no users
+// rather than failing the request.
+func TestListWallets_BatchedUsersMapOntoCorrectWallets(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	wm := wallets_mock.NewMockClient(ctrl)
+	wm.EXPECT().ListAll(gomock.Any(), gomock.Any()).Return([]wallets.Wallet{
+		{ID: "w1", Name: "alice"},
+		{ID: "w2", Name: "bob"},
+		{ID: "w3", Name: "carol"},
+	}, nil)
+
+	uc := &fakeUsersClient{
+		listByWalletIDsFn: func() (map[string][]user.User, error) {
+			// Deliberately out of page order, and missing w2, to prove the
+			// handler keys on wallet ID instead of slice position.
+			return map[string][]user.User{
+				"w3": {{ID: "u3", Email: "carol@example.com"}},
+				"w1": {{ID: "u1", Email: "alice@example.com"}},
+			}, nil
+		},
+	}
+
+	s := &AdminRpcService{b: &testBackends{users: uc, wallets: wm}}
+
+	resp, err := s.ListWallets(context.Background(), &adminv1.ListWalletsRequest{PageSize: 50})
+	require.NoError(t, err)
+	require.Len(t, resp.Wallets, 3)
+
+	require.Len(t, resp.Wallets[0].Users, 1)
+	assert.Equal(t, "w1", resp.Wallets[0].WalletID)
+	assert.Equal(t, "alice@example.com", resp.Wallets[0].Users[0].Email)
+
+	assert.Equal(t, "w2", resp.Wallets[1].WalletID)
+	assert.Empty(t, resp.Wallets[1].Users, "wallet missing from the batch must render with no users")
+
+	require.Len(t, resp.Wallets[2].Users, 1)
+	assert.Equal(t, "w3", resp.Wallets[2].WalletID)
+	assert.Equal(t, "carol@example.com", resp.Wallets[2].Users[0].Email)
+}
+
+// TestListWallets_BatchFetchErrorDegradesGracefully asserts the failure mode is
+// unchanged from the per-wallet implementation: a Kratos/user lookup failure
+// logs and renders the page without user detail rather than failing the RPC.
+func TestListWallets_BatchFetchErrorDegradesGracefully(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	wm := wallets_mock.NewMockClient(ctrl)
+	wm.EXPECT().ListAll(gomock.Any(), gomock.Any()).Return([]wallets.Wallet{
+		{ID: "w1", Name: "alice"},
+	}, nil)
+
+	uc := &fakeUsersClient{
+		listByWalletIDsFn: func() (map[string][]user.User, error) {
+			return nil, errors.New("kratos unreachable")
+		},
+	}
+	s := &AdminRpcService{b: &testBackends{users: uc, wallets: wm}}
+
+	resp, err := s.ListWallets(context.Background(), &adminv1.ListWalletsRequest{PageSize: 50})
+	require.NoError(t, err, "a user-lookup failure must not fail the whole request")
+	require.Len(t, resp.Wallets, 1)
+	assert.Equal(t, "w1", resp.Wallets[0].WalletID)
+	assert.Empty(t, resp.Wallets[0].Users)
 }

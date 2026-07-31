@@ -317,8 +317,8 @@ func ListAll(ctx context.Context, b Backends, page db.Pagination) ([]wallets.Wal
 		return nil, err
 	}
 
-	var wl []wallets.Wallet
-	err = nstmt.SelectContext(ctx, &wl, args)
+	var walletsList []wallets.Wallet
+	err = nstmt.SelectContext(ctx, &walletsList, args)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -326,17 +326,53 @@ func ListAll(ctx context.Context, b Backends, page db.Pagination) ([]wallets.Wal
 		return nil, err
 	}
 
-	for i, w := range wl {
-		var wa []wallets.Address
-		err = b.DB().SelectContext(ctx, &wa, "SELECT url FROM wallet_addresses WHERE wallet_id=$1", w.ID)
-		if err != nil {
-			return nil, err
-		}
-
-		wl[i].Addresses = wa
+	if len(walletsList) == 0 {
+		return walletsList, nil
 	}
 
-	return wl, nil
+	if err := attachAddresses(ctx, b, walletsList); err != nil {
+		return nil, err
+	}
+
+	return walletsList, nil
+}
+
+// walletAddressRow carries the wallet_id alongside the url so a single batched
+// query can be grouped back onto the wallets it belongs to.
+type walletAddressRow struct {
+	WalletID string          `db:"wallet_id"`
+	URL      wallets.Address `db:"url"`
+}
+
+// attachAddresses loads the addresses for every wallet in wl with one query and
+// assigns them in memory. A query per wallet made len(wl) round-trips for what is
+// a single indexed lookup over a handful of ids.
+func attachAddresses(ctx context.Context, b Backends, walletsList []wallets.Wallet) error {
+	walletIDs := make([]string, len(walletsList))
+	for i, w := range walletsList {
+		walletIDs[i] = w.ID
+	}
+
+	// Ordered so Addresses[0] — read by AddressShortString/AddressString — is
+	// stable for wallets holding more than one address.
+	var rows []walletAddressRow
+	err := b.DB().SelectContext(ctx, &rows,
+		"SELECT wallet_id, url FROM wallet_addresses WHERE wallet_id = ANY($1) ORDER BY wallet_id, url",
+		pq.Array(walletIDs))
+	if err != nil {
+		return err
+	}
+
+	byWallet := make(map[string][]wallets.Address, len(rows))
+	for _, row := range rows {
+		byWallet[row.WalletID] = append(byWallet[row.WalletID], row.URL)
+	}
+
+	for i, wallet := range walletsList {
+		walletsList[i].Addresses = byWallet[wallet.ID]
+	}
+
+	return nil
 }
 
 // escapeLike escapes the LIKE/ILIKE metacharacters backslash, % and _ (in

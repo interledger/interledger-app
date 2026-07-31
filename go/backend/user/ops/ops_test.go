@@ -16,6 +16,7 @@ import (
 	"github.com/interledger/interledger-app/go/backend/db"
 	"github.com/interledger/interledger-app/go/backend/keys"
 	"github.com/interledger/interledger-app/go/backend/user"
+	"github.com/interledger/interledger-app/go/backend/wallets"
 	"github.com/jmoiron/sqlx"
 	kratos "github.com/ory/kratos-client-go"
 	"github.com/stretchr/testify/assert"
@@ -347,6 +348,66 @@ func TestFindWalletIDsByIdentifierPrefix(t *testing.T) {
 		got, err := FindWalletIDsByIdentifierPrefix(ctx, b, "jane")
 		require.NoError(t, err)
 		assert.Equal(t, []string{walletID1}, got)
+	})
+}
+
+// TestListUsersByWalletIDs covers the non-Kratos paths of ListUsersByWalletIDs:
+// empty input, wallets with no user_wallets row, and the synthetic Web
+// Monetization user. The Kratos batch-resolution path (mapping user_wallets
+// rows to identities) is not covered here — these backends have a nil
+// Kratos() client, and ListUsersByWalletIDs returns early in that case, so it
+// cannot be meaningfully exercised without a mocked Kratos.
+func TestListUsersByWalletIDs(t *testing.T) {
+	if os.Getenv("DB_URL") == "" {
+		t.Setenv("DB_URL", "postgres://postgres:password@127.0.0.1:55432/%s?sslmode=disable")
+	}
+
+	ctx := context.Background()
+	dbc := db.MigrateTestDB(t, ctx, "")
+
+	b := &emailTestBackends{db: dbc, val: validator.New()}
+
+	t.Run("empty input returns an empty non-nil map", func(t *testing.T) {
+		got, err := ListUsersByWalletIDs(ctx, b, nil)
+		require.NoError(t, err)
+		require.NotNil(t, got)
+		assert.Empty(t, got)
+	})
+
+	t.Run("wallet with no user_wallets row is absent", func(t *testing.T) {
+		got, err := ListUsersByWalletIDs(ctx, b, []string{uuid.NewString()})
+		require.NoError(t, err)
+		assert.Empty(t, got)
+	})
+
+	t.Run("web monetization wallet yields the synthetic user", func(t *testing.T) {
+		got, err := ListUsersByWalletIDs(ctx, b, []string{wallets.WebMonetizationWalletID})
+		require.NoError(t, err)
+		require.Contains(t, got, wallets.WebMonetizationWalletID)
+		assert.Equal(t, []user.User{webMonetizationUser()}, got[wallets.WebMonetizationWalletID])
+	})
+
+	t.Run("mix of unknown, web monetization and orphaned-row wallets", func(t *testing.T) {
+		walletID := uuid.NewString()
+		identityID := uuid.NewString()
+		_, err := dbc.ExecContext(ctx, `INSERT INTO wallets (id, name) VALUES ($1, $2)`, walletID, "list-users-mix-test")
+		require.NoError(t, err)
+		_, err = dbc.ExecContext(ctx, `INSERT INTO user_wallets (user_id, wallet_id) VALUES ($1, $2)`, identityID, walletID)
+		require.NoError(t, err)
+
+		unknownWalletID := uuid.NewString()
+
+		got, err := ListUsersByWalletIDs(ctx, b, []string{unknownWalletID, wallets.WebMonetizationWalletID, walletID})
+		require.NoError(t, err)
+
+		// unknownWalletID: no user_wallets row -> absent.
+		assert.NotContains(t, got, unknownWalletID)
+		// walletID: has a user_wallets row, but Kratos() is nil here, so the
+		// batch identity lookup never runs and the wallet is absent too.
+		assert.NotContains(t, got, walletID)
+		// Web Monetization: resolved without touching Kratos.
+		require.Contains(t, got, wallets.WebMonetizationWalletID)
+		assert.Equal(t, []user.User{webMonetizationUser()}, got[wallets.WebMonetizationWalletID])
 	})
 }
 

@@ -89,12 +89,20 @@ func (s *AdminRpcService) ListWallets(ctx context.Context, req *adminv1.ListWall
 		wallets = wallets[:page.PageSize]
 	}
 
+	walletIDs := make([]string, len(wallets))
+	for i, w := range wallets {
+		walletIDs[i] = w.ID
+	}
+
+	usersByWallet, err := s.b.Users().ListUsersByWalletIDs(ctx, walletIDs)
+	if err != nil {
+		log.Error("Failed to fetch Kratos users by wallet ids", zap.Error(err))
+		usersByWallet = nil
+	}
+
 	resp := make([]*adminv1.Wallet, len(wallets))
 	for i, w := range wallets {
-		users, err := s.b.Users().ListUsers(ctx, w.ID)
-		if err != nil {
-			log.Error("Failed to fetch Kratos users", zap.Error(err), zap.String("walletID", w.ID))
-		}
+		users := usersByWallet[w.ID]
 
 		usersPB := make([]*adminv1.User, len(users))
 		for y, u := range users {

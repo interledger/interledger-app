@@ -22,10 +22,10 @@ import (
 )
 
 const (
-	kratosTimeout        = 1500 * time.Millisecond
-	kratosCookieName     = "ory_kratos_session"
-	aal2RequiredErrorID  = "session_aal2_required"
-	totpCredentialType = "totp"
+	kratosTimeout       = 1500 * time.Millisecond
+	kratosCookieName    = "ory_kratos_session"
+	aal2RequiredErrorID = "session_aal2_required"
+	totpCredentialType  = "totp"
 )
 
 type sessionRetrievalErrorResponse struct {
@@ -259,16 +259,127 @@ func FindWalletIDsByIdentifierPrefix(ctx context.Context, b Backends, term strin
 	return walletIDs, nil
 }
 
+// webMonetizationUser is the synthetic user reported for the Web Monetization
+// wallet, which has no user_wallets row and no Kratos identity.
+func webMonetizationUser() user.User {
+	return user.User{
+		ID:          "6b5ada19-1638-4c09-a0f6-9cdbb34abc42",
+		Email:       "openpayments.dev@interledger.test",
+		PhoneNumber: "",
+	}
+}
+
+// maxKratosIdentityBatch bounds a single ListIdentities(...).Ids(...) call. The
+// Kratos admin API caps that filter at 500 ids and does not paginate it, so
+// larger sets must be chunked.
+const maxKratosIdentityBatch = 500
+
+// kratosBatchTimeout covers one batched identity fetch. Deliberately longer than
+// kratosTimeout, which budgets for a single GetIdentity.
+const kratosBatchTimeout = 5 * time.Second
+
+func convertTraitsChecked(userID string, traits any) user.User {
+	u := user.User{ID: userID}
+
+	traitsMap, ok := traits.(map[string]any)
+	if !ok {
+		return u
+	}
+
+	str := func(key string) string {
+		v, _ := traitsMap[key].(string)
+		return v
+	}
+
+	u.Email = str("email")
+	u.PhoneNumber = str("phone")
+	u.Country = country.ParseCountry(str("countryCode"))
+	u.FirstName = str("firstName")
+	u.LastName = str("lastName")
+
+	return u
+}
+
+func ListUsersByWalletIDs(ctx context.Context, b Backends, walletIDs []string) (map[string][]user.User, error) {
+	result := make(map[string][]user.User, len(walletIDs))
+	if len(walletIDs) == 0 {
+		return result, nil
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, kratosBatchTimeout)
+	defer cancel()
+
+	for _, id := range walletIDs {
+		if id == wallets.WebMonetizationWalletID {
+			result[id] = []user.User{webMonetizationUser()}
+		}
+	}
+
+	var rows []struct {
+		WalletID string `db:"wallet_id"`
+		UserID   string `db:"user_id"`
+	}
+	err := b.DB().SelectContext(ctx, &rows,
+		"SELECT wallet_id, user_id FROM user_wallets WHERE wallet_id = ANY($1)",
+		pq.Array(walletIDs))
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", user.ErrInternal, err)
+	}
+	if len(rows) == 0 {
+		return result, nil
+	}
+
+	if b.Kratos() == nil {
+		return result, nil
+	}
+
+	seen := make(map[string]struct{}, len(rows))
+	userIDs := make([]string, 0, len(rows))
+	for _, r := range rows {
+		if _, dup := seen[r.UserID]; dup {
+			continue
+		}
+		seen[r.UserID] = struct{}{}
+		userIDs = append(userIDs, r.UserID)
+	}
+
+	kratosCtx := context.WithValue(ctx, client.ContextServerIndex, 1) // Required for kratos to use admin server.
+	byUserID := make(map[string]user.User, len(userIDs))
+	for start := 0; start < len(userIDs); start += maxKratosIdentityBatch {
+		end := min(start+maxKratosIdentityBatch, len(userIDs))
+		chunk := userIDs[start:end]
+
+		identities, _, err := b.Kratos().IdentityAPI.ListIdentities(kratosCtx).
+			Ids(chunk).
+			PerPage(int64(len(chunk))).
+			Execute()
+		if err != nil {
+			return nil, fmt.Errorf("%w %s", user.ErrInternal, err)
+		}
+
+		// Kratos does not guarantee the response order matches the requested
+		// ids, and silently omits ids it cannot resolve, so index by id rather
+		// than position.
+		for _, id := range identities {
+			byUserID[id.Id] = convertTraitsChecked(id.Id, id.Traits)
+		}
+	}
+
+	for _, r := range rows {
+		u, ok := byUserID[r.UserID]
+		if !ok {
+			continue
+		}
+		result[r.WalletID] = append(result[r.WalletID], u)
+	}
+
+	return result, nil
+}
+
 // TODO: Modify?
 func ListUsers(ctx context.Context, b Backends, walletID string) ([]user.User, error) {
 	if walletID == wallets.WebMonetizationWalletID {
-		return []user.User{
-			{
-				ID:          "6b5ada19-1638-4c09-a0f6-9cdbb34abc42",
-				Email:       "openpayments.dev@interledger.test",
-				PhoneNumber: "",
-			},
-		}, nil
+		return []user.User{webMonetizationUser()}, nil
 	}
 
 	ctx, cancel := context.WithTimeout(ctx, kratosTimeout)
