@@ -663,3 +663,57 @@ func walletIDs(wl []wallets.Wallet) []string {
 	}
 	return ids
 }
+
+func findWallet(wl []wallets.Wallet, id string) *wallets.Wallet {
+	for i := range wl {
+		if wl[i].ID == id {
+			return &wl[i]
+		}
+	}
+	return nil
+}
+
+// TestListAllKYCNames covers the displayed KYC name columns: the latest revision
+// wins, and a wallet with no KYC record yields nil (rendered as a placeholder).
+func TestListAllKYCNames(t *testing.T) {
+	ctx := context.Background()
+
+	ensureTestDBURL(t)
+	dbc := db.MigrateTestDB(t, ctx, "")
+
+	ctrl := gomock.NewController(t)
+	km := keys_mock.NewMockClient(ctrl)
+	km.EXPECT().ProvisionPrivateKey(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+	b := ops.NewTestBackends(t, dbc, km, users_mock.NewMock())
+
+	userID := uuid.NewString()
+
+	// Two KYC revisions — the latest (revision 2) must be the one displayed.
+	revised, err := ops.Create(ctx, b, wallets.CreateArgs{UserID: userID, Name: "kyc-revised"})
+	require.NoError(t, err)
+	insertKYC(ctx, t, dbc, revised.ID, 1, "Old", "Name")
+	insertKYC(ctx, t, dbc, revised.ID, 2, "New", "Name")
+
+	// No KYC record — name columns must come back nil.
+	noKYC, err := ops.Create(ctx, b, wallets.CreateArgs{UserID: userID, Name: "kyc-absent"})
+	require.NoError(t, err)
+
+	result, err := ops.ListAll(ctx, b, db.Pagination{PageSize: 50})
+	require.NoError(t, err)
+
+	t.Run("latest revision wins", func(t *testing.T) {
+		w := findWallet(result, revised.ID)
+		require.NotNil(t, w)
+		require.NotNil(t, w.KYCFirstName)
+		require.NotNil(t, w.KYCLastName)
+		assert.Equal(t, "New", *w.KYCFirstName)
+		assert.Equal(t, "Name", *w.KYCLastName)
+	})
+
+	t.Run("no KYC record yields nil", func(t *testing.T) {
+		w := findWallet(result, noKYC.ID)
+		require.NotNil(t, w)
+		assert.Nil(t, w.KYCFirstName)
+		assert.Nil(t, w.KYCLastName)
+	})
+}

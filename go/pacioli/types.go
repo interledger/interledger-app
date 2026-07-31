@@ -54,6 +54,7 @@ func (ts TransferState) IsValid() bool {
 
 type Transfer struct {
 	ID              string        `db:"id"`
+	ReferenceID     string        `db:"-"`         // links to backend transactions.id
 	LedgerID        uint32        `db:"ledger_id"` // this field is coming soon to a TigerBeetle near you.
 	DebitAccountID  string        `db:"debit_account_id"`
 	CreditAccountID string        `db:"credit_account_id"`
@@ -64,7 +65,8 @@ type Transfer struct {
 }
 
 type CreateTransferArgs struct {
-	ID              string `validate:"required,uuid4"`
+	ID              string `validate:"required,uuid"`
+	ReferenceID     string `validate:"omitempty,uuid"` // links to backend transactions.id; defaults to ID
 	Amount          int64  `validate:"gt=0"`
 	DebitAccountID  string `validate:"required,uuid4"`
 	CreditAccountID string `validate:"required,uuid4"`

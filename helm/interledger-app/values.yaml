@@ -227,6 +227,7 @@ backend:
       sandbox_fake_za_id: false
 
     plaid:
+      # This is also consumed by the frontend
       enabled: false
       client_id: ""
       secret: ""
