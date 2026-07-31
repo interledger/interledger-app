@@ -164,6 +164,9 @@ backend:
     temporal:
       url: "temporal:7233"
 
+    wallet_features:
+      xago_gatehub_payments_default_enabled: false
+
     rafiki:
       node_enabled: false
       backend_graphql_url: "http://rafiki-backend:3001/graphql"
@@ -207,9 +210,6 @@ backend:
       api_public_key: ""
       travel_rule_pgp_public_key: ""
       travel_rule_email: ""
-
-    wallet_features:
-      xago_gatehub_payments_default_enabled: false
 
     pti:
       enabled: false

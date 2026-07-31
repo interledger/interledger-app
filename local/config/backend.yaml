@@ -31,6 +31,9 @@ kratos:
 temporal:
   url: "temporal:7233"
 
+wallet_features:
+  xago_gatehub_payments_default_enabled: false
+
 rafiki:
   node_enabled: false
   backend_graphql_url: "http://rafiki_backend:3001/graphql"
@@ -70,9 +73,6 @@ xago:
   api_public_key: "test-public-key"
   api_secret: "test-secret"
   policy_id: "5e2585a474b0e90012ce8ff1"
-
-wallet_features:
-  xago_gatehub_payments_default_enabled: false
 
 # PTI / Fiant — enabled by default in local dev against mockpti.
 pti:
