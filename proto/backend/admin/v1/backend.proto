@@ -391,6 +391,8 @@ message Wallet {
   string walletID = 1;
   string walletName = 2;
   repeated User users = 3;
+  string kycFirstName = 4;
+  string kycLastName = 5;
 }
 
 message ListWalletsResponse {
@@ -402,6 +404,8 @@ message User {
   string id = 1;
   string email = 2;
   string phoneNumber = 3;
+  string firstName = 4;
+  string lastName = 5;
 }
 
 message AllowWaitlistSignupRequest {
