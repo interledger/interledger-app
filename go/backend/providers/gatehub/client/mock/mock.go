@@ -113,6 +113,20 @@ func (mr *MockClientMockRecorder) CreateWithdrawal(ctx, walletID, externalTransa
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateWithdrawal", reflect.TypeOf((*MockClient)(nil).CreateWithdrawal), ctx, walletID, externalTransactionID)
 }
 
+// ExternalClient mocks base method.
+func (m *MockClient) ExternalClient() external.Client {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ExternalClient")
+	ret0, _ := ret[0].(external.Client)
+	return ret0
+}
+
+// ExternalClient indicates an expected call of ExternalClient.
+func (mr *MockClientMockRecorder) ExternalClient() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExternalClient", reflect.TypeOf((*MockClient)(nil).ExternalClient))
+}
+
 // FinaliseReserve mocks base method.
 func (m *MockClient) FinaliseReserve(ctx context.Context, txID string) error {
 	m.ctrl.T.Helper()
@@ -436,6 +450,36 @@ func (mr *MockClientMockRecorder) ThreeDSPaymentConfirmation(ctx, userID, txID, 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ThreeDSPaymentConfirmation", reflect.TypeOf((*MockClient)(nil).ThreeDSPaymentConfirmation), ctx, userID, txID, confirmed)
 }
 
+// TransferOmnibusToUser mocks base method.
+func (m *MockClient) TransferOmnibusToUser(ctx context.Context, receiverLinkedAccountID string, amount currency.Amount) (*external.Transaction, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "TransferOmnibusToUser", ctx, receiverLinkedAccountID, amount)
+	ret0, _ := ret[0].(*external.Transaction)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// TransferOmnibusToUser indicates an expected call of TransferOmnibusToUser.
+func (mr *MockClientMockRecorder) TransferOmnibusToUser(ctx, receiverLinkedAccountID, amount interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TransferOmnibusToUser", reflect.TypeOf((*MockClient)(nil).TransferOmnibusToUser), ctx, receiverLinkedAccountID, amount)
+}
+
+// TransferUserToOmnibus mocks base method.
+func (m *MockClient) TransferUserToOmnibus(ctx context.Context, senderLinkedAccountID string, amount currency.Amount) (*external.Transaction, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "TransferUserToOmnibus", ctx, senderLinkedAccountID, amount)
+	ret0, _ := ret[0].(*external.Transaction)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// TransferUserToOmnibus indicates an expected call of TransferUserToOmnibus.
+func (mr *MockClientMockRecorder) TransferUserToOmnibus(ctx, senderLinkedAccountID, amount interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TransferUserToOmnibus", reflect.TypeOf((*MockClient)(nil).TransferUserToOmnibus), ctx, senderLinkedAccountID, amount)
+}
+
 // UnfreezeCard mocks base method.
 func (m *MockClient) UnfreezeCard(ctx context.Context, args gatehub.UnfreezeCardArgs) error {
 	m.ctrl.T.Helper()
@@ -477,18 +521,4 @@ func (m *MockClient) ValidateCardProductCode(ctx context.Context, cardProductCod
 func (mr *MockClientMockRecorder) ValidateCardProductCode(ctx, cardProductCode interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ValidateCardProductCode", reflect.TypeOf((*MockClient)(nil).ValidateCardProductCode), ctx, cardProductCode)
-}
-
-// ExternalClient mocks base method.
-func (m *MockClient) ExternalClient() external.Client {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ExternalClient")
-	ret0, _ := ret[0].(external.Client)
-	return ret0
-}
-
-// ExternalClient indicates an expected call of ExternalClient.
-func (mr *MockClientMockRecorder) ExternalClient() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExternalClient", reflect.TypeOf((*MockClient)(nil).ExternalClient))
 }
