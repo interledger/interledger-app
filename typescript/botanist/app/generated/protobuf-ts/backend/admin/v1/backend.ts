@@ -1054,6 +1054,14 @@ export interface Wallet {
      * @generated from protobuf field: repeated backend.admin.v1.User users = 3;
      */
     users: User[];
+    /**
+     * @generated from protobuf field: string kycFirstName = 4;
+     */
+    kycFirstName: string;
+    /**
+     * @generated from protobuf field: string kycLastName = 5;
+     */
+    kycLastName: string;
 }
 /**
  * @generated from protobuf message backend.admin.v1.ListWalletsResponse
@@ -1084,6 +1092,14 @@ export interface User {
      * @generated from protobuf field: string phoneNumber = 3;
      */
     phoneNumber: string;
+    /**
+     * @generated from protobuf field: string firstName = 4;
+     */
+    firstName: string;
+    /**
+     * @generated from protobuf field: string lastName = 5;
+     */
+    lastName: string;
 }
 /**
  * @generated from protobuf message backend.admin.v1.AllowWaitlistSignupRequest
@@ -4472,11 +4488,13 @@ class Wallet$Type extends MessageType<Wallet> {
         super("backend.admin.v1.Wallet", [
             { no: 1, name: "walletID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "walletName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "users", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => User }
+            { no: 3, name: "users", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => User },
+            { no: 4, name: "kycFirstName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "kycLastName", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Wallet>): Wallet {
-        const message = { walletID: "", walletName: "", users: [] };
+        const message = { walletID: "", walletName: "", users: [], kycFirstName: "", kycLastName: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Wallet>(this, message, value);
@@ -4495,6 +4513,12 @@ class Wallet$Type extends MessageType<Wallet> {
                     break;
                 case /* repeated backend.admin.v1.User users */ 3:
                     message.users.push(User.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* string kycFirstName */ 4:
+                    message.kycFirstName = reader.string();
+                    break;
+                case /* string kycLastName */ 5:
+                    message.kycLastName = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -4517,6 +4541,12 @@ class Wallet$Type extends MessageType<Wallet> {
         /* repeated backend.admin.v1.User users = 3; */
         for (let i = 0; i < message.users.length; i++)
             User.internalBinaryWrite(message.users[i], writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        /* string kycFirstName = 4; */
+        if (message.kycFirstName !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.kycFirstName);
+        /* string kycLastName = 5; */
+        if (message.kycLastName !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.kycLastName);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -4587,11 +4617,13 @@ class User$Type extends MessageType<User> {
         super("backend.admin.v1.User", [
             { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "email", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "phoneNumber", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 3, name: "phoneNumber", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "firstName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "lastName", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<User>): User {
-        const message = { id: "", email: "", phoneNumber: "" };
+        const message = { id: "", email: "", phoneNumber: "", firstName: "", lastName: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<User>(this, message, value);
@@ -4610,6 +4642,12 @@ class User$Type extends MessageType<User> {
                     break;
                 case /* string phoneNumber */ 3:
                     message.phoneNumber = reader.string();
+                    break;
+                case /* string firstName */ 4:
+                    message.firstName = reader.string();
+                    break;
+                case /* string lastName */ 5:
+                    message.lastName = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -4632,6 +4670,12 @@ class User$Type extends MessageType<User> {
         /* string phoneNumber = 3; */
         if (message.phoneNumber !== "")
             writer.tag(3, WireType.LengthDelimited).string(message.phoneNumber);
+        /* string firstName = 4; */
+        if (message.firstName !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.firstName);
+        /* string lastName = 5; */
+        if (message.lastName !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.lastName);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

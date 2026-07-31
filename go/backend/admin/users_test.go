@@ -164,3 +164,30 @@ func TestListWallets_FilterFieldsPassedThroughToOpsLayer(t *testing.T) {
 }
 
 func strPtr(s string) *string { return &s }
+
+func TestConvertUser(t *testing.T) {
+	t.Run("maps all fields including first and last name", func(t *testing.T) {
+		got := convertUser(user.User{
+			ID:          "id-1",
+			Email:       "jane@example.com",
+			PhoneNumber: "+123456789",
+			FirstName:   "Jane",
+			LastName:    "Doe",
+		})
+
+		assert.Equal(t, "id-1", got.Id)
+		assert.Equal(t, "jane@example.com", got.Email)
+		assert.Equal(t, "+123456789", got.PhoneNumber)
+		assert.Equal(t, "Jane", got.FirstName)
+		assert.Equal(t, "Doe", got.LastName)
+	})
+
+	t.Run("empty names pass through as empty strings, no substitution", func(t *testing.T) {
+		got := convertUser(user.User{ID: "id-2", Email: "no-name@example.com"})
+
+		assert.Equal(t, "id-2", got.Id)
+		assert.Empty(t, got.FirstName)
+		assert.Empty(t, got.LastName)
+		assert.Empty(t, got.PhoneNumber)
+	})
+}

@@ -5,14 +5,19 @@ import { data, href, Form, useLoaderData, useNavigation } from 'react-router'
 import { ListWallets } from '~/lib/wallet.server'
 
 const FILTER_FIELDS = [
-  { name: 'firstName', label: 'First name' },
-  { name: 'lastName', label: 'Last name' },
+  { name: 'firstName', label: 'First name (KYC)' },
+  { name: 'lastName', label: 'Last name (KYC)' },
   { name: 'walletAddress', label: 'Wallet account' },
   { name: 'email', label: 'Email' },
   { name: 'phoneNumber', label: 'Phone number' },
   { name: 'providerId', label: 'Provider ID' }
 ] as const
 type FilterField = (typeof FILTER_FIELDS)[number]['name']
+
+// Empty/missing values render as a clear placeholder rather than a blank cell.
+const EMPTY_PLACEHOLDER = '—'
+const orDash = (value?: string) =>
+  value && value.trim() !== '' ? value : EMPTY_PLACEHOLDER
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
@@ -122,13 +127,25 @@ export default function Page() {
                         scope='col'
                         className='px-4 py-3.5 text-left text-sm font-medium text-strong'
                       >
-                        ID
+                        Internal ID
                       </th>
                       <th
                         scope='col'
                         className='px-4 py-3.5 text-left text-sm font-medium text-strong'
                       >
-                        Name
+                        First name (KYC)
+                      </th>
+                      <th
+                        scope='col'
+                        className='px-4 py-3.5 text-left text-sm font-medium text-strong'
+                      >
+                        Last name (KYC)
+                      </th>
+                      <th
+                        scope='col'
+                        className='px-4 py-3.5 text-left text-sm font-medium text-strong'
+                      >
+                        Wallet name
                       </th>
                       <th
                         scope='col'
@@ -151,7 +168,7 @@ export default function Page() {
                     {wallets.wallets.length === 0 && hasFilter && (
                       <tr>
                         <td
-                          colSpan={5}
+                          colSpan={7}
                           className='p-4 text-center text-sm text-weak'
                         >
                           No users found
@@ -161,16 +178,22 @@ export default function Page() {
                     {wallets.wallets.map((wallet) => (
                       <tr key={wallet.walletID}>
                         <td className='p-4 text-sm font-medium text-gray-900'>
-                          {wallet.walletID}
+                          {orDash(wallet.walletID)}
+                        </td>
+                        <td className='whitespace-nowrap p-4 text-sm text-gray-500'>
+                          {orDash(wallet.kycFirstName)}
+                        </td>
+                        <td className='whitespace-nowrap p-4 text-sm text-gray-500'>
+                          {orDash(wallet.kycLastName)}
                         </td>
                         <td className='p-4 text-sm font-medium text-gray-900'>
-                          {wallet.walletName}
+                          {orDash(wallet.walletName)}
                         </td>
                         <td className='whitespace-nowrap p-4 text-sm text-gray-500'>
-                          {wallet.users[0]?.email ?? ''}
+                          {orDash(wallet.users[0]?.email)}
                         </td>
                         <td className='whitespace-nowrap p-4 text-sm text-gray-500'>
-                          {wallet.users[0]?.phoneNumber ?? ''}
+                          {orDash(wallet.users[0]?.phoneNumber)}
                         </td>
                         <td className='relative whitespace-nowrap p-4 text-right text-sm font-medium'>
                           <Router
@@ -189,7 +212,7 @@ export default function Page() {
                       className='items-center justify-between p-4'
                       aria-label='Pagination'
                     >
-                      <td colSpan={2} className='p-4'>
+                      <td colSpan={4} className='p-4'>
                         <p className='text-sm text-weak'>
                           Showing{' '}
                           <span className='font-medium'>
