@@ -1,31 +1,69 @@
 import type { LoaderFunctionArgs } from 'react-router'
 
-import { Router, Grid } from '~/components'
+import { Router, Grid, TextField } from '~/components'
 import { data, href, Form, useLoaderData, useNavigation } from 'react-router'
 import { ListWallets } from '~/lib/wallet.server'
+
+const FILTER_FIELDS = [
+  { name: 'firstName', label: 'First name (KYC)' },
+  { name: 'lastName', label: 'Last name (KYC)' },
+  { name: 'walletAddress', label: 'Wallet account' },
+  { name: 'email', label: 'Email' },
+  { name: 'phoneNumber', label: 'Phone number' },
+  { name: 'providerId', label: 'Provider ID' }
+] as const
+type FilterField = (typeof FILTER_FIELDS)[number]['name']
+
+// Empty/missing values render as a clear placeholder rather than a blank cell.
+const EMPTY_PLACEHOLDER = '—'
+const orDash = (value?: string) =>
+  value && value.trim() !== '' ? value : EMPTY_PLACEHOLDER
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
   const pageSize = url.searchParams.get('pageSize') || '50'
   const pageToken = url.searchParams.get('pageToken') || ''
-  const search = url.searchParams.get('search') || ''
-  const wallets = await ListWallets(request, {
-    pageSize: parseInt(pageSize),
-    pageToken: pageToken,
-    search: search || undefined
-  })
+
+  const filters = Object.fromEntries(
+    FILTER_FIELDS.map(({ name }) => [
+      name,
+      (url.searchParams.get(name) || '').trim()
+    ])
+  ) as Record<FilterField, string>
+
+  const hasFilter = Object.values(filters).some((v) => v !== '')
+
+  const wallets = await ListWallets(
+    request,
+    {
+      pageSize: parseInt(pageSize),
+      pageToken: pageToken || undefined
+    },
+    hasFilter ? filters : undefined
+  )
 
   return data({
     wallets,
     pageSize,
-    search
+    filters,
+    hasFilter
   })
 }
 
 export default function Page() {
-  const { wallets, pageSize, search } = useLoaderData<typeof loader>()
+  const { wallets, pageSize, filters, hasFilter } =
+    useLoaderData<typeof loader>()
   const navigation = useNavigation()
   const isSearching = navigation.state === 'loading'
+
+  const nextPageParams = new URLSearchParams()
+  if (wallets.nextPageToken) {
+    nextPageParams.set('pageToken', wallets.nextPageToken)
+    nextPageParams.set('pageSize', pageSize)
+    for (const { name } of FILTER_FIELDS) {
+      if (filters[name]) nextPageParams.set(name, filters[name])
+    }
+  }
 
   return (
     <Grid>
@@ -42,22 +80,34 @@ export default function Page() {
         <div className='mt-4'>
           <Form method='get' action='/wallets'>
             <input type='hidden' name='pageSize' value={pageSize} />
-            <input
-              key={search}
-              id='wallet-search'
-              name='search'
-              type='search'
-              placeholder='Search by ID or name…'
-              aria-label='Search wallets'
-              defaultValue={search}
-              className='w-full max-w-sm rounded-xl border-2 border-base px-4 py-2 text-sm focus:border-focus focus:outline-none'
-            />
+            <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3'>
+              {FILTER_FIELDS.map(({ name, label }) => (
+                <TextField
+                  key={`${name}-${filters[name]}`}
+                  id={`wallet-search-${name}`}
+                  name={name}
+                  type='search'
+                  label={label}
+                  defaultValue={filters[name]}
+                />
+              ))}
+            </div>
+            <div className='mt-2 flex items-center gap-3'>
+              <button
+                type='submit'
+                className='rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white'
+              >
+                Search
+              </button>
+              <Router to='/wallets' className='text-sm text-primary'>
+                Clear
+              </Router>
+            </div>
           </Form>
-          {search && (
-            <p className='mt-1 text-xs text-medium'>
+          {hasFilter && (
+            <p className='mt-2 text-xs text-medium'>
               {wallets.wallets.length} result
-              {wallets.wallets.length !== 1 ? 's' : ''} for &ldquo;{search}
-              &rdquo;
+              {wallets.wallets.length !== 1 ? 's' : ''}
             </p>
           )}
         </div>
@@ -77,13 +127,25 @@ export default function Page() {
                         scope='col'
                         className='px-4 py-3.5 text-left text-sm font-medium text-strong'
                       >
-                        ID
+                        Internal ID
                       </th>
                       <th
                         scope='col'
                         className='px-4 py-3.5 text-left text-sm font-medium text-strong'
                       >
-                        Name
+                        First name (KYC)
+                      </th>
+                      <th
+                        scope='col'
+                        className='px-4 py-3.5 text-left text-sm font-medium text-strong'
+                      >
+                        Last name (KYC)
+                      </th>
+                      <th
+                        scope='col'
+                        className='px-4 py-3.5 text-left text-sm font-medium text-strong'
+                      >
+                        Wallet name
                       </th>
                       <th
                         scope='col'
@@ -103,19 +165,35 @@ export default function Page() {
                     </tr>
                   </thead>
                   <tbody className='divide-y divide-gray-200 bg-white'>
+                    {wallets.wallets.length === 0 && hasFilter && (
+                      <tr>
+                        <td
+                          colSpan={7}
+                          className='p-4 text-center text-sm text-weak'
+                        >
+                          No users found
+                        </td>
+                      </tr>
+                    )}
                     {wallets.wallets.map((wallet) => (
                       <tr key={wallet.walletID}>
                         <td className='p-4 text-sm font-medium text-gray-900'>
-                          {wallet.walletID}
+                          {orDash(wallet.walletID)}
+                        </td>
+                        <td className='whitespace-nowrap p-4 text-sm text-gray-500'>
+                          {orDash(wallet.kycFirstName)}
+                        </td>
+                        <td className='whitespace-nowrap p-4 text-sm text-gray-500'>
+                          {orDash(wallet.kycLastName)}
                         </td>
                         <td className='p-4 text-sm font-medium text-gray-900'>
-                          {wallet.walletName}
+                          {orDash(wallet.walletName)}
                         </td>
                         <td className='whitespace-nowrap p-4 text-sm text-gray-500'>
-                          {wallet.users[0]?.email ?? ''}
+                          {orDash(wallet.users[0]?.email)}
                         </td>
                         <td className='whitespace-nowrap p-4 text-sm text-gray-500'>
-                          {wallet.users[0]?.phoneNumber ?? ''}
+                          {orDash(wallet.users[0]?.phoneNumber)}
                         </td>
                         <td className='relative whitespace-nowrap p-4 text-right text-sm font-medium'>
                           <Router
@@ -134,7 +212,7 @@ export default function Page() {
                       className='items-center justify-between p-4'
                       aria-label='Pagination'
                     >
-                      <td colSpan={2} className='p-4'>
+                      <td colSpan={4} className='p-4'>
                         <p className='text-sm text-weak'>
                           Showing{' '}
                           <span className='font-medium'>
@@ -151,13 +229,7 @@ export default function Page() {
                         <div className='flex flex-1 justify-between pr-3 sm:justify-end'>
                           {wallets.nextPageToken && (
                             <Router
-                              to={`/wallets?pageToken=${
-                                wallets.nextPageToken
-                              }&pageSize=${pageSize}${
-                                search
-                                  ? `&search=${encodeURIComponent(search)}`
-                                  : ''
-                              }`}
+                              to={`/wallets?${nextPageParams.toString()}`}
                               className='relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50'
                             >
                               Next

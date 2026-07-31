@@ -105,6 +105,11 @@ func (c *noopClient) SendSCTRerouteEmail(ctx context.Context, txID, walletID str
 func (n *noopClient) SendRampActionEmail(_ context.Context, walletID string, args email.RampActionEmailArgs) {
 	log.Info("NOT SENDING: ramp action email", zap.String("walletID", walletID), zap.String("action", args.Action))
 }
+
+func (n *noopClient) SendGatehubWithdrawalSettledEmail(_ context.Context, txID, walletID, amount, iban, name, timestamp string) {
+	log.Info("NOT SENDING: gatehub withdrawal settled email", zap.String("walletID", walletID))
+}
+
 func (n *noopClient) SendXagoTravelRuleEmail(_ context.Context, _ []byte, _ string, _ time.Time, _, _, _ int) error {
 	log.Info("NOT SENDING: Xago travel rule email")
 	return nil

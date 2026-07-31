@@ -23,7 +23,7 @@ import (
 	"go.uber.org/zap"
 )
 
-const agreementUpdatedSubject = "We've updated our terms"
+const agreementUpdatedSubject = "We have updated our terms"
 
 func getEmailsAndGreeting(ctx context.Context, b Backends, walletID string) ([]sendgrid.Email, string, error) {
 	users, err := b.Users().ListUsers(ctx, walletID)
@@ -684,9 +684,9 @@ func SendAccountDeletionRequestedEmail(ctx context.Context, b Backends, userID s
 	}
 	name := strings.TrimSpace(u.FirstName + " " + u.LastName)
 	confirmTo := []sendgrid.Email{{Name: name, Address: u.Email}}
-	confirmSubject := "We've received your account deletion request"
+	confirmSubject := "We have received your account deletion request"
 	userData := []map[string]interface{}{
-		{"paragraph": "We've received your request to delete your account."},
+		{"paragraph": "We have received your request to delete your account."},
 		{"paragraph": "If you still have funds in your account, please withdraw them within the next 2–3 days."},
 		{"paragraph": "Our support team will let you know when the process starts."},
 	}
@@ -833,6 +833,43 @@ func SendSCTRerouteEmail(ctx context.Context, b Backends, txID, walletID string)
 	}, nil)
 	if err != nil {
 		log.Error("Failed to send sct reroute email.", zap.Error(err), zap.String("walletID", walletID))
+	}
+}
+
+func SendGatehubWithdrawalSettledEmail(ctx context.Context, b Backends, txID, walletID, amount, iban, name, timestamp string) {
+	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
+	if err != nil {
+		log.Error("Failed to send withdrawal rejected email.", zap.Error(err), zap.String("walletID", walletID))
+		return
+	}
+
+	txURL, err := url.JoinPath(b.Config().ApplicationURL, "payments", txID)
+	if err != nil {
+		log.Error("Failed to send withdrawal rejected email.", zap.Error(err), zap.String("walletID", walletID))
+		return
+	}
+
+	table := []map[string]any{
+		{"label": "Beneficiary Name:", "text": name},
+		{"label": "Beneficiary IBAN:", "text": maskIBAN(iban)},
+		{"label": "Amount:", "text": amount},
+		{"label": "Submitted:", "text": timestamp},
+	}
+
+	err = b.External().SendTemplate(ctx, "SEPA Transfer Completed", sendTo, b.OneTemplateID(), map[string]interface{}{
+		"subject": "SEPA Transfer Completed",
+		"data": []map[string]interface{}{
+			{"paragraph": greeting},
+			{"paragraph": "We would like to inform you that the counterparty received your SEPA transfer"},
+			{"table": table},
+		},
+		"cta": map[string]any{
+			"text": "View payment",
+			"url":  txURL,
+		},
+	}, nil)
+	if err != nil {
+		log.Error("Failed to send withdrawal rejected email.", zap.Error(err), zap.String("walletID", walletID))
 	}
 }
 

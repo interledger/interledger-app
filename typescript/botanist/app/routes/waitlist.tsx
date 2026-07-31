@@ -159,7 +159,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const form = await request.formData()
   const id = form.get('id') as string
 
-  let response = await grpcClient
+  const response = await grpcClient
     .allowWaitlistSignup(
       {
         id

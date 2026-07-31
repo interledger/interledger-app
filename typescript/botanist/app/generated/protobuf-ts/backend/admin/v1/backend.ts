@@ -993,6 +993,56 @@ export interface PaginationRequest {
     search?: string;
 }
 /**
+ * @generated from protobuf message backend.admin.v1.ListWalletsRequest
+ */
+export interface ListWalletsRequest {
+    /**
+     * @generated from protobuf field: int32 pageSize = 1;
+     */
+    pageSize: number;
+    /**
+     * @generated from protobuf field: optional string pageToken = 2;
+     */
+    pageToken?: string;
+    /**
+     * @generated from protobuf field: optional string search = 3;
+     */
+    search?: string;
+    /**
+     * @generated from protobuf field: optional backend.admin.v1.WalletSearchFilter filter = 4;
+     */
+    filter?: WalletSearchFilter;
+}
+/**
+ * @generated from protobuf message backend.admin.v1.WalletSearchFilter
+ */
+export interface WalletSearchFilter {
+    /**
+     * @generated from protobuf field: string firstName = 1;
+     */
+    firstName: string;
+    /**
+     * @generated from protobuf field: string lastName = 2;
+     */
+    lastName: string;
+    /**
+     * @generated from protobuf field: string walletAddress = 3;
+     */
+    walletAddress: string;
+    /**
+     * @generated from protobuf field: string email = 4;
+     */
+    email: string;
+    /**
+     * @generated from protobuf field: string phoneNumber = 5;
+     */
+    phoneNumber: string;
+    /**
+     * @generated from protobuf field: string providerId = 6;
+     */
+    providerId: string;
+}
+/**
  * @generated from protobuf message backend.admin.v1.Wallet
  */
 export interface Wallet {
@@ -1008,6 +1058,14 @@ export interface Wallet {
      * @generated from protobuf field: repeated backend.admin.v1.User users = 3;
      */
     users: User[];
+    /**
+     * @generated from protobuf field: string kycFirstName = 4;
+     */
+    kycFirstName: string;
+    /**
+     * @generated from protobuf field: string kycLastName = 5;
+     */
+    kycLastName: string;
 }
 /**
  * @generated from protobuf message backend.admin.v1.ListWalletsResponse
@@ -1038,6 +1096,14 @@ export interface User {
      * @generated from protobuf field: string phoneNumber = 3;
      */
     phoneNumber: string;
+    /**
+     * @generated from protobuf field: string firstName = 4;
+     */
+    firstName: string;
+    /**
+     * @generated from protobuf field: string lastName = 5;
+     */
+    lastName: string;
 }
 /**
  * @generated from protobuf message backend.admin.v1.AllowWaitlistSignupRequest
@@ -4278,16 +4344,168 @@ class PaginationRequest$Type extends MessageType<PaginationRequest> {
  */
 export const PaginationRequest = new PaginationRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
+class ListWalletsRequest$Type extends MessageType<ListWalletsRequest> {
+    constructor() {
+        super("backend.admin.v1.ListWalletsRequest", [
+            { no: 1, name: "pageSize", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 2, name: "pageToken", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "search", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "filter", kind: "message", T: () => WalletSearchFilter }
+        ]);
+    }
+    create(value?: PartialMessage<ListWalletsRequest>): ListWalletsRequest {
+        const message = { pageSize: 0 };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ListWalletsRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ListWalletsRequest): ListWalletsRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* int32 pageSize */ 1:
+                    message.pageSize = reader.int32();
+                    break;
+                case /* optional string pageToken */ 2:
+                    message.pageToken = reader.string();
+                    break;
+                case /* optional string search */ 3:
+                    message.search = reader.string();
+                    break;
+                case /* optional backend.admin.v1.WalletSearchFilter filter */ 4:
+                    message.filter = WalletSearchFilter.internalBinaryRead(reader, reader.uint32(), options, message.filter);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ListWalletsRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* int32 pageSize = 1; */
+        if (message.pageSize !== 0)
+            writer.tag(1, WireType.Varint).int32(message.pageSize);
+        /* optional string pageToken = 2; */
+        if (message.pageToken !== undefined)
+            writer.tag(2, WireType.LengthDelimited).string(message.pageToken);
+        /* optional string search = 3; */
+        if (message.search !== undefined)
+            writer.tag(3, WireType.LengthDelimited).string(message.search);
+        /* optional backend.admin.v1.WalletSearchFilter filter = 4; */
+        if (message.filter)
+            WalletSearchFilter.internalBinaryWrite(message.filter, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.ListWalletsRequest
+ */
+export const ListWalletsRequest = new ListWalletsRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class WalletSearchFilter$Type extends MessageType<WalletSearchFilter> {
+    constructor() {
+        super("backend.admin.v1.WalletSearchFilter", [
+            { no: 1, name: "firstName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "lastName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "walletAddress", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "email", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "phoneNumber", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "providerId", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<WalletSearchFilter>): WalletSearchFilter {
+        const message = { firstName: "", lastName: "", walletAddress: "", email: "", phoneNumber: "", providerId: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<WalletSearchFilter>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: WalletSearchFilter): WalletSearchFilter {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string firstName */ 1:
+                    message.firstName = reader.string();
+                    break;
+                case /* string lastName */ 2:
+                    message.lastName = reader.string();
+                    break;
+                case /* string walletAddress */ 3:
+                    message.walletAddress = reader.string();
+                    break;
+                case /* string email */ 4:
+                    message.email = reader.string();
+                    break;
+                case /* string phoneNumber */ 5:
+                    message.phoneNumber = reader.string();
+                    break;
+                case /* string providerId */ 6:
+                    message.providerId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: WalletSearchFilter, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string firstName = 1; */
+        if (message.firstName !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.firstName);
+        /* string lastName = 2; */
+        if (message.lastName !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.lastName);
+        /* string walletAddress = 3; */
+        if (message.walletAddress !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.walletAddress);
+        /* string email = 4; */
+        if (message.email !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.email);
+        /* string phoneNumber = 5; */
+        if (message.phoneNumber !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.phoneNumber);
+        /* string providerId = 6; */
+        if (message.providerId !== "")
+            writer.tag(6, WireType.LengthDelimited).string(message.providerId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.WalletSearchFilter
+ */
+export const WalletSearchFilter = new WalletSearchFilter$Type();
+// @generated message type with reflection information, may provide speed optimized methods
 class Wallet$Type extends MessageType<Wallet> {
     constructor() {
         super("backend.admin.v1.Wallet", [
             { no: 1, name: "walletID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "walletName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "users", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => User }
+            { no: 3, name: "users", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => User },
+            { no: 4, name: "kycFirstName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "kycLastName", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Wallet>): Wallet {
-        const message = { walletID: "", walletName: "", users: [] };
+        const message = { walletID: "", walletName: "", users: [], kycFirstName: "", kycLastName: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Wallet>(this, message, value);
@@ -4306,6 +4524,12 @@ class Wallet$Type extends MessageType<Wallet> {
                     break;
                 case /* repeated backend.admin.v1.User users */ 3:
                     message.users.push(User.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* string kycFirstName */ 4:
+                    message.kycFirstName = reader.string();
+                    break;
+                case /* string kycLastName */ 5:
+                    message.kycLastName = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -4328,6 +4552,12 @@ class Wallet$Type extends MessageType<Wallet> {
         /* repeated backend.admin.v1.User users = 3; */
         for (let i = 0; i < message.users.length; i++)
             User.internalBinaryWrite(message.users[i], writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        /* string kycFirstName = 4; */
+        if (message.kycFirstName !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.kycFirstName);
+        /* string kycLastName = 5; */
+        if (message.kycLastName !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.kycLastName);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -4398,11 +4628,13 @@ class User$Type extends MessageType<User> {
         super("backend.admin.v1.User", [
             { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "email", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "phoneNumber", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 3, name: "phoneNumber", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "firstName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "lastName", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<User>): User {
-        const message = { id: "", email: "", phoneNumber: "" };
+        const message = { id: "", email: "", phoneNumber: "", firstName: "", lastName: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<User>(this, message, value);
@@ -4421,6 +4653,12 @@ class User$Type extends MessageType<User> {
                     break;
                 case /* string phoneNumber */ 3:
                     message.phoneNumber = reader.string();
+                    break;
+                case /* string firstName */ 4:
+                    message.firstName = reader.string();
+                    break;
+                case /* string lastName */ 5:
+                    message.lastName = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -4443,6 +4681,12 @@ class User$Type extends MessageType<User> {
         /* string phoneNumber = 3; */
         if (message.phoneNumber !== "")
             writer.tag(3, WireType.LengthDelimited).string(message.phoneNumber);
+        /* string firstName = 4; */
+        if (message.firstName !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.firstName);
+        /* string lastName = 5; */
+        if (message.lastName !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.lastName);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -4858,7 +5102,7 @@ export const Amount = new Amount$Type();
 export const Backend = new ServiceType("backend.admin.v1.Backend", [
     { name: "ListWaitlistSignups", options: {}, I: Empty$, O: ListWaitlistSignupsResponse },
     { name: "AllowWaitlistSignup", options: {}, I: AllowWaitlistSignupRequest, O: Empty },
-    { name: "ListWallets", options: {}, I: PaginationRequest, O: ListWalletsResponse },
+    { name: "ListWallets", options: {}, I: ListWalletsRequest, O: ListWalletsResponse },
     { name: "GetWalletDetails", options: {}, I: GetWalletDetailsRequest, O: WalletDetails },
     { name: "ListTransactions", options: {}, I: ListTransactionsRequest, O: ListTransactionsResponse },
     { name: "GetTransactionDetails", options: {}, I: GetTransactionDetailsRequest, O: GetTransactionDetailsResponse },

@@ -85,7 +85,7 @@ func TestCreate(t *testing.T) {
 			args: payments.CreateArgs{
 				Sender: payments.Identity{
 					Type:       payments.IdentityTypeTwitter,
-					Identifier: "@willy_wonka",
+					Identifier: "@placeholder1234567890",
 				},
 				Receiver: payments.Identity{
 					Type:       payments.IdentityTypeWalletURL,
@@ -106,7 +106,7 @@ func TestCreate(t *testing.T) {
 			args: payments.CreateArgs{
 				Sender: payments.Identity{
 					Type:       payments.IdentityTypeTwitter,
-					Identifier: "@willy_wonka",
+					Identifier: "@placeholder1234567890",
 				},
 				Receiver: payments.Identity{
 					Type:       payments.IdentityTypeWalletURL,

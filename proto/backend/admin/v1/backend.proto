@@ -13,7 +13,7 @@ option go_package = "./backend/admin/v1;admin";
 service Backend {
   rpc ListWaitlistSignups(google.protobuf.Empty) returns (ListWaitlistSignupsResponse);
   rpc AllowWaitlistSignup(AllowWaitlistSignupRequest) returns (Empty);
-  rpc ListWallets(PaginationRequest) returns (ListWalletsResponse);
+  rpc ListWallets(ListWalletsRequest) returns (ListWalletsResponse);
   rpc GetWalletDetails(GetWalletDetailsRequest) returns (WalletDetails);
   rpc ListTransactions(ListTransactionsRequest) returns (ListTransactionsResponse);
   rpc GetTransactionDetails(GetTransactionDetailsRequest) returns (GetTransactionDetailsResponse);
@@ -372,10 +372,28 @@ message PaginationRequest {
   optional string search = 3;
 }
 
+message ListWalletsRequest {
+  int32 pageSize = 1;
+  optional string pageToken = 2;
+  optional string search = 3;
+  optional WalletSearchFilter filter = 4;
+}
+
+message WalletSearchFilter {
+  string firstName = 1;
+  string lastName = 2;
+  string walletAddress = 3;
+  string email = 4;
+  string phoneNumber = 5;
+  string providerId = 6;
+}
+
 message Wallet {
   string walletID = 1;
   string walletName = 2;
   repeated User users = 3;
+  string kycFirstName = 4;
+  string kycLastName = 5;
 }
 
 message ListWalletsResponse {
@@ -387,6 +405,8 @@ message User {
   string id = 1;
   string email = 2;
   string phoneNumber = 3;
+  string firstName = 4;
+  string lastName = 5;
 }
 
 message AllowWaitlistSignupRequest {

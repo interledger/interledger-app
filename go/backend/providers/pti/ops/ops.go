@@ -243,7 +243,7 @@ func DepositToWallet(ctx context.Context, b Backends, ec external.Client, args p
 
 	txID, err := ec.WalletDeposit(ctx, external.DepositArgs{
 		RequestID:                 args.PaymentID,
-		ScenarioID:                pti.ScenarioDeposit,
+		ScenarioID:                pti.ScenarioDeposit(),
 		SessionID:                 args.PaymentID,
 		UserID:                    externalUser.ExternalID,
 		ExternalWalletID:          balance.ProviderID,
@@ -304,7 +304,7 @@ func WithdrawFromWallet(ctx context.Context, b Backends, ec external.Client, arg
 	txID, err := ec.WalletWithdrawal(ctx, external.WithdrawalArgs{
 		RequestID:             args.PaymentID,
 		SessionID:             args.PaymentID,
-		ScenarioID:            pti.ScenarioWithdrawal,
+		ScenarioID:            pti.ScenarioWithdrawal(),
 		UserID:                externalUser.ExternalID,
 		ExternalWalletID:      balance.ProviderID,
 		ExternalBankAccountID: bank.ProviderID,
@@ -367,6 +367,7 @@ func ReserveBalance(ctx context.Context, b Backends, linkedAccountID, txID strin
 	tx, err := b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
 		{
 			ID:              txID,
+			ReferenceID:     txID,
 			Amount:          amt.Value,
 			DebitAccountID:  la.ID,
 			CreditAccountID: opsAcc,
@@ -466,6 +467,7 @@ func AssignBalance(ctx context.Context, b Backends, linkedAccountID, txID string
 	tx, err := b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
 		{
 			ID:              txID,
+			ReferenceID:     txID,
 			Amount:          amt.Value,
 			CreditAccountID: la.ID,
 			DebitAccountID:  opsAcc,
@@ -525,6 +527,7 @@ func ReserveTransfer(ctx context.Context, b Backends, fromAccount, toAccount, tx
 	tx, err := b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
 		{
 			ID:              txID,
+			ReferenceID:     txID,
 			Amount:          amt.Value,
 			DebitAccountID:  fromAccount,
 			CreditAccountID: toAccount,
@@ -569,8 +572,8 @@ func GetKYCWidget(ctx context.Context, b Backends, walletID string) (*pti.Widget
 	sdkUrl, formsUrl := ResolvePTIWidgetURLs()
 
 	return &pti.WidgetDetails{
-		// ScenarioID:        pti.ScenarioDeposit,
-		ScenarioID:        pti.ScenarioWithdrawal,
+		// ScenarioID:        pti.ScenarioDeposit(),
+		ScenarioID:        pti.ScenarioWithdrawal(),
 		RequestID:         uuid.NewString(),
 		UserID:            externalUser.ExternalID,
 		ClientID:          ptiWidgetClientID,
@@ -783,7 +786,7 @@ func ConfirmWithdrawal(ctx context.Context, b Backends, ec external.Client, wall
 
 	withdrawTx, err := ec.WalletWithdrawal(ctx, external.WithdrawalArgs{
 		RequestID:             payment.ID,
-		ScenarioID:            pti.ScenarioWithdrawal,
+		ScenarioID:            pti.ScenarioWithdrawal(),
 		UserID:                externalUser.ExternalID,
 		ExternalWalletID:      balance.ProviderID,
 		ExternalBankAccountID: bank.ProviderID,

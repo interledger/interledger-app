@@ -112,6 +112,27 @@ func validateStart(cfg *StartConfig) error {
 		}
 	}
 
+	if cfg.Plaid.Enabled {
+		if cfg.Plaid.ClientID == "" {
+			return errors.New("plaid.client_id is required when plaid.enabled is true")
+		}
+		if cfg.Plaid.Secret == "" {
+			return errors.New("plaid.secret is required when plaid.enabled is true")
+		}
+		if cfg.Plaid.Env != "sandbox" && cfg.Plaid.Env != "production" {
+			return errors.New("plaid.env must be one of: sandbox, production")
+		}
+		if len(cfg.Plaid.Products) == 0 {
+			return errors.New("plaid.products is required when plaid.enabled is true")
+		}
+		if len(cfg.Plaid.CountryCodes) == 0 {
+			return errors.New("plaid.country_codes is required when plaid.enabled is true")
+		}
+		if cfg.Plaid.Processor != "fiant" {
+			return errors.New("plaid.processor must be: fiant")
+		}
+	}
+
 	if cfg.Environment.IsModeProd() {
 		if cfg.Xago.TravelRulePGPPublicKey == "" {
 			return errors.New("xago.travel_rule_pgp_public_key is required in production")
@@ -190,6 +211,9 @@ func applyStartDefaults(cfg *StartConfig) {
 	}
 	if cfg.Kratos.URL == "" {
 		cfg.Kratos.URL = "http://localhost:4433"
+	}
+	if cfg.Plaid.Enabled && cfg.Plaid.Processor == "" {
+		cfg.Plaid.Processor = "fiant"
 	}
 }
 

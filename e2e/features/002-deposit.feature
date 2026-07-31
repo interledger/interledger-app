@@ -121,3 +121,21 @@ Feature: Deposit Funds
     And I complete the minimal KYC flow `xago-deposit-user`
     When I simulate a Xago test deposit of "2500" "ZAR"
     Then I should see my balance updated with "2500" "ZAR"
+
+  @deposit @plaid @pti
+  Scenario: A Plaid-linked account funds a PTI deposit
+    Given mockplaid is running at "https://mockplaid.interledger.test"
+    And the details of 'plaid-deposit-user' are
+      | field       | value                        |
+      | emailSuffix | plaid-deposit@example.com    |
+      | password    | InterlEdger2025!TestPassword |
+      | country     | United States                |
+      | firstName   | Alice                        |
+      | lastName    | Smith                        |
+      | dateOfBirth | 1984-06-27                   |
+    And mockpti is running at "https://mockpti.interledger.test"
+    And I complete the minimal PTI KYC flow `plaid-deposit-user`
+    And I connect "Tartan Bank" "checking" via Plaid
+    When I navigate to the deposit page
+    And I deposit "100" "USD" via the PTI deposit form
+    Then I should see my balance updated with "100" "USD"

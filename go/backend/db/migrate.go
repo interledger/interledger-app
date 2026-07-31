@@ -223,6 +223,8 @@ func seedSysAccounts(ctx context.Context, dbc *sqlx.DB, openPaymentsURL string) 
 
 const waExpIndex = `
 CREATE UNIQUE INDEX IF NOT EXISTS "wallet_address_url_lower" ON "public"."wallet_addresses" (lower(url));
+CREATE INDEX IF NOT EXISTS "kyc_first_name_lower" ON "public"."individual_kyc_details" (lower(first_name) text_pattern_ops);
+CREATE INDEX IF NOT EXISTS "kyc_last_name_lower" ON "public"."individual_kyc_details" (lower(last_name) text_pattern_ops);
 `
 
 const seedSQL = `

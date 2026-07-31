@@ -119,6 +119,22 @@ func TestNormalizeVerificationPayload_ActionRequired(t *testing.T) {
 	assert.Equal(t, 0, verified["status"])
 }
 
+func TestNormalizeVerificationPayload_Resubmission(t *testing.T) {
+	data := map[string]interface{}{}
+	result := normalizeVerificationPayload("id.verification.resubmission", data)
+	assert.Equal(t, "paywiser", result["gateway"])
+	_, hasVerified := result["verified"]
+	assert.False(t, hasVerified)
+}
+
+func TestNormalizeVerificationPayload_DocumentNoticeExpired(t *testing.T) {
+	data := map[string]interface{}{}
+	result := normalizeVerificationPayload("id.document_notice.expired", data)
+	assert.Equal(t, "paywiser", result["gateway"])
+	_, hasVerified := result["verified"]
+	assert.False(t, hasVerified)
+}
+
 func TestNormalizeVerificationPayload_NonVerificationEvent(t *testing.T) {
 	data := map[string]interface{}{"amount": "100"}
 	result := normalizeVerificationPayload("core.deposit.completed", data)

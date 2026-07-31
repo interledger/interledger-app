@@ -134,7 +134,9 @@ Given an account-deletion request exists for me with status "pending"
 Then the "Delete account" settings link should be visible
 Then the "Delete account" settings link should not be visible
 When I click the destructive "Delete account" button
+Then the destructive "Delete account" button should be disabled
 When I complete the TOTP step-up challenge
+Then I should see text "Two-factor authentication must be configured before deleting your account" on the page
 Then the pending account-deletion indicator should be visible
 Then an account-deletion request should exist for me with status "pending"
 ```

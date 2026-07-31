@@ -10,7 +10,7 @@ import {
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
-  let pageSize = url.searchParams.get('pageSize') || '50'
+  const pageSize = url.searchParams.get('pageSize') || '50'
   const { reviews } = await ListLinkedAccountReviews(request, {
     pageSize: parseInt(pageSize)
   })
@@ -103,7 +103,7 @@ export default function Page() {
                         <td
                           className='whitespace-nowrap p-4 text-sm text-gray-500'
                           onClick={() => {
-                            let formData = new FormData()
+                            const formData = new FormData()
                             formData.append('reviewID', review.id)
                             formData.append(
                               'newState',

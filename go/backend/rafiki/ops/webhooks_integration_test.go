@@ -912,7 +912,7 @@ func TestCreateOutgoingPaymentTransaction(t *testing.T) {
 	walletsMock := wallets_mock.NewMockClient(ctrl)
 	walletsMock.EXPECT().Get(gomock.Any(), senderWalletID).Return(&wallets.Wallet{ID: senderWalletID}, nil)
 	walletsMock.EXPECT().Get(gomock.Any(), receiverWalletID).
-		Return(&wallets.Wallet{ID: receiverWalletID, Addresses: []wallets.Address{receiverAddr}}, nil)
+		Return(&wallets.Wallet{ID: receiverWalletID, Name: "bob", Addresses: []wallets.Address{receiverAddr}}, nil)
 	ab.SetWallets(walletsMock)
 
 	txMock := transactions_mock.NewMockClient(ctrl)
@@ -927,6 +927,8 @@ func TestCreateOutgoingPaymentTransaction(t *testing.T) {
 			assert.Equal(t, receiverAddr.String(), args.Destination)
 			assert.Equal(t, receiverAddr.String(), args.DestinationIdentity)
 			assert.Equal(t, payments.IdentityTypeWalletURL.String(), args.DestinationIdentityType)
+			// Title is the receiver's public name so the list shows who was paid.
+			assert.Equal(t, "bob", args.Title)
 			return "trx_out", nil
 		})
 	ab.SetTransactions(txMock)
@@ -1023,6 +1025,8 @@ func TestCreateOutgoingPaymentTransaction_WebMonetization(t *testing.T) {
 	txMock.EXPECT().CreateTransaction(gomock.Any(), gomock.Any()).
 		DoAndReturn(func(_ context.Context, args transactions.CreateTransactionArgs) (string, error) {
 			assert.Equal(t, transactions.TransactionTypeWebMonetizationOutgoing, args.ForeignType)
+			// Receiver has no public name here, so the title falls back to the address.
+			assert.Equal(t, receiverAddr.String(), args.Title)
 			return "trx_out", nil
 		})
 	ab.SetTransactions(txMock)

@@ -43,6 +43,7 @@ Users get a single wallet tied to one payment provider (GateHub, PTI, Xago, or C
 | Document | Description |
 |----------|-------------|
 | [GateHub Cards](gatehub-cards-guide.md) | EUR debit card issuing: customer onboarding, card lifecycle, 3DS, webhooks |
+| [Plaid Bank Linking](plaid-integration-guide.md) | US bank linking via Plaid → PTI/Fiant: connect flow, soft-delete, concurrency, and dev issues |
 
 ### Operations
 
@@ -55,6 +56,8 @@ Users get a single wallet tied to one payment provider (GateHub, PTI, Xago, or C
 | Document | Description |
 |----------|-------------|
 | [Logging Reference](logging-reference.md) | Log levels, formatting standards, and structured logging guidelines |
+| [Configuration Strategy Guide](configuration-strategy-guide.md) | How to add configuration safely: ship features inert, choose safe defaults, and fail fast on bad config in Helm and at startup |
+| [Environment Mode Guide](environment-mode-guide.md) | How and when to branch behaviour on `environment.mode`, and how to keep non-production shortcuts out of production |
 | [Backend Configuration Guide](backend-configuration-guide.md) | The Go backend's YAML config scheme, secret handling, and a full reference of every available setting |
 | [Environment Variables](env-variables.md) | Environment variables for the Protea and Botanist frontends — secret classification, per-environment values, and local defaults |
 

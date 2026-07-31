@@ -148,7 +148,7 @@ sudo apt-get install -y libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 \
 
 cd e2e
 go mod download
-go run github.com/playwright-community/playwright-go/cmd/playwright install chromium
+go run github.com/mxschmitt/playwright-go/cmd/playwright install chromium
 ```
 
 **Running tests**:
@@ -397,10 +397,25 @@ All logs must be JSON, one object per line. Include `ts` (Unix timestamp), optio
 
 - `e2e/AGENTS.md` - Agent-specific E2E testing guidance (tag usage, troubleshooting)
 - `docs/concepts.md` - Provider terminology mapping
+- `documentation/docs/configuration-strategy-guide.md` - How to add configuration safely (ship features inert, safe defaults, fail-fast validation); consult on every configuration review
+- `documentation/docs/environment-mode-guide.md` - How and when to branch behaviour on `environment.mode`, and how to keep non-production shortcuts out of production
+- `documentation/docs/backend-configuration-guide.md` - Backend YAML config scheme, secret handling, and full setting reference
 - `documentation/docs/env-variables.md` - Full environment variable reference for Protea, Botanist, and Backend
 - `local/README.md` - Detailed local environment documentation
 - `e2e/README.md` - E2E test setup and execution guide
 - `e2e/STEP_REFERENCE.md` - Gherkin step definitions reference
+
+## Configuration Changes
+
+**When reviewing any PR that adds or changes configuration** (a new backend YAML config field, a feature flag, a Helm value, or validation logic), always evaluate it against `documentation/docs/configuration-strategy-guide.md`. That guide is the source of truth for how configuration is added safely; reviews must hold changes to it. Concretely, check that:
+
+1. **New features ship inert.** A new feature is gated behind an `enabled`-style flag that defaults **off**, so the merged version is safe to deploy to any environment without changing behaviour until explicitly activated.
+2. **Defaults are safe everywhere.** A new option added to already-live behaviour has a default that is correct (or harmless) in every environment, including production. Reject "bad defaults" that only work in one place, such as a provider URL pointing at staging or a `localhost` dependency.
+3. **No safe default means required and validated.** If a mission-critical field has no safe default, it must be required and validated so no environment can deploy without it.
+4. **Bad config fails fast, at both layers.** Config that Helm can see is validated at render time in `helm/interledger-app/templates/validation.backend.yaml` (with a matching `helm unittest` case in `helm/interledger-app/tests/backend.validation_test.yaml`), and the application refuses to start on invalid config via a `validate` tag or a rule in `go/backend/config/start.go` (`validateStart`), with a matching Go test. Confirm the Helm and application rules **agree**.
+5. **New settings are documented.** Backend settings are added to `documentation/docs/backend-configuration-guide.md`; frontend variables to `documentation/docs/env-variables.md`.
+6. **Exceptions are flagged.** A change that genuinely cannot ship inert requires a team-agreed, version-specific deployment strategy. Call this out in the review rather than approving it silently.
+7. **Mode-based relaxations guard production.** Any code that skips a check or takes a shortcut based on `environment.mode` must exclude production by construction (gate on `!IsModeProd()` or `IsModeLocal() || IsModeTest()`, never the inverse) and, where the relaxation is driven by a separate flag, add a startup guardrail that rejects it in prod. Read the mode via the `IsMode*` helpers, never a raw string comparison. See `documentation/docs/environment-mode-guide.md`.
 
 ## Environment Variables
 

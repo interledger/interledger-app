@@ -14,14 +14,32 @@ flowchart TD
     documentsRequired -->|User resubmits| pending
 ```
 
-- Both `id.verification.action_required` and `id.document_notice.expired` webhook events set status to `StatusDocumentsRequired` (2).
+- All documents-required webhook events set status to `StatusDocumentsRequired` (2).
 - User cannot transact while in `StatusDocumentsRequired`.
 - User can resubmit documents via the app, which sets status back to `StatusPending`.
 
 ## Webhook Events (Phase 1)
 
-- **id.verification.action_required**: Additional documents/data needed. Sets status to `StatusDocumentsRequired`.
-- **id.document_notice.expired**: Documents expired. Sets status to `StatusDocumentsRequired`.
+All of the following GateHub webhook events map to `StatusDocumentsRequired`:
+
+- **id.verification.action_required**: Additional documents/data needed.
+- **id.verification.resubmission**: User must resubmit verification documents.
+- **id.document_notice.expired**: Documents expired.
+- **id.document_notice.warning**: Documents will expire soon (Phase 1: treated the same as documents required).
+
+## Backend Handling
+
+When any of the above webhooks are received:
+
+1. The wallet KYC status is set to `StatusDocumentsRequired` via the generic KYC workflow.
+2. The user receives an email: "Action Required – Please Resubmit Your Verification Documents".
+3. A Slack notification is sent to the `signup_kyc` channel (`wallet-info-bot`).
+
+When an EU user opens `/personal-details` with `StatusDocumentsRequired`, the backend also checks whether GateHub reports the user is in KYC edit mode (Sumsub verification `status` 0 or 10 with `state` 0). If not:
+
+- the GateHub widget is not returned to the frontend
+- a Slack alert is sent: `User with status Documents_required is not in KYC edit mode on GateHub - walletID: <walletID>`
+- the user sees a message that document resubmission is not available and that support has been notified
 
 ## Email Notification
 
@@ -30,12 +48,13 @@ flowchart TD
 
 ## User Experience
 
-- **Dashboard Banner**: Users with `StatusDocumentsRequired` see a prominent message and a button to resubmit documents.
-- **KYC Page**: Users can access the KYC widget to upload new documents. After resubmission, status moves to `StatusPending`.
+- **Dashboard Banner**: Users with `StatusDocumentsRequired` see a prominent message and a "Reactivate wallet" link to `/personal-details`.
+- **KYC Page**: If GateHub reports edit/resubmission mode, users can access the KYC widget to upload new documents. If not, resubmission is unavailable, support is notified via Slack, and the user sees a message explaining both.
+- After resubmission, status moves to `StatusPending`.
 
 ## API & Backend Changes
 
-- **StatusDocumentsRequired** is used for both webhook types in Phase 1.
+- **StatusDocumentsRequired** is used for all documents-required webhook types in Phase 1.
 - Transaction permissions are blocked for users in this status (cannot pay, deposit, withdraw, or use Rafiki address).
 - KYC widget is accessible for users in `StatusUnknown`, `StatusPending`, or `StatusDocumentsRequired`.
 
@@ -47,14 +66,15 @@ flowchart TD
 
 ## Testing & Monitoring
 
-- Integration and unit tests cover webhook handling, status transitions, transaction blocking, and email sending.
+- Unit tests cover webhook handling for all documents-required event types, status transitions, and transaction blocking.
+- E2E tests cover the resubmission flow via MockGateHub webhook triggers, including edit-mode gating on `/personal-details`.
 - Alerts: webhook/email failures.
 
 ## Support Playbook
 
-- If user cannot resubmit: check KYC status, webhook processing workflow
+- If user cannot resubmit: check KYC status, webhook processing workflow, and GateHub Sumsub verification status/state via `GET /id/v1/users/:userUuid`
 - If documents still show as expired after resubmission: check for webhook, workflow status, provider status.
 
 ---
 
-**For Phase 2 (future):** The flow will split into two statuses (`StatusDocumentsRequired` and `StatusDocumentsWillExpire`) with different transaction permissions and additional email templates.
+**For Phase 2 (future):** The flow will split into two statuses (`StatusDocumentsRequired` and `StatusDocumentsWillExpire`) with different transaction permissions and additional email templates. `id.document_notice.warning` would then map to the softer warning state instead of blocking transactions.

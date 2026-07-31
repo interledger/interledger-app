@@ -25,6 +25,8 @@ const (
 
 	ErrCodeLinkedAccNotFound AppErrorCode = "LINKEDACC_NOT_FOUND"
 
+	ErrCodeWalletNotActivated AppErrorCode = "WALLET_NOT_ACTIVATED"
+
 	ErrCodeSignupDuplicatePhone AppErrorCode = "SIGNUP_DUPLICATE_PHONE"
 
 	ErrCodeIdentitiesAlreadyExists AppErrorCode = "IDENTITIES_ALREADY_EXISTS"
@@ -33,6 +35,7 @@ const (
 	ErrCodePaymentsInsufficientFunds AppErrorCode = "PAYMENTS_INSUFFICIENT_FUNDS"
 
 	ErrCodeKYCResubmissionRequired AppErrorCode = "KYC_RESUBMISSION_REQUIRED"
+	ErrCodeKYCWidgetNotAvailable   AppErrorCode = "KYC_WIDGET_NOT_AVAILABLE"
 
 	ErrCodeUserInvalidTotpCode   AppErrorCode = "USER_INVALID_TOTP_CODE"
 	ErrCodeUserTotpNotConfigured AppErrorCode = "USER_TOTP_NOT_CONFIGURED"
@@ -41,4 +44,6 @@ const (
 	ErrCodeEmailSupportInboxNotConfigured AppErrorCode = "EMAIL_SUPPORT_INBOX_NOT_CONFIGURED"
 
 	ErrCodeAccountDeletionAlreadyRequested AppErrorCode = "ACCOUNT_DELETION_ALREADY_REQUESTED"
+
+	ErrCodeKeysDuplicateKey AppErrorCode = "KEYS_DUPLICATE_KEY"
 )

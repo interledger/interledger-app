@@ -13,6 +13,7 @@ import (
 	"github.com/interledger/interledger-app/go/backend/payments"
 
 	"github.com/interledger/interledger-app/go/backend/config"
+	"github.com/interledger/interledger-app/go/backend/keys"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/interledger/interledger-app/go/backend/identities"
@@ -22,6 +23,7 @@ import (
 	"github.com/interledger/interledger-app/go/backend/signup"
 
 	"github.com/interledger/interledger-app/go/backend/twilio"
+	"github.com/interledger/interledger-app/go/backend/transactions"
 	"github.com/interledger/interledger-app/go/backend/user"
 	"github.com/interledger/interledger-app/go/log"
 	pb "github.com/interledger/interledger-app/go/proto/backend/v1"
@@ -35,6 +37,7 @@ import (
 const VALIDATION_ERR_MSG = "Some fields are incorrect."
 
 var errorStatus = map[error]error{
+	keys.ErrDuplicate:                   newError(codes.AlreadyExists, errcodes.ErrCodeKeysDuplicateKey, "Key already connected to this wallet", nil),
 	user.ErrNoUserFound:                 newError(codes.Unauthenticated, errcodes.ErrCodeUserNoUserFound, "Unauthenticated", nil),
 	user.ErrInvalidArgument:             NewValidationError("phone", "Phone number is invalid."),
 	user.ErrDuplicatePhone:              newError(codes.AlreadyExists, errcodes.ErrCodeSignupDuplicatePhone, "Phone number already exists with a user.", nil),
@@ -49,7 +52,9 @@ var errorStatus = map[error]error{
 	wallets.ErrNoWalletFound:            newError(codes.NotFound, errcodes.ErrCodeWalletsNoWalletFound, "Not found: wallet address not found", nil),
 	payments.ErrRequiredActions:         newError(codes.FailedPrecondition, errcodes.ErrCodePaymentsRequiredActions, "Required details missing for payment", nil),
 	payments.ErrInsufficientFunds:       PaymentInsufficientFundsError(),
+	transactions.ErrNotFound:            newError(codes.NotFound, errcodes.ErrCodeNotFound, "Not found: transaction not found", nil),
 	kyc.ErrKYCResubmissionRequired:      newError(codes.FailedPrecondition, errcodes.ErrCodeKYCResubmissionRequired, "KYC resubmission required: please update your verification documents", nil),
+	kyc.ErrKYCWidgetNotAvailable:        newError(codes.FailedPrecondition, errcodes.ErrCodeKYCWidgetNotAvailable, "Document resubmission is not available right now. Support has been notified and will follow up with you.", nil),
 	user.ErrInvalidTotpCode:             newValidationErrorSingleField(errcodes.ErrCodeUserInvalidTotpCode, "totp_code", "Invalid verification code."),
 	user.ErrTotpNotConfigured:           newError(codes.FailedPrecondition, errcodes.ErrCodeUserTotpNotConfigured, "Two-factor authentication is not configured on this account.", nil),
 	user.ErrInvalidTotpConfig:           newError(codes.FailedPrecondition, errcodes.ErrCodeUserInvalidTotpConfig, "Two-factor authentication configuration is invalid.", nil),

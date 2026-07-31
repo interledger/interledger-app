@@ -129,6 +129,7 @@ func TestToGRPCError(t *testing.T) {
 			{"payments required actions", payments.ErrRequiredActions, codes.FailedPrecondition, errcodes.ErrCodePaymentsRequiredActions},
 			{"payments insufficient funds", payments.ErrInsufficientFunds, codes.FailedPrecondition, errcodes.ErrCodePaymentsInsufficientFunds},
 			{"kyc resubmission required", kyc.ErrKYCResubmissionRequired, codes.FailedPrecondition, errcodes.ErrCodeKYCResubmissionRequired},
+			{"kyc widget not available", kyc.ErrKYCWidgetNotAvailable, codes.FailedPrecondition, errcodes.ErrCodeKYCWidgetNotAvailable},
 			{"twilio invalid otp", twilio.ErrInvalidOTP, codes.InvalidArgument, errcodes.ErrCodeTwilioInvalidOTP},
 			{"twilio invalid argument", twilio.ErrInvalidArgument, codes.InvalidArgument, errcodes.ErrCodeTwilioInvalidOTP},
 		}

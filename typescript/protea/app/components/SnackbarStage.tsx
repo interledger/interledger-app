@@ -8,7 +8,7 @@ import { useScaffoldStore } from '~/lib/useScaffoldStore'
 
 const Stage = forwardRef<any>(({ ...motionProps }, ref) => {
   const [snackbar, setSnackbar] = useState<SnackbarType | null>(null)
-  let dismissRef = useRef<NodeJS.Timeout>()
+  const dismissRef = useRef<NodeJS.Timeout>()
   const navigate = useNavigate()
   const OPEN_CHANGE_PHONE_EVENT = 'phone-confirmation:open-change-phone'
 

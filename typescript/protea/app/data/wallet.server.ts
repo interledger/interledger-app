@@ -31,7 +31,7 @@ export async function getFeatures(request: Request): Promise<Features> {
 }
 
 export async function getWalletId(request: Request): Promise<string> {
-  let response = await grpc.getCurrentWallet(request, {})
+  const response = await grpc.getCurrentWallet(request, {})
 
   if (isConnectError(response)) throw response.errorResponse
 
@@ -42,7 +42,7 @@ export async function getPublicWalletDetails(
   request: Request,
   id: string
 ): Promise<GetPublicWalletDetailsResponse> {
-  let response = await grpc.getPublicWalletDetails(request, {
+  const response = await grpc.getPublicWalletDetails(request, {
     id
   })
 
@@ -55,7 +55,7 @@ export async function getPublicWalletInfo(
   request: Request,
   walletAddress: string
 ): Promise<PublicWalletInfo> {
-  let response = await grpc.getPublicWalletInfo(request, {
+  const response = await grpc.getPublicWalletInfo(request, {
     walletAddress
   })
 
@@ -65,7 +65,7 @@ export async function getPublicWalletInfo(
 }
 
 export async function getWalletInfo(request: Request): Promise<WalletInfo> {
-  let response = await grpc.getWalletInfo(request, {})
+  const response = await grpc.getWalletInfo(request, {})
 
   if (isConnectError(response)) {
     throw response.errorResponse

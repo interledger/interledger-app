@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/playwright-community/playwright-go"
+	"github.com/mxschmitt/playwright-go"
 )
 
 var _ = (*E2EContext).getKratosIdentities
@@ -253,6 +253,63 @@ func (sc *E2EContext) iShouldHaveALinkedBalanceAccountForProvider(provider strin
 
 	debugPrintf("✓ Found %d linked balance account(s) for provider %s\n", count, provider)
 	return nil
+}
+
+// iShouldHaveNPlaidBankAccounts verifies the exact number of Plaid-linked bank
+// accounts for the current user. A Plaid link creates a linked_accounts row with
+// provider='pti' and type='bank_account' (distinct from the PTI 'balance' row
+// created at KYC). Used to assert dedupe (1 after a duplicate) and multi-account
+// (2 after two always-new links).
+func (sc *E2EContext) iShouldHaveNPlaidBankAccounts(expected string) error {
+	want, err := strconv.Atoi(strings.TrimSpace(expected))
+	if err != nil {
+		return fmt.Errorf("invalid expected count %q: %w", expected, err)
+	}
+
+	if err := sc.ensureDB(); err != nil {
+		return fmt.Errorf("iShouldHaveNPlaidBankAccounts: %w", err)
+	}
+
+	email, err := sc.getCurrentUserEmail()
+	if err != nil {
+		return err
+	}
+	kratosID := sc.getKratosUserIDByEmail(email)
+	if kratosID == "" {
+		return fmt.Errorf("could not resolve kratos user id for %s", email)
+	}
+
+	// Poll: the link's exchange -> Fiant -> DB insert completes async after the
+	// Plaid overlay tears down, so the row may not be visible the instant the
+	// connect step returns. Wait until the count reaches the expected value.
+	const timeout = 20 * time.Second
+	deadline := time.Now().Add(timeout)
+	var count int
+	for {
+		err = sc.db.QueryRow(`
+			SELECT COUNT(*)
+			FROM linked_accounts la
+			JOIN user_wallets uw ON uw.wallet_id = la.wallet_id
+			WHERE uw.user_id = $1
+			  AND la.provider = 'pti'
+			  AND la.type = 'bank_account'
+			  AND la.deleted_at IS NULL
+		`, kratosID).Scan(&count)
+		if err != nil {
+			return fmt.Errorf("failed to count Plaid bank accounts: %w", err)
+		}
+		if count == want {
+			debugPrintf("✓ Found %d Plaid bank account(s) for %s (as expected)\n", count, email)
+			return nil
+		}
+		if count > want {
+			return fmt.Errorf("expected %d Plaid bank account(s) for %s, found %d (too many)", want, email, count)
+		}
+		if time.Now().After(deadline) {
+			return fmt.Errorf("expected %d Plaid bank account(s) for %s, found %d after %s", want, email, count, timeout)
+		}
+		time.Sleep(500 * time.Millisecond)
+	}
 }
 
 // iShouldUseOnOffRampProvider verifies backend provider selection exposed to the withdraw UI.

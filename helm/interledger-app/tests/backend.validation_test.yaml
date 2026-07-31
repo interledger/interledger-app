@@ -56,6 +56,8 @@ set:
         enabled: "false"
       pti:
         enabled: "false"
+      plaid:
+        enabled: "false"
       twilio:
         enabled: "false"
       email:
@@ -100,6 +102,21 @@ tests:
       backend.config.pti.sdk_url: "https://sdk.pti.io/latest/index.js"
       backend.config.pti.forms_url: "https://forms.pti.io"
       backend.config.pti.public_key_jwk: "-----BEGIN PUBLIC KEY-----\ntest\n-----END PUBLIC KEY-----"
+    asserts:
+      - isNull:
+          path: spec
+
+  - it: 'Should succeed when plaid is enabled with all required fields'
+    set:
+      backend.config.plaid.enabled: "true"
+      backend.config.plaid.client_id: "plaid-client-id"
+      backend.config.plaid.secret: "plaid-secret"
+      backend.config.plaid.env: "sandbox"
+      backend.config.plaid.products:
+        - auth
+        - transactions
+      backend.config.plaid.country_codes:
+        - US
     asserts:
       - isNull:
           path: spec
@@ -296,6 +313,48 @@ tests:
     asserts:
       - failedTemplate:
           errorMessage: "The following required values are empty: backend.config.pti.jwk"
+
+  # ── Conditional: plaid.enabled ───────────────────────────────────────────────
+
+  - it: 'Should fail when plaid is enabled but secret is empty'
+    set:
+      backend.config.plaid.enabled: "true"
+      backend.config.plaid.client_id: "plaid-client-id"
+      backend.config.plaid.env: "sandbox"
+      backend.config.plaid.products:
+        - auth
+      backend.config.plaid.country_codes:
+        - US
+    asserts:
+      - failedTemplate:
+          errorMessage: "The following required values are empty: backend.config.plaid.secret"
+
+  - it: 'Should fail when plaid is enabled but env is invalid'
+    set:
+      backend.config.plaid.enabled: "true"
+      backend.config.plaid.client_id: "plaid-client-id"
+      backend.config.plaid.secret: "plaid-secret"
+      backend.config.plaid.env: "invalid"
+      backend.config.plaid.products:
+        - auth
+      backend.config.plaid.country_codes:
+        - US
+    asserts:
+      - failedTemplate:
+          errorMessage: 'backend.config.plaid.env must be one of [sandbox production], got: "invalid"'
+
+  - it: 'Should fail when plaid is enabled but products is empty'
+    set:
+      backend.config.plaid.enabled: "true"
+      backend.config.plaid.client_id: "plaid-client-id"
+      backend.config.plaid.secret: "plaid-secret"
+      backend.config.plaid.env: "sandbox"
+      backend.config.plaid.products: []
+      backend.config.plaid.country_codes:
+        - US
+    asserts:
+      - failedTemplate:
+          errorMessage: "backend.config.plaid.products is required when backend.config.plaid.enabled is true"
 
   # ── Conditional: twilio.enabled ─────────────────────────────────────────────
 

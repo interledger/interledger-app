@@ -130,12 +130,16 @@ func (c *client) SendGatehubWithdrawalRejectedEmail(ctx context.Context, txID, w
 	ops.SendGatehubWithdrawalRejectedEmail(ctx, c.b, txID, walletID, amount, currency, iban, name)
 }
 
+func (c *client) SendRampActionEmail(ctx context.Context, walletID string, args email.RampActionEmailArgs) {
+	ops.SendRampActionEmail(ctx, c.b, walletID, args)
+}
+
 func (c *client) SendSCTRerouteEmail(ctx context.Context, txID, walletID string) {
 	ops.SendSCTRerouteEmail(ctx, c.b, txID, walletID)
 }
 
-func (c *client) SendRampActionEmail(ctx context.Context, walletID string, args email.RampActionEmailArgs) {
-	ops.SendRampActionEmail(ctx, c.b, walletID, args)
+func (c *client) SendGatehubWithdrawalSettledEmail(ctx context.Context, txID, walletID, amount, iban, name, timestamp string) {
+	ops.SendGatehubWithdrawalSettledEmail(ctx, c.b, txID, walletID, amount, iban, name, timestamp)
 }
 
 func (c *client) SendXagoTravelRuleEmail(ctx context.Context, csv []byte, recipientEmail string, reportDate time.Time, batchNumber, batchTotal, records int) error {

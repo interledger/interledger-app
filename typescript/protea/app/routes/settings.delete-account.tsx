@@ -1,5 +1,12 @@
 import { Code } from '@bufbuild/connect'
-import { href, redirect, useFetcher, useNavigate } from 'react-router'
+import {
+  href,
+  Link,
+  redirect,
+  useFetcher,
+  useLoaderData,
+  useNavigate
+} from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   Button,
@@ -15,6 +22,7 @@ import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
+import { isTotpEnrolled } from '~/lib/totp.server'
 import { useTotpChallenge } from '~/lib/useTotpChallenge'
 import type { Route } from './+types/settings.delete-account'
 
@@ -38,7 +46,8 @@ export async function loader({ request }: Route.LoaderArgs) {
       icon: 'close'
     })
   }
-  return null
+  const totpEnabled = await isTotpEnrolled(request)
+  return { totpEnabled }
 }
 
 export type AccountDeletionActionResponse = { error?: string }
@@ -85,12 +94,14 @@ export const handle: ApplicationProps = {
 export const meta = mergeMeta(() => [{ title: 'Delete account' }])
 
 export default function Page() {
+  const { totpEnabled } = useLoaderData<typeof loader>()
   const navigate = useNavigate()
   const fetcher = useFetcher<AccountDeletionActionResponse>()
   const { withTotpChallenge } = useTotpChallenge()
   const isSubmitting = fetcher.state !== 'idle'
 
   const handleDelete = () => {
+    if (!totpEnabled) return
     withTotpChallenge(() => {
       fetcher.submit(null, {
         method: 'post',
@@ -115,6 +126,18 @@ export default function Page() {
           </strong>{' '}
           After that, funds may not be recoverable.
         </p>
+        {!totpEnabled && (
+          <p role='alert' className='mt-3 text-sm text-error'>
+            Two-factor authentication must be configured before deleting your
+            account.{' '}
+            <Link
+              to={href('/totp/two-factor-authentication')}
+              className='underline'
+            >
+              Set up two-factor authentication
+            </Link>
+          </p>
+        )}
         {fetcher.data?.error && (
           <p role='alert' className='mt-3 text-sm text-error'>
             {fetcher.data.error}
@@ -133,7 +156,7 @@ export default function Page() {
             error
             type='button'
             onClick={handleDelete}
-            disabled={isSubmitting}
+            disabled={isSubmitting || !totpEnabled}
           >
             {isSubmitting ? 'Submitting…' : 'Delete account'}
           </Button>

@@ -38,7 +38,7 @@ The test runner reads feature files, matches each line to a corresponding step d
    sudo apt-get install -y libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 libxkbcommon0 libatspi2.0-0 libxcomposite1 libxdamage1 libxext6 libxfixes3 libxrandr2 libgbm1 libpango-1.0-0 libcairo2 libasound2
    cd e2e
    go mod download
-   go run github.com/playwright-community/playwright-go/cmd/playwright install
+   go run github.com/mxschmitt/playwright-go/cmd/playwright install
    ```
 
 3. **All services running** – Start the full stack:
@@ -94,6 +94,7 @@ Available tags in feature files:
 - `@p2p` – Peer-to-peer payments
 - `@wip` or `@skip` – Work in progress (skipped by default)
 - `@phone-debug` – Phone number validation debugging
+- `@plaid` – Plaid integration
 
 ### Running with Debug Output
 

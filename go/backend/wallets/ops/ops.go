@@ -15,6 +15,7 @@ import (
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 
 	"github.com/interledger/interledger-app/go/backend/wallets"
 )
@@ -262,13 +263,56 @@ func ListAll(ctx context.Context, b Backends, page db.Pagination) ([]wallets.Wal
 		}
 	}
 
-	query := "select id, name, country, exceeded_limits from wallets"
+	filter := page.Filter
+
+	if filter.FirstName != "" || filter.LastName != "" {
+		// Single EXISTS so both names (when both are set) must match the SAME
+		// individual_kyc_details row
+		nameConds := []string{}
+		if filter.FirstName != "" {
+			nameConds = append(nameConds, "lower(k.first_name) LIKE :firstname")
+			args["firstname"] = escapeLike(strings.ToLower(filter.FirstName)) + "%"
+		}
+		if filter.LastName != "" {
+			nameConds = append(nameConds, "lower(k.last_name) LIKE :lastname")
+			args["lastname"] = escapeLike(strings.ToLower(filter.LastName)) + "%"
+		}
+		conditions = append(conditions, fmt.Sprintf(
+			"EXISTS (SELECT 1 FROM individual_kyc_details k WHERE k.wallet_id = wallets.id AND %s)",
+			strings.Join(nameConds, " AND "),
+		))
+	}
+
+	if filter.WalletAddress != "" {
+		conditions = append(conditions, "EXISTS (SELECT 1 FROM wallet_addresses a WHERE a.wallet_id = wallets.id AND lower(a.url) LIKE :walletaddress)")
+		// Use partial search instead of the prefix so you won't need to complete with the host, like https://local.ilp.link/<wallet_address>
+		args["walletaddress"] = "%" + escapeLike(strings.ToLower(filter.WalletAddress)) + "%"
+	}
+
+	if filter.ProviderID != "" {
+		conditions = append(conditions, "EXISTS (SELECT 1 FROM linked_accounts la WHERE la.wallet_id = wallets.id AND la.provider_id = :providerid)")
+		args["providerid"] = filter.ProviderID
+	}
+
+	if filter.WalletIDs != nil {
+		conditions = append(conditions, "id = ANY(:walletids)")
+		args["walletids"] = pq.Array(filter.WalletIDs)
+	}
+
+	// LEFT JOIN LATERAL pulls the latest KYC revision per wallet (individual_kyc_details
+	// is 1:many via revision). Runs only for the returned page (<=50), uses the
+	// (wallet_id, revision) unique index
+	query := "select id, name, country, exceeded_limits, kyc.first_name as kyc_first_name, kyc.last_name as kyc_last_name " +
+		"from wallets left join lateral (" +
+		"select first_name, last_name from individual_kyc_details where wallet_id = wallets.id order by revision desc limit 1" +
+		") kyc on true"
 	if len(conditions) > 0 {
 		query += " where " + strings.Join(conditions, " AND ")
 	}
 	query += " order by created_at DESC, id DESC %s"
+	finalQuery := fmt.Sprintf(query, page.SQL())
 
-	nstmt, err := b.DB().PrepareNamed(fmt.Sprintf(query, page.SQL()))
+	nstmt, err := b.DB().PrepareNamed(finalQuery)
 	if err != nil {
 		return nil, err
 	}
@@ -293,6 +337,13 @@ func ListAll(ctx context.Context, b Backends, page db.Pagination) ([]wallets.Wal
 	}
 
 	return wl, nil
+}
+
+// escapeLike escapes the LIKE/ILIKE metacharacters backslash, % and _ (in
+// that order) so a user-supplied search term is matched literally.
+func escapeLike(s string) string {
+	replacer := strings.NewReplacer(`\`, `\\`, `%`, `\%`, `_`, `\_`)
+	return replacer.Replace(s)
 }
 
 func SetWalletName(ctx context.Context, b Backends, id, name string) (*wallets.Wallet, error) {

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/playwright-community/playwright-go"
+	"github.com/mxschmitt/playwright-go"
 )
 
 // iWithdrawViaPTIWithdrawForm fills the ILP withdrawal form (amount + linked bank account)

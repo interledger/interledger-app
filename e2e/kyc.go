@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/playwright-community/playwright-go"
+	"github.com/mxschmitt/playwright-go"
 )
 
 // initializeBrowser sets up the Playwright browser if not already initialized
@@ -55,9 +55,9 @@ func (sc *E2EContext) iNavigateToThePersonalDetailsPageToActivateWallet() error 
 		}
 	}
 
-	// Click "Activate wallet" link on dashboard instead of navigating directly
+	// Click "Activate wallet" or "Reactivate wallet" link on dashboard instead of navigating directly
 	// This ensures the Remix flow is properly initialized through client-side navigation
-	activateLink := sc.page.Locator("a:has-text('Activate wallet')")
+	activateLink := sc.page.Locator("a:has-text('Activate wallet'), a:has-text('Reactivate wallet')")
 
 	// Wait for the link to be visible
 	if err := activateLink.WaitFor(playwright.LocatorWaitForOptions{

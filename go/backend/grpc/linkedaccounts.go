@@ -6,6 +6,7 @@ import (
 
 	"github.com/interledger/interledger-app/go/backend/country"
 	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
+	plaid_ops "github.com/interledger/interledger-app/go/backend/providers/plaid/ops"
 	"github.com/interledger/interledger-app/go/backend/providers/pti"
 
 	pb "github.com/interledger/interledger-app/go/proto/backend/v1"
@@ -123,8 +124,17 @@ func (s *rpcService) DeleteLinkedAccount(ctx context.Context, req *pb.DeleteLink
 	}
 
 	err = s.b.LinkedAccounts().Delete(ctx, la.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
 
-	return &pb.Empty{}, toGRPCError(err)
+	// Free the Plaid dedupe slot so the same account can be re-linked. s.b
+	// satisfies the duck-typed LinkBackends via DB()/Validator().
+	if err := plaid_ops.SoftDeleteLinkByLinkedAccountID(ctx, s.b, la.ID); err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &pb.Empty{}, nil
 }
 
 func (s *rpcService) SetNicknameLinkedAccount(ctx context.Context, req *pb.SetNicknameLinkedAccountRequest) (*pb.LinkedAccount, error) {
