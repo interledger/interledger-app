@@ -52,6 +52,7 @@ type StartConfig struct {
 	Agreements AgreementsConfig `yaml:"agreements"`
 	OTEL       OTELConfig       `yaml:"otel"`
 	Plaid      PlaidConfig      `yaml:"plaid"`
+	WalletFeatures WalletFeaturesConfig `yaml:"wallet_features"`
 }
 
 // OTELConfig configures the OpenTelemetry trace exporter. Enabled is an explicit
@@ -249,4 +250,12 @@ type MigrationConfig struct {
 	// Label is the telemetry tag attached to monitoring signals (Sentry, etc.).
 	Label  string       `yaml:"label"`
 	Sentry SentryConfig `yaml:"sentry"`
+}
+
+// WalletFeaturesConfig holds deployment-level feature-flag defaults. These seed the
+// default value of a per-wallet flag when no wallet_features row exists yet; once
+// an admin persists a wallet's features, the stored value takes precedence and
+// these defaults no longer apply to that wallet.
+type WalletFeaturesConfig struct {
+	XagoGatehubPaymentsDefaultEnabled bool `yaml:"xago_gatehub_payments_default_enabled"`
 }

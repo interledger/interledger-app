@@ -164,6 +164,9 @@ backend:
     temporal:
       url: "temporal:7233"
 
+    wallet_features:
+      xago_gatehub_payments_default_enabled: false
+
     rafiki:
       node_enabled: false
       backend_graphql_url: "http://rafiki-backend:3001/graphql"

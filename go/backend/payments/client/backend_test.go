@@ -42,11 +42,12 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/golang/mock/gomock"
 	"github.com/interledger/interledger-app/go/backend/analytics"
-	"github.com/interledger/interledger-app/go/backend/config"
 	analytics_client "github.com/interledger/interledger-app/go/backend/analytics/client"
+	"github.com/interledger/interledger-app/go/backend/config"
 	"github.com/interledger/interledger-app/go/backend/db"
 	"github.com/interledger/interledger-app/go/backend/email"
 	email_mock "github.com/interledger/interledger-app/go/backend/email/client/mock"
+	"github.com/interledger/interledger-app/go/backend/features"
 	"github.com/interledger/interledger-app/go/backend/identities"
 	id_client "github.com/interledger/interledger-app/go/backend/identities/client"
 	"github.com/interledger/interledger-app/go/backend/images"
@@ -354,4 +355,8 @@ func (b *TestBackends) PTI() pti.Client {
 
 func (b *TestBackends) Config() *config.StartConfig {
 	return &config.StartConfig{Environment: config.EnvironmentConfig{Mode: "test"}}
+}
+
+func (b *TestBackends) Features() features.Client {
+	return nil
 }

@@ -14,12 +14,17 @@ import (
 	"github.com/google/uuid"
 	"github.com/interledger/interledger-app/go/backend/currency"
 	"github.com/interledger/interledger-app/go/backend/db"
+	"github.com/interledger/interledger-app/go/backend/features"
+	features_mock "github.com/interledger/interledger-app/go/backend/features/client/mock"
 	"github.com/interledger/interledger-app/go/backend/identities"
 	identity_mock "github.com/interledger/interledger-app/go/backend/identities/client/mock"
 	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
 	linkedaccounts_mock "github.com/interledger/interledger-app/go/backend/linkedaccounts/client/mock"
 	"github.com/interledger/interledger-app/go/backend/payments"
 	"github.com/interledger/interledger-app/go/backend/payments/ops"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
+	"github.com/interledger/interledger-app/go/backend/providers/xago"
+	"github.com/interledger/interledger-app/go/backend/rafiki"
 	temporal_mock "github.com/interledger/interledger-app/go/backend/temporal/mock"
 	transactions_mock "github.com/interledger/interledger-app/go/backend/transactions/client/mock"
 	"github.com/interledger/interledger-app/go/backend/wallets"
@@ -378,6 +383,240 @@ func TestUpdate(t *testing.T) {
 	})
 	require.NoError(t, err)
 	assert.Equal(t, int64(5500), p.SenderAmount.Value)
+}
+
+// crossProviderLinkedAccounts returns a lookup func for b.Lac.Get that resolves the given
+// account IDs to the given linked accounts, erroring on any other ID.
+func crossProviderLinkedAccounts(accs map[string]*linkedaccounts.LinkedAccount) func(ctx context.Context, id string) (*linkedaccounts.LinkedAccount, error) {
+	return func(ctx context.Context, id string) (*linkedaccounts.LinkedAccount, error) {
+		if acc, ok := accs[id]; ok {
+			return acc, nil
+		}
+		return nil, fmt.Errorf("unexpected linked account id %s", id)
+	}
+}
+
+func TestCreate_CrossProvider(t *testing.T) {
+	ctx, b := setupTest(t)
+	ctrl := gomock.NewController(t)
+	t.Cleanup(func() {
+		ctrl.Finish()
+	})
+	b.Fc = features_mock.NewMockClient(ctrl)
+
+	senderWalletID := uuid.NewString()
+	receiverWalletID := uuid.NewString()
+	// rafiki.ZARBalanceAccount is used as the sender account ID so that
+	// validateSendBalances short-circuits instead of hitting the (unmocked) Xago client.
+	senderAccountID := rafiki.ZARBalanceAccount
+	receiverAccountID := uuid.NewString()
+
+	b.Lac.EXPECT().Get(ctx, gomock.Any()).DoAndReturn(crossProviderLinkedAccounts(map[string]*linkedaccounts.LinkedAccount{
+		senderAccountID: {
+			WalletID: senderWalletID, Provider: xago.ProviderName, Type: xago.AccTypeBalance,
+			State: linkedaccounts.Verified, CanSend: true, CanReceive: true, SendCurrency: currency.ZAR, ReceiveCurrency: currency.ZAR,
+		},
+		receiverAccountID: {
+			WalletID: receiverWalletID, Provider: gatehub.ProviderName, Type: gatehub.AccTypeBalance,
+			State: linkedaccounts.Verified, CanSend: true, CanReceive: true, SendCurrency: currency.EUR, ReceiveCurrency: currency.EUR,
+		},
+	})).AnyTimes()
+	b.Wc.EXPECT().Get(ctx, senderWalletID).Return(&wallets.Wallet{ID: senderWalletID}, nil).AnyTimes()
+	b.Wc.EXPECT().GetFromAddress(ctx, "https://ilp.link/charlie").Return(&wallets.Wallet{ID: receiverWalletID}, nil).AnyTimes()
+	b.Txc.EXPECT().GetHasTransacted(gomock.Any(), gomock.Any(), gomock.Any()).Return(true, nil).AnyTimes()
+	b.Fc.EXPECT().Features(ctx, senderWalletID).Return(&features.WalletFeatures{XagoGatehubPaymentsEnabled: true}, nil).AnyTimes()
+	b.Fc.EXPECT().Features(ctx, receiverWalletID).Return(&features.WalletFeatures{XagoGatehubPaymentsEnabled: true}, nil).AnyTimes()
+
+	p, err := ops.Create(ctx, b, payments.CreateArgs{
+		Sender: payments.Identity{
+			Type:       payments.IdentityTypeWalletID,
+			Identifier: senderWalletID,
+		},
+		Receiver: payments.Identity{
+			Type:       payments.IdentityTypeWalletURL,
+			Identifier: "https://ilp.link/charlie",
+		},
+		SenderAmount:    currency.FromFloat64(100, currency.ZAR),
+		SenderAccount:   senderAccountID,
+		ReceiverAccount: receiverAccountID,
+		IPAddress:       "193.9.4.6",
+	})
+	require.NoError(t, err)
+
+	assert.Equal(t, senderAccountID, p.SenderAccount)
+	assert.Equal(t, receiverAccountID, p.ReceiverAccount)
+	// Actual FX for the Xago-Gatehub pair isn't implemented yet, a 0 placeholder is expected.
+	assert.Equal(t, currency.EUR, p.ReceiverAmount.Currency)
+	assert.Equal(t, int64(0), p.ReceiverAmount.Value)
+}
+
+func TestCreate_CrossProvider_FeatureFlagDisabled(t *testing.T) {
+	ctx, b := setupTest(t)
+	ctrl := gomock.NewController(t)
+	t.Cleanup(func() {
+		ctrl.Finish()
+	})
+	b.Fc = features_mock.NewMockClient(ctrl)
+
+	senderWalletID := uuid.NewString()
+	receiverWalletID := uuid.NewString()
+	senderAccountID := rafiki.ZARBalanceAccount
+	receiverAccountID := uuid.NewString()
+
+	b.Lac.EXPECT().Get(ctx, gomock.Any()).DoAndReturn(crossProviderLinkedAccounts(map[string]*linkedaccounts.LinkedAccount{
+		senderAccountID: {
+			WalletID: senderWalletID, Provider: xago.ProviderName, Type: xago.AccTypeBalance,
+			State: linkedaccounts.Verified, CanSend: true, CanReceive: true, SendCurrency: currency.ZAR, ReceiveCurrency: currency.ZAR,
+		},
+		receiverAccountID: {
+			WalletID: receiverWalletID, Provider: gatehub.ProviderName, Type: gatehub.AccTypeBalance,
+			State: linkedaccounts.Verified, CanSend: true, CanReceive: true, SendCurrency: currency.EUR, ReceiveCurrency: currency.EUR,
+		},
+	})).AnyTimes()
+	b.Wc.EXPECT().Get(ctx, senderWalletID).Return(&wallets.Wallet{ID: senderWalletID}, nil).AnyTimes()
+	b.Wc.EXPECT().GetFromAddress(ctx, "https://ilp.link/charlie").Return(&wallets.Wallet{ID: receiverWalletID}, nil).AnyTimes()
+	b.Txc.EXPECT().GetHasTransacted(gomock.Any(), gomock.Any(), gomock.Any()).Return(true, nil).AnyTimes()
+	b.Fc.EXPECT().Features(ctx, senderWalletID).Return(&features.WalletFeatures{XagoGatehubPaymentsEnabled: true}, nil).AnyTimes()
+	// Receiver hasn't opted in to Xago-Gatehub payments yet.
+	b.Fc.EXPECT().Features(ctx, receiverWalletID).Return(&features.WalletFeatures{XagoGatehubPaymentsEnabled: false}, nil).AnyTimes()
+
+	_, err := ops.Create(ctx, b, payments.CreateArgs{
+		Sender: payments.Identity{
+			Type:       payments.IdentityTypeWalletID,
+			Identifier: senderWalletID,
+		},
+		Receiver: payments.Identity{
+			Type:       payments.IdentityTypeWalletURL,
+			Identifier: "https://ilp.link/charlie",
+		},
+		SenderAmount:    currency.FromFloat64(100, currency.ZAR),
+		SenderAccount:   senderAccountID,
+		ReceiverAccount: receiverAccountID,
+		IPAddress:       "193.9.4.6",
+	})
+	require.Error(t, err)
+	assert.ErrorIs(t, err, payments.ErrIncompatibleAccounts)
+}
+
+func TestCreate_CrossProvider_UnsupportedPair(t *testing.T) {
+	ctx, b := setupTest(t)
+	ctrl := gomock.NewController(t)
+	t.Cleanup(func() {
+		ctrl.Finish()
+	})
+
+	senderWalletID := uuid.NewString()
+	receiverWalletID := uuid.NewString()
+	senderAccountID := rafiki.ZARBalanceAccount
+	receiverAccountID := uuid.NewString()
+
+	// xago-pti isn't a supported cross provider pair (only xago-gatehub is registered).
+	b.Lac.EXPECT().Get(ctx, gomock.Any()).DoAndReturn(crossProviderLinkedAccounts(map[string]*linkedaccounts.LinkedAccount{
+		senderAccountID: {
+			WalletID: senderWalletID, Provider: xago.ProviderName, Type: xago.AccTypeBalance,
+			State: linkedaccounts.Verified, CanSend: true, CanReceive: true, SendCurrency: currency.ZAR, ReceiveCurrency: currency.ZAR,
+		},
+		receiverAccountID: {
+			WalletID: receiverWalletID, Provider: pti.ProviderName, Type: pti.AccTypeBalance,
+			State: linkedaccounts.Verified, CanSend: true, CanReceive: true, SendCurrency: currency.USD, ReceiveCurrency: currency.USD,
+		},
+	})).AnyTimes()
+	b.Wc.EXPECT().Get(ctx, senderWalletID).Return(&wallets.Wallet{ID: senderWalletID}, nil).AnyTimes()
+	b.Wc.EXPECT().GetFromAddress(ctx, "https://ilp.link/charlie").Return(&wallets.Wallet{ID: receiverWalletID}, nil).AnyTimes()
+	b.Txc.EXPECT().GetHasTransacted(gomock.Any(), gomock.Any(), gomock.Any()).Return(true, nil).AnyTimes()
+
+	_, err := ops.Create(ctx, b, payments.CreateArgs{
+		Sender: payments.Identity{
+			Type:       payments.IdentityTypeWalletID,
+			Identifier: senderWalletID,
+		},
+		Receiver: payments.Identity{
+			Type:       payments.IdentityTypeWalletURL,
+			Identifier: "https://ilp.link/charlie",
+		},
+		SenderAmount:    currency.FromFloat64(100, currency.ZAR),
+		SenderAccount:   senderAccountID,
+		ReceiverAccount: receiverAccountID,
+		IPAddress:       "193.9.4.6",
+	})
+	require.Error(t, err)
+	assert.ErrorIs(t, err, payments.ErrIncompatibleAccounts)
+}
+
+func TestUpdate_CrossProvider(t *testing.T) {
+	ctx, b := setupTest(t)
+	ctrl := gomock.NewController(t)
+	t.Cleanup(func() {
+		ctrl.Finish()
+	})
+	b.Fc = features_mock.NewMockClient(ctrl)
+
+	walletID := uuid.NewString()
+	receiverWalletID := uuid.NewString()
+	senderAccount := uuid.NewString()
+	receiverAccount := uuid.NewString()
+	// New cross-provider accounts the payment gets moved to.
+	xagoAccountID := rafiki.ZARBalanceAccount
+	gatehubAccountID := uuid.NewString()
+
+	b.Lac.EXPECT().Get(ctx, gomock.Any()).DoAndReturn(crossProviderLinkedAccounts(map[string]*linkedaccounts.LinkedAccount{
+		senderAccount: {
+			WalletID: walletID, Provider: pti.ProviderName, Type: pti.AccTypeBalance,
+			State: linkedaccounts.Verified, CanSend: true, CanReceive: true, SendCurrency: currency.USD, ReceiveCurrency: currency.USD,
+		},
+		receiverAccount: {
+			WalletID: receiverWalletID, Provider: pti.ProviderName, Type: pti.AccTypeBalance,
+			State: linkedaccounts.Verified, CanSend: true, CanReceive: true, SendCurrency: currency.USD, ReceiveCurrency: currency.USD,
+		},
+		xagoAccountID: {
+			WalletID: walletID, Provider: xago.ProviderName, Type: xago.AccTypeBalance,
+			State: linkedaccounts.Verified, CanSend: true, CanReceive: true, SendCurrency: currency.ZAR, ReceiveCurrency: currency.ZAR,
+		},
+		gatehubAccountID: {
+			WalletID: receiverWalletID, Provider: gatehub.ProviderName, Type: gatehub.AccTypeBalance,
+			State: linkedaccounts.Verified, CanSend: true, CanReceive: true, SendCurrency: currency.EUR, ReceiveCurrency: currency.EUR,
+		},
+	})).AnyTimes()
+	b.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{ID: walletID}, nil).AnyTimes()
+	b.Wc.EXPECT().GetFromAddress(ctx, "https://ilp.link/charlie").Return(&wallets.Wallet{ID: receiverWalletID}, nil).AnyTimes()
+	b.Txc.EXPECT().GetHasTransacted(gomock.Any(), gomock.Any(), gomock.Any()).Return(true, nil).AnyTimes()
+	b.Fc.EXPECT().Features(ctx, walletID).Return(&features.WalletFeatures{XagoGatehubPaymentsEnabled: true}, nil).AnyTimes()
+	b.Fc.EXPECT().Features(ctx, receiverWalletID).Return(&features.WalletFeatures{XagoGatehubPaymentsEnabled: true}, nil).AnyTimes()
+	// validateSendBalances hits PTI for the original same-provider payment's balance check.
+	b.Pti.EXPECT().GetBalance(ctx, gomock.Any()).Return(&pti.Balance{Available: currency.FromFloat64(1000, currency.USD), Total: currency.FromFloat64(1000, currency.USD)}, nil).AnyTimes()
+
+	p, err := ops.Create(ctx, b, payments.CreateArgs{
+		Sender: payments.Identity{
+			Type:       payments.IdentityTypeWalletID,
+			Identifier: walletID,
+		},
+		Receiver: payments.Identity{
+			Type:       payments.IdentityTypeWalletURL,
+			Identifier: "https://ilp.link/charlie",
+		},
+		SenderAmount:    currency.FromFloat64(51, currency.USD),
+		SenderAccount:   senderAccount,
+		ReceiverAccount: receiverAccount,
+		IPAddress:       "193.9.4.6",
+	})
+	require.NoError(t, err)
+	paymentID := p.ID
+
+	// Move the payment to a Xago-Gatehub cross-provider pair of accounts.
+	p, err = ops.Update(ctx, b, payments.UpdateArgs{
+		ID:              paymentID,
+		SenderAccount:   xagoAccountID,
+		ReceiverAccount: gatehubAccountID,
+	})
+	require.NoError(t, err)
+
+	assert.Equal(t, xagoAccountID, p.SenderAccount)
+	assert.Equal(t, gatehubAccountID, p.ReceiverAccount)
+	assert.Equal(t, currency.ZAR, p.SenderAmount.Currency)
+	// Actual FX for the Xago-Gatehub pair isn't implemented yet, a 0 placeholder is expected.
+	assert.Equal(t, currency.EUR, p.ReceiverAmount.Currency)
+	assert.Equal(t, int64(0), p.ReceiverAmount.Value)
+	assert.Equal(t, float64(0), p.FXRate)
 }
 
 func TestSellerRisk(t *testing.T) {

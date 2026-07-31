@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/interledger/interledger-app/go/backend/payments/cppairs"
 	"github.com/interledger/interledger-app/go/backend/providers/chimoney"
 	"github.com/interledger/interledger-app/go/backend/providers/pti"
 	"github.com/interledger/interledger-app/go/backend/rafiki"
@@ -352,9 +353,10 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 			}
 		}
 
+		// Find potentially compatible balance accounts
 		for _, sendLA := range sendBalances {
 			for _, recvLA := range recvBalances {
-				if sendLA.CanPay(recvLA) {
+				if canPay(&sendLA, &recvLA) {
 					p.SenderAccount = sendLA.ID
 					p.ReceiverAccount = recvLA.ID
 					p.SenderAmount.Currency = sendLA.SendCurrency
@@ -592,8 +594,11 @@ func validateSenderReceiver(ctx context.Context, b Backends, typ payments.Type, 
 		return err
 	}
 
-	if senderAcc.Provider != receiverAcc.Provider {
-		return payments.ErrIncompatibleAccounts
+	if cppairs.IsCrossProviderPair(senderAcc, receiverAcc) {
+		err = cppairs.ValidateAccounts(ctx, b, typ, senderAcc, receiverAcc)
+		if err != nil {
+			return err
+		}
 	}
 
 	if senderAcc.Provider == xago.ProviderName && (senderAcc.Type != xago.AccTypeBalance || receiverAcc.Type != xago.AccTypeBalance) {
@@ -636,6 +641,24 @@ func applyFXCreate(ctx context.Context, b Backends, args payments.CreateArgs) (p
 				args.SenderAmount = args.ReceiverAmount
 			}
 		}
+		return args, 0, 0, nil
+	}
+
+	// Cross provider support
+	if cppairs.IsCrossProviderPair(senderAcc, receiverAcc) {
+		if !cppairs.IsSupportedCrossProviderPair(senderAcc, receiverAcc) {
+			return args, 0, 0, fmt.Errorf("%w applyFXCreate: unsupported cross provider pair", payments.ErrIncompatibleAccounts)
+		}
+
+		// Prevent running quote if feature flag is disabled
+		err = cppairs.ValidateWalletFlags(ctx, b, senderAcc, receiverAcc)
+		if err != nil {
+			return args, 0, 0, err
+		}
+
+		// Return a placeholder answer for now.
+		// Actual implementation for Xago-Gatehub will come with a separate PR
+		args.ReceiverAmount = currency.FromFloat64(0, receiverAcc.ReceiveCurrency)
 		return args, 0, 0, nil
 	}
 
@@ -1145,6 +1168,23 @@ func applyFXUpdate(ctx context.Context, b Backends, existing *dbPayment, receive
 		return existing, nil
 	}
 
+	// Cross-provider support
+	if cppairs.IsCrossProviderPair(senderAcc, receiverAcc) {
+		if !cppairs.IsSupportedCrossProviderPair(senderAcc, receiverAcc) {
+			return existing, fmt.Errorf("%w applyFXUpdate: unsupported cross provider pair", payments.ErrIncompatibleAccounts)
+		}
+
+		// At this point, feature flags are already validated by "validateSenderReceiver"
+		// in the "update" function whenever the accounts change.
+
+		// Return a placeholder answer for now.
+		// Actual implementation for Xago-Gatehub will come with a separate PR
+		existing.ReceiverAmount = 0
+		existing.ReceiverCurrency = receiverAcc.ReceiveCurrency.String()
+		existing.FXRate = sql.NullFloat64{}
+		return existing, nil
+	}
+
 	if senderAcc.SendCurrency != currency.USD {
 		return existing, fmt.Errorf("%w currently only from USD to other currencies are supported", payments.ErrInternal)
 	}
@@ -1287,4 +1327,13 @@ func NewSoftDescriptor(date time.Time) (string, error) {
 
 	// Trim key to 12 characters, we don't care about the last 4 bits
 	return key[:12], nil
+}
+
+func canPay(sendLA, recvLA *linkedaccounts.LinkedAccount) bool {
+	if cppairs.IsCrossProviderPair(sendLA, recvLA) {
+		err := cppairs.ValidateAccountCompatibility(sendLA, recvLA)
+		return err == nil
+	}
+
+	return sendLA.CanPay(*recvLA)
 }

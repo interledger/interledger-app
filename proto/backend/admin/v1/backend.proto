@@ -248,6 +248,7 @@ message Features {
   bool accountsTabEnabled = 13;
   reserved 14;
   reserved "deleteAccountEnabled";
+  bool xagoGatehubPaymentsEnabled = 15;
 }
 
 message ListAuditRequest {

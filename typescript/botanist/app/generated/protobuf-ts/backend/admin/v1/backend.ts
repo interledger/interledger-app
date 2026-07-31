@@ -618,6 +618,10 @@ export interface Features {
      * @generated from protobuf field: bool accountsTabEnabled = 13;
      */
     accountsTabEnabled: boolean;
+    /**
+     * @generated from protobuf field: bool xagoGatehubPaymentsEnabled = 15;
+     */
+    xagoGatehubPaymentsEnabled: boolean;
 }
 /**
  * @generated from protobuf message backend.admin.v1.ListAuditRequest
@@ -3040,11 +3044,12 @@ class Features$Type extends MessageType<Features> {
             { no: 10, name: "zarBalanceEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 11, name: "manageWalletCardsEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 12, name: "accountEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 13, name: "accountsTabEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+            { no: 13, name: "accountsTabEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 15, name: "xagoGatehubPaymentsEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
         ]);
     }
     create(value?: PartialMessage<Features>): Features {
-        const message = { sendEnabled: false, receiveEnabled: false, linkedAccountsEnabled: false, cardsEnabled: false, banksEnabled: false, identitiesEnabled: false, twitterEnabled: false, walletID: "", addCardsEnabled: false, zarBalanceEnabled: false, manageWalletCardsEnabled: false, accountEnabled: false, accountsTabEnabled: false };
+        const message = { sendEnabled: false, receiveEnabled: false, linkedAccountsEnabled: false, cardsEnabled: false, banksEnabled: false, identitiesEnabled: false, twitterEnabled: false, walletID: "", addCardsEnabled: false, zarBalanceEnabled: false, manageWalletCardsEnabled: false, accountEnabled: false, accountsTabEnabled: false, xagoGatehubPaymentsEnabled: false };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Features>(this, message, value);
@@ -3093,6 +3098,9 @@ class Features$Type extends MessageType<Features> {
                     break;
                 case /* bool accountsTabEnabled */ 13:
                     message.accountsTabEnabled = reader.bool();
+                    break;
+                case /* bool xagoGatehubPaymentsEnabled */ 15:
+                    message.xagoGatehubPaymentsEnabled = reader.bool();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -3145,6 +3153,9 @@ class Features$Type extends MessageType<Features> {
         /* bool accountsTabEnabled = 13; */
         if (message.accountsTabEnabled !== false)
             writer.tag(13, WireType.Varint).bool(message.accountsTabEnabled);
+        /* bool xagoGatehubPaymentsEnabled = 15; */
+        if (message.xagoGatehubPaymentsEnabled !== false)
+            writer.tag(15, WireType.Varint).bool(message.xagoGatehubPaymentsEnabled);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

@@ -792,6 +792,7 @@ message Features {
   bool accountEnabled = 12;
   bool accountsTabEnabled = 13;
   bool deleteAccountEnabled = 14;
+  bool xagoGatehubPaymentsEnabled = 15;
 }
 
 message CreateCardRequest {

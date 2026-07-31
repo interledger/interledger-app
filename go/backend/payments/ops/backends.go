@@ -3,6 +3,7 @@ package ops
 import (
 	"testing"
 
+	"github.com/interledger/interledger-app/go/backend/features"
 	"github.com/interledger/interledger-app/go/backend/providers/chimoney"
 
 	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
@@ -18,6 +19,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/interledger/interledger-app/go/backend/email"
 	email_mock "github.com/interledger/interledger-app/go/backend/email/client/mock"
+	features_mock "github.com/interledger/interledger-app/go/backend/features/client/mock"
 	"github.com/interledger/interledger-app/go/backend/identities"
 	id_mock "github.com/interledger/interledger-app/go/backend/identities/client/mock"
 	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
@@ -49,6 +51,7 @@ type Backends interface {
 	PTI() pti.Client
 	Gatehub() gatehub.Client
 	Chimoney() chimoney.Client
+	Features() features.Client
 }
 
 type TestBackends struct {
@@ -63,6 +66,7 @@ type TestBackends struct {
 	Lac *linkedaccounts_mock.MockClient
 	Txc *transactions_mock.MockClient
 	Pti *pti_mock.MockClient
+	Fc  *features_mock.MockClient
 }
 
 func (t TestBackends) Chimoney() chimoney.Client {
@@ -130,6 +134,10 @@ func (t TestBackends) Email() email.Client {
 
 func (t TestBackends) Wallets() wallets.Client {
 	return t.Wc
+}
+
+func (t TestBackends) Features() features.Client {
+	return t.Fc
 }
 
 func NewTestBackends(_ *testing.T, opts ...func(*TestBackends)) Backends {
