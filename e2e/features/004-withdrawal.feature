@@ -52,7 +52,7 @@ Feature: Withdraw Funds
     And the GateHub withdrawal event "more-bridge.withdrawal.rejected" is triggered
     Then I should see my balance updated with "100" "EUR"
 
-  @withdrawal @pti @return
+  @withdrawal @pti @plaid @return
   Scenario: Balance goes negative when deposit is returned after withdrawal from PTI wallet
     Given the details of 'withdrawal-return-pti-user' are
       | field           | value                        |
@@ -63,6 +63,7 @@ Feature: Withdraw Funds
       | lastName        | Johnson                      |
       | dateOfBirth     | 1990-03-15                   |
     And mockpti is running at "https://mockpti.interledger.test"
+    And mockplaid is running at "https://mockplaid.interledger.test"
     And I complete the minimal PTI KYC flow `withdrawal-return-pti-user`
     When I connect a US bank account
     And I navigate to the deposit page
@@ -76,7 +77,7 @@ Feature: Withdraw Funds
     When mockpti returns the deposit
     Then I should see my balance updated with "-50" "USD"
 
-  @withdrawal @pti
+  @withdrawal @pti @plaid
   Scenario: Successfully deposit and withdraw 50 USD as a USA user
     Given the details of 'withdrawal-pti-user' are
       | field           | value                        |
@@ -87,6 +88,7 @@ Feature: Withdraw Funds
       | lastName        | Johnson                      |
       | dateOfBirth     | 1990-03-15                   |
     And mockpti is running at "https://mockpti.interledger.test"
+    And mockplaid is running at "https://mockplaid.interledger.test"
     And I complete the minimal PTI KYC flow `withdrawal-pti-user`
     When I connect a US bank account
     And I navigate to the deposit page

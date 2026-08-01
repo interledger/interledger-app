@@ -42,7 +42,7 @@ Feature: Deposit Funds
     And I deposit "100" "EUR" via the deposit iframe
     Then I should see my balance updated with "99" "EUR"
 
-  @deposit @pti @return
+  @deposit @pti @plaid @return
   Scenario: Deposit is returned for PTI wallet after settling and balance reverts to initial
     Given the details of 'deposit-return-pti-user' are
       | field           | value                          |
@@ -53,6 +53,7 @@ Feature: Deposit Funds
       | lastName        | Smith                          |
       | dateOfBirth     | 1984-06-27                     |
     And mockpti is running at "https://mockpti.interledger.test"
+    And mockplaid is running at "https://mockplaid.interledger.test"
     And I complete the minimal PTI KYC flow `deposit-return-pti-user`
     When I connect a US bank account
     And I navigate to the deposit page
@@ -61,7 +62,7 @@ Feature: Deposit Funds
     When mockpti returns the deposit
     Then I should see my balance updated with "0" "USD"
 
-  @deposit @pti
+  @deposit @pti @plaid
   Scenario: Successfully deposit 100 USD into USA based wallet
     Given the details of 'deposit-pti-user' are
       | field           | value                        |
@@ -72,6 +73,7 @@ Feature: Deposit Funds
       | lastName        | Smith                        |
       | dateOfBirth     | 1984-06-27                   |
     And mockpti is running at "https://mockpti.interledger.test"
+    And mockplaid is running at "https://mockplaid.interledger.test"
     And I complete the minimal PTI KYC flow `deposit-pti-user`
     When I connect a US bank account
     And I navigate to the deposit page
