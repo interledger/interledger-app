@@ -94,6 +94,7 @@ func (a *Activity) CrossProviderGatehubEURSenderReserve(ctx context.Context, pay
 	tx, err := a.b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
 		{
 			ID:              p.SendTransactionID,
+			ReferenceID:     p.SendTransactionID,
 			Amount:          p.SenderAmount.Value,
 			DebitAccountID:  la.ID,
 			CreditAccountID: gatehub.EURClearingAccount,
@@ -141,6 +142,7 @@ func (a *Activity) CrossProviderXagoZARSenderReserve(ctx context.Context, paymen
 	tx, err := a.b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
 		{
 			ID:              p.SendTransactionID,
+			ReferenceID:     p.SendTransactionID,
 			Amount:          p.SenderAmount.Value,
 			DebitAccountID:  la.ID,
 			CreditAccountID: xago.ZARLiquidityAccount,
@@ -329,6 +331,7 @@ func (a *Activity) PostGatehubToXagoTransfers(ctx context.Context, paymentID str
 	createRes, err := a.b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
 		{
 			ID:              uuid.NewString(),
+			ReferenceID:     p.ReceiveTransactionID,
 			Amount:          p.SenderAmount.Value,
 			DebitAccountID:  xago.EURClearingAccount,
 			CreditAccountID: xago.EUROpsAccount,
@@ -338,6 +341,7 @@ func (a *Activity) PostGatehubToXagoTransfers(ctx context.Context, paymentID str
 		},
 		{
 			ID:              uuid.NewString(),
+			ReferenceID:     p.ReceiveTransactionID,
 			Amount:          p.ReceiverAmount.Value,
 			DebitAccountID:  xago.ZAROpsAccount,
 			CreditAccountID: xago.ZARLiquidityAccount,
@@ -347,6 +351,7 @@ func (a *Activity) PostGatehubToXagoTransfers(ctx context.Context, paymentID str
 		},
 		{
 			ID:              uuid.NewString(),
+			ReferenceID:     p.ReceiveTransactionID,
 			Amount:          p.ReceiverAmount.Value,
 			DebitAccountID:  xago.ZARLiquidityAccount,
 			CreditAccountID: receiverLA.ID,
@@ -397,6 +402,7 @@ func (a *Activity) PostXagoToGatehubTransfers(ctx context.Context, paymentID str
 	createRes, err := a.b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
 		{
 			ID:              uuid.NewString(),
+			ReferenceID:     p.SendTransactionID,
 			Amount:          p.ReceiverAmount.Value,
 			DebitAccountID:  gatehub.EURClearingAccount,
 			CreditAccountID: receiverLA.ID,

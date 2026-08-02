@@ -555,7 +555,6 @@ func TransferUserToOmnibus(ctx context.Context, b Backends, ec external.Client, 
 		return nil, err
 	}
 
-	// TODO Figure out what Gatehub endpoint we need to call
 	externalTx, err := ec.CreateTransaction(ctx, external.CreateTransactionRequest{
 		SendingUserID:    senderExternalUserID,
 		SendingAddress:   la.ProviderID,

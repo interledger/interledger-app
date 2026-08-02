@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-    "github.com/google/uuid"
+	"github.com/google/uuid"
 	"github.com/interledger/interledger-app/go/backend/currency"
 	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
 	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
@@ -406,9 +406,11 @@ func FundGatehubEURLiquidityAccountWorkflow(ctx workflow.Context, amount string)
 }
 
 func (a *Activity) FundGatehubEURLiquidityAccount(ctx context.Context, amount currency.Amount) error {
+	id := uuid.NewString()
 	_, err := a.b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
 		{
-			ID:              uuid.NewString(),
+			ID:              id,
+			ReferenceID:     id, // TODO do we have some sort of a transaction id we can use?
 			Amount:          amount.Value,
 			DebitAccountID:  gatehub.EUROpsAccount,
 			CreditAccountID: gatehub.EURLiquidityAccount,

@@ -35,8 +35,8 @@ func (o opsBackends) External() external.Client {
 }
 
 type Activity struct {
-	b              Backends
-	pgpRecipient   *openpgp.Entity
+	b               Backends
+	pgpRecipient    *openpgp.Entity
 	travelRuleEmail string
 }
 
@@ -500,9 +500,11 @@ func FundXagoEURLiquidityAccountWorkflow(ctx workflow.Context, amount string) er
 }
 
 func (a *Activity) FundXagoEURLiquidityAccount(ctx context.Context, amount currency.Amount) error {
+	id := uuid.NewString()
 	_, err := a.b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
 		{
-			ID:              uuid.NewString(),
+			ID:              id,
+			ReferenceID:     id, // TODO do we have some sort of a transaction id we can use?
 			Amount:          amount.Value,
 			DebitAccountID:  xago.EUROpsAccount,
 			CreditAccountID: xago.EURLiquidityAccount,
