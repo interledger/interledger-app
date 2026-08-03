@@ -1,0 +1,26 @@
+--- provision/provision.go
++++ provision/provision.go
+@@ -32,6 +32,10 @@
+ 	"google.golang.org/grpc/credentials/insecure"
+ )
+ 
++type DBContext interface {
++	GetContext(context.Context, interface{}, string, ...interface{}) error
++}
++
+ // Options configures a single provisioning run.
+ type Options struct {
+ 	Countries   []string // e.g. "za,de,us"
+@@ -238,7 +242,11 @@
+ 	}
+ 
+ 	logProgress(out, lbl, "funding wallet")
+-	balance, notes, err := fund(ctx, authed, spec, opts.TargetMajor)
++	var dx DBContext
++	if db != nil {
++		dx, _ = db.(DBContext)
++	}
++	balance, notes, err := fund(ctx, authed, userID, "", spec, opts.TargetMajor, dx)
+ 	if err != nil {
+ 		return w, fmt.Errorf("fund wallet: %w", err)
+ 	}

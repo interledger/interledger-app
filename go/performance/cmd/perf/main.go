@@ -256,6 +256,7 @@ func cmdProvision(ctx context.Context, args []string) error {
 	perCountry := fs.Int("per-country", 100, "wallets to create per country")
 	targetMajor := fs.Int64("target", 5000, "target balance in major units for each wallet")
 	prefix := fs.String("prefix", "perf", "prefix for generated emails, phone numbers and wallet addresses")
+	phonePrefix := fs.String("phone-prefix", "", "prefix for generated phone numbers")
 	password := fs.String("password", "", "password for created identities (default: a fixed local test password)")
 	addressHost := fs.String("address-host", "https://local.ilp.link", "wallet address host")
 	grpcAddr := fs.String("grpc-address", "localhost:8443", "backend gRPC address")
@@ -285,6 +286,7 @@ func cmdProvision(ctx context.Context, args []string) error {
 		PerCountry:  *perCountry,
 		TargetMajor: int64(*targetMajor),
 		Prefix:      *prefix,
+		PhonePrefix: *phonePrefix,
 		Password:    *password,
 		AddressHost: *addressHost,
 		GRPCAddress: *grpcAddr,

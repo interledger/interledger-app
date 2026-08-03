@@ -33,18 +33,22 @@ func CreateUserWorkflow(ctx workflow.Context, walletID string) (*pti.User, error
 	if err != nil {
 		return nil, err
 	}
+	logger.Info("PTI user lookup complete", "walletID", walletID, "externalUserID", externalUser.ID)
 
 	if externalUser.ID == "" {
+		logger.Info("PTI user missing; creating external PTI user", "walletID", walletID)
 		var externalUserID string
 		err = workflow.ExecuteActivity(ctx, a.CreatePtiUser, walletID).Get(ctx, &externalUserID)
 		if err != nil {
 			return nil, err
 		}
+		logger.Info("PTI external user created", "walletID", walletID, "externalUserID", externalUserID)
 
 		err = workflow.ExecuteActivity(ctx, a.SavePtiUser, externalUserID, walletID).Get(ctx, &externalUser)
 		if err != nil {
 			return nil, err
 		}
+		logger.Info("PTI user saved in backend", "walletID", walletID, "externalUserID", externalUser.ExternalID)
 	}
 
 	return &externalUser, nil
@@ -66,17 +70,31 @@ func CreateWalletWorkflow(ctx workflow.Context, args pti.CreateWalletArgs) (*lin
 	logger.Info("Creating pti wallet.")
 
 	var externalUser pti.User
-	err := workflow.ExecuteActivity(ctx, a.GetPtiUser, args.WalletID).Get(ctx, &externalUser)
-	if err != nil {
-		return nil, err
+	var err error
+	for attempt := 0; attempt < 30; attempt++ {
+		err = workflow.ExecuteActivity(ctx, a.GetPtiUser, args.WalletID).Get(ctx, &externalUser)
+		if err != nil {
+			return nil, err
+		}
+		logger.Info("PTI wallet user lookup", "walletID", args.WalletID, "attempt", attempt+1, "externalUserID", externalUser.ID)
+		if externalUser.ID != "" {
+			break
+		}
+		logger.Info("PTI user not ready yet; waiting", "walletID", args.WalletID, "attempt", attempt+1)
+		_ = workflow.Sleep(ctx, time.Second)
+	}
+	if externalUser.ID == "" {
+		return nil, fmt.Errorf("%w PTI user not ready for wallet %s", pti.ErrInternal, args.WalletID)
 	}
 
+	logger.Info("PTI checking assessment state", "walletID", args.WalletID, "externalUserID", externalUser.ID)
 	err = workflow.ExecuteActivity(ctx, a.CheckUserAssessmentAccepted, args.WalletID).Get(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
 
 	externalWalletID := fmt.Sprintf("%s_%s", args.Currency.String(), args.WalletID)
+	logger.Info("PTI creating external wallet", "walletID", args.WalletID, "externalWalletID", externalWalletID, "externalUserID", externalUser.ExternalID)
 	err = workflow.ExecuteActivity(ctx, a.CreatePtiWallet, pti.CreateExternalWalletArgs{
 		ID:       externalWalletID,
 		UserID:   externalUser.ExternalID,
@@ -105,11 +123,14 @@ func CreateWalletWorkflow(ctx workflow.Context, args pti.CreateWalletArgs) (*lin
 	if err != nil {
 		return nil, err
 	}
+	logger.Info("PTI linked account created", "walletID", args.WalletID, "linkedAccountID", la.ID, "providerID", externalWalletID)
 
+	logger.Info("PTI creating balance account", "walletID", args.WalletID, "linkedAccountID", la.ID)
 	err = workflow.ExecuteActivity(ctx, a.CreatePTIBalanceAccount, la.ID).Get(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
+	logger.Info("PTI balance account created", "walletID", args.WalletID, "linkedAccountID", la.ID)
 
 	return &la, nil
 }

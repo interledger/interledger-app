@@ -106,7 +106,7 @@ persona:
   base_url: "http://mockxago:8080/v1/"
   token: "test-persona-token"
   webhook_token: "test-persona-webhook-token"
-  sandbox_fake_za_id: false
+  sandbox_fake_za_id: true
 
 twilio:
   enabled: false

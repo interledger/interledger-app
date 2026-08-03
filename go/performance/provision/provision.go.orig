@@ -24,7 +24,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"math/rand"
 	"strings"
 	"time"
 
@@ -39,11 +38,6 @@ import (
 
 // kycStatusApproved matches kyc.StatusApproved.
 const kycStatusApproved = 3
-
-type DBContext interface {
-	QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row
-	ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
-}
 
 // Options configures a provisioning run.
 type Options struct {
@@ -69,9 +63,6 @@ type Options struct {
 	// BackendDSN is the backend Postgres DSN, needed for the KYC approval write.
 	// Empty skips KYC approval, which leaves the wallets unable to transact.
 	BackendDSN string
-	// PhoneSeed adds per-run entropy to generated phone numbers so repeated local
-	// provision runs do not collide in Kratos.
-	PhoneSeed int64
 }
 
 // Wallet is a provisioned wallet, ready to be written into a scenario file.
@@ -166,10 +157,7 @@ func applyDefaults(opts *Options) {
 		opts.Password = "PerfTestPassword123!"
 	}
 	if opts.PhonePrefix == "" {
-		opts.PhonePrefix = ""
-	}
-	if opts.PhoneSeed == 0 {
-		opts.PhoneSeed = rand.Int63()
+		opts.PhonePrefix = "+2782"
 	}
 	if opts.AddressHost == "" {
 		opts.AddressHost = "https://local.ilp.link"
@@ -206,7 +194,7 @@ func provisionOne(
 		Password:      opts.Password,
 		WalletAddress: walletAddress(opts.AddressHost, lbl),
 	}
-	phone := phoneNumber(spec.country, globalIndex, opts.PhonePrefix, opts.PhoneSeed)
+	phone := phoneNumber(opts.PhonePrefix, globalIndex)
 
 	// 1. Register the signup with the backend, which validates the details and
 	// reserves the email and phone number.
@@ -237,33 +225,25 @@ func provisionOne(
 	if err := createWallet(ctx, authed, userID); err != nil {
 		return w, err
 	}
-	var walletID string
-	if db != nil {
-		_ = db.QueryRowContext(ctx, "SELECT wallet_id FROM user_wallets WHERE user_id = $1 LIMIT 1", userID).Scan(&walletID)
-	}
 	if err := createAddress(ctx, authed, spec, w.WalletAddress, lbl); err != nil {
 		return w, err
 	}
 
-	// 6. Fund it.
-	var dx DBContext
-	if db != nil {
-		dx = db
-	}
-	authed.UserID = userID
-	balance, notes, err := fund(ctx, authed, spec, opts.TargetMajor, dx, walletID)
-	if err != nil {
-		w.Notes = append(w.Notes, err.Error())
-	} else {
-		w.Balance = balance
-		w.Notes = append(w.Notes, notes...)
-	}
 	// 5. Approve KYC. Without this, CreatePayment rejects the wallet as both
 	// sender and receiver.
 	if db == nil {
 		w.Notes = append(w.Notes, "KYC not approved (no backend DSN) — this wallet cannot send or receive")
 	} else if err := approveKYC(ctx, db, userID); err != nil {
 		return w, fmt.Errorf("approve KYC: %w", err)
+	}
+
+	// 6. Fund it.
+	balance, notes, err := fund(ctx, authed, spec, opts.TargetMajor)
+	if err != nil {
+		w.Notes = append(w.Notes, err.Error())
+	} else {
+		w.Balance = balance
+		w.Notes = append(w.Notes, notes...)
 	}
 
 	return w, nil

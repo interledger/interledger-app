@@ -11,6 +11,7 @@ package client
 import (
 	"context"
 	"crypto/tls"
+	"net/http"
 	"fmt"
 	"sync/atomic"
 	"time"
@@ -24,6 +25,17 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
+type HTTPClient interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
+func NewClient() *http.Client {
+	return &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
+}
 // Options configures a Pool.
 type Options struct {
 	Address        string
@@ -113,6 +125,7 @@ type Wallet struct {
 	Label string
 
 	client pb.BackendServiceClient
+	UserID string
 	token  string
 	pool   *Pool
 }

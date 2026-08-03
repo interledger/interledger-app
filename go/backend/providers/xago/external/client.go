@@ -3,6 +3,7 @@ package external
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -812,6 +813,7 @@ func (c *client) TestDeposit(ctx context.Context, reqStruct TestDepositReq) erro
 	if err != nil {
 		return err
 	}
+	applyTraefikRoutingHost(req)
 
 	token, err := c.AccessToken(ctx, false)
 	if err != nil {
@@ -822,7 +824,16 @@ func (c *client) TestDeposit(ctx context.Context, reqStruct TestDepositReq) erro
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+token.Token)
 
-	resp, err := c.api.Do(req)
+	httpClient := c.api
+	if req.URL != nil && req.URL.Scheme == "https" && req.URL.Host == "traefik:443" {
+		clientCopy := *c.api
+		transport := http.DefaultTransport.(*http.Transport).Clone()
+		transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+		clientCopy.Transport = otelhttp.NewTransport(transport)
+		httpClient = &clientCopy
+	}
+
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return err
 	}
@@ -835,7 +846,7 @@ func (c *client) TestDeposit(ctx context.Context, reqStruct TestDepositReq) erro
 		}
 		req.Header.Set("Authorization", "Bearer "+token.Token)
 
-		resp, err = c.api.Do(req)
+		resp, err = httpClient.Do(req)
 		if err != nil {
 			return err
 		}
@@ -849,6 +860,21 @@ func (c *client) TestDeposit(ctx context.Context, reqStruct TestDepositReq) erro
 	}
 
 	return err
+}
+
+func applyTraefikRoutingHost(req *http.Request) {
+	if req == nil || req.URL == nil {
+		return
+	}
+
+	host := req.URL.Hostname()
+	if host != "mockxago" && host != "traefik" {
+		return
+	}
+
+	req.URL.Scheme = "https"
+	req.URL.Host = "traefik:443"
+	req.Host = "mockxago.interledger.test"
 }
 
 func (c *client) UpdateSubAccount(ctx context.Context, accountID string, reqStruct UpdateSubAccountRequest) error {

@@ -1,7 +1,6 @@
 package provision
 
 import (
-	"bytes"
 	"context"
 	"crypto/hmac"
 	"crypto/sha256"
@@ -9,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
@@ -18,14 +16,14 @@ import (
 	pb "github.com/interledger/interledger-app/go/proto/backend/v1"
 )
 
-func fund(ctx context.Context, w *client.Wallet, spec countrySpec, targetMajor int64, dx DBContext, walletID string) (int64, []string, error) {
+func fund(ctx context.Context, w *client.Wallet, spec countrySpec, targetMajor int64) (int64, []string, error) {
 	switch spec.provider {
 	case "xago":
 		return fundXago(ctx, w, spec, targetMajor)
 	case "gatehub":
-		return fundGatehub(ctx, w, spec, targetMajor, dx, walletID)
+		return fundGatehub(ctx, w, spec, targetMajor)
 	case "pti":
-		return fundPTI(ctx, w, spec, targetMajor, dx, walletID)
+		return fundPTI(ctx, w, spec, targetMajor)
 	default:
 		return 0, nil, fmt.Errorf("unsupported country spec %s", spec.code)
 	}
@@ -79,7 +77,7 @@ func fundXago(ctx context.Context, w *client.Wallet, spec countrySpec, targetMaj
 	return 0, notes, nil
 }
 
-func fundGatehub(ctx context.Context, w *client.Wallet, spec countrySpec, targetMajor int64, dx DBContext, walletID string) (int64, []string, error) {
+func fundGatehub(ctx context.Context, w *client.Wallet, spec countrySpec, targetMajor int64) (int64, []string, error) {
 	targetMinor := targetMinorAmount(targetMajor, spec.scale)
 	balances, err := w.GetBalances(ctx)
 	if err != nil {
@@ -101,34 +99,6 @@ func fundGatehub(ctx context.Context, w *client.Wallet, spec countrySpec, target
 			return 0, nil, fmt.Errorf("GetBalances: %w", err)
 		}
 		for _, b := range balances {
-			var externalID string
-			_ = dx.QueryRowContext(ctx, "SELECT gu.external_id FROM gatehub_users gu JOIN user_wallets uw ON uw.wallet_id = gu.wallet_id WHERE uw.user_id = $1 LIMIT 1", w.UserID).Scan(&externalID)
-
-			var providerID string
-			_ = dx.QueryRowContext(ctx, "SELECT provider_id FROM linked_accounts WHERE wallet_id = $1 AND provider='gatehub' AND type='balance' AND deleted_at IS NULL", walletID).Scan(&providerID)
-
-			bodyMap := map[string]interface{}{
-				"type":              1,
-				"deposit_type":      "external",
-				"receiving_address": providerID,
-				"amount":            float64(targetMajor),
-				"currency":          "EUR",
-			}
-			bodyBytes, _ := json.Marshal(bodyMap)
-			url := "https://mockgatehub.interledger.test/core/v1/transactions"
-			ts := strconv.FormatInt(time.Now().UnixMilli(), 10)
-			sig := GenerateSignature(ts, "POST", url, string(bodyBytes), "local-test-app-secret")
-			req, _ := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(bodyBytes))
-			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("x-gatehub-managed-user-uuid", externalID)
-			req.Header.Set("x-gatehub-app-id", "local-test-app-id")
-			req.Header.Set("x-gatehub-timestamp", ts)
-			req.Header.Set("x-gatehub-signature", sig)
-			hc := http.DefaultClient
-			resp, err := hc.Do(req)
-			if err == nil {
-				defer resp.Body.Close()
-			}
 			if b.GetBalance() != nil && strings.EqualFold(b.GetBalance().GetAsset(), spec.asset) {
 				if b.GetBalance().GetAmount() >= targetMinor {
 					return b.GetBalance().GetAmount(), notes, nil
@@ -142,53 +112,36 @@ func fundGatehub(ctx context.Context, w *client.Wallet, spec countrySpec, target
 	return 0, notes, fmt.Errorf("gatehub balance never reached target")
 }
 
-func fundPTI(ctx context.Context, w *client.Wallet, spec countrySpec, targetMajor int64, db DBContext, walletID string) (int64, []string, error) {
+func fundPTI(ctx context.Context, w *client.Wallet, spec countrySpec, targetMajor int64) (int64, []string, error) {
 	targetMinor := targetMinorAmount(targetMajor, spec.scale)
-	fmt.Printf("PTI fund start: wallet=%s targetMinor=%d asset=%s\n", walletID, targetMinor, spec.asset)
 	resp, err := w.GetPtiBalances(ctx)
 	if err != nil {
 		return 0, nil, fmt.Errorf("GetPtiBalances: %w", err)
 	}
-	fmt.Printf("PTI initial balances fetched: wallet=%s balanceCount=%d\n", walletID, len(resp.GetBalances()))
 	if balance, ok := ptiBalanceForAsset(resp); ok {
 		if balance >= targetMinor {
-			fmt.Printf("PTI already funded: wallet=%s balanceMinor=%d\n", walletID, balance)
 			return balance, []string{"pti balance already funded"}, nil
 		}
 	}
 
-	if db != nil && walletID != "" {
-		fmt.Printf("PTI resetting KYC status to unknown: wallet=%s\n", walletID)
-		if _, err := db.ExecContext(ctx, "UPDATE wallet_kyc_status SET status = $2, updated_at = now()::TIMESTAMP WHERE wallet_id = $1", walletID, 0); err != nil {
-			return 0, nil, fmt.Errorf("reset PTI KYC status: %w", err)
-		}
-	}
-
-	fmt.Printf("PTI requesting widget: wallet=%s\n", walletID)
 	widget, err := w.GetKYCProviderWidget(ctx, &pb.GetKYCProviderWidgetRequest{IdempotencyKey: uuid.NewString()})
 	if err != nil {
 		return 0, nil, fmt.Errorf("GetKYCProviderWidget: %w", client.Classify("signup", err))
 	}
-	if widget.GetPtiWidget() == nil {
-		return 0, nil, fmt.Errorf("PTI widget missing pti details")
-	}
-	fmt.Printf("PTI widget received: wallet=%s userID=%s requestID=%s\n", walletID, widget.GetPtiWidget().GetUserId(), widget.GetPtiWidget().GetRequestId())
-
-	fmt.Printf("PTI setting status pending: wallet=%s\n", walletID)
 	if _, err := w.SetKYCStatusPending(ctx, &pb.Empty{}); err != nil {
 		return 0, nil, fmt.Errorf("SetKYCStatusPending: %w", client.Classify("signup", err))
 	}
+	if widget.GetPtiWidget() == nil {
+		return 0, nil, fmt.Errorf("PTI widget missing pti details")
+	}
 
-	fmt.Printf("PTI submitting assessment: wallet=%s userID=%s\n", walletID, widget.GetPtiWidget().GetUserId())
 	if err := mockPTIAssessment(widget.GetPtiWidget().GetUserId()); err != nil {
 		return 0, nil, fmt.Errorf("mock PTI assessment: %w", err)
 	}
 
 	deadline := time.Now().Add(30 * time.Second)
 	var balanceLA string
-	pollCount := 0
 	for time.Now().Before(deadline) {
-		pollCount++
 		balances, err := w.GetPtiBalances(ctx)
 		if err != nil {
 			return 0, nil, fmt.Errorf("GetPtiBalances: %w", err)
@@ -196,21 +149,18 @@ func fundPTI(ctx context.Context, w *client.Wallet, spec countrySpec, targetMajo
 		for _, b := range balances.GetBalances() {
 			if b.GetLinkedAccount() != "" {
 				balanceLA = b.GetLinkedAccount()
-				fmt.Printf("PTI linked balance account found: wallet=%s balanceLA=%s poll=%d\n", walletID, balanceLA, pollCount)
 				break
 			}
 		}
 		if balanceLA != "" {
 			break
 		}
-		fmt.Printf("PTI waiting for linked balance account: wallet=%s poll=%d\n", walletID, pollCount)
 		time.Sleep(1 * time.Second)
 	}
 	if balanceLA == "" {
 		return 0, nil, fmt.Errorf("PTI balance linked account did not appear")
 	}
 
-	fmt.Printf("PTI creating bank account: wallet=%s\n", walletID)
 	bankLA, err := w.CreatePtiBankAccount(ctx, &pb.CreatePtiBankAccountRequest{
 		BankName:      "Perf Bank",
 		AccountNumber: "123456789",
@@ -220,56 +170,31 @@ func fundPTI(ctx context.Context, w *client.Wallet, spec countrySpec, targetMajo
 	if err != nil {
 		return 0, nil, fmt.Errorf("CreatePtiBankAccount: %w", client.Classify("signup", err))
 	}
-	remaining := targetMinor
-	chunk := targetMinor
-	depositCount := 0
-	for remaining > 0 {
-		if chunk > remaining {
-			chunk = remaining
-		}
-
-		amount := &pb.Amount{Amount: chunk, Asset: spec.asset, AssetScale: 2, Country: spec.country}
-		depositCount++
-		fmt.Printf("PTI deposit attempt: wallet=%s deposit=%d chunkMinor=%d remainingMinor=%d\n", walletID, depositCount, chunk, remaining)
-		payment, err := w.DepositBalance(ctx, &pb.TransferBalanceRequest{
-			FromLinkedAccount: bankLA.GetId(),
-			ToLinkedAccount:   balanceLA,
-			Amount:            amount,
-			Note:              "perf provision",
-		})
-		if err != nil {
-			if strings.Contains(strings.ToLower(err.Error()), "limit") && chunk > 1 {
-				fmt.Printf("PTI deposit limit hit; splitting chunk: wallet=%s currentChunkMinor=%d err=%s\n", walletID, chunk, err)
-				chunk /= 2
-				continue
-			}
-			return 0, nil, fmt.Errorf("DepositBalance: %w", client.Classify("signup", err))
-		}
-		fmt.Printf("PTI deposit created: wallet=%s paymentID=%s chunkMinor=%d\n", walletID, payment.GetId(), chunk)
-		if _, err := w.PtiCreateDeposit(ctx, &pb.PtiCreateDepositRequest{Id: payment.GetId()}); err != nil {
-			return 0, nil, fmt.Errorf("PtiCreateDeposit: %w", client.Classify("signup", err))
-		}
-
-		remaining -= chunk
-		fmt.Printf("PTI deposit applied: wallet=%s remainingMinor=%d\n", walletID, remaining)
-		chunk = remaining
+	amount := &pb.Amount{Amount: targetMinor, Asset: spec.asset, AssetScale: 2, Country: spec.country}
+	payment, err := w.DepositBalance(ctx, &pb.TransferBalanceRequest{
+		FromLinkedAccount: bankLA.GetId(),
+		ToLinkedAccount:   balanceLA,
+		Amount:            amount,
+		Note:              "perf provision",
+	})
+	if err != nil {
+		return 0, nil, fmt.Errorf("DepositBalance: %w", client.Classify("signup", err))
+	}
+	if _, err := w.PtiCreateDeposit(ctx, &pb.PtiCreateDepositRequest{Id: payment.GetId()}); err != nil {
+		return 0, nil, fmt.Errorf("PtiCreateDeposit: %w", client.Classify("signup", err))
 	}
 
 	deadline = time.Now().Add(30 * time.Second)
-	pollCount = 0
 	for time.Now().Before(deadline) {
-		pollCount++
 		resp, err := w.GetPtiBalances(ctx)
 		if err != nil {
 			return 0, nil, fmt.Errorf("GetPtiBalances: %w", err)
 		}
 		for _, b := range resp.GetBalances() {
 			if b.GetBalance() != nil && b.GetBalance().GetAmount() >= targetMinor {
-				fmt.Printf("PTI target reached: wallet=%s balanceMinor=%d poll=%d\n", walletID, b.GetBalance().GetAmount(), pollCount)
 				return b.GetBalance().GetAmount(), nil, nil
 			}
 		}
-		fmt.Printf("PTI waiting for target balance: wallet=%s poll=%d\n", walletID, pollCount)
 		time.Sleep(1 * time.Second)
 	}
 	return 0, nil, fmt.Errorf("PTI balance never reached target")
@@ -281,7 +206,6 @@ func mockPTIAssessment(externalUserID string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("PTI assessment request: userID=%s payloadBytes=%d\n", externalUserID, len(payload))
 
 	req, err := http.NewRequest(http.MethodPost, "https://mockpti.interledger.test/users/assessments", strings.NewReader(string(payload)))
 	if err != nil {
@@ -296,7 +220,6 @@ func mockPTIAssessment(externalUserID string) error {
 		return err
 	}
 	defer resp.Body.Close()
-	fmt.Printf("PTI assessment response: userID=%s status=%d\n", externalUserID, resp.StatusCode)
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return fmt.Errorf("unexpected status %d", resp.StatusCode)
 	}

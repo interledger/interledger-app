@@ -12,7 +12,11 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.mockxago.rule=Host(`mockxago.interledger.test`)"
       - "traefik.http.routers.mockxago.entrypoints=websecure"
+      - "traefik.http.routers.mockxago.service=mockxago"
       - "traefik.http.services.mockxago.loadbalancer.server.port=8080"
+      - "traefik.http.routers.mockxago-http.rule=Host(`mockxago.interledger.test`)"
+      - "traefik.http.routers.mockxago-http.entrypoints=web"
+      - "traefik.http.routers.mockxago-http.service=mockxago"
     environment:
       - CONFIG=/etc/mockxago/config.yaml,/etc/mockxago/config-override.yaml
     volumes:

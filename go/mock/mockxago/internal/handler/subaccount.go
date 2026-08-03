@@ -21,12 +21,12 @@ import (
 func (h *Handler) CreateSubAccount(w http.ResponseWriter, r *http.Request) {
 	var req models.CreateSubAccountRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		h.sendError(w, http.StatusBadRequest, "invalid_request", "Invalid request body")
+		fmt.Printf("VALIDATION ERROR: Invalid request body"); h.sendError(w, http.StatusBadRequest, "invalid_request", "Invalid request body")
 		return
 	}
 
 	if err := h.validateCreateSubAccount(req); err != nil {
-		h.sendError(w, http.StatusBadRequest, "invalid_request", err.Error())
+		fmt.Printf("VALIDATION ERROR: %v", err); h.sendError(w, http.StatusBadRequest, "invalid_request", err.Error())
 		return
 	}
 
@@ -109,7 +109,7 @@ func (h *Handler) UpdateSubAccount(w http.ResponseWriter, r *http.Request) {
 
 	var req models.UpdateSubAccountRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		h.sendError(w, http.StatusBadRequest, "invalid_request", "Invalid request body")
+		fmt.Printf("VALIDATION ERROR: Invalid request body"); h.sendError(w, http.StatusBadRequest, "invalid_request", "Invalid request body")
 		return
 	}
 

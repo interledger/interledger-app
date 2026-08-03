@@ -68,6 +68,7 @@ func (a *Activity) CreatePtiUser(ctx context.Context, walletID string) (string, 
 	if err != nil {
 		return "", err
 	}
+	log.Info("pti activity: building external user payload", zap.String("walletID", walletID), zap.Int("userCount", len(usrs)))
 
 	var firstName, lastName string
 
@@ -92,9 +93,10 @@ func (a *Activity) CreatePtiUser(ctx context.Context, walletID string) (string, 
 		}
 	}
 
-	return a.external.CreateUser(ctx, external.CreateUserArgs{
-		ID:   uuid.NewString(),
-		Type: "PERSON",
+	userID, err := a.external.CreateUser(ctx, external.CreateUserArgs{
+		ID:          uuid.NewString(),
+		Type:        "PERSON",
+		DateOfBirth: "1990-01-01",
 		Name: external.Name{
 			First: firstName,
 			Last:  lastName,
@@ -102,6 +104,12 @@ func (a *Activity) CreatePtiUser(ctx context.Context, walletID string) (string, 
 		Emails: emails,
 		Phones: phones,
 	})
+	if err != nil {
+		log.Error("pti activity: external user create failed", zap.String("walletID", walletID), zap.Error(err))
+		return "", err
+	}
+	log.Info("pti activity: external user created", zap.String("walletID", walletID), zap.String("externalUserID", userID))
+	return userID, nil
 }
 
 func (a *Activity) SavePtiUser(ctx context.Context, externalUserID, walletID string) (*pti.User, error) {
