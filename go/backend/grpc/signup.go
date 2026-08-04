@@ -88,6 +88,10 @@ func (s *rpcService) CompleteSignup(ctx context.Context, req *pb.CompleteSignupR
 		return nil, toGRPCError(err)
 	}
 
+	if su.UserID != "" && su.UserID != req.UserId {
+		return nil, ForbiddenError("signup already completed")
+	}
+
 	// create the user's default wallet — the single, deterministic point in signup
 	if _, err := s.b.Wallets().Create(ctx, wallets.CreateArgs{
 		UserID:  req.UserId,

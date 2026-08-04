@@ -585,7 +585,7 @@ Every user gets a default wallet, created as part of signup completion.
 
 ### When is the Wallet Created?
 
-**Timing:** Inside `CompleteSignup`, before the signup is marked complete. The handler reads the signup, creates the wallet, and only then calls `Signup().Complete` — so all fallible work happens before the signup is finalized (and before its "new signup" notification fires).
+**Timing:** Inside `CompleteSignup`, before the signup is marked complete. The handler reads the signup, rejects it if another user already owns it, creates the wallet, and only then calls `Signup().Complete` — so everything that can fail the request happens before the signup is finalized (and before its "new signup" notification fires).
 
 **Trigger:** The `CompleteSignup` gRPC the frontend already calls after Kratos registration. The middleware no longer creates wallets.
 
@@ -605,7 +605,7 @@ func (s *rpcService) CompleteSignup(ctx context.Context, req *pb.CompleteSignupR
 
     // 2. reject if the signup is already linked to a different user
     if su.UserID != "" && su.UserID != req.UserId {
-        return nil, ForbiddenError("signup already completed by another user")
+        return nil, ForbiddenError("signup already completed")
     }
 
     // 3. create the default wallet (idempotent)
@@ -620,6 +620,20 @@ func (s *rpcService) CompleteSignup(ctx context.Context, req *pb.CompleteSignupR
     if err := s.b.Signup().Complete(ctx, req.Id, req.UserId); err != nil {
         return nil, toGRPCError(err)
     }
+
+    // 5. record agreement signatures
+    agreementIDs := getSignupAgreementIDs()
+    if len(agreementIDs) > 0 {
+        signErr := s.b.Agreements().Sign(ctx, &agreements.SignArgs{
+            AgreementIDs: agreementIDs,
+            UserID:       req.UserId,
+        })
+        if signErr != nil {
+            log.Warn("complete_signup: failed to record agreement signatures", zap.Error(signErr), zap.String("userId", req.UserId))
+        }
+    }
+
+    return &pb.Empty{}, nil
 }
 ```
 
@@ -627,6 +641,8 @@ func (s *rpcService) CompleteSignup(ctx context.Context, req *pb.CompleteSignupR
 - Takes the user's country from the signup record (`country_code`)
 - Inserts the `wallets` row (named `default`) and links it to the user in `user_wallets`
 - **Idempotent / retry-safe:** `Create` takes a per-user Postgres advisory lock (`pg_advisory_xact_lock`) and re-checks for an existing wallet under it, so concurrent or retried `CompleteSignup` calls serialize — the first creates the wallet, the rest reuse it — and a user never ends up with two.
+
+**Agreement signing:** Recorded last, after the signup is already complete, and deliberately **best effort** — if `Agreements().Sign` fails it is logged as a warning and the request still succeeds. A missing signature record is treated as recoverable; a signup that fails because of one is not.
 
 **Note:** At this stage the wallet is named `default` with no linked accounts or address yet. It is renamed when the user picks a name at the wallet-address step (Section 6); provider account linking happens during KYC activation.
 
