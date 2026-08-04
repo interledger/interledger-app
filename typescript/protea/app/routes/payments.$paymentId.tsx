@@ -790,6 +790,30 @@ function Sent({ openDialog }: { openDialog: () => void }) {
               <span className='text-weak'>Fees</span>
               <span className='text-medium'>{transaction.fees}</span>
             </div>
+            {transaction.formattedTargetAmount && (
+              <div className='mt-2 flex w-full justify-between'>
+                <span className='text-weak'>Amount received</span>
+                <span className='text-medium'>
+                  {transaction.formattedTargetAmount}
+                </span>
+              </div>
+            )}
+            {transaction.exchangeRateApplied && (
+              <div className='mt-2 flex w-full justify-between'>
+                <span className='text-weak'>Exchange rate</span>
+                <span className='text-medium'>
+                  {transaction.exchangeRateApplied}
+                </span>
+              </div>
+            )}
+            {transaction.exchangeRateSurcharge && (
+              <div className='mt-2 flex w-full justify-between'>
+                <span className='text-weak'>Surcharge</span>
+                <span className='text-medium'>
+                  {transaction.exchangeRateSurcharge}%
+                </span>
+              </div>
+            )}
             <div className='mt-4 flex w-full justify-between font-medium'>
               <span className='text-medium'>Total amount to debit</span>
               <span className='text-medium'>{transaction.formattedAmount}</span>
@@ -880,6 +904,30 @@ function Received({ openDialog }: { openDialog: () => void }) {
             <span className='text-weak'>Paid to</span>
             <span className='text-medium'>{transaction.accountTitle}</span>
           </div>
+          {transaction.formattedTargetAmount && (
+            <div className='mt-2 flex w-full justify-between'>
+              <span className='text-weak'>Amount sent</span>
+              <span className='text-medium'>
+                {transaction.formattedTargetAmount}
+              </span>
+            </div>
+          )}
+          {transaction.exchangeRateApplied && (
+            <div className='mt-2 flex w-full justify-between'>
+              <span className='text-weak'>Exchange rate</span>
+              <span className='text-medium'>
+                {transaction.exchangeRateApplied}
+              </span>
+            </div>
+          )}
+          {transaction.exchangeRateSurcharge && (
+            <div className='mt-2 flex w-full justify-between'>
+              <span className='text-weak'>Surcharge</span>
+              <span className='text-medium'>
+                {transaction.exchangeRateSurcharge}%
+              </span>
+            </div>
+          )}
         </CardContent>
       </Card>
       {transaction.reference && (

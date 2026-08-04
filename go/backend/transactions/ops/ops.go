@@ -708,37 +708,6 @@ func ListTransfers(ctx context.Context, b Backends, txID string) ([]transactions
 }
 
 func transformTransaction(tx dbTransaction) transactions.Transaction {
-	return transactions.Transaction{
-		ID:                      tx.ID,
-		WalletID:                tx.WalletID,
-		ForeignID:               tx.ForeignID.String,
-		Source:                  tx.Source.String,
-		Destination:             tx.Destination.String,
-		Title:                   tx.Title.String,
-		Type:                    tx.Type,
-		Timestamp:               tx.Timestamp,
-		Note:                    tx.Note.String,
-		State:                   tx.State,
-		Provider:                tx.Provider,
-		LinkedAccountTitle:      tx.LinkedAccountTitle.String,
-		DestinationIdentity:     tx.DestinationIdentity.String,
-		DestinationIdentityType: tx.DestinationIdentityType.String,
-		Reference:               tx.Reference.String,
-		Amount: currency.Amount{
-			Value:    tx.Amount,
-			Currency: currency.ParseCurrency(tx.Asset),
-			Scale:    tx.Scale,
-		},
-		RefundState: tx.RefundState,
-		ProviderFee: &currency.Amount{
-			Value:    tx.ProviderFee,
-			Currency: currency.ParseCurrency(tx.Asset),
-			Scale:    tx.Scale,
-		},
-	}
-}
-
-func transformCardTransaction(ctx context.Context, b Backends, tx dbTransaction) (transactions.Transaction, error) {
 	t := transactions.Transaction{
 		ID:                      tx.ID,
 		WalletID:                tx.WalletID,
@@ -771,6 +740,20 @@ func transformCardTransaction(ctx context.Context, b Backends, tx dbTransaction)
 		ExchangeRateSurcharge: tx.ExchangeRateSurcharge.String,
 	}
 
+	if tx.TargetAmount.Valid {
+		t.TargetAmount = &currency.Amount{
+			Value:    tx.TargetAmount.Int64,
+			Currency: currency.ParseCurrency(tx.TargetAsset.String),
+			Scale:    int(tx.TargetScale.Int64),
+		}
+	}
+
+	return t
+}
+
+func transformCardTransaction(ctx context.Context, b Backends, tx dbTransaction) (transactions.Transaction, error) {
+	t := transformTransaction(tx)
+
 	var details transactions.CardTransactionDetails
 	err := b.DB().GetContext(ctx, &details, "SELECT card_id, card_masked_pan, type, raw_transaction ->> 'operation' AS operation, raw_transaction ->> 'transactionClassification' AS classification FROM gatehub_card_transactions WHERE id = $1", tx.ForeignID.String)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -780,14 +763,6 @@ func transformCardTransaction(ctx context.Context, b Backends, tx dbTransaction)
 		return transactions.Transaction{}, fmt.Errorf("%w %s", transactions.ErrInternal, err)
 	}
 	t.CardTransactionDetails = details
-
-	if tx.TargetAmount.Valid {
-		t.TargetAmount = &currency.Amount{
-			Value:    tx.TargetAmount.Int64,
-			Currency: currency.ParseCurrency(tx.TargetAsset.String),
-			Scale:    int(tx.TargetScale.Int64),
-		}
-	}
 
 	return t, nil
 }
