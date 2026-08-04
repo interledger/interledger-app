@@ -9,8 +9,8 @@ both Plaid surfaces the app touches:
 So the full link → exchange → processor-token → Fiant flow runs **offline and deterministically**,
 with no real Plaid credentials or network egress.
 
-> Tasks / per-task notes: `documentation/poc/mockplaid/`. How-it-works + diagrams:
-> `documentation/poc/plaid/mockplaid.md`.
+> How the wallet integrates with Plaid (real and mocked):
+> [`documentation/docs/plaid-integration-guide.md`](../../../documentation/docs/plaid-integration-guide.md).
 
 ## How it plugs in
 

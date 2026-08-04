@@ -96,7 +96,7 @@ go tool cover -func=coverage.out | grep total
 ```
 
 The test harness defaults to `postgres://postgres:password@127.0.0.1:55432/%s?sslmode=disable`
-(hardcoded in `db/migrate.go`), so **`DB_URL` does not need to be set** when using the local
+(hardcoded in `go/backend/db/migrate.go`), so **`DB_URL` does not need to be set** when using the local
 unit-test container. Only set it if pointing at a different Postgres instance.
 
 When done:
