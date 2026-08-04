@@ -15,7 +15,7 @@ At the time of writing it was possible to do this with all tests, but that will 
 
 1. **Feature files** (`.feature`) contain human-readable test scenarios written in Gherkin
 2. **Godog** is the Go implementation of Cucumber that parses these feature files
-3. **Step definitions** (Go functions in files like `gatehub_signup.go`, `gatehub_payments.go`) implement the actual test logic
+3. **Step definitions** (Go functions in files like `signup_steps.go`, `gatehub_payments.go`) implement the actual test logic
 4. **Playwright** automates browser interactions to execute the test steps
 
 The test runner reads feature files, matches each line to a corresponding step definition, and executes the test logic.
@@ -29,9 +29,9 @@ The test runner reads feature files, matches each line to a corresponding step d
    cd local
    make hosts                  # Add entries to /etc/hosts (requires sudo)
    make certs                  # Generate self-signed certificates
-   make trust                  # Trust certs on macOS (or see getting-started.md for Linux)
+   make trust                  # Trust certs on macOS (make trust-debian / trust-arch on Linux)
    ```
-   See [getting-started.md](docs/gatehub/getting-started.md) for detailed environment setup.
+   See [local/README.md](../local/README.md) for detailed environment setup.
 
 2. **Playwright dependencies** – Install the browser binaries:
    ```bash
@@ -48,12 +48,13 @@ The test runner reads feature files, matches each line to a corresponding step d
    ```
    This starts Traefik, Postgres, Redis, Kratos, Temporal, Rafiki, and application services.
 
-4. **Rafiki assets seeded** – Automatically happens with `make all`, but can be run manually:
+4. **Rafiki assets seeded** – This is not done by `make all`; run it once the stack is up:
    ```bash
    cd local/scripts
-   go run rafiki-setup.go
+   make build
+   ./local-dev-tool rafiki --skip-ui --wait-for-ready 120
    ```
-   This creates USD, EUR, GBP, and other currency assets with initial liquidity. See [rafiki-seeding.md](docs/rafiki-seeding.md) for details.
+   This creates USD, EUR, GBP, and other currency assets with initial liquidity. See [local/scripts/README.md](../local/scripts/README.md) for the other `local-dev-tool` commands.
 
 ### Running All Tests
 
@@ -148,7 +149,7 @@ KYC and deposit tests interact with MockGatehub, a lightweight mock implementati
 - Accessed by the backend at `http://mockgatehub:8080` (internal Docker network)
 - Pre-configured with test users and balances for E2E testing
 
-See [gatehub-mock-setup.md](docs/gatehub/gatehub-mock-setup.md) for architecture details.
+See [go/mock/mockgatehub/README.md](../go/mock/mockgatehub/README.md) for architecture details.
 
 ## Troubleshooting
 
@@ -158,5 +159,5 @@ See [gatehub-mock-setup.md](docs/gatehub/gatehub-mock-setup.md) for architecture
 - **Flaky wallet tests** – See [AGENTS.md](AGENTS.md) for known issues with wallet address submission
 - **Phone number validation errors** – If tel format errors occur, try `make reset` in `local/` to clean the environment
 - **Mixed content errors** – Verify MockGatehub is accessible at `https://mockgatehub.interledger.test` and that Traefik is running
-- **Certificate trust issues** – Run `make trust` in `local/` (macOS) or see [getting-started.md](docs/gatehub/getting-started.md#certs) for Linux
+- **Certificate trust issues** – Run `make trust` in `local/` (macOS), or `make trust-debian` / `make trust-arch` on Linux
 

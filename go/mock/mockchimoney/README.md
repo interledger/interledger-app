@@ -1,6 +1,6 @@
 # MockChimoney
 
-> **Status**: This service is implemented and used for local development and testing. See [`plan/plan.md`](plan/plan.md) for the detailed design and planned enhancements.
+> **Status**: This service is implemented and used for local development and testing.
 
 MockChimoney is a lightweight Go mock of the Chimoney API for local development and testing of the Interledger Wallet. It follows the same patterns as `mockgatehub` and `mockxago`: go-chi router, Redis-backed storage, background webhook delivery, and Traefik-fronted Docker Compose service.
 
@@ -78,7 +78,7 @@ The mock delivers the following events (signed with svix-style HMAC-SHA256) to t
 | `user.kyc.completed` | User approves KYC on the widget page |
 | `user.kyc.declined` | User declines KYC on the widget page |
 
-> **Note**: The official Chimoney webhook documentation at <https://chimoney.readme.io/reference/webhooks-and-events> only lists a small subset of these events (`chimoney.redeem.completed`, `payout.bank.*`, etc.). The events above were discovered from the backend's `ops/webhooks.go` switch statement and are **not publicly documented**. They are only visible in the Chimoney sandbox dashboard.
+> **Note**: The official Chimoney webhook documentation at <https://chimoney.readme.io/reference/webhooks-and-events> only lists a small subset of these events (`chimoney.redeem.completed`, `payout.bank.*`, etc.). The events above were discovered from the backend's `go/backend/providers/chimoney/ops/webhooks.go` switch statement and are **not publicly documented**. They are only visible in the Chimoney sandbox dashboard.
 
 ## Configuration
 
@@ -141,7 +141,5 @@ The `POST /multicurrency-wallets/transfer` endpoint has a `sendViaInterledger` b
 
 Two environment variables must be added to the backend before mockchimoney can be used locally:
 
-1. `CHIMONEY_API_BASE_URL` — overrides the hardcoded prod/sandbox base URL in `external/client.go`
-2. `CHIMONEY_KYC_BASE_URL` — overrides the hardcoded `dash.chimoney.io` URL in `ops/ops.go`
-
-See [`plan/plan.md`](plan/plan.md) for the exact code changes.
+1. `CHIMONEY_API_BASE_URL` — overrides the hardcoded prod/sandbox base URL in `go/backend/providers/chimoney/external/client.go`
+2. `CHIMONEY_KYC_BASE_URL` — overrides the hardcoded `dash.chimoney.io` URL in `go/backend/providers/chimoney/ops/ops.go`

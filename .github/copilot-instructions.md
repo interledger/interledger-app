@@ -4,16 +4,18 @@
 
 **Purpose**: Interledger Wallet application enabling cross-currency peer-to-peer payments through integration with multiple payment providers (GateHub, PTI, Xago, Chimoney) and the Rafiki ILP node.
 
-**Stack**: Go 1.25+, TypeScript (Remix), PostgreSQL 17, Redis, Ory Kratos, Temporal, Docker, Playwright (E2E tests)
+**Stack**: Go 1.25+, TypeScript (React Router 7), PostgreSQL 17, Redis, Ory Kratos, Temporal, Docker, Playwright (E2E tests)
 
-**Repository Type**: Monorepo with Go workspace (`go.work`) containing:
+**Repository Type**: Monorepo with Go workspace (`go.work`, which uses `./go`, `./e2e` and `./local/scripts`) containing:
 - `go/` - Backend services (gRPC APIs, Temporal workflows, provider integrations)
-- `typescript/` - Frontend applications (protea=user-facing, botanist=admin, hortus=public)
+- `typescript/` - Frontend applications (protea=user-facing, botanist=admin)
 - `e2e/` - BDD end-to-end tests (Godog + Playwright)
 - `local/` - Docker Compose development environment
 - `proto/` - Protocol buffers definitions
+- `helm/` - Helm charts (`interledger-app`, `mock-services`)
+- `documentation/` - MkDocs site (`documentation/mkdocs.yml`)
 
-**Size**: ~50k+ LoC across Go and TypeScript, 38+ documentation files, 11 CI/CD workflows
+**Size**: ~50k+ LoC across Go and TypeScript, 22 documentation pages under `documentation/docs/`, 17 CI/CD workflows
 
 ## Build and Validation
 
@@ -61,16 +63,20 @@ go test -coverprofile=coverage.out ./...
 go tool cover -func=coverage.out
 ```
 
-**Coverage Thresholds** (enforced by CI, defined in `go/coverage.thresholds`):
+**Coverage Thresholds** (defined in `go/coverage.thresholds`):
 - `backend=13.5%`
 - `pacioli=45.0%`
 - `geo=90.0%`
+- `configa=85.0%`
 - `mockxago=62.0%`
 - `mockgatehub=60.0%`
 - `mockchimoney=62.0%`
 - `mockpti=62.0%`
+- `mockplaid=62.0%`
 
-Changes must meet or exceed these thresholds.
+Changes must meet or exceed these thresholds. Note that `.github/workflows/go-tests.yml` currently only
+runs jobs for `configa`, `backend`, `pacioli`, `mockxago`, `mockgatehub`, `mockchimoney` and `mockpti` —
+the `geo` and `mockplaid` thresholds are declared but not yet enforced by a CI job.
 
 ### Linting
 
@@ -182,21 +188,25 @@ go/
 │   ├── db/schema.hcl              # Atlas database schema
 │   ├── db/testmigrations/         # Auto-generated test migrations
 │   ├── grpc/                      # gRPC server definitions
-│   ├── providers/{gatehub,pti,xago,chimoney}/  # Provider integrations
-│   ├── temporal/workflows/        # Temporal workflow definitions
+│   ├── providers/{gatehub,pti,fiant,xago,chimoney,plaid,http}/  # Provider integrations
+│   ├── temporal/                  # Temporal client, worker and context plumbing
+│   ├── */ops/                     # Temporal workflows and activities per domain
 │   └── main.go
 ├── pacioli/        # Double-entry ledger service
 ├── geo/            # Geographic/country data service
-└── Makefile        # Top-level Go commands (lint)
+├── configa/        # Configuration loading and validation library
+├── log/            # Shared structured logging
+├── tracing/        # OpenTelemetry helpers
+├── mock/{mockgatehub,mockpti,mockxago,mockchimoney,mockplaid,mockbos}/  # Mock providers
+└── Makefile        # Top-level Go commands (lint, lintci)
 ```
 
 ### TypeScript Layout
 
 ```
 typescript/
-├── protea/         # User-facing wallet frontend (Remix)
-├── botanist/       # Admin dashboard (Remix)
-└── hortus/         # Public-facing website (Remix)
+├── protea/         # User-facing wallet frontend (React Router 7)
+└── botanist/       # Admin dashboard (React Router 7)
 ```
 
 ### Key Configuration Files
@@ -204,10 +214,10 @@ typescript/
 - `go.work` - Go workspace (includes go/, e2e/, local/scripts/)
 - `go/coverage.thresholds` - Coverage enforcement thresholds
 - `go/.golangci.yml` - Linter configuration
-- `local/docker-compose.yml` - Full stack orchestration (50+ services)
+- `local/docker-compose.yaml` - Full stack orchestration; an `include:` of the per-service `local/*.yaml` files
 - `proto/buf.gen.yaml` - Protocol buffer generation config
 
-### Critical Concepts (from `docs/concepts.md`)
+### Critical Concepts (from `documentation/docs/terminology.md`)
 
 **Wallet != Provider Wallet**: One Interledger wallet contains multiple "linked accounts" from different providers. Never confuse:
 - Interledger `Wallet` (one per user, one ILP address, one country)
@@ -224,7 +234,7 @@ typescript/
 ### PR Checks (must pass before merge)
 
 1. **PR Title** - Must follow Conventional Commits (feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert, local)
-2. **Go Tests** - Coverage thresholds enforced for backend, pacioli, geo, mockxago, mockgatehub, mockchimoney, mockpti
+2. **Go Tests** - Coverage thresholds enforced for configa, backend, pacioli, mockxago, mockgatehub, mockchimoney, mockpti
 3. **E2E Tests** - Full Playwright suite on Google Cloud VM (90m timeout)
 4. **Linting** - golangci-lint v2.5.0 in `go/` directory
 
@@ -254,7 +264,6 @@ PRs are automatically labeled by `.github/workflows/labeler.yml` using the confi
 | `CI` | `.github/workflows/**`, `tooling/**` |
 | `botanist` | `typescript/botanist/**` |
 | `protea` | `typescript/protea/**` |
-| `hortus` | `typescript/hortus/**` |
 | `documentation` | `documentation/**` |
 | `e2e` | `e2e/**` |
 | `local` | `local/**` |
@@ -269,11 +278,17 @@ PRs are automatically labeled by `.github/workflows/labeler.yml` using the confi
 - `.github/workflows/go-tests.yml` - Runs `go-test-template.yml` for backend, pacioli, geo and mock services (skipped for docs/local-only changes)
 - `.github/workflows/go-test-template.yml` - Reusable template; runs inside the `ghcr.io/interledger/builders/gotester:v1.1.0` container — no local Go setup needed
 - `.github/workflows/mock-tester.yml` - Reusable template for mock services; still installs Go (`setup-go`) and golangci-lint manually on the runner (not yet migrated to the gotester container)
-- `.github/workflows/e2e-tests.yml` - Starts VM, runs E2E suite with concurrency=10 (skipped for docs-only changes)
-- `.github/workflows/linting.yml` - Runs golangci-lint on all Go code inside the `ghcr.io/interledger/builders/gotester:v1.1.0` container (skipped for docs/local-only changes)
+- `.github/workflows/e2e-tests.yml` - Runs the E2E suite on a self-hosted `e2e-tester-dynamic` runner with concurrency=10 (90m timeout; skipped for docs-only changes)
+- `.github/workflows/e2e-runner-scaler.yml` - Scales the E2E runner VM up/down around E2E runs
+- `.github/workflows/typescript-checks.yml` / `typescript-check-template.yml` - Lint, typecheck and build for `typescript/protea` and `typescript/botanist`
+- `.github/workflows/linting.yml` - Runs golangci-lint on all Go code inside the `ghcr.io/interledger/builders/gotester:v1.1.0` container, plus a `go-mod-hygiene` job that verifies `go.mod`/`go.sum`/`go.work.sum` are tidy and synced
 - `.github/workflows/build-and-publish.yml` - Builds Docker images on PRs (build only) and pushes to GCP Artifact Registry when triggered by a version tag or `workflow_dispatch`; on release also publishes the `helm/interledger-app` OCI chart, uses the `dev1` GitHub environment for the automatic deploy step, opens an auto-merge PR in `interledger-app-deploy` to bump `chartVersion` in the dev1 appset, then refreshes and syncs Argo CD applications labeled `environment=wallet-dev1`
 - `.github/workflows/release.yml` - Runs semantic-release on every push to `main`; creates a git tag, GitHub Release, and release notes from commit history (see Release Process below)
-- `.github/workflows/helm-tests.yml` - Runs `helm unittest` + `kubeconform` on the chart at `helm/interledger-app` inside the `ghcr.io/interledger/builders/chartvalidator:v0.5` container (only triggered when `helm/**` files change)
+- `.github/workflows/deploy.yml` - Manual (`workflow_dispatch`) promotion to `sandbox` or `production`: opens an auto-merge PR in `interledger-app-deploy`, polls the environment's healthz endpoint, then registers the release with Linear
+- `.github/workflows/docs-publish.yml` - Builds and publishes the MkDocs site on every published GitHub Release
+- `.github/workflows/helm-tests.yml` - Runs `helm unittest` + `kubeconform` on the `helm/interledger-app` and `helm/mock-services` charts inside the `ghcr.io/interledger/builders/chartvalidator:v0.5` container (only triggered when `helm/**` files change)
+- `.github/workflows/validate-release-config.yml` - Validates `.releaserc.json` and the release setup
+- `.github/workflows/test-github-scripts.yml` - Tests the helper scripts in `tooling/github-scripts/`
 
 ### Release Process
 
@@ -289,10 +304,10 @@ Releases are fully automated via **semantic-release** — do not create `release
    - `BREAKING CHANGE:` footer or `feat!:` / `fix!:` → major (`2.0.0`)
    - `refactor:`, `chore:`, `docs:`, `test:`, `ci:`, `build:`, `style:`, `local:` → **no release**
 4. If there is a releasable commit, semantic-release creates a `vX.Y.Z` git tag and a GitHub Release with auto-generated notes.
-5. The new tag triggers `build-and-publish.yml`, which builds all Docker images and pushes them to GCP Artifact Registry tagged with that version. It also packages and publishes the `helm/interledger-app` chart (OCI) to both dev and prod Artifact Registries.
+5. The new tag triggers `build-and-publish.yml`, which builds all Docker images and pushes them to GCP Artifact Registry tagged with that version. It also packages and publishes the `helm/interledger-app` and `helm/mock-services` charts (OCI) to both dev and prod Artifact Registries.
 6. After the chart publish succeeds, the `bump-deploy-dev` job in `build-and-publish.yml` runs under the `dev1` GitHub environment, opens an auto-merge PR in `interledger/interledger-app-deploy` that updates `chartVersion` for the `interledger-app` entry in `env/dev1/appsets/wallet-appset.yaml` to the new version (with the leading `v` stripped), waits for that PR to merge, then refreshes and syncs Argo CD applications labeled `environment=wallet-dev1`. Only `dev1` is bumped automatically; `sandbox` and `production` remain manual/promotion-based.
 
-**Config files**: `.releaserc.json` (release config), `package.json` + `pnpm-lock.yaml` at repo root (semantic-release dependencies).
+**Config files**: `.releaserc.json` (release config, and the `sed` step that bumps `version`/`appVersion` in both `helm/interledger-app/Chart.yaml` and `helm/mock-services/Chart.yaml`), `package.json` + `pnpm-lock.yaml` at repo root (semantic-release dependencies).
 
 **Authentication**: `release.yml` authenticates as a GitHub App rather than using the default `GITHUB_TOKEN`. This is required because tag pushes made with `GITHUB_TOKEN` do **not** trigger downstream workflows, so `build-and-publish.yml` would never see the new tag. Required repo secrets:
 
@@ -383,7 +398,7 @@ Then wait additional 10-30 seconds for all services to stabilize.
 
 ## Logging Policy
 
-Follow `docs/logging-policy.md`:
+Follow `documentation/docs/logging-reference.md`:
 
 - **fatal** → stderr, exit process (invalid config, security breach)
 - **error** → stderr, immediate attention needed (provider API failures after retries)
@@ -396,7 +411,7 @@ All logs must be JSON, one object per line. Include `ts` (Unix timestamp), optio
 ## Additional Resources
 
 - `e2e/AGENTS.md` - Agent-specific E2E testing guidance (tag usage, troubleshooting)
-- `docs/concepts.md` - Provider terminology mapping
+- `documentation/docs/terminology.md` - Provider terminology mapping
 - `documentation/docs/configuration-strategy-guide.md` - How to add configuration safely (ship features inert, safe defaults, fail-fast validation); consult on every configuration review
 - `documentation/docs/environment-mode-guide.md` - How and when to branch behaviour on `environment.mode`, and how to keep non-production shortcuts out of production
 - `documentation/docs/backend-configuration-guide.md` - Backend YAML config scheme, secret handling, and full setting reference

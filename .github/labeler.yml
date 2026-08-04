@@ -64,11 +64,6 @@ protea:
       - any-glob-to-any-file:
           - 'typescript/protea/**'
 
-hortus:
-  - changed-files:
-      - any-glob-to-any-file:
-          - 'typescript/hortus/**'
-
 documentation:
   - changed-files:
       - any-glob-to-any-file:

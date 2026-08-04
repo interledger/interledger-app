@@ -52,15 +52,16 @@ Project documentation lives under [`documentation/`](../documentation) and vario
 This is a monorepo combining a Go workspace and a pnpm/TypeScript workspace:
 
 ```
-go/                 Go workspace (go.work): backend, pacioli, geo, mock services, shared packages
+go/                 Go module used via the root go.work workspace
   backend/          Main wallet backend (gRPC, GraphQL, Temporal workers, provider integrations)
   pacioli/          Double-entry ledger service
   geo/              Geographic/country data service
+  configa/          Configuration loading/validation library
+  log/, tracing/    Shared logging and OpenTelemetry helpers
   mock/             Mock provider services used for local dev and CI
-typescript/         pnpm workspace: Remix frontends
+typescript/         React Router 7 frontends (each its own pnpm project)
   protea/           User-facing wallet frontend
   botanist/         Admin dashboard
-  hortus/           Public-facing website
 e2e/                BDD end-to-end tests (Godog + Playwright)
 local/              Docker Compose local development environment
 proto/              Protocol buffer definitions
@@ -139,7 +140,7 @@ pnpm build          # also runs typecheck
 
 `pnpm precommit` runs format, lint, and build together — worth running before opening a PR.
 
-Root dependencies are managed with **pnpm** (`packageManager` pinned in `package.json`); don't use `npm install`.
+Dependencies are managed with **pnpm** (`packageManager` pinned in the root `package.json`); don't use `npm install`. `protea` and `botanist` each have their own lockfile — install from inside the package you're working on.
 
 #### Commit messages
 
@@ -159,11 +160,11 @@ The type of your PR title determines whether — and how — a release is cut wh
 GitHub Actions workflows live in [`.github/workflows`](workflows). The main ones you'll hit on a PR:
 
 - `pr-title-check.yml` — validates the PR title.
-- `go-tests.yml` / `go-test-template.yml` — Go unit tests + coverage thresholds for `backend`, `pacioli`, `geo`, and mock services.
+- `go-tests.yml` / `go-test-template.yml` / `mock-tester.yml` — Go unit tests + coverage thresholds for `configa`, `backend`, `pacioli`, and the mock services.
 - `linting.yml` — `golangci-lint` across all Go code, plus a check that `go.mod`/`go.sum`/`go.work.sum` are tidy.
 - `typescript-checks.yml` — lint/typecheck/build for `protea` and `botanist`.
 - `e2e-tests.yml` — full Playwright/Godog suite against a full local-style environment.
-- `helm-tests.yml` — `helm unittest` + `kubeconform` for the Helm chart (only when `helm/**` changes).
+- `helm-tests.yml` — `helm unittest` + `kubeconform` for the `interledger-app` and `mock-services` charts (only when `helm/**` changes).
 
 Documentation-only changes (`documentation/**`) skip tests, builds, and linting. Local-only changes (`local/**`) skip unit tests, builds, and linting, but E2E still runs since it exercises that environment.
 

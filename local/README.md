@@ -14,12 +14,9 @@ Environment variable names are prefixed by service to avoid collisions:
 - `PROTEA_*` configures the Protea frontend
 
 Build behavior:
-- `PROTEA_BUILD_TARGET` controls the Dockerfile stage used for Protea (`dev` or `runner`).
-- `BOTANIST_BUILD_TARGET` controls the Dockerfile stage used for Botanist (`dev` or `runner`).
-- Default is `dev` for local development.
-- E2E CI sets both to `runner`.
-- Via `make` targets, Protea source bind mounts are applied only when `PROTEA_BUILD_TARGET=dev` (using `protea.dev.mounts.yaml`).
-- When `PROTEA_BUILD_TARGET=runner` (for example in E2E CI), Protea runs without source bind mounts.
+- `BOTANIST_BUILD_TARGET` controls the Dockerfile stage used for Botanist (`dev` or `runner`), defaulting to `dev`.
+- Protea's stage is pinned to `dev` in [protea.yaml](./protea.yaml), with source bind mounts for live reload.
+- `make all-ci` (used by E2E CI) layers [protea.runner.mounts.yaml](./protea.runner.mounts.yaml) on top of the compose file, which switches Protea to the `runner` stage and clears its bind mounts.
 
 ```sh
 cp example.env .env
@@ -40,7 +37,7 @@ make <command>
 e.g. make infrastructure
 
 help                    Show this help message
-hosts                   Add required entries to /etc/hosts (requires sudo)
+hosts                   Add required entries to /etc/hosts (requires sudo, includes mockgatehub.interledger.test, docs.interledger.test)
 
 infrastructure|infra    Traefik, Postgres, Redis
 services|svc            Kratos, Temporal, Rafiki, Ngrok (requires infra)
@@ -51,7 +48,7 @@ all                     All services (infra, svc, app)
 unit-test-db-up         Start isolated Postgres for Go unit tests (localhost:55432)
 unit-test-db-down       Stop isolated Postgres for Go unit tests
 
-build                   Build all images
+build                   Build backend images
 pull                    Pull all images
 
 down                    Stop all running services
@@ -63,7 +60,17 @@ print-certs             Print details of the self-signed TLS certificates
 trust                   Trust the self-signed TLS certificates on macOS
 print-trust             List all self-signed TLS certificates on macOS
 untrust                 Remove the self-signed TLS certificates from macOS
+trust-debian            Trust the self-signed TLS certificates on Debian-based systems
+print-trust-debian      List all self-signed TLS certificates on Debian-based systems
+untrust-debian          Remove the self-signed TLS certificates from Debian-based systems
+trust-arch              Trust the self-signed TLS certificates on Arch-based systems
+print-trust-arch        List all self-signed TLS certificates on Arch-based systems
+untrust-arch            Remove the self-signed TLS certificates from Arch-based systems
 ```
+
+Not shown in `help`, but available: `all-nowatch` (all services detached, no file watching),
+`all-ci` (the variant E2E CI uses), and `plaid-mock` / `plaid-real` to switch the Plaid integration
+between `mockplaid` and the real Plaid sandbox.
 
 ### Step by step
 The ```help``` in the ```Makefile``` should be enough to provide the support in building the envrionment, but let's break down the steps.
@@ -206,6 +213,8 @@ docker compose down -v
 | https://mockgatehub.interledger.test      | MockGateHub API (local GateHub replacement) |
 | https://mockxago.interledger.test         | MockXago API (local Xago replacement)       |
 | https://mockpti.interledger.test          | MockPTI API and SDK stub                    |
+| https://mockplaid.interledger.test        | MockPlaid API (local Plaid replacement)     |
+| https://docs.interledger.test             | MkDocs documentation site                   |
 
 
 ## Observability
