@@ -1,5 +1,11 @@
 name: Check PR title
 
+# pull_request_target is required so the check can post a status back on PRs
+# from forks. It runs the workflow definition from the BASE branch and never
+# checks out the PR head, so PR-authored code is never executed here.
+#
+# The only untrusted input is the PR title, which is read by the action via
+# the API rather than interpolated into a shell command.
 on:
   pull_request_target:
     types:
@@ -7,6 +13,13 @@ on:
       - edited
       - synchronize
       - reopened
+
+# pull_request_target runs with a fully-privileged GITHUB_TOKEN by default.
+# Pin it to the minimum the action needs so a compromised dependency cannot
+# write to the repository.
+permissions:
+  contents: read
+  pull-requests: read
 
 jobs:
   check-pr-title:

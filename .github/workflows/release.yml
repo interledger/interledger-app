@@ -134,9 +134,13 @@ jobs:
         (needs.release.result == 'success' && needs.release.outputs.release_tag != '') ||
         (needs.manual_release.result == 'success' && needs.manual_release.outputs.release_tag != '')
       )
+    # Ceiling for the called workflow. Every job in build-and-publish.yml
+    # declares its own (narrower) permissions; nothing there needs write access
+    # to this repo or to GHCR — images and charts go to GCP Artifact Registry
+    # via Workload Identity Federation, and the deploy-repo bump uses a
+    # separately-minted GitHub App token.
     permissions:
-      contents: write
-      packages: write
+      contents: read
       id-token: write
     uses: ./.github/workflows/build-and-publish.yml
     with:

@@ -1,0 +1,50 @@
+# Code owners for interledger-app
+#
+# Every path listed here requires a review from @interledger/interledger-app
+# before it can be merged. Enable "Require review from Code Owners" in the
+# branch protection rules for `main` and the `*.x` maintenance branches,
+# otherwise this file is advisory only.
+#
+# The last matching pattern wins, so the security-sensitive paths at the
+# bottom of this file deliberately override the catch-all above them.
+
+# Default owner for everything in the repository.
+*                               @interledger/interledger-app
+
+# ---------------------------------------------------------------------------
+# CI/CD and supply chain
+#
+# These paths can execute arbitrary code with repository credentials, publish
+# artifacts, or change what runs on the self-hosted E2E runners. A change here
+# must never be merged without a maintainer reading the diff.
+# ---------------------------------------------------------------------------
+/.github/                       @interledger/interledger-app
+/.github/workflows/             @interledger/interledger-app
+/.github/actions/               @interledger/interledger-app
+/.github/CODEOWNERS             @interledger/interledger-app
+/tooling/                       @interledger/interledger-app
+
+# Dependency manifests and lockfiles — a poisoned transitive dependency runs
+# in CI (and in the E2E runner) before any human sees the result.
+/renovate.json                  @interledger/interledger-app
+/package.json                   @interledger/interledger-app
+/pnpm-lock.yaml                 @interledger/interledger-app
+/go.work                        @interledger/interledger-app
+/go.work.sum                    @interledger/interledger-app
+**/go.mod                       @interledger/interledger-app
+**/go.sum                       @interledger/interledger-app
+**/pnpm-lock.yaml               @interledger/interledger-app
+**/package.json                 @interledger/interledger-app
+
+# Container build definitions — executed during CI builds.
+**/Dockerfile                   @interledger/interledger-app
+**/Dockerfile.*                 @interledger/interledger-app
+**/.dockerignore                @interledger/interledger-app
+/local/                         @interledger/interledger-app
+
+# Deployment surface.
+/helm/                          @interledger/interledger-app
+/k8s/                           @interledger/interledger-app
+
+# Security policy and disclosure process.
+/SECURITY.md                    @interledger/interledger-app

@@ -12,9 +12,14 @@ on:
         type: string
         description: 'Coverage threshold key (e.g., mockxago)'
 
+permissions:
+  contents: read
+
 jobs:
   run-mock-tests:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     env:
       GOFLAGS: -buildvcs=false
     steps:
@@ -36,7 +41,7 @@ jobs:
           rm -rf /tmp/golangci-lint*
 
       - name: Cache Go modules and build cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cache/go-build

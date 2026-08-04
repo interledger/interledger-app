@@ -23,7 +23,21 @@ jobs:
     runs-on: e2e-tester-dynamic
     timeout-minutes: 90
     environment: e2e-tester
-    if: github.event.pull_request.head.repo.full_name == github.repository
+    # This job runs on a self-hosted runner, so it must never execute code we
+    # have not reviewed.
+    #
+    #   - The fork check keeps PRs from forks off the runner. NOTE: for
+    #     `pull_request` events GitHub evaluates this file from the PR head, so
+    #     a fork can delete this line. The real control is the repository
+    #     setting Actions -> "Require approval for all external contributors".
+    #   - Bot branches live inside this repository and therefore pass the fork
+    #     check, but a Renovate/Dependabot PR builds an unreviewed lockfile,
+    #     which executes dependency install scripts on the runner. Exclude them
+    #     and run E2E against bot PRs only after a human has reviewed the diff.
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.user.login != 'renovate[bot]' &&
+      github.event.pull_request.user.login != 'dependabot[bot]'
     env:
       PROTEA_BUILD_TARGET: runner
       BOTANIST_BUILD_TARGET: runner
@@ -131,6 +145,11 @@ jobs:
           done
         continue-on-error: true
 
+      # NOTE: once this repository is public, workflow artifacts and logs are
+      # downloadable by anyone, with no authentication. These logs are from the
+      # `local/` stack, which ships deliberately non-production credentials —
+      # keep it that way. If a real secret ever reaches a container log, it is
+      # published here.
       - name: Upload container logs if tests failed
         if: failure()
         uses: actions/upload-artifact@v6

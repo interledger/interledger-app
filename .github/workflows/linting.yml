@@ -18,6 +18,9 @@ on:
       - "go.work"
       - "go.work.sum"
 
+permissions:
+  contents: read
+
 jobs:
   golangci:
     name: GoLang Linting

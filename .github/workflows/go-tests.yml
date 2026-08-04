@@ -7,6 +7,9 @@ on:
       - '.github/workflows/go-test-template.yml'
       - '.github/workflows/mock-tester.yml'
 
+permissions:
+  contents: read
+
 jobs:
   configa-tests:
     uses: ./.github/workflows/go-test-template.yml

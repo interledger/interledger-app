@@ -27,16 +27,21 @@ on:
       - 'documentation/**'
       - 'local/**'
 
+# Default to read-only. This workflow also runs on every pull request, where
+# the jobs build PR-authored Dockerfiles and execute PR-authored scripts via
+# actions/github-script — none of that should ever hold a write token.
+#
+# The publish jobs opt back in individually below.
 permissions:
-  id-token: write
-  contents: write
-  packages: write
+  contents: read
 
 
 jobs:
   select_packages:
     # Selects and outputs the list of packages to be used in subsequent matrix builds
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       builds: ${{ steps.select_packages.outputs.builds }}
     steps:
@@ -53,6 +58,8 @@ jobs:
 
   determine_version:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       version: ${{ steps.version.outputs.version }}
       dockerPush: ${{ steps.version.outputs.docker_push }}
@@ -73,6 +80,9 @@ jobs:
   builds:
     needs: [select_packages, determine_version]
     runs-on: ubuntu-latest
+    # Builds PR-authored Dockerfiles. Read-only, always.
+    permissions:
+      contents: read
     strategy:
       matrix: ${{fromJson(needs.select_packages.outputs.builds)}}
     steps:
@@ -154,6 +164,10 @@ jobs:
     name: Prod images push
     needs: [builds, determine_version, select_packages]
     runs-on: ubuntu-latest
+    # id-token is needed to mint the Workload Identity Federation token.
+    permissions:
+      contents: read
+      id-token: write
     env:
       # We use Artifact Repository, GCR references are legacy as GCR has been deprecated.
       GCR_PROJECT: ${{ secrets.GCR_PROJECT }}
@@ -216,6 +230,10 @@ jobs:
     name: DEV Images push
     needs: [builds, determine_version, select_packages]
     runs-on: ubuntu-latest
+    # id-token is needed to mint the Workload Identity Federation token.
+    permissions:
+      contents: read
+      id-token: write
     env:
       GCR_PROJECT: ${{ secrets.GCR_DEV_PROJECT }}
       GSA_EMAIL: ${{ secrets.GSA_DEV_EMAIL }}
@@ -277,6 +295,10 @@ jobs:
     name: Publish Helm chart
     needs: [determine_version, push-image-gcp-artifact-registry, push-dev-image-gcp-artifact-registry]
     runs-on: ubuntu-latest
+    # id-token is needed to mint the Workload Identity Federation token.
+    permissions:
+      contents: read
+      id-token: write
     if: needs.determine_version.outputs.dockerPush == 'true'
     steps:
       - name: Checkout code

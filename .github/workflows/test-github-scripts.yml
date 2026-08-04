@@ -13,6 +13,9 @@ on:
     paths:
       - 'tooling/github-actions/**'
 
+permissions:
+  contents: read
+
 jobs:
   test-tooling:
     runs-on: ubuntu-latest

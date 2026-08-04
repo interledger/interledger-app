@@ -5,6 +5,9 @@ on:
     paths:
       - 'helm/**'
 
+permissions:
+  contents: read
+
 jobs:
   helm-unit-tests:
     name: Run Helm Unit Tests

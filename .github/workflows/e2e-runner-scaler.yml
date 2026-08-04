@@ -52,8 +52,23 @@ jobs:
       cancel-in-progress: false
 
     steps:
-      - name: Checkout repository
+      # SECURITY: the "Scale runners" step below executes JavaScript from this
+      # checkout with a GCP service-account credential and a repo-admin PAT in
+      # its environment. On a `pull_request` event the default checkout is the
+      # PR merge commit, which would let any PR author rewrite that script and
+      # exfiltrate both credentials.
+      #
+      # Always check out the default branch instead, so the scaler logic that
+      # runs here is reviewed code regardless of what triggered the workflow.
+      # Changes to the script are validated by its unit tests in
+      # test-github-scripts.yml, not by running them against real credentials.
+      - name: Checkout scaler script from the default branch
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+          sparse-checkout: tooling/github-scripts
+          sparse-checkout-cone-mode: false
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
