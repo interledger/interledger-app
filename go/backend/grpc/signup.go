@@ -4,7 +4,9 @@ import (
 	"context"
 
 	"github.com/interledger/interledger-app/go/backend/agreements"
+	"github.com/interledger/interledger-app/go/backend/country"
 	"github.com/interledger/interledger-app/go/backend/signup"
+	"github.com/interledger/interledger-app/go/backend/wallets"
 	"github.com/interledger/interledger-app/go/log"
 	pb "github.com/interledger/interledger-app/go/proto/backend/v1"
 	"go.uber.org/zap"
@@ -81,8 +83,20 @@ func (s *rpcService) GetSignup(ctx context.Context, req *pb.GetSignupRequest) (*
 }
 
 func (s *rpcService) CompleteSignup(ctx context.Context, req *pb.CompleteSignupRequest) (*pb.Empty, error) {
-	err := s.b.Signup().Complete(ctx, req.Id, req.UserId)
+	su, err := s.b.Signup().Get(ctx, req.Id)
 	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	// create the user's default wallet — the single, deterministic point in signup
+	if _, err := s.b.Wallets().Create(ctx, wallets.CreateArgs{
+		UserID:  req.UserId,
+		Country: country.ParseCountry(su.CountryCode),
+	}); err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	if err := s.b.Signup().Complete(ctx, req.Id, req.UserId); err != nil {
 		return nil, toGRPCError(err)
 	}
 

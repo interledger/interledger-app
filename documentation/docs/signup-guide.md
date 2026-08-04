@@ -36,6 +36,22 @@ The signup process creates a complete user account with authentication, wallet i
 5. **TOTP Registration** — Time-based one-time password setup for 2FA
 6. **Wallet Address Creation** — Unique payment address (e.g., `https://ilp.link/alice`)
 
+**Where the wallet is created:** the user's default wallet is created once, in `CompleteSignup` (right after the password step) — not at the wallet-address screen, which only names the already-existing wallet.
+
+```mermaid
+flowchart TD
+    A["1 · Profile details<br/>(name, email, country, phone)"] --> B["2 · Password<br/>Kratos creates the identity"]
+    B --> C["CompleteSignup (gRPC)"]
+    C --> W(["🟢 DEFAULT WALLET CREATED HERE<br/>wallets + user_wallets · name = default"])
+    C --> D["3 · Email verification"]
+    D --> E["4 · Phone OTP"]
+    E --> F["5 · TOTP / 2FA"]
+    F --> G["6 · Wallet address<br/>user picks a name → wallet renamed"]
+    G --> H["Dashboard"]
+
+    style W fill:#0E7C5A,stroke:#0E7C5A,color:#fff
+```
+
 ### Step 1 — Profile Details
 
 ```mermaid
@@ -72,6 +88,7 @@ sequenceDiagram
     K-->>U: Send verification email
     K-->>FE: Registration complete
     FE->>BE: CompleteSignup gRPC
+    BE->>DB: INSERT wallets + user_wallets (default wallet)
     BE->>DB: UPDATE signups SET user_id
     BE->>DB: INSERT agreement_signatures (when SIGNUP_AGREEMENT_IDS set)
     BE-->>FE: success
@@ -564,35 +581,54 @@ func (g *rpcService) CreateWalletAddress(ctx context.Context, req *pb.CreateWall
 
 ## 7) Wallet Initialization
 
-After signup completes, a default wallet is created for the user.
+Every user gets a default wallet, created as part of signup completion.
 
 ### When is the Wallet Created?
 
-**Timing:** During Kratos registration flow, after password creation.
+**Timing:** Inside `CompleteSignup`, before the signup is marked complete. The handler reads the signup, creates the wallet, and only then calls `Signup().Complete` — so all fallible work happens before the signup is finalized (and before its "new signup" notification fires).
 
-**Trigger:** Frontend calls `CreateUserDefaultWallet` gRPC immediately after Kratos registration succeeds.
+**Trigger:** The `CompleteSignup` gRPC the frontend already calls after Kratos registration. The middleware no longer creates wallets.
 
 ### Backend Processing
 
-**gRPC:** `CreateUserDefaultWallet`  
-**Handler:** `grpc/user.go`  
+**gRPC:** `CompleteSignup`  
+**Handler:** `grpc/signup.go`  
 **Operation:** `wallets/ops/ops.go::Create`
 
 ```go
-func (s *rpcService) CreateUserDefaultWallet(ctx context.Context, req *pb.CreateUserDefaultWalletRequest) (*pb.Empty, error) {
-    _, err := s.b.Wallets().Create(ctx, wallets.CreateArgs{
-        UserID: req.UserID,
-    })
-    return &pb.Empty{}, toGRPCError(err)
+func (s *rpcService) CompleteSignup(ctx context.Context, req *pb.CompleteSignupRequest) (*pb.Empty, error) {
+    // 1. read the signup (no mutation yet)
+    su, err := s.b.Signup().Get(ctx, req.Id)
+    if err != nil {
+        return nil, toGRPCError(err)
+    }
+
+    // 2. reject if the signup is already linked to a different user
+    if su.UserID != "" && su.UserID != req.UserId {
+        return nil, ForbiddenError("signup already completed by another user")
+    }
+
+    // 3. create the default wallet (idempotent)
+    if _, err := s.b.Wallets().Create(ctx, wallets.CreateArgs{
+        UserID:  req.UserId,
+        Country: country.ParseCountry(su.CountryCode),
+    }); err != nil {
+        return nil, toGRPCError(err)
+    }
+
+    // 4. mark the signup complete (+ notification) — last, after all fallible work
+    if err := s.b.Signup().Complete(ctx, req.Id, req.UserId); err != nil {
+        return nil, toGRPCError(err)
+    }
 }
 ```
 
 **Wallet creation:**
-- Determines user's country from Kratos identity traits
-- Creates wallet record in `wallets` table
-- Associates wallet with user's Kratos identity
+- Takes the user's country from the signup record (`country_code`)
+- Inserts the `wallets` row (named `default`) and links it to the user in `user_wallets`
+- **Idempotent / retry-safe:** `Create` takes a per-user Postgres advisory lock (`pg_advisory_xact_lock`) and re-checks for an existing wallet under it, so concurrent or retried `CompleteSignup` calls serialize — the first creates the wallet, the rest reuse it — and a user never ends up with two.
 
-**Note:** At this stage, the wallet has no linked accounts yet. Provider account linking happens during KYC activation.
+**Note:** At this stage the wallet is named `default` with no linked accounts or address yet. It is renamed when the user picks a name at the wallet-address step (Section 6); provider account linking happens during KYC activation.
 
 ---
 
