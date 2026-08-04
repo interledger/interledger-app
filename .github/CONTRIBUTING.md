@@ -9,11 +9,11 @@
 >
 > **You are welcome to fork it and take it wherever you like.** If you want to talk about what
 > you are building, or find out where things stand, come and chat with the community on the
-> [Interledger Slack](https://communityinviter.com/apps/interledger/interledger-working-groups-slack).
+> Interledger Slack.
 
-This document is no longer a contribution workflow — it is an orientation guide for anyone
-working in their own fork. It explains how the codebase is laid out, how to get it running
-locally, and how the tooling that ships with it behaves.
+So this isn't really a contribution guide any more. It's a tour of the codebase for anyone
+working in their own fork: how things are laid out, how to get it all running locally, and what
+the tooling does.
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -32,30 +32,30 @@ locally, and how the tooling that ships with it behaves.
 
 ## What to expect
 
-To set expectations clearly:
+To be clear about where things stand:
 
-- **Issues** — the tracker may be closed or left unattended. Please do not rely on a response.
-  If you have found a bug, the fix belongs in your fork.
-- **Pull requests** — we are not reviewing or merging them. If you open one it will most likely
-  sit unanswered, which is a waste of your time; a fork is the better route.
-- **Releases** — no further versions are planned. The automation described below is still in the
+- **Issues.** The tracker may be closed or simply left unattended, so please don't count on a
+  reply. If you've found a bug, the fix belongs in your fork.
+- **Pull requests.** We aren't reviewing or merging them. Opening one will most likely just cost
+  you your time, so a fork is the better route.
+- **Releases.** No further versions are planned. The automation described below is still in the
   repository and still works, but nobody is running it on this side.
-- **Security** — since the project is unmaintained, treat the code as-is. Review it yourself
-  before running anything derived from it in production, and note that pinned dependency
-  versions will drift out of date and are not being patched.
-- **Documentation** — `documentation/` and the various `README.md` / `AGENTS.md` files were
-  accurate when written, but will age along with the code.
+- **Security.** The project is unmaintained, so treat the code as-is. Review it yourself before
+  you run anything derived from it in production, and bear in mind that the pinned dependency
+  versions will drift out of date without anyone patching them.
+- **Documentation.** The `documentation/` directory and the various `README.md` and `AGENTS.md`
+  files were accurate when they were written, but they'll age along with the code.
 
-None of this stops you from using the project. Apache 2.0 lets you fork, modify, redistribute,
-and run it commercially, provided you keep the licence and attribution intact (see [NOTICE](../NOTICE)).
+None of that stops you using the project. Apache 2.0 lets you fork, modify, redistribute, and run
+it commercially, as long as you keep the licence and attribution intact (see [NOTICE](../NOTICE)).
 
 ## Working in a fork
 
-Everything below describes the repository as it stands, so you can find your way around it.
+Here's how the repository is put together, so you can find your way around.
 
 ### Repository layout
 
-This is a monorepo combining a Go workspace and a set of TypeScript frontends:
+It's a monorepo combining a Go workspace and a set of TypeScript frontends:
 
 ```
 go/                 Go module used via the root go.work workspace
@@ -75,10 +75,10 @@ helm/               Helm charts for deployment
 documentation/      Project documentation
 ```
 
-The wallet integrates with several third-party payment providers (GateHub, PTI/Fiant, Xago,
-Chimoney, Plaid) and with a [Rafiki](https://github.com/interledger/rafiki) ILP node. Mock
-implementations of each provider live under `go/mock/`, so the whole stack runs locally without
-any real provider credentials — which is the easiest way to explore it.
+The wallet talks to several third-party payment providers (GateHub, PTI/Fiant, Xago, Chimoney,
+Plaid) and to a [Rafiki](https://github.com/interledger/rafiki) ILP node. There's a mock of each
+provider under `go/mock/`, so the whole stack runs locally without any real provider credentials.
+That's by far the easiest way to explore it.
 
 ### Local development environment
 
@@ -104,7 +104,7 @@ make build
 
 ### Code quality
 
-The linting, testing, and formatting setup is intact and worth keeping if you fork.
+The linting, testing, and formatting setup is all intact, and worth keeping if you fork.
 
 #### Go
 
@@ -115,8 +115,8 @@ cd go
 make lint          # golangci-lint run ./...
 ```
 
-Unit tests require Postgres. Use the dedicated ephemeral unit-test database rather than your
-normal local environment's:
+Unit tests need Postgres. Use the dedicated ephemeral unit-test database rather than the one from
+your normal local environment:
 
 ```sh
 cd local && make unit-test-db-up && cd ..
@@ -134,7 +134,7 @@ go tool cover -func=coverage.out | grep total
 
 CI enforces per-package coverage thresholds defined in [`go/coverage.thresholds`](../go/coverage.thresholds).
 
-If you touch `go.mod`/`go.sum` in any workspace module, keep the workspace tidy:
+If you touch `go.mod` or `go.sum` in any workspace module, keep the workspace tidy:
 
 ```sh
 go work sync
@@ -156,9 +156,9 @@ pnpm build          # also runs typecheck
 
 `pnpm precommit` runs format, lint, and build together.
 
-Dependencies are managed with **pnpm** (`packageManager` pinned in the root `package.json`);
-don't use `npm install`. `protea` and `botanist` each have their own lockfile — install from
-inside the package you're working on.
+Dependencies are managed with **pnpm** (`packageManager` pinned in the root `package.json`), so
+don't use `npm install`. `protea` and `botanist` each have their own lockfile, so install from
+inside whichever package you're working on.
 
 #### Commit messages
 
@@ -180,50 +180,50 @@ The commit type drives the version bump that semantic-release would apply (see
 
 GitHub Actions workflows live in [`.github/workflows`](workflows):
 
-- `pr-title-check.yml` — validates the PR title.
-- `go-tests.yml` / `go-test-template.yml` / `mock-tester.yml` — Go unit tests + coverage
-  thresholds for `configa`, `backend`, `pacioli`, and the mock services.
-- `linting.yml` — `golangci-lint` across all Go code, plus a check that
+- `pr-title-check.yml` validates the PR title.
+- `go-tests.yml`, `go-test-template.yml` and `mock-tester.yml` run the Go unit tests and enforce
+  coverage thresholds for `configa`, `backend`, `pacioli`, and the mock services.
+- `linting.yml` runs `golangci-lint` across all Go code, plus a check that
   `go.mod`/`go.sum`/`go.work.sum` are tidy.
-- `typescript-checks.yml` — lint/typecheck/build for `protea` and `botanist`.
-- `e2e-tests.yml` — full Playwright/Godog suite against a full local-style environment.
-- `helm-tests.yml` — `helm unittest` + `kubeconform` for the `interledger-app` and
-  `mock-services` charts (only when `helm/**` changes).
+- `typescript-checks.yml` handles lint, typecheck and build for `protea` and `botanist`.
+- `e2e-tests.yml` runs the full Playwright/Godog suite against a full local-style environment.
+- `helm-tests.yml` runs `helm unittest` and `kubeconform` for the `interledger-app` and
+  `mock-services` charts, but only when `helm/**` changes.
 
 Documentation-only changes (`documentation/**`) skip tests, builds, and linting. Local-only
 changes (`local/**`) skip unit tests, builds, and linting, but E2E still runs since it exercises
 that environment.
 
-If you fork, note that several workflows depend on infrastructure that is not public: the E2E
-suite needs a self-hosted `e2e-tester-dynamic` runner, and the build, publish, and deploy
-workflows expect Interledger Foundation GCP Artifact Registry credentials, a release GitHub App,
-and the companion `interledger-app-deploy` repository. Expect to disable or rewire those. The
-lint, unit-test, and Helm-test workflows run on standard GitHub-hosted runners and should work
-in a fork as-is.
+Be aware that a few of these workflows lean on infrastructure that isn't public. The E2E suite
+needs a self-hosted `e2e-tester-dynamic` runner, and the build, publish, and deploy workflows
+expect Interledger Foundation GCP Artifact Registry credentials, a release GitHub App, and the
+companion `interledger-app-deploy` repository. In a fork you'll want to disable or rewire those.
+The lint, unit-test, and Helm-test workflows run on standard GitHub-hosted runners and should
+work as-is.
 
 ### Labels
 
-PRs are auto-labeled by [`.github/workflows/labeler.yml`](workflows/labeler.yml) based on the
-paths changed (config: [`.github/labeler.yml`](labeler.yml)) — e.g. `backend`, `pacioli`, `geo`,
-`protea`, `botanist`, provider-specific labels like `gatehub`/`xago`/`fiant/pti`, `e2e`, `local`,
-`helm`, `documentation`. Labels are only added, never removed.
+PRs are auto-labeled by [`.github/workflows/labeler.yml`](workflows/labeler.yml) based on which
+paths changed, using the config in [`.github/labeler.yml`](labeler.yml). You'll see labels like
+`backend`, `pacioli`, `geo`, `protea`, `botanist`, provider-specific ones such as
+`gatehub`/`xago`/`fiant/pti`, and `e2e`, `local`, `helm`, `documentation`. Labels are only ever
+added, never removed.
 
 ### Releases
 
-Release automation is fully driven by [semantic-release](https://semantic-release.gitbook.io)
-from commit types on `main`, rather than by manual version tags or `release/v*` branches. See the
-[Releases section of the README](../README.md#releases) for how the pipeline is wired, including
-maintenance/backport branches. As noted above, no further releases are planned here — the
-description is there so you understand the mechanism before adapting or removing it.
+Release automation is driven entirely by [semantic-release](https://semantic-release.gitbook.io)
+from commit types on `main`, rather than by manual version tags or `release/v*` branches. The
+[Releases section of the README](../README.md#releases) covers how the pipeline is wired up,
+including maintenance and backport branches. As above, no further releases are planned here. It's
+documented so you understand the mechanism before you adapt it or rip it out.
 
 ## Getting in touch
 
-The best place to reach the wider Interledger community — to discuss ideas, ask what happened to
-this project, or share what you have built on top of it — is the
-[Interledger Slack](https://communityinviter.com/apps/interledger/interledger-working-groups-slack).
+The Interledger Slack is the best place to reach the wider community, whether you want to talk
+through an idea, ask what happened to this project, or show what you've built on top of it.
 
-For related, actively developed projects, see [Rafiki](https://github.com/interledger/rafiki)
-(the ILP node this wallet builds on), the
+For related projects that *are* actively developed, take a look at
+[Rafiki](https://github.com/interledger/rafiki) (the ILP node this wallet builds on), the
 [Open Payments](https://github.com/interledger/open-payments) specification, and
 [interledger.org/developers](https://interledger.org/developers).
 
