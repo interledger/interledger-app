@@ -40,8 +40,6 @@ jobs:
   select_packages:
     # Selects and outputs the list of packages to be used in subsequent matrix builds
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     outputs:
       builds: ${{ steps.select_packages.outputs.builds }}
     steps:
@@ -58,8 +56,6 @@ jobs:
 
   determine_version:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     outputs:
       version: ${{ steps.version.outputs.version }}
       dockerPush: ${{ steps.version.outputs.docker_push }}
@@ -80,9 +76,6 @@ jobs:
   builds:
     needs: [select_packages, determine_version]
     runs-on: ubuntu-latest
-    # Builds PR-authored Dockerfiles. Read-only, always.
-    permissions:
-      contents: read
     strategy:
       matrix: ${{fromJson(needs.select_packages.outputs.builds)}}
     steps:

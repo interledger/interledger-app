@@ -15,8 +15,6 @@ jobs:
   checks:
     name: Checks
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     defaults:
       run:
         working-directory: ${{ inputs.working_directory }}

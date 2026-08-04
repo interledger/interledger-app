@@ -1,11 +1,12 @@
 name: Check PR title
 
-# pull_request_target is required so the check can post a status back on PRs
-# from forks. It runs the workflow definition from the BASE branch and never
-# checks out the PR head, so PR-authored code is never executed here.
+# pull_request_target evaluates the workflow definition from the BASE branch,
+# so a fork cannot weaken or delete this check by editing the file in its own
+# PR — which a plain `pull_request` trigger would allow. It also never checks
+# out the PR head, so no PR-authored code runs here.
 #
-# The only untrusted input is the PR title, which is read by the action via
-# the API rather than interpolated into a shell command.
+# The only untrusted input is the PR title, which the action reads via the API
+# rather than having it interpolated into a shell command.
 on:
   pull_request_target:
     types:
