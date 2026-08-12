@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/auth"
+	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/consts"
 	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/logger"
 	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/models"
 	"github.com/interledger/interledger-app/go/mock/mockgatehub/internal/storage"
@@ -219,7 +220,7 @@ func normalizeVerificationPayload(eventType string, data any) map[string]interfa
 	case "id.verification.accepted", "id.verification.rejected", "id.verification.action_required",
 		"id.verification.resubmission", "id.document_notice.expired", "id.document_notice.warning":
 		if _, ok := converted["gateway"]; !ok {
-			converted["gateway"] = "paywiser"
+			converted["gateway"] = consts.DefaultKYCGateway
 		}
 		if _, ok := converted["verified"]; !ok {
 			short := "action_required"

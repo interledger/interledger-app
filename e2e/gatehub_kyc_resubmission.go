@@ -18,6 +18,9 @@ const (
 	kycStatusDocumentsRequired = 2
 	kycWebhookPollInterval     = 500 * time.Millisecond
 	kycWebhookPollTimeout      = 30 * time.Second
+
+	// Must match consts.DefaultKYCGateway in mockgatehub (separate module).
+	defaultKYCGateway = "DINARO d.o.o."
 )
 
 // triggerGatehubKYCWebhook POSTs to MockGatehub's /ui/actions/kyc endpoint to fire a signed KYC webhook.
@@ -32,7 +35,7 @@ func (sc *E2EContext) triggerGatehubKYCWebhook(gatehubUserID, eventType, gateway
 		return err
 	}
 	if gateway == "" {
-		gateway = "paywiser-eu-sandbox"
+		gateway = defaultKYCGateway
 	}
 
 	formData := url.Values{

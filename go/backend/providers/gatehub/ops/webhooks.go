@@ -30,6 +30,20 @@ var (
 	verificationRejected = "rejected"
 )
 
+// kycGatewayNames match as case-insensitive substrings, so punctuation variants of
+// "DINARO d.o.o." still pass. "paywiser" is the pre-rename name, kept for retries.
+var kycGatewayNames = []string{"dinaro", "paywiser"}
+
+func isKYCGateway(gateway string) bool {
+	gateway = strings.ToLower(gateway)
+	for _, name := range kycGatewayNames {
+		if strings.Contains(gateway, name) {
+			return true
+		}
+	}
+	return false
+}
+
 type (
 	Webhook struct {
 		ID        string `json:"uuid"`
@@ -377,7 +391,7 @@ func HandleActionRequiredWebhook(ctx context.Context, b Backends, raw json.RawMe
 		return
 	}
 
-	if !strings.Contains(strings.ToLower(wh.Data.Gateway), "paywiser") {
+	if !isKYCGateway(wh.Data.Gateway) {
 		log.Warn("received action required webhook for another gateway",
 			zap.String("webhook_id", wh.UUID),
 			zap.String("user_uuid", wh.UserID),
@@ -424,7 +438,7 @@ func HandleUserVerificationWebhook(ctx context.Context, b Backends, raw json.Raw
 		return
 	}
 
-	if !strings.Contains(strings.ToLower(wh.Data.Gateway), "paywiser") {
+	if !isKYCGateway(wh.Data.Gateway) {
 		log.Warn("received user verification webhook for another gateway", zap.String("webhook-id", wh.ID), zap.String("user_uuid", wh.UserID), zap.String("gateway", wh.Data.Gateway))
 		w.WriteHeader(http.StatusOK)
 		return
