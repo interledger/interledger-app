@@ -189,7 +189,7 @@ func TestUIKYCForm_ShowsFlash(t *testing.T) {
 func TestUIKYCAction_MissingUser(t *testing.T) {
 	h := newUIHandler(storage.NewMemoryStorage())
 	req := httptest.NewRequest(http.MethodPost, "/ui/actions/kyc",
-		strings.NewReader("gateway=paywiser-eu-sandbox&status=accepted"))
+		strings.NewReader("gateway=DINARO+d.o.o.&status=accepted"))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	rr := httptest.NewRecorder()
 	h.UIKYCAction(rr, req)
@@ -200,7 +200,7 @@ func TestUIKYCAction_MissingUser(t *testing.T) {
 func TestUIKYCAction_UnknownUser(t *testing.T) {
 	h := newUIHandler(storage.NewMemoryStorage())
 	req := httptest.NewRequest(http.MethodPost, "/ui/actions/kyc",
-		strings.NewReader("userID=nonexistent&gateway=paywiser&status=accepted"))
+		strings.NewReader("userID=nonexistent&gateway=DINARO+d.o.o.&status=accepted"))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	rr := httptest.NewRecorder()
 	h.UIKYCAction(rr, req)
@@ -212,7 +212,7 @@ func TestUIKYCAction_AcceptedUpdatesState(t *testing.T) {
 	store := storage.NewMemoryStorage()
 	require.NoError(t, storage.SeedTestUsers(store))
 	h := newUIHandler(store)
-	body := "userID=" + consts.TestUser1ID + "&gateway=paywiser-eu-sandbox&status=accepted"
+	body := "userID=" + consts.TestUser1ID + "&gateway=DINARO+d.o.o.&status=accepted"
 	req := httptest.NewRequest(http.MethodPost, "/ui/actions/kyc", strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	rr := httptest.NewRecorder()
@@ -228,7 +228,7 @@ func TestUIKYCAction_RejectedUpdatesState(t *testing.T) {
 	store := storage.NewMemoryStorage()
 	require.NoError(t, storage.SeedTestUsers(store))
 	h := newUIHandler(store)
-	body := "userID=" + consts.TestUser1ID + "&gateway=paywiser&status=rejected"
+	body := "userID=" + consts.TestUser1ID + "&gateway=DINARO+d.o.o.&status=rejected"
 	req := httptest.NewRequest(http.MethodPost, "/ui/actions/kyc", strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	rr := httptest.NewRecorder()
@@ -243,7 +243,7 @@ func TestUIKYCAction_PendingMapsToActionRequired(t *testing.T) {
 	store := storage.NewMemoryStorage()
 	require.NoError(t, storage.SeedTestUsers(store))
 	h := newUIHandler(store)
-	body := "userID=" + consts.TestUser1ID + "&gateway=paywiser&status=action_required"
+	body := "userID=" + consts.TestUser1ID + "&gateway=DINARO+d.o.o.&status=action_required"
 	req := httptest.NewRequest(http.MethodPost, "/ui/actions/kyc", strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	rr := httptest.NewRecorder()

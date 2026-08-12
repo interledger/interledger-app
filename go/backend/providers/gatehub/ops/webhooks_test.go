@@ -118,7 +118,7 @@ func TestHandleActionRequiredWebhook_StatusDocumentsRequired(t *testing.T) {
 				EventType: tt.eventType,
 				UserID:    externalUserID,
 				Data: ActionRequiredWebhookData{
-					Gateway: "Paywiser",
+					Gateway: "DINARO d.o.o.",
 				},
 			})
 			require.NoError(t, err)
@@ -153,7 +153,7 @@ func TestHandleActionRequiredWebhook_WalletNotFound(t *testing.T) {
 		EventType: "id.verification.action_required",
 		UserID:    "missing-user",
 		Data: ActionRequiredWebhookData{
-			Gateway: "Paywiser",
+			Gateway: "DINARO d.o.o.",
 		},
 	})
 	require.NoError(t, err)
@@ -186,6 +186,52 @@ func TestHandleActionRequiredWebhook_IgnoresOtherGateways(t *testing.T) {
 	assert.Equal(t, http.StatusOK, rr.Code)
 }
 
+func TestIsKYCGateway(t *testing.T) {
+	tests := []struct {
+		gateway string
+		want    bool
+	}{
+		{gateway: "DINARO d.o.o.", want: true},
+		{gateway: "dinaro d.o.o.", want: true},
+		// A miss is answered 200 OK and never retried, so variants must match.
+		{gateway: "DINARO d.o.o", want: true},
+		{gateway: "DINARO doo", want: true},
+		{gateway: "DINARO d.o.o. EU", want: true},
+		// Pre-rename name, kept for retries.
+		{gateway: "Paywiser", want: true},
+		{gateway: "paywiser-eu-sandbox", want: true},
+		{gateway: "GateHub Crypto", want: false},
+		{gateway: "Other Gateway", want: false},
+		{gateway: "", want: false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.gateway, func(t *testing.T) {
+			assert.Equal(t, tt.want, isKYCGateway(tt.gateway))
+		})
+	}
+}
+
+// Filter returns before any backend use, so no DB needed.
+func TestHandleUserVerificationWebhook_IgnoresOtherGateways(t *testing.T) {
+	ctx := context.Background()
+
+	payload, err := json.Marshal(UserVerificationWebhook{
+		EventType: "id.verification.accepted",
+		UserID:    "ignored-user",
+		Data: UserVerificationWebhookData{
+			Gateway:  "Other Gateway",
+			Verified: VerifiedStatus{Short: "accepted", Status: 1},
+		},
+	})
+	require.NoError(t, err)
+
+	rr := httptest.NewRecorder()
+	HandleUserVerificationWebhook(ctx, actionRequiredWebhookBackends{}, payload, rr)
+
+	assert.Equal(t, http.StatusOK, rr.Code)
+}
+
 func TestHandleActionRequiredWebhook_SetKYCStatusError(t *testing.T) {
 
 	ctx := context.Background()
@@ -205,7 +251,7 @@ func TestHandleActionRequiredWebhook_SetKYCStatusError(t *testing.T) {
 		EventType: "id.verification.action_required",
 		UserID:    externalUserID,
 		Data: ActionRequiredWebhookData{
-			Gateway: "Paywiser",
+			Gateway: "DINARO d.o.o.",
 		},
 	})
 	require.NoError(t, err)

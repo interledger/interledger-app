@@ -28,13 +28,13 @@ The UI KYC trigger will send the webhook payload matching **real GateHub behavio
 
 ```json
 // id.verification.accepted
-{ "gateway": "paywiser-eu-sandbox", "verified": { "short": "accepted", "status": 1 } }
+{ "gateway": "DINARO d.o.o.", "verified": { "short": "accepted", "status": 1 } }
 
 // id.verification.rejected
-{ "gateway": "paywiser-eu-sandbox", "verified": { "short": "rejected", "status": 2 } }
+{ "gateway": "DINARO d.o.o.", "verified": { "short": "rejected", "status": 2 } }
 
 // id.verification.action_required
-{ "gateway": "paywiser-eu-sandbox", "verified": { "short": "action_required", "status": 0 } }
+{ "gateway": "DINARO d.o.o.", "verified": { "short": "action_required", "status": 0 } }
 ```
 
 > **Note**: The existing `KYCIframeSubmit` and `UpdateKYCState` handlers send a simplified payload that does not include `gateway` or `verified`. The UI will send the documented real-GateHub format to maximise realism. If this causes issues (e.g., the wallet backend filters it out by gateway name), the format can be adjusted to match the simpler existing handlers. Watch backend logs after the first test trigger to confirm.
@@ -408,7 +408,7 @@ Logic:
        "action_required": 0,
    }[kycState]
    webhookData := map[string]interface{}{
-       "gateway": "paywiser-eu-sandbox",
+       "gateway": "DINARO d.o.o.",
        "verified": map[string]interface{}{
            "short":  kycState,
            "status": statusCode,
@@ -609,7 +609,7 @@ All existing tests pass. ~10 new card transaction tests pass. Both card transact
 
 ## Open Questions
 
-1. **KYC webhook gateway field**: The wallet backend filters KYC webhooks by `data.gateway` containing `"paywiser"`. The UI sends `"paywiser-eu-sandbox"`. Verify this is accepted by watching backend logs after the first real trigger. If not, adjust to match the simpler format used by `UpdateKYCState` (i.e., `{"state": "accepted", "risk_level": "low"}`).
+1. **KYC webhook gateway field**: The wallet backend filters KYC webhooks by `data.gateway` containing `"dinaro"` (or the pre-rename `"paywiser"`), case-insensitively. The UI sends `"DINARO d.o.o."`, which matches.
 
 2. **`SendAsync` with nil queue**: When the webhook manager is constructed with `nil` as the queue (as in unit tests), `SendAsync` must not panic. Verify this before Phase 4 — if it does panic, wrap the call in a nil-queue guard or add a `NoopManager` helper for tests.
 

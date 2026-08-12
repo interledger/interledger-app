@@ -660,7 +660,7 @@ After signup, users must complete KYC to activate their wallet. These workflows 
 
 **LinkGatehubUserToGatewayWorkflow**
 - **Workflow ID:** `gatehub_link_user_to_gateway_{walletID}`
-- **Purpose:** Connect managed user to Paywiser gateway
+- **Purpose:** Connect managed user to DINARO d.o.o. gateway
 - **Trigger:** After `CreateGatehubUserWorkflow` completes
 
 **BackfillAccountWorkflow**

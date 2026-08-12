@@ -60,6 +60,9 @@ const (
 	KYCStateResubmission   = "resubmission"
 )
 
+// DefaultKYCGateway must stay a name the backend's isKYCGateway accepts.
+const DefaultKYCGateway = "DINARO d.o.o."
+
 // Risk levels
 const (
 	RiskLevelLow    = "low"

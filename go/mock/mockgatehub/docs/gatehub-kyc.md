@@ -9,7 +9,7 @@ This document explains how Know Your Customer (KYC) verification and account act
 - **KYC (Know Your Customer)**: Identity verification process required by financial regulations
 - **Account Activation**: Process of linking a wallet user to a GateHub managed account
 - **Verification States**: `unknown` → `pending` → `action_required` → `accepted` (or `rejected`/`denied`)
-- **Gateway**: GateHub uses "Paywiser" as the payment gateway for EU wallets
+- **Gateway**: GateHub uses "DINARO d.o.o." as the payment gateway for EU wallets
 
 **Key Components:**
 - **Wallet Frontend**: React/Next.js or Remix application with KYC iframe
@@ -74,7 +74,7 @@ UPDATE wallet_kyc_status SET status = 'level1', updated_at = NOW() WHERE wallet_
 **GateHub**:
 - Uses iframe-based onboarding widget
 - Webhook events: `id.verification.accepted`, `id.verification.rejected`, `id.verification.action_required`
-- Gateway validation: Must contain "paywiser" for EU wallets
+- Gateway validation: Must contain "dinaro" (or the pre-rename "paywiser") for EU wallets
 - Verification payload: `data.verified.short` field with `"accepted"` or `"rejected"`
 
 **Alternative providers (e.g., Persona, Veriff)**:
@@ -129,7 +129,7 @@ sequenceDiagram
     
     GH->>BE: Webhook: id.verification.accepted<br/>Headers: x-gatehub-signature<br/>Body: {event_type, user_uuid, data}
     
-    Note over BE: Validate webhook<br/>Check gateway="paywiser"<br/>Check verified.short="accepted"
+    Note over BE: Validate webhook<br/>Check gateway contains 'dinaro'<br/>Check verified.short="accepted"
     
     BE->>DB: Get wallet_id from gatehub_users
     
@@ -186,7 +186,7 @@ flowchart TD
 
 **Temporal Workflow ID**: `gatehub_link_user_{externalUserID}`
 
-**Purpose**: Connect managed user to Paywiser gateway
+**Purpose**: Connect managed user to DINARO d.o.o. gateway
 
 **Activity**:
 - `LinkGatehubUserToGateway`: Makes API call to connect user to gateway
@@ -223,7 +223,7 @@ flowchart TD
   "user_uuid": "gatehub-external-user-id",
   "environment": "sandbox",
   "data": {
-    "gateway": "paywiser-eu-sandbox",
+    "gateway": "DINARO d.o.o.",
     "verified": {
       "short": "accepted",
       "status": 1
@@ -239,7 +239,7 @@ flowchart TD
     Receive[Receive Webhook] --> ValidateSignature{Validate<br/>HMAC Signature}
     ValidateSignature -->|Invalid| Return400[Return 400]
     ValidateSignature -->|Valid| ParseJSON[Parse JSON Body]
-    ParseJSON --> CheckGateway{Gateway contains<br/>'paywiser'?}
+    ParseJSON --> CheckGateway{Gateway contains<br/>'dinaro' or 'paywiser'?}
     CheckGateway -->|No| LogWarn[Log Warning<br/>Return 200]
     CheckGateway -->|Yes| GetWallet[Get wallet_id<br/>from gatehub_users]
     GetWallet -->|Not Found| Return500[Return 500]
@@ -254,7 +254,7 @@ flowchart TD
 
 **Key Validations**:
 1. **HMAC Signature**: Webhook must be signed with shared secret
-2. **Gateway Check**: Must contain "paywiser" (case-insensitive)
+2. **Gateway Check**: Must contain "dinaro" or the pre-rename "paywiser" (case-insensitive substring, so punctuation variants of "DINARO d.o.o." still match)
 3. **Verification Status**: `data.verified.short` must be `"accepted"` or `"rejected"`
 
 **Provider-Specific Notes**:
@@ -548,9 +548,9 @@ curl -v http://localhost:3003/webhooks/gatehub
 received user verification webhook for another gateway
 ```
 
-**Root Cause**: Webhook `data.gateway` field doesn't contain "paywiser".
+**Root Cause**: Webhook `data.gateway` field doesn't contain "dinaro" or "paywiser".
 
-**Why it matters**: The backend filters webhooks to only process Paywiser gateway events (EU wallets).
+**Why it matters**: The backend filters webhooks to only process DINARO d.o.o. gateway events (EU wallets).
 
 **Solution**:
 ```bash
@@ -700,7 +700,7 @@ docker compose exec -T postgres psql -U postgres -d backend -c \
 - [ ] LinkGatehubUserToGatewayWorkflow completed
 - [ ] Webhook URL configured correctly in MockGateHub
 - [ ] Backend can reach MockGateHub (network connectivity)
-- [ ] Webhook payload includes gateway="paywiser"
+- [ ] Webhook payload includes gateway="DINARO d.o.o."
 - [ ] Webhook verified.short field is "accepted"
 
 ### Environment Differences
