@@ -108,3 +108,8 @@ func (n *noopClient) SendRampActionEmail(_ context.Context, walletID string, arg
 func (n *noopClient) SendGatehubWithdrawalSettledEmail(_ context.Context, txID, walletID, amount, iban, name, timestamp string) {
 	log.Info("NOT SENDING: gatehub withdrawal settled email", zap.String("walletID", walletID))
 }
+func (n *noopClient) SendMigrationEmail(_ context.Context,  subject, sendTo, FirstName, confirmationURL string) error {
+	log.Info("NOT SENDING: connected account email")
+	return nil
+}
+

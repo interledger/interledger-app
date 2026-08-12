@@ -140,3 +140,7 @@ func (c *client) SendSCTRerouteEmail(ctx context.Context, txID, walletID string)
 func (c *client) SendGatehubWithdrawalSettledEmail(ctx context.Context, txID, walletID, amount, iban, name, timestamp string) {
 	ops.SendGatehubWithdrawalSettledEmail(ctx, c.b, txID, walletID, amount, iban, name, timestamp)
 }
+
+func (c *client) SendMigrationEmail(ctx context.Context, subject string, sendTo string, FirstName string, confirmationURL string) error {
+	return ops.SendMigrationEmail(ctx, c.b, subject , sendTo , FirstName , confirmationURL)
+}
