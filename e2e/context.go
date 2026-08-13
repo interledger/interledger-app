@@ -70,6 +70,12 @@ type E2EContext struct {
 	// Agreement-change workflow: ID of the agreement most recently published in
 	// this scenario; used by subsequent steps that trigger and assert the workflow.
 	pendingAgreementID string
+
+	// Migration email job: outcome of the most recent run, asserted by the
+	// following Then step. failures is the workflow result (addresses that
+	// failed to send); err is set when the job itself failed.
+	migrationEmailFailures []string
+	migrationEmailErr      error
 }
 
 // InitializeScenario sets up the scenario context
@@ -642,6 +648,20 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	})
 	ctx.Step(`^I should be marked notified for the new agreement$`, func() error {
 		return sc.iShouldBeMarkedNotifiedForTheNewAgreement()
+	})
+
+	// Migration email job
+	ctx.Step(`^the migration email job runs for my email$`, func() error {
+		return sc.theMigrationEmailJobRunsForMyEmail()
+	})
+	ctx.Step(`^the migration email job runs for an unknown address$`, func() error {
+		return sc.theMigrationEmailJobRunsForAnUnknownAddress()
+	})
+	ctx.Step(`^the migration email job should report no failures$`, func() error {
+		return sc.theMigrationEmailJobShouldReportNoFailures()
+	})
+	ctx.Step(`^the migration email job should fail with "([^"]*)"$`, func(want string) error {
+		return sc.theMigrationEmailJobShouldFailWith(want)
 	})
 
 	// Account deletion steps

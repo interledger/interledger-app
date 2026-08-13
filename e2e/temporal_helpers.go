@@ -81,3 +81,47 @@ func (sc *E2EContext) runAgreementNotifyWorkflow(ctx context.Context, agreementI
 	}
 	return nil
 }
+
+// runMigrationEmailJob executes SendMigrationEmailJob on the backend task queue
+// and returns the addresses it failed to send to. The params are a plain map
+// keyed by the workflow's JSON field names, so this exercises the same input an
+// operator types into the Temporal portal without importing the jobs package.
+//
+// A returned error means the job itself failed (e.g. an address matched no
+// user); an empty slice with no error means every recipient was sent to.
+func (sc *E2EContext) runMigrationEmailJob(ctx context.Context, params map[string]any) ([]string, error) {
+	c, err := client.Dial(client.Options{Namespace: temporalNamespace, HostPort: temporalHostPort})
+	if err != nil {
+		return nil, fmt.Errorf("runMigrationEmailJob: dial temporal: %w", err)
+	}
+	defer c.Close()
+
+	// Same guard as runAgreementNotifyWorkflow: @xago scenarios skip the
+	// GateHub prerequisite, so nothing else has waited for the worker.
+	workerCtx, cancel := context.WithTimeout(ctx, 60*time.Second)
+	defer cancel()
+	if err := waitForBackendWorker(workerCtx, c); err != nil {
+		return nil, fmt.Errorf("runMigrationEmailJob: %w", err)
+	}
+
+	wo := client.StartWorkflowOptions{
+		ID:        "e2e_migration_email_" + uuid.NewString(),
+		TaskQueue: backendTaskQueue,
+		// Much lower than the job's own activity timeouts: the scenario targets
+		// a single address, so this is one Kratos lookup and one send. A hang
+		// has to fail here well inside the suite's overall `go test` timeout,
+		// rather than starving the other scenarios.
+		WorkflowExecutionTimeout: 5 * time.Minute,
+	}
+
+	run, err := c.ExecuteWorkflow(ctx, wo, "SendMigrationEmailJob", params)
+	if err != nil {
+		return nil, fmt.Errorf("runMigrationEmailJob: start workflow: %w", err)
+	}
+
+	var failed []string
+	if err := run.Get(ctx, &failed); err != nil {
+		return nil, fmt.Errorf("runMigrationEmailJob: workflow failed: %w", err)
+	}
+	return failed, nil
+}
