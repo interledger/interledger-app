@@ -870,6 +870,34 @@ func SendGatehubWithdrawalSettledEmail(ctx context.Context, b Backends, txID, wa
 	}
 }
 
+func SendMigrationEmail(ctx context.Context, b Backends, subject, sendTo, firstName string, paragraphs []map[string]interface{}) error {
+	loginURL, err := url.JoinPath(b.Config().ApplicationURL, "login")
+	if err != nil {
+		return err
+	}
+
+	name := strings.TrimSpace(firstName)
+	greeting := strings.TrimSpace(fmt.Sprintf("Hello %s", name)) + ","
+	dataBlocks := make([]map[string]interface{}, 0, 1+len(paragraphs))
+	dataBlocks = append(dataBlocks, map[string]interface{}{"paragraph": greeting})
+	dataBlocks = append(dataBlocks, paragraphs...)
+
+	emails := []sendgrid.Email{{Name: name, Address: sendTo}}
+	err = b.External().SendTemplate(ctx, subject, emails, b.OneTemplateID(), map[string]interface{}{
+		"subject": subject,
+		"data":    dataBlocks,
+		"cta": map[string]interface{}{
+			"text": "View account",
+			"url":  loginURL,
+		},
+	}, nil)
+	if err != nil {
+		log.Error("Failed to send migration email.", zap.Error(err), zap.String("email", sendTo))
+		return err
+	}
+	return nil
+}
+
 func maskIBAN(iban string) string {
 	s := strings.ReplaceAll(iban, " ", "")
 	if len(s) < 15 { // minimum valid IBAN length (ISO 13616)

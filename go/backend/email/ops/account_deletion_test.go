@@ -124,14 +124,18 @@ func (t *testWalletsClient) SetExceededLimits(_ context.Context, _ string, _ boo
 }
 
 type testBackends struct {
-	external     sendgrid.Client
-	users        user.Client
-	wallets      wallets.Client
-	supportEmail string
+	external       sendgrid.Client
+	users          user.Client
+	wallets        wallets.Client
+	supportEmail   string
+	applicationURL string
 }
 
 func (t *testBackends) Config() *config.StartConfig {
-	return &config.StartConfig{Environment: config.EnvironmentConfig{Mode: "test"}}
+	return &config.StartConfig{
+		ApplicationURL: t.applicationURL,
+		Environment:    config.EnvironmentConfig{Mode: "test"},
+	}
 }
 func (t *testBackends) External() sendgrid.Client { return t.external }
 func (t *testBackends) OneTemplateID() string     { return "template-id" }

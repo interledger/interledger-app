@@ -50,6 +50,7 @@ Users get a single wallet tied to one payment provider (GateHub, PTI, Xago, or C
 | Document | Description |
 |----------|-------------|
 | [Payment Troubleshooting](payment-troubleshooting-guide.md) | Systematic debugging framework for stuck payments, balance mismatches, and missing receipts |
+| [Migration Email Job](migration-email-job.md) | Sending a one-off announcement email to all users, a region, or a few addresses |
 
 ### Developers
 

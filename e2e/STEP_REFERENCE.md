@@ -123,6 +123,23 @@ workflow + DB-marker path, not real SMTP delivery.) The After hook clears the
 test-published agreement and any `last_notified_agreement_id` references so the
 row doesn't leak across runs.
 
+### Migration Email Job
+```gherkin
+When the migration email job runs for my email
+Then the migration email job should report no failures
+
+When the migration email job runs for an unknown address
+Then the migration email job should fail with "no user found for:"
+```
+The steps start `SendMigrationEmailJob` on the `backend` task queue via the
+Temporal SDK, passing the params as a plain JSON map — the same input an operator
+types into the Temporal portal. The job fails when a targeted address matches no
+user, so a clean run proves it resolved the signed-up user's Kratos identity.
+
+As with the change-notify steps, `email.enabled=false` in the e2e env means the
+send activity is the noop email client: this proves workflow registration,
+recipient listing and the failure path, not real SMTP delivery.
+
 ### Account Deletion
 ```gherkin
 Given an account-deletion request exists for me with status "pending"
