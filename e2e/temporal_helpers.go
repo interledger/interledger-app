@@ -83,12 +83,11 @@ func (sc *E2EContext) runAgreementNotifyWorkflow(ctx context.Context, agreementI
 }
 
 // runMigrationEmailJob executes SendMigrationEmailJob on the backend task queue
-// and returns the addresses it failed to send to. The params are a plain map
-// keyed by the workflow's JSON field names, so this exercises the same input an
-// operator types into the Temporal portal without importing the jobs package.
+// and returns the addresses it failed to send to. Params are a plain map keyed
+// by the workflow's JSON field names — the same input an operator types into the
+// Temporal portal, and no import of the jobs package.
 //
-// A returned error means the job itself failed (e.g. an address matched no
-// user); an empty slice with no error means every recipient was sent to.
+// An error means the job itself failed, e.g. an address matched no user.
 func (sc *E2EContext) runMigrationEmailJob(ctx context.Context, params map[string]any) ([]string, error) {
 	c, err := client.Dial(client.Options{Namespace: temporalNamespace, HostPort: temporalHostPort})
 	if err != nil {
@@ -107,10 +106,8 @@ func (sc *E2EContext) runMigrationEmailJob(ctx context.Context, params map[strin
 	wo := client.StartWorkflowOptions{
 		ID:        "e2e_migration_email_" + uuid.NewString(),
 		TaskQueue: backendTaskQueue,
-		// Much lower than the job's own activity timeouts: the scenario targets
-		// a single address, so this is one Kratos lookup and one send. A hang
-		// has to fail here well inside the suite's overall `go test` timeout,
-		// rather than starving the other scenarios.
+		// One address means one Kratos lookup and one send, so a hang must fail
+		// here well inside the suite's own `go test` timeout.
 		WorkflowExecutionTimeout: 5 * time.Minute,
 	}
 

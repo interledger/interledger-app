@@ -72,8 +72,7 @@ type E2EContext struct {
 	pendingAgreementID string
 
 	// Migration email job: outcome of the most recent run, asserted by the
-	// following Then step. failures is the workflow result (addresses that
-	// failed to send); err is set when the job itself failed.
+	// following Then step. err is set when the job itself failed.
 	migrationEmailFailures []string
 	migrationEmailErr      error
 }

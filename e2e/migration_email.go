@@ -9,8 +9,8 @@ import (
 	"github.com/google/uuid"
 )
 
-// migrationEmailJobTimeout covers the worker wait plus runMigrationEmailJob's
-// own 5min WorkflowExecutionTimeout, so the workflow-side error surfaces first.
+// migrationEmailJobTimeout covers the worker wait plus the 5min workflow
+// ceiling, so the workflow-side error surfaces first.
 const migrationEmailJobTimeout = 6 * time.Minute
 
 // migrationEmailParams is the operator input for SendMigrationEmailJob, minus
@@ -25,9 +25,9 @@ func migrationEmailParams() map[string]any {
 	}
 }
 
-// theMigrationEmailJobRunsForMyEmail targets the signed-up user by address, the
-// way an operator does a test send. The job fails when an address matches no
-// user, so a clean run proves it found this user's Kratos identity.
+// theMigrationEmailJobRunsForMyEmail targets the signed-up user by address. The
+// job fails on an address that matches no user, so a clean run proves it
+// resolved this user's Kratos identity.
 //
 // Usage: When the migration email job runs for my email
 func (sc *E2EContext) theMigrationEmailJobRunsForMyEmail() error {
@@ -60,10 +60,8 @@ func (sc *E2EContext) theMigrationEmailJobRunsForAnUnknownAddress() error {
 }
 
 // theMigrationEmailJobShouldReportNoFailures asserts the last run completed and
-// sent to every recipient.
-//
-// With email.enabled=false in the e2e env the send activity is the noop client,
-// so this proves recipient listing and the workflow path, not SMTP delivery.
+// sent to every recipient. email.enabled=false here, so the send is the noop
+// client: this proves listing and the workflow path, not SMTP delivery.
 //
 // Usage: Then the migration email job should report no failures
 func (sc *E2EContext) theMigrationEmailJobShouldReportNoFailures() error {
