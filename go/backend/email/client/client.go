@@ -117,6 +117,10 @@ func (c *client) SendAuthenticatorResetEmail(ctx context.Context, walletID strin
 	ops.SendAuthenticatorResetEmail(ctx, c.b, walletID)
 }
 
+func (c *client) SendPasswordResetEmail(ctx context.Context, walletID, link string) {
+	ops.SendPasswordResetEmail(ctx, c.b, walletID, link)
+}
+
 func (c *client) SendCardTransactionFXEmail(ctx context.Context, walletID, maskedPAN, merchantName, date, surcharge, transactionAmount, billingAmount string) {
 	ops.SendCardTransactionFXEmail(ctx, c.b, walletID, maskedPAN, merchantName, date, surcharge, transactionAmount, billingAmount)
 }

@@ -66,6 +66,9 @@ func (t *testUsersClient) CheckUserTotpEnabled(_ context.Context, _ string) (boo
 func (t *testUsersClient) Delete2FATotpEnrollment(_ context.Context, _ string) error {
 	return errors.New("not implemented")
 }
+func (t *testUsersClient) ResetEmailPassword(_ context.Context, _ string) (string, error) {
+	return "", errors.New("not implemented")
+}
 func (t *testUsersClient) GetTotpURL(_ context.Context, _ string) (string, error) {
 	return "", errors.New("not implemented")
 }

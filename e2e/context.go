@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
 	"database/sql"
@@ -47,6 +48,7 @@ type E2EContext struct {
 
 	// Botanist admin portal
 	botanistBaseURL string
+	recoveryLink    string
 
 	// Payment flow state
 	receiverWalletAddress string // Wallet address/identifier for payment receiver
@@ -430,6 +432,9 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I should be redirected to "([^"]*)"$`, func(path string) error {
 		return sc.iShouldBeRedirectedTo(path)
 	})
+	ctx.Step(`^I should be redirected to password reset page "([^"]*)"$`, func(path string) error {
+		return sc.iShouldBeRedirectedToResetPassword(path)
+	})
 	ctx.Step(`^I navigate to the cards page$`, func() error {
 		return sc.iNavigateToTheCardsPage()
 	})
@@ -621,6 +626,18 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	})
 	ctx.Step(`^the authenticator reset confirmation modal should be visible$`, func() error {
 		return sc.theAuthenticatorResetConfirmationModalShouldBeVisible()
+	})
+	ctx.Step(`^the password reset confirmation modal should be visible$`, func() error {
+		return sc.theEmailPasswordResetConfirmationModalShouldBeVisible()
+	})
+	ctx.Step(`^I confirm the password reset$`, func() error {
+		return sc.iConfirmThePasswordReset()
+	})
+	ctx.Step(`^a password reset audit log entry should exist$`, func() error {
+		return sc.aPasswordResetAuditLogEntryShouldExist()
+	})
+	ctx.Step(`^I navigate to the password reset page$`, func() error {
+		return sc.iNavigateToThePasswordResetPage()
 	})
 	ctx.Step(`^I confirm the authenticator reset$`, func() error {
 		return sc.iConfirmTheAuthenticatorReset()
@@ -962,6 +979,52 @@ func (sc *E2EContext) getKratosUserIDByEmail(email string) string {
 
 	debugPrintf("   - No Kratos identity found for %s\n", email)
 	return ""
+}
+
+// createKratosRecoveryLink asks Kratos directly for a fresh recovery link for
+// the given identity. This mirrors what the backend does when it emails a
+// wallet owner a password reset link, so the e2e suite can navigate the
+// recovery flow without the app ever exposing the link over HTTP.
+func (sc *E2EContext) createKratosRecoveryLink(identityID string) (string, error) {
+	kratosAdminURL := os.Getenv("KRATOS_ADMIN_URL")
+	if kratosAdminURL == "" {
+		kratosAdminURL = "http://localhost:4434"
+	}
+
+	payload, err := json.Marshal(map[string]string{"identity_id": identityID})
+	if err != nil {
+		return "", fmt.Errorf("failed to encode request body: %w", err)
+	}
+
+	client := &http.Client{Timeout: 30 * time.Second}
+	req, err := http.NewRequestWithContext(context.Background(), "POST", kratosAdminURL+"/admin/recovery/link", bytes.NewReader(payload))
+	if err != nil {
+		return "", fmt.Errorf("failed to build request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("request error: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 300 {
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		return "", fmt.Errorf("unexpected status %d: %s", resp.StatusCode, string(bodyBytes))
+	}
+
+	var out struct {
+		RecoveryLink string `json:"recovery_link"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&out); err != nil {
+		return "", fmt.Errorf("decode error: %w", err)
+	}
+	if out.RecoveryLink == "" {
+		return "", fmt.Errorf("kratos response did not include a recovery link")
+	}
+
+	return out.RecoveryLink, nil
 }
 
 var nonAlphaNumeric = regexp.MustCompile(`[^a-z0-9]+`)

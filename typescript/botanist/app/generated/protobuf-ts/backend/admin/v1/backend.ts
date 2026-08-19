@@ -15,6 +15,28 @@ import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
 import { Timestamp } from "../../../google/protobuf/timestamp";
 /**
+ * @generated from protobuf message backend.admin.v1.ResetEmailPasswordRequest
+ */
+export interface ResetEmailPasswordRequest {
+    /**
+     * @generated from protobuf field: string identityId = 1;
+     */
+    identityId: string;
+    /**
+     * @generated from protobuf field: string walletID = 2;
+     */
+    walletID: string;
+}
+/**
+ * @generated from protobuf message backend.admin.v1.ResetEmailPasswordResponse
+ */
+export interface ResetEmailPasswordResponse {
+    /**
+     * @generated from protobuf field: string recoveryLink = 1;
+     */
+    recoveryLink: string;
+}
+/**
  * @generated from protobuf message backend.admin.v1.CheckUserTotpEnabledRequest
  */
 export interface CheckUserTotpEnabledRequest {
@@ -1204,6 +1226,107 @@ export interface Amount {
      */
     country: string;
 }
+// @generated message type with reflection information, may provide speed optimized methods
+class ResetEmailPasswordRequest$Type extends MessageType<ResetEmailPasswordRequest> {
+    constructor() {
+        super("backend.admin.v1.ResetEmailPasswordRequest", [
+            { no: 1, name: "identityId", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "walletID", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<ResetEmailPasswordRequest>): ResetEmailPasswordRequest {
+        const message = { identityId: "", walletID: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ResetEmailPasswordRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ResetEmailPasswordRequest): ResetEmailPasswordRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string identityId */ 1:
+                    message.identityId = reader.string();
+                    break;
+                case /* string walletID */ 2:
+                    message.walletID = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ResetEmailPasswordRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string identityId = 1; */
+        if (message.identityId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.identityId);
+        /* string walletID = 2; */
+        if (message.walletID !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.walletID);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.ResetEmailPasswordRequest
+ */
+export const ResetEmailPasswordRequest = new ResetEmailPasswordRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ResetEmailPasswordResponse$Type extends MessageType<ResetEmailPasswordResponse> {
+    constructor() {
+        super("backend.admin.v1.ResetEmailPasswordResponse", [
+            { no: 1, name: "recoveryLink", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<ResetEmailPasswordResponse>): ResetEmailPasswordResponse {
+        const message = { recoveryLink: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ResetEmailPasswordResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ResetEmailPasswordResponse): ResetEmailPasswordResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string recoveryLink */ 1:
+                    message.recoveryLink = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ResetEmailPasswordResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string recoveryLink = 1; */
+        if (message.recoveryLink !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.recoveryLink);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.ResetEmailPasswordResponse
+ */
+export const ResetEmailPasswordResponse = new ResetEmailPasswordResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class CheckUserTotpEnabledRequest$Type extends MessageType<CheckUserTotpEnabledRequest> {
     constructor() {
@@ -5115,5 +5238,6 @@ export const Backend = new ServiceType("backend.admin.v1.Backend", [
     { name: "GetGatehubBalance", options: {}, I: GetGatehubBalanceRequest, O: GetGatehubBalanceResponse },
     { name: "GetGatehubUser", options: {}, I: GetGatehubUserRequest, O: GatehubUser },
     { name: "CheckUserTotpEnabled", options: {}, I: CheckUserTotpEnabledRequest, O: CheckUserTotpEnabledResponse },
-    { name: "Delete2FATotpEnrollment", options: {}, I: Delete2FATotpEnrollmentRequest, O: Empty }
+    { name: "Delete2FATotpEnrollment", options: {}, I: Delete2FATotpEnrollmentRequest, O: Empty },
+    { name: "ResetEmailPassword", options: {}, I: ResetEmailPasswordRequest, O: ResetEmailPasswordResponse }
 ]);

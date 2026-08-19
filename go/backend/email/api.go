@@ -33,6 +33,7 @@ type Client interface {
 	SendAgreementChangedEmail(ctx context.Context, userID string, agreements []AgreementLink, deadlineDate string) error
 	SendAccountDeletionRequested(ctx context.Context, userID string) error
 	SendAuthenticatorResetEmail(ctx context.Context, walletID string)
+	SendPasswordResetEmail(ctx context.Context, walletID string, link string)
 	SendCardTransactionFXEmail(ctx context.Context, walletID, maskedPAN, merchantName, date, surcharge, transactionAmount, billingAmount string)
 	SendSCTITimeoutEmail(ctx context.Context, txID, walletID, amount, name, iban, submittedAt string)
 	SendSCTRerouteEmail(ctx context.Context, txID, walletID string)

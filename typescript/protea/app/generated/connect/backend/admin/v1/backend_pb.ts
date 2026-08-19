@@ -7,6 +7,86 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
 
 /**
+ * @generated from message backend.admin.v1.ResetEmailPasswordRequest
+ */
+export class ResetEmailPasswordRequest extends Message<ResetEmailPasswordRequest> {
+  /**
+   * @generated from field: string identityId = 1;
+   */
+  identityId = "";
+
+  /**
+   * @generated from field: string walletID = 2;
+   */
+  walletID = "";
+
+  constructor(data?: PartialMessage<ResetEmailPasswordRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.ResetEmailPasswordRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "identityId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "walletID", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ResetEmailPasswordRequest {
+    return new ResetEmailPasswordRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ResetEmailPasswordRequest {
+    return new ResetEmailPasswordRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ResetEmailPasswordRequest {
+    return new ResetEmailPasswordRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ResetEmailPasswordRequest | PlainMessage<ResetEmailPasswordRequest> | undefined, b: ResetEmailPasswordRequest | PlainMessage<ResetEmailPasswordRequest> | undefined): boolean {
+    return proto3.util.equals(ResetEmailPasswordRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.admin.v1.ResetEmailPasswordResponse
+ */
+export class ResetEmailPasswordResponse extends Message<ResetEmailPasswordResponse> {
+  /**
+   * @generated from field: string recoveryLink = 1;
+   */
+  recoveryLink = "";
+
+  constructor(data?: PartialMessage<ResetEmailPasswordResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.ResetEmailPasswordResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "recoveryLink", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ResetEmailPasswordResponse {
+    return new ResetEmailPasswordResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ResetEmailPasswordResponse {
+    return new ResetEmailPasswordResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ResetEmailPasswordResponse {
+    return new ResetEmailPasswordResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ResetEmailPasswordResponse | PlainMessage<ResetEmailPasswordResponse> | undefined, b: ResetEmailPasswordResponse | PlainMessage<ResetEmailPasswordResponse> | undefined): boolean {
+    return proto3.util.equals(ResetEmailPasswordResponse, a, b);
+  }
+}
+
+/**
  * @generated from message backend.admin.v1.CheckUserTotpEnabledRequest
  */
 export class CheckUserTotpEnabledRequest extends Message<CheckUserTotpEnabledRequest> {

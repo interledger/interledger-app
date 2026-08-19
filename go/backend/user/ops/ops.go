@@ -22,10 +22,10 @@ import (
 )
 
 const (
-	kratosTimeout        = 1500 * time.Millisecond
-	kratosCookieName     = "ory_kratos_session"
-	aal2RequiredErrorID  = "session_aal2_required"
-	totpCredentialType = "totp"
+	kratosTimeout       = 1500 * time.Millisecond
+	kratosCookieName    = "ory_kratos_session"
+	aal2RequiredErrorID = "session_aal2_required"
+	totpCredentialType  = "totp"
 )
 
 type sessionRetrievalErrorResponse struct {
@@ -349,6 +349,24 @@ func Delete2FATotpEnrollment(ctx context.Context, b Backends, identityID string)
 	}
 
 	return nil
+}
+
+func ResetEmailPassword(ctx context.Context, b Backends, identityID string) (string, error) {
+	// Required for kratos to use admin server
+	ctx = context.WithValue(ctx, client.ContextServerIndex, 1)
+
+	identity, _, err := b.Kratos().IdentityAPI.GetIdentity(ctx, identityID).Execute()
+	if err != nil {
+		return "", fmt.Errorf("%w %s", user.ErrInternal, err)
+	}
+
+	req := b.Kratos().IdentityAPI.CreateRecoveryLinkForIdentity(ctx).CreateRecoveryLinkForIdentityBody(client.CreateRecoveryLinkForIdentityBody{IdentityId: identity.Id})
+	link, _, err := req.Execute()
+	if err != nil {
+		return "", fmt.Errorf("%w %s", user.ErrInternal, err)
+	}
+
+	return link.RecoveryLink, nil
 }
 
 // searchTotpURL searches for the TOTP URL in the provided identity credentials.

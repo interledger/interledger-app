@@ -110,6 +110,10 @@ func (mc MockClient) Delete2FATotpEnrollment(ctx context.Context, token string) 
 	return nil
 }
 
+func (mc MockClient) ResetEmailPassword(ctx context.Context, identityID string) (string, error) {
+	return "", nil
+}
+
 func (mc MockClient) GetTotpURL(ctx context.Context, userID string) (string, error) {
 	totpURL, ok := mc.UserTotpURL[userID]
 	if !ok {

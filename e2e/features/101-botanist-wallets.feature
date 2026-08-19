@@ -118,3 +118,31 @@ Feature: Botanist Wallets Filter
     And I submit the login
     Then I should be navigated to the TOTP page
     And I take a screenshot "totp-reenrollment-after-admin-reset"
+
+  @botanist @wallet-password-reset @xago
+  Scenario: Admin can reset a wallet user's email password 
+    Given that my "country" is "South Africa"
+    And I completed the signup workflow
+    And I completed the account verification workflow
+    And I finished the phone confirmation workflow
+    And I take a screenshot "phone-verified"
+    And I finished the TOTP registration workflow
+    And I finished the wallet address creation workflow
+    When I navigate to the admin portal 
+    And I navigate to my wallet profile page in the admin portal
+    When I click the "reset password" button
+    Then the password reset confirmation modal should be visible
+    And I take a screenshot "reset-password-modal"
+    When I confirm the password reset
+    And I should see text "Recovery email sent successfully." on the page
+    And a password reset audit log entry should exist
+    And I take a screenshot "reset-email-password-complete"
+    When I start a new browser session
+    And I navigate to the password reset page
+    And I take a screenshot "reset-email-password-page"
+    Then I should be navigated to the TOTP page
+    And I type in my generated totp for myself
+    And I submit the totp registration
+    And I should be redirected to password reset page "/recovery/password"
+    And I take a screenshot "Set password"
+    

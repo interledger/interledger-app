@@ -306,3 +306,25 @@ func (s *AdminRpcService) Delete2FATotpEnrollment(ctx context.Context, req *admi
 
 	return &adminv1.Empty{}, nil
 }
+
+func (s *AdminRpcService) ResetEmailPassword(ctx context.Context, req *adminv1.ResetEmailPasswordRequest) (*adminv1.ResetEmailPasswordResponse, error) {
+	identityID := req.GetIdentityId()
+	if identityID == "" {
+		return nil, status.Error(codes.FailedPrecondition, "identityID not provided in request")
+	}
+
+	link, err := s.b.Users().ResetEmailPassword(ctx, identityID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	log.Info("email password reset", zap.String("identityID", identityID), zap.String("walletID", req.GetWalletID()))
+
+	walletID := req.GetWalletID()
+	if walletID != "" {
+		s.b.Email().SendPasswordResetEmail(ctx, walletID, link)
+		log.Info("sent password reset email", zap.String("walletID", walletID))
+	}
+
+	return &adminv1.ResetEmailPasswordResponse{RecoveryLink: link}, nil
+}

@@ -13,6 +13,7 @@ type Client interface {
 	ListUsers(ctx context.Context, walletID string) ([]User, error)
 	CheckUserTotpEnabled(ctx context.Context, identityID string) (bool, error)
 	Delete2FATotpEnrollment(ctx context.Context, identityID string) error
+	ResetEmailPassword(ctx context.Context, identityID string) (string, error)
 	GetTotpURL(ctx context.Context, userID string) (string, error)
 	ValidateTotpCode(ctx context.Context, userID, code string, now time.Time) error
 	GetUserIDForWallet(ctx context.Context, walletID string) (string, error)

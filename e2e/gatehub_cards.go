@@ -106,6 +106,19 @@ func (sc *E2EContext) iShouldBeRedirectedTo(expectedPath string) error {
 	debugPrintf("✓ Redirected to '%s'\n", expectedPath)
 	return nil
 }
+func (sc *E2EContext) iShouldBeRedirectedToResetPassword(expectedPath string) error {
+	debugPrintf("\n🔍 Asserting redirect to: %s\n", expectedPath)
+
+	pattern := "**" + strings.TrimRight(expectedPath, "/") + "**"
+	if err := sc.page.WaitForURL(pattern, playwright.PageWaitForURLOptions{
+		Timeout: playwright.Float(3000),
+	}); err != nil {
+		return fmt.Errorf("expected to be redirected to '%s' but current URL is '%s': %w", expectedPath, sc.page.URL(), err)
+	}
+
+	debugPrintf("✓ Redirected to '%s'\n", expectedPath)
+	return nil
+}
 
 // iNavigateToTheCardsPage navigates to /cards.
 func (sc *E2EContext) iNavigateToTheCardsPage() error {

@@ -603,6 +603,20 @@ func (sc *E2EContext) theAuthenticatorResetConfirmationModalShouldBeVisible() er
 	return nil
 }
 
+func (sc *E2EContext) theEmailPasswordResetConfirmationModalShouldBeVisible() error {
+	modalTitle := sc.page.Locator("text=Reset password for this wallet owner?").First()
+	if err := modalTitle.WaitFor(playwright.LocatorWaitForOptions{
+		State:   playwright.WaitForSelectorStateVisible,
+		Timeout: playwright.Float(5000),
+	}); err != nil {
+		_ = sc.iTakeAScreenshot("reset-password-modal-not-visible")
+		return fmt.Errorf("confirmation modal not visible: %w", err)
+	}
+
+	debugPrintln("✓ Reset password confirmation modal is visible")
+	return nil
+}
+
 func (sc *E2EContext) iConfirmTheAuthenticatorReset() error {
 	confirmButton := sc.page.Locator("button:has-text('Confirm reset')").First()
 	if err := confirmButton.Click(); err != nil {
@@ -673,5 +687,87 @@ func (sc *E2EContext) anAuthenticatorResetAuditLogEntryShouldExist() error {
 	}
 
 	debugPrintf("✓ Found %d authenticator reset audit log entry(ies) for wallet %s\n", count, details.ID)
+	return nil
+}
+
+func (sc *E2EContext) aPasswordResetAuditLogEntryShouldExist() error {
+	if err := sc.ensureDB(); err != nil {
+		return fmt.Errorf("audit assertion: %w", err)
+	}
+
+	email, err := sc.getCurrentUserEmail()
+	if err != nil {
+		return fmt.Errorf("cannot resolve current user email: %w", err)
+	}
+
+	kratosID := sc.getKratosUserIDByEmail(email)
+	if kratosID == "" {
+		return fmt.Errorf("cannot resolve kratos ID for email %q", email)
+	}
+
+	details, err := sc.getWalletDetailsForUser(kratosID)
+	if err != nil {
+		return fmt.Errorf("cannot get wallet details for user %q: %w", email, err)
+	}
+
+	var count int
+	err = sc.db.QueryRow(`
+		SELECT COUNT(*)
+		FROM admin_audit_log
+		WHERE wallet_id = $1
+		AND operation LIKE '%ResetEmailPassword'
+	`, details.ID).Scan(&count)
+	if err != nil {
+		return fmt.Errorf("failed to query admin audit log: %w", err)
+	}
+
+	if count < 1 {
+		return fmt.Errorf("expected at least one password reset audit log entry for wallet %s", details.ID)
+	}
+
+	debugPrintf("✓ Found %d email password reset audit log entry(ies) for wallet %s\n", count, details.ID)
+	return nil
+}
+
+func (sc *E2EContext) iConfirmThePasswordReset() error {
+	confirmButton := sc.page.Locator("button:has-text('Confirm reset')").First()
+	if err := confirmButton.Click(); err != nil {
+		return fmt.Errorf("failed to click confirm reset button: %w", err)
+	}
+
+	email, err := sc.getCurrentUserEmail()
+	if err != nil {
+		return fmt.Errorf("cannot resolve current user email: %w", err)
+	}
+
+	kratosID := sc.getKratosUserIDByEmail(email)
+	if kratosID == "" {
+		return fmt.Errorf("cannot resolve kratos ID for email %q", email)
+	}
+
+	link, err := sc.createKratosRecoveryLink(kratosID)
+	if err != nil {
+		return fmt.Errorf("failed to create recovery link: %w", err)
+	}
+
+	sc.recoveryLink = link
+	debugPrintln("✓ Confirmed password reset and captured recovery link")
+
+	return nil
+}
+
+func (sc *E2EContext) iNavigateToThePasswordResetPage() error {
+	if sc.recoveryLink == "" {
+		return fmt.Errorf("no recovery link captured; expected the password reset to have run first")
+	}
+
+	debugPrintf("\n🌐 Navigating to password recovery page: %s\n", sc.recoveryLink)
+	if _, err := sc.page.Goto(sc.recoveryLink, playwright.PageGotoOptions{
+		Timeout:   playwright.Float(30000),
+		WaitUntil: playwright.WaitUntilStateNetworkidle,
+	}); err != nil {
+		return fmt.Errorf("failed to open recovery link: %w", err)
+	}
+
 	return nil
 }
