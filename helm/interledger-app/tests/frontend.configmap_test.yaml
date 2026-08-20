@@ -41,6 +41,29 @@ tests:
           path: data.LOG_PRETTY
           value: "true"
 
+  - it: 'Should contain availability flags as true by default'
+    asserts:
+      - equal:
+          path: data.SIGNUP_ENABLED
+          value: "true"
+      - equal:
+          path: data.DEPOSIT_ENABLED
+          value: "true"
+
+  - it: 'Should contain availability flags as false when set'
+    set:
+      frontend:
+        config:
+          signup_enabled: false
+          deposit_enabled: false
+    asserts:
+      - equal:
+          path: data.SIGNUP_ENABLED
+          value: "false"
+      - equal:
+          path: data.DEPOSIT_ENABLED
+          value: "false"
+
   - it: 'Should contain ILW_ENV'
     set:
       frontend:

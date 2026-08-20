@@ -1,7 +1,8 @@
 import { useEffect } from 'react'
-import { data, useLoaderData } from 'react-router'
+import { data, href, redirect, useLoaderData } from 'react-router'
 import type { ApplicationProps } from '~/components'
-import { Layouts } from '~/components'
+import { Alert, AlertBody, Icon, Layouts } from '~/components'
+import { envBool } from '~/env.server'
 import { mergeMeta } from '~/lib/meta'
 import { SignupStep, useSignupStore } from '~/lib/useSignupStore'
 import { About } from '~/routes/signup/About'
@@ -9,7 +10,12 @@ import { Landing } from '~/routes/signup/Landing'
 import { Password } from '~/routes/signup/Password'
 import styles from '~/styles/flags.css?url'
 import type { Route } from './+types/route'
-export { loader } from '~/routes/signup/route.server'
+
+export async function loader(args: Route.LoaderArgs) {
+  if (!envBool('SIGNUP_ENABLED', true)) return null
+  const { loader: signupLoader } = await import('~/routes/signup/route.server')
+  return signupLoader(args)
+}
 
 export const handle: ApplicationProps = {
   layout: Layouts.Focus,
@@ -29,7 +35,7 @@ export function links() {
 }
 
 export default function Page() {
-  const { countries } = useLoaderData()
+  const loaderData = useLoaderData<typeof loader>()
   const [step, setCountries, reset] = useSignupStore((state) => [
     state.step,
     state.setCountries,
@@ -43,8 +49,19 @@ export default function Page() {
   }, [reset])
 
   useEffect(() => {
-    setCountries(countries)
-  }, [countries, setCountries])
+    if (loaderData) setCountries(loaderData.countries)
+  }, [loaderData, setCountries])
+
+  if (!loaderData) {
+    return (
+      <Alert role='status'>
+        <Icon>error</Icon>
+        <AlertBody>
+          New account registrations are temporarily unavailable.
+        </AlertBody>
+      </Alert>
+    )
+  }
 
   return (
     <>
@@ -56,6 +73,8 @@ export default function Page() {
 }
 
 export async function action(args: Route.ActionArgs) {
+  if (!envBool('SIGNUP_ENABLED', true)) throw redirect(href('/signup'))
+
   const { detailsAction, otpAction, passwordAction } =
     await import('~/routes/signup/route.server')
   const formName = (await args.request.clone().formData()).get(

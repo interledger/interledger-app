@@ -54,6 +54,8 @@ data:
   ILW_ENV: {{ .Values.frontend.config.environment | quote }}
   LOG_LEVEL: {{ .Values.frontend.config.log_level | quote }}
   LOG_PRETTY: {{ .Values.frontend.config.log_pretty | toString | quote }}
+  SIGNUP_ENABLED: {{ .Values.frontend.config.signup_enabled | toString | quote }}
+  DEPOSIT_ENABLED: {{ .Values.frontend.config.deposit_enabled | toString | quote }}
   PTI_CLIENT_ID: {{ .Values.frontend.config.pti.client_id | quote }}
   PTI_SDK_URL: {{ .Values.frontend.config.pti.sdk_url | quote }}
   PTI_FORMS_URL: {{ .Values.frontend.config.pti.forms_url | quote }}

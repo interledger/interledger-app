@@ -1,4 +1,5 @@
 import {
+  href,
   redirect,
   useLoaderData,
   type ActionFunctionArgs,
@@ -6,7 +7,8 @@ import {
   type MetaFunction
 } from 'react-router'
 import type { ApplicationProps } from '~/components'
-import { Layouts } from '~/components'
+import { Alert, AlertBody, Icon, Layouts } from '~/components'
+import { envBool } from '~/env.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { KRATOS_URL } from '~/lib/kratos/kratos-client.server'
@@ -18,6 +20,8 @@ import { IlwDepositPage } from './ilw'
 import { gatehubDepositLoader, ilwDepositLoader } from './loader.server'
 
 export async function loader(args: LoaderFunctionArgs) {
+  if (!envBool('DEPOSIT_ENABLED', true)) return null
+
   const session = await fetch(`${KRATOS_URL}/sessions/whoami`, {
     headers: args.request.headers
   })
@@ -52,9 +56,18 @@ export function links() {
 }
 
 export default function Page() {
-  const { provider } = useLoaderData<typeof loader>()
+  const loaderData = useLoaderData<typeof loader>()
 
-  if (provider == 'gatehub') {
+  if (!loaderData) {
+    return (
+      <Alert role='status'>
+        <Icon>error</Icon>
+        <AlertBody>Deposits are temporarily unavailable.</AlertBody>
+      </Alert>
+    )
+  }
+
+  if (loaderData.provider == 'gatehub') {
     return <GatehubDepositPage />
   }
 
@@ -62,6 +75,8 @@ export default function Page() {
 }
 
 export async function action(args: ActionFunctionArgs) {
+  if (!envBool('DEPOSIT_ENABLED', true)) throw redirect(href('/deposit'))
+
   const formName = (await args.request.clone().formData()).get(
     'formName'
   ) as string

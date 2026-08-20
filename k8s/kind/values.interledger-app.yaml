@@ -252,6 +252,8 @@ frontend:
     log_level: "debug"
     log_pretty: true
     environment: local
+    signup_enabled: true
+    deposit_enabled: true
 
     backend:
       grpc:

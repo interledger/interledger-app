@@ -10,8 +10,7 @@ import {
 } from '~/components'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { useSignupStore } from '~/lib/useSignupStore'
-import type { loader } from './route'
-import type { passwordAction } from './route.server'
+import type { loader, passwordAction } from './route.server'
 
 export function Password() {
   const passwordFetcher = useFetcher<typeof passwordAction>()
