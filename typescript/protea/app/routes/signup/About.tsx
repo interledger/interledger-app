@@ -12,8 +12,7 @@ import {
   TextField
 } from '~/components'
 import { SignupStep, useSignupStore } from '~/lib/useSignupStore'
-import type { loader } from './route'
-import type { detailsAction } from './route.server'
+import type { detailsAction, loader } from './route.server'
 
 export function isEUCountry(countryCode: string) {
   const euCountryCodes = [

@@ -37,7 +37,7 @@ import styles from '~/styles/app.css?url'
 import type { Route } from './+types/root'
 import { PendingConfirmationsLoader } from './components/PendingConfirmationsLoader'
 import { getFeatures } from './data/wallet.server'
-import { envValue } from './env.server'
+import { envBool, envValue } from './env.server'
 import { Features } from './generated/connect/backend/v1/backend_pb'
 import { isConnectError } from './lib/error.server'
 import { grpc } from './lib/grpc.server'
@@ -142,6 +142,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   const url = new URL(request.url)
   const pathname = url.pathname
+  const showQuickPay = envBool('OP_INTPAY_ENABLED') ?? false
+  const signupEnabled = envBool('SIGNUP_ENABLED', true)
+  const depositEnabled = envBool('DEPOSIT_ENABLED', true)
   let features = new Features()
   let isDisabled = false
   let walletAddress = ''
@@ -162,6 +165,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
         features,
         snackbar,
         pusherArgs,
+        showQuickPay,
+        signupEnabled,
+        depositEnabled,
         env
       },
       { headers }
@@ -195,6 +201,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
       features,
       snackbar,
       pusherArgs,
+      showQuickPay,
+      signupEnabled,
+      depositEnabled,
       env
     },
     { headers }

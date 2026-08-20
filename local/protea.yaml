@@ -30,6 +30,8 @@ services:
       # Setting LOG_PRETTY to false will result in json logs
       - LOG_PRETTY=${PROTEA_LOG_PRETTY:-true}
       - CHOKIDAR_USEPOLLING=${PROTEA_CHOKIDAR_USEPOLLING:-true}
+      - SIGNUP_ENABLED=${PROTEA_SIGNUP_ENABLED:-true}
+      - DEPOSIT_ENABLED=${PROTEA_DEPOSIT_ENABLED:-true}
 
       # Internal service endpoints
       - KRATOS_URL=${PROTEA_KRATOS_URL:-http://kratos:4433}
@@ -70,8 +72,6 @@ services:
       - BT_TOKEN=${PROTEA_BT_TOKEN:-}
       - CF_TURNSTILE_SITE_KEY=${PROTEA_CF_TURNSTILE_SITE_KEY:-}
       - CF_TURNSTILE_SECRET_KEY=${PROTEA_CF_TURNSTILE_SECRET_KEY:-}
-      - GATE_SIGNUP=${PROTEA_GATE_SIGNUP:-false}
-
       - PUBLIC_OP_AUTH_HOST=${PROTEA_PUBLIC_OP_AUTH_HOST:-auth.local.ilp.link}
       - PTI_SDK_URL=${PROTEA_PTI_SDK_URL:-https://mockpti.interledger.test/sdk/index.js}
       - PTI_FORMS_URL=${PROTEA_PTI_FORMS_URL:-https://mockpti.interledger.test/forms}
