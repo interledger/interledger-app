@@ -22,10 +22,10 @@ import (
 )
 
 const (
-	kratosTimeout        = 1500 * time.Millisecond
-	kratosCookieName     = "ory_kratos_session"
-	aal2RequiredErrorID  = "session_aal2_required"
-	totpCredentialType = "totp"
+	kratosTimeout       = 1500 * time.Millisecond
+	kratosCookieName    = "ory_kratos_session"
+	aal2RequiredErrorID = "session_aal2_required"
+	totpCredentialType  = "totp"
 )
 
 type sessionRetrievalErrorResponse struct {
@@ -101,11 +101,13 @@ func GetUser(ctx context.Context, b Backends, userID string) (*user.User, error)
 
 func convertTraits(userID string, traits interface{}) user.User {
 	traitsMap := traits.(map[string]interface{})
+	phoneVerified, _ := traitsMap["phoneVerified"].(bool)
+
 	u := user.User{
 		ID:            userID,
 		Email:         traitsMap["email"].(string),
 		PhoneNumber:   traitsMap["phone"].(string),
-		PhoneVerified: traitsMap["phoneVerified"].(bool),
+		PhoneVerified: phoneVerified,
 		Country:       country.ParseCountry(traitsMap["countryCode"].(string)),
 		FirstName:     traitsMap["firstName"].(string),
 		LastName:      traitsMap["lastName"].(string),
