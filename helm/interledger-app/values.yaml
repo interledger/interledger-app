@@ -506,6 +506,9 @@ frontend:
   config:
     log_level: "info"
     log_pretty: false
+    # Protea route availability. Set either value to false to disable the flow.
+    signup_enabled: true
+    deposit_enabled: true
 
     backend:
       grpc:

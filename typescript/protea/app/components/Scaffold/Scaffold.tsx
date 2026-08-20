@@ -107,9 +107,8 @@ export function Scaffold() {
   const matches = useMatches()
   const navigate = useNavigate()
   const [search] = useSearchParams()
-  const { isUser, snackbar, features, showQuickPay } = useRouteLoaderData(
-    'root'
-  ) as RootLoaderData
+  const { isUser, snackbar, features, showQuickPay, signupEnabled } =
+    useRouteLoaderData('root') as RootLoaderData
 
   const currentPath = matches[matches.length - 1]?.pathname
 
@@ -286,10 +285,13 @@ export function Scaffold() {
                   <Router to={href('/login')}>
                     <span className='text-sm font-medium'>Log in</span>
                   </Router>
-                  {/* <Router to={href('/signup')}>
-                    <span className='text-sm font-medium'>Sign up</span>
-                  </Router> */}
-                  <TextButton disabled>Sign up</TextButton>
+                  {signupEnabled ? (
+                    <Router to={href('/signup')}>
+                      <span className='text-sm font-medium'>Sign up</span>
+                    </Router>
+                  ) : (
+                    <TextButton disabled>Sign up</TextButton>
+                  )}
                 </div>
               )}
               {isUser && (
@@ -650,12 +652,15 @@ export function Scaffold() {
                     >
                       <span className='font-medium text-medium'>Log in</span>
                     </Router>
-                    {/* <ButtonRouter className='h-11' to={href('/signup')}>
-                      Sign up
-                    </ButtonRouter> */}
-                    <Button className='h-11' disabled>
-                      Sign up
-                    </Button>
+                    {signupEnabled ? (
+                      <ButtonRouter className='h-11' to={href('/signup')}>
+                        Sign up
+                      </ButtonRouter>
+                    ) : (
+                      <Button className='h-11' disabled>
+                        Sign up
+                      </Button>
+                    )}
                   </div>
                 )}
                 {isUser && (

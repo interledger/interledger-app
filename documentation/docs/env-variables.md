@@ -56,6 +56,8 @@ Protea is a Remix application serving the user-facing wallet UI.
 | `PTI_FORMS_URL` | URL to the Fiant hosted forms (Elements) used for KYC, onboarding, and payment collection widgets. Derived from the `ptiDomain` init parameter documented in [Fiant Front-End SDK usage](https://developers.platform.fiant.io/docs/front-end-sdk-usage): `https://forms.{ptiDomain}` | No | Prod: `https://forms.platform.fiant.io`; Sandbox/Dev: `https://forms.staging.fiant.io`; Local: `https://mockpti.interledger.test/forms` |
 | `PERSONA_SDK_URL` | URL to the Persona identity verification JavaScript SDK loaded by the KYC flow | No | Prod/Sandbox: `https://cdn.withpersona.com/dist/persona-v4.8.0-alpha.js`; Local: `https://mockxago.interledger.test/v1/persona-sdk.js` |
 | `MOCKXAGO_ENDPOINT` | Base URL for the Xago/Persona KYC iframe (`/v1/inquiries/<id>/iframe` appended at runtime). When set, the Xago iframe flow is used; when empty, the Persona SDK flow is used instead. Optional. | No | Local: `https://mockxago.interledger.test`; not set in deployed environments (Persona SDK used instead) |
+| `SIGNUP_ENABLED` | Feature flag for new account registration. When `false`, Protea shows an availability notice and rejects signup submissions before starting the registration flow | No | Default: `true` |
+| `DEPOSIT_ENABLED` | Feature flag for deposits. When `false`, Protea shows an availability notice and rejects deposit routes and submissions before starting provider flows | No | Default: `true` |
 | `OP_INTPAY_ENABLED` | Feature flag for Open Payments Interledger Pay (`/quick-pay` routes). When `false`, the remaining `OP_INTPAY_*` variables are unused and the quick-pay routes reject requests | No | Local default: `false` |
 | `OP_INTPAY_HOST` | Public base URL of the wallet's Open Payments auth server, used to build quick-pay links. Required when `OP_INTPAY_ENABLED=true` | No | Local: `https://interledger.test/`; deployed values TBD |
 | `OP_INTPAY_REDIRECT_URL` | URL the client is redirected back to once a quick-pay grant completes. Required when `OP_INTPAY_ENABLED=true` | No | Local: `https://interledger.test/quick-pay/finish`; deployed values TBD |
@@ -81,7 +83,6 @@ Protea is a Remix application serving the user-facing wallet UI.
 | `BT_TOKEN` | Basis Theory token for legacy frontend card tokenisation integration paths | Yes | Legacy variable in local compose; not used in current Protea app code |
 | `CF_TURNSTILE_SITE_KEY` | Cloudflare Turnstile site key used in legacy bot-protection integration | Yes | Keep documented, no environment value guidance |
 | `CF_TURNSTILE_SECRET_KEY` | Cloudflare Turnstile secret key used in legacy server verification | Yes | Keep documented, no environment value guidance |
-| `GATE_SIGNUP` | Signup gating feature flag from older frontend config wiring | No | Legacy variable in local compose; not used in current Protea app code |
 
 ---
 

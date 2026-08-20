@@ -145,6 +145,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
   const pathname = url.pathname
   const showQuickPay = envBool('OP_INTPAY_ENABLED') ?? false
+  const signupEnabled = envBool('SIGNUP_ENABLED', true)
+  const depositEnabled = envBool('DEPOSIT_ENABLED', true)
   let features = new Features()
   let isDisabled = false
   let walletAddress = ''
@@ -166,6 +168,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
         snackbar,
         pusherArgs,
         showQuickPay,
+        signupEnabled,
+        depositEnabled,
         env
       },
       { headers }
@@ -200,6 +204,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
       snackbar,
       pusherArgs,
       showQuickPay,
+      signupEnabled,
+      depositEnabled,
       env
     },
     { headers }
