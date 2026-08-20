@@ -16,12 +16,14 @@ import {
 } from 'react-router'
 import {
   AnchorRouter,
+  Button,
   ButtonRouter,
   Icon,
   IconButton,
   InterledgerWalletLogo,
   Router,
-  SnackbarStage
+  SnackbarStage,
+  TextButton
 } from '~/components'
 import { ContentRouter, Prose } from '~/components/Content'
 import { CommandActions } from '~/components/Scaffold/CommandActions'
@@ -284,9 +286,10 @@ export function Scaffold() {
                   <Router to={href('/login')}>
                     <span className='text-sm font-medium'>Log in</span>
                   </Router>
-                  <Router to={href('/signup')}>
+                  {/* <Router to={href('/signup')}>
                     <span className='text-sm font-medium'>Sign up</span>
-                  </Router>
+                  </Router> */}
+                  <TextButton disabled>Sign up</TextButton>
                 </div>
               )}
               {isUser && (
@@ -647,9 +650,12 @@ export function Scaffold() {
                     >
                       <span className='font-medium text-medium'>Log in</span>
                     </Router>
-                    <ButtonRouter className='h-11' to={href('/signup')}>
+                    {/* <ButtonRouter className='h-11' to={href('/signup')}>
                       Sign up
-                    </ButtonRouter>
+                    </ButtonRouter> */}
+                    <Button className='h-11' disabled>
+                      Sign up
+                    </Button>
                   </div>
                 )}
                 {isUser && (
