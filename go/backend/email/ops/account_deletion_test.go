@@ -84,6 +84,9 @@ func (t *testUsersClient) FindWalletIDsByIdentifierPrefix(_ context.Context, _ s
 func (t *testUsersClient) SetPhoneVerified(_ context.Context, _ string) error {
 	return errors.New("not implemented")
 }
+func (t *testUsersClient) ClearPhoneVerified(_ context.Context, _ string) error {
+	return errors.New("not implemented")
+}
 func (t *testUsersClient) UpdateUserPhone(_ context.Context, _ string, _ string) error {
 	return errors.New("not implemented")
 }
