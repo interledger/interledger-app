@@ -248,6 +248,18 @@ func (mr *MockClientMockRecorder) SendMigrationEmail(ctx, subject, sendTo, first
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendMigrationEmail", reflect.TypeOf((*MockClient)(nil).SendMigrationEmail), ctx, subject, sendTo, firstName, paragraphs)
 }
 
+// SendPasswordResetEmail mocks base method.
+func (m *MockClient) SendPasswordResetEmail(ctx context.Context, walletID, link string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SendPasswordResetEmail", ctx, walletID, link)
+}
+
+// SendPasswordResetEmail indicates an expected call of SendPasswordResetEmail.
+func (mr *MockClientMockRecorder) SendPasswordResetEmail(ctx, walletID, link interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendPasswordResetEmail", reflect.TypeOf((*MockClient)(nil).SendPasswordResetEmail), ctx, walletID, link)
+}
+
 // SendPaymentFailedEmail mocks base method.
 func (m *MockClient) SendPaymentFailedEmail(ctx context.Context, walletID string) {
 	m.ctrl.T.Helper()

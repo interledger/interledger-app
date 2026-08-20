@@ -15,6 +15,7 @@ import {
   DeleteUserTotp,
   GetWalletDetails,
   GetWalletFeatures,
+  ResetUserPassword,
   SetWalletFeatures,
   setWalletCountry,
   ListCountries
@@ -57,9 +58,15 @@ export default function Page() {
     { id: string; name: string }[]
   >([])
   const [isResetModalOpen, setIsResetModalOpen] = useState(false)
-
+  const [isResetPasswordModalOpen, setIsResetPasswordModalOpen] =
+    useState(false)
+  const [showSuccess, setShowSuccess] = useState(false)
   const fetcher = useFetcher()
   const resetFetcher = useFetcher<{ success?: boolean; error?: string }>()
+  const resetPasswordFetcher = useFetcher<{
+    success?: boolean
+    error?: string
+  }>()
 
   const _onChangeFeatureSwitch = useCallback<{
     (key: string, val: boolean): void
@@ -89,6 +96,19 @@ export default function Page() {
         identityId,
         walletId: wallet.walletID,
         formName: 'deleteTotp'
+      },
+      { method: 'post' }
+    )
+  }
+
+  const _onConfirmResetPassword = () => {
+    if (!identityId) return
+
+    resetPasswordFetcher.submit(
+      {
+        identityId,
+        walletId: wallet.walletID,
+        formName: 'resetPassword'
       },
       { method: 'post' }
     )
@@ -129,10 +149,31 @@ export default function Page() {
   }, [resetFetcher.state, resetFetcher.data])
 
   useEffect(() => {
+    if (
+      resetPasswordFetcher.state === 'idle' &&
+      resetPasswordFetcher.data?.success
+    ) {
+      setIsResetPasswordModalOpen(false)
+    }
+  }, [resetPasswordFetcher.state, resetPasswordFetcher.data])
+
+  useEffect(() => {
+    if (resetPasswordFetcher.data?.success) {
+      setShowSuccess(true)
+    }
+    const timeout = setTimeout(() => {
+      setShowSuccess(false)
+    }, 3000)
+
+    return () => clearTimeout(timeout)
+  }, [resetPasswordFetcher.data?.success])
+
+  useEffect(() => {
     setIsTotpEnabled(hasTotpEnabled)
   }, [hasTotpEnabled])
 
   const isResetting = resetFetcher.state !== 'idle'
+  const isResettingPassword = resetPasswordFetcher.state !== 'idle'
 
   return (
     <>
@@ -216,6 +257,32 @@ export default function Page() {
           </Button>
         )}
       </div>
+      <div className='col-span-full flex h-max max-h-max w-full flex-col space-y-4 rounded-2xl bg-page p-4 lg:col-span-4'>
+        <div className='flex items-center justify-between'>
+          <div className='space-y-1'>
+            <h2 className='font-display text-lg font-medium'>
+              Reset email password
+            </h2>
+            <p className='text-sm text-weak'>
+              Send a password recovery link to this user.
+            </p>
+          </div>
+        </div>
+        {showSuccess && (
+          <p className='mt-2 text-sm text-success'>
+            Recovery email sent successfully.
+          </p>
+        )}
+        {identityId && (
+          <Button
+            type='button'
+            className='h-10 max-w-max rounded-xl bg-red-600 px-6 text-sm hover:enabled:bg-red-500'
+            onClick={() => setIsResetPasswordModalOpen(true)}
+          >
+            Reset password
+          </Button>
+        )}
+      </div>
 
       <Dialog open={isResetModalOpen} setOpen={setIsResetModalOpen}>
         <h3 className='font-display text-lg font-medium'>
@@ -253,6 +320,44 @@ export default function Page() {
           </Button>
         </div>
       </Dialog>
+
+      <Dialog
+        open={isResetPasswordModalOpen}
+        setOpen={setIsResetPasswordModalOpen}
+      >
+        <h3 className='font-display text-lg font-medium'>
+          Reset password for this wallet owner?
+        </h3>
+        <p className='text-sm text-medium'>
+          This will email the wallet owner a link to reset their password.
+        </p>
+        <div className='rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900'>
+          The wallet owner will be notified by email, and this action is
+          recorded in the audit log.
+        </div>
+        {resetPasswordFetcher.data?.error && (
+          <p className='text-sm font-medium text-red-600'>
+            {resetPasswordFetcher.data.error}
+          </p>
+        )}
+        <div className='mt-2 flex justify-end space-x-3'>
+          <TextButton
+            type='button'
+            onClick={() => setIsResetPasswordModalOpen(false)}
+            disabled={isResettingPassword}
+          >
+            Cancel
+          </TextButton>
+          <Button
+            type='button'
+            className='h-10 w-max rounded-xl bg-red-600 px-6 text-sm hover:enabled:bg-red-500'
+            onClick={_onConfirmResetPassword}
+            disabled={isResettingPassword}
+          >
+            {isResettingPassword ? 'Resetting...' : 'Confirm reset'}
+          </Button>
+        </div>
+      </Dialog>
     </>
   )
 }
@@ -268,6 +373,10 @@ export async function action(args: ActionFunctionArgs) {
 
   if (formName == 'deleteTotp') {
     return deleteTotpAction(args)
+  }
+
+  if (formName == 'resetPassword') {
+    return resetPasswordAction(args)
   }
 
   return setWalletCountryAction(args)
@@ -346,6 +455,57 @@ async function deleteTotpAction({ request, params }: ActionFunctionArgs) {
       error instanceof Error
         ? error.message
         : 'Failed to reset authenticator enrollment'
+
+    return data({ success: false, error: message }, { status: 500 })
+  }
+}
+
+async function resetPasswordAction({ request, params }: ActionFunctionArgs) {
+  const form = await request.formData()
+  const walletId = form.get('walletId') as string
+  const identityId = form.get('identityId') as string
+  const routeWalletId = params.id as string
+
+  if (!identityId) {
+    return data(
+      { success: false, error: 'Identity ID is required' },
+      { status: 400 }
+    )
+  }
+
+  if (!routeWalletId) {
+    return data(
+      { success: false, error: 'Wallet ID is required' },
+      { status: 400 }
+    )
+  }
+
+  if (walletId && walletId !== routeWalletId) {
+    return data(
+      {
+        success: false,
+        error: 'Wallet ID does not match the requested wallet'
+      },
+      { status: 400 }
+    )
+  }
+
+  const wallet = await GetWalletDetails(request, routeWalletId)
+  const walletIdentityIds = new Set(wallet.users.map((user) => user.id))
+
+  if (!walletIdentityIds.has(identityId)) {
+    return data(
+      { success: false, error: 'Identity does not belong to this wallet' },
+      { status: 400 }
+    )
+  }
+
+  try {
+    await ResetUserPassword(request, identityId, routeWalletId)
+    return data({ success: true })
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : 'Failed to reset password'
 
     return data({ success: false, error: message }, { status: 500 })
   }

@@ -4,6 +4,8 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { Backend } from "./backend";
+import type { ResetEmailPasswordResponse } from "./backend";
+import type { ResetEmailPasswordRequest } from "./backend";
 import type { Delete2FATotpEnrollmentRequest } from "./backend";
 import type { CheckUserTotpEnabledResponse } from "./backend";
 import type { CheckUserTotpEnabledRequest } from "./backend";
@@ -169,6 +171,10 @@ export interface IBackendClient {
      * @generated from protobuf rpc: Delete2FATotpEnrollment(backend.admin.v1.Delete2FATotpEnrollmentRequest) returns (backend.admin.v1.Empty);
      */
     delete2FATotpEnrollment(input: Delete2FATotpEnrollmentRequest, options?: RpcOptions): UnaryCall<Delete2FATotpEnrollmentRequest, Empty$>;
+    /**
+     * @generated from protobuf rpc: ResetEmailPassword(backend.admin.v1.ResetEmailPasswordRequest) returns (backend.admin.v1.ResetEmailPasswordResponse);
+     */
+    resetEmailPassword(input: ResetEmailPasswordRequest, options?: RpcOptions): UnaryCall<ResetEmailPasswordRequest, ResetEmailPasswordResponse>;
 }
 /**
  * @generated from protobuf service backend.admin.v1.Backend
@@ -373,5 +379,12 @@ export class BackendClient implements IBackendClient, ServiceInfo {
     delete2FATotpEnrollment(input: Delete2FATotpEnrollmentRequest, options?: RpcOptions): UnaryCall<Delete2FATotpEnrollmentRequest, Empty$> {
         const method = this.methods[26], opt = this._transport.mergeOptions(options);
         return stackIntercept<Delete2FATotpEnrollmentRequest, Empty$>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: ResetEmailPassword(backend.admin.v1.ResetEmailPasswordRequest) returns (backend.admin.v1.ResetEmailPasswordResponse);
+     */
+    resetEmailPassword(input: ResetEmailPasswordRequest, options?: RpcOptions): UnaryCall<ResetEmailPasswordRequest, ResetEmailPasswordResponse> {
+        const method = this.methods[27], opt = this._transport.mergeOptions(options);
+        return stackIntercept<ResetEmailPasswordRequest, ResetEmailPasswordResponse>("unary", this._transport, method, opt, input);
     }
 }

@@ -424,7 +424,7 @@ func SendRampActionEmail(ctx context.Context, b Backends, walletID string, args 
 		{"label": "Source", "text": args.Source},
 		{"label": "Method", "text": args.Method},
 		{"label": "Status", "text": args.Status},
-		{"label": "Timestamp", "text": args.Timestamp.Format("Jan 2, 2006 3:04 PM MST"),},
+		{"label": "Timestamp", "text": args.Timestamp.Format("Jan 2, 2006 3:04 PM MST")},
 	}
 
 	paragraphs := []map[string]interface{}{
@@ -726,6 +726,31 @@ func SendAuthenticatorResetEmail(ctx context.Context, b Backends, walletID strin
 	}, nil)
 	if err != nil {
 		log.Error("Failed to send authenticator reset email.", zap.Error(err), zap.String("walletID", walletID))
+	}
+}
+
+func SendPasswordResetEmail(ctx context.Context, b Backends, walletID, link string) {
+	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
+	if err != nil {
+		log.Error("Failed to retrieve email and greeting when sending password reset email.", zap.Error(err), zap.String("walletID", walletID))
+		return
+	}
+
+	err = b.External().SendTemplate(ctx, "Reset your password", sendTo, b.OneTemplateID(), map[string]interface{}{
+		"subject": "Reset your password",
+		"data": []map[string]interface{}{
+			{"paragraph": greeting},
+			{"heading": "Password reset requested"},
+			{"paragraph": "A password reset was requested for your account by support. Use the link below to set a new password."},
+			{"paragraph": "If you did not request this action, please contact support immediately."},
+		},
+		"cta": map[string]interface{}{
+			"text": "Reset password",
+			"url":  link,
+		},
+	}, nil)
+	if err != nil {
+		log.Error("Failed to send password reset email.", zap.Error(err), zap.String("walletID", walletID))
 	}
 }
 

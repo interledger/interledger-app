@@ -39,6 +39,9 @@ func (s *stubUserClient) CheckUserTotpEnabled(_ context.Context, _ string) (bool
 func (s *stubUserClient) Delete2FATotpEnrollment(_ context.Context, _ string) error {
 	panic("unexpected")
 }
+func (s *stubUserClient) ResetEmailPassword(_ context.Context, _ string) (string, error) {
+	panic("unexpected")
+}
 func (s *stubUserClient) GetTotpURL(_ context.Context, _ string) (string, error) { panic("unexpected") }
 func (s *stubUserClient) ValidateTotpCode(_ context.Context, _, _ string, _ time.Time) error {
 	panic("unexpected")

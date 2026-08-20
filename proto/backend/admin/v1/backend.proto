@@ -45,6 +45,16 @@ service Backend {
   // Kratos
   rpc CheckUserTotpEnabled(CheckUserTotpEnabledRequest) returns (CheckUserTotpEnabledResponse);
   rpc Delete2FATotpEnrollment(Delete2FATotpEnrollmentRequest) returns (Empty);
+  rpc ResetEmailPassword(ResetEmailPasswordRequest) returns (ResetEmailPasswordResponse);
+}
+
+message ResetEmailPasswordRequest {
+  string identityId = 1;
+  string walletID = 2;
+}
+
+message ResetEmailPasswordResponse {
+  string recoveryLink = 1;
 }
 
 message CheckUserTotpEnabledRequest {
