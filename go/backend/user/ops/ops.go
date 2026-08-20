@@ -102,12 +102,13 @@ func GetUser(ctx context.Context, b Backends, userID string) (*user.User, error)
 func convertTraits(userID string, traits interface{}) user.User {
 	traitsMap := traits.(map[string]interface{})
 	u := user.User{
-		ID:          userID,
-		Email:       traitsMap["email"].(string),
-		PhoneNumber: traitsMap["phone"].(string),
-		Country:     country.ParseCountry(traitsMap["countryCode"].(string)),
-		FirstName:   traitsMap["firstName"].(string),
-		LastName:    traitsMap["lastName"].(string),
+		ID:            userID,
+		Email:         traitsMap["email"].(string),
+		PhoneNumber:   traitsMap["phone"].(string),
+		PhoneVerified: traitsMap["phoneVerified"].(bool),
+		Country:       country.ParseCountry(traitsMap["countryCode"].(string)),
+		FirstName:     traitsMap["firstName"].(string),
+		LastName:      traitsMap["lastName"].(string),
 	}
 	// All trait values:  "email", "phone", "firstName", "lastName", "countryCode"
 	return u
@@ -400,6 +401,30 @@ func SetPhoneVerified(ctx context.Context, b Backends, userID string) error {
 		return fmt.Errorf("%w: invalid traits format", user.ErrInternal)
 	}
 	traits["phoneVerified"] = true
+
+	update := client.UpdateIdentityBody{Traits: traits}
+	_, _, err = b.Kratos().IdentityAPI.UpdateIdentity(ctx, userID).UpdateIdentityBody(update).Execute()
+	if err != nil {
+		return fmt.Errorf("%w %s", user.ErrInternal, err)
+	}
+
+	return nil
+}
+
+func ClearPhoneVerified(ctx context.Context, b Backends, userID string) error {
+	// Required for kratos to use admin server
+	ctx = context.WithValue(ctx, client.ContextServerIndex, 1)
+
+	identity, _, err := b.Kratos().IdentityAPI.GetIdentity(ctx, userID).Execute()
+	if err != nil {
+		return fmt.Errorf("%w %s", user.ErrInternal, err)
+	}
+
+	traits, ok := identity.Traits.(map[string]any)
+	if !ok {
+		return fmt.Errorf("%w: invalid traits format", user.ErrInternal)
+	}
+	traits["phoneVerified"] = false
 
 	update := client.UpdateIdentityBody{Traits: traits}
 	_, _, err = b.Kratos().IdentityAPI.UpdateIdentity(ctx, userID).UpdateIdentityBody(update).Execute()

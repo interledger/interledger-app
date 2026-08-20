@@ -101,6 +101,47 @@ func TestUserForContext(t *testing.T) {
 	assert.Equal(t, u.Email, "test@interledger.test")
 }
 
+func TestConvertTraits_PhoneVerified(t *testing.T) {
+	t.Parallel()
+
+	baseTraits := func() map[string]any {
+		return map[string]any{
+			"email":       "test@interledger.test",
+			"phone":       "+15555550100",
+			"countryCode": "US",
+			"firstName":   "Jane",
+			"lastName":    "Doe",
+		}
+	}
+
+	cases := []struct {
+		name     string
+		trait    any
+		absent   bool
+		expected bool
+	}{
+		{name: "absent trait is unverified", absent: true, expected: false},
+		{name: "explicit false is unverified", trait: false, expected: false},
+		{name: "explicit true is verified", trait: true, expected: true},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			traits := baseTraits()
+			if !tc.absent {
+				traits["phoneVerified"] = tc.trait
+			}
+
+			u := convertTraits("user-123", traits)
+
+			assert.Equal(t, "+15555550100", u.PhoneNumber)
+			assert.Equal(t, tc.expected, u.PhoneVerified)
+		})
+	}
+}
+
 func TestSearchTotpURL(t *testing.T) {
 	cases := []struct {
 		name        string
