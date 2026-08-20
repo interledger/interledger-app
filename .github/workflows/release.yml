@@ -116,7 +116,7 @@ jobs:
 
       - name: Capture latest tag before release
         id: tags_before
-        run: echo "latest=$(git tag --sort=-v:refname | head -n 1)" >> "$GITHUB_OUTPUT"
+        run: echo "latest=$(git tag --merged HEAD --sort=-v:refname | head -n 1)" >> "$GITHUB_OUTPUT"
 
       - name: Release
         run: pnpm exec semantic-release
@@ -125,7 +125,7 @@ jobs:
 
       - name: Capture latest tag after release
         id: tags_after
-        run: echo "latest=$(git tag --sort=-v:refname | head -n 1)" >> "$GITHUB_OUTPUT"
+        run: echo "latest=$(git tag --merged HEAD --sort=-v:refname | head -n 1)" >> "$GITHUB_OUTPUT"
 
   publish_release_artifacts:
     needs: [release, manual_release]
