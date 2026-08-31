@@ -25,4 +25,6 @@ type Client interface {
 	// credential identifier (email or phone) starts with term to its wallet
 	// ID(s). Returns nil for zero matches.
 	FindWalletIDsByIdentifierPrefix(ctx context.Context, term string) ([]string, error)
+	// UserStats counts every identity, including users with no wallet.
+	UserStats(ctx context.Context, now time.Time) (Stats, error)
 }

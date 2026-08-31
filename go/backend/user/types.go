@@ -1,6 +1,10 @@
 package user
 
-import "github.com/interledger/interledger-app/go/backend/country"
+import (
+	"time"
+
+	"github.com/interledger/interledger-app/go/backend/country"
+)
 
 type User struct {
 	ID          string
@@ -9,6 +13,14 @@ type User struct {
 	Country     country.Country
 	FirstName   string
 	LastName    string
+	CreatedAt   time.Time
+}
+
+type Stats struct {
+	Total     int
+	ThisYear  int
+	ByQuarter [4]int
+	Year      int
 }
 
 type UserCtxKey string
