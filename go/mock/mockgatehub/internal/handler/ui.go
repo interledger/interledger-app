@@ -197,12 +197,13 @@ func (h *Handler) UIKYCForm(w http.ResponseWriter, r *http.Request) {
 		"Users":          users,
 		"SelectedUserID": q.Get("userID"),
 		"Gateway":        q.Get("gateway"),
+		"DefaultGateway": consts.DefaultKYCGateway,
 		"Status":         q.Get("status"),
 		"Flash":          q.Get("flash"),
 		"FlashOK":        q.Get("ok") == "1",
 	}
 	if data["Gateway"] == "" {
-		data["Gateway"] = "paywiser-eu-sandbox"
+		data["Gateway"] = consts.DefaultKYCGateway
 	}
 	if data["Status"] == "" {
 		data["Status"] = "accepted"
@@ -236,7 +237,7 @@ func (h *Handler) UIKYCAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if gateway == "" {
-		gateway = "paywiser-eu-sandbox"
+		gateway = consts.DefaultKYCGateway
 	}
 
 	user, err := h.store.GetUser(userID)

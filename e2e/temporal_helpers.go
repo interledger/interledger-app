@@ -81,3 +81,44 @@ func (sc *E2EContext) runAgreementNotifyWorkflow(ctx context.Context, agreementI
 	}
 	return nil
 }
+
+// runMigrationEmailJob executes SendMigrationEmailJob on the backend task queue
+// and returns the addresses it failed to send to. Params are a plain map keyed
+// by the workflow's JSON field names — the same input an operator types into the
+// Temporal portal, and no import of the jobs package.
+//
+// An error means the job itself failed, e.g. an address matched no user.
+func (sc *E2EContext) runMigrationEmailJob(ctx context.Context, params map[string]any) ([]string, error) {
+	c, err := client.Dial(client.Options{Namespace: temporalNamespace, HostPort: temporalHostPort})
+	if err != nil {
+		return nil, fmt.Errorf("runMigrationEmailJob: dial temporal: %w", err)
+	}
+	defer c.Close()
+
+	// Same guard as runAgreementNotifyWorkflow: @xago scenarios skip the
+	// GateHub prerequisite, so nothing else has waited for the worker.
+	workerCtx, cancel := context.WithTimeout(ctx, 60*time.Second)
+	defer cancel()
+	if err := waitForBackendWorker(workerCtx, c); err != nil {
+		return nil, fmt.Errorf("runMigrationEmailJob: %w", err)
+	}
+
+	wo := client.StartWorkflowOptions{
+		ID:        "e2e_migration_email_" + uuid.NewString(),
+		TaskQueue: backendTaskQueue,
+		// One address means one Kratos lookup and one send, so a hang must fail
+		// here well inside the suite's own `go test` timeout.
+		WorkflowExecutionTimeout: 5 * time.Minute,
+	}
+
+	run, err := c.ExecuteWorkflow(ctx, wo, "SendMigrationEmailJob", params)
+	if err != nil {
+		return nil, fmt.Errorf("runMigrationEmailJob: start workflow: %w", err)
+	}
+
+	var failed []string
+	if err := run.Get(ctx, &failed); err != nil {
+		return nil, fmt.Errorf("runMigrationEmailJob: workflow failed: %w", err)
+	}
+	return failed, nil
+}

@@ -97,7 +97,7 @@ func TestResolveOrgBaseURL_NoStore(t *testing.T) {
 func TestNormalizeVerificationPayload_AddsDefaults(t *testing.T) {
 	data := map[string]interface{}{"key": "value"}
 	result := normalizeVerificationPayload("id.verification.accepted", data)
-	assert.Equal(t, "paywiser", result["gateway"])
+	assert.Equal(t, "DINARO d.o.o.", result["gateway"])
 	verified := result["verified"].(map[string]interface{})
 	assert.Equal(t, "accepted", verified["short"])
 	assert.Equal(t, 1, verified["status"])
@@ -122,7 +122,7 @@ func TestNormalizeVerificationPayload_ActionRequired(t *testing.T) {
 func TestNormalizeVerificationPayload_Resubmission(t *testing.T) {
 	data := map[string]interface{}{}
 	result := normalizeVerificationPayload("id.verification.resubmission", data)
-	assert.Equal(t, "paywiser", result["gateway"])
+	assert.Equal(t, "DINARO d.o.o.", result["gateway"])
 	_, hasVerified := result["verified"]
 	assert.False(t, hasVerified)
 }
@@ -130,7 +130,7 @@ func TestNormalizeVerificationPayload_Resubmission(t *testing.T) {
 func TestNormalizeVerificationPayload_DocumentNoticeExpired(t *testing.T) {
 	data := map[string]interface{}{}
 	result := normalizeVerificationPayload("id.document_notice.expired", data)
-	assert.Equal(t, "paywiser", result["gateway"])
+	assert.Equal(t, "DINARO d.o.o.", result["gateway"])
 	_, hasVerified := result["verified"]
 	assert.False(t, hasVerified)
 }

@@ -43,6 +43,7 @@ nav:
       - Rafiki Full Node Upgrade: rafiki-full-node-upgrade-guide.md
   - Operations:
       - Payment Troubleshooting: payment-troubleshooting-guide.md
+      - Migration Email Job: migration-email-job.md
   - Developers:
       - Error Handling Guide: error-handling-guide.md
       - Logging Reference: logging-reference.md

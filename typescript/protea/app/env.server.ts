@@ -30,7 +30,9 @@ const knownEnvKeysOptional: string[] = [
   'DEFAULT_RATE_LIMIT_REQUESTS',
   'DEFAULT_RATE_LIMIT_TIME',
   'GOOGLE_MAPS_API_KEY',
-  'PLAID_ENABLED'
+  'PLAID_ENABLED',
+  'SIGNUP_ENABLED',
+  'DEPOSIT_ENABLED'
 ]
 
 const knownEnvKeysEnabled = {
@@ -97,9 +99,9 @@ function requireEnv(name: string, missing: string[]): string | undefined {
   return value
 }
 
-export function envBool(name: string): boolean {
+export function envBool(name: string, defaultValue = false): boolean {
   const value = process.env[name]?.trim().toLowerCase()
-  if (value === undefined) return false
+  if (value === undefined) return defaultValue
 
   if (value !== 'true' && value !== 'false') {
     throw new Error(`Invalid boolean env var ${name}: ${value}`)

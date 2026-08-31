@@ -3,6 +3,7 @@ import { Form, href, redirect, useLoaderData } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Icon, Layouts } from '~/components'
 import { Label } from '~/components/Label'
+import { envBool } from '~/env.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { ErrorDescriptions } from '~/lib/error.constants'
 import { isConnectError, isOtpValidationError } from '~/lib/error.server'
@@ -15,6 +16,8 @@ import { usePTISdk } from '~/lib/usePTISdk'
 import type { Route } from './+types/deposit_.$paymentId'
 
 export async function loader({ request, params }: Route.LoaderArgs) {
+  if (!envBool('DEPOSIT_ENABLED', true)) throw redirect(href('/deposit'))
+
   const payment = await grpc.getPayment(request, { id: params.paymentId })
 
   if (isConnectError(payment)) throw payment.errorResponse
@@ -131,6 +134,8 @@ export default function Page() {
 }
 
 export async function action({ request, params }: Route.ActionArgs) {
+  if (!envBool('DEPOSIT_ENABLED', true)) throw redirect(href('/deposit'))
+
   const form = await request.formData()
 
   await validateCSRFToken(request, form)
