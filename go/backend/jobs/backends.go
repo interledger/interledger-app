@@ -10,6 +10,7 @@ import (
 	"github.com/interledger/interledger-app/go/backend/payments"
 	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
 	"github.com/interledger/interledger-app/go/backend/providers/pti"
+	"github.com/interledger/interledger-app/go/backend/providers/xago"
 	"github.com/interledger/interledger-app/go/backend/rafiki"
 	"github.com/interledger/interledger-app/go/backend/transactions"
 	"github.com/interledger/interledger-app/go/backend/user"
@@ -25,6 +26,7 @@ type Backends interface {
 	Keys() keys.Client
 	KYC() kyc.Client
 	Gatehub() gatehub.Client
+	Xago() xago.Client
 	Wallets() wallets.Client
 	Transactions() transactions.Client
 	Rafiki() rafiki.Client
