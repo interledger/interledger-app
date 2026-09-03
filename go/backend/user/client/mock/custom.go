@@ -185,6 +185,10 @@ func (mc *MockClient) SetPhoneVerified(_ context.Context, _ string) error {
 	return nil
 }
 
+func (mc *MockClient) ClearPhoneVerified(_ context.Context, _ string) error {
+	return nil
+}
+
 func (mc *MockClient) UpdateUserPhone(_ context.Context, _ string, _ string) error {
 	return nil
 }

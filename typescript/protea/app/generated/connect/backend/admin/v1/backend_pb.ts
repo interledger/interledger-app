@@ -2811,6 +2811,11 @@ export class User extends Message<User> {
    */
   lastName = "";
 
+  /**
+   * @generated from field: bool phoneVerified = 6;
+   */
+  phoneVerified = false;
+
   constructor(data?: PartialMessage<User>) {
     super();
     proto3.util.initPartial(data, this);
@@ -2824,6 +2829,7 @@ export class User extends Message<User> {
     { no: 3, name: "phoneNumber", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "firstName", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 5, name: "lastName", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "phoneVerified", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): User {
@@ -3159,6 +3165,49 @@ export class Amount extends Message<Amount> {
 
   static equals(a: Amount | PlainMessage<Amount> | undefined, b: Amount | PlainMessage<Amount> | undefined): boolean {
     return proto3.util.equals(Amount, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.admin.v1.ResetUserPhoneVerificationRequest
+ */
+export class ResetUserPhoneVerificationRequest extends Message<ResetUserPhoneVerificationRequest> {
+  /**
+   * @generated from field: string identityId = 1;
+   */
+  identityId = "";
+
+  /**
+   * @generated from field: string walletID = 2;
+   */
+  walletID = "";
+
+  constructor(data?: PartialMessage<ResetUserPhoneVerificationRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.ResetUserPhoneVerificationRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "identityId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "walletID", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ResetUserPhoneVerificationRequest {
+    return new ResetUserPhoneVerificationRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ResetUserPhoneVerificationRequest {
+    return new ResetUserPhoneVerificationRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ResetUserPhoneVerificationRequest {
+    return new ResetUserPhoneVerificationRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ResetUserPhoneVerificationRequest | PlainMessage<ResetUserPhoneVerificationRequest> | undefined, b: ResetUserPhoneVerificationRequest | PlainMessage<ResetUserPhoneVerificationRequest> | undefined): boolean {
+    return proto3.util.equals(ResetUserPhoneVerificationRequest, a, b);
   }
 }
 

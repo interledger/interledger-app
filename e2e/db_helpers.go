@@ -313,6 +313,34 @@ func (sc *E2EContext) markKratosPhoneAsVerified(email string) error {
 	return nil
 }
 
+// kratosPhoneIsVerified reads the current phone verification trait for an email.
+func (sc *E2EContext) kratosPhoneIsVerified(email string) (bool, error) {
+	kratosConnStr := "host=localhost port=5432 user=postgres password=postgres dbname=kratos sslmode=disable"
+	kratosDB, err := sql.Open("postgres", kratosConnStr)
+	if err != nil {
+		return false, fmt.Errorf("kratosPhoneIsVerified: could not connect to Kratos DB: %w", err)
+	}
+	defer kratosDB.Close()
+
+	identityID, err := sc.lookupKratosIdentityByEmail(email)
+	if err != nil {
+		return false, err
+	}
+
+	var traitsRaw []byte
+	if err := kratosDB.QueryRow(`SELECT traits FROM identities WHERE id = $1`, identityID).Scan(&traitsRaw); err != nil {
+		return false, fmt.Errorf("kratosPhoneIsVerified: failed to load traits for %s: %w", identityID, err)
+	}
+
+	var traits map[string]interface{}
+	if err := json.Unmarshal(traitsRaw, &traits); err != nil {
+		return false, fmt.Errorf("kratosPhoneIsVerified: failed to decode traits for %s: %w", identityID, err)
+	}
+
+	verified, _ := traits["phoneVerified"].(bool)
+	return verified, nil
+}
+
 // lookupKratosIdentityByEmail looks up Kratos identity in the database
 func (sc *E2EContext) lookupKratosIdentityByEmail(email string) (string, error) {
 	kratosConnStr := "host=localhost port=5432 user=postgres password=postgres dbname=kratos sslmode=disable"

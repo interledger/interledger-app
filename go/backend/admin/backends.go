@@ -12,6 +12,7 @@ import (
 	"github.com/interledger/interledger-app/go/backend/providers/pti"
 	"github.com/interledger/interledger-app/go/backend/providers/xago"
 	"github.com/interledger/interledger-app/go/backend/transactions"
+	"github.com/interledger/interledger-app/go/backend/twilio"
 	"github.com/interledger/interledger-app/go/backend/user"
 	"github.com/interledger/interledger-app/go/backend/waitlist"
 	"github.com/interledger/interledger-app/go/backend/wallets"
@@ -24,6 +25,7 @@ type Backends interface {
 	Validator() *validator.Validate
 	Waitlist() waitlist.Client
 	Users() user.Client
+	Twilio() twilio.Service
 	KYC() kyc.Client
 	Email() email.Client
 	LinkedAccounts() linkedaccounts.Client

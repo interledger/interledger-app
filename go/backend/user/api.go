@@ -17,6 +17,7 @@ type Client interface {
 	ValidateTotpCode(ctx context.Context, userID, code string, now time.Time) error
 	GetUserIDForWallet(ctx context.Context, walletID string) (string, error)
 	SetPhoneVerified(ctx context.Context, userID string) error
+	ClearPhoneVerified(ctx context.Context, userID string) error
 	UpdateUserPhone(ctx context.Context, userID string, phone string) error
 	// FindWalletIDByEmail resolves a Kratos credential identifier (email) to a
 	// wallet ID via the user_wallets table. Returns "" if no match is found.

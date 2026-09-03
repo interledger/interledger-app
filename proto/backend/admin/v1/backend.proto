@@ -45,6 +45,7 @@ service Backend {
   // Kratos
   rpc CheckUserTotpEnabled(CheckUserTotpEnabledRequest) returns (CheckUserTotpEnabledResponse);
   rpc Delete2FATotpEnrollment(Delete2FATotpEnrollmentRequest) returns (Empty);
+  rpc ResetUserPhoneVerification(ResetUserPhoneVerificationRequest) returns (Empty);
 }
 
 message CheckUserTotpEnabledRequest {
@@ -406,6 +407,7 @@ message User {
   string phoneNumber = 3;
   string firstName = 4;
   string lastName = 5;
+  bool phoneVerified = 6;
 }
 
 message AllowWaitlistSignupRequest {
@@ -444,4 +446,9 @@ message Amount {
   string asset = 2;
   int32 assetScale = 3;
   string country = 4;
+}
+
+message ResetUserPhoneVerificationRequest {
+  string identityId = 1;
+  string walletID = 2;
 }

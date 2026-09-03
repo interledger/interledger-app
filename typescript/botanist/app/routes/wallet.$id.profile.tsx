@@ -15,6 +15,7 @@ import {
   DeleteUserTotp,
   GetWalletDetails,
   GetWalletFeatures,
+  ResetUserPhoneVerification,
   SetWalletFeatures,
   setWalletCountry,
   ListCountries
@@ -57,9 +58,11 @@ export default function Page() {
     { id: string; name: string }[]
   >([])
   const [isResetModalOpen, setIsResetModalOpen] = useState(false)
+  const [isSmsResetModalOpen, setIsSmsResetModalOpen] = useState(false)
 
   const fetcher = useFetcher()
-  const resetFetcher = useFetcher<{ success?: boolean; error?: string }>()
+  const totpResetFetcher = useFetcher<{ success?: boolean; error?: string }>()
+  const smsResetFetcher = useFetcher<{ success?: boolean; error?: string }>()
 
   const _onChangeFeatureSwitch = useCallback<{
     (key: string, val: boolean): void
@@ -84,7 +87,7 @@ export default function Page() {
   const _onConfirmResetAuthenticator = () => {
     if (!identityId || !isTotpEnabled) return
 
-    resetFetcher.submit(
+    totpResetFetcher.submit(
       {
         identityId,
         walletId: wallet.walletID,
@@ -122,17 +125,41 @@ export default function Page() {
   }, [countries, wallet.countryCode])
 
   useEffect(() => {
-    if (resetFetcher.state === 'idle' && resetFetcher.data?.success) {
+    if (totpResetFetcher.state === 'idle' && totpResetFetcher.data?.success) {
       setIsResetModalOpen(false)
       setIsTotpEnabled(false)
     }
-  }, [resetFetcher.state, resetFetcher.data])
+  }, [totpResetFetcher.state, totpResetFetcher.data?.success])
+
+  useEffect(() => {
+    if (smsResetFetcher.state === 'idle' && smsResetFetcher.data?.success) {
+      setIsSmsResetModalOpen(false)
+    }
+  }, [smsResetFetcher.state, smsResetFetcher.data?.success])
 
   useEffect(() => {
     setIsTotpEnabled(hasTotpEnabled)
   }, [hasTotpEnabled])
 
-  const isResetting = resetFetcher.state !== 'idle'
+  const isTotpResetting = totpResetFetcher.state !== 'idle'
+  const isSmsResetting = smsResetFetcher.state !== 'idle'
+
+  const phoneNumber = wallet.users?.[0]?.phoneNumber || ''
+  const isPhoneVerified = Boolean(wallet.users?.[0]?.phoneVerified)
+  const phoneStatusLabel = isPhoneVerified ? 'Verified' : 'Not verified'
+
+  const _onConfirmResetSmsOtp = () => {
+    if (!identityId) return
+
+    smsResetFetcher.submit(
+      {
+        identityId,
+        walletId: wallet.walletID,
+        formName: 'resetSmsOtp'
+      },
+      { method: 'post' }
+    )
+  }
 
   return (
     <>
@@ -230,16 +257,16 @@ export default function Page() {
           The wallet owner will be notified by email, and this action is
           recorded in the audit log.
         </div>
-        {resetFetcher.data?.error && (
+        {totpResetFetcher.data?.error && (
           <p className='text-sm font-medium text-red-600'>
-            {resetFetcher.data.error}
+            {totpResetFetcher.data.error}
           </p>
         )}
         <div className='mt-2 flex justify-end space-x-3'>
           <TextButton
             type='button'
             onClick={() => setIsResetModalOpen(false)}
-            disabled={isResetting}
+            disabled={isTotpResetting}
           >
             Cancel
           </TextButton>
@@ -247,9 +274,76 @@ export default function Page() {
             type='button'
             className='h-10 w-max rounded-xl bg-red-600 px-6 text-sm hover:enabled:bg-red-500'
             onClick={_onConfirmResetAuthenticator}
-            disabled={isResetting}
+            disabled={isTotpResetting}
           >
-            {isResetting ? 'Resetting...' : 'Confirm reset'}
+            {isTotpResetting ? 'Resetting...' : 'Confirm reset'}
+          </Button>
+        </div>
+      </Dialog>
+
+      <div className='col-span-full flex h-max max-h-max w-full flex-col space-y-4 rounded-2xl bg-page p-4 lg:col-span-4'>
+        <div className='flex items-center justify-between'>
+          <div className='space-y-1'>
+            <h2 className='font-display text-lg font-medium'>SMS OTP</h2>
+            <p className='text-sm text-weak'>
+              {phoneNumber
+                ? 'User has verified their phone number.'
+                : "User hasn't verified their phone number."}
+            </p>
+          </div>
+          <span
+            className={`rounded-full px-2 py-1 text-xs font-medium ${
+              isPhoneVerified
+                ? 'bg-green-100 text-green-800'
+                : 'bg-gray-100 text-gray-600'
+            }`}
+          >
+            {phoneStatusLabel}
+          </span>
+        </div>
+
+        {phoneNumber && isPhoneVerified && (
+          <Button
+            type='button'
+            className='h-10 max-w-max rounded-xl bg-red-600 px-6 text-sm hover:enabled:bg-red-500'
+            onClick={() => setIsSmsResetModalOpen(true)}
+          >
+            Reset SMS OTP
+          </Button>
+        )}
+      </div>
+
+      <Dialog open={isSmsResetModalOpen} setOpen={setIsSmsResetModalOpen}>
+        <h3 className='font-display text-lg font-medium'>
+          Reset SMS OTP verification for this wallet owner?
+        </h3>
+        <p className='text-sm text-medium'>
+          This will mark the current phone as unverified. The wallet owner must
+          reconfirm phone number via SMS code.
+        </p>
+        <div className='rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900'>
+          This action is recorded in the audit log.
+        </div>
+        {smsResetFetcher.data?.error && (
+          <p className='text-sm font-medium text-red-600'>
+            {smsResetFetcher.data.error}
+          </p>
+        )}
+        <div className='mt-2 flex justify-end space-x-3'>
+          <TextButton
+            type='button'
+            onClick={() => setIsSmsResetModalOpen(false)}
+            disabled={isSmsResetting}
+          >
+            Cancel
+          </TextButton>
+          <Button
+            type='button'
+            className='h-10 w-max rounded-xl bg-red-600 px-6 text-sm hover:enabled:bg-red-500'
+            onClick={_onConfirmResetSmsOtp}
+            disabled={isSmsResetting}
+          >
+            {isSmsResetting ? 'Resetting...' : 'Confirm reset'}
           </Button>
         </div>
       </Dialog>
@@ -268,6 +362,10 @@ export async function action(args: ActionFunctionArgs) {
 
   if (formName == 'deleteTotp') {
     return deleteTotpAction(args)
+  }
+
+  if (formName == 'resetSmsOtp') {
+    return resetSmsOtpAction(args)
   }
 
   return setWalletCountryAction(args)
@@ -346,6 +444,59 @@ async function deleteTotpAction({ request, params }: ActionFunctionArgs) {
       error instanceof Error
         ? error.message
         : 'Failed to reset authenticator enrollment'
+
+    return data({ success: false, error: message }, { status: 500 })
+  }
+}
+
+async function resetSmsOtpAction({ request, params }: ActionFunctionArgs) {
+  const form = await request.formData()
+  const walletId = form.get('walletId') as string
+  const identityId = form.get('identityId') as string
+  const routeWalletId = params.id as string
+
+  if (!identityId) {
+    return data(
+      { success: false, error: 'Identity ID is required' },
+      { status: 400 }
+    )
+  }
+
+  if (!routeWalletId) {
+    return data(
+      { success: false, error: 'Wallet ID is required' },
+      { status: 400 }
+    )
+  }
+
+  if (walletId && walletId !== routeWalletId) {
+    return data(
+      {
+        success: false,
+        error: 'Wallet ID does not match the requested wallet'
+      },
+      { status: 400 }
+    )
+  }
+
+  const wallet = await GetWalletDetails(request, routeWalletId)
+  const walletIdentityIds = new Set(wallet.users.map((user) => user.id))
+
+  if (!walletIdentityIds.has(identityId)) {
+    return data(
+      { success: false, error: 'Identity does not belong to this wallet' },
+      { status: 400 }
+    )
+  }
+
+  try {
+    await ResetUserPhoneVerification(request, identityId, routeWalletId)
+    return data({ success: true })
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : 'Failed to reset SMS OTP verification'
 
     return data({ success: false, error: message }, { status: 500 })
   }

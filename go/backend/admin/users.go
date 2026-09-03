@@ -147,11 +147,12 @@ func derefStr(s *string) string {
 
 func convertUser(input user.User) *adminv1.User {
 	return &adminv1.User{
-		Id:          input.ID,
-		Email:       input.Email,
-		PhoneNumber: input.PhoneNumber,
-		FirstName:   input.FirstName,
-		LastName:    input.LastName,
+		Id:            input.ID,
+		Email:         input.Email,
+		PhoneNumber:   input.PhoneNumber,
+		FirstName:     input.FirstName,
+		LastName:      input.LastName,
+		PhoneVerified: input.PhoneVerified,
 	}
 }
 
@@ -303,6 +304,49 @@ func (s *AdminRpcService) Delete2FATotpEnrollment(ctx context.Context, req *admi
 		s.b.Email().SendAuthenticatorResetEmail(ctx, walletID)
 		log.Info("sent authenticator reset email", zap.String("walletID", walletID))
 	}
+
+	return &adminv1.Empty{}, nil
+}
+
+func (s *AdminRpcService) ResetUserPhoneVerification(ctx context.Context, req *adminv1.ResetUserPhoneVerificationRequest) (*adminv1.Empty, error) {
+	identityID := req.GetIdentityId()
+	if identityID == "" {
+		return nil, status.Error(codes.FailedPrecondition, "identityID not provided in request")
+	}
+
+	walletID := req.GetWalletID()
+	if walletID == "" {
+		return nil, status.Error(codes.FailedPrecondition, "walletID not provided in request")
+	}
+
+	users, err := s.b.Users().ListUsers(ctx, walletID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	var target *user.User
+	for i := range users {
+		if users[i].ID == identityID {
+			target = &users[i]
+			break
+		}
+	}
+	if target == nil {
+		return nil, status.Error(codes.FailedPrecondition, "identity does not belong to walletID in request")
+	}
+	if target.PhoneNumber == "" {
+		return nil, status.Error(codes.FailedPrecondition, "user has no registered phone number")
+	}
+
+	if _, err := s.b.Twilio().SendVerificationCode(ctx, target.PhoneNumber); err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	if err := s.b.Users().ClearPhoneVerified(ctx, identityID); err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	log.Info("admin reset SMS OTP verification", zap.String("identityID", identityID), zap.String("walletID", walletID))
 
 	return &adminv1.Empty{}, nil
 }
