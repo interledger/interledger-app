@@ -2811,6 +2811,11 @@ export class User extends Message<User> {
    */
   lastName = "";
 
+  /**
+   * @generated from field: google.protobuf.Timestamp createdAt = 6;
+   */
+  createdAt?: Timestamp;
+
   constructor(data?: PartialMessage<User>) {
     super();
     proto3.util.initPartial(data, this);
@@ -2824,6 +2829,7 @@ export class User extends Message<User> {
     { no: 3, name: "phoneNumber", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "firstName", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 5, name: "lastName", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "createdAt", kind: "message", T: Timestamp },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): User {
@@ -2840,6 +2846,109 @@ export class User extends Message<User> {
 
   static equals(a: User | PlainMessage<User> | undefined, b: User | PlainMessage<User> | undefined): boolean {
     return proto3.util.equals(User, a, b);
+  }
+}
+
+/**
+ * UserStats counts every user in the identity store, including users who are
+ * not attached to a wallet.
+ *
+ * @generated from message backend.admin.v1.UserStats
+ */
+export class UserStats extends Message<UserStats> {
+  /**
+   * @generated from field: int32 totalUsers = 1;
+   */
+  totalUsers = 0;
+
+  /**
+   * @generated from field: int32 usersThisYear = 2;
+   */
+  usersThisYear = 0;
+
+  /**
+   * Always four entries, Q1..Q4, zero-filled.
+   *
+   * @generated from field: repeated backend.admin.v1.QuarterlyUserCount quarterlyUsers = 3;
+   */
+  quarterlyUsers: QuarterlyUserCount[] = [];
+
+  /**
+   * @generated from field: int32 year = 4;
+   */
+  year = 0;
+
+  constructor(data?: PartialMessage<UserStats>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.UserStats";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "totalUsers", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
+    { no: 2, name: "usersThisYear", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
+    { no: 3, name: "quarterlyUsers", kind: "message", T: QuarterlyUserCount, repeated: true },
+    { no: 4, name: "year", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UserStats {
+    return new UserStats().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): UserStats {
+    return new UserStats().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): UserStats {
+    return new UserStats().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: UserStats | PlainMessage<UserStats> | undefined, b: UserStats | PlainMessage<UserStats> | undefined): boolean {
+    return proto3.util.equals(UserStats, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.admin.v1.QuarterlyUserCount
+ */
+export class QuarterlyUserCount extends Message<QuarterlyUserCount> {
+  /**
+   * @generated from field: int32 quarter = 1;
+   */
+  quarter = 0;
+
+  /**
+   * @generated from field: int32 count = 2;
+   */
+  count = 0;
+
+  constructor(data?: PartialMessage<QuarterlyUserCount>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.QuarterlyUserCount";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "quarter", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
+    { no: 2, name: "count", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): QuarterlyUserCount {
+    return new QuarterlyUserCount().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): QuarterlyUserCount {
+    return new QuarterlyUserCount().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): QuarterlyUserCount {
+    return new QuarterlyUserCount().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: QuarterlyUserCount | PlainMessage<QuarterlyUserCount> | undefined, b: QuarterlyUserCount | PlainMessage<QuarterlyUserCount> | undefined): boolean {
+    return proto3.util.equals(QuarterlyUserCount, a, b);
   }
 }
 

@@ -115,3 +115,7 @@ func (c *client) FindWalletIDByEmail(ctx context.Context, email string) (string,
 func (c *client) FindWalletIDsByIdentifierPrefix(ctx context.Context, term string) ([]string, error) {
 	return ops.FindWalletIDsByIdentifierPrefix(ctx, c.b, term)
 }
+
+func (c *client) UserStats(ctx context.Context, now time.Time) (user.Stats, error) {
+	return ops.UserStats(ctx, c.b, now)
+}

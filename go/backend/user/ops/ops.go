@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 	"sync"
 	"time"
@@ -22,10 +23,10 @@ import (
 )
 
 const (
-	kratosTimeout        = 1500 * time.Millisecond
-	kratosCookieName     = "ory_kratos_session"
-	aal2RequiredErrorID  = "session_aal2_required"
-	totpCredentialType = "totp"
+	kratosTimeout       = 1500 * time.Millisecond
+	kratosCookieName    = "ory_kratos_session"
+	aal2RequiredErrorID = "session_aal2_required"
+	totpCredentialType  = "totp"
 )
 
 type sessionRetrievalErrorResponse struct {
@@ -68,7 +69,7 @@ func UserForCookie(ctx context.Context, b Backends, cookie string) (*user.User, 
 		return nil, getSessionRetrievalError(resp, err)
 	}
 
-	u := convertTraits(session.Identity.Id, session.Identity.Traits)
+	u := convertTraits(session.Identity.Id, session.Identity.Traits, session.Identity.CreatedAt)
 	return &u, nil
 }
 
@@ -85,7 +86,7 @@ func UserForToken(ctx context.Context, b Backends, token string) (*user.User, er
 		return nil, getSessionRetrievalError(resp, err)
 	}
 
-	u := convertTraits(session.Identity.Id, session.Identity.Traits)
+	u := convertTraits(session.Identity.Id, session.Identity.Traits, session.Identity.CreatedAt)
 	return &u, nil
 }
 
@@ -95,11 +96,11 @@ func GetUser(ctx context.Context, b Backends, userID string) (*user.User, error)
 		return nil, fmt.Errorf("%w %s", user.ErrInternal, err)
 	}
 
-	u := convertTraits(id.Id, id.Traits)
+	u := convertTraits(id.Id, id.Traits, id.CreatedAt)
 	return &u, nil
 }
 
-func convertTraits(userID string, traits interface{}) user.User {
+func convertTraits(userID string, traits interface{}, createdAt *time.Time) user.User {
 	traitsMap := traits.(map[string]interface{})
 	u := user.User{
 		ID:          userID,
@@ -108,6 +109,9 @@ func convertTraits(userID string, traits interface{}) user.User {
 		Country:     country.ParseCountry(traitsMap["countryCode"].(string)),
 		FirstName:   traitsMap["firstName"].(string),
 		LastName:    traitsMap["lastName"].(string),
+	}
+	if createdAt != nil {
+		u.CreatedAt = *createdAt
 	}
 	// All trait values:  "email", "phone", "firstName", "lastName", "countryCode"
 	return u
@@ -307,7 +311,7 @@ func ListUsers(ctx context.Context, b Backends, walletID string) ([]user.User, e
 				// lock
 				mx.Lock()
 				defer mx.Unlock()
-				resp = append(resp, convertTraits(id.Id, id.Traits))
+				resp = append(resp, convertTraits(id.Id, id.Traits, id.CreatedAt))
 			}(userID)
 		}
 	}
@@ -439,4 +443,72 @@ func UpdateUserPhone(ctx context.Context, b Backends, userID string, phone strin
 	}
 
 	return nil
+}
+
+func UserStats(ctx context.Context, b Backends, now time.Time) (user.Stats, error) {
+	adminCtx := context.WithValue(ctx, client.ContextServerIndex, 1)
+
+	stats := user.Stats{Year: now.Year()}
+	pageToken := ""
+
+	for {
+		reqCtx, cancel := context.WithTimeout(adminCtx, kratosTimeout)
+		req := b.Kratos().IdentityAPI.ListIdentities(reqCtx)
+		if pageToken != "" {
+			req = req.PageToken(pageToken)
+		}
+		identities, resp, err := req.Execute()
+		cancel()
+		if err != nil {
+			return user.Stats{}, fmt.Errorf("%w %s", user.ErrInternal, err)
+		}
+
+		for _, id := range identities {
+			stats.Total++
+			if id.CreatedAt == nil || id.CreatedAt.Year() != stats.Year {
+				continue
+			}
+			stats.ThisYear++
+			stats.ByQuarter[int(id.CreatedAt.Month()-1)/3]++
+		}
+
+		next := nextIdentityPageToken(resp)
+		if next == "" || next == pageToken || len(identities) == 0 {
+			break
+		}
+		pageToken = next
+	}
+
+	return stats, nil
+}
+
+func nextIdentityPageToken(resp *http.Response) string {
+	if resp == nil {
+		return ""
+	}
+
+	for _, header := range resp.Header.Values("Link") {
+		for _, link := range strings.Split(header, ",") {
+			target, rest, ok := strings.Cut(link, ";")
+			if !ok {
+				continue
+			}
+			isNext := false
+			for _, param := range strings.Split(rest, ";") {
+				if strings.EqualFold(strings.TrimSpace(param), `rel="next"`) {
+					isNext = true
+					break
+				}
+			}
+			if !isNext {
+				continue
+			}
+			u, err := url.Parse(strings.Trim(strings.TrimSpace(target), "<>"))
+			if err != nil {
+				continue
+			}
+			return u.Query().Get("page_token")
+		}
+	}
+	return ""
 }

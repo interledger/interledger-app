@@ -45,6 +45,8 @@ service Backend {
   // Kratos
   rpc CheckUserTotpEnabled(CheckUserTotpEnabledRequest) returns (CheckUserTotpEnabledResponse);
   rpc Delete2FATotpEnrollment(Delete2FATotpEnrollmentRequest) returns (Empty);
+
+  rpc GetUserStats(google.protobuf.Empty) returns (UserStats);
 }
 
 message CheckUserTotpEnabledRequest {
@@ -406,6 +408,20 @@ message User {
   string phoneNumber = 3;
   string firstName = 4;
   string lastName = 5;
+  google.protobuf.Timestamp createdAt = 6;
+}
+
+message UserStats {
+  int32 totalUsers = 1;
+  int32 usersThisYear = 2;
+  // Always four entries, Q1..Q4, zero-filled.
+  repeated QuarterlyUserCount quarterlyUsers = 3;
+  int32 year = 4;
+}
+
+message QuarterlyUserCount {
+  int32 quarter = 1;
+  int32 count = 2;
 }
 
 message AllowWaitlistSignupRequest {

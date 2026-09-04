@@ -1100,6 +1100,49 @@ export interface User {
      * @generated from protobuf field: string lastName = 5;
      */
     lastName: string;
+    /**
+     * @generated from protobuf field: google.protobuf.Timestamp createdAt = 6;
+     */
+    createdAt?: Timestamp;
+}
+/**
+ * UserStats counts every user in the identity store, including users who are
+ * not attached to a wallet.
+ *
+ * @generated from protobuf message backend.admin.v1.UserStats
+ */
+export interface UserStats {
+    /**
+     * @generated from protobuf field: int32 totalUsers = 1;
+     */
+    totalUsers: number;
+    /**
+     * @generated from protobuf field: int32 usersThisYear = 2;
+     */
+    usersThisYear: number;
+    /**
+     * Always four entries, Q1..Q4, zero-filled.
+     *
+     * @generated from protobuf field: repeated backend.admin.v1.QuarterlyUserCount quarterlyUsers = 3;
+     */
+    quarterlyUsers: QuarterlyUserCount[];
+    /**
+     * @generated from protobuf field: int32 year = 4;
+     */
+    year: number;
+}
+/**
+ * @generated from protobuf message backend.admin.v1.QuarterlyUserCount
+ */
+export interface QuarterlyUserCount {
+    /**
+     * @generated from protobuf field: int32 quarter = 1;
+     */
+    quarter: number;
+    /**
+     * @generated from protobuf field: int32 count = 2;
+     */
+    count: number;
 }
 /**
  * @generated from protobuf message backend.admin.v1.AllowWaitlistSignupRequest
@@ -4619,7 +4662,8 @@ class User$Type extends MessageType<User> {
             { no: 2, name: "email", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "phoneNumber", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 4, name: "firstName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 5, name: "lastName", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 5, name: "lastName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "createdAt", kind: "message", T: () => Timestamp }
         ]);
     }
     create(value?: PartialMessage<User>): User {
@@ -4649,6 +4693,9 @@ class User$Type extends MessageType<User> {
                 case /* string lastName */ 5:
                     message.lastName = reader.string();
                     break;
+                case /* google.protobuf.Timestamp createdAt */ 6:
+                    message.createdAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.createdAt);
+                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -4676,6 +4723,9 @@ class User$Type extends MessageType<User> {
         /* string lastName = 5; */
         if (message.lastName !== "")
             writer.tag(5, WireType.LengthDelimited).string(message.lastName);
+        /* google.protobuf.Timestamp createdAt = 6; */
+        if (message.createdAt)
+            Timestamp.internalBinaryWrite(message.createdAt, writer.tag(6, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -4686,6 +4736,128 @@ class User$Type extends MessageType<User> {
  * @generated MessageType for protobuf message backend.admin.v1.User
  */
 export const User = new User$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class UserStats$Type extends MessageType<UserStats> {
+    constructor() {
+        super("backend.admin.v1.UserStats", [
+            { no: 1, name: "totalUsers", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 2, name: "usersThisYear", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 3, name: "quarterlyUsers", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => QuarterlyUserCount },
+            { no: 4, name: "year", kind: "scalar", T: 5 /*ScalarType.INT32*/ }
+        ]);
+    }
+    create(value?: PartialMessage<UserStats>): UserStats {
+        const message = { totalUsers: 0, usersThisYear: 0, quarterlyUsers: [], year: 0 };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<UserStats>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: UserStats): UserStats {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* int32 totalUsers */ 1:
+                    message.totalUsers = reader.int32();
+                    break;
+                case /* int32 usersThisYear */ 2:
+                    message.usersThisYear = reader.int32();
+                    break;
+                case /* repeated backend.admin.v1.QuarterlyUserCount quarterlyUsers */ 3:
+                    message.quarterlyUsers.push(QuarterlyUserCount.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* int32 year */ 4:
+                    message.year = reader.int32();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: UserStats, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* int32 totalUsers = 1; */
+        if (message.totalUsers !== 0)
+            writer.tag(1, WireType.Varint).int32(message.totalUsers);
+        /* int32 usersThisYear = 2; */
+        if (message.usersThisYear !== 0)
+            writer.tag(2, WireType.Varint).int32(message.usersThisYear);
+        /* repeated backend.admin.v1.QuarterlyUserCount quarterlyUsers = 3; */
+        for (let i = 0; i < message.quarterlyUsers.length; i++)
+            QuarterlyUserCount.internalBinaryWrite(message.quarterlyUsers[i], writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        /* int32 year = 4; */
+        if (message.year !== 0)
+            writer.tag(4, WireType.Varint).int32(message.year);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.UserStats
+ */
+export const UserStats = new UserStats$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class QuarterlyUserCount$Type extends MessageType<QuarterlyUserCount> {
+    constructor() {
+        super("backend.admin.v1.QuarterlyUserCount", [
+            { no: 1, name: "quarter", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 2, name: "count", kind: "scalar", T: 5 /*ScalarType.INT32*/ }
+        ]);
+    }
+    create(value?: PartialMessage<QuarterlyUserCount>): QuarterlyUserCount {
+        const message = { quarter: 0, count: 0 };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<QuarterlyUserCount>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: QuarterlyUserCount): QuarterlyUserCount {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* int32 quarter */ 1:
+                    message.quarter = reader.int32();
+                    break;
+                case /* int32 count */ 2:
+                    message.count = reader.int32();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: QuarterlyUserCount, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* int32 quarter = 1; */
+        if (message.quarter !== 0)
+            writer.tag(1, WireType.Varint).int32(message.quarter);
+        /* int32 count = 2; */
+        if (message.count !== 0)
+            writer.tag(2, WireType.Varint).int32(message.count);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.QuarterlyUserCount
+ */
+export const QuarterlyUserCount = new QuarterlyUserCount$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class AllowWaitlistSignupRequest$Type extends MessageType<AllowWaitlistSignupRequest> {
     constructor() {
@@ -5115,5 +5287,6 @@ export const Backend = new ServiceType("backend.admin.v1.Backend", [
     { name: "GetGatehubBalance", options: {}, I: GetGatehubBalanceRequest, O: GetGatehubBalanceResponse },
     { name: "GetGatehubUser", options: {}, I: GetGatehubUserRequest, O: GatehubUser },
     { name: "CheckUserTotpEnabled", options: {}, I: CheckUserTotpEnabledRequest, O: CheckUserTotpEnabledResponse },
-    { name: "Delete2FATotpEnrollment", options: {}, I: Delete2FATotpEnrollmentRequest, O: Empty }
+    { name: "Delete2FATotpEnrollment", options: {}, I: Delete2FATotpEnrollmentRequest, O: Empty },
+    { name: "GetUserStats", options: {}, I: Empty$, O: UserStats }
 ]);

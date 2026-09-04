@@ -17,6 +17,7 @@ import (
 	adminv1 "github.com/interledger/interledger-app/go/proto/backend/admin/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -152,6 +153,7 @@ func convertUser(input user.User) *adminv1.User {
 		PhoneNumber: input.PhoneNumber,
 		FirstName:   input.FirstName,
 		LastName:    input.LastName,
+		CreatedAt:   timestamppb.New(input.CreatedAt),
 	}
 }
 
@@ -305,4 +307,27 @@ func (s *AdminRpcService) Delete2FATotpEnrollment(ctx context.Context, req *admi
 	}
 
 	return &adminv1.Empty{}, nil
+}
+
+func (s *AdminRpcService) GetUserStats(ctx context.Context, _ *emptypb.Empty) (*adminv1.UserStats, error) {
+	stats, err := s.b.Users().UserStats(ctx, time.Now())
+	if err != nil {
+		log.Error("failed to compute user stats", zap.Error(err))
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	quarterly := make([]*adminv1.QuarterlyUserCount, 0, len(stats.ByQuarter))
+	for i, count := range stats.ByQuarter {
+		quarterly = append(quarterly, &adminv1.QuarterlyUserCount{
+			Quarter: int32(i + 1),
+			Count:   int32(count),
+		})
+	}
+
+	return &adminv1.UserStats{
+		TotalUsers:     int32(stats.Total),
+		UsersThisYear:  int32(stats.ThisYear),
+		QuarterlyUsers: quarterly,
+		Year:           int32(stats.Year),
+	}, nil
 }

@@ -197,6 +197,10 @@ func (mc *MockClient) FindWalletIDsByIdentifierPrefix(_ context.Context, _ strin
 	return nil, nil
 }
 
+func (mc *MockClient) UserStats(_ context.Context, now time.Time) (user.Stats, error) {
+	return user.Stats{Year: now.Year()}, nil
+}
+
 func (mc *MockClient) Cleanup() {
 	mc.WalletUser = map[string]string{}
 	mc.UserTotpURL = map[string]string{}
