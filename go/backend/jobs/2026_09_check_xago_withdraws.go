@@ -13,8 +13,8 @@ import (
 )
 
 type XagoWithdrawTransaction struct {
-	TransactionID string `json:"transactionID"`
-	WalletID      string `json:"walletID"`
+	TransactionID string `json:"transactionId"`
+	WalletID      string `json:"walletId"`
 }
 
 func CheckXagoWithdrawsJob(ctx workflow.Context, transactionData XagoWithdrawTransaction) error {
@@ -50,7 +50,7 @@ func CheckXagoWithdrawsJob(ctx workflow.Context, transactionData XagoWithdrawTra
 		return err
 	}
 
-	if state == "success" || state == "rejected"{
+	if state == "success" || state == "rejected" {
 		var transactionStatus = transactions.StateCompleted
 		var paymentStatus = payments.StateCompleted
 		if state == "rejected" {
