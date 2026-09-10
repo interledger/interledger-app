@@ -115,7 +115,7 @@
     "vite": "^6.4.3",
     "vite-plugin-node-polyfills": "^0.25.0",
     "vite-tsconfig-paths": "^4.2.0",
-    "vitest": "^3.2.6"
+    "vitest": "^4.1.11"
   },
   "packageManager": "pnpm@8.5.0",
   "engines": {
