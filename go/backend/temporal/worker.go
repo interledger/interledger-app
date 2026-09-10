@@ -70,6 +70,8 @@ func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago
 	w.RegisterWorkflow(jobs.NotifyAgreementChangedWorkflow)
 	w.RegisterWorkflow(jobs.DisabledAccountsTabWorkflow)
 	w.RegisterWorkflow(jobs.CheckXagoWithdrawsJob)
+	w.RegisterWorkflow(jobs.FixGateHubTransactionJob)
+	w.RegisterWorkflow(jobs.CheckUserGatehubTransactionsJob)
 
 	// Payment Engine
 	w.RegisterActivity(payments_workflows.NewActivity(b))
