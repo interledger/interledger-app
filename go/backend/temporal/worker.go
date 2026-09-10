@@ -69,7 +69,7 @@ func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago
 	w.RegisterWorkflow(jobs.UpdateGateHubOrganizationConfig)
 	w.RegisterWorkflow(jobs.NotifyAgreementChangedWorkflow)
 	w.RegisterWorkflow(jobs.DisabledAccountsTabWorkflow)
-	w.RegisterWorkflow(jobs.CheckXagoWithdrawsJob)
+	w.RegisterWorkflow(jobs.FixXagoWithdrawsJob)
 	w.RegisterWorkflow(jobs.FixGateHubTransactionJob)
 	w.RegisterWorkflow(jobs.CheckUserGatehubTransactionsJob)
 

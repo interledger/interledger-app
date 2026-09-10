@@ -17,7 +17,7 @@ type CheckTransaction struct {
 	WalletID      string `json:"walletId"`
 }
 
-func CheckXagoWithdrawsJob(ctx workflow.Context, transactionData CheckTransaction) error {
+func FixXagoWithdrawsJob(ctx workflow.Context, transactionData CheckTransaction) error {
 
 	var a *Activity
 	wfCtx := workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
