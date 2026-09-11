@@ -12,12 +12,12 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
-type XagoWithdrawTransaction struct {
+type CheckTransaction struct {
 	TransactionID string `json:"transactionId"`
 	WalletID      string `json:"walletId"`
 }
 
-func CheckXagoWithdrawsJob(ctx workflow.Context, transactionData XagoWithdrawTransaction) error {
+func FixXagoWithdrawsJob(ctx workflow.Context, transactionData CheckTransaction) error {
 
 	var a *Activity
 	wfCtx := workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
@@ -57,10 +57,10 @@ func CheckXagoWithdrawsJob(ctx workflow.Context, transactionData XagoWithdrawTra
 			transactionStatus = transactions.StateFailed
 			paymentStatus = payments.StateFailed
 		}
-		if err = workflow.ExecuteActivity(wfCtx, a.UpdateXagoWithdrawTransactionState, transactionData.TransactionID, transactionStatus).Get(wfCtx, nil); err != nil {
+		if err = workflow.ExecuteActivity(wfCtx, a.UpdateTransactionStateJob, transactionData.TransactionID, transactionStatus).Get(wfCtx, nil); err != nil {
 			return err
 		}
-		if err = workflow.ExecuteActivity(wfCtx, a.UpdateXagoWithdrawPaymentState, transaction.ForeignID, paymentStatus).Get(wfCtx, nil); err != nil {
+		if err = workflow.ExecuteActivity(wfCtx, a.UpdatePaymentStateJob, transaction.ForeignID, paymentStatus).Get(wfCtx, nil); err != nil {
 			return err
 		}
 
@@ -85,9 +85,6 @@ func (a *Activity) GetXagoTransactionID(ctx context.Context, transactionID strin
 	return ids[0], nil
 }
 
-func (a *Activity) GetTransactionByID(ctx context.Context, data XagoWithdrawTransaction) (*transactions.Transaction, error) {
-	return a.b.Transactions().GetTransaction(ctx, data.WalletID, data.TransactionID)
-}
 
 func (a *Activity) SyncWithXagoWithdrawal(ctx context.Context, externalID, transactionID string) (string, error) {
 	wd, err := a.b.Xago().LookupWithdrawal(ctx, externalID)
@@ -114,15 +111,3 @@ func (a *Activity) SyncWithXagoWithdrawal(ctx context.Context, externalID, trans
 	return wd.Status, nil
 }
 
-func (a *Activity) UpdateXagoWithdrawTransactionState(ctx context.Context, transactionID string, state transactions.State) error {
-	return a.b.Transactions().SetTransactionState(ctx, transactionID, state)
-
-}
-
-func (a *Activity) UpdateXagoWithdrawPaymentState(ctx context.Context, paymentID string, state payments.State) error {
-	_, err := a.b.DB().ExecContext(ctx, "UPDATE payments SET state=$1, updated_at=now() where id=$2", state, paymentID)
-	if err != nil {
-		return err
-	}
-	return nil
-}
