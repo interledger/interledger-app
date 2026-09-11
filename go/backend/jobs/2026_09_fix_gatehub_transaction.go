@@ -88,17 +88,6 @@ func (a *Activity) GetGateHubTransactionStatus(ctx context.Context, walletID, tr
 		return "rejected", nil
 	}
 
-	switch wd.Status {
-	case gatehub_external.TransactionStatusProcessing:
-		return "pending", nil
-	case gatehub_external.TransactionStatusUnmatched:
-		return "unmatched", nil
-	case gatehub_external.TransactionStatusReturning:
-		return "returning", nil
-	case gatehub_external.TransactionStatusManualReview:
-		return "manual_review", nil
-	default:
-		return fmt.Sprintf("unknown status=%d", wd.Status), nil
-	}
+	return gatehubStatusName(wd.Status), nil
 
 }

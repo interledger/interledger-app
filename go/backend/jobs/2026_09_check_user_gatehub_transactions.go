@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/interledger/interledger-app/go/backend/currency"
 	"github.com/interledger/interledger-app/go/backend/db"
 	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
 	"github.com/interledger/interledger-app/go/backend/providers/gatehub/external"
@@ -16,22 +17,23 @@ import (
 	"go.uber.org/zap"
 )
 
-
 type GatehubTransactionDiscrepancy struct {
-	TransactionID  string
-	ForeignID      string 
-	Reason         string
-	InternalState  transactions.State
-	ExternalStatus int
+	TransactionID   string
+	ForeignID       string
+	Reason          string
+	InternalState   transactions.State
+	ExternalStatus  string
+	InternalType    transactions.TransactionType
+	ExternalTransactionType string 
 }
-
 
 type GatehubTransactionsReport struct {
-	WalletID      string
-	Checked       int
-	Discrepancies []GatehubTransactionDiscrepancy
+	WalletID        string
+	Checked         int
+	InternalBalance *currency.Amount
+	GatehubBalance  *currency.Amount
+	Discrepancies   []GatehubTransactionDiscrepancy
 }
-
 
 func CheckUserGatehubTransactionsJob(ctx workflow.Context, walletID string) (*GatehubTransactionsReport, error) {
 	var a *Activity
@@ -72,6 +74,14 @@ func (a *Activity) CheckUserGatehubTransactions(ctx context.Context, walletID st
 	}
 
 	report := &GatehubTransactionsReport{WalletID: walletID}
+
+	internalBalance, gatehubBalance, err := gatehubBalances(ctx, a.b, walletID, u.UUID)
+	if err != nil {
+		return nil, fmt.Errorf("getting balances for wallet %s: %w", walletID, err)
+	}
+	report.InternalBalance = internalBalance
+	report.GatehubBalance = gatehubBalance
+
 	matched := make(map[string]bool, len(externalTxs))
 
 	for _, ext := range externalTxs {
@@ -80,9 +90,12 @@ func (a *Activity) CheckUserGatehubTransactions(ctx context.Context, walletID st
 		internal, ok := internalByForeignID[ext.ID]
 		if !ok {
 			report.Discrepancies = append(report.Discrepancies, GatehubTransactionDiscrepancy{
-				ForeignID:      ext.ID,
-				Reason:         "gatehub transaction has no matching internal transaction",
-				ExternalStatus: ext.Status,
+				ForeignID:       ext.ID,
+				Reason:          "gatehub transaction has no matching internal transaction",
+				InternalState:   transactionStateNotFound,
+				ExternalStatus:  gatehubStatusName(ext.Status),
+				InternalType:    transactionTypeNotFound,
+				ExternalTransactionType: gatehubTransactionTypeName(ext.Type),
 			})
 			continue
 		}
@@ -90,21 +103,25 @@ func (a *Activity) CheckUserGatehubTransactions(ctx context.Context, walletID st
 
 		if wantState := gatehubStatusToState(ext.Status); wantState != "" && internal.State != wantState {
 			report.Discrepancies = append(report.Discrepancies, GatehubTransactionDiscrepancy{
-				TransactionID:  internal.ID,
-				ForeignID:      ext.ID,
-				Reason:         fmt.Sprintf("state mismatch: internal=%s external_status=%d", internal.State, ext.Status),
-				InternalState:  internal.State,
-				ExternalStatus: ext.Status,
+				TransactionID:   internal.ID,
+				ForeignID:       ext.ID,
+				Reason:          fmt.Sprintf("state mismatch: internal=%s external_status=%s", internal.State, gatehubStatusName(ext.Status)),
+				InternalState:   internal.State,
+				ExternalStatus:  gatehubStatusName(ext.Status),
+				InternalType:    internal.Type,
+				ExternalTransactionType: gatehubTransactionTypeName(ext.Type),
 			})
 		}
 
 		if externalAmount, err := ops_gh.StringToScaledUInt(ext.Total); err == nil && externalAmount != internal.Amount.Value {
 			report.Discrepancies = append(report.Discrepancies, GatehubTransactionDiscrepancy{
-				TransactionID:  internal.ID,
-				ForeignID:      ext.ID,
-				Reason:         fmt.Sprintf("amount mismatch: internal=%d external=%d", internal.Amount.Value, externalAmount),
-				InternalState:  internal.State,
-				ExternalStatus: ext.Status,
+				TransactionID:   internal.ID,
+				ForeignID:       ext.ID,
+				Reason:          fmt.Sprintf("amount mismatch: internal=%d external=%d", internal.Amount.Value, externalAmount),
+				InternalState:   internal.State,
+				ExternalStatus:  gatehubStatusName(ext.Status),
+				InternalType:    internal.Type,
+				ExternalTransactionType: gatehubTransactionTypeName(ext.Type),
 			})
 		}
 	}
@@ -114,10 +131,13 @@ func (a *Activity) CheckUserGatehubTransactions(ctx context.Context, walletID st
 			continue
 		}
 		report.Discrepancies = append(report.Discrepancies, GatehubTransactionDiscrepancy{
-			TransactionID: internal.ID,
-			ForeignID:     foreignID,
-			Reason:        "internal transaction has no matching gatehub transaction",
-			InternalState: internal.State,
+			TransactionID:   internal.ID,
+			ForeignID:       foreignID,
+			Reason:          "internal transaction has no matching gatehub transaction",
+			InternalState:   internal.State,
+			ExternalStatus:  gatehubStatusNotFound,
+			InternalType:    internal.Type,
+			ExternalTransactionType: gatehubStatusNotFound,
 		})
 	}
 
@@ -130,6 +150,47 @@ func (a *Activity) CheckUserGatehubTransactions(ctx context.Context, walletID st
 	return report, nil
 }
 
+func gatehubBalances(ctx context.Context, b Backends, walletID, externalUserID string) (internal, gatehubBal *currency.Amount, err error) {
+	linkedAccounts, err := b.LinkedAccounts().ListByWalletId(ctx, walletID)
+	if err != nil {
+		return nil, nil, fmt.Errorf("listing linked accounts for wallet %s: %w", walletID, err)
+	}
+
+	var laID, laProviderID string
+	var laCurrency currency.Currency
+	found := false
+	for _, la := range linkedAccounts {
+		if la.Provider == gatehub.ProviderName && la.Type == gatehub.AccTypeBalance && la.DeletedAt.Time.IsZero() {
+			laID, laProviderID, laCurrency = la.ID, la.ProviderID, la.SendCurrency
+			found = true
+			break
+		}
+	}
+	if !found {
+		return nil, nil, nil
+	}
+
+	bal, err := b.Gatehub().GetBalance(ctx, laID)
+	if err != nil {
+		return nil, nil, fmt.Errorf("getting internal balance for linked account %s: %w", laID, err)
+	}
+	internal = &bal.Total
+
+	extBalances, err := b.Gatehub().ExternalClient().GetWalletBalances(ctx, externalUserID, laProviderID)
+	if err != nil {
+		return internal, nil, fmt.Errorf("getting gatehub balance for linked account %s: %w", laProviderID, err)
+	}
+	if len(extBalances) > 0 {
+		value, err := ops_gh.StringToScaledUInt(extBalances[0].Total)
+		if err != nil {
+			return internal, nil, fmt.Errorf("parsing gatehub balance for linked account %s: %w", laProviderID, err)
+		}
+		amount := currency.FromUInt64(value, laCurrency)
+		gatehubBal = &amount
+	}
+
+	return internal, gatehubBal, nil
+}
 
 func listWalletGatehubTransactions(ctx context.Context, b Backends, walletID string) ([]transactions.Transaction, error) {
 	const pageSize = 50
