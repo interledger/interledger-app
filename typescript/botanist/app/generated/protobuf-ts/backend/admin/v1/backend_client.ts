@@ -4,6 +4,7 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { Backend } from "./backend";
+import type { UserStats } from "./backend";
 import type { ResetUserPhoneVerificationRequest } from "./backend";
 import type { Delete2FATotpEnrollmentRequest } from "./backend";
 import type { CheckUserTotpEnabledResponse } from "./backend";
@@ -174,6 +175,10 @@ export interface IBackendClient {
      * @generated from protobuf rpc: ResetUserPhoneVerification(backend.admin.v1.ResetUserPhoneVerificationRequest) returns (backend.admin.v1.Empty);
      */
     resetUserPhoneVerification(input: ResetUserPhoneVerificationRequest, options?: RpcOptions): UnaryCall<ResetUserPhoneVerificationRequest, Empty$>;
+    /**
+     * @generated from protobuf rpc: GetUserStats(google.protobuf.Empty) returns (backend.admin.v1.UserStats);
+     */
+    getUserStats(input: Empty, options?: RpcOptions): UnaryCall<Empty, UserStats>;
 }
 /**
  * @generated from protobuf service backend.admin.v1.Backend
@@ -385,5 +390,12 @@ export class BackendClient implements IBackendClient, ServiceInfo {
     resetUserPhoneVerification(input: ResetUserPhoneVerificationRequest, options?: RpcOptions): UnaryCall<ResetUserPhoneVerificationRequest, Empty$> {
         const method = this.methods[27], opt = this._transport.mergeOptions(options);
         return stackIntercept<ResetUserPhoneVerificationRequest, Empty$>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: GetUserStats(google.protobuf.Empty) returns (backend.admin.v1.UserStats);
+     */
+    getUserStats(input: Empty, options?: RpcOptions): UnaryCall<Empty, UserStats> {
+        const method = this.methods[28], opt = this._transport.mergeOptions(options);
+        return stackIntercept<Empty, UserStats>("unary", this._transport, method, opt, input);
     }
 }

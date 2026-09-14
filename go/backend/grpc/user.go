@@ -10,6 +10,7 @@ import (
 	pb "github.com/interledger/interledger-app/go/proto/backend/v1"
 )
 
+//TODO: unused handler, nothing calls it.
 func (s *rpcService) CreateUserDefaultWallet(ctx context.Context, req *pb.CreateUserDefaultWalletRequest) (*pb.Empty, error) {
 	u, err := s.b.Users().UserForContext(ctx)
 	if err != nil && !errors.Is(err, user.ErrNoUserFound) {

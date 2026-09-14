@@ -8,8 +8,10 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/interledger/interledger-app/go/backend/agreements"
+	"github.com/interledger/interledger-app/go/backend/country"
 	"github.com/interledger/interledger-app/go/backend/errcodes"
 	"github.com/interledger/interledger-app/go/backend/signup"
+	"github.com/interledger/interledger-app/go/backend/wallets"
 	pb "github.com/interledger/interledger-app/go/proto/backend/v1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -150,7 +152,10 @@ func TestCompleteSignup_NoAgreementSigning(t *testing.T) {
 	InitAgreementIDs(nil)
 	t.Cleanup(func() { InitAgreementIDs(nil) })
 
-	c.SignupService.EXPECT().Complete(gomock.Any(), sID, userID).Return(nil).Times(1)
+	getCall := c.SignupService.EXPECT().Get(gomock.Any(), sID).Return(&signup.Signup{CountryCode: "US"}, nil).Times(1)
+	createCall := c.walletImpl.EXPECT().Create(gomock.Any(), wallets.CreateArgs{UserID: userID, Country: country.US}).Return(nil, nil).Times(1)
+	completeCall := c.SignupService.EXPECT().Complete(gomock.Any(), sID, userID).Return(nil).Times(1)
+	gomock.InOrder(getCall, createCall, completeCall)
 	// Agreements().Sign must not be called when SIGNUP_AGREEMENT_IDS is unset
 
 	_, err := client.CompleteSignup(context.Background(), &pb.CompleteSignupRequest{
@@ -171,6 +176,8 @@ func TestCompleteSignup_WithAgreementSigning(t *testing.T) {
 	t.Cleanup(func() { InitAgreementIDs(nil) })
 
 	c.SignupService.EXPECT().Complete(gomock.Any(), sID, userID).Return(nil).Times(1)
+	c.SignupService.EXPECT().Get(gomock.Any(), sID).Return(&signup.Signup{CountryCode: "US"}, nil).Times(1)
+	c.walletImpl.EXPECT().Create(gomock.Any(), wallets.CreateArgs{UserID: userID, Country: country.US}).Return(nil, nil).Times(1)
 	c.AgreementsService.EXPECT().Sign(gomock.Any(), &agreements.SignArgs{
 		AgreementIDs: []string{"privacy_policy-0.0.0", "terms_of_service-0.0.0"},
 		UserID:       userID,
@@ -194,6 +201,8 @@ func TestCompleteSignup_SignFailsStillSucceeds(t *testing.T) {
 	t.Cleanup(func() { InitAgreementIDs(nil) })
 
 	c.SignupService.EXPECT().Complete(gomock.Any(), sID, userID).Return(nil).Times(1)
+	c.SignupService.EXPECT().Get(gomock.Any(), sID).Return(&signup.Signup{CountryCode: "US"}, nil).Times(1)
+	c.walletImpl.EXPECT().Create(gomock.Any(), wallets.CreateArgs{UserID: userID, Country: country.US}).Return(nil, nil).Times(1)
 	c.AgreementsService.EXPECT().Sign(gomock.Any(), gomock.Any()).Return(agreements.ErrNotFound).Times(1)
 
 	_, err := client.CompleteSignup(context.Background(), &pb.CompleteSignupRequest{
@@ -201,4 +210,42 @@ func TestCompleteSignup_SignFailsStillSucceeds(t *testing.T) {
 		UserId: userID,
 	})
 	require.NoError(t, err)
+}
+
+// wallet creation fails, CompleteSignup returns the error and stops there:
+// the signup is not marked complete and no notification is sent, so a retry is safe.
+func TestCompleteSignup_WalletCreateErrorAborts(t *testing.T) {
+	cases := []struct {
+		name      string
+		createErr error
+		wantCode  codes.Code
+	}{
+		{"internal error", wallets.ErrInternal, codes.Internal},
+		{"wallet conflict", wallets.ErrWalletConflict, codes.FailedPrecondition},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			c := NewTestContainer(t, ctrl)
+			_, _, client := startTestServer(t, c)
+
+			sID := uuid.NewString()
+			userID := uuid.NewString()
+			InitAgreementIDs([]string{"privacy_policy-0.0.0"})
+			t.Cleanup(func() { InitAgreementIDs(nil) })
+
+			c.SignupService.EXPECT().Get(gomock.Any(), sID).Return(&signup.Signup{CountryCode: "US"}, nil).Times(1)
+			c.walletImpl.EXPECT().Create(gomock.Any(), wallets.CreateArgs{UserID: userID, Country: country.US}).Return(nil, tc.createErr).Times(1)
+
+			_, err := client.CompleteSignup(context.Background(), &pb.CompleteSignupRequest{
+				Id:     sID,
+				UserId: userID,
+			})
+			require.Error(t, err)
+			st, ok := status.FromError(err)
+			require.True(t, ok)
+			assert.Equal(t, tc.wantCode, st.Code())
+		})
+	}
 }

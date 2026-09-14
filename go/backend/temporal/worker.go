@@ -69,6 +69,9 @@ func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago
 	w.RegisterWorkflow(jobs.UpdateGateHubOrganizationConfig)
 	w.RegisterWorkflow(jobs.NotifyAgreementChangedWorkflow)
 	w.RegisterWorkflow(jobs.DisabledAccountsTabWorkflow)
+	w.RegisterWorkflow(jobs.FixXagoWithdrawsJob)
+	w.RegisterWorkflow(jobs.FixGateHubTransactionJob)
+	w.RegisterWorkflow(jobs.CheckUserGatehubTransactionsJob)
 
 	// Payment Engine
 	w.RegisterActivity(payments_workflows.NewActivity(b))
@@ -142,6 +145,7 @@ func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago
 	w.RegisterWorkflow(gatehub_workflows.GatehubRealtimeCardTransactionsPollWorkflow)
 	w.RegisterWorkflow(gatehub_workflows.NotifyWithdrawalSCTITimeoutWorkflow)
 	w.RegisterWorkflow(gatehub_workflows.NotifyWithdrawalReroutedWorkflow)
+	w.RegisterWorkflow(gatehub_workflows.NotifyWithdrawalSettledWorkflow)
 
 	gatehub_workflows.StartClearingCardTransactionsPolling(b)
 	gatehub_workflows.StartRealtimeCardTransactionsPolling(b)
