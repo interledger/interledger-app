@@ -675,3 +675,156 @@ func (sc *E2EContext) anAuthenticatorResetAuditLogEntryShouldExist() error {
 	debugPrintf("✓ Found %d authenticator reset audit log entry(ies) for wallet %s\n", count, details.ID)
 	return nil
 }
+
+func (sc *E2EContext) theResetSmsOtpButtonShouldBeVisible() error {
+	btn := sc.page.Locator("button:has-text('Reset SMS OTP')").First()
+	if err := btn.WaitFor(playwright.LocatorWaitForOptions{
+		State:   playwright.WaitForSelectorStateVisible,
+		Timeout: playwright.Float(5000),
+	}); err != nil {
+		_ = sc.iTakeAScreenshot("reset-sms-otp-not-visible")
+		return fmt.Errorf("reset SMS OTP button not visible: %w", err)
+	}
+
+	debugPrintln("✓ Reset SMS OTP button is visible")
+	return nil
+}
+
+func (sc *E2EContext) theResetSmsOtpButtonShouldNotBeVisible() error {
+	btn := sc.page.Locator("button:has-text('Reset SMS OTP')").First()
+
+	count, err := btn.Count()
+	if err != nil {
+		return fmt.Errorf("failed to inspect reset SMS OTP button: %w", err)
+	}
+
+	if count == 0 {
+		debugPrintln("✓ Reset SMS OTP button is hidden")
+		return nil
+	}
+
+	isVisible, err := btn.IsVisible()
+	if err != nil {
+		return fmt.Errorf("failed to check reset SMS OTP visibility: %w", err)
+	}
+
+	if isVisible {
+		_ = sc.iTakeAScreenshot("reset-sms-otp-still-visible")
+		return fmt.Errorf("reset SMS OTP button should be hidden after reset")
+	}
+
+	debugPrintln("✓ Reset SMS OTP button is hidden")
+	return nil
+}
+
+func (sc *E2EContext) iClickTheResetSmsOtpButton() error {
+	btn := sc.page.Locator("button:has-text('Reset SMS OTP')").First()
+	if err := btn.Click(); err != nil {
+		return fmt.Errorf("failed to click reset SMS OTP button: %w", err)
+	}
+
+	debugPrintln("✓ Clicked reset SMS OTP button")
+	return nil
+}
+
+const smsOtpResetModalTitle = "text=Reset SMS OTP verification for this wallet owner?"
+
+func (sc *E2EContext) theSmsOtpResetConfirmationModalShouldBeVisible() error {
+	modalTitle := sc.page.Locator(smsOtpResetModalTitle).First()
+	if err := modalTitle.WaitFor(playwright.LocatorWaitForOptions{
+		State:   playwright.WaitForSelectorStateVisible,
+		Timeout: playwright.Float(5000),
+	}); err != nil {
+		_ = sc.iTakeAScreenshot("reset-sms-otp-modal-not-visible")
+		return fmt.Errorf("confirmation modal not visible: %w", err)
+	}
+
+	debugPrintln("✓ Reset SMS OTP confirmation modal is visible")
+	return nil
+}
+
+func (sc *E2EContext) iConfirmTheSmsOtpReset() error {
+	confirmButton := sc.page.Locator("button:has-text('Confirm reset')").First()
+	if err := confirmButton.Click(); err != nil {
+		return fmt.Errorf("failed to click confirm reset button: %w", err)
+	}
+
+	modalTitle := sc.page.Locator(smsOtpResetModalTitle).First()
+	if err := modalTitle.WaitFor(playwright.LocatorWaitForOptions{
+		State:   playwright.WaitForSelectorStateHidden,
+		Timeout: playwright.Float(20000),
+	}); err != nil {
+		_ = sc.iTakeAScreenshot("reset-sms-otp-modal-stuck")
+		return fmt.Errorf("confirmation modal did not close after reset: %w", err)
+	}
+
+	debugPrintln("✓ Confirmed SMS OTP reset")
+	return nil
+}
+
+func (sc *E2EContext) mySmsOtpShouldBeNotVerified() error {
+	email, err := sc.getCurrentUserEmail()
+	if err != nil {
+		return fmt.Errorf("cannot resolve current user email: %w", err)
+	}
+
+	deadline := time.Now().Add(15 * time.Second)
+	var lastErr error
+	for {
+		verified, err := sc.kratosPhoneIsVerified(email)
+		switch {
+		case err != nil:
+			lastErr = err
+		case !verified:
+			debugPrintf("✓ SMS OTP is not verified for %q\n", email)
+			return nil
+		}
+
+		if time.Now().After(deadline) {
+			if lastErr != nil {
+				return fmt.Errorf("could not read phoneVerified for %q: %w", email, lastErr)
+			}
+			return fmt.Errorf("expected SMS OTP to be unverified for %q but phoneVerified is still true", email)
+		}
+		time.Sleep(500 * time.Millisecond)
+	}
+}
+
+func (sc *E2EContext) anSmsOtpResetAuditLogEntryShouldExist() error {
+	if err := sc.ensureDB(); err != nil {
+		return fmt.Errorf("audit assertion: %w", err)
+	}
+
+	email, err := sc.getCurrentUserEmail()
+	if err != nil {
+		return fmt.Errorf("cannot resolve current user email: %w", err)
+	}
+
+	kratosID := sc.getKratosUserIDByEmail(email)
+	if kratosID == "" {
+		return fmt.Errorf("cannot resolve kratos ID for email %q", email)
+	}
+
+	details, err := sc.getWalletDetailsForUser(kratosID)
+	if err != nil {
+		return fmt.Errorf("cannot get wallet details for user %q: %w", email, err)
+	}
+
+	var count int
+	err = sc.db.QueryRow(`
+		SELECT COUNT(*)
+		FROM admin_audit_log
+		WHERE wallet_id = $1
+		AND operation LIKE '%ResetUserPhoneVerification'
+	`, details.ID).Scan(&count)
+	if err != nil {
+		return fmt.Errorf("failed to query admin audit log: %w", err)
+	}
+
+	if count < 1 {
+		return fmt.Errorf("expected at least one SMS OTP reset audit log entry for wallet %s", details.ID)
+	}
+
+	debugPrintf("✓ Found %d SMS OTP reset audit log entry(ies) for wallet %s\n", count, details.ID)
+	return nil
+}

@@ -177,6 +177,19 @@ func (sc *E2EContext) iShouldBeNavigatedToTheTOTPPage() error {
 	return fmt.Errorf("not on TOTP page, current URL: %s", currentURL)
 }
 
+// iShouldBeNavigatedToTheSMSOTPPage verifies we're on the SMS OTP verification page
+func (sc *E2EContext) iShouldBeNavigatedToTheSMSOTPPage() error {
+	for i := 0; i < 20; i++ {
+		if strings.Contains(sc.page.URL(), "/phone-confirmation") {
+			return nil
+		}
+		time.Sleep(500 * time.Millisecond)
+	}
+
+	currentURL := sc.page.URL()
+	return fmt.Errorf("not on SMS OTP page, current URL: %s", currentURL)
+}
+
 // iTypeInMyGeneratedTotpForMyNewUser generates and enters a TOTP code
 func (sc *E2EContext) iTypeInMyGeneratedTotpForMyNewUser() error {
 	// The TOTP secret should be visible on the page for first-time setup

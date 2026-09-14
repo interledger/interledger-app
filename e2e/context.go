@@ -195,6 +195,7 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I fill in the login form with my details$`, func() error { return sc.iFillInTheLoginFormWithMyDetails() })
 	ctx.Step(`^I submit the login$`, func() error { return sc.iSubmitTheLogin() })
 	ctx.Step(`^I should be navigated to the TOTP page$`, func() error { return sc.iShouldBeNavigatedToTheTOTPPage() })
+	ctx.Step(`^I should be navigated to the SMS OTP page$`, func() error { return sc.iShouldBeNavigatedToTheSMSOTPPage() })
 	ctx.Step(`^I log in as myself$`, func() error { return sc.iLogInAsMyself() })
 
 	// TOTP registration steps
@@ -633,6 +634,27 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	})
 	ctx.Step(`^an authenticator reset audit log entry should exist$`, func() error {
 		return sc.anAuthenticatorResetAuditLogEntryShouldExist()
+	})
+	ctx.Step(`^the reset sms otp button should be visible$`, func() error {
+		return sc.theResetSmsOtpButtonShouldBeVisible()
+	})
+	ctx.Step(`^I click the reset sms otp button$`, func() error {
+		return sc.iClickTheResetSmsOtpButton()
+	})
+	ctx.Step(`^the sms otp reset confirmation modal should be visible$`, func() error {
+		return sc.theSmsOtpResetConfirmationModalShouldBeVisible()
+	})
+	ctx.Step(`^I confirm the sms otp reset$`, func() error {
+		return sc.iConfirmTheSmsOtpReset()
+	})
+	ctx.Step(`^the reset sms otp button should not be visible$`, func() error {
+		return sc.theResetSmsOtpButtonShouldNotBeVisible()
+	})
+	ctx.Step(`^my SMS OTP should be not verified$`, func() error {
+		return sc.mySmsOtpShouldBeNotVerified()
+	})
+	ctx.Step(`^an sms otp reset audit log entry should exist$`, func() error {
+		return sc.anSmsOtpResetAuditLogEntryShouldExist()
 	})
 
 	// Agreements

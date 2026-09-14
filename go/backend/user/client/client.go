@@ -104,6 +104,10 @@ func (c *client) SetPhoneVerified(ctx context.Context, userID string) error {
 	return ops.SetPhoneVerified(ctx, c.b, userID)
 }
 
+func (c *client) ClearPhoneVerified(ctx context.Context, userID string) error {
+	return ops.ClearPhoneVerified(ctx, c.b, userID)
+}
+
 func (c *client) UpdateUserPhone(ctx context.Context, userID string, phone string) error {
 	return ops.UpdateUserPhone(ctx, c.b, userID, phone)
 }

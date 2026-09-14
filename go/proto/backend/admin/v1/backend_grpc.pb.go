@@ -47,6 +47,7 @@ const (
 	Backend_GetGatehubUser_FullMethodName                     = "/backend.admin.v1.Backend/GetGatehubUser"
 	Backend_CheckUserTotpEnabled_FullMethodName               = "/backend.admin.v1.Backend/CheckUserTotpEnabled"
 	Backend_Delete2FATotpEnrollment_FullMethodName            = "/backend.admin.v1.Backend/Delete2FATotpEnrollment"
+	Backend_ResetUserPhoneVerification_FullMethodName         = "/backend.admin.v1.Backend/ResetUserPhoneVerification"
 	Backend_GetUserStats_FullMethodName                       = "/backend.admin.v1.Backend/GetUserStats"
 )
 
@@ -84,6 +85,7 @@ type BackendClient interface {
 	// Kratos
 	CheckUserTotpEnabled(ctx context.Context, in *CheckUserTotpEnabledRequest, opts ...grpc.CallOption) (*CheckUserTotpEnabledResponse, error)
 	Delete2FATotpEnrollment(ctx context.Context, in *Delete2FATotpEnrollmentRequest, opts ...grpc.CallOption) (*Empty, error)
+	ResetUserPhoneVerification(ctx context.Context, in *ResetUserPhoneVerificationRequest, opts ...grpc.CallOption) (*Empty, error)
 	GetUserStats(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*UserStats, error)
 }
 
@@ -365,6 +367,16 @@ func (c *backendClient) Delete2FATotpEnrollment(ctx context.Context, in *Delete2
 	return out, nil
 }
 
+func (c *backendClient) ResetUserPhoneVerification(ctx context.Context, in *ResetUserPhoneVerificationRequest, opts ...grpc.CallOption) (*Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, Backend_ResetUserPhoneVerification_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *backendClient) GetUserStats(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*UserStats, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UserStats)
@@ -409,6 +421,7 @@ type BackendServer interface {
 	// Kratos
 	CheckUserTotpEnabled(context.Context, *CheckUserTotpEnabledRequest) (*CheckUserTotpEnabledResponse, error)
 	Delete2FATotpEnrollment(context.Context, *Delete2FATotpEnrollmentRequest) (*Empty, error)
+	ResetUserPhoneVerification(context.Context, *ResetUserPhoneVerificationRequest) (*Empty, error)
 	GetUserStats(context.Context, *emptypb.Empty) (*UserStats, error)
 }
 
@@ -499,6 +512,9 @@ func (UnimplementedBackendServer) CheckUserTotpEnabled(context.Context, *CheckUs
 }
 func (UnimplementedBackendServer) Delete2FATotpEnrollment(context.Context, *Delete2FATotpEnrollmentRequest) (*Empty, error) {
 	return nil, status.Error(codes.Unimplemented, "method Delete2FATotpEnrollment not implemented")
+}
+func (UnimplementedBackendServer) ResetUserPhoneVerification(context.Context, *ResetUserPhoneVerificationRequest) (*Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method ResetUserPhoneVerification not implemented")
 }
 func (UnimplementedBackendServer) GetUserStats(context.Context, *emptypb.Empty) (*UserStats, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetUserStats not implemented")
@@ -1009,6 +1025,24 @@ func _Backend_Delete2FATotpEnrollment_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Backend_ResetUserPhoneVerification_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ResetUserPhoneVerificationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServer).ResetUserPhoneVerification(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Backend_ResetUserPhoneVerification_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServer).ResetUserPhoneVerification(ctx, req.(*ResetUserPhoneVerificationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Backend_GetUserStats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
@@ -1141,6 +1175,10 @@ var Backend_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Delete2FATotpEnrollment",
 			Handler:    _Backend_Delete2FATotpEnrollment_Handler,
+		},
+		{
+			MethodName: "ResetUserPhoneVerification",
+			Handler:    _Backend_ResetUserPhoneVerification_Handler,
 		},
 		{
 			MethodName: "GetUserStats",

@@ -10,6 +10,7 @@ type User struct {
 	ID          string
 	Email       string
 	PhoneNumber string
+	PhoneVerified bool
 	Country     country.Country
 	FirstName   string
 	LastName    string

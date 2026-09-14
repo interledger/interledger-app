@@ -775,3 +775,27 @@ export async function DeleteUserTotp(
 
   return response.response
 }
+
+export async function ResetUserPhoneVerification(
+  request: Request,
+  identityId: string,
+  walletId: string
+): Promise<any> {
+  const cookie = String(request.headers.get('cookie'))
+  const response = await grpcClient
+    .resetUserPhoneVerification(
+      { identityId, walletID: walletId },
+      {
+        meta: {
+          cookies: cookie || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(response)) {
+    throw data({}, httpMapping(response.code))
+  }
+
+  return response.response
+}

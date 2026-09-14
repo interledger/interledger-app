@@ -1101,14 +1101,15 @@ export interface User {
      */
     lastName: string;
     /**
-     * @generated from protobuf field: google.protobuf.Timestamp createdAt = 6;
+     * @generated from protobuf field: bool phoneVerified = 6;
+     */
+    phoneVerified: boolean;
+    /**
+     * @generated from protobuf field: google.protobuf.Timestamp createdAt = 7;
      */
     createdAt?: Timestamp;
 }
 /**
- * UserStats counts every user in the identity store, including users who are
- * not attached to a wallet.
- *
  * @generated from protobuf message backend.admin.v1.UserStats
  */
 export interface UserStats {
@@ -1246,6 +1247,19 @@ export interface Amount {
      * @generated from protobuf field: string country = 4;
      */
     country: string;
+}
+/**
+ * @generated from protobuf message backend.admin.v1.ResetUserPhoneVerificationRequest
+ */
+export interface ResetUserPhoneVerificationRequest {
+    /**
+     * @generated from protobuf field: string identityId = 1;
+     */
+    identityId: string;
+    /**
+     * @generated from protobuf field: string walletID = 2;
+     */
+    walletID: string;
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class CheckUserTotpEnabledRequest$Type extends MessageType<CheckUserTotpEnabledRequest> {
@@ -4663,11 +4677,12 @@ class User$Type extends MessageType<User> {
             { no: 3, name: "phoneNumber", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 4, name: "firstName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 5, name: "lastName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 6, name: "createdAt", kind: "message", T: () => Timestamp }
+            { no: 6, name: "phoneVerified", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 7, name: "createdAt", kind: "message", T: () => Timestamp }
         ]);
     }
     create(value?: PartialMessage<User>): User {
-        const message = { id: "", email: "", phoneNumber: "", firstName: "", lastName: "" };
+        const message = { id: "", email: "", phoneNumber: "", firstName: "", lastName: "", phoneVerified: false };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<User>(this, message, value);
@@ -4693,7 +4708,10 @@ class User$Type extends MessageType<User> {
                 case /* string lastName */ 5:
                     message.lastName = reader.string();
                     break;
-                case /* google.protobuf.Timestamp createdAt */ 6:
+                case /* bool phoneVerified */ 6:
+                    message.phoneVerified = reader.bool();
+                    break;
+                case /* google.protobuf.Timestamp createdAt */ 7:
                     message.createdAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.createdAt);
                     break;
                 default:
@@ -4723,9 +4741,12 @@ class User$Type extends MessageType<User> {
         /* string lastName = 5; */
         if (message.lastName !== "")
             writer.tag(5, WireType.LengthDelimited).string(message.lastName);
-        /* google.protobuf.Timestamp createdAt = 6; */
+        /* bool phoneVerified = 6; */
+        if (message.phoneVerified !== false)
+            writer.tag(6, WireType.Varint).bool(message.phoneVerified);
+        /* google.protobuf.Timestamp createdAt = 7; */
         if (message.createdAt)
-            Timestamp.internalBinaryWrite(message.createdAt, writer.tag(6, WireType.LengthDelimited).fork(), options).join();
+            Timestamp.internalBinaryWrite(message.createdAt, writer.tag(7, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -5257,6 +5278,60 @@ class Amount$Type extends MessageType<Amount> {
  * @generated MessageType for protobuf message backend.admin.v1.Amount
  */
 export const Amount = new Amount$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ResetUserPhoneVerificationRequest$Type extends MessageType<ResetUserPhoneVerificationRequest> {
+    constructor() {
+        super("backend.admin.v1.ResetUserPhoneVerificationRequest", [
+            { no: 1, name: "identityId", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "walletID", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<ResetUserPhoneVerificationRequest>): ResetUserPhoneVerificationRequest {
+        const message = { identityId: "", walletID: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ResetUserPhoneVerificationRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ResetUserPhoneVerificationRequest): ResetUserPhoneVerificationRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string identityId */ 1:
+                    message.identityId = reader.string();
+                    break;
+                case /* string walletID */ 2:
+                    message.walletID = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ResetUserPhoneVerificationRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string identityId = 1; */
+        if (message.identityId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.identityId);
+        /* string walletID = 2; */
+        if (message.walletID !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.walletID);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.ResetUserPhoneVerificationRequest
+ */
+export const ResetUserPhoneVerificationRequest = new ResetUserPhoneVerificationRequest$Type();
 /**
  * @generated ServiceType for protobuf service backend.admin.v1.Backend
  */
@@ -5288,5 +5363,6 @@ export const Backend = new ServiceType("backend.admin.v1.Backend", [
     { name: "GetGatehubUser", options: {}, I: GetGatehubUserRequest, O: GatehubUser },
     { name: "CheckUserTotpEnabled", options: {}, I: CheckUserTotpEnabledRequest, O: CheckUserTotpEnabledResponse },
     { name: "Delete2FATotpEnrollment", options: {}, I: Delete2FATotpEnrollmentRequest, O: Empty },
+    { name: "ResetUserPhoneVerification", options: {}, I: ResetUserPhoneVerificationRequest, O: Empty },
     { name: "GetUserStats", options: {}, I: Empty$, O: UserStats }
 ]);
