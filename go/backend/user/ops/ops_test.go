@@ -134,7 +134,7 @@ func TestConvertTraits_PhoneVerified(t *testing.T) {
 				traits["phoneVerified"] = tc.trait
 			}
 
-			u := convertTraits("user-123", traits)
+			u := convertTraits("user-123", traits, nil)
 
 			assert.Equal(t, "+15555550100", u.PhoneNumber)
 			assert.Equal(t, tc.expected, u.PhoneVerified)
