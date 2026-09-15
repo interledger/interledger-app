@@ -279,7 +279,12 @@ func CompleteGatehubWithdrawalWorkflow(ctx workflow.Context, userID, externalTxI
 	if err != nil {
 		return err
 	}
+	if internalTx == nil {
+		if err = workflow.ExecuteActivity(ctx, a.CreateGatehubWithdrawTransaction, walletID, externalTxID).Get(ctx, internalTx); err != nil {
+			return err
+		}
 
+	}
 	if err = workflow.ExecuteActivity(ctx, a.FinalizeGatehubWithdrawal, internalTx.ID).Get(ctx, nil); err != nil {
 		return err
 	}

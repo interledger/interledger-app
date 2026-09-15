@@ -614,3 +614,12 @@ func (a *Activity) SendWithdrawalSettledEmail(ctx context.Context, txID, walletI
 	a.b.Email().SendGatehubWithdrawalSettledEmail(ctx, txID, walletID, amount, iban, name, timestamp)
 	return nil
 }
+
+func (a *Activity) CreateGatehubWithdrawTransaction(ctx context.Context, walletID, externalTxID string) (string, error) {
+	txID, err := a.b.Gatehub().CreateWithdrawal(ctx, walletID, externalTxID)
+	if err != nil {
+		return "", err
+	}
+	
+	return txID,nil
+}
