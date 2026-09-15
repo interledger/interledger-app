@@ -355,6 +355,10 @@ func (b Backends) Notify() notify.Client {
 	return nil
 }
 
+func (b Backends) Gatehub() gatehub.Client {
+	return nil
+}
+
 func (b Backends) Config() *config.StartConfig {
 	return &config.StartConfig{Environment: config.EnvironmentConfig{Mode: "test"}}
 }

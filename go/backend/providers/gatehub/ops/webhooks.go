@@ -519,7 +519,7 @@ func HandleUserDeposit(ctx context.Context, b Backends, raw json.RawMessage, w h
 	}
 
 	wo := client.StartWorkflowOptions{
-		ID:                    "gatehub_deposit_webhook" + wh.ID,
+		ID:                    "gatehub_deposit_webhook_" + wh.ID,
 		TaskQueue:             "backend",
 		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
 	}
