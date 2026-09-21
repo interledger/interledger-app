@@ -34,7 +34,7 @@ func TestSendMigrationEmailJob(t *testing.T) {
 	t.Run("emails every recipient and reports none failed", func(t *testing.T) {
 		env, a := newEnv(t)
 		env.OnActivity(a.ListMigrationEmailRecipients, mock.Anything, params).Return(recipients, nil)
-		env.OnActivity(a.SendMigrationEmailToRecipient, mock.Anything, "Migration", mock.Anything, mock.Anything, params.Paragraphs).
+		env.OnActivity(a.SendMigrationEmailToRecipient, mock.Anything, "Migration", mock.Anything, mock.Anything, params.Paragraphs, mock.Anything).
 			Return(nil)
 
 		env.ExecuteWorkflow(SendMigrationEmailJob, params)
@@ -50,9 +50,9 @@ func TestSendMigrationEmailJob(t *testing.T) {
 	t.Run("a failed send is reported, and never retried", func(t *testing.T) {
 		env, a := newEnv(t)
 		env.OnActivity(a.ListMigrationEmailRecipients, mock.Anything, params).Return(recipients, nil)
-		env.OnActivity(a.SendMigrationEmailToRecipient, mock.Anything, mock.Anything, "u3@example.com", mock.Anything, mock.Anything).
+		env.OnActivity(a.SendMigrationEmailToRecipient, mock.Anything, mock.Anything, "u3@example.com", mock.Anything, mock.Anything, mock.Anything).
 			Return(errors.New("sendgrid timeout"))
-		env.OnActivity(a.SendMigrationEmailToRecipient, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+		env.OnActivity(a.SendMigrationEmailToRecipient, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 			Return(nil)
 
 		env.ExecuteWorkflow(SendMigrationEmailJob, params)

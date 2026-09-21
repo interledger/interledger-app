@@ -38,11 +38,17 @@ const (
 //
 // Paragraphs are SendGrid template blocks, e.g. {"paragraph": "..."}, {"heading": "..."}.
 // A greeting with the user's first name is prepended; the CTA is always login.
+//
+// Bcc, if set, is added as an extra recipient on every single send — with the
+// recipient's own name/greeting, since it's a mirror of what they received. On
+// a large region send this means one Bcc copy per recipient, not one for the
+// whole campaign.
 type SendMigrationEmailParams struct {
 	Subject    string                   `json:"subject"`
 	Paragraphs []map[string]interface{} `json:"paragraphs"`
 	Region     string                   `json:"region"`
 	Email      string                   `json:"email"`
+	Bcc        string                   `json:"bcc"`
 }
 
 // MigrationEmailRecipient is a user selected to receive a migration email.
@@ -79,10 +85,10 @@ func SendMigrationEmailJob(ctx workflow.Context, params SendMigrationEmailParams
 		},
 	})
 
-	return dispatchMigrationEmails(sendCtx, a, recipients, params.Subject, params.Paragraphs), nil
+	return dispatchMigrationEmails(sendCtx, a, recipients, params.Subject, params.Paragraphs, params.Bcc), nil
 }
 
-func dispatchMigrationEmails(ctx workflow.Context, a *Activity, recipients []MigrationEmailRecipient, subject string, paragraphs []map[string]interface{}) []string {
+func dispatchMigrationEmails(ctx workflow.Context, a *Activity, recipients []MigrationEmailRecipient, subject string, paragraphs []map[string]interface{}, bcc string) []string {
 	type pendingEmail struct {
 		email  string
 		future workflow.Future
@@ -102,7 +108,7 @@ func dispatchMigrationEmails(ctx workflow.Context, a *Activity, recipients []Mig
 	for _, r := range recipients {
 		pending = append(pending, pendingEmail{
 			email:  r.Email,
-			future: workflow.ExecuteActivity(ctx, a.SendMigrationEmailToRecipient, subject, r.Email, r.FirstName, paragraphs),
+			future: workflow.ExecuteActivity(ctx, a.SendMigrationEmailToRecipient, subject, r.Email, r.FirstName, paragraphs, bcc),
 		})
 		if len(pending) >= migrationEmailConcurrency {
 			drain()
@@ -248,8 +254,8 @@ func nextPageToken(resp *http.Response) string {
 	return ""
 }
 
-func (a *Activity) SendMigrationEmailToRecipient(ctx context.Context, subject, sendTo, firstName string, paragraphs []map[string]interface{}) error {
-	return a.b.Email().SendMigrationEmail(ctx, subject, sendTo, firstName, paragraphs)
+func (a *Activity) SendMigrationEmailToRecipient(ctx context.Context, subject, sendTo, firstName string, paragraphs []map[string]interface{}, bcc string) error {
+	return a.b.Email().SendMigrationEmail(ctx, subject, sendTo, firstName, paragraphs, bcc)
 }
 
 func validateSendMigrationEmailParams(params SendMigrationEmailParams) error {

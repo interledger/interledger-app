@@ -36,7 +36,7 @@ func TestSendMigrationEmail(t *testing.T) {
 		{"paragraph": "We are migrating accounts."},
 	}
 
-	err := SendMigrationEmail(context.Background(), b, "Migration notice", "alice@example.com", "Alice", paragraphs)
+	err := SendMigrationEmail(context.Background(), b, "Migration notice", "alice@example.com", "Alice", paragraphs, "")
 	require.NoError(t, err)
 
 	require.Equal(t, "Migration notice", sg.subject)
@@ -60,7 +60,7 @@ func TestSendMigrationEmailWithoutFirstName(t *testing.T) {
 	b := &testBackends{external: sg, applicationURL: "https://wallet.example/"}
 
 	err := SendMigrationEmail(context.Background(), b, "Migration notice", "alice@example.com", "  ",
-		[]map[string]interface{}{{"paragraph": "We are migrating accounts."}})
+		[]map[string]interface{}{{"paragraph": "We are migrating accounts."}}, "")
 	require.NoError(t, err)
 
 	data, ok := sg.data["data"].([]map[string]interface{})
@@ -73,6 +73,21 @@ func TestSendMigrationEmailWithoutFirstName(t *testing.T) {
 	require.Equal(t, "https://wallet.example/login", cta["url"], "trailing slash must not double up")
 }
 
+func TestSendMigrationEmailWithBcc(t *testing.T) {
+	sg := &migrationSendgridClient{}
+	b := &testBackends{external: sg, applicationURL: "https://wallet.example"}
+
+	paragraphs := []map[string]interface{}{{"paragraph": "We are migrating accounts."}}
+
+	err := SendMigrationEmail(context.Background(), b, "Migration notice", "alice@example.com", "Alice", paragraphs, "  audit@example.com  ")
+	require.NoError(t, err)
+
+	require.Equal(t, []sendgrid.Email{
+		{Name: "Alice", Address: "alice@example.com"},
+		{Name: "", Address: "audit@example.com"},
+	}, sg.to)
+}
+
 func TestSendMigrationEmailErrors(t *testing.T) {
 	paragraphs := []map[string]interface{}{{"paragraph": "We are migrating accounts."}}
 
@@ -80,7 +95,7 @@ func TestSendMigrationEmailErrors(t *testing.T) {
 		sendErr := errors.New("sendgrid down")
 		b := &testBackends{external: &migrationSendgridClient{err: sendErr}, applicationURL: "https://wallet.example"}
 
-		err := SendMigrationEmail(context.Background(), b, "Migration notice", "alice@example.com", "Alice", paragraphs)
+		err := SendMigrationEmail(context.Background(), b, "Migration notice", "alice@example.com", "Alice", paragraphs, "")
 		require.ErrorIs(t, err, sendErr)
 	})
 
@@ -88,7 +103,7 @@ func TestSendMigrationEmailErrors(t *testing.T) {
 		sg := &migrationSendgridClient{}
 		b := &testBackends{external: sg, applicationURL: "://nope"}
 
-		err := SendMigrationEmail(context.Background(), b, "Migration notice", "alice@example.com", "Alice", paragraphs)
+		err := SendMigrationEmail(context.Background(), b, "Migration notice", "alice@example.com", "Alice", paragraphs, "")
 		require.Error(t, err)
 		require.Nil(t, sg.data, "no email is sent when the CTA URL cannot be built")
 	})

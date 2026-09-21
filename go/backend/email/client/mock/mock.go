@@ -235,17 +235,17 @@ func (mr *MockClientMockRecorder) SendLimitsExceededEmail(ctx, walletID interfac
 }
 
 // SendMigrationEmail mocks base method.
-func (m *MockClient) SendMigrationEmail(ctx context.Context, subject, sendTo, firstName string, paragraphs []map[string]interface{}) error {
+func (m *MockClient) SendMigrationEmail(ctx context.Context, subject, sendTo, firstName string, paragraphs []map[string]interface{}, bcc string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendMigrationEmail", ctx, subject, sendTo, firstName, paragraphs)
+	ret := m.ctrl.Call(m, "SendMigrationEmail", ctx, subject, sendTo, firstName, paragraphs, bcc)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SendMigrationEmail indicates an expected call of SendMigrationEmail.
-func (mr *MockClientMockRecorder) SendMigrationEmail(ctx, subject, sendTo, firstName, paragraphs interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) SendMigrationEmail(ctx, subject, sendTo, firstName, paragraphs, bcc interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendMigrationEmail", reflect.TypeOf((*MockClient)(nil).SendMigrationEmail), ctx, subject, sendTo, firstName, paragraphs)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendMigrationEmail", reflect.TypeOf((*MockClient)(nil).SendMigrationEmail), ctx, subject, sendTo, firstName, paragraphs, bcc)
 }
 
 // SendPaymentFailedEmail mocks base method.
