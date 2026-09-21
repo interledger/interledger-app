@@ -1008,6 +1008,10 @@ export interface ListWalletsRequest {
      * @generated from protobuf field: optional backend.admin.v1.WalletSearchFilter filter = 4;
      */
     filter?: WalletSearchFilter;
+    /**
+     * @generated from protobuf field: int32 offset = 5;
+     */
+    offset: number;
 }
 /**
  * @generated from protobuf message backend.admin.v1.WalletSearchFilter
@@ -1075,6 +1079,10 @@ export interface ListWalletsResponse {
      * @generated from protobuf field: string nextPageToken = 2;
      */
     nextPageToken: string;
+    /**
+     * @generated from protobuf field: int32 totalCount = 3;
+     */
+    totalCount: number;
 }
 /**
  * @generated from protobuf message backend.admin.v1.User
@@ -4396,11 +4404,12 @@ class ListWalletsRequest$Type extends MessageType<ListWalletsRequest> {
             { no: 1, name: "pageSize", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
             { no: 2, name: "pageToken", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "search", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
-            { no: 4, name: "filter", kind: "message", T: () => WalletSearchFilter }
+            { no: 4, name: "filter", kind: "message", T: () => WalletSearchFilter },
+            { no: 5, name: "offset", kind: "scalar", T: 5 /*ScalarType.INT32*/ }
         ]);
     }
     create(value?: PartialMessage<ListWalletsRequest>): ListWalletsRequest {
-        const message = { pageSize: 0 };
+        const message = { pageSize: 0, offset: 0 };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<ListWalletsRequest>(this, message, value);
@@ -4422,6 +4431,9 @@ class ListWalletsRequest$Type extends MessageType<ListWalletsRequest> {
                     break;
                 case /* optional backend.admin.v1.WalletSearchFilter filter */ 4:
                     message.filter = WalletSearchFilter.internalBinaryRead(reader, reader.uint32(), options, message.filter);
+                    break;
+                case /* int32 offset */ 5:
+                    message.offset = reader.int32();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -4447,6 +4459,9 @@ class ListWalletsRequest$Type extends MessageType<ListWalletsRequest> {
         /* optional backend.admin.v1.WalletSearchFilter filter = 4; */
         if (message.filter)
             WalletSearchFilter.internalBinaryWrite(message.filter, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
+        /* int32 offset = 5; */
+        if (message.offset !== 0)
+            writer.tag(5, WireType.Varint).int32(message.offset);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -4619,11 +4634,12 @@ class ListWalletsResponse$Type extends MessageType<ListWalletsResponse> {
     constructor() {
         super("backend.admin.v1.ListWalletsResponse", [
             { no: 1, name: "wallets", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Wallet },
-            { no: 2, name: "nextPageToken", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 2, name: "nextPageToken", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "totalCount", kind: "scalar", T: 5 /*ScalarType.INT32*/ }
         ]);
     }
     create(value?: PartialMessage<ListWalletsResponse>): ListWalletsResponse {
-        const message = { wallets: [], nextPageToken: "" };
+        const message = { wallets: [], nextPageToken: "", totalCount: 0 };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<ListWalletsResponse>(this, message, value);
@@ -4639,6 +4655,9 @@ class ListWalletsResponse$Type extends MessageType<ListWalletsResponse> {
                     break;
                 case /* string nextPageToken */ 2:
                     message.nextPageToken = reader.string();
+                    break;
+                case /* int32 totalCount */ 3:
+                    message.totalCount = reader.int32();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -4658,6 +4677,9 @@ class ListWalletsResponse$Type extends MessageType<ListWalletsResponse> {
         /* string nextPageToken = 2; */
         if (message.nextPageToken !== "")
             writer.tag(2, WireType.LengthDelimited).string(message.nextPageToken);
+        /* int32 totalCount = 3; */
+        if (message.totalCount !== 0)
+            writer.tag(3, WireType.Varint).int32(message.totalCount);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

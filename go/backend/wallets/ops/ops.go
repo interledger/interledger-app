@@ -247,7 +247,7 @@ func ListAll(ctx context.Context, b Backends, page db.Pagination) ([]wallets.Wal
 	args := map[string]any{}
 	conditions := []string{}
 
-	if page.PageToken != "" {
+	if page.PageToken != "" && page.Offset == 0 {
 		conditions = append(conditions, "(created_at, id) < ( select created_at, id from wallets where id = :pagetoken )")
 		args["pagetoken"] = page.PageToken
 	}
@@ -302,7 +302,7 @@ func ListAll(ctx context.Context, b Backends, page db.Pagination) ([]wallets.Wal
 	// LEFT JOIN LATERAL pulls the latest KYC revision per wallet (individual_kyc_details
 	// is 1:many via revision). Runs only for the returned page (<=50), uses the
 	// (wallet_id, revision) unique index
-	query := "select id, name, country, exceeded_limits, kyc.first_name as kyc_first_name, kyc.last_name as kyc_last_name " +
+	query := "select id, name, country, exceeded_limits, kyc.first_name as kyc_first_name, kyc.last_name as kyc_last_name, count(*) over() as total_count " +
 		"from wallets left join lateral (" +
 		"select first_name, last_name from individual_kyc_details where wallet_id = wallets.id order by revision desc limit 1" +
 		") kyc on true"

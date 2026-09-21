@@ -19,45 +19,12 @@ const EMPTY_PLACEHOLDER = '—'
 const orDash = (value?: string) =>
   value && value.trim() !== '' ? value : EMPTY_PLACEHOLDER
 
-async function countWallets(
-  request: Request,
-  pageSize: number,
-  filters: Record<FilterField, string>
-) {
-  const firstPage = await ListWallets(
-    request,
-    { pageSize: pageSize },
-    Object.values(filters).some((v) => v !== '') ? filters : undefined
-  )
-
-  let totalResults = firstPage.wallets.length
-  let nextPageToken = firstPage.nextPageToken
-  const pageTokens = ['']
-
-  while (nextPageToken) {
-    pageTokens.push(nextPageToken)
-
-    const nextPage = await ListWallets(
-      request,
-      { pageSize: pageSize, pageToken: nextPageToken },
-      Object.values(filters).some((v) => v !== '') ? filters : undefined
-    )
-
-    totalResults += nextPage.wallets.length
-    nextPageToken = nextPage.nextPageToken
-  }
-
-  return { totalResults, pageTokens }
-}
-
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
-  const pageSize = url.searchParams.get('pageSize') || '50'
-  const pageToken = url.searchParams.get('pageToken') || ''
-  const currentPage = Math.max(
-    1,
-    Number(url.searchParams.get('page') || (pageToken ? '2' : '1'))
-  )
+  const pageSize = Number(url.searchParams.get('pageSize') || '50')
+  const page = Number(url.searchParams.get('page') || '1')
+  const offset = (page - 1) * pageSize
+  const currentPage = Math.max(1, page)
 
   const filters = Object.fromEntries(
     FILTER_FIELDS.map(({ name }) => [
@@ -71,17 +38,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const wallets = await ListWallets(
     request,
     {
-      pageSize: parseInt(pageSize),
-      pageToken: pageToken || undefined
+      pageSize,
+      offset
     },
     hasFilter ? filters : undefined
   )
 
-  const { totalResults, pageTokens } = await countWallets(
-    request,
-    parseInt(pageSize),
-    filters
-  )
+  const totalResults = wallets.totalCount ?? 0
 
   return data({
     wallets,
@@ -89,32 +52,22 @@ export async function loader({ request }: LoaderFunctionArgs) {
     filters,
     hasFilter,
     totalResults,
-    currentPage,
-    pageTokens
+    currentPage
   })
 }
 
 export default function Page() {
-  const {
-    wallets,
-    pageSize,
-    filters,
-    hasFilter,
-    totalResults,
-    pageTokens,
-    currentPage
-  } = useLoaderData<typeof loader>()
+  const { wallets, pageSize, filters, hasFilter, totalResults, currentPage } =
+    useLoaderData<typeof loader>()
   const navigation = useNavigation()
   const isSearching = navigation.state === 'loading'
 
   const pageParams = (pageNumber: number) => {
     const params = new URLSearchParams()
-    const token = pageTokens[pageNumber - 1]
 
     params.set('page', pageNumber.toString())
     params.set('pageSize', pageSize.toString())
 
-    if (token) params.set('pageToken', token)
     for (const { name } of FILTER_FIELDS) {
       if (filters[name]) params.set(name, filters[name])
     }
@@ -122,7 +75,7 @@ export default function Page() {
     return params
   }
 
-  const pageCount = Math.max(1, Math.ceil(totalResults / parseInt(pageSize)))
+  const pageCount = Math.ceil(totalResults / pageSize)
   const previousPageParams = pageParams(Math.max(1, currentPage - 1))
   const nextPageParams = pageParams(currentPage + 1)
 
@@ -164,7 +117,7 @@ export default function Page() {
             ]
 
   const hasPreviousPage = currentPage > 1
-  const currentPageStart = (currentPage - 1) * parseInt(pageSize) + 1
+  const currentPageStart = (currentPage - 1) * pageSize + 1
   const currentPageEnd = Math.min(
     currentPageStart + wallets.wallets.length - 1,
     totalResults
@@ -385,7 +338,7 @@ export default function Page() {
                             })}
                           </div>
 
-                          {wallets.nextPageToken ? (
+                          {currentPage < pageCount ? (
                             <Router
                               to={`/wallets?${nextPageParams.toString()}`}
                               className='relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50'

@@ -43,7 +43,7 @@ export interface WalletSearchParams {
 
 export async function ListWallets(
   request: Request,
-  page: { pageSize: number; pageToken?: string },
+  page: { pageSize: number; pageToken?: string; offset?: number },
   search?: WalletSearchParams
 ): Promise<ListWalletsResponse> {
   const filterFields = {
@@ -59,6 +59,7 @@ export async function ListWallets(
   const req: ListWalletsRequest = {
     pageSize: page.pageSize,
     pageToken: page.pageToken,
+    offset: page.offset ?? 0,
     filter: hasFilter ? filterFields : undefined
   }
 
