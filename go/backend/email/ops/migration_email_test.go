@@ -88,6 +88,24 @@ func TestSendMigrationEmailWithBcc(t *testing.T) {
 	}, sg.to)
 }
 
+func TestSendMigrationEmailWithBccList(t *testing.T) {
+	sg := &migrationSendgridClient{}
+	b := &testBackends{external: sg, applicationURL: "https://wallet.example"}
+
+	paragraphs := []map[string]interface{}{{"paragraph": "We are migrating accounts."}}
+
+	err := SendMigrationEmail(context.Background(), b, "Migration notice", "alice@example.com", "Alice", paragraphs,
+		"audit@example.com, , legal@example.com ,compliance@example.com")
+	require.NoError(t, err)
+
+	require.Equal(t, []sendgrid.Email{
+		{Name: "Alice", Address: "alice@example.com"},
+		{Name: "", Address: "audit@example.com"},
+		{Name: "", Address: "legal@example.com"},
+		{Name: "", Address: "compliance@example.com"},
+	}, sg.to)
+}
+
 func TestSendMigrationEmailErrors(t *testing.T) {
 	paragraphs := []map[string]interface{}{{"paragraph": "We are migrating accounts."}}
 

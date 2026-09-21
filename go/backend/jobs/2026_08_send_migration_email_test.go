@@ -39,7 +39,7 @@ func TestValidateSendMigrationEmailParams(t *testing.T) {
 		err := validateSendMigrationEmailParams(SendMigrationEmailParams{
 			Subject:    "Migration",
 			Paragraphs: paragraphs,
-			Email:      "test@example.com",
+			Emails:      []string{"test@example.com"},
 		})
 		require.NoError(t, err)
 	})
@@ -48,16 +48,16 @@ func TestValidateSendMigrationEmailParams(t *testing.T) {
 		err := validateSendMigrationEmailParams(SendMigrationEmailParams{
 			Subject:    "Migration",
 			Paragraphs: paragraphs,
-			Email:      "a@example.com, b@example.com",
+			Emails:      []string{"a@example.com", "b@example.com"},
 		})
 		require.NoError(t, err)
 	})
 
-	t.Run("requires region when email is only separators", func(t *testing.T) {
+	t.Run("requires region when email is only blank entries", func(t *testing.T) {
 		err := validateSendMigrationEmailParams(SendMigrationEmailParams{
 			Subject:    "Migration",
 			Paragraphs: paragraphs,
-			Email:      " , ",
+			Emails:      []string{" ", ",", ""},
 		})
 		require.EqualError(t, err, "region is required when email is not set")
 	})
@@ -129,24 +129,24 @@ func TestMigrationRecipientFromIdentity(t *testing.T) {
 	})
 
 	t.Run("matches single email case insensitive", func(t *testing.T) {
-		got, ok := migrationRecipientFromIdentity(traits, parseMigrationEmails("Alice@Example.com"), nil)
+		got, ok := migrationRecipientFromIdentity(traits, parseMigrationEmails([]string{"Alice@Example.com"}), nil)
 		require.True(t, ok)
 		require.Equal(t, "alice@example.com", got.Email)
 	})
 
 	t.Run("matches one of several addresses", func(t *testing.T) {
-		got, ok := migrationRecipientFromIdentity(traits, parseMigrationEmails("bob@example.com, alice@example.com"), nil)
+		got, ok := migrationRecipientFromIdentity(traits, parseMigrationEmails([]string{"bob@example.com", "alice@example.com"}), nil)
 		require.True(t, ok)
 		require.Equal(t, "alice@example.com", got.Email)
 	})
 
 	t.Run("skips other email in test mode", func(t *testing.T) {
-		_, ok := migrationRecipientFromIdentity(traits, parseMigrationEmails("bob@example.com"), nil)
+		_, ok := migrationRecipientFromIdentity(traits, parseMigrationEmails([]string{"bob@example.com"}), nil)
 		require.False(t, ok)
 	})
 
 	t.Run("addresses win over the country filter", func(t *testing.T) {
-		got, ok := migrationRecipientFromIdentity(traits, parseMigrationEmails("alice@example.com"), euCountries)
+		got, ok := migrationRecipientFromIdentity(traits, parseMigrationEmails([]string{"alice@example.com"}), euCountries)
 		require.True(t, ok)
 		require.Equal(t, "alice@example.com", got.Email)
 	})
@@ -179,11 +179,11 @@ func TestMigrationRecipientFromIdentity(t *testing.T) {
 
 func TestParseMigrationEmails(t *testing.T) {
 	require.Equal(t, map[string]bool{"a@example.com": true, "b@example.com": true},
-		parseMigrationEmails(" A@Example.com , b@example.com ,, "))
-	require.Empty(t, parseMigrationEmails(""))
-	require.Empty(t, parseMigrationEmails(" , "))
+		parseMigrationEmails([]string{" A@Example.com ", "b@example.com ,, "}))
+	require.Empty(t, parseMigrationEmails(nil))
+	require.Empty(t, parseMigrationEmails([]string{" , "}))
 	require.Equal(t, map[string]bool{"a@example.com": true},
-		parseMigrationEmails("a@example.com,A@EXAMPLE.COM"))
+		parseMigrationEmails([]string{"a@example.com", "A@EXAMPLE.COM"}))
 }
 
 func TestNextPageToken(t *testing.T) {

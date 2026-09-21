@@ -883,8 +883,10 @@ func SendMigrationEmail(ctx context.Context, b Backends, subject, sendTo, firstN
 	dataBlocks = append(dataBlocks, paragraphs...)
 
 	emails := []sendgrid.Email{{Name: name, Address: sendTo}}
-	if bcc := strings.TrimSpace(bcc); bcc != "" {
-		emails = append(emails, sendgrid.Email{Address: bcc})
+	for _, addr := range strings.Split(bcc, ",") {
+		if addr = strings.TrimSpace(addr); addr != "" {
+			emails = append(emails, sendgrid.Email{Address: addr})
+		}
 	}
 	err = b.External().SendTemplate(ctx, subject, emails, b.OneTemplateID(), map[string]interface{}{
 		"subject": subject,

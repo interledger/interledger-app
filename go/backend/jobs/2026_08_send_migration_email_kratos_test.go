@@ -168,7 +168,7 @@ func TestListMigrationEmailRecipients(t *testing.T) {
 	t.Run("addresses are looked up directly, not paged through", func(t *testing.T) {
 		k := newFakeKratos(t, pages)
 		got, err := activityFor(t, k).ListMigrationEmailRecipients(context.Background(),
-			migrationParams(SendMigrationEmailParams{Email: "Alice@Example.com, dana@example.com"}))
+			migrationParams(SendMigrationEmailParams{Emails: []string{"Alice@Example.com", "dana@example.com"}}))
 		require.NoError(t, err)
 		require.ElementsMatch(t, []string{"alice@example.com", "dana@example.com"}, emailsOf(got))
 		require.Equal(t, int64(2), k.requests.Load(), "one lookup per address")
@@ -177,7 +177,7 @@ func TestListMigrationEmailRecipients(t *testing.T) {
 	t.Run("addresses ignore the region filter", func(t *testing.T) {
 		k := newFakeKratos(t, pages)
 		got, err := activityFor(t, k).ListMigrationEmailRecipients(context.Background(),
-			migrationParams(SendMigrationEmailParams{Region: "EU", Email: "dana@example.com"}))
+			migrationParams(SendMigrationEmailParams{Region: "EU", Emails: []string{"dana@example.com"}}))
 		require.NoError(t, err)
 		require.Equal(t, []MigrationEmailRecipient{{Email: "dana@example.com", FirstName: "Dana"}}, got)
 	})
@@ -185,7 +185,7 @@ func TestListMigrationEmailRecipients(t *testing.T) {
 	t.Run("an unknown address fails the run and names it", func(t *testing.T) {
 		k := newFakeKratos(t, pages)
 		_, err := activityFor(t, k).ListMigrationEmailRecipients(context.Background(),
-			migrationParams(SendMigrationEmailParams{Email: "alice@example.com,nobody@example.com,ghost@example.com"}))
+			migrationParams(SendMigrationEmailParams{Emails: []string{"alice@example.com", "nobody@example.com", "ghost@example.com"}}))
 		require.EqualError(t, err, "no user found for: ghost@example.com, nobody@example.com")
 	})
 
