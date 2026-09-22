@@ -37,7 +37,7 @@ func (sc *E2EContext) theMigrationEmailJobRunsForMyEmail() error {
 	}
 
 	params := migrationEmailParams()
-	params["email"] = email
+	params["emails"] = []string{email}
 	ctx, cancel := context.WithTimeout(context.Background(), migrationEmailJobTimeout)
 	defer cancel()
 	sc.migrationEmailFailures, sc.migrationEmailErr = sc.runMigrationEmailJob(ctx, params)
@@ -51,7 +51,7 @@ func (sc *E2EContext) theMigrationEmailJobRunsForMyEmail() error {
 // Usage: When the migration email job runs for an unknown address
 func (sc *E2EContext) theMigrationEmailJobRunsForAnUnknownAddress() error {
 	params := migrationEmailParams()
-	params["email"] = "missing-" + uuid.NewString() + "@example.com"
+	params["emails"] = []string{"missing-" + uuid.NewString() + "@example.com"}
 	ctx, cancel := context.WithTimeout(context.Background(), migrationEmailJobTimeout)
 	defer cancel()
 	sc.migrationEmailFailures, sc.migrationEmailErr = sc.runMigrationEmailJob(ctx, params)

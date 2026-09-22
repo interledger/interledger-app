@@ -32,17 +32,23 @@ const (
 // SendMigrationEmailParams is the input for SendMigrationEmailJob.
 //
 // Targeting:
-//   - Email set: send only to those addresses, comma separated. Region is ignored,
-//     and every address must match a user or the job fails.
-//   - Email empty: Region is required — "ALL", "EU" or an ISO country code ("US", "ZA").
+//   - Emails set: send only to those addresses. Region is ignored, and every
+//     address must match a user or the job fails.
+//   - Emails empty: Region is required — "ALL", "EU" or an ISO country code ("US", "ZA").
 //
 // Paragraphs are SendGrid template blocks, e.g. {"paragraph": "..."}, {"heading": "..."}.
 // A greeting with the user's first name is prepended; the CTA is always login.
+//
+// Bcc, if set, is added as an extra recipient on every single send — one address,
+// or several comma separated — with the recipient's own name/greeting, since it's
+// a mirror of what they received. On a large region send this means one Bcc copy
+// per recipient (per address), not one for the whole campaign.
 type SendMigrationEmailParams struct {
 	Subject    string                   `json:"subject"`
 	Paragraphs []map[string]interface{} `json:"paragraphs"`
 	Region     string                   `json:"region"`
-	Email      string                   `json:"email"`
+	Emails     []string                 `json:"emails"`
+	Bcc        string                   `json:"bcc"`
 }
 
 // MigrationEmailRecipient is a user selected to receive a migration email.
@@ -79,10 +85,10 @@ func SendMigrationEmailJob(ctx workflow.Context, params SendMigrationEmailParams
 		},
 	})
 
-	return dispatchMigrationEmails(sendCtx, a, recipients, params.Subject, params.Paragraphs), nil
+	return dispatchMigrationEmails(sendCtx, a, recipients, params.Subject, params.Paragraphs, params.Bcc), nil
 }
 
-func dispatchMigrationEmails(ctx workflow.Context, a *Activity, recipients []MigrationEmailRecipient, subject string, paragraphs []map[string]interface{}) []string {
+func dispatchMigrationEmails(ctx workflow.Context, a *Activity, recipients []MigrationEmailRecipient, subject string, paragraphs []map[string]interface{}, bcc string) []string {
 	type pendingEmail struct {
 		email  string
 		future workflow.Future
@@ -102,7 +108,7 @@ func dispatchMigrationEmails(ctx workflow.Context, a *Activity, recipients []Mig
 	for _, r := range recipients {
 		pending = append(pending, pendingEmail{
 			email:  r.Email,
-			future: workflow.ExecuteActivity(ctx, a.SendMigrationEmailToRecipient, subject, r.Email, r.FirstName, paragraphs),
+			future: workflow.ExecuteActivity(ctx, a.SendMigrationEmailToRecipient, subject, r.Email, r.FirstName, paragraphs, bcc),
 		})
 		if len(pending) >= migrationEmailConcurrency {
 			drain()
@@ -117,7 +123,7 @@ func (a *Activity) ListMigrationEmailRecipients(ctx context.Context, params Send
 		return nil, err
 	}
 
-	targetEmails := parseMigrationEmails(params.Email)
+	targetEmails := parseMigrationEmails(params.Emails)
 
 	// nil countries = no country filter (address-targeted send, or region ALL).
 	var countries map[country.Country]bool
@@ -248,8 +254,8 @@ func nextPageToken(resp *http.Response) string {
 	return ""
 }
 
-func (a *Activity) SendMigrationEmailToRecipient(ctx context.Context, subject, sendTo, firstName string, paragraphs []map[string]interface{}) error {
-	return a.b.Email().SendMigrationEmail(ctx, subject, sendTo, firstName, paragraphs)
+func (a *Activity) SendMigrationEmailToRecipient(ctx context.Context, subject, sendTo, firstName string, paragraphs []map[string]interface{}, bcc string) error {
+	return a.b.Email().SendMigrationEmail(ctx, subject, sendTo, firstName, paragraphs, bcc)
 }
 
 func validateSendMigrationEmailParams(params SendMigrationEmailParams) error {
@@ -259,7 +265,7 @@ func validateSendMigrationEmailParams(params SendMigrationEmailParams) error {
 	if len(params.Paragraphs) == 0 {
 		return errors.New("paragraphs are required")
 	}
-	if len(parseMigrationEmails(params.Email)) > 0 {
+	if len(parseMigrationEmails(params.Emails)) > 0 {
 		return nil
 	}
 	if strings.TrimSpace(params.Region) == "" {
@@ -271,13 +277,16 @@ func validateSendMigrationEmailParams(params SendMigrationEmailParams) error {
 	return nil
 }
 
-// parseMigrationEmails normalises the Email param: one address, or several comma separated.
-func parseMigrationEmails(email string) map[string]bool {
+// parseMigrationEmails normalises the Email param into a lowercased address set.
+// Each entry may itself be several comma separated addresses.
+func parseMigrationEmails(emails []string) map[string]bool {
 	addresses := map[string]bool{}
-	for _, address := range strings.Split(email, ",") {
-		address = strings.ToLower(strings.TrimSpace(address))
-		if address != "" {
-			addresses[address] = true
+	for _, email := range emails {
+		for _, address := range strings.Split(email, ",") {
+			address = strings.ToLower(strings.TrimSpace(address))
+			if address != "" {
+				addresses[address] = true
+			}
 		}
 	}
 	return addresses

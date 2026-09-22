@@ -870,7 +870,7 @@ func SendGatehubWithdrawalSettledEmail(ctx context.Context, b Backends, txID, wa
 	}
 }
 
-func SendMigrationEmail(ctx context.Context, b Backends, subject, sendTo, firstName string, paragraphs []map[string]interface{}) error {
+func SendMigrationEmail(ctx context.Context, b Backends, subject, sendTo, firstName string, paragraphs []map[string]interface{}, bcc string) error {
 	loginURL, err := url.JoinPath(b.Config().ApplicationURL, "login")
 	if err != nil {
 		return err
@@ -883,6 +883,11 @@ func SendMigrationEmail(ctx context.Context, b Backends, subject, sendTo, firstN
 	dataBlocks = append(dataBlocks, paragraphs...)
 
 	emails := []sendgrid.Email{{Name: name, Address: sendTo}}
+	for _, addr := range strings.Split(bcc, ",") {
+		if addr = strings.TrimSpace(addr); addr != "" {
+			emails = append(emails, sendgrid.Email{Address: addr})
+		}
+	}
 	err = b.External().SendTemplate(ctx, subject, emails, b.OneTemplateID(), map[string]interface{}{
 		"subject": subject,
 		"data":    dataBlocks,

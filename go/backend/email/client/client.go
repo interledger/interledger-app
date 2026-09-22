@@ -141,6 +141,6 @@ func (c *client) SendGatehubWithdrawalSettledEmail(ctx context.Context, txID, wa
 	ops.SendGatehubWithdrawalSettledEmail(ctx, c.b, txID, walletID, amount, iban, name, timestamp)
 }
 
-func (c *client) SendMigrationEmail(ctx context.Context, subject, sendTo, firstName string, paragraphs []map[string]interface{}) error {
-	return ops.SendMigrationEmail(ctx, c.b, subject, sendTo, firstName, paragraphs)
+func (c *client) SendMigrationEmail(ctx context.Context, subject, sendTo, firstName string, paragraphs []map[string]interface{}, bcc string) error {
+	return ops.SendMigrationEmail(ctx, c.b, subject, sendTo, firstName, paragraphs, bcc)
 }
