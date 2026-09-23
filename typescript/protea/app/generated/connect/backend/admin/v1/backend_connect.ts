@@ -4,7 +4,7 @@
 // @ts-nocheck
 
 import { Empty, MethodKind } from "@bufbuild/protobuf";
-import { AllowWaitlistSignupRequest, CheckUserTotpEnabledRequest, CheckUserTotpEnabledResponse, CompleteLinkedAccountReviewRequest, CreateGatehubUserRequest, Delete2FATotpEnrollmentRequest, Empty as Empty$1, EnablePTIBalanceRequest, Features, GatehubUser, GetGatehubBalanceRequest, GetGatehubBalanceResponse, GetGatehubUserRequest, GetLinkedAccountRequest, GetLinkedAccountReviewRequest, GetPTIBalanceRequest, GetPTIBalanceResponse, GetTransactionDetailsRequest, GetTransactionDetailsResponse, GetWalletDetailsRequest, GetWalletFeaturesRequest, GetWalletXagoBalanceRequest, GetWalletXagoBalanceResponse, LinkedAccount, LinkedAccountReview, LinkedAccountReviews, ListAuditRequest, ListAuditResponse, ListCountriesResponse, ListExternalApiCallsRequest, ListExternalApiCallsResponse, ListLinkedAccountsRequest, ListLinkedAccountsResponse, ListPaymentsAwaitingSignalResponse, ListTransactionsRequest, ListTransactionsResponse, ListWaitlistSignupsResponse, ListWalletsRequest, ListWalletsResponse, PaginationRequest, ResetUserPhoneVerificationRequest, SetWalletCountryRequest, SetWalletXagoBalanceEnabledRequest, UserStats, WalletDetails } from "./backend_pb.js";
+import { AllowWaitlistSignupRequest, CheckUserTotpEnabledRequest, CheckUserTotpEnabledResponse, CompleteLinkedAccountReviewRequest, CreateGatehubUserRequest, Delete2FATotpEnrollmentRequest, Empty as Empty$1, EnablePTIBalanceRequest, Features, GatehubUser, GetGatehubBalanceRequest, GetGatehubBalanceResponse, GetGatehubUserRequest, GetLinkedAccountRequest, GetLinkedAccountReviewRequest, GetPTIBalanceRequest, GetPTIBalanceResponse, GetTransactionDetailsRequest, GetTransactionDetailsResponse, GetWalletDetailsRequest, GetWalletFeaturesRequest, GetWalletXagoBalanceRequest, GetWalletXagoBalanceResponse, LinkedAccount, LinkedAccountReview, LinkedAccountReviews, ListAuditRequest, ListAuditResponse, ListCountriesResponse, ListExternalApiCallsRequest, ListExternalApiCallsResponse, ListLinkedAccountsRequest, ListLinkedAccountsResponse, ListPaymentsAwaitingSignalResponse, ListTransactionsRequest, ListTransactionsResponse, ListWaitlistSignupsResponse, ListWalletsRequest, ListWalletsResponse, PaginationRequest, ResetUserPhoneVerificationRequest, SetWalletCountryRequest, SetWalletXagoBalanceEnabledRequest, TransactionStats, UserStats, WalletDetails } from "./backend_pb.js";
 
 /**
  * @generated from service backend.admin.v1.Backend
@@ -277,6 +277,15 @@ export const Backend = {
       name: "GetUserStats",
       I: Empty,
       O: UserStats,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc backend.admin.v1.Backend.GetTransactionStats
+     */
+    getTransactionStats: {
+      name: "GetTransactionStats",
+      I: Empty$1,
+      O: TransactionStats,
       kind: MethodKind.Unary,
     },
   }

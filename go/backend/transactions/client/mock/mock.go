@@ -7,6 +7,7 @@ package mock
 import (
 	context "context"
 	reflect "reflect"
+	time "time"
 
 	gomock "github.com/golang/mock/gomock"
 	currency "github.com/interledger/interledger-app/go/backend/currency"
@@ -385,4 +386,19 @@ func (m *MockClient) SetTransferState(ctx context.Context, ID string, state tran
 func (mr *MockClientMockRecorder) SetTransferState(ctx, ID, state interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetTransferState", reflect.TypeOf((*MockClient)(nil).SetTransferState), ctx, ID, state)
+}
+
+// TransactionStats mocks base method.
+func (m *MockClient) TransactionStats(ctx context.Context, now time.Time) (transactions.TransactionStats, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "TransactionStats", ctx, now)
+	ret0, _ := ret[0].(transactions.TransactionStats)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// TransactionStats indicates an expected call of TransactionStats.
+func (mr *MockClientMockRecorder) TransactionStats(ctx, now interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TransactionStats", reflect.TypeOf((*MockClient)(nil).TransactionStats), ctx, now)
 }

@@ -30,13 +30,26 @@ export async function loader({ request }: LoaderFunctionArgs) {
       }
     )
 
+    const transactionStats = await grpcClient.getTransactionStats(
+      {},
+      {
+        meta: {
+          cookies: String(request.headers.get('cookie')) || ''
+        }
+      }
+    )
+
     return data({
       error: '',
       wallets,
       signups: signups.response.signups,
       userCount: stats.response.totalUsers,
       usersThisYear: stats.response.usersThisYear,
-      quarterlyUsers: stats.response.quarterlyUsers
+      quarterlyUsers: stats.response.quarterlyUsers,
+      transactionCount: transactionStats.response.totalTransactions,
+      transactionsThisyear: transactionStats.response.transactionsThisYear,
+      quarterlyTransactions: transactionStats.response.quarterlyTransactions,
+      transactionsByType: transactionStats.response.typeTransactions
     })
   } catch (e) {
     console.log('Failed to retrieve wallets: ', e)
@@ -46,14 +59,28 @@ export async function loader({ request }: LoaderFunctionArgs) {
       signups: [],
       userCount: 0,
       usersThisYear: 0,
-      quarterlyUsers: []
+      quarterlyUsers: [],
+      transactionCount: 0,
+      transactionsThisyear: 0,
+      quarterlyTransactions: [],
+      transactionsByType: []
     })
   }
 }
 
 export default function Page() {
-  const { wallets, signups, userCount, usersThisYear, quarterlyUsers, error } =
-    useLoaderData<typeof loader>()
+  const {
+    wallets,
+    signups,
+    userCount,
+    usersThisYear,
+    quarterlyUsers,
+    transactionCount,
+    transactionsThisyear,
+    quarterlyTransactions,
+    transactionsByType,
+    error
+  } = useLoaderData<typeof loader>()
 
   return (
     <Grid>
@@ -131,6 +158,86 @@ export default function Page() {
                       </td>
                       <td className='px-4 py-3 text-sm text-gray-500'>
                         {quarter.count}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div className='col-span-2 col-start-1 flex flex-col rounded-2xl bg-page p-4'>
+            <h2 className='font-display text-lg font-medium'>
+              Total Transactions
+            </h2>
+            <h1 className='mt-2 text-3xl font-medium'>{transactionCount}</h1>
+          </div>
+          <div className='col-span-2 flex flex-col rounded-2xl bg-page p-4'>
+            <h2 className='font-display text-lg font-medium'>
+              Total Transactions this year
+            </h2>
+            <h1 className='mt-2 text-3xl font-medium'>
+              {transactionsThisyear}
+            </h1>
+          </div>
+          <div className='col-span-full flex flex-col rounded-2xl bg-page p-4 pb-6'>
+            <h2 className='font-display text-lg font-medium'>
+              Transactions created this year
+            </h2>
+
+            <div className='mt-4 overflow-hidden rounded-lg shadow ring-1 ring-black ring-opacity-5'>
+              <table className='min-w-full divide-y divide-gray-300'>
+                <thead className='bg-gray-50'>
+                  <tr>
+                    <th className='px-4 py-3 text-left text-sm font-semibold text-gray-900'>
+                      Quarter
+                    </th>
+                    <th className='px-4 py-3 text-left text-sm font-semibold text-gray-900'>
+                      Transactions
+                    </th>
+                  </tr>
+                </thead>
+
+                <tbody className='divide-y divide-gray-200 bg-white'>
+                  {quarterlyTransactions.map((quarter) => (
+                    <tr key={quarter.quarter}>
+                      <td className='px-4 py-3 text-sm font-medium text-gray-900'>
+                        Q{quarter.quarter}
+                      </td>
+                      <td className='px-4 py-3 text-sm text-gray-500'>
+                        {quarter.count}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div className='col-span-full flex flex-col rounded-2xl bg-page p-4 pb-6'>
+            <h2 className='font-display text-lg font-medium'>
+              Transactions by type
+            </h2>
+
+            <div className='mt-4 overflow-hidden rounded-lg shadow ring-1 ring-black ring-opacity-5'>
+              <table className='min-w-full divide-y divide-gray-300'>
+                <thead className='bg-gray-50'>
+                  <tr>
+                    <th className='px-4 py-3 text-left text-sm font-semibold text-gray-900'>
+                      Type
+                    </th>
+                    <th className='px-4 py-3 text-left text-sm font-semibold text-gray-900'>
+                      Transactions
+                    </th>
+                  </tr>
+                </thead>
+
+                <tbody className='divide-y divide-gray-200 bg-white'>
+                  {transactionsByType.map((type) => (
+                    <tr key={type.type}>
+                      <td className='px-4 py-3 text-sm font-medium text-gray-900'>
+                        {type.type}
+                      </td>
+                      <td className='px-4 py-3 text-sm text-gray-500'>
+                        {type.count}
                       </td>
                     </tr>
                   ))}
