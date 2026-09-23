@@ -21,8 +21,10 @@ const orDash = (value?: string) =>
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
-  const pageSize = url.searchParams.get('pageSize') || '50'
-  const pageToken = url.searchParams.get('pageToken') || ''
+  const pageSize = Number(url.searchParams.get('pageSize') || '50')
+  const page = Number(url.searchParams.get('page') || '1')
+  const offset = (page - 1) * pageSize
+  const currentPage = Math.max(1, page)
 
   const filters = Object.fromEntries(
     FILTER_FIELDS.map(({ name }) => [
@@ -36,34 +38,90 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const wallets = await ListWallets(
     request,
     {
-      pageSize: parseInt(pageSize),
-      pageToken: pageToken || undefined
+      pageSize,
+      offset
     },
     hasFilter ? filters : undefined
   )
+
+  const totalResults = wallets.totalCount ?? 0
 
   return data({
     wallets,
     pageSize,
     filters,
-    hasFilter
+    hasFilter,
+    totalResults,
+    currentPage
   })
 }
 
 export default function Page() {
-  const { wallets, pageSize, filters, hasFilter } =
+  const { wallets, pageSize, filters, hasFilter, totalResults, currentPage } =
     useLoaderData<typeof loader>()
   const navigation = useNavigation()
   const isSearching = navigation.state === 'loading'
 
-  const nextPageParams = new URLSearchParams()
-  if (wallets.nextPageToken) {
-    nextPageParams.set('pageToken', wallets.nextPageToken)
-    nextPageParams.set('pageSize', pageSize)
+  const pageParams = (pageNumber: number) => {
+    const params = new URLSearchParams()
+
+    params.set('page', pageNumber.toString())
+    params.set('pageSize', pageSize.toString())
+
     for (const { name } of FILTER_FIELDS) {
-      if (filters[name]) nextPageParams.set(name, filters[name])
+      if (filters[name]) params.set(name, filters[name])
     }
+
+    return params
   }
+
+  const pageCount = Math.ceil(totalResults / pageSize)
+  const previousPageParams = pageParams(Math.max(1, currentPage - 1))
+  const nextPageParams = pageParams(currentPage + 1)
+
+  const FIRST_PAGE = 1
+  const VISIBLE_PAGES_AT_START = 3
+  const VISIBLE_PAGES_AT_END = 3
+  const PAGE_RANGE_THRESHOLD = 7
+  const ADJACENT_PAGE_COUNT = 1
+
+  const pageItems: Array<number | 'ellipsis'> =
+    pageCount <= PAGE_RANGE_THRESHOLD
+      ? Array.from({ length: pageCount }, (_, index) => index + FIRST_PAGE)
+      : currentPage <= VISIBLE_PAGES_AT_START
+        ? [
+            ...Array.from(
+              { length: VISIBLE_PAGES_AT_START },
+              (_, index) => index + FIRST_PAGE
+            ),
+            'ellipsis',
+            pageCount
+          ]
+        : currentPage >= pageCount - (VISIBLE_PAGES_AT_END - 1)
+          ? [
+              FIRST_PAGE,
+              'ellipsis',
+              ...Array.from(
+                { length: VISIBLE_PAGES_AT_END },
+                (_, index) => pageCount - (VISIBLE_PAGES_AT_END - 1) + index
+              )
+            ]
+          : [
+              FIRST_PAGE,
+              'ellipsis',
+              currentPage - ADJACENT_PAGE_COUNT,
+              currentPage,
+              currentPage + ADJACENT_PAGE_COUNT,
+              'ellipsis',
+              pageCount
+            ]
+
+  const hasPreviousPage = currentPage > 1
+  const currentPageStart = (currentPage - 1) * pageSize + 1
+  const currentPageEnd = Math.min(
+    currentPageStart + wallets.wallets.length - 1,
+    totalResults
+  )
 
   return (
     <Grid>
@@ -215,25 +273,82 @@ export default function Page() {
                       <td colSpan={4} className='p-4'>
                         <p className='text-sm text-weak'>
                           Showing{' '}
-                          <span className='font-medium'>
-                            {wallets.wallets.length === 0 ? 0 : 1}
+                          <span className='font-medium text-[#14213d]'>
+                            {wallets.wallets.length === 0
+                              ? 0
+                              : currentPageStart}
                           </span>{' '}
                           to{' '}
-                          <span className='font-medium'>
-                            {wallets.wallets.length}
+                          <span className='font-medium text-[#14213d]'>
+                            {wallets.wallets.length === 0 ? 0 : currentPageEnd}
+                          </span>{' '}
+                          of{' '}
+                          <span className='font-medium text-[#14213d]'>
+                            {totalResults}
                           </span>{' '}
                           results
                         </p>
                       </td>
                       <td colSpan={3}>
-                        <div className='flex flex-1 justify-between pr-3 sm:justify-end'>
-                          {wallets.nextPageToken && (
+                        <div className='flex flex-1 flex-wrap items-center justify-between gap-3 pr-3 sm:justify-end'>
+                          {hasPreviousPage ? (
+                            <Router
+                              to={`/wallets?${previousPageParams.toString()}`}
+                              className='relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50'
+                            >
+                              Previous
+                            </Router>
+                          ) : (
+                            <span className='relative inline-flex cursor-not-allowed items-center rounded-md border border-gray-200 bg-gray-50 px-4 py-2 text-sm font-medium text-gray-400'>
+                              Previous
+                            </span>
+                          )}
+
+                          <div className='flex items-center gap-1'>
+                            {pageItems.map((item, index) => {
+                              if (item === 'ellipsis') {
+                                return (
+                                  <span
+                                    key={`ellipsis-${index}`}
+                                    aria-hidden='true'
+                                    className='min-w-9 inline-flex h-9 items-center justify-center px-2 text-sm text-gray-500'
+                                  >
+                                    ...
+                                  </span>
+                                )
+                              }
+
+                              return item === currentPage ? (
+                                <span
+                                  key={item}
+                                  aria-current='page'
+                                  className='min-w-9 inline-flex h-9 items-center justify-center rounded-md bg-[#14213d] px-3 text-sm font-medium text-white'
+                                >
+                                  {item}
+                                </span>
+                              ) : (
+                                <Router
+                                  key={item}
+                                  to={`/wallets?${pageParams(item).toString()}`}
+                                  className='min-w-9 inline-flex h-9 items-center justify-center rounded-md border border-gray-300 bg-white px-3 text-sm font-medium text-gray-700 hover:bg-gray-50'
+                                >
+                                  {item}
+                                </Router>
+                              )
+                            })}
+                          </div>
+
+                          {currentPage < pageCount ? (
                             <Router
                               to={`/wallets?${nextPageParams.toString()}`}
-                              className='relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50'
+                              className='relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50'
                             >
                               Next
                             </Router>
+                          ) : (
+                            <span className='relative inline-flex cursor-not-allowed items-center rounded-md border border-gray-200 bg-gray-50 px-4 py-2 text-sm font-medium text-gray-400'>
+                              Next
+                            </span>
                           )}
                         </div>
                       </td>
