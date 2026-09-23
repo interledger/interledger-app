@@ -7,6 +7,7 @@ import (
 	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
 	"github.com/interledger/interledger-app/go/backend/notify"
 	"github.com/interledger/interledger-app/go/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
 	"github.com/interledger/interledger-app/go/backend/transactions"
 	"github.com/interledger/interledger-app/go/backend/user"
 	"github.com/interledger/interledger-app/go/backend/wallets"
@@ -28,4 +29,5 @@ type Backends interface {
 	Transactions() transactions.Client
 	Payments() payments.Client
 	Notify() notify.Client
+	Gatehub() gatehub.Client
 }

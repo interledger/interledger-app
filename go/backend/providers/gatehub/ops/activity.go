@@ -576,6 +576,16 @@ func (a *Activity) GetGateHubTransactionByForeignID(ctx context.Context, walletI
 	}
 	return tx, nil
 }
+func (a *Activity) GetGateHubTransactionByForeignIDReturningNillForNoRows(ctx context.Context, walletID, foreignID string) (*transactions.Transaction, error) {
+	tx, err := a.b.Transactions().GetTransactionByForeignID(ctx, walletID, foreignID)
+	if err != nil {
+		if errors.Is(err, transactions.ErrNotFound) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+	return tx, nil
+}
 
 func (a *Activity) FinalizeGatehubWithdrawal(ctx context.Context, internalTxID string) error {
 	err := FinaliseReserve(ctx, a.b, internalTxID)
@@ -613,4 +623,13 @@ func (a *Activity) SendWithdrawalReroutedEmail(ctx context.Context, txID, wallet
 func (a *Activity) SendWithdrawalSettledEmail(ctx context.Context, txID, walletID, amount, iban, name, timestamp string) error {
 	a.b.Email().SendGatehubWithdrawalSettledEmail(ctx, txID, walletID, amount, iban, name, timestamp)
 	return nil
+}
+
+func (a *Activity) CreateGatehubWithdrawTransaction(ctx context.Context, walletID, externalTxID string) (string, error) {
+	txID, err := a.b.Gatehub().CreateWithdrawal(ctx, walletID, externalTxID)
+	if err != nil {
+		return "", err
+	}
+	
+	return txID,nil
 }
