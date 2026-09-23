@@ -7,6 +7,147 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
 
 /**
+ * @generated from message backend.admin.v1.TransactionStats
+ */
+export class TransactionStats extends Message<TransactionStats> {
+  /**
+   * @generated from field: int32 totalTransactions = 1;
+   */
+  totalTransactions = 0;
+
+  /**
+   * @generated from field: int32 transactionsThisYear = 2;
+   */
+  transactionsThisYear = 0;
+
+  /**
+   * @generated from field: repeated backend.admin.v1.QuarterlyTransactionCount quarterlyTransactions = 3;
+   */
+  quarterlyTransactions: QuarterlyTransactionCount[] = [];
+
+  /**
+   * @generated from field: repeated backend.admin.v1.TypeTransactionCount typeTransactions = 4;
+   */
+  typeTransactions: TypeTransactionCount[] = [];
+
+  constructor(data?: PartialMessage<TransactionStats>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.TransactionStats";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "totalTransactions", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
+    { no: 2, name: "transactionsThisYear", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
+    { no: 3, name: "quarterlyTransactions", kind: "message", T: QuarterlyTransactionCount, repeated: true },
+    { no: 4, name: "typeTransactions", kind: "message", T: TypeTransactionCount, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransactionStats {
+    return new TransactionStats().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): TransactionStats {
+    return new TransactionStats().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): TransactionStats {
+    return new TransactionStats().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: TransactionStats | PlainMessage<TransactionStats> | undefined, b: TransactionStats | PlainMessage<TransactionStats> | undefined): boolean {
+    return proto3.util.equals(TransactionStats, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.admin.v1.QuarterlyTransactionCount
+ */
+export class QuarterlyTransactionCount extends Message<QuarterlyTransactionCount> {
+  /**
+   * @generated from field: int32 quarter = 1;
+   */
+  quarter = 0;
+
+  /**
+   * @generated from field: int32 count = 2;
+   */
+  count = 0;
+
+  constructor(data?: PartialMessage<QuarterlyTransactionCount>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.QuarterlyTransactionCount";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "quarter", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
+    { no: 2, name: "count", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): QuarterlyTransactionCount {
+    return new QuarterlyTransactionCount().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): QuarterlyTransactionCount {
+    return new QuarterlyTransactionCount().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): QuarterlyTransactionCount {
+    return new QuarterlyTransactionCount().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: QuarterlyTransactionCount | PlainMessage<QuarterlyTransactionCount> | undefined, b: QuarterlyTransactionCount | PlainMessage<QuarterlyTransactionCount> | undefined): boolean {
+    return proto3.util.equals(QuarterlyTransactionCount, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.admin.v1.TypeTransactionCount
+ */
+export class TypeTransactionCount extends Message<TypeTransactionCount> {
+  /**
+   * @generated from field: string type = 1;
+   */
+  type = "";
+
+  /**
+   * @generated from field: int32 count = 2;
+   */
+  count = 0;
+
+  constructor(data?: PartialMessage<TypeTransactionCount>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.TypeTransactionCount";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "count", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TypeTransactionCount {
+    return new TypeTransactionCount().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): TypeTransactionCount {
+    return new TypeTransactionCount().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): TypeTransactionCount {
+    return new TypeTransactionCount().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: TypeTransactionCount | PlainMessage<TypeTransactionCount> | undefined, b: TypeTransactionCount | PlainMessage<TypeTransactionCount> | undefined): boolean {
+    return proto3.util.equals(TypeTransactionCount, a, b);
+  }
+}
+
+/**
  * @generated from message backend.admin.v1.CheckUserTotpEnabledRequest
  */
 export class CheckUserTotpEnabledRequest extends Message<CheckUserTotpEnabledRequest> {
