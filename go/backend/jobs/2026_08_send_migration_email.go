@@ -9,6 +9,8 @@ import (
 	"sort"
 	"strings"
 	"time"
+	"unicode"
+	"unicode/utf8"
 
 	"github.com/interledger/interledger-app/go/backend/country"
 	"github.com/interledger/interledger-app/go/log"
@@ -342,6 +344,14 @@ func migrationRecipientFromIdentity(traits any, targetEmails map[string]bool, co
 	firstName, _ := traitsMap["firstName"].(string)
 	return MigrationEmailRecipient{
 		Email:     email,
-		FirstName: strings.TrimSpace(firstName),
+		FirstName: capitalizeFirstLetter(strings.TrimSpace(firstName)),
 	}, true
+}
+
+func capitalizeFirstLetter(s string) string {
+	if s == "" {
+		return s
+	}
+	r, size := utf8.DecodeRuneInString(s)
+	return string(unicode.ToUpper(r)) + s[size:]
 }
