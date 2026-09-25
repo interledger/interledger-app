@@ -43,7 +43,7 @@ dependencies:
     version: 3.3.0
   '@protobuf-ts/grpc-transport':
     specifier: ^2.9.0
-    version: 2.9.0(@grpc/grpc-js@1.14.4)
+    version: 2.9.0(@grpc/grpc-js@1.14.5)
   '@protobuf-ts/runtime':
     specifier: ^2.9.0
     version: 2.9.0
@@ -222,7 +222,7 @@ devDependencies:
     version: 18.2.4
   '@types/uuid':
     specifier: ^9.0.1
-    version: 9.0.1
+    version: 9.0.8
   '@vitejs/plugin-react':
     specifier: ^4.7.0
     version: 4.7.0(vite@6.4.3)
@@ -1019,8 +1019,8 @@ packages:
       crypto-js: 4.2.0
     dev: false
 
-  /@grpc/grpc-js@1.14.4:
-    resolution: {integrity: sha512-k9Dj3DV/itK9D06Y8f190Qgop7/Ui+D0njFV3LHMPwPT75DpXLQohE9Wmz0QElrJnzsjB7KPWiKJbOl7IPDArQ==}
+  /@grpc/grpc-js@1.14.5:
+    resolution: {integrity: sha512-7VZM+SVdEcUUqSQeNI3zM8Qs/BhQKZndPo2h5VkYkAM8Iz0wJIa8mKV5ekQGqG8UUsnkQ0NMxIxwkIHYvj0qOw==}
     engines: {node: '>=12.10.0'}
     dependencies:
       '@grpc/proto-loader': 0.8.1
@@ -1763,12 +1763,12 @@ packages:
       - supports-color
     dev: false
 
-  /@protobuf-ts/grpc-transport@2.9.0(@grpc/grpc-js@1.14.4):
+  /@protobuf-ts/grpc-transport@2.9.0(@grpc/grpc-js@1.14.5):
     resolution: {integrity: sha512-LiPZ95G9BPVgxO6tJIXjaX3hxtTPrvzi7h4ZU9ce+3Wd9/nzYkawTMtZ6CpLZCSpsk4KlFuDfNmyfJLWefSdKw==}
     peerDependencies:
       '@grpc/grpc-js': ^1.6.0
     dependencies:
-      '@grpc/grpc-js': 1.14.4
+      '@grpc/grpc-js': 1.14.5
       '@protobuf-ts/runtime': 2.9.0
       '@protobuf-ts/runtime-rpc': 2.9.0
     dev: false
@@ -3628,7 +3628,7 @@ packages:
       storybook: ^8.6.17
     dependencies:
       '@storybook/global': 5.0.0
-      '@types/uuid': 9.0.1
+      '@types/uuid': 9.0.8
       dequal: 2.0.3
       polished: 4.3.1
       storybook: 8.6.17(prettier@3.8.4)
@@ -4394,8 +4394,8 @@ packages:
   /@types/trusted-types@2.0.7:
     resolution: {integrity: sha512-ScaPdn1dQczgbl0QFTeTOmVHFULt394XJgOQNoyVhZ6r2vLnMLJfBPd53SB52T/3G36VI1/g2MZaX0cwDuXsfw==}
 
-  /@types/uuid@9.0.1:
-    resolution: {integrity: sha512-rFT3ak0/2trgvp4yYZo5iKFEPsET7vKydKF+VRCxlQ9bpheehyAJH89dAkaLEq/j/RZXJIqcgsmPJKUP1Z28HA==}
+  /@types/uuid@9.0.8:
+    resolution: {integrity: sha512-jg+97EGIcY9AGHJJRaaPVgetKDsrTgbRjQ5Msgjh/DQKEFl0DtyRr/VCOyD1T2R1MNeWPK/u7JoGhlDZnKBAfA==}
     dev: true
 
   /@types/webpack-env@1.18.8:
