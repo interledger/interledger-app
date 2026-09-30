@@ -85,6 +85,11 @@ func (s *AdminRpcService) ListWallets(ctx context.Context, req *adminv1.ListWall
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
+	totalCount := int64(0)
+	if len(wallets) > 0 {
+		totalCount = wallets[0].TotalCount
+	}
+
 	hasNextPage := len(wallets) > page.PageSize
 	if hasNextPage {
 		wallets = wallets[:page.PageSize]
@@ -119,6 +124,7 @@ func (s *AdminRpcService) ListWallets(ctx context.Context, req *adminv1.ListWall
 	return &adminv1.ListWalletsResponse{
 		Wallets:       resp,
 		NextPageToken: nextPageToken,
+		TotalCount:    int32(totalCount),
 	}, nil
 }
 

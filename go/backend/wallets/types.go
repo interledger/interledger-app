@@ -25,8 +25,9 @@ type Wallet struct {
 	Addresses      []Address
 	Country        country.Country `db:"country"`
 	ExceededLimits bool            `db:"exceeded_limits"`
-	KYCFirstName *string `db:"kyc_first_name"`
-	KYCLastName  *string `db:"kyc_last_name"`
+	KYCFirstName   *string `db:"kyc_first_name"`
+	KYCLastName    *string `db:"kyc_last_name"`
+	TotalCount     int64   `db:"total_count"`
 }
 
 func (w Wallet) AddressShortString() string {

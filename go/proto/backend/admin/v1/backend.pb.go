@@ -3176,6 +3176,7 @@ type ListWalletsRequest struct {
 	PageToken     *string                `protobuf:"bytes,2,opt,name=pageToken,proto3,oneof" json:"pageToken,omitempty"`
 	Search        *string                `protobuf:"bytes,3,opt,name=search,proto3,oneof" json:"search,omitempty"`
 	Filter        *WalletSearchFilter    `protobuf:"bytes,4,opt,name=filter,proto3,oneof" json:"filter,omitempty"`
+	Offset        int32                  `protobuf:"varint,5,opt,name=offset,proto3" json:"offset,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3236,6 +3237,13 @@ func (x *ListWalletsRequest) GetFilter() *WalletSearchFilter {
 		return x.Filter
 	}
 	return nil
+}
+
+func (x *ListWalletsRequest) GetOffset() int32 {
+	if x != nil {
+		return x.Offset
+	}
+	return 0
 }
 
 type WalletSearchFilter struct {
@@ -3402,6 +3410,7 @@ type ListWalletsResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Wallets       []*Wallet              `protobuf:"bytes,1,rep,name=wallets,proto3" json:"wallets,omitempty"`
 	NextPageToken string                 `protobuf:"bytes,2,opt,name=nextPageToken,proto3" json:"nextPageToken,omitempty"`
+	TotalCount    int32                  `protobuf:"varint,3,opt,name=totalCount,proto3" json:"totalCount,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3448,6 +3457,13 @@ func (x *ListWalletsResponse) GetNextPageToken() string {
 		return x.NextPageToken
 	}
 	return ""
+}
+
+func (x *ListWalletsResponse) GetTotalCount() int32 {
+	if x != nil {
+		return x.TotalCount
+	}
+	return 0
 }
 
 type User struct {
@@ -4375,12 +4391,13 @@ const file_backend_admin_v1_backend_proto_rawDesc = "" +
 	"\x06search\x18\x03 \x01(\tH\x01R\x06search\x88\x01\x01B\f\n" +
 	"\n" +
 	"_pageTokenB\t\n" +
-	"\a_search\"\xd7\x01\n" +
+	"\a_search\"\xef\x01\n" +
 	"\x12ListWalletsRequest\x12\x1a\n" +
 	"\bpageSize\x18\x01 \x01(\x05R\bpageSize\x12!\n" +
 	"\tpageToken\x18\x02 \x01(\tH\x00R\tpageToken\x88\x01\x01\x12\x1b\n" +
 	"\x06search\x18\x03 \x01(\tH\x01R\x06search\x88\x01\x01\x12A\n" +
-	"\x06filter\x18\x04 \x01(\v2$.backend.admin.v1.WalletSearchFilterH\x02R\x06filter\x88\x01\x01B\f\n" +
+	"\x06filter\x18\x04 \x01(\v2$.backend.admin.v1.WalletSearchFilterH\x02R\x06filter\x88\x01\x01\x12\x16\n" +
+	"\x06offset\x18\x05 \x01(\x05R\x06offsetB\f\n" +
 	"\n" +
 	"_pageTokenB\t\n" +
 	"\a_searchB\t\n" +
@@ -4401,10 +4418,13 @@ const file_backend_admin_v1_backend_proto_rawDesc = "" +
 	"walletName\x12,\n" +
 	"\x05users\x18\x03 \x03(\v2\x16.backend.admin.v1.UserR\x05users\x12\"\n" +
 	"\fkycFirstName\x18\x04 \x01(\tR\fkycFirstName\x12 \n" +
-	"\vkycLastName\x18\x05 \x01(\tR\vkycLastName\"o\n" +
+	"\vkycLastName\x18\x05 \x01(\tR\vkycLastName\"\x8f\x01\n" +
 	"\x13ListWalletsResponse\x122\n" +
 	"\awallets\x18\x01 \x03(\v2\x18.backend.admin.v1.WalletR\awallets\x12$\n" +
-	"\rnextPageToken\x18\x02 \x01(\tR\rnextPageToken\"\xe8\x01\n" +
+	"\rnextPageToken\x18\x02 \x01(\tR\rnextPageToken\x12\x1e\n" +
+	"\n" +
+	"totalCount\x18\x03 \x01(\x05R\n" +
+	"totalCount\"\xe8\x01\n" +
 	"\x04User\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05email\x18\x02 \x01(\tR\x05email\x12 \n" +

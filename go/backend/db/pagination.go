@@ -13,6 +13,7 @@ type Pagination struct {
 	PageSize  int
 	Search    string
 	Filter    WalletFilter
+	Offset    int
 }
 
 type WalletFilter struct {
@@ -28,7 +29,7 @@ func (p *Pagination) SQL() string {
 		p.PageSize = 50
 	}
 
-	return fmt.Sprintf(" LIMIT %d ", p.PageSize+1)
+	return fmt.Sprintf(" LIMIT %d OFFSET %d", p.PageSize+1, p.Offset)
 }
 
 func PaginationFromPB(req *pb.PaginationRequest) Pagination {
@@ -70,6 +71,7 @@ func FromListWalletsPB(req *adminpb.ListWalletsRequest) Pagination {
 		PageToken: req.GetPageToken(),
 		PageSize:  int(pageSize),
 		Search:    req.GetSearch(),
+		Offset:    int(req.GetOffset()),
 	}
 
 	if f := req.GetFilter(); f != nil {

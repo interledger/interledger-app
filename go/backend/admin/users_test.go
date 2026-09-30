@@ -56,7 +56,7 @@ func (b *testBackends) Wallets() wallets.Client { return b.wallets }
 func TestListWallets_LegacyPathWhenFilterAbsent(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	wm := wallets_mock.NewMockClient(ctrl)
-	wm.EXPECT().ListAll(gomock.Any(), gomock.Any()).Return([]wallets.Wallet{{ID: "w1", Name: "alice"}}, nil)
+	wm.EXPECT().ListAll(gomock.Any(), gomock.Any()).Return([]wallets.Wallet{{ID: "w1", Name: "alice", TotalCount: 1}}, nil)
 
 	uc := &fakeUsersClient{}
 	s := &AdminRpcService{b: &testBackends{users: uc, wallets: wm}}
@@ -65,6 +65,7 @@ func TestListWallets_LegacyPathWhenFilterAbsent(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, resp.Wallets, 1)
 	assert.Equal(t, "w1", resp.Wallets[0].WalletID)
+	assert.EqualValues(t, 1, resp.TotalCount)
 }
 
 func TestListWallets_LegacyEmailSearchResolvesNothing(t *testing.T) {
@@ -112,7 +113,7 @@ func TestListWallets_FilterEmailAndPhoneIntersect(t *testing.T) {
 	wm.EXPECT().ListAll(gomock.Any(), gomock.Any()).
 		DoAndReturn(func(_ context.Context, page db.Pagination) ([]wallets.Wallet, error) {
 			require.Equal(t, []string{walletA}, page.Filter.WalletIDs)
-			return []wallets.Wallet{{ID: walletA, Name: "matched"}}, nil
+			return []wallets.Wallet{{ID: walletA, Name: "matched", TotalCount: 1}}, nil
 		})
 
 	uc := &fakeUsersClient{
@@ -133,6 +134,7 @@ func TestListWallets_FilterEmailAndPhoneIntersect(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, resp.Wallets, 1)
 	assert.Equal(t, walletA, resp.Wallets[0].WalletID)
+	assert.EqualValues(t, 1, resp.TotalCount)
 }
 
 func TestListWallets_FilterFieldsPassedThroughToOpsLayer(t *testing.T) {
