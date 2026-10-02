@@ -21,6 +21,7 @@ import (
 	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
 	"github.com/interledger/interledger-app/go/backend/notify"
 	"github.com/interledger/interledger-app/go/backend/payments"
+	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
 	"github.com/interledger/interledger-app/go/backend/transactions"
 	"github.com/interledger/interledger-app/go/backend/user"
 	"github.com/interledger/interledger-app/go/backend/wallets"
@@ -69,6 +70,7 @@ func (b actionRequiredWebhookBackends) KYC() kycclient.Client                 { 
 func (b actionRequiredWebhookBackends) Transactions() transactions.Client     { return nil }
 func (b actionRequiredWebhookBackends) Payments() payments.Client             { return nil }
 func (b actionRequiredWebhookBackends) Notify() notify.Client                 { return nil }
+func (b actionRequiredWebhookBackends) Gatehub() gatehub.Client               { return nil }
 func (b actionRequiredWebhookBackends) Config() *config.StartConfig {
 	return &config.StartConfig{Environment: config.EnvironmentConfig{Mode: "test"}}
 }
