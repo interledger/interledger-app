@@ -43,7 +43,7 @@ dependencies:
     version: 3.3.0
   '@protobuf-ts/grpc-transport':
     specifier: ^2.9.0
-    version: 2.9.0(@grpc/grpc-js@1.14.4)
+    version: 2.9.0(@grpc/grpc-js@1.14.5)
   '@protobuf-ts/runtime':
     specifier: ^2.9.0
     version: 2.9.0
@@ -79,7 +79,7 @@ dependencies:
     version: 2.0.4
   dompurify:
     specifier: ^3.2.4
-    version: 3.4.11
+    version: 3.4.13
   express:
     specifier: 4.22.1
     version: 4.22.1
@@ -1019,8 +1019,8 @@ packages:
       crypto-js: 4.2.0
     dev: false
 
-  /@grpc/grpc-js@1.14.4:
-    resolution: {integrity: sha512-k9Dj3DV/itK9D06Y8f190Qgop7/Ui+D0njFV3LHMPwPT75DpXLQohE9Wmz0QElrJnzsjB7KPWiKJbOl7IPDArQ==}
+  /@grpc/grpc-js@1.14.5:
+    resolution: {integrity: sha512-7VZM+SVdEcUUqSQeNI3zM8Qs/BhQKZndPo2h5VkYkAM8Iz0wJIa8mKV5ekQGqG8UUsnkQ0NMxIxwkIHYvj0qOw==}
     engines: {node: '>=12.10.0'}
     dependencies:
       '@grpc/proto-loader': 0.8.1
@@ -1763,12 +1763,12 @@ packages:
       - supports-color
     dev: false
 
-  /@protobuf-ts/grpc-transport@2.9.0(@grpc/grpc-js@1.14.4):
+  /@protobuf-ts/grpc-transport@2.9.0(@grpc/grpc-js@1.14.5):
     resolution: {integrity: sha512-LiPZ95G9BPVgxO6tJIXjaX3hxtTPrvzi7h4ZU9ce+3Wd9/nzYkawTMtZ6CpLZCSpsk4KlFuDfNmyfJLWefSdKw==}
     peerDependencies:
       '@grpc/grpc-js': ^1.6.0
     dependencies:
-      '@grpc/grpc-js': 1.14.4
+      '@grpc/grpc-js': 1.14.5
       '@protobuf-ts/runtime': 2.9.0
       '@protobuf-ts/runtime-rpc': 2.9.0
     dev: false
@@ -6095,8 +6095,8 @@ packages:
       webidl-conversions: 7.0.0
     dev: true
 
-  /dompurify@3.4.11:
-    resolution: {integrity: sha512-zhlUV12GsaRzMsf9q5M254YhA4+VuF0fG+QFqu6aYpoGlKtz+w8//jBcGVYBgQkR5GHjUomejY84AV+/uPbWdw==}
+  /dompurify@3.4.13:
+    resolution: {integrity: sha512-2vmYIoqjze2d+kakP8S/nS5shfsl587kzwEjcGlTdiksUVgFHnFCsLYDVj/JNqJVOQZGSYBTmuycv0PodwmnMQ==}
     optionalDependencies:
       '@types/trusted-types': 2.0.7
     dev: false
