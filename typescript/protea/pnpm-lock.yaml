@@ -72,8 +72,8 @@ dependencies:
     specifier: ^1.2.1
     version: 1.2.1
   compression:
-    specifier: 1.8.1
-    version: 1.8.1
+    specifier: 1.8.2
+    version: 1.8.2
   datocms-structured-text-utils:
     specifier: ^2.0.4
     version: 2.0.4
@@ -5659,13 +5659,14 @@ packages:
       mime-db: 1.52.0
     dev: false
 
-  /compression@1.8.1:
-    resolution: {integrity: sha512-9mAqGPHLakhCLeNyxPkK4xVo746zQ/czLH1Ky+vkitMnWfWZps8r0qXuwhwizagCRttsL4lfG4pIOvaWLpAP0w==}
+  /compression@1.8.2:
+    resolution: {integrity: sha512-o8vI5RE5A6EVVOd9o41jKp41aJom+QTEO/Bx8MYNjexMo/Bv2WOjUfZr+aL0WnYSgymUy6zeguqLTsIhV0gMvQ==}
     engines: {node: '>= 0.8.0'}
     dependencies:
       bytes: 3.1.2
       compressible: 2.0.18
       debug: 2.6.9
+      destroy: 1.2.0
       negotiator: 0.6.4
       on-headers: 1.1.0
       safe-buffer: 5.2.1
