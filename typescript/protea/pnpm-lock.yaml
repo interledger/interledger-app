@@ -43,7 +43,7 @@ dependencies:
     version: 3.3.0
   '@protobuf-ts/grpc-transport':
     specifier: ^2.9.0
-    version: 2.9.0(@grpc/grpc-js@1.14.4)
+    version: 2.9.0(@grpc/grpc-js@1.14.7)
   '@protobuf-ts/runtime':
     specifier: ^2.9.0
     version: 2.9.0
@@ -135,8 +135,8 @@ dependencies:
     specifier: ^14.0.0
     version: 14.0.0
   zod:
-    specifier: ^4.0.14
-    version: 4.0.14
+    specifier: ^4.6.6
+    version: 4.6.6
   zustand:
     specifier: ^4.3.9
     version: 4.3.9(react@18.2.0)
@@ -1019,8 +1019,8 @@ packages:
       crypto-js: 4.2.0
     dev: false
 
-  /@grpc/grpc-js@1.14.4:
-    resolution: {integrity: sha512-k9Dj3DV/itK9D06Y8f190Qgop7/Ui+D0njFV3LHMPwPT75DpXLQohE9Wmz0QElrJnzsjB7KPWiKJbOl7IPDArQ==}
+  /@grpc/grpc-js@1.14.7:
+    resolution: {integrity: sha512-W4W/fcBMGRVtG6dW2c7cw2mnpS3hvbBd+oQXjh2iYFTZDk1JJmcNqkM5KSaPubQpamlUUurrlb7G1s9NJeERmQ==}
     engines: {node: '>=12.10.0'}
     dependencies:
       '@grpc/proto-loader': 0.8.1
@@ -1763,12 +1763,12 @@ packages:
       - supports-color
     dev: false
 
-  /@protobuf-ts/grpc-transport@2.9.0(@grpc/grpc-js@1.14.4):
+  /@protobuf-ts/grpc-transport@2.9.0(@grpc/grpc-js@1.14.7):
     resolution: {integrity: sha512-LiPZ95G9BPVgxO6tJIXjaX3hxtTPrvzi7h4ZU9ce+3Wd9/nzYkawTMtZ6CpLZCSpsk4KlFuDfNmyfJLWefSdKw==}
     peerDependencies:
       '@grpc/grpc-js': ^1.6.0
     dependencies:
-      '@grpc/grpc-js': 1.14.4
+      '@grpc/grpc-js': 1.14.7
       '@protobuf-ts/runtime': 2.9.0
       '@protobuf-ts/runtime-rpc': 2.9.0
     dev: false
@@ -6426,8 +6426,8 @@ packages:
       '@babel/parser': 7.29.7
       eslint: 9.39.4
       hermes-parser: 0.25.1
-      zod: 4.0.14
-      zod-validation-error: 4.0.2(zod@4.0.14)
+      zod: 4.6.6
+      zod-validation-error: 4.0.2(zod@4.6.6)
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -11173,17 +11173,17 @@ packages:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
 
-  /zod-validation-error@4.0.2(zod@4.0.14):
+  /zod-validation-error@4.0.2(zod@4.6.6):
     resolution: {integrity: sha512-Q6/nZLe6jxuU80qb/4uJ4t5v2VEZ44lzQjPDhYJNztRQ4wyWc6VF3D3Kb/fAuPetZQnhS3hnajCf9CsWesghLQ==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
       zod: ^3.25.0 || ^4.0.0
     dependencies:
-      zod: 4.0.14
+      zod: 4.6.6
     dev: true
 
-  /zod@4.0.14:
-    resolution: {integrity: sha512-nGFJTnJN6cM2v9kXL+SOBq3AtjQby3Mv5ySGFof5UGRHrRioSJ5iG680cYNjE/yWk671nROcpPj4hAS8nyLhSw==}
+  /zod@4.6.6:
+    resolution: {integrity: sha512-4UmzQUF5fxvfcYHlbjBmejU+w+hbDnWFx4aS8kBx7nPBHcO2SqPbpAG8snbdg+Xse4pRefR98hgjFgIMCI/UhA==}
 
   /zustand@4.3.9(react@18.2.0):
     resolution: {integrity: sha512-Tat5r8jOMG1Vcsj8uldMyqYKC5IZvQif8zetmLHs9WoZlntTHmIoNM8TpLRY31ExncuUvUOXehd0kvahkuHjDw==}
