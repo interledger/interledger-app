@@ -2,6 +2,7 @@ package transactions
 
 import (
 	"context"
+	"time"
 
 	"github.com/interledger/interledger-app/go/backend/currency"
 
@@ -41,4 +42,6 @@ type Client interface {
 	GetTransaction(ctx context.Context, walletID string, trxID string) (*Transaction, error)
 	GetTransactionByForeignID(ctx context.Context, walletID string, foreignID string) (*Transaction, error)
 	ListTransfers(ctx context.Context, trxID string) ([]Transfer, error)
+	// TransactionsStats counts every Transaction
+	TransactionStats(ctx context.Context, now time.Time) (TransactionStats, error)
 }

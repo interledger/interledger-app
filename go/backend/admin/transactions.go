@@ -2,11 +2,13 @@ package admin
 
 import (
 	"context"
+	"time"
 
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/interledger/interledger-app/go/backend/db"
 
+	adminv1 "github.com/interledger/interledger-app/go/proto/backend/admin/v1"
 	pb "github.com/interledger/interledger-app/go/proto/backend/admin/v1"
 )
 
@@ -78,5 +80,34 @@ func (s *AdminRpcService) GetTransactionDetails(ctx context.Context, req *pb.Get
 			Timestamp:   timestamppb.New(tx.Timestamp),
 		},
 		Transfers: transResp,
+	}, nil
+}
+
+func (s *AdminRpcService) GetTransactionStats(ctx context.Context, _ *adminv1.Empty) (*adminv1.TransactionStats, error) {
+	stats, err := s.b.Transactions().TransactionStats(ctx, time.Now())
+	if err != nil {
+		return nil, err
+	}
+	quarterly := make([]*adminv1.QuarterlyTransactionCount, 0, len(stats.ByQuarter))
+	for i, count := range stats.ByQuarter {
+		quarterly = append(quarterly, &adminv1.QuarterlyTransactionCount{
+			Quarter: int32(i + 1),
+			Count:   int32(count),
+		})
+	}
+
+	byType := make([]*adminv1.TypeTransactionCount, 0, len(stats.ByType))
+	for _, t := range stats.ByType {
+		byType = append(byType, &adminv1.TypeTransactionCount{
+			Type:  string(t.Type),
+			Count: int32(t.Count),
+		})
+	}
+
+	return &adminv1.TransactionStats{
+		TotalTransactions:     int32(stats.Total),
+		TransactionsThisYear:  int32(stats.ThisYear),
+		QuarterlyTransactions: quarterly,
+		TypeTransactions:      byType,
 	}, nil
 }

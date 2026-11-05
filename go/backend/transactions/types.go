@@ -253,3 +253,15 @@ type TransactionRangeFilter struct {
 	StartTimestamp time.Time
 	EndTimestamp   time.Time
 }
+
+type TransactionTypeStats struct {
+	Type  TransactionType
+	Count int64
+}
+
+type TransactionStats struct {
+	Total     int64
+	ThisYear  int64
+	ByQuarter [4]int64
+	ByType    []TransactionTypeStats
+}

@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"time"
 
 	"github.com/interledger/interledger-app/go/backend/currency"
 
@@ -122,4 +123,8 @@ func (c *client) CountSendTransactions(ctx context.Context, walletID string) (in
 
 func (c *client) ListAll(ctx context.Context, page db.Pagination) ([]transactions.Transaction, error) {
 	return ops.ListAllTransactions(ctx, c.b, page)
+}
+
+func (c *client) TransactionStats(ctx context.Context, now time.Time) (transactions.TransactionStats, error) {
+	return ops.TransactionStats(ctx, c.b)
 }

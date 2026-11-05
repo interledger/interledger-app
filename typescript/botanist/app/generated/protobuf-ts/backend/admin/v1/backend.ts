@@ -15,6 +15,53 @@ import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
 import { Timestamp } from "../../../google/protobuf/timestamp";
 /**
+ * @generated from protobuf message backend.admin.v1.TransactionStats
+ */
+export interface TransactionStats {
+    /**
+     * @generated from protobuf field: int32 totalTransactions = 1;
+     */
+    totalTransactions: number;
+    /**
+     * @generated from protobuf field: int32 transactionsThisYear = 2;
+     */
+    transactionsThisYear: number;
+    /**
+     * @generated from protobuf field: repeated backend.admin.v1.QuarterlyTransactionCount quarterlyTransactions = 3;
+     */
+    quarterlyTransactions: QuarterlyTransactionCount[];
+    /**
+     * @generated from protobuf field: repeated backend.admin.v1.TypeTransactionCount typeTransactions = 4;
+     */
+    typeTransactions: TypeTransactionCount[];
+}
+/**
+ * @generated from protobuf message backend.admin.v1.QuarterlyTransactionCount
+ */
+export interface QuarterlyTransactionCount {
+    /**
+     * @generated from protobuf field: int32 quarter = 1;
+     */
+    quarter: number;
+    /**
+     * @generated from protobuf field: int32 count = 2;
+     */
+    count: number;
+}
+/**
+ * @generated from protobuf message backend.admin.v1.TypeTransactionCount
+ */
+export interface TypeTransactionCount {
+    /**
+     * @generated from protobuf field: string type = 1;
+     */
+    type: string;
+    /**
+     * @generated from protobuf field: int32 count = 2;
+     */
+    count: number;
+}
+/**
  * @generated from protobuf message backend.admin.v1.CheckUserTotpEnabledRequest
  */
 export interface CheckUserTotpEnabledRequest {
@@ -1261,6 +1308,182 @@ export interface ResetUserPhoneVerificationRequest {
      */
     walletID: string;
 }
+// @generated message type with reflection information, may provide speed optimized methods
+class TransactionStats$Type extends MessageType<TransactionStats> {
+    constructor() {
+        super("backend.admin.v1.TransactionStats", [
+            { no: 1, name: "totalTransactions", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 2, name: "transactionsThisYear", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 3, name: "quarterlyTransactions", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => QuarterlyTransactionCount },
+            { no: 4, name: "typeTransactions", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => TypeTransactionCount }
+        ]);
+    }
+    create(value?: PartialMessage<TransactionStats>): TransactionStats {
+        const message = { totalTransactions: 0, transactionsThisYear: 0, quarterlyTransactions: [], typeTransactions: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<TransactionStats>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: TransactionStats): TransactionStats {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* int32 totalTransactions */ 1:
+                    message.totalTransactions = reader.int32();
+                    break;
+                case /* int32 transactionsThisYear */ 2:
+                    message.transactionsThisYear = reader.int32();
+                    break;
+                case /* repeated backend.admin.v1.QuarterlyTransactionCount quarterlyTransactions */ 3:
+                    message.quarterlyTransactions.push(QuarterlyTransactionCount.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* repeated backend.admin.v1.TypeTransactionCount typeTransactions */ 4:
+                    message.typeTransactions.push(TypeTransactionCount.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: TransactionStats, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* int32 totalTransactions = 1; */
+        if (message.totalTransactions !== 0)
+            writer.tag(1, WireType.Varint).int32(message.totalTransactions);
+        /* int32 transactionsThisYear = 2; */
+        if (message.transactionsThisYear !== 0)
+            writer.tag(2, WireType.Varint).int32(message.transactionsThisYear);
+        /* repeated backend.admin.v1.QuarterlyTransactionCount quarterlyTransactions = 3; */
+        for (let i = 0; i < message.quarterlyTransactions.length; i++)
+            QuarterlyTransactionCount.internalBinaryWrite(message.quarterlyTransactions[i], writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        /* repeated backend.admin.v1.TypeTransactionCount typeTransactions = 4; */
+        for (let i = 0; i < message.typeTransactions.length; i++)
+            TypeTransactionCount.internalBinaryWrite(message.typeTransactions[i], writer.tag(4, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.TransactionStats
+ */
+export const TransactionStats = new TransactionStats$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class QuarterlyTransactionCount$Type extends MessageType<QuarterlyTransactionCount> {
+    constructor() {
+        super("backend.admin.v1.QuarterlyTransactionCount", [
+            { no: 1, name: "quarter", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 2, name: "count", kind: "scalar", T: 5 /*ScalarType.INT32*/ }
+        ]);
+    }
+    create(value?: PartialMessage<QuarterlyTransactionCount>): QuarterlyTransactionCount {
+        const message = { quarter: 0, count: 0 };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<QuarterlyTransactionCount>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: QuarterlyTransactionCount): QuarterlyTransactionCount {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* int32 quarter */ 1:
+                    message.quarter = reader.int32();
+                    break;
+                case /* int32 count */ 2:
+                    message.count = reader.int32();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: QuarterlyTransactionCount, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* int32 quarter = 1; */
+        if (message.quarter !== 0)
+            writer.tag(1, WireType.Varint).int32(message.quarter);
+        /* int32 count = 2; */
+        if (message.count !== 0)
+            writer.tag(2, WireType.Varint).int32(message.count);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.QuarterlyTransactionCount
+ */
+export const QuarterlyTransactionCount = new QuarterlyTransactionCount$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class TypeTransactionCount$Type extends MessageType<TypeTransactionCount> {
+    constructor() {
+        super("backend.admin.v1.TypeTransactionCount", [
+            { no: 1, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "count", kind: "scalar", T: 5 /*ScalarType.INT32*/ }
+        ]);
+    }
+    create(value?: PartialMessage<TypeTransactionCount>): TypeTransactionCount {
+        const message = { type: "", count: 0 };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<TypeTransactionCount>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: TypeTransactionCount): TypeTransactionCount {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string type */ 1:
+                    message.type = reader.string();
+                    break;
+                case /* int32 count */ 2:
+                    message.count = reader.int32();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: TypeTransactionCount, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string type = 1; */
+        if (message.type !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.type);
+        /* int32 count = 2; */
+        if (message.count !== 0)
+            writer.tag(2, WireType.Varint).int32(message.count);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.TypeTransactionCount
+ */
+export const TypeTransactionCount = new TypeTransactionCount$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class CheckUserTotpEnabledRequest$Type extends MessageType<CheckUserTotpEnabledRequest> {
     constructor() {
@@ -5364,5 +5587,6 @@ export const Backend = new ServiceType("backend.admin.v1.Backend", [
     { name: "CheckUserTotpEnabled", options: {}, I: CheckUserTotpEnabledRequest, O: CheckUserTotpEnabledResponse },
     { name: "Delete2FATotpEnrollment", options: {}, I: Delete2FATotpEnrollmentRequest, O: Empty },
     { name: "ResetUserPhoneVerification", options: {}, I: ResetUserPhoneVerificationRequest, O: Empty },
-    { name: "GetUserStats", options: {}, I: Empty$, O: UserStats }
+    { name: "GetUserStats", options: {}, I: Empty$, O: UserStats },
+    { name: "GetTransactionStats", options: {}, I: Empty, O: TransactionStats }
 ]);

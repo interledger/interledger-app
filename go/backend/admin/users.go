@@ -148,12 +148,12 @@ func derefStr(s *string) string {
 
 func convertUser(input user.User) *adminv1.User {
 	return &adminv1.User{
-		Id:          input.ID,
-		Email:       input.Email,
-		PhoneNumber: input.PhoneNumber,
-		FirstName:   input.FirstName,
-		LastName:    input.LastName,
-		CreatedAt:   timestamppb.New(input.CreatedAt),
+		Id:            input.ID,
+		Email:         input.Email,
+		PhoneNumber:   input.PhoneNumber,
+		FirstName:     input.FirstName,
+		LastName:      input.LastName,
+		CreatedAt:     timestamppb.New(input.CreatedAt),
 		PhoneVerified: input.PhoneVerified,
 	}
 }

@@ -49,6 +49,7 @@ const (
 	Backend_Delete2FATotpEnrollment_FullMethodName            = "/backend.admin.v1.Backend/Delete2FATotpEnrollment"
 	Backend_ResetUserPhoneVerification_FullMethodName         = "/backend.admin.v1.Backend/ResetUserPhoneVerification"
 	Backend_GetUserStats_FullMethodName                       = "/backend.admin.v1.Backend/GetUserStats"
+	Backend_GetTransactionStats_FullMethodName                = "/backend.admin.v1.Backend/GetTransactionStats"
 )
 
 // BackendClient is the client API for Backend service.
@@ -87,6 +88,7 @@ type BackendClient interface {
 	Delete2FATotpEnrollment(ctx context.Context, in *Delete2FATotpEnrollmentRequest, opts ...grpc.CallOption) (*Empty, error)
 	ResetUserPhoneVerification(ctx context.Context, in *ResetUserPhoneVerificationRequest, opts ...grpc.CallOption) (*Empty, error)
 	GetUserStats(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*UserStats, error)
+	GetTransactionStats(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*TransactionStats, error)
 }
 
 type backendClient struct {
@@ -387,6 +389,16 @@ func (c *backendClient) GetUserStats(ctx context.Context, in *emptypb.Empty, opt
 	return out, nil
 }
 
+func (c *backendClient) GetTransactionStats(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*TransactionStats, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(TransactionStats)
+	err := c.cc.Invoke(ctx, Backend_GetTransactionStats_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServer is the server API for Backend service.
 // All implementations should embed UnimplementedBackendServer
 // for forward compatibility.
@@ -423,6 +435,7 @@ type BackendServer interface {
 	Delete2FATotpEnrollment(context.Context, *Delete2FATotpEnrollmentRequest) (*Empty, error)
 	ResetUserPhoneVerification(context.Context, *ResetUserPhoneVerificationRequest) (*Empty, error)
 	GetUserStats(context.Context, *emptypb.Empty) (*UserStats, error)
+	GetTransactionStats(context.Context, *Empty) (*TransactionStats, error)
 }
 
 // UnimplementedBackendServer should be embedded to have
@@ -518,6 +531,9 @@ func (UnimplementedBackendServer) ResetUserPhoneVerification(context.Context, *R
 }
 func (UnimplementedBackendServer) GetUserStats(context.Context, *emptypb.Empty) (*UserStats, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetUserStats not implemented")
+}
+func (UnimplementedBackendServer) GetTransactionStats(context.Context, *Empty) (*TransactionStats, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetTransactionStats not implemented")
 }
 func (UnimplementedBackendServer) testEmbeddedByValue() {}
 
@@ -1061,6 +1077,24 @@ func _Backend_GetUserStats_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Backend_GetTransactionStats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServer).GetTransactionStats(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Backend_GetTransactionStats_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServer).GetTransactionStats(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Backend_ServiceDesc is the grpc.ServiceDesc for Backend service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1183,6 +1217,10 @@ var Backend_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetUserStats",
 			Handler:    _Backend_GetUserStats_Handler,
+		},
+		{
+			MethodName: "GetTransactionStats",
+			Handler:    _Backend_GetTransactionStats_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

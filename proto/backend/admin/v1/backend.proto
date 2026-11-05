@@ -48,6 +48,25 @@ service Backend {
   rpc ResetUserPhoneVerification(ResetUserPhoneVerificationRequest) returns (Empty);
 
   rpc GetUserStats(google.protobuf.Empty) returns (UserStats);
+
+  rpc GetTransactionStats(Empty) returns (TransactionStats);
+}
+
+message TransactionStats{
+  int32 totalTransactions = 1;
+  int32 transactionsThisYear = 2;
+  repeated QuarterlyTransactionCount quarterlyTransactions = 3;
+  repeated TypeTransactionCount typeTransactions = 4;
+}
+
+message QuarterlyTransactionCount{
+  int32 quarter = 1;
+  int32 count = 2;
+}
+
+message TypeTransactionCount {
+  string type = 1;
+  int32 count = 2;
 }
 
 message CheckUserTotpEnabledRequest {

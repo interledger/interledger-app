@@ -811,3 +811,33 @@ func GenerateTransactionTitle(ctx context.Context, wc wallets.Client, args Gener
 
 	return title
 }
+
+func TransactionStats(ctx context.Context, b Backends) (transactions.TransactionStats, error) {
+	var stats transactions.TransactionStats
+	err := b.DB().GetContext(ctx, &stats.Total, "SELECT COUNT(*) FROM transactions")
+	if err != nil {
+		return transactions.TransactionStats{}, fmt.Errorf("%w %s", transactions.ErrInternal, err)
+	}
+
+	startOfYear := time.Date(time.Now().Year(), time.January, 1, 0, 0, 0, 0, time.UTC)
+	err = b.DB().GetContext(ctx, &stats.ThisYear, "SELECT COUNT(*) FROM transactions WHERE created_at >= $1", startOfYear)
+	if err != nil {
+		return transactions.TransactionStats{}, fmt.Errorf("%w %s", transactions.ErrInternal, err)
+	}
+	for i := 0; i < 4; i++ {
+		quarterStart := startOfYear.AddDate(0, i*3, 0)
+		quarterEnd := quarterStart.AddDate(0, 3, 0)
+
+		err = b.DB().GetContext(ctx, &stats.ByQuarter[i], `SELECT COUNT(*) FROM transactions WHERE created_at >= $1 AND created_at < $2`, quarterStart, quarterEnd)
+		if err != nil {
+			return transactions.TransactionStats{}, fmt.Errorf("%w %s", transactions.ErrInternal, err)
+		}
+	}
+
+	err = b.DB().SelectContext(ctx, &stats.ByType, "SELECT TYPE, COUNT(*) FROM transactions GROUP BY type")
+	if err != nil {
+		return transactions.TransactionStats{}, fmt.Errorf("%w %s", transactions.ErrInternal, err)
+	}
+
+	return stats, nil
+}
