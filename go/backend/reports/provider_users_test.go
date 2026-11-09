@@ -139,3 +139,95 @@ func TestGatehubUsersCSV(t *testing.T) {
 		}
 	}
 }
+
+func TestPDF(t *testing.T) {
+	now := time.Date(2026, 11, 9, 14, 30, 0, 0, time.UTC)
+	var txs []reportTransaction
+	for i := 0; i < 120; i++ {
+		txs = append(txs, reportTransaction{ID: "tx", CreatedAt: now, Type: "web_monetization_outgoing", Title: strings.Repeat("long title ", 20)})
+	}
+	users := []reportUser{
+		{UserID: "u1", Email: "a@example.test", FirstName: "Łukasz", LastName: "Żółć", Wallets: []reportWallet{
+			{WalletID: "w1", Transactions: txs},
+			{WalletID: "w2", Error: "boom"},
+		}},
+		{UserID: "u2", Email: "b@example.test"},
+	}
+
+	for _, p := range []providerReport{xagoUsersReport, gatehubUsersReport} {
+		out, err := p.pdf(users, now)
+		if err != nil {
+			t.Fatalf("%s: %v", p.name, err)
+		}
+		if !strings.HasPrefix(string(out), "%PDF-") {
+			t.Fatalf("%s: output is not a PDF", p.name)
+		}
+		// 120 transactions don't fit on one landscape A4 page.
+		if pages := strings.Count(string(out), "/Type /Page\n"); pages < 2 {
+			t.Errorf("%s: got %d pages, want the transaction table to span several", p.name, pages)
+		}
+	}
+
+	if _, err := xagoUsersReport.pdf(nil, now); err != nil {
+		t.Errorf("empty report: %v", err)
+	}
+}
+
+func TestPDFFieldsMatchCSVColumns(t *testing.T) {
+	// The PDF's details block follows the CSV column order.
+	for _, p := range []providerReport{xagoUsersReport, gatehubUsersReport} {
+		var columns []string
+		for _, f := range p.fields(reportUser{}, reportWallet{}) {
+			columns = append(columns, f.column)
+		}
+		if want := p.header()[:len(columns)]; !reflect.DeepEqual(columns, want) {
+			t.Errorf("%s: pdf fields %v, want csv columns %v", p.name, columns, want)
+		}
+	}
+}
+
+func TestPDFLabelsFit(t *testing.T) {
+	// Readable labels must fit their cells untruncated.
+	for _, p := range []providerReport{xagoUsersReport, gatehubUsersReport} {
+		doc := p.newPDF(time.Now())
+		doc.SetFont(pdfFontFamily, "B", 8)
+		for _, f := range p.fields(reportUser{}, reportWallet{}) {
+			if got := fit(doc, f.label, pdfLabelW); got != f.label {
+				t.Errorf("%s: label %q is truncated to %q", p.name, f.label, got)
+			}
+		}
+		doc.SetFont(pdfFontFamily, "B", pdfTableFontSize)
+		for _, c := range pdfTxColumns {
+			if got := fit(doc, c.title, c.width); got != c.title {
+				t.Errorf("table header %q is truncated to %q", c.title, got)
+			}
+		}
+	}
+}
+
+func TestFit(t *testing.T) {
+	doc := xagoUsersReport.newPDF(time.Now())
+	doc.SetFont(pdfFontFamily, "", pdfTableFontSize)
+	if got := fit(doc, "short", 50); got != "short" {
+		t.Errorf("fit(short) = %q", got)
+	}
+	got := fit(doc, strings.Repeat("x", 200), 20)
+	if !strings.HasSuffix(got, "…") || doc.GetStringWidth(got) > 20 {
+		t.Errorf("fit(long) = %q, width %.1f", got, doc.GetStringWidth(got))
+	}
+}
+
+func TestKYCDisclaimer(t *testing.T) {
+	// The disclaimer names the report's provider and fits on one line of the page.
+	for _, p := range []providerReport{xagoUsersReport, gatehubUsersReport} {
+		d := p.kycDisclaimer()
+		if !strings.Contains(d, p.displayName) {
+			t.Errorf("%s: disclaimer %q does not name the provider", p.name, d)
+		}
+		doc := p.newPDF(time.Now())
+		doc.SetFont(pdfFontFamily, "", 7)
+		if w := doc.GetStringWidth(d); w > 277 {
+			t.Errorf("%s: disclaimer is %.0fmm wide, wider than the page", p.name, w)
+		}
+	}
+}

@@ -26,6 +26,21 @@ import (
 
 const walletConcurrency = 10
 
+// Format is the file format of a report.
+type Format int
+
+const (
+	FormatCSV Format = iota
+	FormatPDF
+)
+
+// File is a rendered report, ready to download.
+type File struct {
+	Filename    string
+	ContentType string
+	Content     []byte
+}
+
 type Backends interface {
 	DB() *sqlx.DB
 	Users() user.Client
@@ -40,6 +55,10 @@ type Backends interface {
 type providerReport struct {
 	// name prefixes the provider-specific columns, e.g. "xago" -> "xago_linked_account_id".
 	name string
+	// displayName is the provider's name as written for people, e.g. "GateHub".
+	displayName string
+	// title is the human-readable report name, used in the PDF.
+	title string
 	// linkedAccountProvider and linkedAccountType identify the balance linked account.
 	linkedAccountProvider string
 	linkedAccountType     string
@@ -101,13 +120,36 @@ type reportTransaction struct {
 	Title     string
 }
 
-// build returns the report as CSV: one row per transaction, with the user's details
-// and the wallet's current balance repeated on each row. A wallet that fails to load
-// gets a row with the error instead of failing the whole report.
-func (p providerReport) build(ctx context.Context, b Backends) (string, error) {
+// build collects the report and renders it in the requested format.
+func (p providerReport) build(ctx context.Context, b Backends, format Format, now time.Time) (*File, error) {
+	users, err := p.collect(ctx, b)
+	if err != nil {
+		return nil, err
+	}
+
+	date := now.UTC().Format("2006-01-02")
+	switch format {
+	case FormatPDF:
+		content, err := p.pdf(users, now)
+		if err != nil {
+			return nil, fmt.Errorf("rendering pdf: %w", err)
+		}
+		return &File{Filename: fmt.Sprintf("%s-users-%s.pdf", p.name, date), ContentType: "application/pdf", Content: content}, nil
+	default:
+		content, err := p.csv(users)
+		if err != nil {
+			return nil, fmt.Errorf("rendering csv: %w", err)
+		}
+		return &File{Filename: fmt.Sprintf("%s-users-%s.csv", p.name, date), ContentType: "text/csv; charset=utf-8", Content: []byte(content)}, nil
+	}
+}
+
+// collect returns the report's users with every wallet's details filled in. A wallet
+// that fails to load keeps the error in its Error field instead of failing the report.
+func (p providerReport) collect(ctx context.Context, b Backends) ([]reportUser, error) {
 	users, err := p.listUsers(ctx, b)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	sem := make(chan struct{}, walletConcurrency)
@@ -129,7 +171,7 @@ func (p providerReport) build(ctx context.Context, b Backends) (string, error) {
 	}
 	wg.Wait()
 
-	return p.csv(users)
+	return users, nil
 }
 
 func (p providerReport) header() []string {

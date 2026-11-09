@@ -89,8 +89,8 @@ type BackendClient interface {
 	Delete2FATotpEnrollment(ctx context.Context, in *Delete2FATotpEnrollmentRequest, opts ...grpc.CallOption) (*Empty, error)
 	ResetUserPhoneVerification(ctx context.Context, in *ResetUserPhoneVerificationRequest, opts ...grpc.CallOption) (*Empty, error)
 	GetUserStats(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*UserStats, error)
-	GetXagoUsersReport(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*CsvReport, error)
-	GetGatehubUsersReport(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*CsvReport, error)
+	GetXagoUsersReport(ctx context.Context, in *UsersReportRequest, opts ...grpc.CallOption) (*ReportFile, error)
+	GetGatehubUsersReport(ctx context.Context, in *UsersReportRequest, opts ...grpc.CallOption) (*ReportFile, error)
 }
 
 type backendClient struct {
@@ -391,9 +391,9 @@ func (c *backendClient) GetUserStats(ctx context.Context, in *emptypb.Empty, opt
 	return out, nil
 }
 
-func (c *backendClient) GetXagoUsersReport(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*CsvReport, error) {
+func (c *backendClient) GetXagoUsersReport(ctx context.Context, in *UsersReportRequest, opts ...grpc.CallOption) (*ReportFile, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CsvReport)
+	out := new(ReportFile)
 	err := c.cc.Invoke(ctx, Backend_GetXagoUsersReport_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -401,9 +401,9 @@ func (c *backendClient) GetXagoUsersReport(ctx context.Context, in *emptypb.Empt
 	return out, nil
 }
 
-func (c *backendClient) GetGatehubUsersReport(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*CsvReport, error) {
+func (c *backendClient) GetGatehubUsersReport(ctx context.Context, in *UsersReportRequest, opts ...grpc.CallOption) (*ReportFile, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CsvReport)
+	out := new(ReportFile)
 	err := c.cc.Invoke(ctx, Backend_GetGatehubUsersReport_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -447,8 +447,8 @@ type BackendServer interface {
 	Delete2FATotpEnrollment(context.Context, *Delete2FATotpEnrollmentRequest) (*Empty, error)
 	ResetUserPhoneVerification(context.Context, *ResetUserPhoneVerificationRequest) (*Empty, error)
 	GetUserStats(context.Context, *emptypb.Empty) (*UserStats, error)
-	GetXagoUsersReport(context.Context, *emptypb.Empty) (*CsvReport, error)
-	GetGatehubUsersReport(context.Context, *emptypb.Empty) (*CsvReport, error)
+	GetXagoUsersReport(context.Context, *UsersReportRequest) (*ReportFile, error)
+	GetGatehubUsersReport(context.Context, *UsersReportRequest) (*ReportFile, error)
 }
 
 // UnimplementedBackendServer should be embedded to have
@@ -545,10 +545,10 @@ func (UnimplementedBackendServer) ResetUserPhoneVerification(context.Context, *R
 func (UnimplementedBackendServer) GetUserStats(context.Context, *emptypb.Empty) (*UserStats, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetUserStats not implemented")
 }
-func (UnimplementedBackendServer) GetXagoUsersReport(context.Context, *emptypb.Empty) (*CsvReport, error) {
+func (UnimplementedBackendServer) GetXagoUsersReport(context.Context, *UsersReportRequest) (*ReportFile, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetXagoUsersReport not implemented")
 }
-func (UnimplementedBackendServer) GetGatehubUsersReport(context.Context, *emptypb.Empty) (*CsvReport, error) {
+func (UnimplementedBackendServer) GetGatehubUsersReport(context.Context, *UsersReportRequest) (*ReportFile, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetGatehubUsersReport not implemented")
 }
 func (UnimplementedBackendServer) testEmbeddedByValue() {}
@@ -1094,7 +1094,7 @@ func _Backend_GetUserStats_Handler(srv interface{}, ctx context.Context, dec fun
 }
 
 func _Backend_GetXagoUsersReport_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
+	in := new(UsersReportRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -1106,13 +1106,13 @@ func _Backend_GetXagoUsersReport_Handler(srv interface{}, ctx context.Context, d
 		FullMethod: Backend_GetXagoUsersReport_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServer).GetXagoUsersReport(ctx, req.(*emptypb.Empty))
+		return srv.(BackendServer).GetXagoUsersReport(ctx, req.(*UsersReportRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _Backend_GetGatehubUsersReport_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
+	in := new(UsersReportRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -1124,7 +1124,7 @@ func _Backend_GetGatehubUsersReport_Handler(srv interface{}, ctx context.Context
 		FullMethod: Backend_GetGatehubUsersReport_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServer).GetGatehubUsersReport(ctx, req.(*emptypb.Empty))
+		return srv.(BackendServer).GetGatehubUsersReport(ctx, req.(*UsersReportRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }

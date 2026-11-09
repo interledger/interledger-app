@@ -48,8 +48,8 @@ service Backend {
   rpc ResetUserPhoneVerification(ResetUserPhoneVerificationRequest) returns (Empty);
 
   rpc GetUserStats(google.protobuf.Empty) returns (UserStats);
-  rpc GetXagoUsersReport(google.protobuf.Empty) returns (CsvReport);
-  rpc GetGatehubUsersReport(google.protobuf.Empty) returns (CsvReport);
+  rpc GetXagoUsersReport(UsersReportRequest) returns (ReportFile);
+  rpc GetGatehubUsersReport(UsersReportRequest) returns (ReportFile);
 }
 
 message CheckUserTotpEnabledRequest {
@@ -471,8 +471,19 @@ message ResetUserPhoneVerificationRequest {
   string walletID = 2;
 }
 
-// CsvReport is a downloadable CSV file.
-message CsvReport {
+enum ReportFormat {
+  REPORT_FORMAT_UNSPECIFIED = 0; // Treated as CSV.
+  REPORT_FORMAT_CSV = 1;
+  REPORT_FORMAT_PDF = 2;
+}
+
+message UsersReportRequest {
+  ReportFormat format = 1;
+}
+
+// ReportFile is a downloadable report.
+message ReportFile {
   string filename = 1;
   bytes content = 2;
+  string content_type = 3;
 }

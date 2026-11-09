@@ -3,6 +3,7 @@ package reports
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/interledger/interledger-app/go/backend/country"
 	"github.com/interledger/interledger-app/go/backend/currency"
@@ -13,6 +14,8 @@ import (
 
 var xagoUsersReport = providerReport{
 	name:                  "xago",
+	displayName:           "Xago",
+	title:                 "Xago users report",
 	linkedAccountProvider: xago.ProviderName,
 	linkedAccountType:     xago.AccTypeBalance,
 	selectUsers:           selectXagoUsers,
@@ -25,10 +28,10 @@ var xagoUsersReport = providerReport{
 	},
 }
 
-// XagoUsersCSV returns a CSV of every user that is ZA in Kratos (the only country that
+// XagoUsers returns a report of every user that is ZA in Kratos (the only country that
 // gets a Xago balance account) or owns a ZA wallet, with all of their wallets.
-func XagoUsersCSV(ctx context.Context, b Backends) (string, error) {
-	return xagoUsersReport.build(ctx, b)
+func XagoUsers(ctx context.Context, b Backends, format Format, now time.Time) (*File, error) {
+	return xagoUsersReport.build(ctx, b, format, now)
 }
 
 // selectXagoUsers picks users that are ZA in Kratos or own a ZA wallet, with all their

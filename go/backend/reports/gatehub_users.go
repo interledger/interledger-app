@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/interledger/interledger-app/go/backend/currency"
 	"github.com/interledger/interledger-app/go/backend/providers/gatehub"
@@ -13,6 +14,8 @@ import (
 
 var gatehubUsersReport = providerReport{
 	name:                  "gatehub",
+	displayName:           "GateHub",
+	title:                 "GateHub users report",
 	linkedAccountProvider: gatehub.ProviderName,
 	linkedAccountType:     gatehub.AccTypeBalance,
 	selectUsers:           selectGatehubUsers,
@@ -26,11 +29,11 @@ var gatehubUsersReport = providerReport{
 	externalUserID: gatehubUserID,
 }
 
-// GatehubUsersCSV returns a CSV of every wallet that has a GateHub user or a GateHub
+// GatehubUsers returns a report of every wallet that has a GateHub user or a GateHub
 // balance account, with its owner's details. Balances come from the local ledger, so
 // building it makes no calls to the GateHub API.
-func GatehubUsersCSV(ctx context.Context, b Backends) (string, error) {
-	return gatehubUsersReport.build(ctx, b)
+func GatehubUsers(ctx context.Context, b Backends, format Format, now time.Time) (*File, error) {
+	return gatehubUsersReport.build(ctx, b, format, now)
 }
 
 // selectGatehubUsers picks wallets that were onboarded to GateHub. GateHub users are

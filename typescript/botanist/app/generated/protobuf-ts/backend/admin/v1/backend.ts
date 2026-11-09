@@ -1262,11 +1262,20 @@ export interface ResetUserPhoneVerificationRequest {
     walletID: string;
 }
 /**
- * CsvReport is a downloadable CSV file.
- *
- * @generated from protobuf message backend.admin.v1.CsvReport
+ * @generated from protobuf message backend.admin.v1.UsersReportRequest
  */
-export interface CsvReport {
+export interface UsersReportRequest {
+    /**
+     * @generated from protobuf field: backend.admin.v1.ReportFormat format = 1;
+     */
+    format: ReportFormat;
+}
+/**
+ * ReportFile is a downloadable report.
+ *
+ * @generated from protobuf message backend.admin.v1.ReportFile
+ */
+export interface ReportFile {
     /**
      * @generated from protobuf field: string filename = 1;
      */
@@ -1275,6 +1284,29 @@ export interface CsvReport {
      * @generated from protobuf field: bytes content = 2;
      */
     content: Uint8Array;
+    /**
+     * @generated from protobuf field: string content_type = 3;
+     */
+    contentType: string;
+}
+/**
+ * @generated from protobuf enum backend.admin.v1.ReportFormat
+ */
+export enum ReportFormat {
+    /**
+     * Treated as CSV.
+     *
+     * @generated from protobuf enum value: REPORT_FORMAT_UNSPECIFIED = 0;
+     */
+    UNSPECIFIED = 0,
+    /**
+     * @generated from protobuf enum value: REPORT_FORMAT_CSV = 1;
+     */
+    CSV = 1,
+    /**
+     * @generated from protobuf enum value: REPORT_FORMAT_PDF = 2;
+     */
+    PDF = 2
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class CheckUserTotpEnabledRequest$Type extends MessageType<CheckUserTotpEnabledRequest> {
@@ -5348,30 +5380,26 @@ class ResetUserPhoneVerificationRequest$Type extends MessageType<ResetUserPhoneV
  */
 export const ResetUserPhoneVerificationRequest = new ResetUserPhoneVerificationRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class CsvReport$Type extends MessageType<CsvReport> {
+class UsersReportRequest$Type extends MessageType<UsersReportRequest> {
     constructor() {
-        super("backend.admin.v1.CsvReport", [
-            { no: 1, name: "filename", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "content", kind: "scalar", T: 12 /*ScalarType.BYTES*/ }
+        super("backend.admin.v1.UsersReportRequest", [
+            { no: 1, name: "format", kind: "enum", T: () => ["backend.admin.v1.ReportFormat", ReportFormat, "REPORT_FORMAT_"] }
         ]);
     }
-    create(value?: PartialMessage<CsvReport>): CsvReport {
-        const message = { filename: "", content: new Uint8Array(0) };
+    create(value?: PartialMessage<UsersReportRequest>): UsersReportRequest {
+        const message = { format: 0 };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<CsvReport>(this, message, value);
+            reflectionMergePartial<UsersReportRequest>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CsvReport): CsvReport {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: UsersReportRequest): UsersReportRequest {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string filename */ 1:
-                    message.filename = reader.string();
-                    break;
-                case /* bytes content */ 2:
-                    message.content = reader.bytes();
+                case /* backend.admin.v1.ReportFormat format */ 1:
+                    message.format = reader.int32();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -5384,13 +5412,10 @@ class CsvReport$Type extends MessageType<CsvReport> {
         }
         return message;
     }
-    internalBinaryWrite(message: CsvReport, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string filename = 1; */
-        if (message.filename !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.filename);
-        /* bytes content = 2; */
-        if (message.content.length)
-            writer.tag(2, WireType.LengthDelimited).bytes(message.content);
+    internalBinaryWrite(message: UsersReportRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* backend.admin.v1.ReportFormat format = 1; */
+        if (message.format !== 0)
+            writer.tag(1, WireType.Varint).int32(message.format);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -5398,9 +5423,70 @@ class CsvReport$Type extends MessageType<CsvReport> {
     }
 }
 /**
- * @generated MessageType for protobuf message backend.admin.v1.CsvReport
+ * @generated MessageType for protobuf message backend.admin.v1.UsersReportRequest
  */
-export const CsvReport = new CsvReport$Type();
+export const UsersReportRequest = new UsersReportRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ReportFile$Type extends MessageType<ReportFile> {
+    constructor() {
+        super("backend.admin.v1.ReportFile", [
+            { no: 1, name: "filename", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "content", kind: "scalar", T: 12 /*ScalarType.BYTES*/ },
+            { no: 3, name: "content_type", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<ReportFile>): ReportFile {
+        const message = { filename: "", content: new Uint8Array(0), contentType: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ReportFile>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ReportFile): ReportFile {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string filename */ 1:
+                    message.filename = reader.string();
+                    break;
+                case /* bytes content */ 2:
+                    message.content = reader.bytes();
+                    break;
+                case /* string content_type */ 3:
+                    message.contentType = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ReportFile, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string filename = 1; */
+        if (message.filename !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.filename);
+        /* bytes content = 2; */
+        if (message.content.length)
+            writer.tag(2, WireType.LengthDelimited).bytes(message.content);
+        /* string content_type = 3; */
+        if (message.contentType !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.contentType);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.ReportFile
+ */
+export const ReportFile = new ReportFile$Type();
 /**
  * @generated ServiceType for protobuf service backend.admin.v1.Backend
  */
@@ -5434,6 +5520,6 @@ export const Backend = new ServiceType("backend.admin.v1.Backend", [
     { name: "Delete2FATotpEnrollment", options: {}, I: Delete2FATotpEnrollmentRequest, O: Empty },
     { name: "ResetUserPhoneVerification", options: {}, I: ResetUserPhoneVerificationRequest, O: Empty },
     { name: "GetUserStats", options: {}, I: Empty$, O: UserStats },
-    { name: "GetXagoUsersReport", options: {}, I: Empty$, O: CsvReport },
-    { name: "GetGatehubUsersReport", options: {}, I: Empty$, O: CsvReport }
+    { name: "GetXagoUsersReport", options: {}, I: UsersReportRequest, O: ReportFile },
+    { name: "GetGatehubUsersReport", options: {}, I: UsersReportRequest, O: ReportFile }
 ]);

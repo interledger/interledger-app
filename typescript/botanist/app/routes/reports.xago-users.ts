@@ -1,10 +1,10 @@
 import type { LoaderFunctionArgs } from 'react-router'
 import { grpcClient } from '~/lib/proto.server'
-import { csvReportResponse } from '~/lib/reports.server'
+import { reportResponse } from '~/lib/reports.server'
 
-// Resource route: downloads the Xago users report as CSV.
+// Resource route: downloads the Xago users report as CSV, or PDF with ?format=pdf.
 export async function loader({ request }: LoaderFunctionArgs) {
-  return csvReportResponse(
+  return reportResponse(
     request,
     grpcClient.getXagoUsersReport.bind(grpcClient),
     'Xago users report'
