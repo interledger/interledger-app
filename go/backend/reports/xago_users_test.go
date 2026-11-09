@@ -14,7 +14,7 @@ func TestXagoUsersCSV(t *testing.T) {
 			UserID: "u1", Email: "a@example.test", FirstName: "Ann", LastName: "Lee", KratosCountry: "ZA",
 			Wallets: []xagoReportWallet{
 				{
-					WalletID: "w1", Country: "ZA", PersonaInquiryID: "inq_1", PersonaInquiryState: "approved",
+					WalletID: "w1", Country: "ZA", LocalKYC: "Approved", PersonaInquiryID: "inq_1", PersonaInquiryState: "approved",
 					XagoLinkedAccountID: "la1", Balance: "10.00", AvailableBalance: "8.00", BalanceCurrency: "ZAR",
 					Transactions: []xagoReportTransaction{
 						{ID: "t1", CreatedAt: created, UpdatedAt: created, Type: "DEPOSIT", State: "COMPLETED", Provider: "xago", Amount: "10.00", Fee: "0.00", Currency: "ZAR", Title: "Top up, card"},
@@ -56,6 +56,12 @@ func TestXagoUsersCSV(t *testing.T) {
 		return ""
 	}
 
+	if got := col(rows[1], "local_kyc"); got != "Approved" {
+		t.Errorf("local_kyc = %q, want Approved", got)
+	}
+	if got := col(rows[4], "local_kyc"); got != "" {
+		t.Errorf("wallet-less user local_kyc = %q, want empty", got)
+	}
 	if got := col(rows[1], "persona_inquiry_id"); got != "inq_1" {
 		t.Errorf("persona_inquiry_id = %q, want inq_1", got)
 	}

@@ -14,6 +14,7 @@ import (
 
 	"github.com/interledger/interledger-app/go/backend/country"
 	"github.com/interledger/interledger-app/go/backend/currency"
+	"github.com/interledger/interledger-app/go/backend/kyc"
 	"github.com/interledger/interledger-app/go/backend/kyc/persona"
 	"github.com/interledger/interledger-app/go/backend/linkedaccounts"
 	"github.com/interledger/interledger-app/go/backend/providers/xago"
@@ -29,13 +30,14 @@ const xagoUsersConcurrency = 10
 type Backends interface {
 	DB() *sqlx.DB
 	Users() user.Client
+	KYC() kyc.Client
 	LinkedAccounts() linkedaccounts.Client
 	Xago() xago.Client
 }
 
 var xagoUsersCSVHeader = []string{
 	"email", "first_name", "last_name", "user_id", "kratos_country",
-	"wallet_id", "wallet_country", "persona_inquiry_id", "persona_inquiry_state", "xago_linked_account_id", "balance", "available_balance", "balance_currency",
+	"wallet_id", "wallet_country", "local_kyc", "persona_inquiry_id", "persona_inquiry_state", "xago_linked_account_id", "balance", "available_balance", "balance_currency",
 	"transaction_id", "created_at", "updated_at", "type", "state", "provider", "amount", "fee", "currency", "title",
 	"error",
 }
@@ -53,6 +55,8 @@ type xagoReportUser struct {
 type xagoReportWallet struct {
 	WalletID string
 	Country  string
+	// LocalKYC is the app's own KYC status for the wallet (wallet_kyc_status), e.g. "Approved".
+	LocalKYC string
 	// PersonaInquiryID is the wallet's latest approved Persona inquiry, or its most recent
 	// inquiry if none is approved; empty if the wallet never started KYC.
 	PersonaInquiryID    string
@@ -137,7 +141,7 @@ func xagoUsersCSV(users []xagoReportUser) (string, error) {
 		}
 
 		for _, w := range u.Wallets {
-			walletCols := []string{w.WalletID, w.Country, w.PersonaInquiryID, w.PersonaInquiryState, w.XagoLinkedAccountID, w.Balance, w.AvailableBalance, w.BalanceCurrency}
+			walletCols := []string{w.WalletID, w.Country, w.LocalKYC, w.PersonaInquiryID, w.PersonaInquiryState, w.XagoLinkedAccountID, w.Balance, w.AvailableBalance, w.BalanceCurrency}
 			txs := w.Transactions
 			if len(txs) == 0 {
 				txs = []xagoReportTransaction{{}}
@@ -247,6 +251,12 @@ func fillXagoReportWallet(ctx context.Context, b Backends, w *xagoReportWallet) 
 			break
 		}
 	}
+
+	kycStatus, err := b.KYC().GetKYCStatus(ctx, w.WalletID)
+	if err != nil {
+		return fmt.Errorf("getting local kyc status: %w", err)
+	}
+	w.LocalKYC = kycStatus.String()
 
 	var inquiry struct {
 		ExternalID string `db:"external_id"`
