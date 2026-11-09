@@ -123,3 +123,7 @@ func (c *client) FindWalletIDsByIdentifierPrefix(ctx context.Context, term strin
 func (c *client) UserStats(ctx context.Context, now time.Time) (user.Stats, error) {
 	return ops.UserStats(ctx, c.b, now)
 }
+
+func (c *client) ListIdentities(ctx context.Context) ([]user.User, error) {
+	return ops.ListIdentities(ctx, c.b)
+}

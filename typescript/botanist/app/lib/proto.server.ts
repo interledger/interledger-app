@@ -24,7 +24,11 @@ const BACKEND_GRPC_URL = process.env.BACKEND_GRPC_URL || 'dns:backend-admin:443'
 const transport = new GrpcTransport({
   host: BACKEND_GRPC_URL,
   channelCredentials: ChannelCredentials.createInsecure(),
-  timeout: 100000
+  timeout: 100000,
+  // Raised from grpc-js's 4 MB default so CSV reports fit in one response.
+  clientOptions: {
+    'grpc.max_receive_message_length': 64 * 1024 * 1024
+  }
 })
 
 let grpcClient: BackendClient

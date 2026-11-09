@@ -7,6 +7,34 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
 
 /**
+ * @generated from enum backend.admin.v1.ReportFormat
+ */
+export enum ReportFormat {
+  /**
+   * Treated as CSV.
+   *
+   * @generated from enum value: REPORT_FORMAT_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: REPORT_FORMAT_CSV = 1;
+   */
+  CSV = 1,
+
+  /**
+   * @generated from enum value: REPORT_FORMAT_PDF = 2;
+   */
+  PDF = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(ReportFormat)
+proto3.util.setEnumType(ReportFormat, "backend.admin.v1.ReportFormat", [
+  { no: 0, name: "REPORT_FORMAT_UNSPECIFIED" },
+  { no: 1, name: "REPORT_FORMAT_CSV" },
+  { no: 2, name: "REPORT_FORMAT_PDF" },
+]);
+
+/**
  * @generated from message backend.admin.v1.CheckUserTotpEnabledRequest
  */
 export class CheckUserTotpEnabledRequest extends Message<CheckUserTotpEnabledRequest> {
@@ -3314,6 +3342,94 @@ export class ResetUserPhoneVerificationRequest extends Message<ResetUserPhoneVer
 
   static equals(a: ResetUserPhoneVerificationRequest | PlainMessage<ResetUserPhoneVerificationRequest> | undefined, b: ResetUserPhoneVerificationRequest | PlainMessage<ResetUserPhoneVerificationRequest> | undefined): boolean {
     return proto3.util.equals(ResetUserPhoneVerificationRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.admin.v1.UsersReportRequest
+ */
+export class UsersReportRequest extends Message<UsersReportRequest> {
+  /**
+   * @generated from field: backend.admin.v1.ReportFormat format = 1;
+   */
+  format = ReportFormat.UNSPECIFIED;
+
+  constructor(data?: PartialMessage<UsersReportRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.UsersReportRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "format", kind: "enum", T: proto3.getEnumType(ReportFormat) },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UsersReportRequest {
+    return new UsersReportRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): UsersReportRequest {
+    return new UsersReportRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): UsersReportRequest {
+    return new UsersReportRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: UsersReportRequest | PlainMessage<UsersReportRequest> | undefined, b: UsersReportRequest | PlainMessage<UsersReportRequest> | undefined): boolean {
+    return proto3.util.equals(UsersReportRequest, a, b);
+  }
+}
+
+/**
+ * ReportFile is a downloadable report.
+ *
+ * @generated from message backend.admin.v1.ReportFile
+ */
+export class ReportFile extends Message<ReportFile> {
+  /**
+   * @generated from field: string filename = 1;
+   */
+  filename = "";
+
+  /**
+   * @generated from field: bytes content = 2;
+   */
+  content = new Uint8Array(0);
+
+  /**
+   * @generated from field: string content_type = 3;
+   */
+  contentType = "";
+
+  constructor(data?: PartialMessage<ReportFile>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.ReportFile";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "filename", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "content", kind: "scalar", T: 12 /* ScalarType.BYTES */ },
+    { no: 3, name: "content_type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ReportFile {
+    return new ReportFile().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ReportFile {
+    return new ReportFile().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ReportFile {
+    return new ReportFile().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ReportFile | PlainMessage<ReportFile> | undefined, b: ReportFile | PlainMessage<ReportFile> | undefined): boolean {
+    return proto3.util.equals(ReportFile, a, b);
   }
 }
 

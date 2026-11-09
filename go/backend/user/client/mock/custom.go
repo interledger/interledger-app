@@ -65,6 +65,10 @@ func (mc *MockClient) ListAllUsers(ctx context.Context, pagination db.Pagination
 	return res, nil
 }
 
+func (mc *MockClient) ListIdentities(ctx context.Context) ([]user.User, error) {
+	return mc.ListAllUsers(ctx, db.Pagination{})
+}
+
 func (mc *MockClient) ListUsers(ctx context.Context, walletID string) ([]user.User, error) {
 	uid, ok := mc.WalletUser[walletID]
 	if !ok {

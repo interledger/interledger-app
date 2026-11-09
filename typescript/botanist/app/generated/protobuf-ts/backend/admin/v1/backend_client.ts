@@ -4,6 +4,8 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { Backend } from "./backend";
+import type { ReportFile } from "./backend";
+import type { UsersReportRequest } from "./backend";
 import type { UserStats } from "./backend";
 import type { ResetUserPhoneVerificationRequest } from "./backend";
 import type { Delete2FATotpEnrollmentRequest } from "./backend";
@@ -179,6 +181,14 @@ export interface IBackendClient {
      * @generated from protobuf rpc: GetUserStats(google.protobuf.Empty) returns (backend.admin.v1.UserStats);
      */
     getUserStats(input: Empty, options?: RpcOptions): UnaryCall<Empty, UserStats>;
+    /**
+     * @generated from protobuf rpc: GetXagoUsersReport(backend.admin.v1.UsersReportRequest) returns (backend.admin.v1.ReportFile);
+     */
+    getXagoUsersReport(input: UsersReportRequest, options?: RpcOptions): UnaryCall<UsersReportRequest, ReportFile>;
+    /**
+     * @generated from protobuf rpc: GetGatehubUsersReport(backend.admin.v1.UsersReportRequest) returns (backend.admin.v1.ReportFile);
+     */
+    getGatehubUsersReport(input: UsersReportRequest, options?: RpcOptions): UnaryCall<UsersReportRequest, ReportFile>;
 }
 /**
  * @generated from protobuf service backend.admin.v1.Backend
@@ -397,5 +407,19 @@ export class BackendClient implements IBackendClient, ServiceInfo {
     getUserStats(input: Empty, options?: RpcOptions): UnaryCall<Empty, UserStats> {
         const method = this.methods[28], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, UserStats>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: GetXagoUsersReport(backend.admin.v1.UsersReportRequest) returns (backend.admin.v1.ReportFile);
+     */
+    getXagoUsersReport(input: UsersReportRequest, options?: RpcOptions): UnaryCall<UsersReportRequest, ReportFile> {
+        const method = this.methods[29], opt = this._transport.mergeOptions(options);
+        return stackIntercept<UsersReportRequest, ReportFile>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: GetGatehubUsersReport(backend.admin.v1.UsersReportRequest) returns (backend.admin.v1.ReportFile);
+     */
+    getGatehubUsersReport(input: UsersReportRequest, options?: RpcOptions): UnaryCall<UsersReportRequest, ReportFile> {
+        const method = this.methods[30], opt = this._transport.mergeOptions(options);
+        return stackIntercept<UsersReportRequest, ReportFile>("unary", this._transport, method, opt, input);
     }
 }

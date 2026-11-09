@@ -51,6 +51,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
 }
 
+const REPORTS = [
+  { label: 'Xago users report', path: '/reports/xago-users' },
+  { label: 'GateHub users report', path: '/reports/gatehub-users' }
+]
+
 export default function Page() {
   const { wallets, signups, userCount, usersThisYear, quarterlyUsers, error } =
     useLoaderData<typeof loader>()
@@ -136,6 +141,35 @@ export default function Page() {
                   ))}
                 </tbody>
               </table>
+            </div>
+          </div>
+          <div className='col-span-full flex flex-col rounded-2xl bg-page p-4'>
+            <h2 className='font-display text-lg font-medium'>Reports</h2>
+            <p className='mt-2 text-sm text-gray-700'>
+              Users with their wallets, KYC status, Persona inquiry, balance and
+              full transaction history. Contains personal data; store it
+              somewhere restricted.
+            </p>
+            <div className='mt-4 flex flex-col gap-3'>
+              {REPORTS.map((report) => (
+                <div
+                  key={report.path}
+                  className='flex flex-wrap items-center gap-3'
+                >
+                  <span className='w-48 text-sm font-medium text-gray-900'>
+                    {report.label}
+                  </span>
+                  {(['csv', 'pdf'] as const).map((format) => (
+                    <a
+                      key={format}
+                      href={`${report.path}?format=${format}`}
+                      className='inline-flex rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700 focus-visible:outline-2 focus-visible:outline-focus'
+                    >
+                      Download {format.toUpperCase()}
+                    </a>
+                  ))}
+                </div>
+              ))}
             </div>
           </div>
         </>
