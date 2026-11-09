@@ -184,6 +184,10 @@ export interface IBackendClient {
      * @generated from protobuf rpc: GetXagoUsersReport(google.protobuf.Empty) returns (backend.admin.v1.CsvReport);
      */
     getXagoUsersReport(input: Empty, options?: RpcOptions): UnaryCall<Empty, CsvReport>;
+    /**
+     * @generated from protobuf rpc: GetGatehubUsersReport(google.protobuf.Empty) returns (backend.admin.v1.CsvReport);
+     */
+    getGatehubUsersReport(input: Empty, options?: RpcOptions): UnaryCall<Empty, CsvReport>;
 }
 /**
  * @generated from protobuf service backend.admin.v1.Backend
@@ -408,6 +412,13 @@ export class BackendClient implements IBackendClient, ServiceInfo {
      */
     getXagoUsersReport(input: Empty, options?: RpcOptions): UnaryCall<Empty, CsvReport> {
         const method = this.methods[29], opt = this._transport.mergeOptions(options);
+        return stackIntercept<Empty, CsvReport>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: GetGatehubUsersReport(google.protobuf.Empty) returns (backend.admin.v1.CsvReport);
+     */
+    getGatehubUsersReport(input: Empty, options?: RpcOptions): UnaryCall<Empty, CsvReport> {
+        const method = this.methods[30], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, CsvReport>("unary", this._transport, method, opt, input);
     }
 }

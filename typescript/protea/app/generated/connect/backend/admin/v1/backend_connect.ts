@@ -288,6 +288,15 @@ export const Backend = {
       O: CsvReport,
       kind: MethodKind.Unary,
     },
+    /**
+     * @generated from rpc backend.admin.v1.Backend.GetGatehubUsersReport
+     */
+    getGatehubUsersReport: {
+      name: "GetGatehubUsersReport",
+      I: Empty,
+      O: CsvReport,
+      kind: MethodKind.Unary,
+    },
   }
 } as const;
 

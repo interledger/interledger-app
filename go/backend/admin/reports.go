@@ -12,13 +12,26 @@ import (
 
 // GetXagoUsersReport returns the Xago users report as a CSV download.
 func (s *AdminRpcService) GetXagoUsersReport(ctx context.Context, _ *emptypb.Empty) (*adminv1.CsvReport, error) {
-	csv, err := reports.XagoUsersCSV(ctx, s.b)
+	return csvReport(ctx, "xago-users", func(ctx context.Context) (string, error) {
+		return reports.XagoUsersCSV(ctx, s.b)
+	})
+}
+
+// GetGatehubUsersReport returns the GateHub users report as a CSV download.
+func (s *AdminRpcService) GetGatehubUsersReport(ctx context.Context, _ *emptypb.Empty) (*adminv1.CsvReport, error) {
+	return csvReport(ctx, "gatehub-users", func(ctx context.Context) (string, error) {
+		return reports.GatehubUsersCSV(ctx, s.b)
+	})
+}
+
+func csvReport(ctx context.Context, name string, build func(context.Context) (string, error)) (*adminv1.CsvReport, error) {
+	csv, err := build(ctx)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
 
 	return &adminv1.CsvReport{
-		Filename: fmt.Sprintf("xago-users-%s.csv", time.Now().UTC().Format("2006-01-02")),
+		Filename: fmt.Sprintf("%s-%s.csv", name, time.Now().UTC().Format("2006-01-02")),
 		Content:  []byte(csv),
 	}, nil
 }

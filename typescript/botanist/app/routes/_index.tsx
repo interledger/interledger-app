@@ -141,16 +141,22 @@ export default function Page() {
           <div className='col-span-full flex flex-col rounded-2xl bg-page p-4'>
             <h2 className='font-display text-lg font-medium'>Reports</h2>
             <p className='mt-2 text-sm text-gray-700'>
-              Every ZA user with their wallets, Persona inquiry, Xago balance
-              and full transaction history. Contains personal data; store it
+              Users with their wallets, KYC status, Persona inquiry, balance and
+              full transaction history. Contains personal data; store it
               somewhere restricted.
             </p>
-            <div className='mt-4'>
+            <div className='mt-4 flex flex-wrap gap-3'>
               <a
                 href='/reports/xago-users'
                 className='inline-flex rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700 focus-visible:outline-2 focus-visible:outline-focus'
               >
                 Download Xago users report (CSV)
+              </a>
+              <a
+                href='/reports/gatehub-users'
+                className='inline-flex rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700 focus-visible:outline-2 focus-visible:outline-focus'
+              >
+                Download GateHub users report (CSV)
               </a>
             </div>
           </div>

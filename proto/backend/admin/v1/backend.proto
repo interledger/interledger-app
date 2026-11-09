@@ -49,6 +49,7 @@ service Backend {
 
   rpc GetUserStats(google.protobuf.Empty) returns (UserStats);
   rpc GetXagoUsersReport(google.protobuf.Empty) returns (CsvReport);
+  rpc GetGatehubUsersReport(google.protobuf.Empty) returns (CsvReport);
 }
 
 message CheckUserTotpEnabledRequest {

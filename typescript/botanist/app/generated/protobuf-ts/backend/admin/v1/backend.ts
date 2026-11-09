@@ -5434,5 +5434,6 @@ export const Backend = new ServiceType("backend.admin.v1.Backend", [
     { name: "Delete2FATotpEnrollment", options: {}, I: Delete2FATotpEnrollmentRequest, O: Empty },
     { name: "ResetUserPhoneVerification", options: {}, I: ResetUserPhoneVerificationRequest, O: Empty },
     { name: "GetUserStats", options: {}, I: Empty$, O: UserStats },
-    { name: "GetXagoUsersReport", options: {}, I: Empty$, O: CsvReport }
+    { name: "GetXagoUsersReport", options: {}, I: Empty$, O: CsvReport },
+    { name: "GetGatehubUsersReport", options: {}, I: Empty$, O: CsvReport }
 ]);

@@ -4510,7 +4510,7 @@ const file_backend_admin_v1_backend_proto_rawDesc = "" +
 	"\bwalletID\x18\x02 \x01(\tR\bwalletID\"A\n" +
 	"\tCsvReport\x12\x1a\n" +
 	"\bfilename\x18\x01 \x01(\tR\bfilename\x12\x18\n" +
-	"\acontent\x18\x02 \x01(\fR\acontent2\xc0\x17\n" +
+	"\acontent\x18\x02 \x01(\fR\acontent2\x8e\x18\n" +
 	"\aBackend\x12\\\n" +
 	"\x13ListWaitlistSignups\x12\x16.google.protobuf.Empty\x1a-.backend.admin.v1.ListWaitlistSignupsResponse\x12\\\n" +
 	"\x13AllowWaitlistSignup\x12,.backend.admin.v1.AllowWaitlistSignupRequest\x1a\x17.backend.admin.v1.Empty\x12Z\n" +
@@ -4541,7 +4541,8 @@ const file_backend_admin_v1_backend_proto_rawDesc = "" +
 	"\x17Delete2FATotpEnrollment\x120.backend.admin.v1.Delete2FATotpEnrollmentRequest\x1a\x17.backend.admin.v1.Empty\x12j\n" +
 	"\x1aResetUserPhoneVerification\x123.backend.admin.v1.ResetUserPhoneVerificationRequest\x1a\x17.backend.admin.v1.Empty\x12C\n" +
 	"\fGetUserStats\x12\x16.google.protobuf.Empty\x1a\x1b.backend.admin.v1.UserStats\x12I\n" +
-	"\x12GetXagoUsersReport\x12\x16.google.protobuf.Empty\x1a\x1b.backend.admin.v1.CsvReportB\x1aZ\x18./backend/admin/v1;adminb\x06proto3"
+	"\x12GetXagoUsersReport\x12\x16.google.protobuf.Empty\x1a\x1b.backend.admin.v1.CsvReport\x12L\n" +
+	"\x15GetGatehubUsersReport\x12\x16.google.protobuf.Empty\x1a\x1b.backend.admin.v1.CsvReportB\x1aZ\x18./backend/admin/v1;adminb\x06proto3"
 
 var (
 	file_backend_admin_v1_backend_proto_rawDescOnce sync.Once
@@ -4688,38 +4689,40 @@ var file_backend_admin_v1_backend_proto_depIdxs = []int32{
 	60, // 62: backend.admin.v1.Backend.ResetUserPhoneVerification:input_type -> backend.admin.v1.ResetUserPhoneVerificationRequest
 	63, // 63: backend.admin.v1.Backend.GetUserStats:input_type -> google.protobuf.Empty
 	63, // 64: backend.admin.v1.Backend.GetXagoUsersReport:input_type -> google.protobuf.Empty
-	54, // 65: backend.admin.v1.Backend.ListWaitlistSignups:output_type -> backend.admin.v1.ListWaitlistSignupsResponse
-	22, // 66: backend.admin.v1.Backend.AllowWaitlistSignup:output_type -> backend.admin.v1.Empty
-	49, // 67: backend.admin.v1.Backend.ListWallets:output_type -> backend.admin.v1.ListWalletsResponse
-	44, // 68: backend.admin.v1.Backend.GetWalletDetails:output_type -> backend.admin.v1.WalletDetails
-	40, // 69: backend.admin.v1.Backend.ListTransactions:output_type -> backend.admin.v1.ListTransactionsResponse
-	37, // 70: backend.admin.v1.Backend.GetTransactionDetails:output_type -> backend.admin.v1.GetTransactionDetailsResponse
-	34, // 71: backend.admin.v1.Backend.ListLinkedAccounts:output_type -> backend.admin.v1.ListLinkedAccountsResponse
-	30, // 72: backend.admin.v1.Backend.ListAudit:output_type -> backend.admin.v1.ListAuditResponse
-	28, // 73: backend.admin.v1.Backend.GetWalletFeatures:output_type -> backend.admin.v1.Features
-	28, // 74: backend.admin.v1.Backend.SetWalletFeatures:output_type -> backend.admin.v1.Features
-	24, // 75: backend.admin.v1.Backend.ListIncompleteLinkedAccountReviews:output_type -> backend.admin.v1.LinkedAccountReviews
-	23, // 76: backend.admin.v1.Backend.GetLinkedAccountReview:output_type -> backend.admin.v1.LinkedAccountReview
-	23, // 77: backend.admin.v1.Backend.CompleteLinkedAccountReview:output_type -> backend.admin.v1.LinkedAccountReview
-	35, // 78: backend.admin.v1.Backend.GetLinkedAccount:output_type -> backend.admin.v1.LinkedAccount
-	21, // 79: backend.admin.v1.Backend.ListExternalApiCalls:output_type -> backend.admin.v1.ListExternalApiCallsResponse
-	17, // 80: backend.admin.v1.Backend.ListPaymentsAwaitingSignal:output_type -> backend.admin.v1.ListPaymentsAwaitingSignalResponse
-	22, // 81: backend.admin.v1.Backend.SetWalletXagoBalanceEnabled:output_type -> backend.admin.v1.Empty
-	58, // 82: backend.admin.v1.Backend.GetWalletXagoBalance:output_type -> backend.admin.v1.GetWalletXagoBalanceResponse
-	22, // 83: backend.admin.v1.Backend.SetWalletCountry:output_type -> backend.admin.v1.Empty
-	16, // 84: backend.admin.v1.Backend.ListCountries:output_type -> backend.admin.v1.ListCountriesResponse
-	22, // 85: backend.admin.v1.Backend.EnablePTIBalance:output_type -> backend.admin.v1.Empty
-	12, // 86: backend.admin.v1.Backend.GetPTIBalance:output_type -> backend.admin.v1.GetPTIBalanceResponse
-	22, // 87: backend.admin.v1.Backend.CreateGatehubUser:output_type -> backend.admin.v1.Empty
-	10, // 88: backend.admin.v1.Backend.GetGatehubBalance:output_type -> backend.admin.v1.GetGatehubBalanceResponse
-	3,  // 89: backend.admin.v1.Backend.GetGatehubUser:output_type -> backend.admin.v1.GatehubUser
-	1,  // 90: backend.admin.v1.Backend.CheckUserTotpEnabled:output_type -> backend.admin.v1.CheckUserTotpEnabledResponse
-	22, // 91: backend.admin.v1.Backend.Delete2FATotpEnrollment:output_type -> backend.admin.v1.Empty
-	22, // 92: backend.admin.v1.Backend.ResetUserPhoneVerification:output_type -> backend.admin.v1.Empty
-	51, // 93: backend.admin.v1.Backend.GetUserStats:output_type -> backend.admin.v1.UserStats
-	61, // 94: backend.admin.v1.Backend.GetXagoUsersReport:output_type -> backend.admin.v1.CsvReport
-	65, // [65:95] is the sub-list for method output_type
-	35, // [35:65] is the sub-list for method input_type
+	63, // 65: backend.admin.v1.Backend.GetGatehubUsersReport:input_type -> google.protobuf.Empty
+	54, // 66: backend.admin.v1.Backend.ListWaitlistSignups:output_type -> backend.admin.v1.ListWaitlistSignupsResponse
+	22, // 67: backend.admin.v1.Backend.AllowWaitlistSignup:output_type -> backend.admin.v1.Empty
+	49, // 68: backend.admin.v1.Backend.ListWallets:output_type -> backend.admin.v1.ListWalletsResponse
+	44, // 69: backend.admin.v1.Backend.GetWalletDetails:output_type -> backend.admin.v1.WalletDetails
+	40, // 70: backend.admin.v1.Backend.ListTransactions:output_type -> backend.admin.v1.ListTransactionsResponse
+	37, // 71: backend.admin.v1.Backend.GetTransactionDetails:output_type -> backend.admin.v1.GetTransactionDetailsResponse
+	34, // 72: backend.admin.v1.Backend.ListLinkedAccounts:output_type -> backend.admin.v1.ListLinkedAccountsResponse
+	30, // 73: backend.admin.v1.Backend.ListAudit:output_type -> backend.admin.v1.ListAuditResponse
+	28, // 74: backend.admin.v1.Backend.GetWalletFeatures:output_type -> backend.admin.v1.Features
+	28, // 75: backend.admin.v1.Backend.SetWalletFeatures:output_type -> backend.admin.v1.Features
+	24, // 76: backend.admin.v1.Backend.ListIncompleteLinkedAccountReviews:output_type -> backend.admin.v1.LinkedAccountReviews
+	23, // 77: backend.admin.v1.Backend.GetLinkedAccountReview:output_type -> backend.admin.v1.LinkedAccountReview
+	23, // 78: backend.admin.v1.Backend.CompleteLinkedAccountReview:output_type -> backend.admin.v1.LinkedAccountReview
+	35, // 79: backend.admin.v1.Backend.GetLinkedAccount:output_type -> backend.admin.v1.LinkedAccount
+	21, // 80: backend.admin.v1.Backend.ListExternalApiCalls:output_type -> backend.admin.v1.ListExternalApiCallsResponse
+	17, // 81: backend.admin.v1.Backend.ListPaymentsAwaitingSignal:output_type -> backend.admin.v1.ListPaymentsAwaitingSignalResponse
+	22, // 82: backend.admin.v1.Backend.SetWalletXagoBalanceEnabled:output_type -> backend.admin.v1.Empty
+	58, // 83: backend.admin.v1.Backend.GetWalletXagoBalance:output_type -> backend.admin.v1.GetWalletXagoBalanceResponse
+	22, // 84: backend.admin.v1.Backend.SetWalletCountry:output_type -> backend.admin.v1.Empty
+	16, // 85: backend.admin.v1.Backend.ListCountries:output_type -> backend.admin.v1.ListCountriesResponse
+	22, // 86: backend.admin.v1.Backend.EnablePTIBalance:output_type -> backend.admin.v1.Empty
+	12, // 87: backend.admin.v1.Backend.GetPTIBalance:output_type -> backend.admin.v1.GetPTIBalanceResponse
+	22, // 88: backend.admin.v1.Backend.CreateGatehubUser:output_type -> backend.admin.v1.Empty
+	10, // 89: backend.admin.v1.Backend.GetGatehubBalance:output_type -> backend.admin.v1.GetGatehubBalanceResponse
+	3,  // 90: backend.admin.v1.Backend.GetGatehubUser:output_type -> backend.admin.v1.GatehubUser
+	1,  // 91: backend.admin.v1.Backend.CheckUserTotpEnabled:output_type -> backend.admin.v1.CheckUserTotpEnabledResponse
+	22, // 92: backend.admin.v1.Backend.Delete2FATotpEnrollment:output_type -> backend.admin.v1.Empty
+	22, // 93: backend.admin.v1.Backend.ResetUserPhoneVerification:output_type -> backend.admin.v1.Empty
+	51, // 94: backend.admin.v1.Backend.GetUserStats:output_type -> backend.admin.v1.UserStats
+	61, // 95: backend.admin.v1.Backend.GetXagoUsersReport:output_type -> backend.admin.v1.CsvReport
+	61, // 96: backend.admin.v1.Backend.GetGatehubUsersReport:output_type -> backend.admin.v1.CsvReport
+	66, // [66:97] is the sub-list for method output_type
+	35, // [35:66] is the sub-list for method input_type
 	35, // [35:35] is the sub-list for extension type_name
 	35, // [35:35] is the sub-list for extension extendee
 	0,  // [0:35] is the sub-list for field type_name

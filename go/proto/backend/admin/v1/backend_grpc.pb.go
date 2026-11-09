@@ -50,6 +50,7 @@ const (
 	Backend_ResetUserPhoneVerification_FullMethodName         = "/backend.admin.v1.Backend/ResetUserPhoneVerification"
 	Backend_GetUserStats_FullMethodName                       = "/backend.admin.v1.Backend/GetUserStats"
 	Backend_GetXagoUsersReport_FullMethodName                 = "/backend.admin.v1.Backend/GetXagoUsersReport"
+	Backend_GetGatehubUsersReport_FullMethodName              = "/backend.admin.v1.Backend/GetGatehubUsersReport"
 )
 
 // BackendClient is the client API for Backend service.
@@ -89,6 +90,7 @@ type BackendClient interface {
 	ResetUserPhoneVerification(ctx context.Context, in *ResetUserPhoneVerificationRequest, opts ...grpc.CallOption) (*Empty, error)
 	GetUserStats(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*UserStats, error)
 	GetXagoUsersReport(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*CsvReport, error)
+	GetGatehubUsersReport(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*CsvReport, error)
 }
 
 type backendClient struct {
@@ -399,6 +401,16 @@ func (c *backendClient) GetXagoUsersReport(ctx context.Context, in *emptypb.Empt
 	return out, nil
 }
 
+func (c *backendClient) GetGatehubUsersReport(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*CsvReport, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CsvReport)
+	err := c.cc.Invoke(ctx, Backend_GetGatehubUsersReport_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServer is the server API for Backend service.
 // All implementations should embed UnimplementedBackendServer
 // for forward compatibility.
@@ -436,6 +448,7 @@ type BackendServer interface {
 	ResetUserPhoneVerification(context.Context, *ResetUserPhoneVerificationRequest) (*Empty, error)
 	GetUserStats(context.Context, *emptypb.Empty) (*UserStats, error)
 	GetXagoUsersReport(context.Context, *emptypb.Empty) (*CsvReport, error)
+	GetGatehubUsersReport(context.Context, *emptypb.Empty) (*CsvReport, error)
 }
 
 // UnimplementedBackendServer should be embedded to have
@@ -534,6 +547,9 @@ func (UnimplementedBackendServer) GetUserStats(context.Context, *emptypb.Empty) 
 }
 func (UnimplementedBackendServer) GetXagoUsersReport(context.Context, *emptypb.Empty) (*CsvReport, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetXagoUsersReport not implemented")
+}
+func (UnimplementedBackendServer) GetGatehubUsersReport(context.Context, *emptypb.Empty) (*CsvReport, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetGatehubUsersReport not implemented")
 }
 func (UnimplementedBackendServer) testEmbeddedByValue() {}
 
@@ -1095,6 +1111,24 @@ func _Backend_GetXagoUsersReport_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Backend_GetGatehubUsersReport_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServer).GetGatehubUsersReport(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Backend_GetGatehubUsersReport_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServer).GetGatehubUsersReport(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Backend_ServiceDesc is the grpc.ServiceDesc for Backend service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1221,6 +1255,10 @@ var Backend_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetXagoUsersReport",
 			Handler:    _Backend_GetXagoUsersReport_Handler,
+		},
+		{
+			MethodName: "GetGatehubUsersReport",
+			Handler:    _Backend_GetGatehubUsersReport_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
