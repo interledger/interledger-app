@@ -1261,6 +1261,21 @@ export interface ResetUserPhoneVerificationRequest {
      */
     walletID: string;
 }
+/**
+ * CsvReport is a downloadable CSV file.
+ *
+ * @generated from protobuf message backend.admin.v1.CsvReport
+ */
+export interface CsvReport {
+    /**
+     * @generated from protobuf field: string filename = 1;
+     */
+    filename: string;
+    /**
+     * @generated from protobuf field: bytes content = 2;
+     */
+    content: Uint8Array;
+}
 // @generated message type with reflection information, may provide speed optimized methods
 class CheckUserTotpEnabledRequest$Type extends MessageType<CheckUserTotpEnabledRequest> {
     constructor() {
@@ -5332,6 +5347,60 @@ class ResetUserPhoneVerificationRequest$Type extends MessageType<ResetUserPhoneV
  * @generated MessageType for protobuf message backend.admin.v1.ResetUserPhoneVerificationRequest
  */
 export const ResetUserPhoneVerificationRequest = new ResetUserPhoneVerificationRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CsvReport$Type extends MessageType<CsvReport> {
+    constructor() {
+        super("backend.admin.v1.CsvReport", [
+            { no: 1, name: "filename", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "content", kind: "scalar", T: 12 /*ScalarType.BYTES*/ }
+        ]);
+    }
+    create(value?: PartialMessage<CsvReport>): CsvReport {
+        const message = { filename: "", content: new Uint8Array(0) };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CsvReport>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CsvReport): CsvReport {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string filename */ 1:
+                    message.filename = reader.string();
+                    break;
+                case /* bytes content */ 2:
+                    message.content = reader.bytes();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CsvReport, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string filename = 1; */
+        if (message.filename !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.filename);
+        /* bytes content = 2; */
+        if (message.content.length)
+            writer.tag(2, WireType.LengthDelimited).bytes(message.content);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.CsvReport
+ */
+export const CsvReport = new CsvReport$Type();
 /**
  * @generated ServiceType for protobuf service backend.admin.v1.Backend
  */
@@ -5364,5 +5433,6 @@ export const Backend = new ServiceType("backend.admin.v1.Backend", [
     { name: "CheckUserTotpEnabled", options: {}, I: CheckUserTotpEnabledRequest, O: CheckUserTotpEnabledResponse },
     { name: "Delete2FATotpEnrollment", options: {}, I: Delete2FATotpEnrollmentRequest, O: Empty },
     { name: "ResetUserPhoneVerification", options: {}, I: ResetUserPhoneVerificationRequest, O: Empty },
-    { name: "GetUserStats", options: {}, I: Empty$, O: UserStats }
+    { name: "GetUserStats", options: {}, I: Empty$, O: UserStats },
+    { name: "GetXagoUsersReport", options: {}, I: Empty$, O: CsvReport }
 ]);

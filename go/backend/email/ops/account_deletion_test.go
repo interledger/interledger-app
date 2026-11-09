@@ -93,6 +93,9 @@ func (t *testUsersClient) UpdateUserPhone(_ context.Context, _ string, _ string)
 func (t *testUsersClient) UserStats(_ context.Context, _ time.Time) (user.Stats, error) {
 	return user.Stats{}, errors.New("not implemented")
 }
+func (t *testUsersClient) ListIdentities(_ context.Context) ([]user.User, error) {
+	return nil, errors.New("not implemented")
+}
 
 type testWalletsClient struct {
 	list func(ctx context.Context, userID string) ([]wallets.Wallet, error)

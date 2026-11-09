@@ -101,17 +101,22 @@ func GetUser(ctx context.Context, b Backends, userID string) (*user.User, error)
 }
 
 func convertTraits(userID string, traits interface{}, createdAt *time.Time) user.User {
-	traitsMap := traits.(map[string]interface{})
+	// Missing or mistyped traits become zero values instead of panicking.
+	traitsMap, _ := traits.(map[string]interface{})
+	str := func(key string) string {
+		s, _ := traitsMap[key].(string)
+		return s
+	}
 	phoneVerified, _ := traitsMap["phoneVerified"].(bool)
 
 	u := user.User{
 		ID:            userID,
-		Email:         traitsMap["email"].(string),
-		PhoneNumber:   traitsMap["phone"].(string),
+		Email:         str("email"),
+		PhoneNumber:   str("phone"),
 		PhoneVerified: phoneVerified,
-		Country:       country.ParseCountry(traitsMap["countryCode"].(string)),
-		FirstName:     traitsMap["firstName"].(string),
-		LastName:      traitsMap["lastName"].(string),
+		Country:       country.ParseCountry(str("countryCode")),
+		FirstName:     str("firstName"),
+		LastName:      str("lastName"),
 	}
 	if createdAt != nil {
 		u.CreatedAt = *createdAt
@@ -507,6 +512,44 @@ func UserStats(ctx context.Context, b Backends, now time.Time) (user.Stats, erro
 	}
 
 	return stats, nil
+}
+
+// listIdentitiesMaxPages is a safety valve against a pagination loop: 100k identities.
+const listIdentitiesMaxPages = 200
+
+func ListIdentities(ctx context.Context, b Backends) ([]user.User, error) {
+	adminCtx := context.WithValue(ctx, client.ContextServerIndex, 1)
+
+	var users []user.User
+	pageToken := ""
+	for page := 0; ; page++ {
+		if page == listIdentitiesMaxPages {
+			return nil, fmt.Errorf("%w stopped after %d pages of identities", user.ErrInternal, listIdentitiesMaxPages)
+		}
+
+		reqCtx, cancel := context.WithTimeout(adminCtx, kratosTimeout)
+		req := b.Kratos().IdentityAPI.ListIdentities(reqCtx).PageSize(500)
+		if pageToken != "" {
+			req = req.PageToken(pageToken)
+		}
+		identities, resp, err := req.Execute()
+		cancel()
+		if err != nil {
+			return nil, fmt.Errorf("%w %s", user.ErrInternal, err)
+		}
+
+		for _, id := range identities {
+			users = append(users, convertTraits(id.Id, id.Traits, id.CreatedAt))
+		}
+
+		next := nextIdentityPageToken(resp)
+		if next == "" || next == pageToken || len(identities) == 0 {
+			break
+		}
+		pageToken = next
+	}
+
+	return users, nil
 }
 
 func nextIdentityPageToken(resp *http.Response) string {

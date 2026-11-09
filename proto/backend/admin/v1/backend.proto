@@ -48,6 +48,7 @@ service Backend {
   rpc ResetUserPhoneVerification(ResetUserPhoneVerificationRequest) returns (Empty);
 
   rpc GetUserStats(google.protobuf.Empty) returns (UserStats);
+  rpc GetXagoUsersReport(google.protobuf.Empty) returns (CsvReport);
 }
 
 message CheckUserTotpEnabledRequest {
@@ -467,4 +468,10 @@ message Amount {
 message ResetUserPhoneVerificationRequest {
   string identityId = 1;
   string walletID = 2;
+}
+
+// CsvReport is a downloadable CSV file.
+message CsvReport {
+  string filename = 1;
+  bytes content = 2;
 }

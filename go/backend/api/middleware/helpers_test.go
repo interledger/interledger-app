@@ -64,3 +64,7 @@ func (s *stubUserClient) FindWalletIDsByIdentifierPrefix(_ context.Context, _ st
 func (s *stubUserClient) UserStats(_ context.Context, _ time.Time) (user.Stats, error) {
 	panic("unexpected")
 }
+
+func (s *stubUserClient) ListIdentities(_ context.Context) ([]user.User, error) {
+	panic("unexpected")
+}

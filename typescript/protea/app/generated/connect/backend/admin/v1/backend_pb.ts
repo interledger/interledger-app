@@ -3317,3 +3317,48 @@ export class ResetUserPhoneVerificationRequest extends Message<ResetUserPhoneVer
   }
 }
 
+/**
+ * CsvReport is a downloadable CSV file.
+ *
+ * @generated from message backend.admin.v1.CsvReport
+ */
+export class CsvReport extends Message<CsvReport> {
+  /**
+   * @generated from field: string filename = 1;
+   */
+  filename = "";
+
+  /**
+   * @generated from field: bytes content = 2;
+   */
+  content = new Uint8Array(0);
+
+  constructor(data?: PartialMessage<CsvReport>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.CsvReport";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "filename", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "content", kind: "scalar", T: 12 /* ScalarType.BYTES */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CsvReport {
+    return new CsvReport().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CsvReport {
+    return new CsvReport().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CsvReport {
+    return new CsvReport().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CsvReport | PlainMessage<CsvReport> | undefined, b: CsvReport | PlainMessage<CsvReport> | undefined): boolean {
+    return proto3.util.equals(CsvReport, a, b);
+  }
+}
+

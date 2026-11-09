@@ -28,4 +28,6 @@ type Client interface {
 	FindWalletIDsByIdentifierPrefix(ctx context.Context, term string) ([]string, error)
 	// UserStats counts every identity, including users with no wallet.
 	UserStats(ctx context.Context, now time.Time) (Stats, error)
+	// ListIdentities returns every Kratos identity, including users with no wallet.
+	ListIdentities(ctx context.Context) ([]User, error)
 }
