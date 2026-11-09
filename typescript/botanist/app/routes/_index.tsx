@@ -147,8 +147,8 @@ export default function Page() {
             <h2 className='font-display text-lg font-medium'>Reports</h2>
             <p className='mt-2 text-sm text-gray-700'>
               Users with their wallets, KYC status, Persona inquiry, balance and
-              full transaction history. Contains personal data; store it
-              somewhere restricted.
+              transaction history with that provider. Contains personal data;
+              store it somewhere restricted.
             </p>
             <div className='mt-4 flex flex-col gap-3'>
               {REPORTS.map((report) => (

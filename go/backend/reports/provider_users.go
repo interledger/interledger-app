@@ -60,6 +60,7 @@ type providerReport struct {
 	// title is the human-readable report name, used in the PDF.
 	title string
 	// linkedAccountProvider and linkedAccountType identify the balance linked account.
+	// linkedAccountProvider also filters the transactions to the provider's own.
 	linkedAccountProvider string
 	linkedAccountType     string
 	// selectUsers picks the report's users and wallets. alwaysInclude lists users that get
@@ -301,7 +302,7 @@ func (p providerReport) listUsers(ctx context.Context, b Backends) ([]reportUser
 }
 
 // fillWallet adds a wallet's KYC status, Persona inquiry, provider details, balance
-// and full transaction history to w.
+// and the provider's transaction history to w.
 func (p providerReport) fillWallet(ctx context.Context, b Backends, w *reportWallet) error {
 	linkedAccounts, err := b.LinkedAccounts().ListByWalletId(ctx, w.WalletID)
 	if err != nil {
@@ -368,12 +369,13 @@ func (p providerReport) fillWallet(ctx context.Context, b Backends, w *reportWal
 		UpdatedAt   time.Time      `db:"updated_at"`
 	}
 	// Queried directly because the transactions client doesn't expose created_at.
+	// Only the report's provider's transactions are included.
 	err = b.DB().SelectContext(ctx, &txs, `
 		SELECT id, type, state, provider, title, amount, provider_fee, asset_scale, asset_code, created_at, updated_at
 		FROM transactions
-		WHERE wallet_id = $1
+		WHERE wallet_id = $1 AND provider = $2
 		ORDER BY created_at DESC, id`,
-		w.WalletID)
+		w.WalletID, p.linkedAccountProvider)
 	if err != nil {
 		return fmt.Errorf("listing transactions: %w", err)
 	}
