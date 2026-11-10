@@ -204,8 +204,8 @@ export default function Page() {
                 </p>
               </div>
             </div>
-            <ButtonRouter to={href('/signup')}>Sign up</ButtonRouter>
           </CardContent>
+          <ButtonRouter to={href('/signup')}>Sign up</ButtonRouter>
         </Card>
       )}
     </>
