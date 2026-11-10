@@ -11,7 +11,7 @@ require (
 	github.com/cucumber/godog v0.15.1
 	github.com/fogleman/gg v1.3.0
 	github.com/getsentry/sentry-go v0.22.0
-	github.com/go-chi/chi/v5 v5.2.5
+	github.com/go-chi/chi/v5 v5.4.0
 	github.com/go-pdf/fpdf v0.9.0
 	github.com/go-playground/validator/v10 v10.11.1
 	github.com/golang-migrate/migrate/v4 v4.18.3
