@@ -15,7 +15,7 @@ import (
 var xagoUsersReport = providerReport{
 	name:                  "xago",
 	displayName:           "Xago",
-	title:                 "South Africa users report",
+	title:                 "Xago and South African users report",
 	linkedAccountProvider: xago.ProviderName,
 	linkedAccountType:     xago.AccTypeBalance,
 	currency:              currency.ZAR,

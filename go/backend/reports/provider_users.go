@@ -87,8 +87,9 @@ type reportUser struct {
 	Email     string
 	FirstName string
 	LastName  string
-	// KratosCountry is the countryCode trait; empty if the identity is gone from Kratos.
-	KratosCountry string
+	// SignupCountry is the country the user chose at signup (the Kratos countryCode trait);
+	// empty if the identity is gone from Kratos.
+	SignupCountry string
 	Wallets       []reportWallet
 }
 
@@ -182,7 +183,7 @@ func (p providerReport) collect(ctx context.Context, b Backends) ([]reportUser, 
 
 func (p providerReport) header() []string {
 	h := []string{
-		"email", "first_name", "last_name", "user_id", "kratos_country",
+		"email", "first_name", "last_name", "user_id", "signup_country",
 		"wallet_id", "wallet_country", "local_kyc",
 	}
 	if p.persona {
@@ -216,7 +217,7 @@ func (p providerReport) csv(users []reportUser) (string, error) {
 	}
 
 	for _, u := range users {
-		userCols := []string{u.Email, u.FirstName, u.LastName, u.UserID, u.KratosCountry}
+		userCols := []string{u.Email, u.FirstName, u.LastName, u.UserID, u.SignupCountry}
 		if len(u.Wallets) == 0 {
 			if err := cw.Write(append(userCols, make([]string, len(header)-len(userCols))...)); err != nil {
 				return "", err
@@ -276,7 +277,7 @@ func (p providerReport) listUsers(ctx context.Context, b Backends) ([]reportUser
 			Email:         strings.TrimSpace(id.Email),
 			FirstName:     strings.TrimSpace(id.FirstName),
 			LastName:      strings.TrimSpace(id.LastName),
-			KratosCountry: id.Country.String(),
+			SignupCountry: id.Country.String(),
 		}
 	}
 
