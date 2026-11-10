@@ -2608,6 +2608,11 @@ export class ListWalletsRequest extends Message<ListWalletsRequest> {
    */
   filter?: WalletSearchFilter;
 
+  /**
+   * @generated from field: int32 offset = 5;
+   */
+  offset = 0;
+
   constructor(data?: PartialMessage<ListWalletsRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -2620,6 +2625,7 @@ export class ListWalletsRequest extends Message<ListWalletsRequest> {
     { no: 2, name: "pageToken", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
     { no: 3, name: "search", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
     { no: 4, name: "filter", kind: "message", T: WalletSearchFilter, opt: true },
+    { no: 5, name: "offset", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListWalletsRequest {
@@ -2781,6 +2787,11 @@ export class ListWalletsResponse extends Message<ListWalletsResponse> {
    */
   nextPageToken = "";
 
+  /**
+   * @generated from field: int32 totalCount = 3;
+   */
+  totalCount = 0;
+
   constructor(data?: PartialMessage<ListWalletsResponse>) {
     super();
     proto3.util.initPartial(data, this);
@@ -2791,6 +2802,7 @@ export class ListWalletsResponse extends Message<ListWalletsResponse> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "wallets", kind: "message", T: Wallet, repeated: true },
     { no: 2, name: "nextPageToken", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "totalCount", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListWalletsResponse {

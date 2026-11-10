@@ -381,6 +381,7 @@ message ListWalletsRequest {
   optional string pageToken = 2;
   optional string search = 3;
   optional WalletSearchFilter filter = 4;
+  int32 offset = 5;
 }
 
 message WalletSearchFilter {
@@ -403,6 +404,7 @@ message Wallet {
 message ListWalletsResponse {
   repeated Wallet wallets = 1;
   string nextPageToken = 2;
+  int32 totalCount = 3;
 }
 
 message User {
