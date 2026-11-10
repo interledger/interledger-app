@@ -31,6 +31,11 @@ func TestGatehubHeader(t *testing.T) {
 			t.Errorf("gatehub header is missing %q: %v", c, h)
 		}
 	}
+	for _, c := range []string{"persona_inquiry_id", "persona_inquiry_state"} {
+		if _, ok := idx[c]; ok {
+			t.Errorf("gatehub header should not have %q: %v", c, h)
+		}
+	}
 	if idx["gatehub_user_id"] > idx["gatehub_linked_account_id"] {
 		t.Errorf("gatehub_user_id should come before gatehub_linked_account_id: %v", h)
 	}

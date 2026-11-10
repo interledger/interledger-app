@@ -70,6 +70,8 @@ type providerReport struct {
 	selectUsers func(ctx context.Context, b Backends, identities []user.User) (alwaysInclude []string, wallets []walletRow, err error)
 	// balance returns the total and available balance of a balance linked account.
 	balance func(ctx context.Context, b Backends, linkedAccountID string) (total, available currency.Amount, err error)
+	// persona adds the Persona inquiry ID and state columns.
+	persona bool
 	// externalUserID, if set, adds a "<name>_user_id" column with the provider's user ID.
 	externalUserID func(ctx context.Context, b Backends, walletID string) (string, error)
 }
@@ -96,7 +98,8 @@ type reportWallet struct {
 	// LocalKYC is the app's own KYC status for the wallet (wallet_kyc_status), e.g. "Approved".
 	LocalKYC string
 	// PersonaInquiryID is the wallet's latest approved Persona inquiry, or its most recent
-	// inquiry if none is approved; empty if the wallet never started KYC.
+	// inquiry if none is approved; empty if the wallet never started KYC. Only set when
+	// the report has the Persona columns.
 	PersonaInquiryID    string
 	PersonaInquiryState string
 	// ExternalUserID is the provider's ID for the user; only set when the report has that column.
@@ -180,7 +183,10 @@ func (p providerReport) collect(ctx context.Context, b Backends) ([]reportUser, 
 func (p providerReport) header() []string {
 	h := []string{
 		"email", "first_name", "last_name", "user_id", "kratos_country",
-		"wallet_id", "wallet_country", "local_kyc", "persona_inquiry_id", "persona_inquiry_state",
+		"wallet_id", "wallet_country", "local_kyc",
+	}
+	if p.persona {
+		h = append(h, "persona_inquiry_id", "persona_inquiry_state")
 	}
 	if p.externalUserID != nil {
 		h = append(h, p.name+"_user_id")
@@ -219,7 +225,10 @@ func (p providerReport) csv(users []reportUser) (string, error) {
 		}
 
 		for _, w := range u.Wallets {
-			walletCols := []string{w.WalletID, w.Country, w.LocalKYC, w.PersonaInquiryID, w.PersonaInquiryState}
+			walletCols := []string{w.WalletID, w.Country, w.LocalKYC}
+			if p.persona {
+				walletCols = append(walletCols, w.PersonaInquiryID, w.PersonaInquiryState)
+			}
 			if p.externalUserID != nil {
 				walletCols = append(walletCols, w.ExternalUserID)
 			}
@@ -323,22 +332,24 @@ func (p providerReport) fillWallet(ctx context.Context, b Backends, w *reportWal
 	}
 	w.LocalKYC = kycStatus.String()
 
-	var inquiry struct {
-		ExternalID string `db:"external_id"`
-		State      string `db:"state"`
+	if p.persona {
+		var inquiry struct {
+			ExternalID string `db:"external_id"`
+			State      string `db:"state"`
+		}
+		err := b.DB().GetContext(ctx, &inquiry, `
+			SELECT external_id, state
+			FROM kyc_persona_inquiries
+			WHERE wallet_id = $1
+			ORDER BY (state = $2) DESC, updated_at DESC
+			LIMIT 1`,
+			w.WalletID, persona.InquiryApproved)
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			return fmt.Errorf("getting persona inquiry: %w", err)
+		}
+		w.PersonaInquiryID = inquiry.ExternalID
+		w.PersonaInquiryState = inquiry.State
 	}
-	err = b.DB().GetContext(ctx, &inquiry, `
-		SELECT external_id, state
-		FROM kyc_persona_inquiries
-		WHERE wallet_id = $1
-		ORDER BY (state = $2) DESC, updated_at DESC
-		LIMIT 1`,
-		w.WalletID, persona.InquiryApproved)
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		return fmt.Errorf("getting persona inquiry: %w", err)
-	}
-	w.PersonaInquiryID = inquiry.ExternalID
-	w.PersonaInquiryState = inquiry.State
 
 	if p.externalUserID != nil {
 		w.ExternalUserID, err = p.externalUserID(ctx, b, w.WalletID)
@@ -364,11 +375,6 @@ func (p providerReport) fillWallet(ctx context.Context, b Backends, w *reportWal
 	return nil
 }
 
-// listTransactions returns the wallet's transactions in the given currency, newest first.
-// A transaction is stored in its own wallet's currency (a cross-currency payment is
-// saved once per side), so this picks the transactions of the provider that holds it.
-// transactions.provider isn't used because Rafiki labels payments "gatehub" and wallet
-// to wallet payments "payments_engine" whatever account paid.
 func listTransactions(ctx context.Context, dbc *sqlx.DB, walletID string, cc currency.Currency) ([]reportTransaction, error) {
 	var txs []struct {
 		ID          string         `db:"id"`

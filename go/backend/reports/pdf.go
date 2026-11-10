@@ -73,8 +73,12 @@ func (p providerReport) fields(u reportUser, w reportWallet) []pdfField {
 		{"wallet_id", "Wallet ID", w.WalletID},
 		{"wallet_country", "Wallet country", w.Country},
 		{"local_kyc", "Local KYC *", w.LocalKYC},
-		{"persona_inquiry_id", "Persona inquiry ID", w.PersonaInquiryID},
-		{"persona_inquiry_state", "Persona inquiry state", w.PersonaInquiryState},
+	}
+	if p.persona {
+		f = append(f,
+			pdfField{"persona_inquiry_id", "Persona inquiry ID", w.PersonaInquiryID},
+			pdfField{"persona_inquiry_state", "Persona inquiry state", w.PersonaInquiryState},
+		)
 	}
 	if p.externalUserID != nil {
 		f = append(f, pdfField{p.name + "_user_id", p.displayName + " user ID", w.ExternalUserID})
