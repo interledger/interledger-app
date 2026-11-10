@@ -18,6 +18,7 @@ var gatehubUsersReport = providerReport{
 	title:                 "GateHub users report",
 	linkedAccountProvider: gatehub.ProviderName,
 	linkedAccountType:     gatehub.AccTypeBalance,
+	currency:              currency.EUR,
 	selectUsers:           selectGatehubUsers,
 	balance: func(ctx context.Context, b Backends, linkedAccountID string) (currency.Amount, currency.Amount, error) {
 		bal, err := b.Gatehub().GetBalance(ctx, linkedAccountID)

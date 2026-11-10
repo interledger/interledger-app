@@ -62,6 +62,9 @@ type providerReport struct {
 	// linkedAccountProvider and linkedAccountType identify the balance linked account.
 	linkedAccountProvider string
 	linkedAccountType     string
+	// currency picks the transactions: in production each provider holds a single
+	// currency, and no other provider holds it (Xago ZAR, GateHub EUR).
+	currency currency.Currency
 	// selectUsers picks the report's users and wallets. alwaysInclude lists users that get
 	// a row even without a wallet.
 	selectUsers func(ctx context.Context, b Backends, identities []user.User) (alwaysInclude []string, wallets []walletRow, err error)
@@ -301,7 +304,7 @@ func (p providerReport) listUsers(ctx context.Context, b Backends) ([]reportUser
 }
 
 // fillWallet adds a wallet's KYC status, Persona inquiry, provider details, balance
-// and full transaction history to w.
+// and the provider's transaction history to w.
 func (p providerReport) fillWallet(ctx context.Context, b Backends, w *reportWallet) error {
 	linkedAccounts, err := b.LinkedAccounts().ListByWalletId(ctx, w.WalletID)
 	if err != nil {
@@ -354,6 +357,19 @@ func (p providerReport) fillWallet(ctx context.Context, b Backends, w *reportWal
 		w.BalanceCurrency = total.Currency.String()
 	}
 
+	w.Transactions, err = listTransactions(ctx, b.DB(), w.WalletID, p.currency)
+	if err != nil {
+		return fmt.Errorf("listing transactions: %w", err)
+	}
+	return nil
+}
+
+// listTransactions returns the wallet's transactions in the given currency, newest first.
+// A transaction is stored in its own wallet's currency (a cross-currency payment is
+// saved once per side), so this picks the transactions of the provider that holds it.
+// transactions.provider isn't used because Rafiki labels payments "gatehub" and wallet
+// to wallet payments "payments_engine" whatever account paid.
+func listTransactions(ctx context.Context, dbc *sqlx.DB, walletID string, cc currency.Currency) ([]reportTransaction, error) {
 	var txs []struct {
 		ID          string         `db:"id"`
 		Type        string         `db:"type"`
@@ -368,21 +384,21 @@ func (p providerReport) fillWallet(ctx context.Context, b Backends, w *reportWal
 		UpdatedAt   time.Time      `db:"updated_at"`
 	}
 	// Queried directly because the transactions client doesn't expose created_at.
-	err = b.DB().SelectContext(ctx, &txs, `
+	err := dbc.SelectContext(ctx, &txs, `
 		SELECT id, type, state, provider, title, amount, provider_fee, asset_scale, asset_code, created_at, updated_at
 		FROM transactions
-		WHERE wallet_id = $1
+		WHERE wallet_id = $1 AND asset_code = $2
 		ORDER BY created_at DESC, id`,
-		w.WalletID)
+		walletID, cc)
 	if err != nil {
-		return fmt.Errorf("listing transactions: %w", err)
+		return nil, err
 	}
 
-	w.Transactions = make([]reportTransaction, 0, len(txs))
+	ret := make([]reportTransaction, 0, len(txs))
 	for _, t := range txs {
 		amount := currency.Amount{Value: t.Amount, Currency: currency.ParseCurrency(t.Asset), Scale: t.Scale}
 		fee := currency.Amount{Value: t.ProviderFee, Currency: amount.Currency, Scale: t.Scale}
-		w.Transactions = append(w.Transactions, reportTransaction{
+		ret = append(ret, reportTransaction{
 			ID:        t.ID,
 			CreatedAt: t.CreatedAt,
 			UpdatedAt: t.UpdatedAt,
@@ -395,5 +411,5 @@ func (p providerReport) fillWallet(ctx context.Context, b Backends, w *reportWal
 			Title:     t.Title.String,
 		})
 	}
-	return nil
+	return ret, nil
 }
