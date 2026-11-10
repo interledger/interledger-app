@@ -69,12 +69,16 @@ func (p providerReport) fields(u reportUser, w reportWallet) []pdfField {
 		{"first_name", "First name", u.FirstName},
 		{"last_name", "Last name", u.LastName},
 		{"user_id", "User ID", u.UserID},
-		{"kratos_country", "Kratos country", u.KratosCountry},
+		{"signup_country", "Signup country", u.SignupCountry},
 		{"wallet_id", "Wallet ID", w.WalletID},
-		{"wallet_country", "Wallet country", w.Country},
+		{"wallet_country", "Wallet country **", w.Country},
 		{"local_kyc", "Local KYC *", w.LocalKYC},
-		{"persona_inquiry_id", "Persona inquiry ID", w.PersonaInquiryID},
-		{"persona_inquiry_state", "Persona inquiry state", w.PersonaInquiryState},
+	}
+	if p.persona {
+		f = append(f,
+			pdfField{"persona_inquiry_id", "Persona inquiry ID", w.PersonaInquiryID},
+			pdfField{"persona_inquiry_state", "Persona inquiry state", w.PersonaInquiryState},
+		)
 	}
 	if p.externalUserID != nil {
 		f = append(f, pdfField{p.name + "_user_id", p.displayName + " user ID", w.ExternalUserID})
@@ -91,6 +95,13 @@ func (p providerReport) fields(u reportUser, w reportWallet) []pdfField {
 func (p providerReport) kycDisclaimer() string {
 	return "* Local KYC is this app's own record and may be out of date. The authoritative KYC status is held by " +
 		p.displayName + "; check it there before relying on it."
+}
+
+// walletCountryDisclaimer explains that a wallet's country picks the provider, and that
+// the provider decides whether the user is eligible.
+func (p providerReport) walletCountryDisclaimer() string {
+	return "** Wallet country can be changed to route a user to a specific provider. " +
+		p.displayName + " decides whether the user is eligible."
 }
 
 // pdf renders the report with one section per wallet: the user's and wallet's details
@@ -207,10 +218,11 @@ func (p providerReport) pdfSection(doc *fpdf.Fpdf, u reportUser, w reportWallet,
 		doc.Ln(-1)
 	}
 
-	// Footnote for the "Local KYC *" label.
+	// Footnotes for the "Local KYC *" and "Wallet country **" labels.
 	doc.SetFont(pdfFontFamily, "", 7)
 	doc.SetTextColor(110, 110, 110)
 	doc.CellFormat(0, 4, p.kycDisclaimer(), "", 1, "L", false, 0, "")
+	doc.CellFormat(0, 4, p.walletCountryDisclaimer(), "", 1, "L", false, 0, "")
 	doc.SetTextColor(0, 0, 0)
 
 	if w.Error != "" {

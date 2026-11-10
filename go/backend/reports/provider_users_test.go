@@ -10,7 +10,7 @@ import (
 
 func TestXagoHeaderUnchanged(t *testing.T) {
 	want := []string{
-		"email", "first_name", "last_name", "user_id", "kratos_country",
+		"email", "first_name", "last_name", "user_id", "signup_country",
 		"wallet_id", "wallet_country", "local_kyc", "persona_inquiry_id", "persona_inquiry_state", "xago_linked_account_id", "balance", "available_balance", "balance_currency",
 		"transaction_id", "created_at", "updated_at", "type", "state", "provider", "amount", "fee", "currency", "title",
 		"error",
@@ -29,6 +29,11 @@ func TestGatehubHeader(t *testing.T) {
 	for _, c := range []string{"local_kyc", "gatehub_user_id", "gatehub_linked_account_id", "balance"} {
 		if _, ok := idx[c]; !ok {
 			t.Errorf("gatehub header is missing %q: %v", c, h)
+		}
+	}
+	for _, c := range []string{"persona_inquiry_id", "persona_inquiry_state"} {
+		if _, ok := idx[c]; ok {
+			t.Errorf("gatehub header should not have %q: %v", c, h)
 		}
 	}
 	if idx["gatehub_user_id"] > idx["gatehub_linked_account_id"] {
@@ -68,7 +73,7 @@ func TestXagoUsersCSV(t *testing.T) {
 	created := time.Date(2026, 10, 1, 12, 0, 0, 0, time.FixedZone("SAST", 2*60*60))
 	users := []reportUser{
 		{
-			UserID: "u1", Email: "a@example.test", FirstName: "Ann", LastName: "Lee", KratosCountry: "ZA",
+			UserID: "u1", Email: "a@example.test", FirstName: "Ann", LastName: "Lee", SignupCountry: "ZA",
 			Wallets: []reportWallet{
 				{
 					WalletID: "w1", Country: "ZA", LocalKYC: "Approved", PersonaInquiryID: "inq_1", PersonaInquiryState: "approved",
@@ -81,7 +86,7 @@ func TestXagoUsersCSV(t *testing.T) {
 				{WalletID: "w2", Country: "ZA", Error: "boom"},
 			},
 		},
-		{UserID: "u2", Email: "b@example.test", KratosCountry: "ZA"},
+		{UserID: "u2", Email: "b@example.test", SignupCountry: "ZA"},
 	}
 
 	rows, col := readReport(t, xagoUsersReport, users)
@@ -116,7 +121,7 @@ func TestXagoUsersCSV(t *testing.T) {
 func TestGatehubUsersCSV(t *testing.T) {
 	users := []reportUser{
 		{
-			UserID: "u1", Email: "a@example.test", KratosCountry: "DE",
+			UserID: "u1", Email: "a@example.test", SignupCountry: "DE",
 			Wallets: []reportWallet{
 				{WalletID: "w1", Country: "DE", LocalKYC: "Approved", ExternalUserID: "gh-1", LinkedAccountID: "la1", Balance: "5.00", AvailableBalance: "5.00", BalanceCurrency: "EUR"},
 			},
@@ -217,17 +222,18 @@ func TestFit(t *testing.T) {
 	}
 }
 
-func TestKYCDisclaimer(t *testing.T) {
-	// The disclaimer names the report's provider and fits on one line of the page.
+func TestDisclaimers(t *testing.T) {
+	// Each disclaimer names the report's provider and fits on one line of the page.
 	for _, p := range []providerReport{xagoUsersReport, gatehubUsersReport} {
-		d := p.kycDisclaimer()
-		if !strings.Contains(d, p.displayName) {
-			t.Errorf("%s: disclaimer %q does not name the provider", p.name, d)
-		}
-		doc := p.newPDF(time.Now())
-		doc.SetFont(pdfFontFamily, "", 7)
-		if w := doc.GetStringWidth(d); w > 277 {
-			t.Errorf("%s: disclaimer is %.0fmm wide, wider than the page", p.name, w)
+		for _, d := range []string{p.kycDisclaimer(), p.walletCountryDisclaimer()} {
+			if !strings.Contains(d, p.displayName) {
+				t.Errorf("%s: disclaimer %q does not name the provider", p.name, d)
+			}
+			doc := p.newPDF(time.Now())
+			doc.SetFont(pdfFontFamily, "", 7)
+			if w := doc.GetStringWidth(d); w > 277 {
+				t.Errorf("%s: disclaimer is %.0fmm wide, wider than the page", p.name, w)
+			}
 		}
 	}
 }

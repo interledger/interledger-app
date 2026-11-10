@@ -8,7 +8,7 @@ import (
 	adminv1 "github.com/interledger/interledger-app/go/proto/backend/admin/v1"
 )
 
-// GetXagoUsersReport returns the Xago users report as a CSV or PDF download.
+// GetXagoUsersReport returns the Xago and South African users report as a CSV or PDF download.
 func (s *AdminRpcService) GetXagoUsersReport(ctx context.Context, req *adminv1.UsersReportRequest) (*adminv1.ReportFile, error) {
 	return reportFile(reports.XagoUsers(ctx, s.b, reportFormat(req.GetFormat()), time.Now()))
 }

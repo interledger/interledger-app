@@ -52,7 +52,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 const REPORTS = [
-  { label: 'South Africa users report', path: '/reports/xago-users' },
+  { label: 'Xago users report', path: '/reports/xago-users' },
   { label: 'GateHub users report', path: '/reports/gatehub-users' }
 ]
 
